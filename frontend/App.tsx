@@ -1,45 +1,48 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+import 'react-native-gesture-handler';
+import React, { useEffect } from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { View, ActivityIndicator, StatusBar } from 'react-native';
+import { enableScreens } from 'react-native-screens';
+import { Provider } from 'react-redux';
+import { store } from './src/store';
+import { bootstrapAuth } from './src/store/authSlice';
+import AuthStack from './src/navigation/Auth';
+import MainStack from './src/navigation/MainStack';
+import { useAppSelector, useAppDispatch } from './src/store/hooks';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { NewAppScreen } from '@react-native/new-app-screen';
-import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
-import {
-  SafeAreaProvider,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+enableScreens();
 
-function App() {
-  const isDarkMode = useColorScheme() === 'dark';
+function RootNavigatorGate() {
+  const dispatch = useAppDispatch();
+  const { initializing, isLoggedIn } = useAppSelector(s => s.auth);
+
+  useEffect(() => {
+    dispatch(bootstrapAuth());
+  }, [dispatch]);
+
+  if (initializing) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
 
   return (
     <SafeAreaProvider>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <AppContent />
+      <NavigationContainer>
+        {isLoggedIn ? <MainStack /> : <AuthStack />}
+      </NavigationContainer>
     </SafeAreaProvider>
   );
 }
 
-function AppContent() {
-  const safeAreaInsets = useSafeAreaInsets();
-
+export default function App() {
   return (
-    <View style={styles.container}>
-      <NewAppScreen
-        templateFileName="App.tsx"
-        safeAreaInsets={safeAreaInsets}
-      />
-    </View>
+    <Provider store={store}>
+      <StatusBar backgroundColor={'black'} barStyle={'light-content'} />
+      <RootNavigatorGate />
+    </Provider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});
-
-export default App;

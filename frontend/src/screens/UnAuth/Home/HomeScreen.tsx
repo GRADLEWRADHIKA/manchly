@@ -10,8 +10,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TrendingUp, Users, Play, BookOpen, Award } from 'lucide-react-native';
-import AppHeader from '../../components/AppHeader';
-import colors from '../../theme/colors';
+import AppHeader from '../../../components/AppHeader';
+import colors from '../../../theme/colors';
 
 const HomeScreen: React.FC = () => {
   const featuredContent = [

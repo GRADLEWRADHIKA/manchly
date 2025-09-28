@@ -1,43 +1,32 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { createDrawerNavigator } from '@react-navigation/drawer';
-import CustomDrawer from './CustomDrawer';
 import BottomTab from './BottomTab';
-import ChatsScreen from '../screens/UnAuth/ChatsScreen';
-import ProductsScreen from '../screens/UnAuth/ProductsScreen';
-import HomeScreen from '../screens/UnAuth/HomeScreen';
-import ProfileScreen from '../screens/UnAuth/ProfileScreen';
+import Settings from '../screens/UnAuth/Profile/Settings';
+import Lists from '../screens/UnAuth/Profile/Lists';
+import Earnings from '../screens/UnAuth/Profile/Earnings';
+import UserProfile from '../screens/UnAuth/Profile/UserProfile';
+import Dashboard from '../screens/UnAuth/Profile/Dashboard';
+import SuperThank from '../screens/UnAuth/Profile/SuperThank';
+import Wallet from '../screens/UnAuth/Profile/Wallet';
+import CreateProducts from '../screens/UnAuth/Product/CreateProducts';
 
 const Stack = createNativeStackNavigator();
-const Drawer = createDrawerNavigator();
-
-const HomeDrawer = () => {
-  return (
-    <Drawer.Navigator
-      initialRouteName="Main"
-      drawerContent={props => <CustomDrawer {...props} />}
-      screenOptions={{
-        headerShown: false,
-        drawerPosition: 'left',
-        drawerType: 'slide',
-      }}
-    >
-      <Drawer.Screen name="Main" component={BottomTab} />
-    </Drawer.Navigator>
-  );
-};
 
 const MainStack = () => {
   return (
     <Stack.Navigator
-      initialRouteName="HomeDrawer"
+      initialRouteName="BottomTab"
       screenOptions={{ headerShown: false }}
     >
-      <Stack.Screen name="HomeDrawer" component={HomeDrawer} />
-      <Stack.Screen name="ChatsScreen" component={ChatsScreen} />
-      <Stack.Screen name="ProductsScreen" component={ProductsScreen} />
-      <Stack.Screen name="HomeScreen" component={HomeScreen} />
-      <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
+      <Stack.Screen name="BottomTab" component={BottomTab} />
+      <Stack.Screen name="Settings" component={Settings} />
+      <Stack.Screen name="Lists" component={Lists} />
+      <Stack.Screen name="Earnings" component={Earnings} />
+      <Stack.Screen name="UserProfile" component={UserProfile} />
+      <Stack.Screen name="Dashboard" component={Dashboard} />
+      <Stack.Screen name="SuperThank" component={SuperThank} />
+      <Stack.Screen name="Wallet" component={Wallet} />
+      <Stack.Screen name="CreateProducts" component={CreateProducts} />
     </Stack.Navigator>
   );
 };

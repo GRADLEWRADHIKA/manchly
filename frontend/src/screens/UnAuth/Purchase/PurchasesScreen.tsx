@@ -1,8 +1,8 @@
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView } from 'react-native';
 import React from 'react';
 import { CalendarClock, Video, GraduationCap, Plus } from 'lucide-react-native';
-import AppHeader from '../../components/AppHeader';
-import colors from '../../theme/colors';
+import AppHeader from '../../../components/AppHeader';
+import colors from '../../../theme/colors';
 
 const purchases = [
   {

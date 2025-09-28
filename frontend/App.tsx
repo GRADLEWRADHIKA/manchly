@@ -6,7 +6,7 @@ import { enableScreens } from 'react-native-screens';
 import { Provider } from 'react-redux';
 import { store } from './src/store';
 import { bootstrapAuth } from './src/store/authSlice';
-import AuthStack from './src/navigation/Auth';
+import AuthStack from './src/navigation/AuthStack';
 import MainStack from './src/navigation/MainStack';
 import { useAppSelector, useAppDispatch } from './src/store/hooks';
 import { SafeAreaProvider } from 'react-native-safe-area-context';

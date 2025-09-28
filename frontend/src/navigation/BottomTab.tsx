@@ -8,10 +8,10 @@ import {
 } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import colors from '../theme/colors';
-import ChatsScreen from '../screens/UnAuth/ChatsScreen';
-import ProductsScreen from '../screens/UnAuth/ProductsScreen';
-import HomeScreen from '../screens/UnAuth/HomeScreen';
-import ProfileScreen from '../screens/UnAuth/ProfileScreen';
+import ChatListScreen from '../screens/UnAuth/Chat/ChatsScreen';
+import ProductsScreen from '../screens/UnAuth/Product/ProductsScreen';
+import HomeScreen from '../screens/UnAuth/Home/HomeScreen';
+import ProfileScreen from '../screens/UnAuth/Profile/ProfileScreen';
 import {
   MessageCircle,
   ShoppingCart,
@@ -20,9 +20,9 @@ import {
   House,
   UserPen,
 } from 'lucide-react-native';
-import PurchasesScreen from '../screens/UnAuth/PurchasesScreen';
+import PurchasesScreen from '../screens/UnAuth/Purchase/PurchasesScreen';
 
-type TabName = 'Home' | 'Chats' | 'MyProducts' | 'MyPurchases' | 'Settings';
+type TabName = 'Home' | 'ChatListScreen' | 'ProductsScreen' | 'PurchasesScreen' | 'ProfileScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -39,25 +39,25 @@ const tabs: {
     Icon: House,
   },
   {
-    name: 'MyProducts',
+    name: 'ProductsScreen',
     component: ProductsScreen,
     label: 'Products',
     Icon: ShoppingCart,
   },
   {
-    name: 'Chats',
-    component: ChatsScreen,
+    name: 'ChatListScreen',
+    component: ChatListScreen,
     label: 'Chats',
     Icon: MessageCircle,
   },
   {
-    name: 'MyPurchases',
+    name: 'PurchasesScreen',
     component: PurchasesScreen,
     label: 'Purchases',
     Icon: ShoppingBag,
   },
   {
-    name: 'Settings',
+    name: 'ProfileScreen',
     component: ProfileScreen,
     label: 'Profile',
     Icon: UserPen,
@@ -121,7 +121,7 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
 const BottomTab = () => {
   return (
     <Tab.Navigator
-      initialRouteName="MyPurchases"
+      initialRouteName="Home"
       screenOptions={{
         headerShown: false,
         tabBarStyle: { display: 'none' },

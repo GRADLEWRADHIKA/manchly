@@ -8,8 +8,8 @@ import {
   Image,
 } from 'react-native';
 import { MessageCircle } from 'lucide-react-native';
-import AppHeader from '../../components/AppHeader';
-import colors from '../../theme/colors';
+import AppHeader from '../../../components/AppHeader';
+import colors from '../../../theme/colors';
 
 type ChatUser = {
   id: string;

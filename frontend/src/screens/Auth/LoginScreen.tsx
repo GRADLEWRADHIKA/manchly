@@ -12,11 +12,9 @@ import { useNavigation } from '@react-navigation/native';
 import { Phone, ArrowRight } from 'lucide-react-native';
 import colors from '../../theme/colors';
 
-
 const LoginScreen: React.FC = () => {
   const [phone, setPhone] = useState('');
-   const Nav = useNavigation();
-
+  const Nav = useNavigation();
 
   return (
     <SafeAreaView style={styles.container}>
@@ -64,7 +62,7 @@ const LoginScreen: React.FC = () => {
             ]}
             onPress={() => {
               Nav.navigate('OTPScreen');
-              setPhone('')
+              setPhone('');
             }}
             disabled={phone.length < 10}
             activeOpacity={0.8}

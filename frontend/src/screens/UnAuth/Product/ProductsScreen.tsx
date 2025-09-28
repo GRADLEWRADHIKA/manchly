@@ -1,10 +1,12 @@
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView } from 'react-native';
 import React from 'react';
 import { Play, UserPen, Clock, Plus } from 'lucide-react-native';
-import AppHeader from '../../components/AppHeader';
-import colors from '../../theme/colors';
+import AppHeader from '../../../components/AppHeader';
+import colors from '../../../theme/colors';
+import { useNavigation } from '@react-navigation/native';
 
 const PurchasesScreen = () => {
+  const Nav = useNavigation();
   
   return (
     <View style={styles.container}>
@@ -51,8 +53,9 @@ const PurchasesScreen = () => {
         </View>
       </ScrollView>
 
-      {/* Floating Action Button */}
-      <TouchableOpacity style={styles.fab}>
+      <TouchableOpacity style={styles.fab} onPress={()=>{
+        Nav.navigate('CreateProducts');
+      }}>
         <Plus size={28} color="#fff" />
       </TouchableOpacity>
     </View>

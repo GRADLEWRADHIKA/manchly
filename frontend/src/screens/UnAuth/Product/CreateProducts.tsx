@@ -45,8 +45,8 @@ const CreateProducts = () => {
 
   const tiles: Tile[] = [
     { id: 'locked', title: 'Locked\nMessages', Icon: Lock, bg: '#F26522' },
-    { id: 'channel', title: 'Channel\non Rigi', Icon: Megaphone, bg: '#2E91F6' },
-    { id: 'group', title: 'Group\non Rigi', Icon: Users2, bg: '#7F49D6' },
+    { id: 'channel', title: 'Channel\non Manchly', Icon: Megaphone, bg: '#2E91F6' },
+    { id: 'group', title: 'Group\non Manchly', Icon: Users2, bg: '#7F49D6' },
 
     { id: 'webinar', title: 'Webinar &\nWorkshops', Icon: Video, bg: '#B03060' },
     { id: 'courses', title: 'Courses', Icon: GraduationCap, bg: '#2FBF71' },

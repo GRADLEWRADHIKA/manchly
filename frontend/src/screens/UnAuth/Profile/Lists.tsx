@@ -41,14 +41,14 @@ const Lists = ({ navigation }: any) => {
         />
         <ListItem
           icon={Volume2}
-          title="Channels on Rigi"
-          subtitle="List of created and joined channels on Rigi"
+          title="Channels on Manchly"
+          subtitle="List of created and joined channels on Manchly"
           color={{ bg: '#E0F3FF', icon: '#0096FF' }}
         />
         <ListItem
           icon={Users}
-          title="Groups on Rigi"
-          subtitle="List of created and joined groups on Rigi"
+          title="Groups on Manchly"
+          subtitle="List of created and joined groups on Manchly"
           color={{ bg: '#F1E8FF', icon: '#7A42FF' }}
         />
         <ListItem

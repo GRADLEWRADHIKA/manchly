@@ -75,7 +75,7 @@ const HomeScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <RNStatusBar barStyle="dark-content" />
-      <AppHeader title="RIGI" />
+      <AppHeader title="Manchly" />
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.welcomeSection}>

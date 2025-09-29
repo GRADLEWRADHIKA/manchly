@@ -27,13 +27,13 @@ const LoginScreen: React.FC = () => {
       <View style={styles.content}>
         <View style={styles.logoSection}>
           <View style={styles.logoContainer}>
-            <Text style={styles.logoText}>RIGI</Text>
+            <Text style={styles.logoText}>Manchly</Text>
           </View>
           <Text style={styles.tagline}>Create. Connect. Grow.</Text>
         </View>
 
         <View style={styles.formSection}>
-          <Text style={styles.title}>Welcome to Rigi</Text>
+          <Text style={styles.title}>Welcome to Manchly</Text>
           <Text style={styles.subtitle}>
             Enter your phone number to get started
           </Text>

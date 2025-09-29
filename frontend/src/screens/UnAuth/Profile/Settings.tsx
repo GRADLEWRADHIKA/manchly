@@ -40,7 +40,7 @@ const settingsItems = [
   },
   {
     title: 'FAQs',
-    subtitle: 'Have a doubt about Rigi? Use our FAQ guide to solve them',
+    subtitle: 'Have a doubt about Manchly? Use our FAQ guide to solve them',
     icon: <HelpCircle size={22} color={colors.black} />,
     onPress: () => console.log('FAQs'),
   },
@@ -52,7 +52,7 @@ const settingsItems = [
   },
   {
     title: 'Need help?',
-    subtitle: 'Get in touch with team Rigi',
+    subtitle: 'Get in touch with team Manchly',
     icon: <MessageCircleQuestion size={22} color={colors.black} />,
     onPress: () => console.log('Need Help'),
   },

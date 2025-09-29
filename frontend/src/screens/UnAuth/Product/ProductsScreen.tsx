@@ -10,7 +10,7 @@ const PurchasesScreen = () => {
   
   return (
     <View style={styles.container}>
-      <AppHeader title="RIGI" />
+      <AppHeader title="Manchly" />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Main Course Card */}

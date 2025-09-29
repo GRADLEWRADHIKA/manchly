@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import colors from '../theme/colors';
-const AppHeader = ({ title = 'RIGI' }) => {
+const AppHeader = ({ title = 'Manchly' }) => {
   const insets = useSafeAreaInsets();
   return (
     <View style={[styles.container, { paddingTop: insets.top + 10 }]}>
@@ -17,5 +17,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingBottom: 14,
   },
-  title: { color: '#fff', fontSize: 22, fontWeight: '700' },
+  title: { 
+    color: '#fff', 
+    fontSize: 22, 
+    fontWeight: '700'
+   },
 });

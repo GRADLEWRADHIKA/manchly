@@ -116,9 +116,9 @@ const styles = StyleSheet.create({
     paddingTop: 60,
   },
   logoContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
     backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',

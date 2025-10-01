@@ -1,4 +1,5 @@
-import React from 'react';
+// HomeScreen.tsx
+import React, { useState, memo } from 'react';
 import {
   View,
   Text,
@@ -7,16 +8,72 @@ import {
   TouchableOpacity,
   Image,
   StatusBar as RNStatusBar,
+  FlatList,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TrendingUp, Users, Play, BookOpen, Award } from 'lucide-react-native';
 import AppHeader from '../../../components/AppHeader';
 import colors from '../../../theme/colors';
+import { useAppSelector } from '../../../store/hooks';
+import Video from 'react-native-video';
 
+const { width } = Dimensions.get('window');
+
+/* -------------------- Reusable YouTube-like video thumbnail -------------------- */
+type VideoThumbProps = {
+  id: string;
+  videoUrl: string;
+  thumbnailUrl: string;
+  isPlaying: boolean;
+  onPlay: (id: string) => void;
+  onEnded?: () => void;
+  height?: number;
+};
+
+const VideoThumb = memo(
+  ({ id, videoUrl, thumbnailUrl, isPlaying, onPlay, onEnded, height = 200 }: VideoThumbProps) => {
+    if (!isPlaying) {
+      // Show thumbnail with a big play button overlay
+      return (
+        <TouchableOpacity
+          activeOpacity={0.9}
+          onPress={() => onPlay(id)}
+          style={[styles.videoShell, { height }]}
+        >
+          <Image source={{ uri: thumbnailUrl }} style={styles.videoThumbImage} />
+          <View style={styles.playOverlay}>
+            <View style={styles.playCircle}>
+              <Play size={28} color="#fff" />
+            </View>
+          </View>
+        </TouchableOpacity>
+      );
+    }
+
+    // When playing, render the actual <Video />
+    return (
+      <View style={[styles.videoShell, { height }]}>
+        <Video
+          source={{ uri: videoUrl }}
+          style={styles.videoPlayerFill}
+          resizeMode="cover"
+          controls
+          paused={false}
+          onEnd={onEnded}
+        />
+      </View>
+    );
+  }
+);
+
+/* ---------------------------------- Screen ---------------------------------- */
 const HomeScreen: React.FC = () => {
+  const userType = useAppSelector(state => state.auth.userType);
+
   const featuredContent = [
     {
-      id: '1',
+      id: 'f1',
       title: 'Digital Marketing Masterclass',
       instructor: 'Sarah Johnson',
       image:
@@ -24,9 +81,11 @@ const HomeScreen: React.FC = () => {
       students: '2.5K',
       rating: 4.8,
       duration: '4.5 hours',
+      videoUrl:
+        'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
     },
     {
-      id: '2',
+      id: 'f2',
       title: 'Content Creation Bootcamp',
       instructor: 'Mike Chen',
       image:
@@ -34,6 +93,46 @@ const HomeScreen: React.FC = () => {
       students: '1.8K',
       rating: 4.9,
       duration: '6 hours',
+      videoUrl:
+        'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+    },
+  ];
+
+  const upcomingVideos = [
+    {
+      id: 'v1',
+      title: 'SEO Advanced Tips — Part 1',
+      date: 'Tomorrow 6PM',
+      thumbnail:
+        'https://images.pexels.com/photos/3184460/pexels-photo-3184460.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop',
+      videoUrl:
+        'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4',
+    },
+    {
+      id: 'v2',
+      title: 'SEO Advanced Tips — Part 2',
+      date: 'Tomorrow 7PM',
+      thumbnail:
+        'https://images.pexels.com/photos/3184460/pexels-photo-3184460.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop',
+      videoUrl:
+        'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4',
+    },
+  ];
+
+  const upcomingWebinars = [
+    {
+      id: 'w1',
+      title: 'Live Webinar: Future of Digital Marketing',
+      date: 'Oct 5, 7PM',
+      image:
+        'https://images.pexels.com/photos/1181343/pexels-photo-1181343.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop',
+    },
+    {
+      id: 'w2',
+      title: 'Live Webinar: AI in Content Creation',
+      date: 'Oct 12, 5PM',
+      image:
+        'https://images.pexels.com/photos/3184296/pexels-photo-3184296.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop',
     },
   ];
 
@@ -44,25 +143,43 @@ const HomeScreen: React.FC = () => {
     { label: 'Revenue', value: '$12.5K', icon: <TrendingUp size={24} color={colors.warning} /> },
   ];
 
-  const renderFeaturedCard = (item: any) => (
-    <TouchableOpacity key={item.id} style={styles.featuredCard}>
-      <Image source={{ uri: item.image }} style={styles.featuredImage} />
-      <View style={styles.featuredContent}>
-        <Text style={styles.featuredTitle}>{item.title}</Text>
-        <Text style={styles.featuredInstructor}>by {item.instructor}</Text>
-        <View style={styles.featuredStats}>
-          <View style={styles.statBadge}>
-            <Users size={14} color={colors.textSecondary} />
-            <Text style={styles.statText}>{item.students}</Text>
+  // Only one video plays at a time
+  const [playingVideoId, setPlayingVideoId] = useState<string | null>(null);
+  const handlePlay = (id: string) => setPlayingVideoId(id);
+  const handleEnded = () => setPlayingVideoId(null);
+
+  /* --------------------------- Render helpers --------------------------- */
+  const renderFeaturedCard = (item: any) => {
+    const isPlaying = playingVideoId === item.id;
+    return (
+      <View key={item.id} style={styles.featuredCard}>
+        <View style={styles.featuredContent}>
+          <Text style={styles.featuredTitle}>{item.title}</Text>
+          <Text style={styles.featuredInstructor}>by {item.instructor}</Text>
+          <View style={styles.featuredStats}>
+            <View style={styles.statBadge}>
+              <Users size={14} color={colors.textSecondary} />
+              <Text style={styles.statText}>{item.students}</Text>
+            </View>
+            <View style={[styles.statBadge, styles.statBadgeRight]}>
+              <Play size={14} color={colors.textSecondary} />
+              <Text style={styles.statText}>{item.duration}</Text>
+            </View>
           </View>
-          <View style={[styles.statBadge, styles.statBadgeRight]}>
-            <Play size={14} color={colors.textSecondary} />
-            <Text style={styles.statText}>{item.duration}</Text>
-          </View>
+
+          <VideoThumb
+            id={item.id}
+            videoUrl={item.videoUrl}
+            thumbnailUrl={item.image}
+            isPlaying={isPlaying}
+            onPlay={handlePlay}
+            onEnded={handleEnded}
+            height={200}
+          />
         </View>
       </View>
-    </TouchableOpacity>
-  );
+    );
+  };
 
   const renderQuickStat = (stat: any, index: number) => (
     <View key={index} style={styles.statCard}>
@@ -72,135 +189,138 @@ const HomeScreen: React.FC = () => {
     </View>
   );
 
+  const renderUpcomingVideo = ({ item }: any) => {
+    const isPlaying = playingVideoId === item.id;
+    return (
+      <View style={styles.upcomingCard}>
+        <Text style={styles.upcomingTitle}>{item.title}</Text>
+        <Text style={styles.upcomingDate}>{item.date}</Text>
+
+        <VideoThumb
+          id={item.id}
+          videoUrl={item.videoUrl}
+          thumbnailUrl={item.thumbnail}
+          isPlaying={isPlaying}
+          onPlay={handlePlay}
+          onEnded={handleEnded}
+          height={120}
+        />
+      </View>
+    );
+  };
+
+  const renderUpcomingWebinar = ({ item }: any) => (
+    <View style={styles.upcomingCard}>
+      <Image source={{ uri: item.image }} style={styles.upcomingImage} />
+      <Text style={styles.upcomingTitle}>{item.title}</Text>
+      <Text style={styles.upcomingDate}>{item.date}</Text>
+    </View>
+  );
+
+  /* ----------------------------------- UI ----------------------------------- */
   return (
     <View style={styles.container}>
       <RNStatusBar barStyle="dark-content" />
       <AppHeader title="Manchly" />
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.welcomeSection}>
-          <Text style={styles.welcomeTitle}>Welcome back! 👋</Text>
-          <Text style={styles.welcomeSubtitle}>Ready to create amazing content?</Text>
-        </View>
-
-        <View style={styles.statsSection}>
-          <Text style={styles.sectionTitle}>Quick Stats</Text>
-          <View style={styles.statsGrid}>
-            {quickStats.map(renderQuickStat)}
+      {userType === 'Creator' ? (
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          <View style={styles.welcomeSection}>
+            <Text style={styles.welcomeTitle}>Welcome back! 👋</Text>
+            <Text style={styles.welcomeSubtitle}>Ready to create amazing content?</Text>
           </View>
-        </View>
 
-        <View style={styles.featuredSection}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Featured Content</Text>
-            <TouchableOpacity>
-              <Text style={styles.seeAllText}>See All</Text>
-            </TouchableOpacity>
+          <View style={styles.statsSection}>
+            <Text style={styles.sectionTitle}>Quick Stats</Text>
+            <View style={styles.statsGrid}>{quickStats.map(renderQuickStat)}</View>
           </View>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.featuredScrollContent}
-          >
+
+          <View style={styles.featuredSection}>
+            <View className="sectionHeader" style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Featured Content</Text>
+              <TouchableOpacity>
+                <Text style={styles.seeAllText}>See All</Text>
+              </TouchableOpacity>
+            </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.featuredScrollContent}>
+              {featuredContent.map(renderFeaturedCard)}
+            </ScrollView>
+          </View>
+
+          <View style={styles.actionsSection}>
+            <Text style={styles.sectionTitle}>Quick Actions</Text>
+            <View style={styles.actionsGrid}>
+              <TouchableOpacity style={[styles.actionCard, styles.actionCardRight]}>
+                <View style={[styles.actionIcon, { backgroundColor: `${colors.primary}20` }]}>
+                  <Play size={24} color={colors.primary} />
+                </View>
+                <Text style={styles.actionTitle}>Start Live</Text>
+                <Text style={styles.actionSubtitle}>Go live instantly</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.actionCard}>
+                <View style={[styles.actionIcon, { backgroundColor: `${colors.secondary}20` }]}>
+                  <BookOpen size={24} color={colors.secondary} />
+                </View>
+                <Text style={styles.actionTitle}>Create Course</Text>
+                <Text style={styles.actionSubtitle}>Build new content</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+      ) : (
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          <View style={styles.welcomeSection}>
+            <Text style={styles.welcomeTitle}>Welcome 👋</Text>
+            <Text style={styles.welcomeSubtitle}>Explore amazing content!</Text>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Videos</Text>
             {featuredContent.map(renderFeaturedCard)}
-          </ScrollView>
-        </View>
-
-        <View style={styles.actionsSection}>
-          <Text style={styles.sectionTitle}>Quick Actions</Text>
-          <View style={styles.actionsGrid}>
-            <TouchableOpacity style={[styles.actionCard, styles.actionCardRight]}>
-              <View style={[styles.actionIcon, { backgroundColor: `${colors.primary}20` }]}>
-                <Play size={24} color={colors.primary} />
-              </View>
-              <Text style={styles.actionTitle}>Start Live</Text>
-              <Text style={styles.actionSubtitle}>Go live instantly</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.actionCard}>
-              <View style={[styles.actionIcon, { backgroundColor: `${colors.secondary}20` }]}>
-                <BookOpen size={24} color={colors.secondary} />
-              </View>
-              <Text style={styles.actionTitle}>Create Course</Text>
-              <Text style={styles.actionSubtitle}>Build new content</Text>
-            </TouchableOpacity>
           </View>
-        </View>
 
-        <View style={styles.recentActivity}>
-          <Text style={styles.sectionTitle}>Recent Activity</Text>
-          <View style={styles.activityList}>
-            <View style={styles.activityItem}>
-              <View style={styles.activityDot} />
-              <View style={styles.activityContent}>
-                <Text style={styles.activityTitle}>New student enrolled</Text>
-                <Text style={styles.activityTime}>2 minutes ago</Text>
-              </View>
-            </View>
-
-            <View style={styles.activityItem}>
-              <View style={styles.activityDot} />
-              <View style={styles.activityContent}>
-                <Text style={styles.activityTitle}>Course completed by Alex</Text>
-                <Text style={styles.activityTime}>1 hour ago</Text>
-              </View>
-            </View>
-
-            <View style={styles.activityItem}>
-              <View style={styles.activityDot} />
-              <View style={styles.activityContent}>
-                <Text style={styles.activityTitle}>Payment received</Text>
-                <Text style={styles.activityTime}>3 hours ago</Text>
-              </View>
-            </View>
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Upcoming Videos</Text>
+            <FlatList
+              data={upcomingVideos}
+              keyExtractor={item => item.id}
+              renderItem={renderUpcomingVideo}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+            />
           </View>
-        </View>
-      </ScrollView>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Upcoming Webinars</Text>
+            <FlatList
+              data={upcomingWebinars}
+              keyExtractor={item => item.id}
+              renderItem={renderUpcomingWebinar}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+            />
+          </View>
+        </ScrollView>
+      )}
     </View>
   );
 };
 
+/* --------------------------------- Styles --------------------------------- */
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  content: {
-    flex: 1,
-  },
+  container: { flex: 1, backgroundColor: colors.background },
+  content: { flex: 1 },
 
   /* Welcome */
-  welcomeSection: {
-    paddingHorizontal: 16,
-    paddingVertical: 24,
-  },
-  welcomeTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: 4,
-  },
-  welcomeSubtitle: {
-    fontSize: 16,
-    color: colors.textSecondary,
-  },
+  welcomeSection: { paddingHorizontal: 16, paddingVertical: 24 },
+  welcomeTitle: { fontSize: 24, fontWeight: '700', color: colors.text, marginBottom: 4 },
+  welcomeSubtitle: { fontSize: 16, color: colors.textSecondary },
 
   /* Stats */
-  statsSection: {
-    paddingHorizontal: 16,
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: 16,
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    // replaced gap with margins in children
-  },
+  statsSection: { paddingHorizontal: 16, marginBottom: 24 },
+  sectionTitle: { fontSize: 20, fontWeight: '700', color: colors.text, marginBottom: 16 },
+  statsGrid: { flexDirection: 'row', flexWrap: 'wrap' },
   statCard: {
     flex: 1,
     minWidth: '45%',
@@ -211,25 +331,12 @@ const styles = StyleSheet.create({
     marginRight: 12,
     marginBottom: 12,
   },
-  statIcon: {
-    marginBottom: 8,
-  },
-  statValue: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    textAlign: 'center',
-  },
+  statIcon: { marginBottom: 8 },
+  statValue: { fontSize: 24, fontWeight: '700', color: colors.text, marginBottom: 4 },
+  statLabel: { fontSize: 12, color: colors.textSecondary, textAlign: 'center' },
 
   /* Featured */
-  featuredSection: {
-    marginBottom: 24,
-  },
+  featuredSection: { marginBottom: 24 },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -237,51 +344,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     marginBottom: 16,
   },
-  seeAllText: {
-    fontSize: 14,
-    color: colors.primary,
-    fontWeight: '600',
-  },
-  featuredScrollContent: {
-    paddingHorizontal: 16,
-  },
+  seeAllText: { fontSize: 14, color: colors.primary, fontWeight: '600' },
+  featuredScrollContent: { paddingHorizontal: 16 },
   featuredCard: {
-    width: 280,
+    width: width - 40,
     backgroundColor: colors.background,
     borderRadius: 16,
-    marginRight: 16,
+    marginBottom: 16,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 12,
     elevation: 6,
+    overflow: 'hidden',
   },
-  featuredImage: {
-    width: '100%',
-    height: 160,
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-  },
-  featuredContent: {
-    padding: 16,
-  },
-  featuredTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 4,
-  },
-  featuredInstructor: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    marginBottom: 12,
-  },
-  featuredStats: {
-    flexDirection: 'row',
-  },
+  featuredImage: { width: '100%', height: 160 },
+  featuredContent: { padding: 16 },
+  featuredTitle: { fontSize: 16, fontWeight: '600', color: colors.text, marginBottom: 4 },
+  featuredInstructor: { fontSize: 14, color: colors.textSecondary, marginBottom: 12 },
+  featuredStats: { flexDirection: 'row', marginBottom: 12 },
   statBadge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -290,23 +371,36 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 8,
   },
-  statBadgeRight: {
-    marginLeft: 12,
+  statBadgeRight: { marginLeft: 12 },
+  statText: { fontSize: 12, color: colors.textSecondary, marginLeft: 4 },
+
+  /* YouTube-like video blocks */
+  videoShell: {
+    width: '100%',
+    borderRadius: 12,
+    overflow: 'hidden',
+    backgroundColor: '#000',
+    marginTop: 8,
   },
-  statText: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    marginLeft: 4,
+  videoThumbImage: { width: '100%', height: '100%' },
+  playOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
+  playCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  videoPlayerFill: { width: '100%', height: '100%' },
 
   /* Actions */
-  actionsSection: {
-    paddingHorizontal: 16,
-    marginBottom: 24,
-  },
-  actionsGrid: {
-    flexDirection: 'row',
-  },
+  actionsSection: { paddingHorizontal: 16, marginBottom: 24 },
+  actionsGrid: { flexDirection: 'row' },
   actionCard: {
     flex: 1,
     backgroundColor: colors.surface,
@@ -314,9 +408,7 @@ const styles = StyleSheet.create({
     padding: 20,
     alignItems: 'center',
   },
-  actionCardRight: {
-    marginRight: 12,
-  },
+  actionCardRight: { marginRight: 12 },
   actionIcon: {
     width: 48,
     height: 48,
@@ -325,51 +417,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
-  actionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 4,
-  },
-  actionSubtitle: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    textAlign: 'center',
-  },
+  actionTitle: { fontSize: 16, fontWeight: '600', color: colors.text, marginBottom: 4 },
+  actionSubtitle: { fontSize: 12, color: colors.textSecondary, textAlign: 'center' },
 
-  /* Recent Activity */
-  recentActivity: {
-    paddingHorizontal: 16,
-    paddingBottom: 24,
+  /* Upcoming */
+  section: { paddingHorizontal: 16, marginBottom: 24 },
+  upcomingCard: {
+    width: 240,
+    backgroundColor: colors.surface,
+    borderRadius: 16,
+    marginRight: 16,
+    padding: 12,
   },
-  activityList: {
-    // replaced gap with margins on items
-  },
-  activityItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  activityDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.primary,
-    marginRight: 12,
-  },
-  activityContent: {
-    flex: 1,
-  },
-  activityTitle: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: colors.text,
-    marginBottom: 2,
-  },
-  activityTime: {
-    fontSize: 12,
-    color: colors.textSecondary,
-  },
+  upcomingImage: { width: '100%', height: 120, borderRadius: 12, marginBottom: 8 },
+  upcomingTitle: { fontSize: 14, fontWeight: '600', color: colors.text },
+  upcomingDate: { fontSize: 12, color: colors.textSecondary, marginBottom: 8 },
 });
 
 export default HomeScreen;

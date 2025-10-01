@@ -4,13 +4,24 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { ArrowLeft } from 'lucide-react-native';
 import colors from '../theme/colors';
+import { useAppSelector } from '../store/hooks';
 
 const AppHeaderWithBack = ({ title }) => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
+  const userType = useAppSelector(state => state.auth.userType);
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top + 10 }]}>
+    <View
+      style={[
+        styles.container,
+        {
+          paddingTop: insets.top + 10,
+          backgroundColor:
+            userType === 'User' ? colors.secPrimary : colors.primary,
+        },
+      ]}
+    >
       <View style={styles.mainHeader}>
         <TouchableOpacity
           style={styles.backButton}
@@ -30,7 +41,7 @@ export default AppHeaderWithBack;
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: colors.primary,
+    // backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     paddingBottom: 14,

@@ -16,6 +16,7 @@ enableScreens();
 function RootNavigatorGate() {
   const dispatch = useAppDispatch();
   const { initializing, isLoggedIn } = useAppSelector(s => s.auth);
+  const userType = useAppSelector(state => state.auth.userType);
 
   useEffect(() => {
     dispatch(bootstrapAuth());

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,37 +6,97 @@ import {
   TouchableOpacity,
   StyleSheet,
   StatusBar as RNStatusBar,
+  Animated,
+  LayoutChangeEvent,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Phone, ArrowRight } from 'lucide-react-native';
 import colors from '../../theme/colors';
 
+const USER_TYPES = ['Creator', 'User'] as const;
+
+type UserType = typeof USER_TYPES[number];
+
 const LoginScreen: React.FC = () => {
   const [phone, setPhone] = useState('');
-  const Nav = useNavigation();
+  const Nav = useNavigation<any>();
+  const [userType, setUserType] = useState<UserType>('Creator');
+
+  // Animated indicator
+  const indicatorX = useRef(new Animated.Value(0)).current;
+  const [buttonWidths, setButtonWidths] = useState<number[]>([0, 0]);
+
+  useEffect(() => {
+    const idx = USER_TYPES.indexOf(userType);
+    const x = buttonWidths.slice(0, idx).reduce((a, b) => a + b, 0);
+
+    Animated.spring(indicatorX, {
+      toValue: x,
+      useNativeDriver: true,
+      stiffness: 180,
+      damping: 20,
+      mass: 0.8,
+    }).start();
+  }, [userType, buttonWidths, indicatorX]);
+
+  const onButtonLayout = (index: number) => (e: LayoutChangeEvent) => {
+    const w = e.nativeEvent.layout.width;
+    setButtonWidths((prev) => {
+      const copy = [...prev];
+      copy[index] = w;
+      return copy;
+    });
+  };
+
+  const titleByUserType = (type: UserType) =>
+    type === 'Creator' ? 'Welcome Creator' : 'Welcome Back';
 
   return (
     <SafeAreaView style={styles.container}>
-      <RNStatusBar
-        barStyle="dark-content"
-        backgroundColor="transparent"
-        translucent={false}
-      />
+      <RNStatusBar barStyle="dark-content" backgroundColor="transparent" translucent={false} />
 
       <View style={styles.content}>
         <View style={styles.logoSection}>
-          <View style={styles.logoContainer}>
+          <View style={[styles.logoContainer, userType === 'Creator' ? { backgroundColor: colors.primary } : { backgroundColor: colors.secPrimary }]}>
             <Text style={styles.logoText}>Manchly</Text>
           </View>
           <Text style={styles.tagline}>Create. Connect. Grow.</Text>
         </View>
 
         <View style={styles.formSection}>
-          <Text style={styles.title}>Welcome to Manchly</Text>
-          <Text style={styles.subtitle}>
-            Enter your phone number to get started
-          </Text>
+          <Text style={styles.title}>{titleByUserType(userType)}</Text>
+          <Text style={styles.subtitle}>Enter your phone number to get started</Text>
+
+          <View style={styles.segmentWrapper}>
+            <View style={styles.segmentBackground}>
+              {USER_TYPES.map((type, idx) => {
+                const active = userType === type;
+                return (
+                  <TouchableOpacity
+                    key={type}
+                    activeOpacity={0.8}
+                    onPress={() => setUserType(type)}
+                    onLayout={onButtonLayout(idx)}
+                    style={styles.segmentButton}
+                  >
+                    <Text style={[styles.segmentText, active && styles.segmentTextActive]}>{type}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+
+              <Animated.View
+                pointerEvents="none"
+                style={[
+                  styles.indicator,
+                  {
+                    transform: [{ translateX: indicatorX }],
+                    width: buttonWidths.reduce((acc, w, i) => acc + (i === 0 ? w : 0), 0) || (buttonWidths[0] || 0),
+                  },
+                ]}
+              />
+            </View>
+          </View>
 
           <View style={styles.inputContainer}>
             <View style={styles.phoneInputWrapper}>
@@ -61,7 +121,7 @@ const LoginScreen: React.FC = () => {
               phone.length >= 10 && styles.continueButtonActive,
             ]}
             onPress={() => {
-              Nav.navigate('OTPScreen');
+              Nav.navigate('OTPScreen', { userType });
               setPhone('');
             }}
             disabled={phone.length < 10}
@@ -75,10 +135,7 @@ const LoginScreen: React.FC = () => {
             >
               Send OTP
             </Text>
-            <ArrowRight
-              size={20}
-              color={phone.length >= 10 ? '#ffffff' : colors.muted}
-            />
+            <ArrowRight size={20} color={phone.length >= 10 ? '#ffffff' : colors.muted} />
           </TouchableOpacity>
 
           <Text style={styles.termsText}>
@@ -113,44 +170,83 @@ const styles = StyleSheet.create({
   },
   logoSection: {
     alignItems: 'center',
-    paddingTop: 60,
+    paddingTop: 40,
   },
   logoContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 4,
   },
   logoText: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '700',
     color: '#ffffff',
   },
   tagline: {
-    fontSize: 16,
+    fontSize: 14,
     color: colors.textSecondary,
     textAlign: 'center',
   },
   formSection: {
     flex: 1,
     justifyContent: 'center',
-    paddingVertical: 40,
+    paddingVertical: 20,
   },
   title: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: '700',
     color: colors.text,
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 14,
     color: colors.textSecondary,
     textAlign: 'center',
-    marginBottom: 40,
+    marginBottom: 18,
+  },
+  segmentWrapper: {
+    alignItems: 'center',
+    marginBottom: 18,
+  },
+  segmentBackground: {
+    width: '90%',
+    flexDirection: 'row',
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  segmentButton: {
+    flex: 1,
+    paddingVertical: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  segmentText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    fontWeight: '600',
+  },
+  segmentTextActive: {
+    color: colors.primary,
+  },
+  indicator: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    backgroundColor: colors.primary,
+    borderRadius: 12,
+    opacity: 0.12,
   },
   inputContainer: {
     marginBottom: 24,
@@ -161,6 +257,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     borderRadius: 12,
     overflow: 'hidden',
+    backgroundColor: '#fff',
   },
   countryCode: {
     backgroundColor: colors.surface,
@@ -187,7 +284,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.surface,
     borderRadius: 12,
-    paddingVertical: 16,
+    paddingVertical: 14,
     marginBottom: 24,
   },
   continueButtonActive: {
@@ -203,17 +300,17 @@ const styles = StyleSheet.create({
     color: '#ffffff',
   },
   termsText: {
-    fontSize: 14,
+    fontSize: 13,
     color: colors.textSecondary,
     textAlign: 'center',
-    lineHeight: 20,
+    lineHeight: 18,
   },
   linkText: {
     color: colors.primary,
     fontWeight: '500',
   },
   featuresSection: {
-    paddingBottom: 40,
+    paddingBottom: 30,
   },
   featureItem: {
     flexDirection: 'row',

@@ -9,8 +9,8 @@ import {
   StatusBar as RNStatusBar,
 } from 'react-native';
 import colors from '../../../theme/colors';
-import { useAppDispatch } from '../../../store/hooks';
-import { clearStoredOtp } from '../../../store/authSlice';
+import { useAppDispatch, useAppSelector } from '../../../store/hooks';
+import { clearStoredAuth } from '../../../store/authSlice';
 import {
   User2,
   LayoutDashboard,
@@ -37,12 +37,12 @@ const ProfileScreen: React.FC = () => {
   const dispatch = useAppDispatch();
   const [logoutVisible, setLogoutVisible] = useState(false);
   const Nav = useNavigation();
+  const userType = useAppSelector(state => state.auth.userType);
 
   const handleLogout = async () => {
     setLogoutVisible(false);
-    await dispatch(clearStoredOtp());
+    await dispatch(clearStoredAuth());
   };
-
   const RightChevron = <ChevronRight size={18} color={colors.textSecondary} />;
 
   return (
@@ -50,7 +50,15 @@ const ProfileScreen: React.FC = () => {
       <RNStatusBar barStyle="light-content" backgroundColor={colors.primary} />
       <AppHeader title="Profile" />
 
-      <View style={styles.header}>
+      <View
+        style={[
+          styles.header,
+          {
+            backgroundColor:
+              userType === 'User' ? colors.secPrimary : colors.primary,
+          },
+        ]}
+      >
         <View style={styles.greetingWrap}>
           <Image
             source={{ uri: 'https://i.pravatar.cc/200?img=12' }}
@@ -215,7 +223,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
 
   header: {
-    backgroundColor: colors.primary,
+    // backgroundColor: colors.primary,
     paddingBottom: 18,
     paddingHorizontal: 16,
   },

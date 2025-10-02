@@ -10,6 +10,7 @@ import AuthStack from './src/navigation/AuthStack';
 import MainStack from './src/navigation/MainStack';
 import { useAppSelector, useAppDispatch } from './src/store/hooks';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
 
 enableScreens();
 
@@ -44,6 +45,7 @@ export default function App() {
     <Provider store={store}>
       <StatusBar backgroundColor={'black'} barStyle={'light-content'} />
       <RootNavigatorGate />
+      <Toast />
     </Provider>
   );
 }

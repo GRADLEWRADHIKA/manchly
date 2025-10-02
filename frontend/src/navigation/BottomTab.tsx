@@ -1,3 +1,4 @@
+// BottomTab.tsx (or .jsx)
 import React from 'react';
 import {
   View,
@@ -16,13 +17,20 @@ import {
   MessageCircle,
   ShoppingCart,
   ShoppingBag,
-  Settings as SettingsIcon,
   House,
   UserPen,
+  WalletMinimal,
 } from 'lucide-react-native';
 import PurchasesScreen from '../screens/UnAuth/Purchase/PurchasesScreen';
+import { useAppSelector } from '../store/hooks';
+import WalletCreator from '../screens/UnAuth/Wallet/WalletCreator';
 
-type TabName = 'Home' | 'ChatListScreen' | 'ProductsScreen' | 'PurchasesScreen' | 'ProfileScreen';
+type TabName =
+  | 'Home'
+  | 'ChatListScreen'
+  | 'ProductsScreen'
+  | 'PurchasesScreen'
+  | 'ProfileScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -64,7 +72,55 @@ const tabs: {
   },
 ];
 
-function CustomTabBar({ state, descriptors, navigation }: any) {
+type TabNameCreator =
+  | 'Home'
+  | 'ChatListScreen'
+  | 'ProductsScreen'
+  | 'WalletCreator'
+  | 'ProfileScreen';
+
+const TabCreator = createBottomTabNavigator();
+
+const tabsCreator: {
+  name: TabNameCreator;
+  component: React.ComponentType<any>;
+  label: string;
+  Icon: any;
+}[] = [
+  {
+    name: 'Home',
+    component: HomeScreen,
+    label: 'Home',
+    Icon: House,
+  },
+  {
+    name: 'ProductsScreen',
+    component: ProductsScreen,
+    label: 'Products',
+    Icon: ShoppingCart,
+  },
+  {
+    name: 'ChatListScreen',
+    component: ChatListScreen,
+    label: 'Chats',
+    Icon: MessageCircle,
+  },
+  {
+    name: 'WalletCreator',
+    component: WalletCreator,
+    label: 'Wallet',
+    Icon: WalletMinimal,
+  },
+  {
+    name: 'ProfileScreen',
+    component: ProfileScreen,
+    label: 'Profile',
+    Icon: UserPen,
+  },
+];
+
+function CustomTabBar({ state, descriptors, navigation, tabsList }: any) {
+  // tabsList is passed from BottomTab so the bar knows which icons/labels to show
   return (
     <View style={styles.tabContainer}>
       {state.routes.map((route: any, index: number) => {
@@ -77,9 +133,9 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
             ? (options.title as string)
             : route.name;
 
-        const Icon =
-          tabs.find(t => t.name === (route.name as TabName))?.Icon ??
-          MessageCircle;
+        // Look up icon from the passed tabsList first, fallback to MessageCircle
+        const tabInfo = tabsList?.find((t: any) => t.name === route.name);
+        const Icon = tabInfo?.Icon ?? MessageCircle;
 
         const onPress = () => {
           const event = navigation.emit({
@@ -102,7 +158,10 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
             style={styles.tabItem}
             activeOpacity={0.8}
           >
-            <Icon size={isFocused ? 22 : 20} color={isFocused ? colors.primary : colors.black} />
+            <Icon
+              size={isFocused ? 22 : 20}
+              color={isFocused ? colors.primary : colors.black}
+            />
             <Text
               style={[
                 styles.tabLabel,
@@ -119,6 +178,36 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
 }
 
 const BottomTab = () => {
+  const userType = useAppSelector(state => state.auth.userType);
+  const isCreator = userType === 'Creator';
+
+  // choose which tabs to render based on user type
+  const tabsToUse = isCreator ? tabsCreator : tabs;
+
+  // For creators use TabCreator navigator so route names/types match
+  if (isCreator) {
+    return (
+      <TabCreator.Navigator
+        initialRouteName="Home"
+        screenOptions={{
+          headerShown: false,
+          tabBarStyle: { display: 'none' },
+        }}
+        tabBar={props => <CustomTabBar {...props} tabsList={tabsToUse} />}
+      >
+        {tabsToUse.map(t => (
+          <TabCreator.Screen
+            key={t.name}
+            name={t.name}
+            component={t.component}
+            options={{ title: t.label }}
+          />
+        ))}
+      </TabCreator.Navigator>
+    );
+  }
+
+  // default / non-creator user
   return (
     <Tab.Navigator
       initialRouteName="Home"
@@ -126,9 +215,9 @@ const BottomTab = () => {
         headerShown: false,
         tabBarStyle: { display: 'none' },
       }}
-      tabBar={props => <CustomTabBar {...props} />}
+      tabBar={props => <CustomTabBar {...props} tabsList={tabsToUse} />}
     >
-      {tabs.map(t => (
+      {tabsToUse.map(t => (
         <Tab.Screen
           key={t.name}
           name={t.name}

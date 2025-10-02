@@ -9,6 +9,9 @@ import Dashboard from '../screens/UnAuth/Profile/Dashboard';
 import SuperThank from '../screens/UnAuth/Profile/SuperThank';
 import Wallet from '../screens/UnAuth/Profile/Wallet';
 import CreateProducts from '../screens/UnAuth/Product/CreateProducts';
+import CreateWebinar from '../screens/UnAuth/Home/CreateWebinar';
+import CreateCourse from '../screens/UnAuth/Home/CreateCourse';
+import WalletCreator from '../screens/UnAuth/Wallet/WalletCreator';
 
 const Stack = createNativeStackNavigator();
 
@@ -27,6 +30,9 @@ const MainStack = () => {
       <Stack.Screen name="SuperThank" component={SuperThank} />
       <Stack.Screen name="Wallet" component={Wallet} />
       <Stack.Screen name="CreateProducts" component={CreateProducts} />
+      <Stack.Screen name="CreateWebinar" component={CreateWebinar} />
+      <Stack.Screen name="CreateCourse" component={CreateCourse} />
+      <Stack.Screen name="WalletCreator" component={WalletCreator} />
     </Stack.Navigator>
   );
 };

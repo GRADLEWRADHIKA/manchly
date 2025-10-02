@@ -17,6 +17,8 @@ import AppHeader from '../../../components/AppHeader';
 import colors from '../../../theme/colors';
 import { useAppSelector } from '../../../store/hooks';
 import Video from 'react-native-video';
+import CreateWebinarModal from './CreateWebinar';
+import { useNavigation } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 
@@ -32,7 +34,15 @@ type VideoThumbProps = {
 };
 
 const VideoThumb = memo(
-  ({ id, videoUrl, thumbnailUrl, isPlaying, onPlay, onEnded, height = 200 }: VideoThumbProps) => {
+  ({
+    id,
+    videoUrl,
+    thumbnailUrl,
+    isPlaying,
+    onPlay,
+    onEnded,
+    height = 200,
+  }: VideoThumbProps) => {
     if (!isPlaying) {
       // Show thumbnail with a big play button overlay
       return (
@@ -41,7 +51,10 @@ const VideoThumb = memo(
           onPress={() => onPlay(id)}
           style={[styles.videoShell, { height }]}
         >
-          <Image source={{ uri: thumbnailUrl }} style={styles.videoThumbImage} />
+          <Image
+            source={{ uri: thumbnailUrl }}
+            style={styles.videoThumbImage}
+          />
           <View style={styles.playOverlay}>
             <View style={styles.playCircle}>
               <Play size={28} color="#fff" />
@@ -64,12 +77,13 @@ const VideoThumb = memo(
         />
       </View>
     );
-  }
+  },
 );
 
 /* ---------------------------------- Screen ---------------------------------- */
 const HomeScreen: React.FC = () => {
   const userType = useAppSelector(state => state.auth.userType);
+  const navigation = useNavigation<any>();
 
   const featuredContent = [
     {
@@ -137,10 +151,26 @@ const HomeScreen: React.FC = () => {
   ];
 
   const quickStats = [
-    { label: 'Active Courses', value: '12', icon: <BookOpen size={24} color={colors.primary} /> },
-    { label: 'Students', value: '5.2K', icon: <Users size={24} color={colors.secondary} /> },
-    { label: 'Completion Rate', value: '94%', icon: <Award size={24} color={colors.accent} /> },
-    { label: 'Revenue', value: '$12.5K', icon: <TrendingUp size={24} color={colors.warning} /> },
+    {
+      label: 'Active Courses',
+      value: '12',
+      icon: <BookOpen size={24} color={colors.primary} />,
+    },
+    {
+      label: 'Students',
+      value: '5.2K',
+      icon: <Users size={24} color={colors.secondary} />,
+    },
+    {
+      label: 'Completion Rate',
+      value: '94%',
+      icon: <Award size={24} color={colors.accent} />,
+    },
+    {
+      label: 'Revenue',
+      value: '$12.5K',
+      icon: <TrendingUp size={24} color={colors.warning} />,
+    },
   ];
 
   // Only one video plays at a time
@@ -227,22 +257,30 @@ const HomeScreen: React.FC = () => {
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           <View style={styles.welcomeSection}>
             <Text style={styles.welcomeTitle}>Welcome back! 👋</Text>
-            <Text style={styles.welcomeSubtitle}>Ready to create amazing content?</Text>
+            <Text style={styles.welcomeSubtitle}>
+              Ready to create amazing content?
+            </Text>
           </View>
 
           <View style={styles.statsSection}>
             <Text style={styles.sectionTitle}>Quick Stats</Text>
-            <View style={styles.statsGrid}>{quickStats.map(renderQuickStat)}</View>
+            <View style={styles.statsGrid}>
+              {quickStats.map(renderQuickStat)}
+            </View>
           </View>
 
           <View style={styles.featuredSection}>
-            <View className="sectionHeader" style={styles.sectionHeader}>
+            <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Featured Content</Text>
               <TouchableOpacity>
                 <Text style={styles.seeAllText}>See All</Text>
               </TouchableOpacity>
             </View>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.featuredScrollContent}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.featuredScrollContent}
+            >
               {featuredContent.map(renderFeaturedCard)}
             </ScrollView>
           </View>
@@ -250,16 +288,33 @@ const HomeScreen: React.FC = () => {
           <View style={styles.actionsSection}>
             <Text style={styles.sectionTitle}>Quick Actions</Text>
             <View style={styles.actionsGrid}>
-              <TouchableOpacity style={[styles.actionCard, styles.actionCardRight]}>
-                <View style={[styles.actionIcon, { backgroundColor: `${colors.primary}20` }]}>
+              <TouchableOpacity
+                style={[styles.actionCard, styles.actionCardRight]}
+                onPress={() => {
+                  navigation.navigate('CreateWebinar');
+                }}
+              >
+                <View
+                  style={[
+                    styles.actionIcon,
+                    { backgroundColor: `${colors.primary}20` },
+                  ]}
+                >
                   <Play size={24} color={colors.primary} />
                 </View>
                 <Text style={styles.actionTitle}>Start Live</Text>
                 <Text style={styles.actionSubtitle}>Go live instantly</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.actionCard}>
-                <View style={[styles.actionIcon, { backgroundColor: `${colors.secondary}20` }]}>
+              <TouchableOpacity style={styles.actionCard} onPress={()=>{
+                navigation.navigate('CreateCourse')
+              }}>
+                <View
+                  style={[
+                    styles.actionIcon,
+                    { backgroundColor: `${colors.secondary}20` },
+                  ]}
+                >
                   <BookOpen size={24} color={colors.secondary} />
                 </View>
                 <Text style={styles.actionTitle}>Create Course</Text>
@@ -314,12 +369,22 @@ const styles = StyleSheet.create({
 
   /* Welcome */
   welcomeSection: { paddingHorizontal: 16, paddingVertical: 24 },
-  welcomeTitle: { fontSize: 24, fontWeight: '700', color: colors.text, marginBottom: 4 },
+  welcomeTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 4,
+  },
   welcomeSubtitle: { fontSize: 16, color: colors.textSecondary },
 
   /* Stats */
   statsSection: { paddingHorizontal: 16, marginBottom: 24 },
-  sectionTitle: { fontSize: 20, fontWeight: '700', color: colors.text, marginBottom: 16 },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 16,
+  },
   statsGrid: { flexDirection: 'row', flexWrap: 'wrap' },
   statCard: {
     flex: 1,
@@ -332,7 +397,12 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   statIcon: { marginBottom: 8 },
-  statValue: { fontSize: 24, fontWeight: '700', color: colors.text, marginBottom: 4 },
+  statValue: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 4,
+  },
   statLabel: { fontSize: 12, color: colors.textSecondary, textAlign: 'center' },
 
   /* Featured */
@@ -360,8 +430,17 @@ const styles = StyleSheet.create({
   },
   featuredImage: { width: '100%', height: 160 },
   featuredContent: { padding: 16 },
-  featuredTitle: { fontSize: 16, fontWeight: '600', color: colors.text, marginBottom: 4 },
-  featuredInstructor: { fontSize: 14, color: colors.textSecondary, marginBottom: 12 },
+  featuredTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 4,
+  },
+  featuredInstructor: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginBottom: 12,
+  },
   featuredStats: { flexDirection: 'row', marginBottom: 12 },
   statBadge: {
     flexDirection: 'row',
@@ -417,8 +496,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
-  actionTitle: { fontSize: 16, fontWeight: '600', color: colors.text, marginBottom: 4 },
-  actionSubtitle: { fontSize: 12, color: colors.textSecondary, textAlign: 'center' },
+  actionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 4,
+  },
+  actionSubtitle: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    textAlign: 'center',
+  },
 
   /* Upcoming */
   section: { paddingHorizontal: 16, marginBottom: 24 },
@@ -429,7 +517,12 @@ const styles = StyleSheet.create({
     marginRight: 16,
     padding: 12,
   },
-  upcomingImage: { width: '100%', height: 120, borderRadius: 12, marginBottom: 8 },
+  upcomingImage: {
+    width: '100%',
+    height: 120,
+    borderRadius: 12,
+    marginBottom: 8,
+  },
   upcomingTitle: { fontSize: 14, fontWeight: '600', color: colors.text },
   upcomingDate: { fontSize: 12, color: colors.textSecondary, marginBottom: 8 },
 });

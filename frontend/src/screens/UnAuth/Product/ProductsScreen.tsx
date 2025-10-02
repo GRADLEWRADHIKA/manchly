@@ -194,14 +194,14 @@ const CreatorView: React.FC = () => {
           <View style={creatorStyles.actionsRow}>
             <TouchableOpacity
               style={[creatorStyles.btn, creatorStyles.btnPrimary]}
-              onPress={() => Nav.navigate('EditCourse', { courseId: item.id })}
+              // onPress={() => Nav.navigate('EditCourse', { courseId: item.id })}
             >
               <Text style={creatorStyles.btnText}>Edit</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={[creatorStyles.btn, creatorStyles.btnOutline]}
-              onPress={() => Nav.navigate('Analytics', { courseId: item.id })}
+              // onPress={() => Nav.navigate('Analytics', { courseId: item.id })}
             >
               <Text
                 style={[creatorStyles.btnText, creatorStyles.btnOutlineText]}
@@ -246,7 +246,9 @@ const CreatorView: React.FC = () => {
 
       <View style={creatorStyles.sectionHeaderRow}>
         <Text style={creatorStyles.sectionTitle}>Your Courses</Text>
-        <TouchableOpacity onPress={() => Nav.navigate('CreateCourse')}>
+        <TouchableOpacity
+        // onPress={() => Nav.navigate('CreateCourse')}
+        >
           <Text style={creatorStyles.seeAllText}>Create new</Text>
         </TouchableOpacity>
       </View>
@@ -392,6 +394,7 @@ const UserView: React.FC = () => {
 /* ------------------------------- Wrapper Screen ---------------------------- */
 const PurchasesScreen: React.FC = () => {
   const userType = useAppSelector(state => state.auth.userType);
+  const Nav = useNavigation<any>();
 
   return (
     <View style={sharedStyles.container}>
@@ -402,7 +405,7 @@ const PurchasesScreen: React.FC = () => {
         <TouchableOpacity
           style={sharedStyles.fab}
           onPress={() => {
-            // If you want navigation here, put useNavigation in wrapper and call navigate('CreateCourse')
+            Nav.navigate('CreateProducts');
           }}
           accessibilityLabel="Create course"
         >

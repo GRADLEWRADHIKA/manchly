@@ -1,0 +1,49 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Project {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  owner_id    String   @db.Uuid
+  name        String
+  description String?
+  created_at  DateTime @default(now()) @db.Timestamptz
+  tasks       Task[]
+}
+
+model Task {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  project_id String   @db.Uuid
+  title      String
+  description String?
+  due_date   DateTime? @db.Timestamptz
+  completed  Boolean  @default(false)
+  created_by String   @db.Uuid
+  created_at DateTime @default(now()) @db.Timestamptz
+
+  project    Project  @relation(fields: [project_id], references: [id])
+}
+
+
+model User {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email        String   @unique
+  phone_number String?
+  name         String?
+  created_at   DateTime @default(now()) @db.Timestamptz
+  tasks        Task[]   @relation("user_tasks", references: [created_by], fields: [])
+}
+
+model OtpCode {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email      String
+  code       String
+  expires_at DateTime @db.Timestamptz
+  used       Boolean  @default(false)
+  created_at DateTime @default(now()) @db.Timestamptz
+}

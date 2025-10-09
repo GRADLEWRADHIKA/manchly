@@ -1,30 +1,39 @@
 import express from "express";
-import { supabaseAdmin } from "../supabaseClient";
+import prisma from "../prismaClient";
 import { authMiddleware, AuthenticatedRequest } from "../middleware/auth";
 
 const router = express.Router();
 
+// Create project
 router.post("/", authMiddleware, async (req: AuthenticatedRequest, res) => {
   const userId = req.user!.id;
   const { name, description } = req.body;
-  const { data, error } = await supabaseAdmin
-    .from("projects")
-    .insert([{ name, description, owner_id: userId }])
-    .select()
-    .single();
-
-  if (error) return res.status(400).json({ error: error.message });
-  res.json(data);
+  try {
+    const project = await prisma.project.create({
+      data: {
+        name,
+        description,
+        owner_id: userId
+      }
+    });
+    res.json(project);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message || "Failed to create project" });
+  }
 });
 
+// List projects for the authenticated user
 router.get("/", authMiddleware, async (req: AuthenticatedRequest, res) => {
   const userId = req.user!.id;
-  const { data, error } = await supabaseAdmin
-    .from("projects")
-    .select("*")
-    .eq("owner_id", userId);
-  if (error) return res.status(400).json({ error: error.message });
-  res.json(data);
+  try {
+    const projects = await prisma.project.findMany({
+      where: { owner_id: userId },
+      orderBy: { created_at: "desc" }
+    });
+    res.json(projects);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message || "Failed to fetch projects" });
+  }
 });
 
 export default router;

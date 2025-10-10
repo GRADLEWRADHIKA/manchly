@@ -3,7 +3,7 @@ import prisma from "../prismaClient";
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
 import rateLimit from "express-rate-limit";
-import OTPManager from "./OTPManager"; // Import the OTPManager class
+import OTPManager from "../utils/otpManager"; // Import the OTPManager class
 
 dotenv.config();
 const router = express.Router();

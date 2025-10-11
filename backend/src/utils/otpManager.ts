@@ -109,13 +109,12 @@ class OTPManager {
       });
 
       // Initialize Rate Limiter with Redis
-      const rateLimiterOpts: IRateLimiterOptions = {
+      this.rateLimiter = new RateLimiterRedis({
         storeClient: this.redisClient,
         keyPrefix: 'otp_rate_limit',
         points: 5, // Number of OTP requests
         duration: 300, // Per 5 minutes
-      };
-      this.rateLimiter = new RateLimiterRedis(rateLimiterOpts);
+      });
     } else {
       // Fallback to memory-based rate limiter
       this.rateLimiter = new RateLimiterMemory({
@@ -239,12 +238,13 @@ class OTPManager {
     // Send OTP via appropriate channel
     try {
       if (channel === 'email') {
-        await this.sendEmailOTP(identifier, otp);
+        // await this.sendEmailOTP(identifier, otp); // Commented out for testing
+        console.log(`📧 OTP for ${identifier}: ${otp}`);
       } else {
-        await this.sendSMSOTP(identifier, otp);
+        // await this.sendSMSOTP(identifier, otp); // Commented out for testing
+        console.log(`📱 OTP for ${identifier}: ${otp}`);
       }
     } catch (error) {
-      // If sending fails, remove the OTP data
       await this.deleteFromRedis(identifier);
       throw new Error(`Failed to send OTP: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
@@ -260,8 +260,12 @@ class OTPManager {
       throw new Error('Email transporter not configured');
     }
 
+    console.log("email",email);
+
+    console.log("Email Transporter configured:", !!this.emailTransporter);
+
     const mailOptions = {
-      from: process.env.EMAIL_FROM || 'noreply@yourapp.com',
+      from: process.env.EMAIL_FROM || 'manchly2025@gmail.com',
       to: email,
       subject: 'Your OTP Code',
       html: this.generateEmailTemplate(otp),

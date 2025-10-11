@@ -64,7 +64,7 @@ function isValidPhoneNumber(phone: string): boolean {
 export class AuthController {
   // 1. Signup - create user record
   static async signup(req: Request, res: Response) {
-    const { email, phone, name } = req.body;
+    const { email, phone, name, user_type = "USER" } = req.body;
     
     if (!email) {
       return ApiResponseHandler.customError(res, "Email is required", 400, "MISSING_EMAIL");
@@ -76,17 +76,51 @@ export class AuthController {
       return ApiResponseHandler.customError(res, "Invalid email format", 400, "INVALID_EMAIL_FORMAT");
     }
     
+    // Validate user_type
+    const validUserTypes = ["USER", "CREATOR", "ADMIN"];
+    if (!validUserTypes.includes(user_type)) {
+      return ApiResponseHandler.customError(res, "Invalid user type. Must be USER, CREATOR, or ADMIN", 400, "INVALID_USER_TYPE");
+    }
+    
     try {
-      const user = await prisma.users.upsert({
-        where: { email },
-        update: { phone, name },
-        create: { email, phone, name }
+      // Check if user already exists with this email or phone
+      const existingUser = await prisma.users.findFirst({
+        where: {
+          OR: [
+            { email },
+            { phone }
+          ]
+        }
+      });
+
+      if (existingUser) {
+        // If email matches, update the user
+        if (existingUser.email === email) {
+          const user = await prisma.users.update({
+            where: { email },
+            data: { phone, name, user_type }
+          });
+          
+          return ApiResponseHandler.success(res, { user }, "User updated successfully", 200);
+        }
+        
+        // If only phone matches but different email, return error
+        if (existingUser.phone === phone) {
+          return ApiResponseHandler.customError(
+            res, 
+            "Phone number already registered with a different email", 
+            409, 
+            "PHONE_ALREADY_EXISTS"
+          );
+        }
+      }
+
+      // Create new user
+      const user = await prisma.users.create({
+        data: { email, phone, name, user_type }
       });
       
-      // Remove sensitive data from response
-      const { ...userWithoutSensitive } = user;
-      
-      ApiResponseHandler.success(res, { user: userWithoutSensitive }, "User created successfully", 201);
+      ApiResponseHandler.success(res, { user }, "User created successfully", 201);
     } catch (err: any) {
       ApiResponseHandler.unexpectedError(res, err, 500);
     }
@@ -267,7 +301,8 @@ export class AuthController {
           id: user.id,
           email: user.email,
           name: user.name,
-          phone_number: user.phone
+          phone_number: user.phone,
+          user_type: user.user_type
         }
       }, "OTP verified successfully");
     } catch (err: any) {
@@ -360,13 +395,25 @@ export class AuthController {
 
   // 9. Update User Profile (Protected)
   static async updateProfile(req: any, res: Response) {
-    const { name, phone_number } = req.body;
+    const { name, phone_number, user_type } = req.body;
     const {user} = req;
+
+    // Validate user_type if provided
+    if (user_type) {
+      const validUserTypes = ["USER", "CREATOR", "ADMIN"];
+      if (!validUserTypes.includes(user_type)) {
+        return ApiResponseHandler.customError(res, "Invalid user type. Must be USER, CREATOR, or ADMIN", 400, "INVALID_USER_TYPE");
+      }
+    }
 
     try {
       const userData = await prisma.users.update({
         where: { id: user.userId },
-        data: { name, phone:phone_number }
+        data: { 
+          name, 
+          phone: phone_number,
+          ...(user_type && { user_type })
+        }
       });
 
       const { ...userWithoutSensitive } = userData;
@@ -389,6 +436,7 @@ export class AuthController {
           email: true,
           name: true,
           phone: true,
+          user_type: true,
           created_at: true,
           last_login: true
         }

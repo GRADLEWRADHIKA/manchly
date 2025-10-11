@@ -4,6 +4,7 @@ import bodyParser from "body-parser";
 import dotenv from "dotenv";
 import authRouter from "./routes/auth";
 import uploadRouter from "./routes/upload";
+import muxRouter from "./routes/mux";
 import morgan from "morgan";
 
 dotenv.config();
@@ -18,6 +19,7 @@ app.get("/", (_req, res) => res.json({ ok: true }));
 app.use(morgan('dev'));
 app.use("/auth", authRouter);
 app.use("/upload", uploadRouter);
+app.use("/mux", muxRouter);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

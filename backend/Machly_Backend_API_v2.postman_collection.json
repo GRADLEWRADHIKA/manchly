@@ -1,0 +1,1175 @@
+{
+	"info": {
+		"_postman_id": "machly-backend-api-v2",
+		"name": "Machly Backend API v2",
+		"description": "Complete API collection for Machly Backend with Authentication, File Upload endpoints, and User Types (USER, CREATOR, ADMIN)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Signup",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"user@example.com\",\n  \"phone\": \"+1234567890\",\n  \"name\": \"John Doe\",\n  \"user_type\": \"USER\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/signup",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"signup"
+							]
+						},
+						"description": "Create a new user account with user type (USER, CREATOR, ADMIN)"
+					}
+				},
+				{
+					"name": "Signup as Creator",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"creator@example.com\",\n  \"phone\": \"+1234567891\",\n  \"name\": \"Jane Creator\",\n  \"user_type\": \"CREATOR\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/signup",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"signup"
+							]
+						},
+						"description": "Create a new creator account"
+					}
+				},
+				{
+					"name": "Signup as Admin",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin@example.com\",\n  \"phone\": \"+1234567892\",\n  \"name\": \"Admin User\",\n  \"user_type\": \"ADMIN\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/signup",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"signup"
+							]
+						},
+						"description": "Create a new admin account"
+					}
+				},
+				{
+					"name": "Send OTP via Email",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"user@example.com\",\n  \"purpose\": \"login\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/send-otp/email",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"send-otp",
+								"email"
+							]
+						},
+						"description": "Send OTP code to user's email address"
+					}
+				},
+				{
+					"name": "Send OTP via SMS",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"phone_number\": \"+1234567890\",\n  \"purpose\": \"login\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/send-otp/sms",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"send-otp",
+								"sms"
+							]
+						},
+						"description": "Send OTP code to user's phone number"
+					}
+				},
+				{
+					"name": "Verify OTP",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"user@example.com\",\n  \"code\": \"123456\",\n  \"purpose\": \"login\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/verify-otp",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"verify-otp"
+							]
+						},
+						"description": "Verify OTP code and get JWT token with user_type"
+					}
+				},
+				{
+					"name": "Resend OTP",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"user@example.com\",\n  \"channel\": \"email\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/resend-otp",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"resend-otp"
+							]
+						},
+						"description": "Resend OTP to user"
+					}
+				},
+				{
+					"name": "Check OTP Status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/auth/otp-status/user@example.com",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"otp-status",
+								"user@example.com"
+							]
+						},
+						"description": "Check the status of OTP for a specific identifier"
+					}
+				},
+				{
+					"name": "Invalidate OTP",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"user@example.com\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/invalidate-otp",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"invalidate-otp"
+							]
+						},
+						"description": "Invalidate/delete OTP for a user"
+					}
+				},
+				{
+					"name": "Get Current User",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/auth/me",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"me"
+							]
+						},
+						"description": "Get current authenticated user details including user_type"
+					}
+				},
+				{
+					"name": "Update Profile",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"John Doe Updated\",\n  \"phone_number\": \"+1234567890\",\n  \"user_type\": \"CREATOR\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"profile"
+							]
+						},
+						"description": "Update user profile information including user_type"
+					}
+				},
+				{
+					"name": "Update Profile (Name Only)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"John Doe Updated\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"profile"
+							]
+						},
+						"description": "Update only user name"
+					}
+				},
+				{
+					"name": "Get OTP Statistics (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/auth/admin/otp-stats",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"admin",
+								"otp-stats"
+							]
+						},
+						"description": "Get OTP statistics (Admin only)"
+					}
+				},
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/auth/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"health"
+							]
+						},
+						"description": "Check API health status"
+					}
+				}
+			]
+		},
+		{
+			"name": "File Upload",
+			"item": [
+				{
+					"name": "Upload File",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/upload",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"upload"
+							]
+						},
+						"description": "Upload a file (max 5MB) - Files stored in user-specific folders"
+					}
+				}
+			]
+		},
+		{
+			"name": "Mux Video Platform",
+			"item": [
+				{
+					"name": "Asset Management",
+					"item": [
+						{
+							"name": "Create Asset",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{auth_token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"input\": \"https://example.com/video.mp4\",\n  \"playback_policy\": [\"public\"],\n  \"mp4_support\": \"none\",\n  \"passthrough\": \"user-123\",\n  \"test\": false,\n  \"encoding_tier\": \"smart\",\n  \"master_access\": \"none\",\n  \"per_title_encode\": true\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/mux/assets",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"mux",
+										"assets"
+									]
+								},
+								"description": "Create a new video asset from URL or input settings"
+							}
+						},
+						{
+							"name": "Get Asset",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{auth_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/mux/assets/{{asset_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"mux",
+										"assets",
+										"{{asset_id}}"
+									]
+								},
+								"description": "Get asset details with playback URLs"
+							}
+						},
+						{
+							"name": "Update Asset",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{auth_token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"passthrough\": \"updated-user-123\",\n  \"playback_policy\": [\"signed\"]\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/mux/assets/{{asset_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"mux",
+										"assets",
+										"{{asset_id}}"
+									]
+								},
+								"description": "Update asset metadata"
+							}
+						},
+						{
+							"name": "Delete Asset",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{auth_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/mux/assets/{{asset_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"mux",
+										"assets",
+										"{{asset_id}}"
+									]
+								},
+								"description": "Permanently delete an asset"
+							}
+						},
+						{
+							"name": "List Assets",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{auth_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/mux/assets?limit=100&page=1",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"mux",
+										"assets"
+									],
+									"query": [
+										{
+											"key": "limit",
+											"value": "100"
+										},
+										{
+											"key": "page",
+											"value": "1"
+										}
+									]
+								},
+								"description": "List all assets with pagination"
+							}
+						},
+						{
+							"name": "Get Asset Metrics",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{auth_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/mux/assets/{{asset_id}}/metrics",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"mux",
+										"assets",
+										"{{asset_id}}",
+										"metrics"
+									]
+								},
+								"description": "Get detailed metrics for an asset"
+							}
+						},
+						{
+							"name": "Wait for Asset Ready",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{auth_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/mux/assets/{{asset_id}}/wait-ready?timeout=300000&interval=5000",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"mux",
+										"assets",
+										"{{asset_id}}",
+										"wait-ready"
+									],
+									"query": [
+										{
+											"key": "timeout",
+											"value": "300000"
+										},
+										{
+											"key": "interval",
+											"value": "5000"
+										}
+									]
+								},
+								"description": "Wait for asset processing to complete"
+							}
+						}
+					]
+				},
+				{
+					"name": "Upload Management",
+					"item": [
+						{
+							"name": "Create Direct Upload",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{auth_token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"timeout\": 3600,\n  \"cors_origin\": \"https://yourdomain.com\",\n  \"new_asset_settings\": {\n    \"playback_policy\": [\"public\"]\n  },\n  \"test\": false\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/mux/uploads",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"mux",
+										"uploads"
+									]
+								},
+								"description": "Create a direct upload URL for client-side uploads"
+							}
+						},
+						{
+							"name": "Get Upload",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{auth_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/mux/uploads/{{upload_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"mux",
+										"uploads",
+										"{{upload_id}}"
+									]
+								},
+								"description": "Get upload status and details"
+							}
+						},
+						{
+							"name": "Cancel Upload",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{auth_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/mux/uploads/{{upload_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"mux",
+										"uploads",
+										"{{upload_id}}"
+									]
+								},
+								"description": "Cancel an active upload"
+							}
+						},
+						{
+							"name": "List Uploads",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{auth_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/mux/uploads?limit=100&page=1",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"mux",
+										"uploads"
+									],
+									"query": [
+										{
+											"key": "limit",
+											"value": "100"
+										},
+										{
+											"key": "page",
+											"value": "1"
+										}
+									]
+								},
+								"description": "List all uploads with pagination"
+							}
+						}
+					]
+				},
+				{
+					"name": "Live Stream Management",
+					"item": [
+						{
+							"name": "Create Live Stream",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{auth_token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"playback_policy\": [\"public\"],\n  \"new_asset_settings\": {\n    \"playback_policy\": [\"public\"]\n  },\n  \"passthrough\": \"stream-123\",\n  \"reduced_latency\": true,\n  \"simulcast_targets\": [\n    {\n      \"url\": \"rtmp://example.com/live\",\n      \"stream_key\": \"stream-key\"\n    }\n  ],\n  \"test\": false\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/mux/live-streams",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"mux",
+										"live-streams"
+									]
+								},
+								"description": "Create a new live stream"
+							}
+						},
+						{
+							"name": "Get Live Stream",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{auth_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/mux/live-streams/{{stream_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"mux",
+										"live-streams",
+										"{{stream_id}}"
+									]
+								},
+								"description": "Get live stream details with playback URLs and embed code"
+							}
+						},
+						{
+							"name": "Update Live Stream",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{auth_token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"passthrough\": \"updated-stream-123\",\n  \"status\": \"active\",\n  \"playback_policy\": [\"signed\"],\n  \"reduced_latency\": false\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/mux/live-streams/{{stream_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"mux",
+										"live-streams",
+										"{{stream_id}}"
+									]
+								},
+								"description": "Update live stream settings"
+							}
+						},
+						{
+							"name": "Delete Live Stream",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{auth_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/mux/live-streams/{{stream_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"mux",
+										"live-streams",
+										"{{stream_id}}"
+									]
+								},
+								"description": "Delete a live stream"
+							}
+						},
+						{
+							"name": "List Live Streams",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{auth_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/mux/live-streams?limit=100&page=1",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"mux",
+										"live-streams"
+									],
+									"query": [
+										{
+											"key": "limit",
+											"value": "100"
+										},
+										{
+											"key": "page",
+											"value": "1"
+										}
+									]
+								},
+								"description": "List all live streams with pagination"
+							}
+						}
+					]
+				},
+				{
+					"name": "Space Management",
+					"item": [
+						{
+							"name": "Create Space",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{auth_token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"type\": \"server\",\n  \"passthrough\": \"space-123\",\n  \"broadcasts\": [\n    {\n      \"passthrough\": \"broadcast-1\",\n      \"layout\": \"gallery\",\n      \"background\": \"#000000\",\n      \"resolution\": \"1920x1080\"\n    }\n  ]\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/mux/spaces",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"mux",
+										"spaces"
+									]
+								},
+								"description": "Create a space for real-time video"
+							}
+						},
+						{
+							"name": "Get Space",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{auth_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/mux/spaces/{{space_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"mux",
+										"spaces",
+										"{{space_id}}"
+									]
+								},
+								"description": "Get space details"
+							}
+						},
+						{
+							"name": "Delete Space",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{auth_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/mux/spaces/{{space_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"mux",
+										"spaces",
+										"{{space_id}}"
+									]
+								},
+								"description": "Delete a space"
+							}
+						},
+						{
+							"name": "List Spaces",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{auth_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/mux/spaces?limit=100&page=1",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"mux",
+										"spaces"
+									],
+									"query": [
+										{
+											"key": "limit",
+											"value": "100"
+										},
+										{
+											"key": "page",
+											"value": "1"
+										}
+									]
+								},
+								"description": "List all spaces with pagination"
+							}
+						}
+					]
+				},
+				{
+					"name": "Utility Endpoints",
+					"item": [
+						{
+							"name": "Health Check",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{auth_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/mux/health",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"mux",
+										"health"
+									]
+								},
+								"description": "Check Mux API connectivity"
+							}
+						},
+						{
+							"name": "Cleanup Expired Assets",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{auth_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/mux/cleanup?olderThanDays=30",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"mux",
+										"cleanup"
+									],
+									"query": [
+										{
+											"key": "olderThanDays",
+											"value": "30"
+										}
+									]
+								},
+								"description": "Clean up assets older than specified days"
+							}
+						},
+						{
+							"name": "Create Signed Playback URL",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{auth_token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"playbackId\": \"playback-id\",\n  \"expiresIn\": 3600\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/mux/signed-url",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"mux",
+										"signed-url"
+									]
+								},
+								"description": "Generate a signed playback URL for private content"
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "General",
+			"item": [
+				{
+					"name": "Root Endpoint",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								""
+							]
+						},
+						"description": "Basic health check endpoint"
+					}
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"description": "Base URL for the API"
+		},
+		{
+			"key": "auth_token",
+			"value": "",
+			"description": "JWT token for authenticated requests"
+		},
+		{
+			"key": "asset_id",
+			"value": "",
+			"description": "Mux asset ID for testing"
+		},
+		{
+			"key": "upload_id",
+			"value": "",
+			"description": "Mux upload ID for testing"
+		},
+		{
+			"key": "stream_id",
+			"value": "",
+			"description": "Mux live stream ID for testing"
+		},
+		{
+			"key": "space_id",
+			"value": "",
+			"description": "Mux space ID for testing"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}

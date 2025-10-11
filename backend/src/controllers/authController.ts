@@ -39,7 +39,7 @@ const redisConfig = {
 const otpManager = new OTPManager(
   {
     length: 6,
-    ttl: 600, // 10 minutes
+    ttl: 180, // 10 minutes
     maxAttempts: 3,
     emailEnabled: true,
     smsEnabled: !!process.env.AWS_ACCESS_KEY_ID // Enable SMS if AWS credentials exist
@@ -128,7 +128,7 @@ export class AuthController {
 
   // 2. Send OTP via Email
   static async sendEmailOTP(req: Request, res: Response) {
-    const { email, purpose = "login" } = req.body;
+    const { email, purpose = "login",tab } = req.body;
     
     if (!email) {
       return ApiResponseHandler.customError(res, "Email is required", 400, "MISSING_EMAIL");
@@ -148,6 +148,9 @@ export class AuthController {
         const user = await prisma.users.findUnique({ where: { email } });
         if (!user) {
           return ApiResponseHandler.customError(res, "User not found. Please sign up first.", 404, "USER_NOT_FOUND");
+        }
+        if(user.user_type !== tab){
+          return ApiResponseHandler.customError(res, "Invalid user type", 400, "INVALID_USER_TYPE");
         }
       }
 
@@ -172,7 +175,7 @@ export class AuthController {
 
   // 3. Send OTP via SMS
   static async sendSMSOTP(req: Request, res: Response) {
-    const { phone_number, purpose = "login" } = req.body;
+    const { phone_number, purpose = "login",tab } = req.body;
     
     if (!phone_number) {
       return ApiResponseHandler.customError(res, "Phone number is required", 400, "MISSING_PHONE");
@@ -194,6 +197,9 @@ export class AuthController {
         });
         if (!user) {
           return ApiResponseHandler.customError(res, "User not found. Please sign up first.", 404, "USER_NOT_FOUND");
+        }
+        if(user.user_type !== tab){
+          return ApiResponseHandler.customError(res, "Invalid user type", 400, "INVALID_USER_TYPE");
         }
       }
 

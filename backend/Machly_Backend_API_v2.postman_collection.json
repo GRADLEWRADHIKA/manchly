@@ -102,7 +102,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"user@example.com\",\n  \"purpose\": \"login\"\n}"
+							"raw": "{\n  \"email\": \"user@example.com\",\n  \"purpose\": \"login\",\n  \"tab\": \"USER\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/auth/send-otp/email",
@@ -115,7 +115,7 @@
 								"email"
 							]
 						},
-						"description": "Send OTP code to user's email address"
+						"description": "Send OTP code to user's email address (tab: USER, CREATOR, or ADMIN)"
 					}
 				},
 				{
@@ -130,7 +130,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"phone_number\": \"+1234567890\",\n  \"purpose\": \"login\"\n}"
+							"raw": "{\n  \"phone_number\": \"+1234567890\",\n  \"purpose\": \"login\",\n  \"tab\": \"USER\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/auth/send-otp/sms",
@@ -143,7 +143,7 @@
 								"sms"
 							]
 						},
-						"description": "Send OTP code to user's phone number"
+						"description": "Send OTP code to user's phone number (tab: USER, CREATOR, or ADMIN)"
 					}
 				},
 				{

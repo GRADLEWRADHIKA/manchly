@@ -9,19 +9,37 @@ const router = express.Router();
 
 const JWT_SECRET = process.env.JWT_SECRET || "changeme";
 
-// Rate limiting
+// Rate limiting (disabled for development)
 const otpRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // limit each IP to 5 OTP requests per windowMs
-  message: { error: "Too many OTP requests, please try again later." },
+  max: 1000, // Very high limit (effectively disabled)
+  handler: (req, res) => {
+    res.status(429).json({
+      success: false,
+      error: {
+        code: "RATE_LIMIT_EXCEEDED",
+        message: "Too many OTP requests, please try again later."
+      },
+      timestamp: new Date().toISOString()
+    });
+  },
   standardHeaders: true,
   legacyHeaders: false,
 });
 
 const verifyRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // limit each IP to 10 verification attempts per windowMs
-  message: { error: "Too many verification attempts, please try again later." },
+  max: 1000, // Very high limit (effectively disabled)
+  handler: (req, res) => {
+    res.status(429).json({
+      success: false,
+      error: {
+        code: "RATE_LIMIT_EXCEEDED",
+        message: "Too many verification attempts, please try again later."
+      },
+      timestamp: new Date().toISOString()
+    });
+  },
   standardHeaders: true,
   legacyHeaders: false,
 });

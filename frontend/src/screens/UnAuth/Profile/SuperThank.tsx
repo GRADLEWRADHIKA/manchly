@@ -20,7 +20,7 @@ import {
   Copy,
 } from 'lucide-react-native';
 import AppHeaderWithBack from '../../../components/AppHeaderWithBack';
-import colors from '../../../theme/colors';
+import colors from '../../../utils/colors';
 
 const PURPLE = '#6A1B9A';
 const PURPLE_DARK = '#551480';

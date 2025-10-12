@@ -1,4 +1,3 @@
-// PurchasesScreen.tsx
 import React, { useState, memo } from 'react';
 import {
   View,
@@ -13,14 +12,13 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Play, Users, Clock, Plus } from 'lucide-react-native';
 import AppHeader from '../../../components/AppHeader';
-import colors from '../../../theme/colors';
-import { useAppSelector } from '../../../store/hooks';
+import colors from '../../../utils/colors';
 import Video from 'react-native-video';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 
 const { width } = Dimensions.get('window');
 
-/* ----------------------------- Shared VideoThumb ---------------------------- */
 type VideoThumbProps = {
   id: string;
   videoUrl: string;
@@ -76,7 +74,6 @@ const VideoThumb = memo(
   },
 );
 
-/* ------------------------------- Mock Data --------------------------------- */
 const creatorCourses = [
   {
     id: 'c1',
@@ -150,7 +147,6 @@ const userVideos = [
   },
 ];
 
-/* ---------------------------- Creator Component ---------------------------- */
 const CreatorView: React.FC = () => {
   const Nav = useNavigation<any>();
   const [playingVideoId, setPlayingVideoId] = useState<string | null>(null);
@@ -262,11 +258,11 @@ const CreatorView: React.FC = () => {
         contentContainerStyle={creatorStyles.featuredScrollContent}
       />
 
-      <View style={creatorStyles.sectionTitleBlock}>
+      {/* <View style={creatorStyles.sectionTitleBlock}>
         <Text style={creatorStyles.sectionTitle}>Recent Lessons</Text>
-      </View>
+      </View> */}
 
-      {creatorCourses.map(course => (
+      {/* {creatorCourses.map(course => (
         <View key={course.id} style={creatorStyles.lessonsBlock}>
           <Text style={creatorStyles.lessonCourseTitle}>{course.title}</Text>
           {course.lessons.map((l: any) => (
@@ -276,17 +272,16 @@ const CreatorView: React.FC = () => {
             </View>
           ))}
         </View>
-      ))}
+      ))} */}
 
       <View style={{ height: 120 }} />
     </ScrollView>
   );
 };
 
-/* ------------------------------ User Component ----------------------------- */
 const UserView: React.FC = () => {
   const [playingVideoId, setPlayingVideoId] = useState<string | null>(null);
-  const userType = useAppSelector(state => state.auth.userType);
+    const { user } = useSelector((state: any) => state.userReducer);
 
   const handlePlay = (id: string) => setPlayingVideoId(id);
   const handleEnded = () => setPlayingVideoId(null);
@@ -330,7 +325,7 @@ const UserView: React.FC = () => {
                 userStyles.primaryButton,
                 {
                   backgroundColor:
-                    userType === 'User' ? colors.secPrimary : colors.primary,
+                    user?.user_type === 'USER' ? colors.secPrimary : colors.primary,
                 },
               ]}
             >
@@ -393,15 +388,15 @@ const UserView: React.FC = () => {
 
 /* ------------------------------- Wrapper Screen ---------------------------- */
 const PurchasesScreen: React.FC = () => {
-  const userType = useAppSelector(state => state.auth.userType);
+  const { user } = useSelector((state: any) => state.userReducer);
   const Nav = useNavigation<any>();
 
   return (
     <View style={sharedStyles.container}>
       <AppHeader title="Manchly" />
-      {userType === 'Creator' ? <CreatorView /> : <UserView />}
+      {user?.user_type === 'CREATOR' ? <CreatorView /> : <UserView />}
 
-      {userType === 'Creator' && (
+      {user?.user_type === 'CREATOR'&& (
         <TouchableOpacity
           style={sharedStyles.fab}
           onPress={() => {
@@ -461,7 +456,7 @@ const sharedStyles = StyleSheet.create({
 const creatorStyles = StyleSheet.create({
   heroSection: { padding: 16 },
   heroHeading: { fontSize: 22, fontWeight: '700', color: colors.text },
-  heroSub: { color: colors.textSecondary, marginTop: 6 },
+  heroSub: { color: colors.textSecondary, marginTop: 6  },
 
   quickRow: {
     flexDirection: 'row',

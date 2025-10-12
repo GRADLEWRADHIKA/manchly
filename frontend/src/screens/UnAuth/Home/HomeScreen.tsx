@@ -1,4 +1,3 @@
-// HomeScreen.tsx
 import React, { useState, memo } from 'react';
 import {
   View,
@@ -14,15 +13,15 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TrendingUp, Users, Play, BookOpen, Award } from 'lucide-react-native';
 import AppHeader from '../../../components/AppHeader';
-import colors from '../../../theme/colors';
-import { useAppSelector } from '../../../store/hooks';
+import colors from '../../../utils/colors';
 import Video from 'react-native-video';
 import CreateWebinarModal from './CreateWebinar';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import KycCard from './KeyCard';
 
 const { width } = Dimensions.get('window');
 
-/* -------------------- Reusable YouTube-like video thumbnail -------------------- */
 type VideoThumbProps = {
   id: string;
   videoUrl: string;
@@ -80,10 +79,10 @@ const VideoThumb = memo(
   },
 );
 
-/* ---------------------------------- Screen ---------------------------------- */
 const HomeScreen: React.FC = () => {
-  const userType = useAppSelector(state => state.auth.userType);
   const navigation = useNavigation<any>();
+  const { user } = useSelector((state: any) => state.userReducer);
+  const [active, setActive] = useState(true);
 
   const featuredContent = [
     {
@@ -168,17 +167,15 @@ const HomeScreen: React.FC = () => {
     },
     {
       label: 'Revenue',
-      value: '$12.5K',
+      value: '₹12.5K',
       icon: <TrendingUp size={24} color={colors.warning} />,
     },
   ];
 
-  // Only one video plays at a time
   const [playingVideoId, setPlayingVideoId] = useState<string | null>(null);
   const handlePlay = (id: string) => setPlayingVideoId(id);
   const handleEnded = () => setPlayingVideoId(null);
 
-  /* --------------------------- Render helpers --------------------------- */
   const renderFeaturedCard = (item: any) => {
     const isPlaying = playingVideoId === item.id;
     return (
@@ -212,10 +209,12 @@ const HomeScreen: React.FC = () => {
   };
 
   const renderQuickStat = (stat: any, index: number) => (
-    <View key={index} style={styles.statCard}>
-      <View style={styles.statIcon}>{stat.icon}</View>
-      <Text style={styles.statValue}>{stat.value}</Text>
-      <Text style={styles.statLabel}>{stat.label}</Text>
+    <View>
+      <View key={index} style={styles.statCard}>
+        <View style={styles.statIcon}>{stat.icon}</View>
+        <Text style={styles.statValue}>{stat.value}</Text>
+        <Text style={styles.statLabel}>{stat.label}</Text>
+      </View>
     </View>
   );
 
@@ -247,29 +246,28 @@ const HomeScreen: React.FC = () => {
     </View>
   );
 
-  /* ----------------------------------- UI ----------------------------------- */
   return (
     <View style={styles.container}>
-      <RNStatusBar barStyle="dark-content" />
+      <RNStatusBar barStyle="light-content" />
       <AppHeader title="Manchly" />
 
-      {userType === 'Creator' ? (
+      {user?.user_type === 'CREATOR' ? (
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           <View style={styles.welcomeSection}>
             <Text style={styles.welcomeTitle}>Welcome back! 👋</Text>
             <Text style={styles.welcomeSubtitle}>
-              Ready to create amazing content?
+              A Manch for every Creator...
             </Text>
           </View>
 
           <View style={styles.statsSection}>
             <Text style={styles.sectionTitle}>Quick Stats</Text>
             <View style={styles.statsGrid}>
-              {quickStats.map(renderQuickStat)}
+              {active === true ? <KycCard /> : quickStats?.map(renderQuickStat)}
             </View>
           </View>
 
-          <View style={styles.featuredSection}>
+          {/* <View style={styles.featuredSection}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Featured Content</Text>
               <TouchableOpacity>
@@ -283,7 +281,7 @@ const HomeScreen: React.FC = () => {
             >
               {featuredContent.map(renderFeaturedCard)}
             </ScrollView>
-          </View>
+          </View> */}
 
           <View style={styles.actionsSection}>
             <Text style={styles.sectionTitle}>Quick Actions</Text>
@@ -306,9 +304,12 @@ const HomeScreen: React.FC = () => {
                 <Text style={styles.actionSubtitle}>Go live instantly</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.actionCard} onPress={()=>{
-                navigation.navigate('CreateCourse')
-              }}>
+              <TouchableOpacity
+                style={styles.actionCard}
+                onPress={() => {
+                  navigation.navigate('CreateCourse');
+                }}
+              >
                 <View
                   style={[
                     styles.actionIcon,
@@ -362,30 +363,46 @@ const HomeScreen: React.FC = () => {
   );
 };
 
-/* --------------------------------- Styles --------------------------------- */
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
-  content: { flex: 1 },
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  content: {
+    flex: 1,
+  },
 
-  /* Welcome */
-  welcomeSection: { paddingHorizontal: 16, paddingVertical: 24 },
+  welcomeSection: {
+    paddingHorizontal: 16,
+    paddingVertical: 24,
+  },
   welcomeTitle: {
     fontSize: 24,
     fontWeight: '700',
     color: colors.text,
     marginBottom: 4,
+    textAlign: 'center',
   },
-  welcomeSubtitle: { fontSize: 16, color: colors.textSecondary },
+  welcomeSubtitle: {
+    fontSize: 16,
+    color: colors.textSecondary,
+    textAlign: 'center',
+  },
 
-  /* Stats */
-  statsSection: { paddingHorizontal: 16, marginBottom: 24 },
+  statsSection: {
+    paddingHorizontal: 16,
+    marginBottom: 24,
+  },
   sectionTitle: {
     fontSize: 20,
     fontWeight: '700',
     color: colors.text,
     marginBottom: 16,
   },
-  statsGrid: { flexDirection: 'row', flexWrap: 'wrap' },
+  statsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
   statCard: {
     flex: 1,
     minWidth: '45%',
@@ -403,10 +420,15 @@ const styles = StyleSheet.create({
     color: colors.text,
     marginBottom: 4,
   },
-  statLabel: { fontSize: 12, color: colors.textSecondary, textAlign: 'center' },
+  statLabel: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    textAlign: 'center',
+  },
 
-  /* Featured */
-  featuredSection: { marginBottom: 24 },
+  featuredSection: {
+    marginBottom: 24,
+  },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -414,8 +436,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     marginBottom: 16,
   },
-  seeAllText: { fontSize: 14, color: colors.primary, fontWeight: '600' },
-  featuredScrollContent: { paddingHorizontal: 16 },
+  seeAllText: {
+    fontSize: 14,
+    color: colors.primary,
+    fontWeight: '600',
+  },
+  featuredScrollContent: {
+    paddingHorizontal: 16,
+  },
   featuredCard: {
     width: width - 40,
     backgroundColor: colors.background,
@@ -428,8 +456,13 @@ const styles = StyleSheet.create({
     elevation: 6,
     overflow: 'hidden',
   },
-  featuredImage: { width: '100%', height: 160 },
-  featuredContent: { padding: 16 },
+  featuredImage: {
+    width: '100%',
+    height: 160,
+  },
+  featuredContent: {
+    padding: 16,
+  },
   featuredTitle: {
     fontSize: 16,
     fontWeight: '600',
@@ -441,7 +474,10 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginBottom: 12,
   },
-  featuredStats: { flexDirection: 'row', marginBottom: 12 },
+  featuredStats: {
+    flexDirection: 'row',
+    marginBottom: 12,
+  },
   statBadge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -450,10 +486,15 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 8,
   },
-  statBadgeRight: { marginLeft: 12 },
-  statText: { fontSize: 12, color: colors.textSecondary, marginLeft: 4 },
+  statBadgeRight: {
+    marginLeft: 12,
+  },
+  statText: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    marginLeft: 4,
+  },
 
-  /* YouTube-like video blocks */
   videoShell: {
     width: '100%',
     borderRadius: 12,
@@ -461,7 +502,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
     marginTop: 8,
   },
-  videoThumbImage: { width: '100%', height: '100%' },
+  videoThumbImage: {
+    width: '100%',
+    height: '100%',
+  },
   playOverlay: {
     ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
@@ -475,9 +519,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  videoPlayerFill: { width: '100%', height: '100%' },
+  videoPlayerFill: {
+    width: '100%',
+    height: '100%',
+  },
 
-  /* Actions */
   actionsSection: { paddingHorizontal: 16, marginBottom: 24 },
   actionsGrid: { flexDirection: 'row' },
   actionCard: {
@@ -508,7 +554,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  /* Upcoming */
   section: { paddingHorizontal: 16, marginBottom: 24 },
   upcomingCard: {
     width: 240,

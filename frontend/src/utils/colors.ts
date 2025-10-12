@@ -1,5 +1,5 @@
 const colors = {
-  primary: '#8B5CF6',
+  primary: '#000000',
   secPrimary: '#5E5CE6',
   secondary: '#EC4899',
   accent: '#10B981',
@@ -16,6 +16,14 @@ const colors = {
   borderColor: '#aeafb1ff',
   white: '#ffffff',
   black: '#000000',
+  lightGrey: '#f9f9f9',
+  golden: '#ffb606',
+  micButtonGolden: '#eddfc3'
 };
 
 export default colors;
+
+
+// Fonts:-
+// Manchly - Montserrat
+// Tag - Rufina

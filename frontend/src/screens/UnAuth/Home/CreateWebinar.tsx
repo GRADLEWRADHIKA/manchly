@@ -15,7 +15,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Calendar, Clock, Link } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
-import colors from '../../../theme/colors';
+import colors from '../../../utils/colors';
 import AppHeaderWithBack from '../../../components/AppHeaderWithBack';
 
 const STORAGE_KEY = 'webinars';

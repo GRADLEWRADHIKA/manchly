@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView } from 'react-native'
 import React from 'react'
-import colors from '../../../theme/colors'
+import colors from '../../../utils/colors'
 import AppHeaderWithBack from '../../../components/AppHeaderWithBack'
 import {
   User,

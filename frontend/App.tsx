@@ -1,51 +1,32 @@
 import 'react-native-gesture-handler';
 import React, { useEffect } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { View, ActivityIndicator, StatusBar } from 'react-native';
-import { enableScreens } from 'react-native-screens';
+import { SafeAreaView, StatusBar, Platform, View } from 'react-native';
 import { Provider } from 'react-redux';
-import { store } from './src/store';
-import { bootstrapAuth } from './src/store/authSlice';
-import AuthStack from './src/navigation/AuthStack';
-import MainStack from './src/navigation/MainStack';
-import { useAppSelector, useAppDispatch } from './src/store/hooks';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
-
-enableScreens();
-
-function RootNavigatorGate() {
-  const dispatch = useAppDispatch();
-  const { initializing, isLoggedIn } = useAppSelector(s => s.auth);
-  const userType = useAppSelector(state => state.auth.userType);
-
-  useEffect(() => {
-    dispatch(bootstrapAuth());
-  }, [dispatch]);
-
-  if (initializing) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" />
-      </View>
-    );
-  }
-
-  return (
-    <SafeAreaProvider>
-      <NavigationContainer>
-        {isLoggedIn ? <MainStack /> : <AuthStack />}
-      </NavigationContainer>
-    </SafeAreaProvider>
-  );
-}
+import Router from './src/navigation/Router';
+import { PaperProvider } from 'react-native-paper';
+import { PersistGate } from 'redux-persist/integration/react';
+import { store, persistor } from './src/store/Store';
+import SplashScreen from 'react-native-splash-screen';
 
 export default function App() {
+  useEffect(() => {
+    SplashScreen.hide();
+  }, []);
+
   return (
     <Provider store={store}>
-      <StatusBar backgroundColor={'black'} barStyle={'light-content'} />
-      <RootNavigatorGate />
-      <Toast />
+      <PaperProvider>
+        <PersistGate loading={null} persistor={persistor}>
+          <StatusBar
+            translucent={false}
+            backgroundColor="white"
+            barStyle="dark-content"
+          />
+          <Router />
+          <Toast />
+        </PersistGate>
+      </PaperProvider>
     </Provider>
   );
 }

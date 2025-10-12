@@ -7,7 +7,7 @@ import {
   StyleSheet,
   Platform,
 } from 'react-native';
-import colors from '../../../../theme/colors';
+import colors from '../../../../utils/colors';
 
 type Props = {
   visible: boolean;

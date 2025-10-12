@@ -14,7 +14,7 @@ import {
   History,
   CreditCard,
 } from 'lucide-react-native';
-import colors from '../../../theme/colors';
+import colors from '../../../utils/colors';
 import AppHeaderWithBack from '../../../components/AppHeaderWithBack';
 
 const Earnings = () => {

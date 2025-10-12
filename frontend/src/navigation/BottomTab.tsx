@@ -8,7 +8,7 @@ import {
   Platform,
 } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import colors from '../theme/colors';
+import colors from '../utils/colors';
 import ChatListScreen from '../screens/UnAuth/Chat/ChatsScreen';
 import ProductsScreen from '../screens/UnAuth/Product/ProductsScreen';
 import HomeScreen from '../screens/UnAuth/Home/HomeScreen';
@@ -22,8 +22,8 @@ import {
   WalletMinimal,
 } from 'lucide-react-native';
 import PurchasesScreen from '../screens/UnAuth/Purchase/PurchasesScreen';
-import { useAppSelector } from '../store/hooks';
 import WalletCreator from '../screens/UnAuth/Wallet/WalletCreator';
+import { useSelector } from 'react-redux';
 
 type TabName =
   | 'Home'
@@ -178,13 +178,11 @@ function CustomTabBar({ state, descriptors, navigation, tabsList }: any) {
 }
 
 const BottomTab = () => {
-  const userType = useAppSelector(state => state.auth.userType);
-  const isCreator = userType === 'Creator';
+const { user } = useSelector((state: any) => state.userReducer);
+  const isCreator = user?.user_type === 'CREATOR';
 
-  // choose which tabs to render based on user type
   const tabsToUse = isCreator ? tabsCreator : tabs;
 
-  // For creators use TabCreator navigator so route names/types match
   if (isCreator) {
     return (
       <TabCreator.Navigator

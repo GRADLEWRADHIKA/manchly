@@ -14,7 +14,7 @@ import {
 import AppHeaderWithBack from '../../../components/AppHeaderWithBack';
 import { Image as ImageIcon, Video as VideoIcon } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
-import colors from '../../../theme/colors';
+import colors from '../../../utils/colors';
 
 const CreateCourse = () => {
   const [title, setTitle] = useState('');

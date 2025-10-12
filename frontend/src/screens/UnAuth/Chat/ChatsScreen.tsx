@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { MessageCircle } from 'lucide-react-native';
 import AppHeader from '../../../components/AppHeader';
-import colors from '../../../theme/colors';
+import colors from '../../../utils/colors';
 
 type ChatUser = {
   id: string;

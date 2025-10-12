@@ -16,7 +16,7 @@ import {
   ArrowUpRight,
 } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
-import colors from '../../../theme/colors';
+import colors from '../../../utils/colors';
 import AppHeader from '../../../components/AppHeader';
 
 const initialTransactions = [

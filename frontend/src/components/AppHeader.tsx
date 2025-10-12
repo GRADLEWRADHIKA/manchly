@@ -1,14 +1,26 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import colors from '../theme/colors';
-import { useAppSelector } from '../store/hooks';
+import colors from '../utils/colors';
+import { useSelector } from 'react-redux';
+
 const AppHeader = ({ title = 'Manchly' }) => {
   const insets = useSafeAreaInsets();
-  const userType = useAppSelector(state => state.auth.userType);
+  const { user } = useSelector((state: any) => state.userReducer);
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top + 10, backgroundColor: userType === 'User' ? colors.secPrimary : colors.primary }]}>
+    <View
+      style={[
+        styles.container,
+        {
+          paddingTop: insets.top + 10,
+          backgroundColor:
+            user?.user_type === 'USER'
+              ? colors.secPrimary
+              : colors.primary,
+        },
+      ]}
+    >
       <Text style={styles.title}>{title}</Text>
     </View>
   );

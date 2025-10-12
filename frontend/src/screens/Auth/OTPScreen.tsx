@@ -7,36 +7,69 @@ import {
   StyleSheet,
   StatusBar as RNStatusBar,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { ArrowLeft, Shield } from 'lucide-react-native';
-import colors from '../../theme/colors';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { verifyOtp /*, clearStoredAuth */ } from '../../store/authSlice';
+import colors from '../../utils/colors';
+import { Controller, useForm } from 'react-hook-form';
+import CustomTextInput from '../../components/CustomInput';
+import { verifyOtp } from '../../store/UserSlice';
+import { useDispatch } from 'react-redux';
+import { ThunkDispatch } from '@reduxjs/toolkit';
+import Toast from 'react-native-toast-message';
 
 const OTPScreen: React.FC = () => {
   const navigation = useNavigation<any>();
-  const dispatch = useAppDispatch();
-  const { error } = useAppSelector(s => s.auth);
+  // const dispatch = useAppDispatch();
+  // const { error } = useAppSelector(s => s.auth);
   const route = useRoute();
+  const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
   const userTypeFromRoute = (route?.params as any)?.userType ?? null;
-
-  const [code, setCode] = useState('1234');
   const onBack = () => navigation.goBack();
 
-  const onVerifyPress = async () => {
-    if (code.length !== 4) {
-      Alert.alert('Invalid Code', 'Please enter the 4-digit code.');
-      return;
-    }
-    const action = await dispatch(verifyOtp({ entered: code, userType: userTypeFromRoute }));
-    if (verifyOtp.rejected.match(action)) {
-      Alert.alert('Error', (action.payload as string) || 'Verification failed.');
-    } else {
-      // success — navigation will change based on RootNavigatorGate isLoggedIn
-      // If you want to navigate immediately to a specific screen, do it here.
-    }
+  // console.log('----route-----', route?.params?.payload);
+
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({
+    defaultValues: {
+      otp: route?.params?.dummyOtp,
+    },
+  });
+
+  const onSubmit = (data: any) => {
+    setLoading(true);
+    const payload = {
+      email: route?.params?.payload?.email,
+      phone_number: route?.params?.payload?.phone_number,
+      code: route?.params?.dummyOtp,
+      purpose: route?.params?.payload?.purpose,
+    };
+    // console.log('-----payload-----', payload);
+    dispatch(verifyOtp(payload))
+      .unwrap()
+      .then(response => {
+        console.log('-----res-----', response?.data?.data)
+        reset();
+        // Toast.show({
+        //   type: 'success',
+        //   text1: 'Login s',
+        //   position: 'bottom',
+        // });
+        setLoading(false);
+      })
+      .catch(error => {
+        console.log(error)
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
   return (
@@ -61,53 +94,77 @@ const OTPScreen: React.FC = () => {
         </View>
 
         <Text style={styles.title}>Enter Verification Code</Text>
-        <Text style={styles.subtitle}>
-          We've sent a 4-digit code to{'\n'}
-          {/* optionally show phone or info */}
+        <Text style={styles.subtitle}>We've sent a 6-digit code to{'\n'}</Text>
+
+        <Text style={{ marginBottom: 12, color: colors.textSecondary }}>
+          Signing up as:{' '}
+          <Text style={{ color: colors.text, fontWeight: '600' }}>
+            {route?.params?.payload?.tab}
+          </Text>
         </Text>
 
-        {/* Show selected userType for clarity (optional) */}
-        {userTypeFromRoute ? (
-          <Text style={{ marginBottom: 12, color: colors.textSecondary }}>
-            Signing up as: <Text style={{ color: colors.text, fontWeight: '600' }}>{userTypeFromRoute}</Text>
-          </Text>
-        ) : null}
-
         <View style={styles.otpContainer}>
-          <TextInput
-            style={styles.otpInput}
-            value={code}
-            onChangeText={text => setCode(text.replace(/[^0-9]/g, ''))}
-            keyboardType="number-pad"
-            maxLength={4}
-            placeholder="1234"
-            placeholderTextColor={colors.muted}
-            textAlign="center"
+          <Controller
+            name="otp"
+            control={control}
+            rules={{
+              required: {
+                value: true,
+                message: 'OTP is required',
+              },
+              pattern: {
+                value: /^[0-9]{6}$/,
+                message: 'OTP must be exactly 6 digits',
+              },
+            }}
+            render={({
+              field: { onChange, onBlur, value },
+              fieldState: { error },
+            }) => (
+              <CustomTextInput
+                inputContainerStyle={[
+                  styles.nameFields,
+                  {
+                    borderColor: error ? 'red' : colors.borderColor,
+                  },
+                ]}
+                inputStyle={{
+                  fontSize: 16,
+                  color: colors.black,
+                }}
+                placeholderTextColor={colors.borderColor}
+                placeholder="Enter OTP"
+                keyboardType="numeric"
+                maxLength={68}
+                onChange={text => onChange(text.replace(/[^0-9]/g, ''))}
+                onBlur={onBlur}
+                value={value}
+              />
+            )}
           />
         </View>
 
         <TouchableOpacity
-          style={[
-            styles.verifyButton,
-            code.length === 4 && styles.verifyButtonActive,
-          ]}
-          onPress={onVerifyPress}
-          disabled={code.length !== 4}
+          style={[styles.verifyButton, styles.verifyButtonActive]}
+          onPress={handleSubmit(onSubmit)}
           activeOpacity={0.8}
+          disabled={loading === true ? true : false}
         >
-          <Text
-            style={[
-              styles.verifyButtonText,
-              code.length === 4 && styles.verifyButtonTextActive,
-            ]}
-          >
-            Verify & Continue
-          </Text>
+          {loading ? (
+            <ActivityIndicator color={colors.white} size={'small'} />
+          ) : (
+            <Text
+              style={[styles.verifyButtonText, styles.verifyButtonTextActive]}
+            >
+              Verify & Continue
+            </Text>
+          )}
         </TouchableOpacity>
 
         <View style={styles.helpSection}>
           <Text style={styles.helpText}>
-            For demo purposes, use <Text style={styles.demoCode}>1234</Text>
+            For demo purposes, use{' '}
+            <Text style={styles.demoCode}>{route?.params?.dummyOtp}</Text>
           </Text>
 
           <TouchableOpacity
@@ -116,13 +173,6 @@ const OTPScreen: React.FC = () => {
           >
             <Text style={styles.resendText}>Didn't receive code? Resend</Text>
           </TouchableOpacity>
-
-          {error ? (
-            <>
-              <View style={{ height: 8 }} />
-              <Text style={styles.savedNote}>{error}</Text>
-            </>
-          ) : null}
         </View>
       </View>
     </SafeAreaView>
@@ -211,19 +261,51 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
   },
-  verifyButtonActive: { backgroundColor: colors.primary },
-  verifyButtonText: { fontSize: 16, fontWeight: '600', color: colors.muted },
-  verifyButtonTextActive: { color: '#ffffff' },
-  helpSection: { alignItems: 'center', marginTop: 8, width: '100%' },
-  helpText: { fontSize: 14, color: colors.textSecondary, marginBottom: 12 },
-  demoCode: { fontWeight: '700', color: colors.primary },
+  verifyButtonActive: {
+    backgroundColor: colors.primary,
+  },
+  verifyButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.muted,
+  },
+  verifyButtonTextActive: {
+    color: '#ffffff',
+  },
+  helpSection: {
+    alignItems: 'center',
+    marginTop: 8,
+    width: '100%',
+  },
+  helpText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginBottom: 12,
+  },
+  demoCode: {
+    fontWeight: '700',
+    color: colors.primary,
+  },
   resendButton: { padding: 8 },
-  resendText: { fontSize: 14, color: colors.primary, fontWeight: '500' },
+  resendText: {
+    fontSize: 14,
+    color: colors.primary,
+    fontWeight: '500',
+  },
   savedNote: {
     fontSize: 13,
     color: colors.textSecondary,
     textAlign: 'center',
     marginTop: 8,
+  },
+  nameFields: {
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    height: 44,
+    width: '100%',
+    backgroundColor: colors.lightGrey,
+    borderWidth: 1,
+    marginBottom: 20,
   },
 });
 

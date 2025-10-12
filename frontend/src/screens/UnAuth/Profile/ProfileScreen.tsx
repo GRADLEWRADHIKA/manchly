@@ -8,9 +8,7 @@ import {
   Image,
   StatusBar as RNStatusBar,
 } from 'react-native';
-import colors from '../../../theme/colors';
-import { useAppDispatch, useAppSelector } from '../../../store/hooks';
-import { clearStoredAuth } from '../../../store/authSlice';
+import colors from '../../../utils/colors';
 import {
   User2,
   LayoutDashboard,
@@ -24,6 +22,9 @@ import {
 import LogoutModal from './Components/LogoutModal';
 import AppHeader from '../../../components/AppHeader';
 import { useNavigation } from '@react-navigation/native';
+import { useDispatch, useSelector } from 'react-redux';
+import { ThunkDispatch } from '@reduxjs/toolkit';
+import { logout } from '../../../store/UserSlice';
 
 const APP_VERSION = '10.2.7';
 
@@ -34,15 +35,11 @@ const NewBadge = () => (
 );
 
 const ProfileScreen: React.FC = () => {
-  const dispatch = useAppDispatch();
   const [logoutVisible, setLogoutVisible] = useState(false);
   const Nav = useNavigation();
-  const userType = useAppSelector(state => state.auth.userType);
+  const { user } = useSelector((state: any) => state.userReducer);
+  const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
 
-  const handleLogout = async () => {
-    setLogoutVisible(false);
-    await dispatch(clearStoredAuth());
-  };
   const RightChevron = <ChevronRight size={18} color={colors.textSecondary} />;
 
   return (
@@ -55,16 +52,22 @@ const ProfileScreen: React.FC = () => {
           styles.header,
           {
             backgroundColor:
-              userType === 'User' ? colors.secPrimary : colors.primary,
+              user?.user_type === 'USER' ? colors.secPrimary : colors.primary,
           },
         ]}
       >
         <View style={styles.greetingWrap}>
-          <Image
+          {/* <Image
             source={{ uri: 'https://i.pravatar.cc/200?img=12' }}
             style={styles.avatar}
-          />
-          <Text style={styles.greetingText}>Hello, Sumit</Text>
+          /> */}
+          <Image source={{ uri: user?.profile_image }} style={styles.avatar} />
+          <Text style={styles.greetingText}>
+            Hello,{' '}
+            {user?.name
+              ? user?.name?.charAt(0).toUpperCase() + user?.name?.slice(1)
+              : ''}
+          </Text>
         </View>
       </View>
 
@@ -211,7 +214,10 @@ const ProfileScreen: React.FC = () => {
       <LogoutModal
         visible={logoutVisible}
         onCancel={() => setLogoutVisible(false)}
-        onConfirm={handleLogout}
+        onConfirm={() => {
+          setLogoutVisible(false);
+          dispatch(logout());
+        }}
       />
     </View>
   );

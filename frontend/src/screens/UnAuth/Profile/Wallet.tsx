@@ -6,7 +6,7 @@ import {
   ActivityIndicator,
   TouchableOpacity,
 } from 'react-native';
-import colors from '../../../theme/colors';
+import colors from '../../../utils/colors';
 import AppHeaderWithBack from '../../../components/AppHeaderWithBack';
 import { Wallet as WalletIcon, Clock } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';

@@ -2,30 +2,34 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   StatusBar as RNStatusBar,
   Animated,
   LayoutChangeEvent,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { Phone, ArrowRight } from 'lucide-react-native';
-import colors from '../../theme/colors';
+import { ArrowRight } from 'lucide-react-native';
+import colors from '../../utils/colors';
+import { Controller, useForm } from 'react-hook-form';
+import CustomTextInput from '../../components/CustomInput';
+import { useDispatch } from 'react-redux';
+import { ThunkDispatch } from '@reduxjs/toolkit';
+import Toast from 'react-native-toast-message';
+import { sendOtpEmail, sendOtpSms } from '../../store/UserSlice';
 
-const USER_TYPES = ['Creator', 'User'] as const;
-
-type UserType = typeof USER_TYPES[number];
+const USER_TYPES = ['CREATOR', 'USER'] as const;
+type UserType = (typeof USER_TYPES)[number];
 
 const LoginScreen: React.FC = () => {
-  const [phone, setPhone] = useState('');
   const Nav = useNavigation<any>();
-  const [userType, setUserType] = useState<UserType>('Creator');
-
-  // Animated indicator
+  const [userType, setUserType] = useState<UserType>('CREATOR');
   const indicatorX = useRef(new Animated.Value(0)).current;
   const [buttonWidths, setButtonWidths] = useState<number[]>([0, 0]);
+  const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const idx = USER_TYPES.indexOf(userType);
@@ -42,7 +46,7 @@ const LoginScreen: React.FC = () => {
 
   const onButtonLayout = (index: number) => (e: LayoutChangeEvent) => {
     const w = e.nativeEvent.layout.width;
-    setButtonWidths((prev) => {
+    setButtonWidths(prev => {
       const copy = [...prev];
       copy[index] = w;
       return copy;
@@ -50,15 +54,100 @@ const LoginScreen: React.FC = () => {
   };
 
   const titleByUserType = (type: UserType) =>
-    type === 'Creator' ? 'Welcome Creator' : 'Welcome Back';
+    type === 'CREATOR' ? 'Welcome Creator' : 'Welcome Back';
+
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({
+    defaultValues: {
+      phoneEmail: '',
+    },
+  });
+
+  const onSubmit = (data: any) => {
+    setLoading(true);
+
+    const isPhoneNumber = /^\d+$/.test(data?.phoneEmail);
+    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data?.phoneEmail);
+
+    const payload = {
+      phone_number: isPhoneNumber ? data?.phoneEmail : '',
+      email: isEmail ? data?.phoneEmail : '',
+      purpose: 'login',
+      tab: userType,
+    };
+
+    if (isPhoneNumber) {
+      dispatch(sendOtpSms(payload))
+        .unwrap()
+        .then(response => {
+          Toast.show({
+            type: 'success',
+            text1: `Login OTP is ${response?.data?.data?.otp}`,
+            position: 'top',
+          });
+          reset();
+          setLoading(false);
+          Nav.navigate('OTPScreen', {
+            payload,
+            dummyOtp: response?.data?.data?.otp,
+          });
+        })
+        .catch(error => {
+          console.log('SMS OTP error ------> ', error);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    } else if (isEmail) {
+      dispatch(sendOtpEmail(payload))
+        .unwrap()
+        .then(response => {
+          Toast.show({
+            type: 'success',
+            text1: `Login OTP is ${response?.data?.data?.otp}`,
+            position: 'top',
+          });
+          reset();
+          setLoading(false);
+          Nav.navigate('OTPScreen', {
+            payload,
+            dummyOtp: response?.data?.data?.otp,
+          });
+        })
+        .catch(error => {
+          console.log('Email OTP error ------> ', error);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    } else {
+      console.log('Invalid input — not a valid email or phone number');
+      setLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
-      <RNStatusBar barStyle="dark-content" backgroundColor="transparent" translucent={false} />
+      <RNStatusBar
+        barStyle="dark-content"
+        backgroundColor="transparent"
+        translucent={false}
+      />
 
       <View style={styles.content}>
         <View style={styles.logoSection}>
-          <View style={[styles.logoContainer, userType === 'Creator' ? { backgroundColor: colors.primary } : { backgroundColor: colors.secPrimary }]}>
+          <View
+            style={[
+              styles.logoContainer,
+              userType === 'CREATOR'
+                ? { backgroundColor: colors.primary }
+                : { backgroundColor: colors.secPrimary },
+            ]}
+          >
             <Text style={styles.logoText}>Manchly</Text>
           </View>
           <Text style={styles.tagline}>Create. Connect. Grow.</Text>
@@ -66,7 +155,9 @@ const LoginScreen: React.FC = () => {
 
         <View style={styles.formSection}>
           <Text style={styles.title}>{titleByUserType(userType)}</Text>
-          <Text style={styles.subtitle}>Enter your phone number to get started</Text>
+          <Text style={styles.subtitle}>
+            Enter your phone number or email to get started
+          </Text>
 
           <View style={styles.segmentWrapper}>
             <View style={styles.segmentBackground}>
@@ -79,8 +170,16 @@ const LoginScreen: React.FC = () => {
                     onPress={() => setUserType(type)}
                     onLayout={onButtonLayout(idx)}
                     style={styles.segmentButton}
+                    disabled={loading === true ? true : false}
                   >
-                    <Text style={[styles.segmentText, active && styles.segmentTextActive]}>{type}</Text>
+                    <Text
+                      style={[
+                        styles.segmentText,
+                        active && styles.segmentTextActive,
+                      ]}
+                    >
+                      {type}
+                    </Text>
                   </TouchableOpacity>
                 );
               })}
@@ -91,7 +190,13 @@ const LoginScreen: React.FC = () => {
                   styles.indicator,
                   {
                     transform: [{ translateX: indicatorX }],
-                    width: buttonWidths.reduce((acc, w, i) => acc + (i === 0 ? w : 0), 0) || (buttonWidths[0] || 0),
+                    width:
+                      buttonWidths.reduce(
+                        (acc, w, i) => acc + (i === 0 ? w : 0),
+                        0,
+                      ) ||
+                      buttonWidths[0] ||
+                      0,
                   },
                 ]}
               />
@@ -99,43 +204,67 @@ const LoginScreen: React.FC = () => {
           </View>
 
           <View style={styles.inputContainer}>
-            <View style={styles.phoneInputWrapper}>
-              <View style={styles.countryCode}>
-                <Text style={styles.countryCodeText}>+91</Text>
-              </View>
-              <TextInput
-                style={styles.phoneInput}
-                placeholder="Enter phone number"
-                value={phone}
-                onChangeText={setPhone}
-                keyboardType="phone-pad"
-                maxLength={10}
-                placeholderTextColor={colors.muted}
-              />
-            </View>
+            <Controller
+              name="phoneEmail"
+              control={control}
+              rules={{
+                required: {
+                  value: true,
+                  message: 'Please enter phone number or email address',
+                },
+                pattern: {
+                  value: /^(\d{10}|[^\s@]+@[^\s@]+\.[^\s@]+)$/,
+                  message:
+                    'Please enter a valid 10-digit phone number or email address',
+                },
+              }}
+              render={({
+                field: { onChange, onBlur, value },
+                fieldState: { error },
+              }) => (
+                <CustomTextInput
+                  inputContainerStyle={[
+                    styles.nameFields,
+                    {
+                      borderColor: error ? 'red' : colors.borderColor,
+                    },
+                  ]}
+                  inputStyle={{
+                    fontSize: 16,
+                    color: colors.black,
+                  }}
+                  placeholderTextColor={colors.borderColor}
+                  placeholder="Enter Phone Number or Email"
+                  keyboardType="email-address"
+                  onChange={onChange}
+                  onBlur={onBlur}
+                  value={value}
+                />
+              )}
+            />
           </View>
 
           <TouchableOpacity
-            style={[
-              styles.continueButton,
-              phone.length >= 10 && styles.continueButtonActive,
-            ]}
-            onPress={() => {
-              Nav.navigate('OTPScreen', { userType });
-              setPhone('');
-            }}
-            disabled={phone.length < 10}
+            style={[styles.continueButton, styles.continueButtonActive]}
+            onPress={handleSubmit(onSubmit)}
             activeOpacity={0.8}
+            disabled={loading === true ? true : false}
           >
-            <Text
-              style={[
-                styles.continueButtonText,
-                phone.length >= 10 && styles.continueButtonTextActive,
-              ]}
-            >
-              Send OTP
-            </Text>
-            <ArrowRight size={20} color={phone.length >= 10 ? '#ffffff' : colors.muted} />
+            {loading ? (
+              <ActivityIndicator color={colors.white} size={'small'} />
+            ) : (
+              <>
+                <Text
+                  style={[
+                    styles.continueButtonText,
+                    styles.continueButtonTextActive,
+                  ]}
+                >
+                  Send OTP
+                </Text>
+                <ArrowRight size={20} color={colors.white} />
+              </>
+            )}
           </TouchableOpacity>
 
           <Text style={styles.termsText}>
@@ -143,16 +272,16 @@ const LoginScreen: React.FC = () => {
             <Text style={styles.linkText}>Terms of Service</Text> and{' '}
             <Text style={styles.linkText}>Privacy Policy</Text>
           </Text>
-        </View>
 
-        <View style={styles.featuresSection}>
-          <View style={styles.featureItem}>
-            <View style={styles.featureIcon}>
-              <Phone size={20} color={colors.primary} />
-            </View>
-            <Text style={styles.featureText}>Secure phone verification</Text>
+          <View style={styles.signupTextContainer}>
+            <Text style={styles.dontHaveAccount}>Don’t have an account? </Text>
+            <TouchableOpacity onPress={() => Nav.navigate('SignupScreen')}>
+              <Text style={styles.createAccountText}>Create one now</Text>
+            </TouchableOpacity>
           </View>
         </View>
+
+        <View style={styles.featuresSection} />
       </View>
     </SafeAreaView>
   );
@@ -164,7 +293,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   content: {
-    flex: 1,
+    // flex: 1,
     paddingHorizontal: 24,
     justifyContent: 'space-between',
   },
@@ -176,7 +305,6 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 12,
@@ -194,11 +322,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.textSecondary,
     textAlign: 'center',
+    fontWeight: '500',
   },
   formSection: {
-    flex: 1,
+    // flex: 1,
     justifyContent: 'center',
-    paddingVertical: 20,
+    // paddingVertical: 20,
+    marginTop: 60,
   },
   title: {
     fontSize: 24,
@@ -251,44 +381,21 @@ const styles = StyleSheet.create({
   inputContainer: {
     marginBottom: 24,
   },
-  phoneInputWrapper: {
-    flexDirection: 'row',
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 12,
-    overflow: 'hidden',
-    backgroundColor: '#fff',
-  },
-  countryCode: {
-    backgroundColor: colors.surface,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderRightWidth: 1,
-    borderRightColor: colors.border,
-  },
-  countryCodeText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  phoneInput: {
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    fontSize: 16,
-    color: colors.text,
-  },
   continueButton: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: colors.surface,
     borderRadius: 12,
     paddingVertical: 14,
-    marginBottom: 24,
+    marginBottom: 16,
   },
   continueButtonActive: {
     backgroundColor: colors.primary,
+    shadowColor: colors.primary,
+    shadowOpacity: 0.3,
+    shadowOffset: { width: 0, height: 3 },
+    shadowRadius: 6,
+    elevation: 4,
   },
   continueButtonText: {
     fontSize: 16,
@@ -304,31 +411,38 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 18,
+    marginBottom: 8,
   },
   linkText: {
     color: colors.primary,
     fontWeight: '500',
   },
+  signupTextContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 50,
+  },
+  dontHaveAccount: {
+    fontSize: 14,
+    color: colors.textSecondary,
+  },
+  createAccountText: {
+    fontSize: 14,
+    color: colors.primary,
+    fontWeight: '600',
+  },
   featuresSection: {
     paddingBottom: 30,
   },
-  featureItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  featureIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: `${colors.primary}20`,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  featureText: {
-    fontSize: 14,
-    color: colors.textSecondary,
+  nameFields: {
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    height: 44,
+    width: '100%',
+    backgroundColor: colors.lightGrey,
+    borderWidth: 1,
+    marginBottom: 20,
   },
 });
 

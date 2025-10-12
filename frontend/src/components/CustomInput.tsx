@@ -1,0 +1,132 @@
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  TextInputProps,
+  TextStyle,
+  View,
+  ViewStyle,
+} from 'react-native';
+import React, { useState } from 'react';
+import colors from '../utils/colors';
+// import EyeIcon from './EyeIcon';
+// import EyeHideIcon from './EyeHideIcon';
+//   import SearchIcon from './SearchIcon';
+//   import ShowPasswordIcon from '../clientScreens/ChangePassword/components/ShowPasswordIcon';
+
+interface props {
+  isLeftIcon?: Boolean;
+  leftIcon?: React.ReactNode;
+  isRightIcon?: Boolean;
+  rightIcon?: React.ReactNode;
+  inputContainerStyle?: ViewStyle[] | ViewStyle;
+  inputStyle?: ViewStyle | TextStyle;
+  isError?: Boolean;
+  errorText?: String;
+  multiline?: boolean;
+  sendTextIcon?: boolean;
+  searchIcon?: boolean;
+  handleRightIconPress?: () => void;
+  onChange?: any;
+  onBlur?: any;
+  value?: any;
+  showFullHeight?: boolean;
+  passwordFild?: boolean;
+  disabled?: boolean;
+}
+
+type CustomTextInputProps = TextInputProps & props;
+const CustomTextInput: React.FC<CustomTextInputProps> = ({
+  isLeftIcon,
+  isRightIcon,
+  rightIcon,
+  onChange,
+  onBlur,
+  value,
+  leftIcon,
+  inputStyle,
+  inputContainerStyle,
+  handleRightIconPress,
+  isError,
+  multiline = false,
+  searchIcon = false,
+  errorText,
+  sendTextIcon = false,
+  placeholder,
+  showFullHeight,
+  passwordFild = false,
+  disabled = false,
+  ...restProps
+}) => {
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [leftData, setLeftData] = useState(false)
+
+  return (
+    <React.Fragment>
+      <View style={[styles.container, inputContainerStyle]}>
+        {isLeftIcon && leftIcon}
+
+        {/* {searchIcon && <SearchIcon />} */}
+
+        <TextInput
+          underlineColorAndroid={'transparent'}
+          style={[
+            styles.textInput,
+            inputStyle,
+            showFullHeight ? { height: '100%' } : {},
+            { width: passwordFild === true ? '90%' : '100%' }
+          ]}
+          placeholder={placeholder}
+          {...restProps}
+          multiline={multiline}
+          onChangeText={onChange}
+          onBlur={onBlur}
+          // selection={leftData === true ? {start:0, end:0} : {}}
+          textAlignVertical="top"
+          value={value}
+          secureTextEntry={passwordFild ? !isPasswordVisible : false}
+          editable={!disabled}
+          placeholderTextColor={'grey'}
+        />
+
+        {/* <Pressable onPress={disabled ? undefined : handleRightIconPress}>
+            {isRightIcon && rightIcon}
+          </Pressable> */}
+
+        {/* {sendTextIcon && <SendTextIcon />} */}
+
+        {/* {passwordFild === true && <Pressable onPress={() => setIsPasswordVisible(!isPasswordVisible)} style={{ position: 'absolute', right: 20 }}>
+          {isPasswordVisible ? <EyeIcon /> : <EyeHideIcon />}
+        </Pressable>} */}
+
+      </View>
+      {isError && <Text>{errorText}</Text>}
+    </React.Fragment>
+  );
+};
+
+export default CustomTextInput;
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 56,
+  },
+  textInput: {
+    fontSize: 14,
+    marginTop: 2,
+    color: colors.black
+
+  },
+  searchIcon: {
+    position: 'absolute',
+    fontSize: 20,
+    left: 10,
+  },
+  placeholder: {
+    color: colors.black,
+    fontSize: 14
+  }
+});

@@ -3,13 +3,13 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { ArrowLeft } from 'lucide-react-native';
-import colors from '../theme/colors';
-import { useAppSelector } from '../store/hooks';
+import colors from '../utils/colors';
+import { useSelector } from 'react-redux';
 
 const AppHeaderWithBack = ({ title }) => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
-  const userType = useAppSelector(state => state.auth.userType);
+  const { user } = useSelector((state: any) => state.userReducer);
 
   return (
     <View
@@ -18,7 +18,7 @@ const AppHeaderWithBack = ({ title }) => {
         {
           paddingTop: insets.top + 10,
           backgroundColor:
-            userType === 'User' ? colors.secPrimary : colors.primary,
+            user?.user_type === 'USER' ? colors.secPrimary : colors.primary,
         },
       ]}
     >

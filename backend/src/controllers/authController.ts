@@ -307,7 +307,7 @@ export class AuthController {
           id: user.id,
           email: user.email,
           name: user.name,
-          phone_number: user.phone,
+          phone: user.phone,
           user_type: user.user_type
         }
       }, "OTP verified successfully");
@@ -401,7 +401,7 @@ export class AuthController {
 
   // 9. Update User Profile (Protected)
   static async updateProfile(req: any, res: Response) {
-    const { name, phone_number, user_type } = req.body;
+    const { name, phone_number, user_type, profile_image } = req.body;
     const {user} = req;
 
     // Validate user_type if provided
@@ -418,6 +418,7 @@ export class AuthController {
         data: { 
           name, 
           phone: phone_number,
+          profile_image,
           ...(user_type && { user_type })
         }
       });
@@ -442,6 +443,7 @@ export class AuthController {
           email: true,
           name: true,
           phone: true,
+          profile_image: true,
           user_type: true,
           created_at: true,
           last_login: true

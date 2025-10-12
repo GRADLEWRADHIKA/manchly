@@ -285,7 +285,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"John Doe Updated\",\n  \"phone_number\": \"+1234567890\",\n  \"user_type\": \"CREATOR\"\n}"
+							"raw": "{\n  \"name\": \"John Doe Updated\",\n  \"phone_number\": \"+1234567890\",\n  \"profile_image\": \"https://example.com/profile.jpg\",\n  \"user_type\": \"CREATOR\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/auth/profile",
@@ -297,7 +297,7 @@
 								"profile"
 							]
 						},
-						"description": "Update user profile information including user_type"
+						"description": "Update user profile information including profile_image and user_type"
 					}
 				},
 				{

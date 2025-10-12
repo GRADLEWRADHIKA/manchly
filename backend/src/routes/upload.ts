@@ -17,6 +17,6 @@ const upload = multer({
   limits: { fileSize: MAX_SIZE_BYTES }
 });
 
-router.post("/", jwtAuth, upload.single("file"), UploadController.uploadFile);
+router.post("/", upload.single("file"), UploadController.uploadFile);
 
 export default router;

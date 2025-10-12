@@ -14,14 +14,15 @@ enum UserType {
 }
 
 model users {
-  id         String   @id @default(uuid())
-  email      String   @unique
-  name       String?
-  phone      String?  @unique
-  user_type  UserType @default(USER)
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-  last_login DateTime?
+  id            String   @id @default(uuid())
+  email         String   @unique
+  name          String?
+  phone         String?  @unique
+  profile_image String?
+  user_type     UserType @default(USER)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+  last_login    DateTime?
   
   @@map("users")
 }

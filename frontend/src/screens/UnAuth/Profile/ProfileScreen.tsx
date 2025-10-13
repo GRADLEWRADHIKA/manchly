@@ -226,7 +226,7 @@ const ProfileScreen: React.FC = () => {
 export default ProfileScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, backgroundColor: colors.white },
 
   header: {
     // backgroundColor: colors.primary,
@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 
-  body: { flex: 1, backgroundColor: colors.background },
+  body: { flex: 1, backgroundColor: colors.white },
 
   sectionHeader: {
     fontSize: 14,
@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
   },
 
   section: {
-    backgroundColor: colors.background,
+    backgroundColor: colors.white,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border,
@@ -281,7 +281,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: colors.background,
+    backgroundColor: colors.white,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.border,
   },

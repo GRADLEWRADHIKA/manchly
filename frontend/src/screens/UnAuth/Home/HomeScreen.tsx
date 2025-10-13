@@ -168,7 +168,7 @@ const HomeScreen: React.FC = () => {
     {
       label: 'Revenue',
       value: '₹12.5K',
-      icon: <TrendingUp size={24} color={colors.warning} />,
+      icon: <TrendingUp size={24} color={colors.golden} />,
     },
   ];
 
@@ -366,7 +366,7 @@ const HomeScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: colors.white,
   },
   content: {
     flex: 1,
@@ -446,7 +446,7 @@ const styles = StyleSheet.create({
   },
   featuredCard: {
     width: width - 40,
-    backgroundColor: colors.background,
+    backgroundColor: colors.white,
     borderRadius: 16,
     marginBottom: 16,
     shadowColor: '#000',

@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cancel: {
-    backgroundColor: colors.background,
+    backgroundColor: colors.white,
     borderWidth: 1,
     borderColor: colors.border,
   },

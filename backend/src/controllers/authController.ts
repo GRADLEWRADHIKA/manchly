@@ -28,18 +28,19 @@ const smsConfig = {
   senderId: process.env.SMS_SENDER_ID || "OTPService"
 };
 
-const redisConfig = {
-  host: process.env.REDIS_HOST || "localhost",
+// Redis config - only if REDIS_HOST is provided
+const redisConfig = process.env.REDIS_HOST ? {
+  host: process.env.REDIS_HOST,
   port: Number(process.env.REDIS_PORT || 6379),
   password: process.env.REDIS_PASSWORD,
   db: Number(process.env.REDIS_DB || 0)
-};
+} : undefined;
 
 // Initialize OTP Manager
 const otpManager = new OTPManager(
   {
     length: 6,
-    ttl: 180, // 10 minutes
+    ttl: 180, // 3 minutes
     maxAttempts: 3,
     emailEnabled: true,
     smsEnabled: !!process.env.AWS_ACCESS_KEY_ID // Enable SMS if AWS credentials exist

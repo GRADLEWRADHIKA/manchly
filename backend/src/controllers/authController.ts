@@ -28,8 +28,10 @@ const smsConfig = {
   senderId: process.env.SMS_SENDER_ID || "OTPService"
 };
 
-// Redis config - only if REDIS_HOST is provided
-const redisConfig = process.env.REDIS_HOST ? {
+// Redis config - support both REDIS_URL and individual config
+const redisConfig = process.env.REDIS_URL ? {
+  url: process.env.REDIS_URL
+} : process.env.REDIS_HOST ? {
   host: process.env.REDIS_HOST,
   port: Number(process.env.REDIS_PORT || 6379),
   password: process.env.REDIS_PASSWORD,

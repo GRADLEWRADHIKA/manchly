@@ -41,8 +41,9 @@ interface SMSConfig {
 }
 
 interface RedisConfig {
-  host: string;
-  port: number;
+  url?: string;
+  host?: string;
+  port?: number;
   password?: string;
   db?: number;
 }
@@ -101,20 +102,82 @@ class OTPManager {
 
     // Initialize Redis Client
     if (redisConfig) {
-      this.redisClient = new Redis({
-        host: redisConfig.host,
-        port: redisConfig.port,
-        password: redisConfig.password,
-        db: redisConfig.db || 0,
-      });
+      try {
+        // Support both URL and individual config
+        if (redisConfig.url) {
+          // Use URL format (e.g., rediss://...)
+          this.redisClient = new Redis(redisConfig.url, {
+            lazyConnect: true,
+            maxRetriesPerRequest: 3,
+            retryStrategy: (times) => {
+              if (times > 3) {
+                console.warn('Redis connection failed after 3 retries, falling back to memory storage');
+                return null; // Stop retrying
+              }
+              return Math.min(times * 100, 3000);
+            },
+          });
+        } else {
+          // Use individual config
+          this.redisClient = new Redis({
+            host: redisConfig.host!,
+            port: redisConfig.port!,
+            password: redisConfig.password,
+            db: redisConfig.db || 0,
+            lazyConnect: true,
+            maxRetriesPerRequest: 3,
+            retryStrategy: (times) => {
+              if (times > 3) {
+                console.warn('Redis connection failed after 3 retries, falling back to memory storage');
+                return null; // Stop retrying
+              }
+              return Math.min(times * 100, 3000);
+            },
+          });
+        }
 
-      // Initialize Rate Limiter with Redis
-      this.rateLimiter = new RateLimiterRedis({
-        storeClient: this.redisClient,
-        keyPrefix: 'otp_rate_limit',
-        points: 5, // Number of OTP requests
-        duration: 300, // Per 5 minutes
-      });
+        // Handle Redis connection success
+        this.redisClient.on('connect', () => {
+          console.log('✅ Redis connected successfully');
+        });
+
+        this.redisClient.on('ready', () => {
+          console.log('✅ Redis is ready to accept commands');
+        });
+
+        // Handle Redis errors gracefully
+        this.redisClient.on('error', (err) => {
+          console.warn('⚠️ Redis connection error, using memory storage:', err.message);
+          this.redisClient = null;
+        });
+
+        // Try to connect
+        this.redisClient.connect()
+          .then(() => {
+            console.log('✅ Redis connection established');
+          })
+          .catch((err) => {
+            console.warn('⚠️ Failed to connect to Redis, using memory storage:', err.message);
+            this.redisClient = null;
+          });
+
+        // Initialize Rate Limiter with Redis
+        this.rateLimiter = new RateLimiterRedis({
+          storeClient: this.redisClient,
+          keyPrefix: 'otp_rate_limit',
+          points: 5, // Number of OTP requests
+          duration: 300, // Per 5 minutes
+        });
+      } catch (error) {
+        console.warn('Redis initialization failed, using memory storage');
+        this.redisClient = null;
+        // Fallback to memory-based rate limiter
+        this.rateLimiter = new RateLimiterMemory({
+          keyPrefix: 'otp_rate_limit',
+          points: 5,
+          duration: 300,
+        });
+      }
     } else {
       // Fallback to memory-based rate limiter
       this.rateLimiter = new RateLimiterMemory({

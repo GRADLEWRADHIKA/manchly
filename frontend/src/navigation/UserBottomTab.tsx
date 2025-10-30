@@ -1,24 +1,55 @@
 // UserBottomTab.tsx
 import React from 'react';
-import { View, TouchableOpacity, Text, StyleSheet, Platform } from 'react-native';
+import {
+  View,
+  TouchableOpacity,
+  Text,
+  StyleSheet,
+  Platform,
+} from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import colors from '../utils/colors';
-import HomeScreen from '../screens/UnAuth/Home/HomeScreen';
 import ProductsScreen from '../screens/UnAuth/Product/ProductsScreen';
-import ChatListScreen from '../screens/UnAuth/Chat/ChatsScreen';
 import PurchasesScreen from '../screens/UnAuth/Purchase/PurchasesScreen';
 import ProfileScreen from '../screens/UnAuth/Profile/ProfileScreen';
-import { MessageCircle, ShoppingCart, ShoppingBag, House, UserPen } from 'lucide-react-native';
+import {
+  MessageCircle,
+  ShoppingCart,
+  ShoppingBag,
+  House,
+  UserPen,
+} from 'lucide-react-native';
 import UserHome from '../screens/UnAuth/User/Home/UserHome';
+import UserChat from '../screens/UnAuth/User/Chat/UserChat';
 
 const Tab = createBottomTabNavigator();
 
 const tabs = [
   { name: 'Home', component: UserHome, label: 'Home', Icon: House },
-  { name: 'ProductsScreen', component: ProductsScreen, label: 'Products', Icon: ShoppingCart },
-  { name: 'ChatListScreen', component: ChatListScreen, label: 'Chats', Icon: MessageCircle },
-  { name: 'PurchasesScreen', component: PurchasesScreen, label: 'Purchases', Icon: ShoppingBag },
-  { name: 'ProfileScreen', component: ProfileScreen, label: 'Profile', Icon: UserPen },
+  {
+    name: 'ProductsScreen',
+    component: ProductsScreen,
+    label: 'Products',
+    Icon: ShoppingCart,
+  },
+  {
+    name: 'UserChat',
+    component: UserChat,
+    label: 'Chats',
+    Icon: MessageCircle,
+  },
+  {
+    name: 'PurchasesScreen',
+    component: PurchasesScreen,
+    label: 'Purchases',
+    Icon: ShoppingBag,
+  },
+  {
+    name: 'ProfileScreen',
+    component: ProfileScreen,
+    label: 'Profile',
+    Icon: UserPen,
+  },
 ];
 
 const CustomTabBar = ({ state, descriptors, navigation }: any) => {
@@ -34,9 +65,21 @@ const CustomTabBar = ({ state, descriptors, navigation }: any) => {
         };
 
         return (
-          <TouchableOpacity key={route.key} onPress={onPress} style={styles.tabItem}>
-            <Icon size={isFocused ? 22 : 20} color={isFocused ? colors.primary : colors.black} />
-            <Text style={[styles.tabLabel, { color: isFocused ? colors.primary : colors.black }]}>
+          <TouchableOpacity
+            key={route.key}
+            onPress={onPress}
+            style={styles.tabItem}
+          >
+            <Icon
+              size={isFocused ? 22 : 20}
+              color={isFocused ? colors.primary : colors.black}
+            />
+            <Text
+              style={[
+                styles.tabLabel,
+                { color: isFocused ? colors.primary : colors.black },
+              ]}
+            >
               {tabInfo?.label}
             </Text>
           </TouchableOpacity>
@@ -54,7 +97,12 @@ const UserBottomTab = () => {
       tabBar={props => <CustomTabBar {...props} />}
     >
       {tabs.map(t => (
-        <Tab.Screen key={t.name} name={t.name} component={t.component} options={{ title: t.label }} />
+        <Tab.Screen
+          key={t.name}
+          name={t.name}
+          component={t.component}
+          options={{ title: t.label }}
+        />
       ))}
     </Tab.Navigator>
   );

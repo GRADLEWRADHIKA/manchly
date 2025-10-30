@@ -12,16 +12,17 @@ import CreateProducts from '../screens/UnAuth/Product/CreateProducts';
 import CreateWebinar from '../screens/UnAuth/Home/CreateWebinar';
 import CreateCourse from '../screens/UnAuth/Home/CreateCourse';
 import WalletCreator from '../screens/UnAuth/Wallet/WalletCreator';
+import CreatorBottomTab from './CreatorBottomTab';
 
 const Stack = createNativeStackNavigator();
 
-const MainStack = () => {
+const CreatorMainStack = () => {
   return (
     <Stack.Navigator
-      initialRouteName="BottomTab"
+      initialRouteName="CreatorBottomTab"
       screenOptions={{ headerShown: false }}
     >
-      <Stack.Screen name="BottomTab" component={BottomTab} />
+      <Stack.Screen name="CreatorBottomTab" component={CreatorBottomTab} />
       <Stack.Screen name="Settings" component={Settings} />
       <Stack.Screen name="Lists" component={Lists} />
       <Stack.Screen name="Earnings" component={Earnings} />
@@ -37,4 +38,4 @@ const MainStack = () => {
   );
 };
 
-export default MainStack;
+export default CreatorMainStack;

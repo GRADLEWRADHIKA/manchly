@@ -1,24 +1,33 @@
 import { StyleSheet, Text, View } from 'react-native';
 import React, { useLayoutEffect } from 'react';
-import MainStack from './MainStack';
 import { NavigationContainer } from '@react-navigation/native';
 import AuthStack from './AuthStack';
 import { useSelector } from 'react-redux';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { getAccessToken } from '../utils/AxiosInstance';
-getAccessToken
+import UserMainStack from './UserMainStack';
+import CreatorMainStack from './CreatorMainStack';
 
 const Router = () => {
   const { token } = useSelector((state: any) => state.userReducer);
-  
-    useLayoutEffect(() => {
-      getAccessToken();
-    }, []);
+  const { user } = useSelector((state: any) => state.userReducer);
+
+  useLayoutEffect(() => {
+    getAccessToken();
+  }, []);
 
   return (
     <SafeAreaProvider>
       <NavigationContainer>
-        {token ? <MainStack /> : <AuthStack />}
+        {token ? (
+          user?.user_type === 'USER' ? (
+            <UserMainStack />
+          ) : (
+            <CreatorMainStack />
+          )
+        ) : (
+          <AuthStack />
+        )}
       </NavigationContainer>
     </SafeAreaProvider>
   );

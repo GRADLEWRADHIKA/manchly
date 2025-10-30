@@ -148,7 +148,7 @@ const LoginScreen: React.FC = () => {
                 : { backgroundColor: colors.secPrimary },
             ]}
           >
-            <Text style={styles.logoText}>Manchly</Text>
+            {/* <Text style={styles.logoText}>Manchly</Text> */}
           </View>
           <Text style={styles.tagline}>Create. Connect. Grow.</Text>
         </View>
@@ -245,7 +245,9 @@ const LoginScreen: React.FC = () => {
           </View>
 
           <TouchableOpacity
-            style={[styles.continueButton, styles.continueButtonActive]}
+            style={[styles.continueButton, styles.continueButtonActive, {
+              backgroundColor: userType === 'CREATOR' ? colors.primary : colors.secPrimary
+            }]}
             onPress={handleSubmit(onSubmit)}
             activeOpacity={0.8}
             disabled={loading === true ? true : false}

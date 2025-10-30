@@ -33,7 +33,6 @@ type Tile = {
 };
 
 const CreateProducts = () => {
-  // 3 columns with consistent spacing
   const numColumns = 3;
   const gap = 14;
   const horizontalPad = 16;

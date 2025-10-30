@@ -267,22 +267,6 @@ const HomeScreen: React.FC = () => {
             </View>
           </View>
 
-          {/* <View style={styles.featuredSection}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Featured Content</Text>
-              <TouchableOpacity>
-                <Text style={styles.seeAllText}>See All</Text>
-              </TouchableOpacity>
-            </View>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.featuredScrollContent}
-            >
-              {featuredContent.map(renderFeaturedCard)}
-            </ScrollView>
-          </View> */}
-
           <View style={styles.actionsSection}>
             <Text style={styles.sectionTitle}>Quick Actions</Text>
             <View style={styles.actionsGrid}>

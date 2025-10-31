@@ -11,12 +11,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Play, BookOpen, Users, Award, TrendingUp } from 'lucide-react-native';
 import colors from '../../../../utils/colors';
-import KycCard from './KeyCard';
+import KycCard from '../../Home/KeyCard';
 import AppHeader from '../../../../components/AppHeader';
+import { useSelector } from 'react-redux';
 
 const CreatorHome = () => {
   const navigation = useNavigation<any>();
   const [active, setActive] = useState(true);
+  const { token } = useSelector((state: any) => state.userReducer);
 
   const quickStats = [
     {

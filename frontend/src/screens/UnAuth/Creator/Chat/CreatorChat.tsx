@@ -8,8 +8,8 @@ import {
   Image,
 } from 'react-native';
 import { MessageCircle } from 'lucide-react-native';
-import AppHeader from '../../../components/AppHeader';
-import colors from '../../../utils/colors';
+import AppHeader from '../../../../components/AppHeader';
+import colors from '../../../../utils/colors';
 
 type ChatUser = {
   id: string;
@@ -44,7 +44,7 @@ const chatUsers: ChatUser[] = [
   },
 ];
 
-const ChatListScreen = () => {
+const CreatorChat = () => {
   const renderItem = ({ item }: { item: ChatUser }) => (
     <TouchableOpacity style={styles.chatRow} onPress={() => console.log('Open chat', item.name)}>
       {/* Avatar */}
@@ -94,7 +94,7 @@ const ChatListScreen = () => {
   );
 };
 
-export default ChatListScreen;
+export default CreatorChat;
 
 const styles = StyleSheet.create({
   container: {

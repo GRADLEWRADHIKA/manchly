@@ -15,8 +15,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Calendar, Clock, Link } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
-import colors from '../../../utils/colors';
-import AppHeaderWithBack from '../../../components/AppHeaderWithBack';
+import colors from '../../../../utils/colors';
+import AppHeaderWithBack from '../../../../components/AppHeaderWithBack';
 
 const STORAGE_KEY = 'webinars';
 
@@ -108,8 +108,8 @@ const CreateWebinarScreen = () => {
 
   return (
     <View style={styles.safe}>
+      <StatusBar barStyle="light-content" backgroundColor="#fff" />
       <AppHeaderWithBack title="Create Webinar" />
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       <View style={styles.container}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -256,7 +256,7 @@ const CreateWebinarScreen = () => {
 export default CreateWebinarScreen;
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#fff' },
+  safe: { flex: 1, backgroundColor: colors.white },
   container: { flex: 1, paddingHorizontal: 16 },
   keyboardWrapper: { flex: 1 },
   formScroll: { paddingBottom: 24 },

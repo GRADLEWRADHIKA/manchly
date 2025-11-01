@@ -359,12 +359,7 @@ const CreatorHome = () => {
       const uploadUrl = res?.upload_url || res?.uploadUrl;
       const video = res?.video || res;
       const videoId = String(video?.id || video?._id || res?.video_id || res?.videoId || '');
-      
-      console.log('Full response:', JSON.stringify(res, null, 2));
-      console.log('Upload URL:', uploadUrl);
-      console.log('Video object:', video);
-      console.log('Video ID:', videoId);
-      console.log('File URI:', file.uri);
+    
       
       if (!videoId || videoId === '') {
         console.error('No video ID found in response:', res);
@@ -767,62 +762,7 @@ const CreatorHome = () => {
           </View>
         </View>
 
-        {/* Create Course */}
-        <View style={styles.formSection}>
-          <Text style={styles.sectionTitle}>Create New Course</Text>
-          <TextInput
-            placeholder="Course title"
-            placeholderTextColor={colors.textSecondary}
-            value={title}
-            onChangeText={setTitle}
-            style={styles.input}
-          />
-          <TextInput
-            placeholder="Description"
-            placeholderTextColor={colors.textSecondary}
-            value={description}
-            onChangeText={setDescription}
-            style={[styles.input, { height: 80 }]}
-            multiline
-          />
-          <View style={{ flexDirection: 'row' }}>
-            <TextInput
-              placeholder="Price"
-              placeholderTextColor={colors.textSecondary}
-              value={price}
-              onChangeText={setPrice}
-              keyboardType="decimal-pad"
-              style={[styles.input, { flex: 1, marginRight: 8 }]}
-            />
-            <TextInput
-              placeholder="Category"
-              placeholderTextColor={colors.textSecondary}
-              value={category}
-              onChangeText={setCategory}
-              style={[styles.input, { flex: 1, marginLeft: 8 }]}
-            />
-          </View>
-          <View style={{ flexDirection: 'row' }}>
-            <TouchableOpacity
-              onPress={() => setLevel(prev => (prev === 'Beginner' ? 'Intermediate' : prev === 'Intermediate' ? 'Advanced' : 'Beginner'))}
-              style={[styles.pill, { backgroundColor: `${colors.primary}15` }]}
-            >
-              <Text style={styles.pillText}>Level: {level}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setStatus(prev => (prev === 'DRAFT' ? 'PUBLISHED' : 'DRAFT'))}
-              style={[styles.pill, { backgroundColor: `${colors.secondary}15` }]}
-            >
-              <Text style={styles.pillText}>Status: {status}</Text>
-            </TouchableOpacity>
-          </View>
-          <TouchableOpacity style={styles.primaryBtn} onPress={onCreateCourse}>
-            <Text style={styles.primaryBtnText}>Save Course</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Courses List */}
-        <View style={styles.listSection}>
+        {/* <View style={styles.listSection}>
           <Text style={styles.sectionTitle}>Your Courses</Text>
           <FlatList
             data={courses}
@@ -897,7 +837,6 @@ const CreatorHome = () => {
                     </View>
                   )}
                   
-                  {/* Course Videos List */}
                   {item?.videos && item.videos.length > 0 && (
                     <View style={{ marginTop: 12 }}>
                       <Text style={[styles.courseMeta, { fontWeight: '700', marginBottom: 8 }]}>
@@ -910,14 +849,12 @@ const CreatorHome = () => {
                         const isProcessing = videoStatus === 'PROCESSING';
                         const hasError = videoStatus === 'ERROR';
                         
-                        // Find active upload for this video (upload key is now videoId)
                         const videoId = String(video?.id || video?._id);
                         const activeUpload = activeUploads[videoId];
                         const showUploadProgress = activeUpload && (activeUpload.progress < 100 || activeUpload.progress === 100);
                         
                         return (
                           <View key={video?.id} style={styles.videoCard}>
-                            {/* Video Thumbnail */}
                             <View style={styles.videoThumbnailContainer}>
                               {isReady && video?.thumbnail_url ? (
                                 <Image 
@@ -937,14 +874,12 @@ const CreatorHome = () => {
                               )}
                             </View>
                             
-                            {/* Video Info */}
                             <View style={{ flex: 1, marginLeft: 12 }}>
                               <Text style={styles.videoTitle} numberOfLines={1}>{video?.title || 'Untitled Video'}</Text>
                               <Text style={styles.courseMeta}>
                                 {video?.duration ? `${video.duration}s` : 'N/A'}
                               </Text>
                               
-                              {/* Upload Progress - Show only when actively uploading */}
                               {showUploadProgress && (
                                 <View style={{ marginTop: 8, marginBottom: 4 }}>
                                   {activeUpload.progress < 100 && (
@@ -961,7 +896,6 @@ const CreatorHome = () => {
                                         {activeUpload.xhr && (
                                           <TouchableOpacity 
                                             onPress={() => {
-                                              // Upload key is the videoId
                                               cancelUpload(videoId);
                                             }}
                                             style={[styles.pill, { backgroundColor: '#f44336', marginLeft: 8 }]}
@@ -998,7 +932,6 @@ const CreatorHome = () => {
                                 </View>
                               )}
                               
-                              {/* Status Badge */}
                               <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: showUploadProgress ? 8 : 4 }}>
                                 <View style={[
                                   styles.videoStatusBadge,
@@ -1030,11 +963,9 @@ const CreatorHome = () => {
                                 )}
                               </View>
                               
-                              {/* Playback URL for READY videos */}
                               {isReady && video?.playback_url && (
                                 <TouchableOpacity 
                                   onPress={() => {
-                                    // You can navigate to video player or copy URL
                                     console.log('Playback URL:', video.playback_url);
                                   }}
                                   style={{ marginTop: 4 }}
@@ -1045,14 +976,12 @@ const CreatorHome = () => {
                                 </TouchableOpacity>
                               )}
                               
-                              {/* Error Message */}
                               {hasError && (
                                 <Text style={[styles.courseMeta, { color: '#f44336', marginTop: 4 }]}>
                                   Upload failed
                                 </Text>
                               )}
 
-                              {/* Video Actions */}
                               <View style={{ flexDirection: 'row', marginTop: 8, flexWrap: 'wrap' }}>
                                 <TouchableOpacity
                                   onPress={() => handleEditVideo(video)}
@@ -1086,7 +1015,7 @@ const CreatorHome = () => {
               <Text style={{ color: colors.textSecondary }}>No courses yet.</Text>
             ) : null}
           />
-        </View>
+        </View> */}
 
         {/* Quick Actions */}
         <View style={styles.actionsSection}>

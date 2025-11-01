@@ -7,9 +7,9 @@ import UserProfile from '../screens/UnAuth/Profile/UserProfile';
 import Dashboard from '../screens/UnAuth/Profile/Dashboard';
 import SuperThank from '../screens/UnAuth/Profile/SuperThank';
 import Wallet from '../screens/UnAuth/Profile/Wallet';
-import CreateProducts from '../screens/UnAuth/Product/CreateProducts';
-import CreateWebinar from '../screens/UnAuth/Home/CreateWebinar';
-import CreateCourse from '../screens/UnAuth/Home/CreateCourse';
+import CreateProducts from '../screens/UnAuth/Creator/Products/CreateProducts';
+import CreateWebinar from '../screens/UnAuth/Creator/Products/CreateWebinar';
+import CreateCourse from '../screens/UnAuth/Creator/Products/CreateCourse';
 import WalletCreator from '../screens/UnAuth/Wallet/WalletCreator';
 import UserBottomTab from './UserBottomTab';
 

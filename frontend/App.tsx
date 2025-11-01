@@ -13,7 +13,7 @@ export default function App() {
   useEffect(() => {
     SplashScreen.hide();
   }, []);
-
+  
   return (
     <Provider store={store}>
       <PaperProvider>

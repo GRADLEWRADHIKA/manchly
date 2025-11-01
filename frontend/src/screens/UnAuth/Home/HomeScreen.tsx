@@ -15,7 +15,7 @@ import { TrendingUp, Users, Play, BookOpen, Award } from 'lucide-react-native';
 import AppHeader from '../../../components/AppHeader';
 import colors from '../../../utils/colors';
 import Video from 'react-native-video';
-import CreateWebinarModal from './CreateWebinar';
+import CreateWebinarModal from '../Creator/Products/CreateWebinar';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import KycCard from './KeyCard';

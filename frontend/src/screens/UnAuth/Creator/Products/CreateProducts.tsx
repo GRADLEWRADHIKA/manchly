@@ -9,8 +9,8 @@ import {
   Pressable,
   ScrollView,
 } from 'react-native';
-import colors from '../../../utils/colors';
-import AppHeaderWithBack from '../../../components/AppHeaderWithBack';
+import colors from '../../../../utils/colors';
+import AppHeaderWithBack from '../../../../components/AppHeaderWithBack';
 import {
   Lock,
   Megaphone,
@@ -44,23 +44,56 @@ const CreateProducts = () => {
 
   const tiles: Tile[] = [
     { id: 'locked', title: 'Locked\nMessages', Icon: Lock, bg: '#F26522' },
-    { id: 'channel', title: 'Channel\non Manchly', Icon: Megaphone, bg: '#2E91F6' },
+    {
+      id: 'channel',
+      title: 'Channel\non Manchly',
+      Icon: Megaphone,
+      bg: '#2E91F6',
+    },
     { id: 'group', title: 'Group\non Manchly', Icon: Users2, bg: '#7F49D6' },
 
-    { id: 'webinar', title: 'Webinar &\nWorkshops', Icon: Video, bg: '#B03060' },
+    {
+      id: 'webinar',
+      title: 'Webinar &\nWorkshops',
+      Icon: Video,
+      bg: '#B03060',
+    },
     { id: 'courses', title: 'Courses', Icon: GraduationCap, bg: '#2FBF71' },
-    { id: 'freeLeads', title: 'Free Lead\nGeneration', Icon: Gift, bg: '#FF7A00' },
+    {
+      id: 'freeLeads',
+      title: 'Free Lead\nGeneration',
+      Icon: Gift,
+      bg: '#FF7A00',
+    },
 
-    { id: 'tgPaidChannel', title: 'Telegram\nPaid Channel', Icon: Send, bg: '#294A93' },
-    { id: 'tgPaidGroup', title: 'Telegram\nPaid Group', Icon: Send, bg: '#3B1F8C' },
-    { id: 'oneToOne', title: 'One-to-One\nInteraction', Icon: MessageSquare, bg: '#C2185B' },
+    {
+      id: 'tgPaidChannel',
+      title: 'Telegram\nPaid Channel',
+      Icon: Send,
+      bg: '#294A93',
+    },
+    {
+      id: 'tgPaidGroup',
+      title: 'Telegram\nPaid Group',
+      Icon: Send,
+      bg: '#3B1F8C',
+    },
+    {
+      id: 'oneToOne',
+      title: 'One-to-One\nInteraction',
+      Icon: MessageSquare,
+      bg: '#C2185B',
+    },
   ];
 
   const renderItem = ({ item }: { item: Tile }) => (
     <Pressable
       onPress={item.onPress || (() => {})}
       android_ripple={{ color: 'rgba(255,255,255,0.2)', borderless: false }}
-      style={[styles.tile, { width: tileSize, height: tileSize, backgroundColor: item.bg }]}
+      style={[
+        styles.tile,
+        { width: tileSize, height: tileSize, backgroundColor: item.bg },
+      ]}
     >
       <item.Icon size={34} color="#fff" />
       <Text style={styles.tileText}>{item.title}</Text>
@@ -79,7 +112,8 @@ const CreateProducts = () => {
           style={styles.banner}
         >
           <Text style={styles.bannerText}>
-            To launch a product, click here to complete your KYC by adding your PAN. ✅📝
+            To launch a product, click here to complete your KYC by adding your
+            PAN. ✅📝
           </Text>
         </TouchableOpacity>
 
@@ -87,7 +121,7 @@ const CreateProducts = () => {
         <View style={styles.gridWrap}>
           <FlatList
             data={tiles}
-            keyExtractor={(i) => i.id}
+            keyExtractor={i => i.id}
             renderItem={renderItem}
             numColumns={numColumns}
             scrollEnabled={false}

@@ -2,9 +2,15 @@ import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { persistStore, persistReducer } from 'redux-persist';
 import userReducer from './UserSlice'
+import coursesReducer from './CourseSlice'
+import videosReducer from './VideoSlice'
+import enrollmentsReducer from './EnrollmentSlice'
 
 const rootReducer = combineReducers({
   userReducer,
+  coursesReducer,
+  videosReducer,
+  enrollmentsReducer,
 });
 const persistConfig = {
   key: 'root',

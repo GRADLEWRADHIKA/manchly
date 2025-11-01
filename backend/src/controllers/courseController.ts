@@ -1,0 +1,1011 @@
+import { Request, Response } from "express";
+import prisma from "../prismaClient";
+import { ApiResponseHandler } from "../utils/ApiResponseHandler";
+import MuxManager from "../utils/MuxManager";
+import dotenv from "dotenv";
+
+dotenv.config();
+
+// Initialize Mux Manager
+const muxManager = new MuxManager({
+  tokenId: process.env.MUX_TOKEN_ID!,
+  tokenSecret: process.env.MUX_TOKEN_SECRET!,
+  webhookSecret: process.env.MUX_WEBHOOK_SECRET,
+  timeout: 30000
+});
+
+export class CourseController {
+  // ============ COURSE MANAGEMENT ============
+
+  /**
+   * Create a new course (Creator only)
+   */
+  static async createCourse(req: any, res: Response) {
+    const { 
+      title, 
+      description, 
+      thumbnail, 
+      price = 0, 
+      category, 
+      tags = [], 
+      level,
+      language = "English",
+      status = "DRAFT"
+    } = req.body;
+
+    console.log("req.user" , req.user );
+
+    const userId = req.user.userId;
+
+    // Validate required fields
+    if (!title) {
+      return ApiResponseHandler.customError(res, "Course title is required", 400, "MISSING_TITLE");
+    }
+
+    // Check if user is a creator
+    const user = await prisma.users.findUnique({ where: { id: userId } });
+    if (!user || user.user_type !== "CREATOR") {
+      return ApiResponseHandler.customError(res, "Only creators can create courses", 403, "FORBIDDEN");
+    }
+
+    try {
+      const course = await prisma.courses.create({
+        data: {
+          title,
+          description,
+          thumbnail,
+          price: parseFloat(price),
+          category,
+          tags: Array.isArray(tags) ? tags : [],
+          level,
+          language,
+          status,
+          creator_id: userId,
+          published_at: status === "PUBLISHED" ? new Date() : null
+        },
+        include: {
+          creator: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              profile_image: true
+            }
+          }
+        }
+      });
+
+      ApiResponseHandler.success(res, { course }, "Course created successfully", 201);
+    } catch (err: any) {
+      ApiResponseHandler.unexpectedError(res, err, 500);
+    }
+  }
+
+  /**
+   * Get all courses
+   * - USER: Can see all published courses
+   * - CREATOR: Can see their own courses (all statuses)
+   */
+  static async getAllCourses(req: any, res: Response) {
+    console.log("req.user" , req.user );
+    const userId = req.user.userId;
+    const { 
+      page = 1, 
+      limit = 10, 
+      category, 
+      level, 
+      status,
+      search 
+    } = req.query;
+
+    try {
+      const user = await prisma.users.findUnique({ where: { id: userId } });
+      
+      if (!user) {
+        return ApiResponseHandler.customError(res, "User not found", 404, "USER_NOT_FOUND");
+      }
+
+      const skip = (Number(page) - 1) * Number(limit);
+      
+      // Build where clause based on user type
+      const whereClause: any = {};
+
+      if (user.user_type === "CREATOR") {
+        // Creators see only their courses
+        whereClause.creator_id = userId;
+        
+        // Apply status filter if provided
+        if (status) {
+          whereClause.status = status;
+        }
+      } else {
+        // Regular users see only published courses
+        whereClause.status = "PUBLISHED";
+      }
+
+      // Apply filters
+      if (category) {
+        whereClause.category = category;
+      }
+
+      if (level) {
+        whereClause.level = level;
+      }
+
+      if (search) {
+        whereClause.OR = [
+          { title: { contains: search, mode: 'insensitive' } },
+          { description: { contains: search, mode: 'insensitive' } }
+        ];
+      }
+
+      const [courses, total] = await Promise.all([
+        prisma.courses.findMany({
+          where: whereClause,
+          skip,
+          take: Number(limit),
+          include: {
+            creator: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                profile_image: true
+              }
+            },
+            videos: {
+              select: {
+                id: true,
+                title: true,
+                duration: true,
+                status: true,
+                is_free: true,
+                order: true,
+                mux_upload_id: true,
+                mux_asset_id: true,
+                playback_url: true,
+                thumbnail_url: true
+              },
+              orderBy: { order: 'asc' }
+            },
+            enrollments: user.user_type === "USER" ? {
+              where: { user_id: userId },
+              select: {
+                id: true,
+                enrolled_at: true,
+                progress: true
+              }
+            } : false
+          },
+          orderBy: { created_at: 'desc' }
+        }),
+        prisma.courses.count({ where: whereClause })
+      ]);
+
+      // Update video status from Mux for each course
+      const coursesWithUpdatedStatus = await Promise.all(
+        courses.map(async (course) => {
+          // Update status for each video
+          const videosWithStatus = await Promise.all(
+            course.videos.map(async (video) => {
+              let currentStatus = video.status;
+              let updatedPlaybackUrl = video.playback_url;
+              let updatedThumbnailUrl = video.thumbnail_url;
+              let updatedDuration = video.duration;
+              let updatedMuxAssetId = video.mux_asset_id;
+              
+              // Only check Mux status for videos that are not READY or ERROR
+              if (video.status !== 'READY' && video.status !== 'ERROR' && video.mux_upload_id) {
+                try {
+                  const uploadStatus = await muxManager.getUpload(video.mux_upload_id);
+                  
+                  // Update status based on Mux upload status
+                  if (uploadStatus.status === 'asset_created' && uploadStatus.asset_id) {
+                    const asset = await muxManager.getAsset(uploadStatus.asset_id);
+                    currentStatus = asset.status === 'ready' ? 'READY' : 'PROCESSING';
+                    updatedMuxAssetId = asset.id;
+                    updatedDuration = asset.duration || video.duration;
+                    
+                    // Update database with new status
+                    const updateData: any = {
+                      mux_asset_id: asset.id,
+                      status: currentStatus,
+                      duration: asset.duration || null
+                    };
+
+                    // Get playback URLs if available
+                    if (asset.playback_ids && asset.playback_ids.length > 0) {
+                      const playbackId = asset.playback_ids[0];
+                      updateData.mux_playback_id = playbackId.id;
+                      updateData.playback_url = `https://stream.mux.com/${playbackId.id}.m3u8`;
+                      updateData.thumbnail_url = `https://image.mux.com/${playbackId.id}/thumbnail.jpg`;
+                      
+                      // Update local variables for immediate return
+                      updatedPlaybackUrl = updateData.playback_url;
+                      updatedThumbnailUrl = updateData.thumbnail_url;
+                    }
+
+                    await prisma.videos.update({
+                      where: { id: video.id },
+                      data: updateData
+                    });
+                  } else if (uploadStatus.status === 'errored') {
+                    currentStatus = 'ERROR';
+                    await prisma.videos.update({
+                      where: { id: video.id },
+                      data: { status: 'ERROR' }
+                    });
+                  }
+                } catch (err) {
+                  console.error(`Error checking Mux status for video ${video.id}:`, err);
+                }
+              }
+              
+              return {
+                ...video,
+                current_video_status: currentStatus,
+                playback_url: updatedPlaybackUrl,
+                thumbnail_url: updatedThumbnailUrl,
+                duration: updatedDuration,
+                mux_asset_id: updatedMuxAssetId
+              };
+            })
+          );
+
+          return {
+            ...course,
+            videos: videosWithStatus
+          };
+        })
+      );
+
+      console.log("coursesWithUpdatedStatus" ,JSON.stringify(coursesWithUpdatedStatus, null, 2) );  
+
+      ApiResponseHandler.success(res, {
+        courses: coursesWithUpdatedStatus,
+        pagination: {
+          page: Number(page),
+          limit: Number(limit),
+          total,
+          total_pages: Math.ceil(total / Number(limit))
+        }
+      }, "Courses retrieved successfully");
+    } catch (err: any) {
+      ApiResponseHandler.unexpectedError(res, err, 500);
+    }
+  }
+
+  /**
+   * Get single course by ID
+   */
+  static async getCourseById(req: any, res: Response) {
+    const { courseId } = req.params;
+    const userId = req.user.userId;
+
+    try {
+      const user = await prisma.users.findUnique({ where: { id: userId } });
+      
+      if (!user) {
+        return ApiResponseHandler.customError(res, "User not found", 404, "USER_NOT_FOUND");
+      }
+
+      const course = await prisma.courses.findUnique({
+        where: { id: courseId },
+        include: {
+          creator: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              profile_image: true
+            }
+          },
+          videos: {
+            orderBy: { order: 'asc' }
+          },
+          enrollments: user.user_type === "USER" ? {
+            where: { user_id: userId }
+          } : true
+        }
+      });
+
+      if (!course) {
+        return ApiResponseHandler.customError(res, "Course not found", 404, "COURSE_NOT_FOUND");
+      }
+
+      // Check access permissions
+      if (user.user_type === "CREATOR" && course.creator_id !== userId) {
+        return ApiResponseHandler.customError(res, "You don't have access to this course", 403, "FORBIDDEN");
+      }
+
+      if (user.user_type === "USER" && course.status !== "PUBLISHED") {
+        return ApiResponseHandler.customError(res, "Course not available", 403, "COURSE_NOT_AVAILABLE");
+      }
+
+      const isEnrolled = user.user_type === "USER" && 
+                         course.enrollments && 
+                         course.enrollments.length > 0;
+
+      // Filter videos based on enrollment status
+      let videosToShow = course.videos;
+      if (user.user_type === "USER" && !isEnrolled) {
+        // Show only free videos to non-enrolled users
+        videosToShow = course.videos.filter(v => v.is_free);
+      }
+
+      ApiResponseHandler.success(res, {
+        course: {
+          ...course,
+          videos: videosToShow,
+          is_enrolled: isEnrolled,
+          enrollment_info: isEnrolled ? course.enrollments[0] : null
+        }
+      }, "Course retrieved successfully");
+    } catch (err: any) {
+      ApiResponseHandler.unexpectedError(res, err, 500);
+    }
+  }
+
+  /**
+   * Update course (Creator only - own courses)
+   */
+  static async updateCourse(req: any, res: Response) {
+    const { courseId } = req.params;
+    const userId = req.user.userId;
+    const { 
+      title, 
+      description, 
+      thumbnail, 
+      price, 
+      category, 
+      tags, 
+      level,
+      language,
+      status
+    } = req.body;
+
+    try {
+      // Check if course exists and user is the creator
+      const existingCourse = await prisma.courses.findUnique({
+        where: { id: courseId }
+      });
+
+      if (!existingCourse) {
+        return ApiResponseHandler.customError(res, "Course not found", 404, "COURSE_NOT_FOUND");
+      }
+
+      if (existingCourse.creator_id !== userId) {
+        return ApiResponseHandler.customError(res, "You don't have permission to update this course", 403, "FORBIDDEN");
+      }
+
+      const updateData: any = {};
+      if (title) updateData.title = title;
+      if (description !== undefined) updateData.description = description;
+      if (thumbnail !== undefined) updateData.thumbnail = thumbnail;
+      if (price !== undefined) updateData.price = parseFloat(price);
+      if (category !== undefined) updateData.category = category;
+      if (tags !== undefined) updateData.tags = Array.isArray(tags) ? tags : [];
+      if (level !== undefined) updateData.level = level;
+      if (language !== undefined) updateData.language = language;
+      if (status !== undefined) {
+        updateData.status = status;
+        if (status === "PUBLISHED" && !existingCourse.published_at) {
+          updateData.published_at = new Date();
+        }
+      }
+
+      const course = await prisma.courses.update({
+        where: { id: courseId },
+        data: updateData,
+        include: {
+          creator: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              profile_image: true
+            }
+          },
+          videos: true
+        }
+      });
+
+      ApiResponseHandler.success(res, { course }, "Course updated successfully");
+    } catch (err: any) {
+      ApiResponseHandler.unexpectedError(res, err, 500);
+    }
+  }
+
+  /**
+   * Delete course (Creator only - own courses)
+   */
+  static async deleteCourse(req: any, res: Response) {
+    const { courseId } = req.params;
+    const userId = req.user.userId;
+
+    try {
+      const course = await prisma.courses.findUnique({
+        where: { id: courseId },
+        include: { videos: true }
+      });
+
+      if (!course) {
+        return ApiResponseHandler.customError(res, "Course not found", 404, "COURSE_NOT_FOUND");
+      }
+
+      if (course.creator_id !== userId) {
+        return ApiResponseHandler.customError(res, "You don't have permission to delete this course", 403, "FORBIDDEN");
+      }
+
+      // Delete associated Mux assets
+      for (const video of course.videos) {
+        if (video.mux_asset_id) {
+          try {
+            await muxManager.deleteAsset(video.mux_asset_id);
+          } catch (err) {
+            console.error(`Failed to delete Mux asset ${video.mux_asset_id}:`, err);
+          }
+        }
+      }
+
+      // Delete course (cascade will delete videos and enrollments)
+      await prisma.courses.delete({
+        where: { id: courseId }
+      });
+
+      ApiResponseHandler.success(res, {}, "Course deleted successfully");
+    } catch (err: any) {
+      ApiResponseHandler.unexpectedError(res, err, 500);
+    }
+  }
+
+  // ============ VIDEO MANAGEMENT ============
+
+  /**
+   * Create direct upload URL for video (Creator only)
+   */
+  static async createVideoUpload(req: any, res: Response) {
+    const { courseId } = req.params;
+    const { title, description, is_free = false, order = 0 } = req.body;
+    const userId = req.user.userId;
+
+    if (!title) {
+      return ApiResponseHandler.customError(res, "Video title is required", 400, "MISSING_TITLE");
+    }
+
+    try {
+      // Check if course exists and user is the creator
+      const course = await prisma.courses.findUnique({
+        where: { id: courseId }
+      });
+
+      if (!course) {
+        return ApiResponseHandler.customError(res, "Course not found", 404, "COURSE_NOT_FOUND");
+      }
+
+      if (course.creator_id !== userId) {
+        return ApiResponseHandler.customError(res, "You don't have permission to add videos to this course", 403, "FORBIDDEN");
+      }
+
+      // Create direct upload in Mux
+      const upload = await muxManager.createDirectUpload({
+        timeout: 3600,
+        cors_origin: "*",
+        new_asset_settings: {
+          playback_policy: ['public'],
+          mp4_support: 'none'
+        }
+      });
+
+      // Create video record in database
+      const video = await prisma.videos.create({
+        data: {
+          course_id: courseId,
+          title,
+          description,
+          mux_upload_id: upload.id,
+          upload_url: upload.url,
+          status: "UPLOADING",
+          is_free: Boolean(is_free),
+          order: Number(order)
+        }
+      });
+
+      console.log("video" ,JSON.stringify(video, null, 2) );
+
+      ApiResponseHandler.success(res, {
+        video,
+        upload_url: upload.url,
+        upload_id: upload.id
+      }, "Video upload URL created successfully", 201);
+    } catch (err: any) {
+      console.log(err.message);
+      ApiResponseHandler.unexpectedError(res, err, 500);
+    }
+  }
+
+  /**
+   * Get video upload status
+   */
+  static async getVideoUploadStatus(req: any, res: Response) {
+    const { videoId } = req.params;
+    const userId = req.user.userId;
+
+    try {
+
+      console.log("videoId" ,videoId );
+      const video = await prisma.videos.findUnique({
+        where: { id: videoId },
+        include: {
+          course: {
+            select: {
+              creator_id: true
+            }
+          }
+        }
+      });
+
+      if (!video) {
+        return ApiResponseHandler.customError(res, "Video not found", 404, "VIDEO_NOT_FOUND");
+      }
+
+      if (video.course.creator_id !== userId) {
+        return ApiResponseHandler.customError(res, "You don't have permission to view this video", 403, "FORBIDDEN");
+      }
+
+      // Check Mux upload status if upload_id exists
+      let uploadStatus = null;
+      if (video.mux_upload_id) {
+        try {
+          uploadStatus = await muxManager.getUpload(video.mux_upload_id);
+          
+          // Update video status based on Mux upload status
+          if (uploadStatus.status === 'asset_created' && uploadStatus.asset_id) {
+            // Get asset details
+            const asset = await muxManager.getAsset(uploadStatus.asset_id);
+            
+            const updateData: any = {
+              mux_asset_id: asset.id,
+              status: asset.status === 'ready' ? 'READY' : 'PROCESSING',
+              duration: asset.duration || null
+            };
+
+            // Get playback URLs
+            if (asset.playback_ids && asset.playback_ids.length > 0) {
+              const playbackId = asset.playback_ids[0];
+              updateData.mux_playback_id = playbackId.id;
+              updateData.playback_url = `https://stream.mux.com/${playbackId.id}.m3u8`;
+              updateData.thumbnail_url = `https://image.mux.com/${playbackId.id}/thumbnail.jpg`;
+            }
+
+            await prisma.videos.update({
+              where: { id: videoId },
+              data: updateData
+            });
+
+            // Fetch updated video
+            const updatedVideo = await prisma.videos.findUnique({
+              where: { id: videoId }
+            });
+
+            console.log("updatedVideo" ,JSON.stringify(updatedVideo, null, 2) );
+            console.log("uploadStatus" ,JSON.stringify(uploadStatus, null, 2) );
+
+            return ApiResponseHandler.success(res, {
+              video: updatedVideo,
+              mux_upload_status: uploadStatus
+            }, "Video upload status retrieved successfully");
+          }
+        } catch (err) {
+          console.error("Error fetching Mux upload status:", err);
+        }
+      }
+
+      ApiResponseHandler.success(res, {
+        video,
+        mux_upload_status: uploadStatus
+      }, "Video status retrieved successfully");
+    } catch (err: any) {
+      ApiResponseHandler.unexpectedError(res, err, 500);
+    }
+  }
+
+  /**
+   * Update video details (Creator only)
+   * Allows updating: title, description, order, is_free
+   * Does NOT allow changing the actual video file
+   */
+  static async updateVideo(req: any, res: Response) {
+    const { videoId } = req.params;
+    const userId = req.user.userId;
+    const { title, description, is_free, order } = req.body;
+
+    try {
+      const video = await prisma.videos.findUnique({
+        where: { id: videoId },
+        include: {
+          course: {
+            select: {
+              id: true,
+              creator_id: true,
+              title: true
+            }
+          }
+        }
+      });
+
+      if (!video) {
+        return ApiResponseHandler.customError(res, "Video not found", 404, "VIDEO_NOT_FOUND");
+      }
+
+      if (video.course.creator_id !== userId) {
+        return ApiResponseHandler.customError(res, "You don't have permission to update this video", 403, "FORBIDDEN");
+      }
+
+      // Build update data
+      const updateData: any = {};
+      if (title !== undefined) {
+        if (title.trim() === '') {
+          return ApiResponseHandler.customError(res, "Video title cannot be empty", 400, "INVALID_TITLE");
+        }
+        updateData.title = title;
+      }
+      if (description !== undefined) updateData.description = description;
+      if (is_free !== undefined) updateData.is_free = Boolean(is_free);
+      if (order !== undefined) {
+        if (order < 0) {
+          return ApiResponseHandler.customError(res, "Order must be a positive number", 400, "INVALID_ORDER");
+        }
+        updateData.order = Number(order);
+      }
+
+      // Check if there's anything to update
+      if (Object.keys(updateData).length === 0) {
+        return ApiResponseHandler.customError(res, "No fields to update", 400, "NO_UPDATE_DATA");
+      }
+
+      const updatedVideo = await prisma.videos.update({
+        where: { id: videoId },
+        data: updateData,
+        include: {
+          course: {
+            select: {
+              id: true,
+              title: true,
+              creator_id: true
+            }
+          }
+        }
+      });
+
+      ApiResponseHandler.success(res, { 
+        video: updatedVideo,
+        message: "Video details updated successfully. The video file itself cannot be changed."
+      }, "Video updated successfully");
+    } catch (err: any) {
+      ApiResponseHandler.unexpectedError(res, err, 500);
+    }
+  }
+
+  /**
+   * Delete video (Creator only)
+   */
+  static async deleteVideo(req: any, res: Response) {
+    const { videoId } = req.params;
+    const userId = req.user.userId;
+
+    try {
+      const video = await prisma.videos.findUnique({
+        where: { id: videoId },
+        include: {
+          course: {
+            select: {
+              creator_id: true
+            }
+          }
+        }
+      });
+
+      if (!video) {
+        return ApiResponseHandler.customError(res, "Video not found", 404, "VIDEO_NOT_FOUND");
+      }
+
+      if (video.course.creator_id !== userId) {
+        return ApiResponseHandler.customError(res, "You don't have permission to delete this video", 403, "FORBIDDEN");
+      }
+
+      // Delete Mux asset if exists
+      if (video.mux_asset_id) {
+        try {
+          await muxManager.deleteAsset(video.mux_asset_id);
+        } catch (err) {
+          console.error(`Failed to delete Mux asset ${video.mux_asset_id}:`, err);
+        }
+      }
+
+      await prisma.videos.delete({
+        where: { id: videoId }
+      });
+
+      ApiResponseHandler.success(res, {}, "Video deleted successfully");
+    } catch (err: any) {
+      ApiResponseHandler.unexpectedError(res, err, 500);
+    }
+  }
+
+  // ============ ENROLLMENT MANAGEMENT ============
+
+  /**
+   * Enroll in a course (USER only)
+   */
+  static async enrollInCourse(req: any, res: Response) {
+    const { courseId } = req.params;
+    const userId = req.user.userId;
+
+    try {
+      const user = await prisma.users.findUnique({ where: { id: userId } });
+      
+      if (!user) {
+        return ApiResponseHandler.customError(res, "User not found", 404, "USER_NOT_FOUND");
+      }
+
+      if (user.user_type !== "USER") {
+        return ApiResponseHandler.customError(res, "Only regular users can enroll in courses", 403, "FORBIDDEN");
+      }
+
+      const course = await prisma.courses.findUnique({
+        where: { id: courseId }
+      });
+
+      if (!course) {
+        return ApiResponseHandler.customError(res, "Course not found", 404, "COURSE_NOT_FOUND");
+      }
+
+      if (course.status !== "PUBLISHED") {
+        return ApiResponseHandler.customError(res, "Course is not available for enrollment", 400, "COURSE_NOT_AVAILABLE");
+      }
+
+      // Check if already enrolled
+      const existingEnrollment = await prisma.enrollments.findUnique({
+        where: {
+          user_id_course_id: {
+            user_id: userId,
+            course_id: courseId
+          }
+        }
+      });
+
+      if (existingEnrollment) {
+        return ApiResponseHandler.customError(res, "Already enrolled in this course", 400, "ALREADY_ENROLLED");
+      }
+
+      const enrollment = await prisma.enrollments.create({
+        data: {
+          user_id: userId,
+          course_id: courseId
+        },
+        include: {
+          course: {
+            include: {
+              creator: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                  profile_image: true
+                }
+              },
+              videos: true
+            }
+          }
+        }
+      });
+
+      ApiResponseHandler.success(res, { enrollment }, "Successfully enrolled in course", 201);
+    } catch (err: any) {
+      ApiResponseHandler.unexpectedError(res, err, 500);
+    }
+  }
+
+  /**
+   * Get user's enrolled courses
+   */
+  static async getEnrolledCourses(req: any, res: Response) {
+    const userId = req.user.userId;
+    const { page = 1, limit = 10 } = req.query;
+
+    try {
+      const skip = (Number(page) - 1) * Number(limit);
+
+      const [enrollments, total] = await Promise.all([
+        prisma.enrollments.findMany({
+          where: { user_id: userId },
+          skip,
+          take: Number(limit),
+          include: {
+            course: {
+              include: {
+                creator: {
+                  select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    profile_image: true
+                  }
+                },
+                videos: {
+                  select: {
+                    id: true,
+                    title: true,
+                    duration: true,
+                    status: true
+                  }
+                }
+              }
+            }
+          },
+          orderBy: { enrolled_at: 'desc' }
+        }),
+        prisma.enrollments.count({ where: { user_id: userId } })
+      ]);
+
+      ApiResponseHandler.success(res, {
+        enrollments,
+        pagination: {
+          page: Number(page),
+          limit: Number(limit),
+          total,
+          total_pages: Math.ceil(total / Number(limit))
+        }
+      }, "Enrolled courses retrieved successfully");
+    } catch (err: any) {
+      ApiResponseHandler.unexpectedError(res, err, 500);
+    }
+  }
+
+  /**
+   * Update enrollment progress
+   */
+  static async updateProgress(req: any, res: Response) {
+    const { courseId } = req.params;
+    const userId = req.user.userId;
+    const { progress } = req.body;
+
+    if (progress === undefined || progress < 0 || progress > 100) {
+      return ApiResponseHandler.customError(res, "Valid progress value (0-100) is required", 400, "INVALID_PROGRESS");
+    }
+
+    try {
+      const enrollment = await prisma.enrollments.findUnique({
+        where: {
+          user_id_course_id: {
+            user_id: userId,
+            course_id: courseId
+          }
+        }
+      });
+
+      if (!enrollment) {
+        return ApiResponseHandler.customError(res, "Not enrolled in this course", 404, "NOT_ENROLLED");
+      }
+
+      const updatedEnrollment = await prisma.enrollments.update({
+        where: {
+          user_id_course_id: {
+            user_id: userId,
+            course_id: courseId
+          }
+        },
+        data: {
+          progress: parseFloat(progress),
+          last_watched_at: new Date(),
+          completed_at: parseFloat(progress) >= 100 ? new Date() : null
+        }
+      });
+
+      ApiResponseHandler.success(res, { enrollment: updatedEnrollment }, "Progress updated successfully");
+    } catch (err: any) {
+      ApiResponseHandler.unexpectedError(res, err, 500);
+    }
+  }
+
+  /**
+   * Unenroll from a course
+   */
+  static async unenrollFromCourse(req: any, res: Response) {
+    const { courseId } = req.params;
+    const userId = req.user.userId;
+
+    try {
+      const enrollment = await prisma.enrollments.findUnique({
+        where: {
+          user_id_course_id: {
+            user_id: userId,
+            course_id: courseId
+          }
+        }
+      });
+
+      if (!enrollment) {
+        return ApiResponseHandler.customError(res, "Not enrolled in this course", 404, "NOT_ENROLLED");
+      }
+
+      await prisma.enrollments.delete({
+        where: {
+          user_id_course_id: {
+            user_id: userId,
+            course_id: courseId
+          }
+        }
+      });
+
+      ApiResponseHandler.success(res, {}, "Successfully unenrolled from course");
+    } catch (err: any) {
+      ApiResponseHandler.unexpectedError(res, err, 500);
+    }
+  }
+
+  // ============ STATISTICS ============
+
+  /**
+   * Get creator statistics
+   */
+  static async getCreatorStats(req: any, res: Response) {
+    const userId = req.user.userId;
+
+    try {
+      const user = await prisma.users.findUnique({ where: { id: userId } });
+      
+      if (!user || user.user_type !== "CREATOR") {
+        return ApiResponseHandler.customError(res, "Only creators can view statistics", 403, "FORBIDDEN");
+      }
+
+      const [totalCourses, publishedCourses, totalEnrollments, totalVideos] = await Promise.all([
+        prisma.courses.count({ where: { creator_id: userId } }),
+        prisma.courses.count({ where: { creator_id: userId, status: "PUBLISHED" } }),
+        prisma.enrollments.count({
+          where: {
+            course: {
+              creator_id: userId
+            }
+          }
+        }),
+        prisma.videos.count({
+          where: {
+            course: {
+              creator_id: userId
+            }
+          }
+        })
+      ]);
+
+      // Get course-wise enrollment count
+      const courseEnrollments = await prisma.courses.findMany({
+        where: { creator_id: userId },
+        include: {
+          _count: {
+            select: { enrollments: true }
+          }
+        }
+      });
+
+      ApiResponseHandler.success(res, {
+        statistics: {
+          total_courses: totalCourses,
+          published_courses: publishedCourses,
+          draft_courses: totalCourses - publishedCourses,
+          total_enrollments: totalEnrollments,
+          total_videos: totalVideos,
+          courses_with_enrollments: courseEnrollments.map(c => ({
+            course_id: c.id,
+            course_title: c.title,
+            enrollments: c._count.enrollments
+          }))
+        }
+      }, "Creator statistics retrieved successfully");
+    } catch (err: any) {
+      ApiResponseHandler.unexpectedError(res, err, 500);
+    }
+  }
+}
+

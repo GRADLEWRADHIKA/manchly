@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 export interface JWTRequest extends Request {
-  authUser?: { id: string; email?: string };
+  user?: { userId: string; email?: string };
 }
 
 const JWT_SECRET = process.env.JWT_SECRET || "changeme";
@@ -17,7 +17,7 @@ export function jwtAuth(req: JWTRequest, res: Response, next: NextFunction) {
   const token = match[1];
   try {
     const payload = jwt.verify(token, JWT_SECRET) as any;
-    req.authUser = { id: payload.userId, email: payload.email };
+    req.user = { userId: payload.userId, email: payload.email };
     next();
   } catch (err: any) {
     return res.status(401).json({ error: "Invalid or expired token" });

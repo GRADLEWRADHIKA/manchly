@@ -13,6 +13,19 @@ enum UserType {
   ADMIN
 }
 
+enum CourseStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum VideoStatus {
+  UPLOADING
+  PROCESSING
+  READY
+  ERROR
+}
+
 model users {
   id            String   @id @default(uuid())
   email         String   @unique
@@ -24,5 +37,77 @@ model users {
   updated_at    DateTime @updatedAt
   last_login    DateTime?
   
+  courses       courses[]
+  enrollments   enrollments[]
+  
   @@map("users")
+}
+
+model courses {
+  id              String       @id @default(uuid())
+  title           String
+  description     String?      @db.Text
+  thumbnail       String?
+  price           Float        @default(0)
+  status          CourseStatus @default(DRAFT)
+  creator_id      String
+  category        String?
+  tags            String[]     @default([])
+  duration        Int?         // Total duration in seconds
+  level           String?      // Beginner, Intermediate, Advanced
+  language        String?      @default("English")
+  created_at      DateTime     @default(now())
+  updated_at      DateTime     @updatedAt
+  published_at    DateTime?
+  
+  creator         users        @relation(fields: [creator_id], references: [id], onDelete: Cascade)
+  videos          videos[]
+  enrollments     enrollments[]
+  
+  @@index([creator_id])
+  @@index([status])
+  @@map("courses")
+}
+
+model videos {
+  id              String      @id @default(uuid())
+  course_id       String
+  title           String
+  description     String?     @db.Text
+  mux_asset_id    String?     @unique
+  mux_upload_id   String?     @unique
+  mux_playback_id String?
+  upload_url      String?     @db.Text
+  playback_url    String?     @db.Text
+  thumbnail_url   String?     @db.Text
+  duration        Int?        // Duration in seconds
+  status          VideoStatus @default(UPLOADING)
+  order           Int         @default(0)
+  is_free         Boolean     @default(false)
+  created_at      DateTime    @default(now())
+  updated_at      DateTime    @updatedAt
+  
+  course          courses     @relation(fields: [course_id], references: [id], onDelete: Cascade)
+  
+  @@index([course_id])
+  @@index([status])
+  @@map("videos")
+}
+
+model enrollments {
+  id              String   @id @default(uuid())
+  user_id         String
+  course_id       String
+  enrolled_at     DateTime @default(now())
+  completed_at    DateTime?
+  progress        Float    @default(0) // Percentage 0-100
+  last_watched_at DateTime?
+  
+  user            users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  course          courses  @relation(fields: [course_id], references: [id], onDelete: Cascade)
+  
+  @@unique([user_id, course_id])
+  @@index([user_id])
+  @@index([course_id])
+  @@map("enrollments")
 }

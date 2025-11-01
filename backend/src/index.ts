@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import authRouter from "./routes/auth";
 import uploadRouter from "./routes/upload";
 import muxRouter from "./routes/mux";
+import coursesRouter from "./routes/courses";
 import morgan from "morgan";
 
 dotenv.config();
@@ -23,6 +24,7 @@ app.use(morgan('dev'));
 app.use("/auth", authRouter);
 app.use("/upload", uploadRouter);
 app.use("/mux", muxRouter);
+app.use("/courses", coursesRouter);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

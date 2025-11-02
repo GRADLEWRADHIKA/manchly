@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,10 +7,7 @@ import {
   Image,
   ActivityIndicator,
   StyleSheet,
-  Dimensions,
-  Alert,
   Animated,
-  Easing,
 } from 'react-native';
 import {
   Users,
@@ -18,13 +15,11 @@ import {
   Play,
   Edit3,
   Trash2,
-  Star,
   ChevronRight,
-  Eye,
 } from 'lucide-react-native';
 import colors from '../../../../utils/colors';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
 import { deleteCourse, fetchCourses } from '../../../../store/CourseSlice';
 import DynamicModal from '../../../../components/CommonModal';
@@ -41,7 +36,7 @@ const CreatorView: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [courseId, setCourseId] = useState('');
   const [deleteLoader, setDeleteLoader] = useState(false);
-  const [activeCard, setActiveCard] = useState<string | null>(null);
+  const { token } = useSelector((state: any) => state.userReducer);
 
   useEffect(() => {
     getTheCourse(1, true);
@@ -49,33 +44,19 @@ const CreatorView: React.FC = () => {
 
   const getTheCourse = (pageNum: number, refresh = false) => {
     if (loading || loadingMore) return;
+    refresh ? setLoading(true) : setLoadingMore(true);
 
-    if (refresh) {
-      setLoading(true);
-    } else {
-      setLoadingMore(true);
-    }
-
-    const payload = {
-      page: pageNum,
-      limit: 10,
-    };
+    const payload = { page: pageNum, limit: 10 };
 
     dispatch(fetchCourses(payload))
       .unwrap()
       .then(response => {
         const newData = response?.data?.data?.courses || [];
-        if (refresh) {
-          setData(newData);
-        } else {
-          setData(prev => [...prev, ...newData]);
-        }
+        refresh ? setData(newData) : setData(prev => [...prev, ...newData]);
         setHasMore(newData.length >= 10);
         setPage(pageNum);
       })
-      .catch(error => {
-        console.log('----error---', error);
-      })
+      .catch(error => console.log('----error---', error))
       .finally(() => {
         setLoading(false);
         setLoadingMore(false);
@@ -86,7 +67,7 @@ const CreatorView: React.FC = () => {
     setDeleteLoader(true);
     dispatch(deleteCourse(courseId))
       .unwrap()
-      .then(response => {
+      .then(() => {
         setDeleteLoader(false);
         setShowModal(false);
         getTheCourse(1, true);
@@ -102,46 +83,20 @@ const CreatorView: React.FC = () => {
   };
 
   const Card = ({ item }: { item: any }) => {
-    const scaleValue = new Animated.Value(1);
-    const translateY = new Animated.Value(0);
-    const opacityValue = new Animated.Value(1);
+    const scaleAnim = useRef(new Animated.Value(1)).current;
 
     const handlePressIn = () => {
-      setActiveCard(item.id);
-      Animated.parallel([
-        Animated.timing(scaleValue, {
-          toValue: 0.98,
-          duration: 150,
-          useNativeDriver: true,
-        }),
-        Animated.timing(translateY, {
-          toValue: -2,
-          duration: 150,
-          useNativeDriver: true,
-        }),
-      ]).start();
+      Animated.spring(scaleAnim, {
+        toValue: 0.97,
+        useNativeDriver: true,
+      }).start();
     };
 
     const handlePressOut = () => {
-      setActiveCard(null);
-      Animated.parallel([
-        Animated.timing(scaleValue, {
-          toValue: 1,
-          duration: 150,
-          useNativeDriver: true,
-        }),
-        Animated.timing(translateY, {
-          toValue: 0,
-          duration: 150,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    };
-
-    const handleLongPress = () => {
-      Animated.timing(opacityValue, {
-        toValue: 0.8,
-        duration: 200,
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        friction: 3,
+        tension: 40,
         useNativeDriver: true,
       }).start();
     };
@@ -151,10 +106,7 @@ const CreatorView: React.FC = () => {
         style={[
           styles.courseCard,
           {
-            transform: [{ scale: scaleValue }, { translateY }],
-            opacity: opacityValue,
-            shadowOpacity: activeCard === item.id ? 0.3 : 0.2,
-            elevation: activeCard === item.id ? 8 : 4,
+            transform: [{ scale: scaleAnim }],
           },
         ]}
       >
@@ -162,13 +114,8 @@ const CreatorView: React.FC = () => {
           activeOpacity={0.9}
           onPressIn={handlePressIn}
           onPressOut={handlePressOut}
-          onLongPress={handleLongPress}
-          delayLongPress={200}
-          onPress={() => {
-            navigation.navigate('CourseVideoList')
-          }}
+          onPress={() => navigation.navigate('CourseVideoList', { item })}
         >
-          {/* Course Header with Badge */}
           <View style={styles.cardHeader}>
             <View style={styles.thumbnailContainer}>
               <Image
@@ -179,12 +126,6 @@ const CreatorView: React.FC = () => {
                 }}
                 style={styles.thumbnail}
               />
-              <View style={styles.playButtonOverlay}>
-                <Play size={16} color="#fff" fill="#fff" />
-              </View>
-              <View style={[styles.statusBadge, styles.publishedBadge]}>
-                <Text style={styles.badgeText}>Published</Text>
-              </View>
             </View>
 
             <View style={styles.courseInfo}>
@@ -194,9 +135,7 @@ const CreatorView: React.FC = () => {
                 </Text>
                 <ChevronRight size={16} color={colors.textSecondary} />
               </View>
-
               <Text style={styles.courseCategory}>{item?.category}</Text>
-
               <Text style={styles.description} numberOfLines={2}>
                 {item.description ||
                   'No description available for this course. Add a compelling description to attract more students.'}
@@ -227,12 +166,12 @@ const CreatorView: React.FC = () => {
           <View style={styles.actionsRow}>
             <TouchableOpacity
               style={[styles.actionBtn, styles.editBtn]}
-              onPress={() => {
+              onPress={() =>
                 navigation.navigate('CreateCourse', {
                   data: item,
                   isUpdated: true,
-                });
-              }}
+                })
+              }
             >
               <Edit3 size={16} color={colors.primary} />
               <Text style={styles.editBtnText}>Edit</Text>
@@ -247,7 +186,7 @@ const CreatorView: React.FC = () => {
                 setCourseId(item?.id);
               }}
             >
-              <Trash2 size={16} color={colors.error}/>
+              <Trash2 size={16} color={colors.error} />
               <Text style={styles.deleteBtnText}>Delete</Text>
             </TouchableOpacity>
           </View>
@@ -269,12 +208,10 @@ const CreatorView: React.FC = () => {
   return (
     <View style={styles.container}>
       <View style={styles.heroSection}>
-        <View style={styles.heroContent}>
-          <Text style={styles.heroHeading}>Welcome back, Creator! 👋</Text>
-          <Text style={styles.heroSub}>
-            Manage your courses and track performance
-          </Text>
-        </View>
+        <Text style={styles.heroHeading}>Welcome back, Creator! 👋</Text>
+        <Text style={styles.heroSub}>
+          Manage your courses and track performance
+        </Text>
       </View>
 
       {loading ? (
@@ -298,9 +235,7 @@ const CreatorView: React.FC = () => {
             </View>
           }
           onEndReached={() => {
-            if (hasMore && !loadingMore) {
-              getTheCourse(page + 1);
-            }
+            if (hasMore && !loadingMore) getTheCourse(page + 1);
           }}
           onEndReachedThreshold={0.3}
           ListFooterComponent={renderFooter}
@@ -322,10 +257,7 @@ const CreatorView: React.FC = () => {
 export default CreatorView;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.white,
-  },
+  container: { flex: 1, backgroundColor: colors.white },
   heroSection: {
     backgroundColor: colors.white,
     padding: 20,
@@ -337,7 +269,6 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
-  heroContent: {},
   heroHeading: {
     fontSize: 24,
     fontWeight: '800',
@@ -348,33 +279,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.textSecondary,
     fontWeight: '500',
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    backgroundColor: colors.surface,
-    borderRadius: 16,
-    padding: 16,
-    alignItems: 'center',
-  },
-  statItem: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  statNumber: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: colors.primary,
-    marginBottom: 2,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    fontWeight: '600',
-  },
-  statDivider: {
-    width: 1,
-    height: 30,
-    backgroundColor: '#E5E7EB',
   },
   courseCard: {
     backgroundColor: colors.white,
@@ -413,7 +317,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    opacity: 0,
   },
   statusBadge: {
     position: 'absolute',
@@ -422,11 +325,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
   },
   publishedBadge: {
     backgroundColor: '#10B981',
@@ -436,9 +334,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '700',
   },
-  courseInfo: {
-    flex: 1,
-  },
+  courseInfo: { flex: 1 },
   titleRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -460,36 +356,11 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
-  ratingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  stars: {
-    flexDirection: 'row',
-    marginRight: 4,
-  },
-  ratingText: {
-    fontSize: 12,
+  description: {
     color: colors.textSecondary,
-    fontWeight: '600',
-    marginRight: 8,
-  },
-  separator: {
-    width: 1,
-    height: 12,
-    backgroundColor: '#E5E7EB',
-    marginRight: 8,
-  },
-  enrollment: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  enrollmentText: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    fontWeight: '600',
-    marginLeft: 4,
+    fontSize: 13,
+    lineHeight: 18,
+    marginBottom: 12,
   },
   metaContainer: {
     backgroundColor: colors.surface,
@@ -501,57 +372,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
   },
-  metaItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
+  metaItem: { flexDirection: 'row', alignItems: 'center' },
   metaText: {
     marginLeft: 6,
     color: colors.text,
     fontSize: 12,
     fontWeight: '600',
   },
-  durationText: {
-    color: colors.text,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  description: {
-    color: colors.textSecondary,
-    fontSize: 13,
-    lineHeight: 18,
-    marginBottom: 12,
-  },
-  progressContainer: {
-    marginBottom: 16,
-  },
-  progressHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 6,
-  },
-  progressLabel: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    fontWeight: '600',
-  },
-  progressPercent: {
-    fontSize: 12,
-    color: colors.primary,
-    fontWeight: '700',
-  },
-  progressBar: {
-    height: 6,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 3,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: colors.primary,
-    borderRadius: 3,
-  },
+  durationText: { color: colors.text, fontSize: 12, fontWeight: '600' },
   actionsRow: {
     flexDirection: 'row',
     backgroundColor: colors.surface,
@@ -567,19 +395,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 6,
   },
-  editBtn: {
-    backgroundColor: 'transparent',
-  },
-  deleteBtn: {
-    backgroundColor: 'transparent',
-  },
   editBtnText: {
     color: colors.primary,
     fontSize: 14,
     fontWeight: '700',
   },
   deleteBtnText: {
-    color: '#E63946',
+    color: colors.error,
     fontSize: 14,
     fontWeight: '700',
   },
@@ -589,10 +411,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#E5E7EB',
     marginVertical: 4,
   },
-  listContent: {
-    paddingVertical: 16,
-    paddingBottom: 100,
-  },
+  listContent: { paddingVertical: 16, paddingBottom: 100 },
   loaderContainer: {
     flex: 1,
     justifyContent: 'center',

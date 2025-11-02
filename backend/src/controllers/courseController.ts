@@ -736,7 +736,10 @@ export class CourseController {
   // ============ ENROLLMENT MANAGEMENT ============
 
   /**
-   * Enroll in a course (USER only)
+   * Enroll in a course (USER only) - DEPRECATED
+   * Note: Direct enrollment is no longer supported for paid courses.
+   * Users must complete payment through /payments/create-order endpoint.
+   * This endpoint only works for FREE courses now.
    */
   static async enrollInCourse(req: any, res: Response) {
     const { courseId } = req.params;
@@ -779,10 +782,35 @@ export class CourseController {
         return ApiResponseHandler.customError(res, "Already enrolled in this course", 400, "ALREADY_ENROLLED");
       }
 
+      // Only allow direct enrollment for FREE courses
+      if (course.price > 0) {
+        return ApiResponseHandler.customError(
+          res, 
+          "This is a paid course. Please use /payments/create-order endpoint to purchase and enroll.", 
+          400, 
+          "PAYMENT_REQUIRED"
+        );
+      }
+
+      // Create transaction record for free course
+      const transaction = await prisma.transactions.create({
+        data: {
+          user_id: userId,
+          course_id: courseId,
+          amount: 0,
+          currency: "INR",
+          status: "SUCCESS",
+          payment_method: "FREE",
+          completed_at: new Date()
+        }
+      });
+
+      // Create enrollment for free course
       const enrollment = await prisma.enrollments.create({
         data: {
           user_id: userId,
-          course_id: courseId
+          course_id: courseId,
+          transaction_id: transaction.id
         },
         include: {
           course: {
@@ -801,7 +829,11 @@ export class CourseController {
         }
       });
 
-      ApiResponseHandler.success(res, { enrollment }, "Successfully enrolled in course", 201);
+      ApiResponseHandler.success(res, { 
+        enrollment,
+        transaction,
+        message: "Successfully enrolled in free course"
+      }, "Successfully enrolled in course", 201);
     } catch (err: any) {
       ApiResponseHandler.unexpectedError(res, err, 500);
     }

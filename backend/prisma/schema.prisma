@@ -39,6 +39,7 @@ model users {
   
   courses       courses[]
   enrollments   enrollments[]
+  transactions  transactions[]
   
   @@map("users")
 }
@@ -63,6 +64,7 @@ model courses {
   creator         users        @relation(fields: [creator_id], references: [id], onDelete: Cascade)
   videos          videos[]
   enrollments     enrollments[]
+  transactions    transactions[]
   
   @@index([creator_id])
   @@index([status])
@@ -94,10 +96,52 @@ model videos {
   @@map("videos")
 }
 
+enum TransactionStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  RAZORPAY
+  MANUAL
+  FREE
+}
+
+model transactions {
+  id                    String            @id @default(uuid())
+  user_id               String
+  course_id             String
+  amount                Float
+  currency              String            @default("INR")
+  status                TransactionStatus @default(PENDING)
+  payment_method        PaymentMethod     @default(RAZORPAY)
+  razorpay_order_id     String?           @unique
+  razorpay_payment_id   String?           @unique
+  razorpay_signature    String?
+  payment_details       Json?             // Store additional payment info
+  failure_reason        String?
+  created_at            DateTime          @default(now())
+  updated_at            DateTime          @updatedAt
+  completed_at          DateTime?
+  
+  user                  users             @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  course                courses           @relation(fields: [course_id], references: [id], onDelete: Cascade)
+  
+  @@index([user_id])
+  @@index([course_id])
+  @@index([status])
+  @@index([razorpay_order_id])
+  @@index([razorpay_payment_id])
+  @@map("transactions")
+}
+
 model enrollments {
   id              String   @id @default(uuid())
   user_id         String
   course_id       String
+  transaction_id  String?  @unique
   enrolled_at     DateTime @default(now())
   completed_at    DateTime?
   progress        Float    @default(0) // Percentage 0-100

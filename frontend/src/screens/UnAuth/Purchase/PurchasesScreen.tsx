@@ -64,7 +64,7 @@ const PurchasesScreen = () => {
   const handleViewCourse = (courseId: string) => {
     navigation.navigate('CourseDetailsScreen', { courseId });
   };
-  if (enrolledLoading && !enrolledCourses?.length) {
+  if (enrolledLoading && !enrolledCourses?.enrollments.length) {
     return (
       <View style={styles.container}>
         <AppHeader title="My Purchases" />
@@ -76,6 +76,8 @@ const PurchasesScreen = () => {
     );
   }
 
+  console.log('---enrolledCourses--------', enrolledCourses)
+
   return (
     <View style={styles.container}>
       <AppHeader title="My Purchases" />
@@ -86,8 +88,8 @@ const PurchasesScreen = () => {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
-        {enrolledCourses && enrolledCourses.length > 0 ? (
-          enrolledCourses.map((enrollment: any) => {
+        {enrolledCourses?.enrollments && enrolledCourses?.enrollments?.length > 0 ? (
+          enrolledCourses?.enrollments?.map((enrollment: any) => {
             const courseId = enrollment.id || enrollment._id || enrollment.course_id;
             const courseTitle = enrollment.title || enrollment.course_title || 'Untitled Course';
             const enrolledDate = enrollment.enrolled_at || enrollment.created_at;

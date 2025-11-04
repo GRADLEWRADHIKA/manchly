@@ -1,4 +1,4 @@
-import React, { useState, memo } from 'react';
+import React, { useState, memo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,68 +8,17 @@ import {
   FlatList,
   Image,
   Dimensions,
+  ActivityIndicator,
 } from 'react-native';
 import { Users, Clock, Play, Search } from 'lucide-react-native';
 import Video from 'react-native-video';
 import colors from '../../../utils/colors';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
+import { fetchCourses } from '../../../store/CourseSlice';
+import { getEnrolledCourses } from '../../../store/EnrollmentSlice';
 
 const { width } = Dimensions.get('window');
-
-const userVideos = [
-  {
-    id: 'f1',
-    title: 'Digital Marketing Masterclass',
-    instructor: 'Sarah Johnson',
-    thumbnail:
-      'https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=900&h=600&fit=crop',
-    students: '2.5K',
-    duration: '4.5 hours',
-    price: '$29',
-    videoUrl:
-      'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-  },
-  {
-    id: 'f2',
-    title: 'Content Creation Bootcamp',
-    instructor: 'Mike Chen',
-    thumbnail:
-      'https://images.pexels.com/photos/3184339/pexels-photo-3184339.jpeg?auto=compress&cs=tinysrgb&w=900&h=600&fit=crop',
-    students: '1.8K',
-    duration: '6 hours',
-    price: 'Free',
-    videoUrl:
-      'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
-  },
-  {
-    id: 'f3',
-    title: 'Social Media Growth Strategy',
-    instructor: 'Emma Brown',
-    thumbnail:
-      'https://images.pexels.com/photos/4065876/pexels-photo-4065876.jpeg?auto=compress&cs=tinysrgb&w=900&h=600&fit=crop',
-    students: '3.1K',
-    duration: '3 hours',
-    price: '$19',
-    videoUrl:
-      'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4',
-  },
-];
-
-// 🧠 Example purchased courses
-const purchasedCourses = [
-  {
-    id: 'p1',
-    title: 'Advanced Instagram Marketing',
-    instructor: 'Liam Carter',
-    thumbnail:
-      'https://images.pexels.com/photos/3184460/pexels-photo-3184460.jpeg?auto=compress&cs=tinysrgb&w=900&h=600&fit=crop',
-    students: '4.1K',
-    duration: '5 hours',
-    price: 'Purchased',
-    videoUrl:
-      'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4',
-  },
-];
 
 const VideoThumb = memo(
   ({ id, videoUrl, thumbnailUrl, isPlaying, onPlay, onEnded }: any) => {
@@ -106,40 +55,94 @@ const VideoThumb = memo(
 );
 
 const UserView: React.FC = () => {
+  const dispatch = useDispatch<any>();
+  const navigation = useNavigation<any>();
   const { user } = useSelector((state: any) => state.userReducer);
+  const { list: allCourses, loading: coursesLoading } = useSelector(
+    (state: any) => state.coursesReducer
+  );
+  const { list: enrolledCourses, loading: enrolledLoading } = useSelector(
+    (state: any) => state.enrollmentsReducer
+  );
+
   const [playingVideoId, setPlayingVideoId] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Fetch all courses and enrolled courses when component mounts
+    dispatch(fetchCourses({}));
+    dispatch(getEnrolledCourses({}));
+  }, []);
 
   const handlePlay = (id: string) => setPlayingVideoId(id);
   const handleEnded = () => setPlayingVideoId(null);
 
-  const renderCard = ({ item }: any) => {
-    const isPlaying = playingVideoId === item.id;
+  console.log('allCourses', allCourses);
+  console.log('enrolledCourses', enrolledCourses);
+  // Filter courses that user is enrolled in
+  const enrolledCourseIds = (enrolledCourses.enrollments || []).map((enrollment: any) => enrollment.course_id);
+  const myCourses = (allCourses?.data?.courses || []).filter((course: any) =>
+    enrolledCourseIds.includes(course.id || course._id)
+  );
+
+  // Browse courses (all courses)
+  const browseCourses = allCourses?.data?.courses || [];
+
+  const handleCoursePress = (courseId: string) => {
+    navigation.navigate('CourseDetailsScreen', { courseId });
+  };
+
+  const renderCard = ({ item, isEnrolled }: any) => {
+    const courseId = item.id || item._id;
+    const isPlaying = playingVideoId === courseId;
+    const price = item.price === 0 ? 'Free' : `₹${item.price}`;
+    
+    // Extract instructor name from creator object
+    const instructorName = item.creator?.name || 'Unknown Instructor';
+    
+    // Calculate stats from the response
+    const studentsCount = item.enrollments?.length || 0;
+    const videosCount = item.videos?.length || 0;
+    
+    // Get first video thumbnail or course thumbnail
+    const thumbnailUrl = item.thumbnail || item.videos?.[0]?.thumbnail_url || null;
+
     return (
       <View style={styles.card}>
-        <VideoThumb
-          id={item.id}
-          videoUrl={item.videoUrl}
-          thumbnailUrl={item.thumbnail}
-          isPlaying={isPlaying}
-          onPlay={handlePlay}
-          onEnded={handleEnded}
-        />
+        {thumbnailUrl ? (
+          <Image 
+            source={{ uri: thumbnailUrl }} 
+            style={styles.courseThumbnail}
+            resizeMode="cover"
+          />
+        ) : (
+          <View style={styles.placeholderThumbnail}>
+            <Play size={40} color={colors.textSecondary} />
+          </View>
+        )}
 
         <View style={styles.cardBody}>
-          <Text style={styles.title}>{item.title}</Text>
-          <Text style={styles.instructor}>by {item.instructor}</Text>
+          <Text style={styles.title} numberOfLines={2}>
+            {item.title}
+          </Text>
+          <Text style={styles.instructor} numberOfLines={1}>
+            by {instructorName}
+          </Text>
 
           <View style={styles.metaRow}>
             <View style={styles.metaItem}>
               <Users size={14} color={colors.textSecondary} />
-              <Text style={styles.metaText}>{item.students}</Text>
+              <Text style={styles.metaText}>{studentsCount}</Text>
             </View>
+            
             <View style={styles.metaItem}>
-              <Clock size={14} color={colors.textSecondary} />
-              <Text style={styles.metaText}>{item.duration}</Text>
+              <Play size={14} color={colors.textSecondary} />
+              <Text style={styles.metaText}>{videosCount} videos</Text>
             </View>
+            
             <View style={styles.priceTag}>
-              <Text style={styles.priceText}>{item.price}</Text>
+              <Text style={styles.priceText}>
+                {isEnrolled ? 'Enrolled' : price}
+              </Text>
             </View>
           </View>
 
@@ -155,13 +158,17 @@ const UserView: React.FC = () => {
                       : colors.primary,
                 },
               ]}
+              onPress={() => handleCoursePress(courseId)}
             >
               <Text style={styles.primaryButtonText}>
-                {item.price === 'Purchased' ? 'Continue' : 'Start Learning'}
+                {isEnrolled ? 'Continue Learning' : 'View Course'}
               </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={[styles.button, styles.outlineButton]}>
+            <TouchableOpacity
+              style={[styles.button, styles.outlineButton]}
+              onPress={() => handleCoursePress(courseId)}
+            >
               <Text style={styles.outlineButtonText}>Details</Text>
             </TouchableOpacity>
           </View>
@@ -169,6 +176,15 @@ const UserView: React.FC = () => {
       </View>
     );
   };
+
+  if (coursesLoading && !allCourses?.length) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={styles.loadingText}>Loading courses...</Text>
+      </View>
+    );
+  }
 
   return (
     <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
@@ -192,14 +208,13 @@ const UserView: React.FC = () => {
         </View>
       </TouchableOpacity>
 
-      {/* 🎓 Your Courses Section */}
-      {purchasedCourses.length > 0 && (
+      {myCourses && myCourses.length > 0 && (
         <View style={{ marginBottom: 20 }}>
           <Text style={styles.sectionHeading}>Your Courses</Text>
           <FlatList
-            data={purchasedCourses}
-            keyExtractor={i => i.id}
-            renderItem={renderCard}
+            data={myCourses}
+            keyExtractor={i => i.id || i._id}
+            renderItem={({ item }) => renderCard({ item, isEnrolled: true })}
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ paddingLeft: 16 }}
@@ -209,19 +224,28 @@ const UserView: React.FC = () => {
 
       {/* 🎥 All Courses */}
       <Text style={styles.sectionHeading}>Browse Courses</Text>
-      <FlatList
-        data={userVideos}
-        keyExtractor={i => i.id}
-        renderItem={renderCard}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingLeft: 16 }}
-        ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyText}>No courses found</Text>
-          </View>
-        }
-      />
+      {coursesLoading && !browseCourses?.length ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="small" color={colors.primary} />
+        </View>
+      ) : (
+        <FlatList
+          data={browseCourses}
+          keyExtractor={i => i.id || i._id}
+          renderItem={({ item }) => {
+            const isEnrolled = enrolledCourseIds.includes(item.id || item._id);
+            return renderCard({ item, isEnrolled });
+          }}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingLeft: 16 }}
+          ListEmptyComponent={
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyText}>No courses available</Text>
+            </View>
+          }
+        />
+      )}
     </ScrollView>
   );
 };
@@ -229,6 +253,17 @@ const UserView: React.FC = () => {
 export default UserView;
 
 const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: colors.textSecondary,
+  },
   hero: { padding: 16 },
   heroHeading: { fontSize: 22, fontWeight: '700', color: colors.text },
   heroSub: { color: colors.textSecondary, marginTop: 6 },
@@ -279,6 +314,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   videoPlayerFill: { width: '100%', height: '100%' },
+  courseThumbnail: {
+    width: '100%',
+    height: 200,
+    backgroundColor: colors.surface,
+  },
+  placeholderThumbnail: {
+    width: '100%',
+    height: 200,
+    backgroundColor: colors.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   card: {
     width: width - 60,
     marginRight: 12,

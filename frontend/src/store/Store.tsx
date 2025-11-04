@@ -5,12 +5,14 @@ import userReducer from './UserSlice'
 import coursesReducer from './CourseSlice'
 import videosReducer from './VideoSlice'
 import enrollmentsReducer from './EnrollmentSlice'
+import paymentReducer from './PaymentSlice'
 
 const rootReducer = combineReducers({
   userReducer,
   coursesReducer,
   videosReducer,
   enrollmentsReducer,
+  paymentReducer,
 });
 const persistConfig = {
   key: 'root',

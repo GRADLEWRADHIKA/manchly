@@ -1,138 +1,219 @@
-// PurchasesScreen.jsx
-import React from 'react';
+// PurchasesScreen.tsx
+import React, { useEffect } from 'react';
 import {
   StyleSheet,
   View,
   Text,
   TouchableOpacity,
   ScrollView,
+  ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
-import { CalendarClock, Video, GraduationCap, Plus } from 'lucide-react-native';
+import { CalendarClock, Video, GraduationCap, Plus, ShoppingBag } from 'lucide-react-native';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
 import AppHeader from '../../../components/AppHeader';
 import colors from '../../../utils/colors';
+import { getEnrolledCourses } from '../../../store/EnrollmentSlice';
+import { getMyTransactions } from '../../../store/PaymentSlice';
 
-const purchases = [
-  {
-    id: '1',
-    title: 'Master Digital Marketing',
-    type: 'Course',
-    date: 'Sep 20, 2025',
-    status: 'Completed',
-    price: 1499,
-    // individual purchase records for this item (history)
-    purchaseHistory: [
-      { id: 'h1', date: '2025-09-20', price: 1499 },
-      { id: 'h2', date: '2025-06-12', price: 999 },
-    ],
-  },
-  {
-    id: '2',
-    title: 'Webinar: AI in Marketing',
-    type: 'Webinar',
-    date: 'Sep 28, 2025',
-    status: 'Upcoming',
-    price: 499,
-    purchaseHistory: [
-      { id: 'h3', date: '2025-09-01', price: 499 },
-      { id: 'h4', date: '2025-08-15', price: 299 },
-    ],
-  },
-  {
-    id: '3',
-    title: 'One-on-One Strategy Meeting',
-    type: 'Meeting',
-    date: 'Oct 2, 2025',
-    status: 'Scheduled',
-    price: 2499,
-    purchaseHistory: [
-      { id: 'h5', date: '2025-10-02', price: 2499 },
-    ],
-  },
-];
-
-const formatINR = (value) =>
+const formatINR = (value: any) =>
   typeof value === 'number' ? `₹${value.toLocaleString('en-IN')}` : value;
 
+const formatDate = (dateString: string) => {
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  } catch (error) {
+    return dateString;
+  }
+};
+
 const PurchasesScreen = () => {
+  const dispatch = useDispatch<any>();
+  const navigation = useNavigation<any>();
+
+  const { list: enrolledCourses, loading: enrolledLoading } = useSelector(
+    (state: any) => state.enrollmentsReducer
+  );
+  const { transactions, loading: transactionsLoading } = useSelector(
+    (state: any) => state.paymentReducer
+  );
+
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = () => {
+    dispatch(getEnrolledCourses({}));
+    dispatch(getMyTransactions({ status: 'SUCCESS' }));
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadData();
+    setRefreshing(false);
+  };
+
+  const handleViewCourse = (courseId: string) => {
+    navigation.navigate('CourseDetailsScreen', { courseId });
+  };
+  if (enrolledLoading && !enrolledCourses?.length) {
+    return (
+      <View style={styles.container}>
+        <AppHeader title="My Purchases" />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={styles.loadingText}>Loading your purchases...</Text>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <AppHeader title="My Purchases" />
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {purchases.map((item) => (
-          <View key={item.id} style={styles.card}>
-            {/* Header: Icon + Title */}
-            <View style={styles.cardHeader}>
-              {item.type === 'Course' && (
-                <GraduationCap size={20} color={colors.primary} />
-              )}
-              {item.type === 'Webinar' && <Video size={20} color={colors.primary} />}
-              {item.type === 'Meeting' && (
-                <CalendarClock size={20} color={colors.primary} />
-              )}
-              <Text style={styles.title}>{item.title}</Text>
-            </View>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
+        {enrolledCourses && enrolledCourses.length > 0 ? (
+          enrolledCourses.map((enrollment: any) => {
+            const courseId = enrollment.id || enrollment._id || enrollment.course_id;
+            const courseTitle = enrollment.title || enrollment.course_title || 'Untitled Course';
+            const enrolledDate = enrollment.enrolled_at || enrollment.created_at;
+            const progress = enrollment.progress || 0;
+            
+            // Find transaction for this enrollment
+            const transaction = transactions?.find(
+              (t: any) => 
+                t.course_id === courseId || 
+                t.enrollment_id === enrollment.id
+            );
 
-            {/* Meta: Type, Date, Price */}
-            <View style={styles.meta}>
-              <Text style={styles.type}>{item.type}</Text>
-              <Text style={styles.date}>{item.date}</Text>
-            </View>
+            return (
+              <View key={courseId} style={styles.card}>
+                {/* Header: Icon + Title */}
+                <View style={styles.cardHeader}>
+                  <GraduationCap size={20} color={colors.primary} />
+                  <Text style={styles.title} numberOfLines={2}>
+                    {courseTitle}
+                  </Text>
+                </View>
 
-            {/* Price and status row */}
-            <View style={styles.priceRow}>
-              <Text style={styles.purchasedFor}>Purchased for</Text>
-              <Text style={styles.priceValue}>{formatINR(item.price)}</Text>
-            </View>
+                {/* Meta: Type, Date */}
+                <View style={styles.meta}>
+                  <Text style={styles.type}>Course</Text>
+                  {enrolledDate && (
+                    <Text style={styles.date}>
+                      Enrolled: {formatDate(enrolledDate)}
+                    </Text>
+                  )}
+                </View>
 
-            {/* Small purchase history list */}
-            <View style={styles.historyBox}>
-              <Text style={styles.historyTitle}>Purchase history</Text>
-              {item.purchaseHistory && item.purchaseHistory.length > 0 ? (
-                item.purchaseHistory.map((h) => (
-                  <View key={h.id} style={styles.historyRow}>
-                    <Text style={styles.historyDate}>{h.date}</Text>
-                    <Text style={styles.historyPrice}>{formatINR(h.price)}</Text>
+                {/* Price row */}
+                {transaction && (
+                  <View style={styles.priceRow}>
+                    <Text style={styles.purchasedFor}>Purchased for</Text>
+                    <Text style={styles.priceValue}>
+                      {formatINR(transaction.amount)}
+                    </Text>
                   </View>
-                ))
-              ) : (
-                <Text style={styles.historyEmpty}>No purchase history available.</Text>
-              )}
-            </View>
+                )}
 
-            {/* Footer: Status + Action */}
-            <View style={styles.footer}>
-              <Text
-                style={[
-                  styles.status,
-                  item.status === 'Completed' && styles.completed,
-                  item.status === 'Upcoming' && styles.upcoming,
-                  item.status === 'Scheduled' && styles.scheduled,
-                ]}
-              >
-                {item.status}
-              </Text>
+                {/* Progress Bar */}
+                {progress !== undefined && (
+                  <View style={styles.progressContainer}>
+                    <View style={styles.progressLabelRow}>
+                      <Text style={styles.progressLabel}>Progress</Text>
+                      <Text style={styles.progressPercent}>{progress}%</Text>
+                    </View>
+                    <View style={styles.progressBar}>
+                      <View
+                        style={[
+                          styles.progressFill,
+                          { width: `${progress}%` },
+                        ]}
+                      />
+                    </View>
+                  </View>
+                )}
 
-              <TouchableOpacity style={styles.actionBtn} activeOpacity={0.8}>
-                <Text style={styles.actionText}>
-                  {item.status === 'Upcoming' || item.status === 'Scheduled' ? 'Join' : 'View'}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        ))}
+                {transaction && (
+                  <View style={styles.historyBox}>
+                    <Text style={styles.historyTitle}>Payment Details</Text>
+                    <View style={styles.historyRow}>
+                      <Text style={styles.historyDate}>Transaction ID</Text>
+                      <Text style={styles.historyPrice} numberOfLines={1}>
+                        {transaction.id || transaction._id || 'N/A'}
+                      </Text>
+                    </View>
+                    <View style={styles.historyRow}>
+                      <Text style={styles.historyDate}>Status</Text>
+                      <Text
+                        style={[
+                          styles.historyPrice,
+                          { color: transaction.status === 'SUCCESS' ? 'green' : colors.text },
+                        ]}
+                      >
+                        {transaction.status || 'N/A'}
+                      </Text>
+                    </View>
+                    {transaction.razorpay_payment_id && (
+                      <View style={styles.historyRow}>
+                        <Text style={styles.historyDate}>Payment ID</Text>
+                        <Text style={styles.historyPrice} numberOfLines={1}>
+                          {transaction.razorpay_payment_id}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                )}
 
-        {purchases.length === 0 && (
+            
+                <View style={styles.footer}>
+                  <Text style={[styles.status, styles.completed]}>
+                    {progress === 100 ? 'Completed' : 'In Progress'}
+                  </Text>
+
+                  <TouchableOpacity
+                    style={styles.actionBtn}
+                    activeOpacity={0.8}
+                    onPress={() => handleViewCourse(courseId)}
+                  >
+                    <Text style={styles.actionText}>
+                      {progress === 100 ? 'Review' : 'Continue Learning'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            );
+          })
+        ) : (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>You haven’t purchased anything yet.</Text>
+            <ShoppingBag size={60} color={colors.textSecondary} />
+            <Text style={styles.emptyText}>You haven't purchased any courses yet.</Text>
+            <Text style={styles.emptySubtext}>
+              Browse our courses and start learning today!
+            </Text>
+            <TouchableOpacity
+              style={styles.browseBtn}
+              onPress={() => navigation.navigate('ProductsScreen')}
+            >
+              <Text style={styles.browseText}>Browse Courses</Text>
+            </TouchableOpacity>
           </View>
         )}
       </ScrollView>
-
-      {/* Floating Button to Add Purchase (placeholder) */}
-      {/* <TouchableOpacity style={styles.fab} activeOpacity={0.8}>
-        <Plus size={28} color="#fff" />
-      </TouchableOpacity> */}
     </View>
   );
 };
@@ -143,6 +224,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: colors.textSecondary,
   },
   scrollContent: {
     padding: 16,
@@ -253,15 +344,65 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
+  progressContainer: {
+    marginBottom: 12,
+  },
+  progressLabelRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  progressLabel: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    fontWeight: '600',
+  },
+  progressPercent: {
+    fontSize: 13,
+    color: colors.primary,
+    fontWeight: '700',
+  },
+  progressBar: {
+    height: 8,
+    backgroundColor: '#e0e0e0',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: colors.primary,
+    borderRadius: 4,
+  },
   emptyContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     padding: 40,
+    marginTop: 80,
   },
   emptyText: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text,
+    marginTop: 16,
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  browseBtn: {
+    backgroundColor: colors.primary,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 10,
+    marginTop: 20,
+  },
+  browseText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 15,
   },
 
   fab: {

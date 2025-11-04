@@ -12,6 +12,7 @@ import CreateWebinar from '../screens/UnAuth/Creator/Products/CreateWebinar';
 import CreateCourse from '../screens/UnAuth/Creator/Products/CreateCourse';
 import WalletCreator from '../screens/UnAuth/Wallet/WalletCreator';
 import UserBottomTab from './UserBottomTab';
+import CourseDetailsScreen from '../screens/UnAuth/Product/CourseDetailsScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -33,6 +34,7 @@ const UserMainStack = () => {
       <Stack.Screen name="CreateWebinar" component={CreateWebinar} />
       <Stack.Screen name="CreateCourse" component={CreateCourse} />
       <Stack.Screen name="WalletCreator" component={WalletCreator} />
+      <Stack.Screen name="CourseDetailsScreen" component={CourseDetailsScreen} />
     </Stack.Navigator>
   );
 };

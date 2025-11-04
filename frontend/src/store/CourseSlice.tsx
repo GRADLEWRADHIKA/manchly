@@ -108,7 +108,8 @@ const slice = createSlice({
       })
       .addCase(fetchCourses.fulfilled, (state, { payload }) => {
         state.loading = false;
-        state.list = payload?.courses ?? payload ?? [];
+        // Handle both direct array and nested object responses
+        state.list = payload?.data?.courses ?? payload?.courses ?? payload?.data ?? payload ?? [];
       })
       .addCase(fetchCourses.rejected, state => {
         state.loading = false;

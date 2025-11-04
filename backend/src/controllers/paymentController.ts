@@ -80,9 +80,9 @@ export class PaymentController {
         }
       });
 
-      if (pendingTransaction) {
-        return ApiResponseHandler.customError(res, "You already have a pending payment for this course", 400, "PENDING_PAYMENT_EXISTS");
-      }
+      // if (pendingTransaction) {
+      //   return ApiResponseHandler.customError(res, "You already have a pending payment for this course", 400, "PENDING_PAYMENT_EXISTS");
+      // }
 
       // Handle free courses
       if (course.price === 0) {

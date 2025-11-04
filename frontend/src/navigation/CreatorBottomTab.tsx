@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import colors from '../utils/colors';
-import ProductsScreen from '../screens/UnAuth/Product/ProductsScreen';
+import ProductsScreen from '../screens/UnAuth/User/Products/ProductsScreen';
 import WalletCreator from '../screens/UnAuth/Wallet/WalletCreator';
 import ProfileScreen from '../screens/UnAuth/Profile/ProfileScreen';
 import {

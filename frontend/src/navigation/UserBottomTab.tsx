@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import colors from '../utils/colors';
-import ProductsScreen from '../screens/UnAuth/Product/ProductsScreen';
+import ProductsScreen from '../screens/UnAuth/User/Products/ProductsScreen';
 import PurchasesScreen from '../screens/UnAuth/Purchase/PurchasesScreen';
 import ProfileScreen from '../screens/UnAuth/Profile/ProfileScreen';
 import {
@@ -71,13 +71,13 @@ const CustomTabBar = ({ state, descriptors, navigation }: any) => {
             style={styles.tabItem}
           >
             <Icon
-              size={isFocused ? 22 : 20}
-              color={isFocused ? colors.primary : colors.black}
+              size={isFocused ? 24 : 20}
+              color={isFocused ? colors.secPrimary : colors.black}
             />
             <Text
               style={[
                 styles.tabLabel,
-                { color: isFocused ? colors.primary : colors.black },
+                { color: isFocused ? colors.secPrimary : colors.black },
               ]}
             >
               {tabInfo?.label}

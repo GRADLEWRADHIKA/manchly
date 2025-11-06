@@ -76,7 +76,7 @@ const PurchasesScreen = () => {
     );
   }
 
-  console.log('---enrolledCourses--------', enrolledCourses)
+  // console.log('---enrolledCourses--------', enrolledCourses)
 
   return (
     <View style={styles.container}>

@@ -51,11 +51,9 @@ const OTPScreen: React.FC = () => {
       code: route?.params?.dummyOtp,
       purpose: route?.params?.payload?.purpose,
     };
-    // console.log('-----payload-----', payload);
     dispatch(verifyOtp(payload))
       .unwrap()
       .then(response => {
-        console.log('-----res-----', response?.data?.data)
         reset();
         // Toast.show({
         //   type: 'success',

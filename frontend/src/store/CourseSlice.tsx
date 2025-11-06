@@ -53,7 +53,6 @@ export const updateCourse = createAsyncThunk(
   async ({ id, body }: { id: string; body: any }, { rejectWithValue }) => {
     try {
       const res = await instance.put(`courses/${id}`, body);
-      console.log('------res------', res)
       Toast.show({
         type: 'success',
         text1: 'Course updated',

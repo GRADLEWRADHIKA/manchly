@@ -359,7 +359,6 @@ const CreatorHome = () => {
       const uploadUrl = res?.upload_url || res?.uploadUrl;
       const video = res?.video || res;
       const videoId = String(video?.id || video?._id || res?.video_id || res?.videoId || '');
-    
       
       if (!videoId || videoId === '') {
         console.error('No video ID found in response:', res);

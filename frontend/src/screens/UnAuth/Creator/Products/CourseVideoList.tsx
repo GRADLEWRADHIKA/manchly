@@ -9,7 +9,7 @@ import {
 import React, { useEffect, useState, useRef } from 'react';
 import colors from '../../../../utils/colors';
 import AppHeaderWithBack from '../../../../components/AppHeaderWithBack';
-import { useRoute } from '@react-navigation/native';
+import { useIsFocused, useRoute } from '@react-navigation/native';
 import { getCourseById } from '../../../../store/CourseSlice';
 import { useDispatch } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
@@ -22,6 +22,7 @@ import Modal from 'react-native-modal';
 import CourseAddVideoModal from './CourseAddVideoModal';
 import { deleteVideo, updateVideo } from '../../../../store/VideoSlice';
 import DynamicModal from '../../../../components/CommonModal';
+import CourseUpdateVideoModal from './CourseUpdateVideoModal';
 
 const ShimmerPlaceholder = createShimmerPlaceholder(LinearGradient);
 
@@ -39,6 +40,7 @@ const CourseVideoList = () => {
   const [showModal, setShowModal] = useState(false);
   const [videoId, setVideId] = useState('');
   const [videoData, setVideoData] = useState([]);
+  const focus = useIsFocused()
 
   const handleVideoPlay = (videoId: string) => {
     if (playingVideoId && playingVideoId !== videoId) {
@@ -52,7 +54,7 @@ const CourseVideoList = () => {
 
   useEffect(() => {
     getVideoById();
-  }, []);
+  }, [focus]);
 
   const handleVideoEnd = () => {
     setPlayingVideoId(null);

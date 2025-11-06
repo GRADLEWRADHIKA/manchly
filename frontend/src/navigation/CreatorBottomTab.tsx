@@ -21,6 +21,7 @@ import {
 } from 'lucide-react-native';
 import CreatorHome from '../screens/UnAuth/Creator/Home/CreatorHome';
 import CreatorChat from '../screens/UnAuth/Creator/Chat/CreatorChat';
+import CreatorView from '../screens/UnAuth/Creator/Products/CreatorView';
 
 const Tab = createBottomTabNavigator();
 
@@ -33,7 +34,7 @@ const tabs = [
   },
   {
     name: 'ProductsScreen',
-    component: ProductsScreen,
+    component: CreatorView,
     label: 'Products',
     Icon: ShoppingCart,
   },
@@ -76,13 +77,17 @@ const CustomTabBar = ({ state, descriptors, navigation }: any) => {
             style={styles.tabItem}
           >
             <Icon
-              size={isFocused ? 22 : 20}
+              size={isFocused ? 24 : 20}
               color={isFocused ? colors.primary : colors.black}
+              strokeWidth={isFocused ? 2.2 : 1.8}
             />
             <Text
               style={[
                 styles.tabLabel,
-                { color: isFocused ? colors.primary : colors.black },
+                {
+                  color: isFocused ? colors.primary : colors.black,
+                  fontWeight: isFocused ? '600' : '400',
+                },
               ]}
             >
               {tabInfo?.label}

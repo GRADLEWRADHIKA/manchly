@@ -16,7 +16,14 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { Play, BookOpen, Users, Award, TrendingUp, X } from 'lucide-react-native';
+import {
+  Play,
+  BookOpen,
+  Users,
+  Award,
+  TrendingUp,
+  X,
+} from 'lucide-react-native';
 import colors from '../../../../utils/colors';
 import KycCard from '../../Home/KeyCard';
 import AppHeader from '../../../../components/AppHeader';
@@ -24,7 +31,12 @@ import { useDispatch, useSelector } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
 import { createCourse, fetchCourses } from '../../../../store/CourseSlice';
 import { updateCourse, deleteCourse } from '../../../../store/CourseSlice';
-import { createVideoUpload, checkVideoStatus as checkVideoStatusAPI, updateVideo, deleteVideo } from '../../../../store/VideoSlice';
+import {
+  createVideoUpload,
+  checkVideoStatus as checkVideoStatusAPI,
+  updateVideo,
+  deleteVideo,
+} from '../../../../store/VideoSlice';
 import DocumentPicker, { pick, types } from '@react-native-documents/picker';
 import Toast from 'react-native-toast-message';
 
@@ -43,13 +55,18 @@ const CreatorHome = () => {
   const [level, setLevel] = useState('Beginner');
   const [status, setStatus] = useState<'DRAFT' | 'PUBLISHED'>('DRAFT');
 
-  const [activeUploads, setActiveUploads] = useState<Record<string, {
-    progress: number;
-    processingText: string | null;
-    pollTimer: any;
-    xhr?: XMLHttpRequest;
-    videoId?: string;
-  }>>({});
+  const [activeUploads, setActiveUploads] = useState<
+    Record<
+      string,
+      {
+        progress: number;
+        processingText: string | null;
+        pollTimer: any;
+        xhr?: XMLHttpRequest;
+        videoId?: string;
+      }
+    >
+  >({});
   const pollTimersRef = useRef<Record<string, any>>({});
 
   const [videoForm, setVideoForm] = useState({
@@ -86,12 +103,12 @@ const CreatorHome = () => {
         status,
       }),
     );
-    
+
     // Refresh course list after creation
     if (createCourse.fulfilled.match(result)) {
       await dispatch(fetchCourses({ page: 1, limit: 10 }));
     }
-    
+
     setTitle('');
     setDescription('');
     setPrice('');
@@ -110,19 +127,24 @@ const CreatorHome = () => {
       console.error('Cannot start polling: videoId is missing');
       return;
     }
-    
+
     const videoIdStr = String(videoId);
     clearPoll(videoIdStr);
-    
-    console.log('Starting polling for videoId:', videoIdStr, 'uploadKey:', uploadKey);
-    
+
+    console.log(
+      'Starting polling for videoId:',
+      videoIdStr,
+      'uploadKey:',
+      uploadKey,
+    );
+
     let retryCount = 0;
     const maxRetries = 60; // 5 minutes max (60 * 5 seconds)
     const max404Retries = 5; // Stop after 5 consecutive 404s
-    
+
     let consecutive404s = 0;
     let isStopped = false; // Flag to prevent further polling
-    
+
     // Start polling immediately (don't wait for first interval)
     const pollOnce = async () => {
       // Stop if polling was already stopped
@@ -130,37 +152,54 @@ const CreatorHome = () => {
         console.log('Polling already stopped, skipping poll');
         return;
       }
-      
+
       try {
         retryCount++;
-        console.log(`Polling video status (attempt ${retryCount}/${maxRetries}):`, videoIdStr);
-        
+        console.log(
+          `Polling video status (attempt ${retryCount}/${maxRetries}):`,
+          videoIdStr,
+        );
+
         const status = await dispatch(checkVideoStatusAPI(videoIdStr)).unwrap();
         consecutive404s = 0; // Reset 404 counter on success
-        
+
         // Check multiple possible state fields (case-insensitive)
-        const stateRaw = status?.state || status?.status || status?.current_video_status || status?.video_status;
+        const stateRaw =
+          status?.state ||
+          status?.status ||
+          status?.current_video_status ||
+          status?.video_status;
         const state = stateRaw ? String(stateRaw).toUpperCase().trim() : null;
-        console.log('Video status received (raw):', stateRaw, 'normalized:', state);
+        console.log(
+          'Video status received (raw):',
+          stateRaw,
+          'normalized:',
+          state,
+        );
         console.log('Full status response:', JSON.stringify(status, null, 2));
-        
+
         if (state) {
-          const statusText = state === 'UPLOADING' ? 'Uploading to server...' :
-                             state === 'PROCESSING' ? 'Processing video...' :
-                             state === 'READY' ? 'Video ready!' :
-                             state === 'ERROR' ? 'Processing failed' :
-                             `Status: ${state}`;
-          
+          const statusText =
+            state === 'UPLOADING'
+              ? 'Uploading to server...'
+              : state === 'PROCESSING'
+              ? 'Processing video...'
+              : state === 'READY'
+              ? 'Video ready!'
+              : state === 'ERROR'
+              ? 'Processing failed'
+              : `Status: ${state}`;
+
           setActiveUploads(prev => ({
             ...prev,
-            [uploadKey]: { 
-              ...prev[uploadKey], 
+            [uploadKey]: {
+              ...prev[uploadKey],
               progress: 100, // Keep at 100% during processing
-              processingText: statusText 
-            }
+              processingText: statusText,
+            },
           }));
         }
-        
+
         // Check if ready (case-insensitive)
         if (state === 'READY') {
           console.log('✅ Video is READY! Stopping polling immediately');
@@ -171,16 +210,16 @@ const CreatorHome = () => {
             delete updated[uploadKey];
             return updated;
           });
-          Toast.show({ 
-            type: 'success', 
-            text1: 'Video processing complete', 
-            position: 'bottom' 
+          Toast.show({
+            type: 'success',
+            text1: 'Video processing complete',
+            position: 'bottom',
           });
           // Refresh courses list to show the new video with READY status
           dispatch(fetchCourses({ page: 1, limit: 10 }));
           return;
         }
-        
+
         if (state === 'ERROR') {
           console.log(' Video status is ERROR! Stopping polling');
           isStopped = true;
@@ -190,14 +229,14 @@ const CreatorHome = () => {
             delete updated[uploadKey];
             return updated;
           });
-          Toast.show({ 
-            type: 'error', 
-            text1: 'Video processing failed', 
-            position: 'bottom' 
+          Toast.show({
+            type: 'error',
+            text1: 'Video processing failed',
+            position: 'bottom',
           });
           return;
         }
-        
+
         // Stop polling after max retries
         if (retryCount >= maxRetries) {
           console.log('⏱️ Max retries reached, stopping polling');
@@ -208,23 +247,25 @@ const CreatorHome = () => {
             delete updated[uploadKey];
             return updated;
           });
-          Toast.show({ 
-            type: 'info', 
-            text1: 'Video is still processing', 
+          Toast.show({
+            type: 'info',
+            text1: 'Video is still processing',
             text2: 'Check back later',
-            position: 'bottom' 
+            position: 'bottom',
           });
           return;
         }
       } catch (e: any) {
         console.log('Polling error:', e);
         const statusCode = e?.response?.status || e?.status;
-        
+
         // Handle 404 errors specifically
         if (statusCode === 404) {
           consecutive404s++;
-          console.log(`Video not found (404). Consecutive 404s: ${consecutive404s}`);
-          
+          console.log(
+            `Video not found (404). Consecutive 404s: ${consecutive404s}`,
+          );
+
           if (consecutive404s >= max404Retries) {
             console.log('❌ Max 404 retries reached, stopping polling');
             isStopped = true; // Set flag to stop further polling
@@ -234,15 +275,15 @@ const CreatorHome = () => {
               delete updated[uploadKey];
               return updated;
             });
-            Toast.show({ 
-              type: 'error', 
-              text1: 'Video upload issue', 
+            Toast.show({
+              type: 'error',
+              text1: 'Video upload issue',
               text2: 'Video was not registered properly. Please try again.',
-              position: 'bottom' 
+              position: 'bottom',
             });
             return;
           }
-          
+
           // For first few 404s, wait longer before next poll (video might still be processing)
           if (consecutive404s === 1) {
             console.log('Waiting 10 seconds before retry...');
@@ -252,7 +293,7 @@ const CreatorHome = () => {
           // Reset 404 counter for non-404 errors
           consecutive404s = 0;
         }
-        
+
         // Stop polling after max retries even with errors
         if (retryCount >= maxRetries) {
           console.log('⏱️ Max retries reached with errors, stopping polling');
@@ -267,11 +308,11 @@ const CreatorHome = () => {
         }
       }
     };
-    
+
     // Poll immediately, then every 5 seconds
     pollOnce();
     pollTimersRef.current[videoIdStr] = setInterval(pollOnce, 5000);
-    
+
     console.log('Polling timer set for videoId:', videoIdStr);
   };
 
@@ -295,48 +336,56 @@ const CreatorHome = () => {
       // Runtime permission for Android
       if (Platform.OS === 'android') {
         // Android 13+ (API 33+) uses READ_MEDIA_VIDEO, older versions use READ_EXTERNAL_STORAGE
-        const permission = Platform.Version >= 33
-          ? ('android.permission.READ_MEDIA_VIDEO' as any)
-          : PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE;
+        const permission =
+          Platform.Version >= 33
+            ? ('android.permission.READ_MEDIA_VIDEO' as any)
+            : PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE;
 
         // Check if already granted
         const checkResult = await PermissionsAndroid.check(permission as any);
         if (!checkResult) {
           const granted = await PermissionsAndroid.request(permission as any, {
             title: 'Video Access Permission',
-            message: 'This app needs access to your videos to upload course content.',
+            message:
+              'This app needs access to your videos to upload course content.',
             buttonNeutral: 'Ask Me Later',
             buttonNegative: 'Cancel',
             buttonPositive: 'OK',
           });
-          
+
           if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-            Toast.show({ 
-              type: 'error', 
-              text1: 'Permission denied', 
+            Toast.show({
+              type: 'error',
+              text1: 'Permission denied',
               text2: 'Please grant video access permission in app settings.',
-              position: 'bottom' 
+              position: 'bottom',
             });
             return;
           }
         }
       }
 
-      Toast.show({ type: 'info', text1: 'Opening video picker…', position: 'bottom' });
+      Toast.show({
+        type: 'info',
+        text1: 'Opening video picker…',
+        position: 'bottom',
+      });
       const result = await pick({
         type: [types.video],
       });
-      
+
       if (!result || result.length === 0) {
         setShowVideoForm(false);
         return;
       }
-      
+
       const file = result[0];
 
       // Save course ID and form data before closing modal
       const courseId = String(selectedCourse?.id || selectedCourse?._id);
-      const videoTitle = videoForm.title.trim() || (file.name || 'New Video').replace(/\.[^.]+$/, '');
+      const videoTitle =
+        videoForm.title.trim() ||
+        (file.name || 'New Video').replace(/\.[^.]+$/, '');
       const videoDescription = videoForm.description.trim() || '';
       const videoIsFree = videoForm.is_free;
       const videoOrder = Number(videoForm.order) || 1;
@@ -345,34 +394,42 @@ const CreatorHome = () => {
       setShowVideoForm(false);
       setSelectedCourse(null);
       setVideoForm({ title: '', description: '', is_free: false, order: 1 });
-      
-      const res = await dispatch(createVideoUpload({
-        courseId: courseId,
-        body: { 
-          title: videoTitle, 
-          description: videoDescription, 
-          is_free: videoIsFree, 
-          order: videoOrder 
-        },
-      })).unwrap();
+
+      const res = await dispatch(
+        createVideoUpload({
+          courseId: courseId,
+          body: {
+            title: videoTitle,
+            description: videoDescription,
+            is_free: videoIsFree,
+            order: videoOrder,
+          },
+        }),
+      ).unwrap();
 
       const uploadUrl = res?.upload_url || res?.uploadUrl;
       const video = res?.video || res;
-      const videoId = String(video?.id || video?._id || res?.video_id || res?.videoId || '');
-      
+      const videoId = String(
+        video?.id || video?._id || res?.video_id || res?.videoId || '',
+      );
+
       if (!videoId || videoId === '') {
         console.error('No video ID found in response:', res);
-        Toast.show({ 
-          type: 'error', 
-          text1: 'Missing video ID', 
+        Toast.show({
+          type: 'error',
+          text1: 'Missing video ID',
           text2: 'Could not get video ID from server response',
-          position: 'bottom' 
+          position: 'bottom',
         });
         return;
       }
-      
+
       if (!uploadUrl) {
-        Toast.show({ type: 'error', text1: 'No upload URL received', position: 'bottom' });
+        Toast.show({
+          type: 'error',
+          text1: 'No upload URL received',
+          position: 'bottom',
+        });
         return;
       }
 
@@ -381,24 +438,24 @@ const CreatorHome = () => {
 
       // Use videoId as the upload key so it matches when displaying progress
       const uploadKey = videoId;
-      
+
       // Upload using XMLHttpRequest for progress tracking
       const xhr = new XMLHttpRequest();
-      
+
       // Store videoId in closure to ensure it's accessible in event handlers
       const currentVideoId = String(videoId);
-      
+
       setActiveUploads(prev => ({
         ...prev,
-        [uploadKey]: { 
-          progress: 0, 
-          processingText: 'Preparing upload...', 
+        [uploadKey]: {
+          progress: 0,
+          processingText: 'Preparing upload...',
           pollTimer: null,
           xhr: xhr,
-          videoId: currentVideoId
-        }
+          videoId: currentVideoId,
+        },
       }));
-      
+
       // Read file as blob for upload
       console.log('Reading file as blob...');
       const fileBlob = await fetch(file.uri).then(response => {
@@ -407,65 +464,92 @@ const CreatorHome = () => {
         }
         return response.blob();
       });
-      
+
       console.log('File blob size:', fileBlob.size);
-      
+
       await new Promise<void>((resolve, reject) => {
-        xhr.upload.addEventListener('progress', (e) => {
+        xhr.upload.addEventListener('progress', e => {
           if (e.lengthComputable && e.total > 0) {
             // Cap progress at 100%
-            const percent = Math.min(100, Math.round((e.loaded / e.total) * 100));
+            const percent = Math.min(
+              100,
+              Math.round((e.loaded / e.total) * 100),
+            );
             setActiveUploads(prev => ({
               ...prev,
-              [uploadKey]: { ...prev[uploadKey], progress: percent, processingText: `Uploading: ${percent}%` }
+              [uploadKey]: {
+                ...prev[uploadKey],
+                progress: percent,
+                processingText: `Uploading: ${percent}%`,
+              },
             }));
           }
         });
 
         xhr.addEventListener('load', () => {
           if (xhr.status >= 200 && xhr.status < 300) {
-            console.log('Upload to Mux successful (100%), starting status polling for videoId:', currentVideoId);
+            console.log(
+              'Upload to Mux successful (100%), starting status polling for videoId:',
+              currentVideoId,
+            );
             // Set to 100% on completion - upload to Mux is complete
             setActiveUploads(prev => ({
               ...prev,
-              [uploadKey]: { 
-                ...prev[uploadKey], 
-                progress: 100, 
+              [uploadKey]: {
+                ...prev[uploadKey],
+                progress: 100,
                 processingText: 'Upload complete, processing...',
-                xhr: undefined
-              }
+                xhr: undefined,
+              },
             }));
-            
+
             // Start polling immediately after upload reaches 100%
             if (currentVideoId && currentVideoId !== '') {
-              console.log('Starting polling with videoId:', currentVideoId, 'uploadKey:', uploadKey);
+              console.log(
+                'Starting polling with videoId:',
+                currentVideoId,
+                'uploadKey:',
+                uploadKey,
+              );
               startPollingStatus(currentVideoId, uploadKey);
             } else {
-              console.error('Cannot start polling: videoId is missing or empty');
+              console.error(
+                'Cannot start polling: videoId is missing or empty',
+              );
             }
-            
+
             // Refresh courses list to show updated video status
             dispatch(fetchCourses({ page: 1, limit: 10 }));
-            
-            Toast.show({ type: 'success', text1: 'Video uploaded to Mux successfully', position: 'bottom' });
+
+            Toast.show({
+              type: 'success',
+              text1: 'Video uploaded to Mux successfully',
+              position: 'bottom',
+            });
             resolve();
           } else {
             console.log('Upload failed:', xhr.status, xhr.responseText);
             // Update active uploads to show error
             setActiveUploads(prev => ({
               ...prev,
-              [uploadKey]: { 
-                ...prev[uploadKey], 
-                progress: 0, 
+              [uploadKey]: {
+                ...prev[uploadKey],
+                progress: 0,
                 processingText: 'Upload failed',
-                xhr: undefined
-              }
+                xhr: undefined,
+              },
             }));
-            reject(new Error(`Upload failed with status ${xhr.status}: ${xhr.responseText || 'Unknown error'}`));
+            reject(
+              new Error(
+                `Upload failed with status ${xhr.status}: ${
+                  xhr.responseText || 'Unknown error'
+                }`,
+              ),
+            );
           }
         });
 
-        xhr.addEventListener('error', (error) => {
+        xhr.addEventListener('error', error => {
           console.log('XHR error:', error);
           reject(new Error('Network error during upload'));
         });
@@ -483,12 +567,13 @@ const CreatorHome = () => {
       });
     } catch (e: any) {
       console.log('Video upload error:', e);
-      const errorMsg = e?.message || e?.response?.data?.message || 'Failed to add video';
-      Toast.show({ 
-        type: 'error', 
-        text1: 'Failed to add video', 
+      const errorMsg =
+        e?.message || e?.response?.data?.message || 'Failed to add video';
+      Toast.show({
+        type: 'error',
+        text1: 'Failed to add video',
         text2: errorMsg,
-        position: 'bottom' 
+        position: 'bottom',
       });
       // Clean up any active uploads for this course if error occurred during setup
       // Note: courseId might not be defined if error occurred before file selection
@@ -525,15 +610,17 @@ const CreatorHome = () => {
 
   const saveEdit = async () => {
     if (!editingId) return;
-    await dispatch(updateCourse({
-      id: editingId,
-      body: {
-        title: editTitle.trim(),
-        description: editDescription.trim(),
-        price: Number(editPrice) || 0,
-        status: editStatus,
-      },
-    }));
+    await dispatch(
+      updateCourse({
+        id: editingId,
+        body: {
+          title: editTitle.trim(),
+          description: editDescription.trim(),
+          price: Number(editPrice) || 0,
+          status: editStatus,
+        },
+      }),
+    );
     setEditingId(null);
     dispatch(fetchCourses({ page: 1, limit: 10 }));
   };
@@ -550,17 +637,17 @@ const CreatorHome = () => {
   const cancelUpload = async (uploadKey: string) => {
     const upload = activeUploads[uploadKey];
     const videoId = upload?.videoId;
-    
+
     // Abort the upload if in progress
     if (upload?.xhr) {
       upload.xhr.abort();
     }
-    
+
     // Clear polling if active
     if (videoId && pollTimersRef.current[videoId]) {
       clearPoll(videoId);
     }
-    
+
     // Delete the video from backend if it exists
     if (videoId) {
       try {
@@ -569,17 +656,17 @@ const CreatorHome = () => {
         console.log('Error deleting video on cancel:', e);
       }
     }
-    
+
     // Remove from active uploads
     setActiveUploads(prev => {
       const updated = { ...prev };
       delete updated[uploadKey];
       return updated;
     });
-    
+
     // Refresh courses to update video array
     dispatch(fetchCourses({ page: 1, limit: 10 }));
-    
+
     Toast.show({ type: 'info', text1: 'Upload cancelled', position: 'bottom' });
   };
 
@@ -587,34 +674,43 @@ const CreatorHome = () => {
     try {
       const status = await dispatch(checkVideoStatusAPI(videoId)).unwrap();
       const state = status?.state || status?.status;
-      const statusText = state === 'UPLOADING' ? 'Uploading to server...' :
-                         state === 'PROCESSING' ? 'Processing video...' :
-                         state === 'READY' ? 'Video ready!' :
-                         state === 'ERROR' ? 'Processing failed' :
-                         `Status: ${state}`;
-      
+      const statusText =
+        state === 'UPLOADING'
+          ? 'Uploading to server...'
+          : state === 'PROCESSING'
+          ? 'Processing video...'
+          : state === 'READY'
+          ? 'Video ready!'
+          : state === 'ERROR'
+          ? 'Processing failed'
+          : `Status: ${state}`;
+
       // Update active uploads if uploadKey provided (for in-progress uploads)
       if (uploadKey && activeUploads[uploadKey]) {
         setActiveUploads(prev => ({
           ...prev,
-          [uploadKey]: { 
-            ...prev[uploadKey], 
+          [uploadKey]: {
+            ...prev[uploadKey],
             progress: 100,
-            processingText: statusText 
-          }
+            processingText: statusText,
+          },
         }));
       }
 
       // Refresh courses to get updated video data
       dispatch(fetchCourses({ page: 1, limit: 10 }));
-      
-      Toast.show({ 
-        type: 'success', 
-        text1: `Status: ${statusText}`, 
-        position: 'bottom' 
+
+      Toast.show({
+        type: 'success',
+        text1: `Status: ${statusText}`,
+        position: 'bottom',
       });
     } catch (e) {
-      Toast.show({ type: 'error', text1: 'Failed to check status', position: 'bottom' });
+      Toast.show({
+        type: 'error',
+        text1: 'Failed to check status',
+        position: 'bottom',
+      });
     }
   };
 
@@ -623,38 +719,40 @@ const CreatorHome = () => {
       await dispatch(deleteVideo(videoId));
       // Refresh courses to update the video list
       dispatch(fetchCourses({ page: 1, limit: 10 }));
-      Toast.show({ 
-        type: 'success', 
-        text1: 'Video deleted successfully', 
-        position: 'bottom' 
+      Toast.show({
+        type: 'success',
+        text1: 'Video deleted successfully',
+        position: 'bottom',
       });
     } catch (e) {
-      Toast.show({ 
-        type: 'error', 
-        text1: 'Failed to delete video', 
-        position: 'bottom' 
+      Toast.show({
+        type: 'error',
+        text1: 'Failed to delete video',
+        position: 'bottom',
       });
     }
   };
 
   const updateVideoStatus = async (videoId: string, status: string) => {
     try {
-      await dispatch(updateVideo({ 
-        videoId, 
-        body: { status } 
-      }));
+      await dispatch(
+        updateVideo({
+          videoId,
+          body: { status },
+        }),
+      );
       // Refresh courses to get updated video data
       dispatch(fetchCourses({ page: 1, limit: 10 }));
-      Toast.show({ 
-        type: 'success', 
-        text1: 'Video status updated', 
-        position: 'bottom' 
+      Toast.show({
+        type: 'success',
+        text1: 'Video status updated',
+        position: 'bottom',
       });
     } catch (e) {
-      Toast.show({ 
-        type: 'error', 
-        text1: 'Failed to update status', 
-        position: 'bottom' 
+      Toast.show({
+        type: 'error',
+        text1: 'Failed to update status',
+        position: 'bottom',
       });
     }
   };
@@ -674,24 +772,31 @@ const CreatorHome = () => {
     if (!editingVideo) return;
 
     try {
-      await dispatch(updateVideo({
-        videoId: editingVideo?.id || editingVideo?._id,
-        body: {
-          title: editVideoForm.title.trim(),
-          description: editVideoForm.description.trim() || '',
-          is_free: editVideoForm.is_free,
-          order: Number(editVideoForm.order) || 1,
-        },
-      }));
-      
+      await dispatch(
+        updateVideo({
+          videoId: editingVideo?.id || editingVideo?._id,
+          body: {
+            title: editVideoForm.title.trim(),
+            description: editVideoForm.description.trim() || '',
+            is_free: editVideoForm.is_free,
+            order: Number(editVideoForm.order) || 1,
+          },
+        }),
+      );
+
       // Refresh courses to get updated video data
       dispatch(fetchCourses({ page: 1, limit: 10 }));
-      
+
       // Close modal and reset
       setShowEditVideoForm(false);
       setEditingVideo(null);
-      setEditVideoForm({ title: '', description: '', is_free: false, order: 1 });
-      
+      setEditVideoForm({
+        title: '',
+        description: '',
+        is_free: false,
+        order: 1,
+      });
+
       Toast.show({
         type: 'success',
         text1: 'Video updated successfully',
@@ -1022,7 +1127,15 @@ const CreatorHome = () => {
           <View style={styles.actionsGrid}>
             <TouchableOpacity
               style={[styles.actionCard, styles.actionCardRight]}
-              onPress={() => navigation.navigate('CreateWebinar')}
+              onPress={() => {
+                Toast.show({
+                  type: 'info',
+                  text1: 'Feature Coming Soon 🚀',
+                  text2: 'This feature is currently under development.',
+                  position: 'top',
+                });
+                // navigation.navigate('CreateWebinar'); // keep commented until ready
+              }}
             >
               <View
                 style={[
@@ -1056,7 +1169,7 @@ const CreatorHome = () => {
       </ScrollView>
 
       {/* Video Form Modal */}
-      <Modal
+      {/* <Modal
         visible={showVideoForm}
         transparent
         animationType="slide"
@@ -1133,10 +1246,10 @@ const CreatorHome = () => {
             </View>
           </View>
         </View>
-      </Modal>
+      </Modal> */}
 
       {/* Edit Video Modal */}
-      <Modal
+      {/* <Modal
         visible={showEditVideoForm}
         transparent
         animationType="slide"
@@ -1217,7 +1330,7 @@ const CreatorHome = () => {
             </View>
           </View>
         </View>
-      </Modal>
+      </Modal> */}
     </View>
   );
 };
@@ -1271,7 +1384,12 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 10,
   },
-  courseTitle: { fontSize: 16, fontWeight: '700', color: colors.text, marginBottom: 4 },
+  courseTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 4,
+  },
   courseMeta: { fontSize: 12, color: colors.textSecondary },
   statusBadge: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 12 },
   progressBarTrack: {

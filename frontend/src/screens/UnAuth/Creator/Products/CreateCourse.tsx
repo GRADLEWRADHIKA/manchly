@@ -36,7 +36,7 @@ const CreateCourse = () => {
   } = useForm({
     defaultValues: {
       courseTitle: updateData?.title,
-      price: String(updateData?.price),
+      price: String(updateData?.price??'') || '',
       description: updateData?.description,
       level: updateData?.level,
       status: updateData?.status,
@@ -362,7 +362,10 @@ const CreateCourse = () => {
                 <CustomTextInput
                   inputContainerStyle={[
                     styles.textArea,
-                    { borderColor: error ? 'red' : colors.borderColor },
+                    {
+                      borderColor: error ? 'red' : colors.borderColor,
+                      alignItems: 'flex-start',
+                    },
                   ]}
                   inputStyle={{
                     fontSize: 16,

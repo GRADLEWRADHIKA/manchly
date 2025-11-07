@@ -22,7 +22,6 @@ import Modal from 'react-native-modal';
 import CourseAddVideoModal from './CourseAddVideoModal';
 import { deleteVideo, updateVideo } from '../../../../store/VideoSlice';
 import DynamicModal from '../../../../components/CommonModal';
-import CourseUpdateVideoModal from './CourseUpdateVideoModal';
 
 const ShimmerPlaceholder = createShimmerPlaceholder(LinearGradient);
 
@@ -40,7 +39,9 @@ const CourseVideoList = () => {
   const [showModal, setShowModal] = useState(false);
   const [videoId, setVideId] = useState('');
   const [videoData, setVideoData] = useState([]);
-  const focus = useIsFocused()
+  const focus = useIsFocused();
+  const [refresh, setRefresh] = useState(false);
+  const [isUpdate, setIsUpdate] = useState(false)
 
   const handleVideoPlay = (videoId: string) => {
     if (playingVideoId && playingVideoId !== videoId) {
@@ -54,7 +55,7 @@ const CourseVideoList = () => {
 
   useEffect(() => {
     getVideoById();
-  }, [focus]);
+  }, [focus, refresh]);
 
   const handleVideoEnd = () => {
     setPlayingVideoId(null);
@@ -215,6 +216,7 @@ const CourseVideoList = () => {
                   setIsModalVisible(true);
                   setVideoData(item);
                   setMenuVisible(null);
+                  setIsUpdate(true)
                 }}
                 title="Edit"
                 style={styles.menuItem}
@@ -233,7 +235,7 @@ const CourseVideoList = () => {
           </View>
           <View style={styles.metaInfo}>
             <Text style={styles.duration}>
-              {item?.duration || 0} min • {item.category || 'Uncategorized'}
+              {item.description || 'Uncategorized'}
             </Text>
           </View>
         </View>
@@ -292,7 +294,8 @@ const CourseVideoList = () => {
         <CourseAddVideoModal
           onClose={toggleModal}
           videoData={videoData}
-          getVideoById={getVideoById}
+          setRefresh={setRefresh}
+          isUpdate={isUpdate}
         />
       </Modal>
 
@@ -433,7 +436,6 @@ const styles = StyleSheet.create({
   metaInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
   },
   duration: {
     fontSize: 13,

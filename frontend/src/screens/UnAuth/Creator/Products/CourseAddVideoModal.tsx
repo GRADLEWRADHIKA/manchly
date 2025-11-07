@@ -19,9 +19,9 @@ import Toast from 'react-native-toast-message';
 import { useRoute } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
-import { createVideoUpload } from '../../../../store/VideoSlice';
+import { createVideoUpload, updateVideo } from '../../../../store/VideoSlice';
 
-const CourseAddVideoModal = ({ onClose }: { onClose: () => void }) => {
+const CourseAddVideoModal = ({ onClose, setRefresh, videoData, isUpdate }) => {
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -38,12 +38,39 @@ const CourseAddVideoModal = ({ onClose }: { onClose: () => void }) => {
     formState: { errors },
   } = useForm({
     defaultValues: {
-      title: '',
-      description: '',
-      is_free: '',
-      order: '',
+      title: videoData?.title,
+      description: videoData?.description,
+      is_free: videoData?.is_free,
+      order: String(videoData?.order ?? ''),
     },
   });
+
+  const onSubmitUpdate = (data: any) => {
+    setLoading(true);
+    const payload = {
+      videoId: videoData?.id,
+      body: {
+        title: data?.title,
+        description: data?.description,
+        is_free: data?.is_free,
+        order: data?.order,
+      },
+    };
+    dispatch(updateVideo(payload))
+      .unwrap()
+      .then(response => {
+        reset();
+        setLoading(false);
+        setRefresh(true)
+        onClose()
+      })
+      .catch(error => {
+        console.log(error);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  };
 
   const requestVideoPermission = async () => {
     if (Platform.OS === 'android') {
@@ -180,6 +207,7 @@ const CourseAddVideoModal = ({ onClose }: { onClose: () => void }) => {
       };
 
       xhr.send(fileBlob);
+      setRefresh(true);
     } catch (error: any) {
       console.log('Upload error:', error);
       Toast.show({
@@ -323,20 +351,37 @@ const CourseAddVideoModal = ({ onClose }: { onClose: () => void }) => {
           <Text style={styles.cancelButtonText}>Cancel</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[
-            styles.saveButton,
-            (loading || uploading) && { opacity: 0.7 },
-          ]}
-          onPress={handleSubmit(onSubmit)}
-          disabled={loading || uploading}
-        >
-          {loading || uploading ? (
-            <ActivityIndicator color={colors.white} size="small" />
-          ) : (
-            <Text style={styles.saveButtonText}>Save</Text>
-          )}
-        </TouchableOpacity>
+        {isUpdate === true ? (
+          <TouchableOpacity
+            style={[
+              styles.saveButton,
+              (loading || uploading) && { opacity: 0.7 },
+            ]}
+            disabled={loading}
+            onPress={handleSubmit(onSubmitUpdate)}
+          >
+            {loading ? (
+              <ActivityIndicator color={colors.white} size="small" />
+            ) : (
+              <Text style={styles.saveButtonText}>Update</Text>
+            )}
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            style={[
+              styles.saveButton,
+              (loading || uploading) && { opacity: 0.7 },
+            ]}
+            onPress={handleSubmit(onSubmit)}
+            disabled={loading || uploading}
+          >
+            {loading || uploading ? (
+              <ActivityIndicator color={colors.white} size="small" />
+            ) : (
+              <Text style={styles.saveButtonText}>Save</Text>
+            )}
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );

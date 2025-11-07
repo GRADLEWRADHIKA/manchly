@@ -8,6 +8,7 @@ import {
   Animated,
   LayoutChangeEvent,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -141,14 +142,18 @@ const LoginScreen: React.FC = () => {
       <View style={styles.content}>
         <View style={styles.logoSection}>
           <View
-            style={[
-              styles.logoContainer,
-              userType === 'CREATOR'
-                ? { backgroundColor: colors.primary }
-                : { backgroundColor: colors.secPrimary },
-            ]}
+            // style={[
+            //   styles.logoContainer,
+            //   userType === 'CREATOR'
+            //     ? { backgroundColor: colors.primary }
+            //     : { backgroundColor: colors.secPrimary },
+            // ]}
           >
-            {/* <Text style={styles.logoText}>Manchly</Text> */}
+            <Image
+              source={require('../../image/Logo.jpg')}
+              style={styles.logoContainer}
+              resizeMode="contain"
+            />
           </View>
           <Text style={styles.tagline}>Create. Connect. Grow.</Text>
         </View>
@@ -245,9 +250,14 @@ const LoginScreen: React.FC = () => {
           </View>
 
           <TouchableOpacity
-            style={[styles.continueButton, styles.continueButtonActive, {
-              backgroundColor: userType === 'CREATOR' ? colors.primary : colors.secPrimary
-            }]}
+            style={[
+              styles.continueButton,
+              styles.continueButtonActive,
+              {
+                backgroundColor:
+                  userType === 'CREATOR' ? colors.primary : colors.secPrimary,
+              },
+            ]}
             onPress={handleSubmit(onSubmit)}
             activeOpacity={0.8}
             disabled={loading === true ? true : false}
@@ -446,6 +456,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: 20,
   },
+  image: {},
 });
 
 export default LoginScreen;

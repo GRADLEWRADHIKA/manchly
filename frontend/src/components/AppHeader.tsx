@@ -28,7 +28,6 @@ const AppHeader = ({ title = 'Manchly' }) => {
 export default AppHeader;
 const styles = StyleSheet.create({
   container: {
-    // backgroundColor: colors.primary,
     alignItems: 'center',
     paddingBottom: 14,
   },

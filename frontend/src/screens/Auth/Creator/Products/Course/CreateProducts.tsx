@@ -9,8 +9,8 @@ import {
   Pressable,
   ScrollView,
 } from 'react-native';
-import colors from '../../../../utils/colors';
-import AppHeaderWithBack from '../../../../components/AppHeaderWithBack';
+import colors from '../../../../../utils/colors';
+import AppHeaderWithBack from '../../../../../components/AppHeaderWithBack';
 import {
   Lock,
   Megaphone,

@@ -9,14 +9,14 @@ import {
   ScrollView,
   Platform,
 } from 'react-native';
-import AppHeaderWithBack from '../../../../components/AppHeaderWithBack';
+import AppHeaderWithBack from '../../../../../components/AppHeaderWithBack';
 import Toast from 'react-native-toast-message';
-import colors from '../../../../utils/colors';
+import colors from '../../../../../utils/colors';
 import { useForm, Controller } from 'react-hook-form';
-import { createCourse, updateCourse } from '../../../../store/CourseSlice';
+import { createCourse, updateCourse } from '../../../../../store/CourseSlice';
 import { ThunkDispatch } from '@reduxjs/toolkit';
 import { useDispatch } from 'react-redux';
-import CustomTextInput from '../../../../components/CustomInput';
+import CustomTextInput from '../../../../../components/CustomInput';
 import { Dropdown } from 'react-native-element-dropdown';
 import { useNavigation, useRoute } from '@react-navigation/native';
 

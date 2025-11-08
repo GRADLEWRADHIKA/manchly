@@ -7,14 +7,14 @@ import {
   StyleSheet,
   StatusBar as RNStatusBar,
 } from 'react-native';
-import colors from '../../../../utils/colors';
+import colors from '../../../../../utils/colors';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
-import { deleteCourse, fetchCourses } from '../../../../store/CourseSlice';
-import DynamicModal from '../../../../components/CommonModal';
-import AppHeader from '../../../../components/AppHeader';
-import CourseCard from './CaurseCard';
+import { deleteCourse, fetchCourses } from '../../../../../store/CourseSlice';
+import DynamicModal from '../../../../../components/CommonModal';
+import AppHeader from '../../../../../components/AppHeader';
+import CourseCard from './CourseCard';
 
 const CreatorView: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -34,6 +34,7 @@ const CreatorView: React.FC = () => {
     getTheCourse(1, true);
   }, [focus]);
 
+  // calling the get the all course api -------
   const getTheCourse = (pageNum: number, refresh = false) => {
     if (loading || loadingMore) return;
     refresh ? setLoading(true) : setLoadingMore(true);
@@ -55,6 +56,7 @@ const CreatorView: React.FC = () => {
       });
   };
 
+  // calling the delete api  ----
   const handleDelete = () => {
     setDeleteLoader(true);
     dispatch(deleteCourse(courseId))
@@ -152,7 +154,10 @@ const CreatorView: React.FC = () => {
 export default CreatorView;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.white },
+  container: {
+    flex: 1,
+    backgroundColor: colors.white,
+  },
   heroSection: {
     backgroundColor: colors.white,
     padding: 20,
@@ -175,7 +180,10 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontWeight: '500',
   },
-  listContent: { paddingVertical: 16, paddingBottom: 100 },
+  listContent: {
+    paddingVertical: 16,
+    paddingBottom: 100,
+  },
   loaderContainer: {
     flex: 1,
     justifyContent: 'center',

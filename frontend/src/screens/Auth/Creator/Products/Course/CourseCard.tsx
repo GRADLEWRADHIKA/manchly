@@ -8,7 +8,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { Users, Clock, Edit3, Trash2, ChevronRight } from 'lucide-react-native';
-import colors from '../../../../utils/colors';
+import colors from '../../../../../utils/colors';
 
 interface Props {
   item: any;

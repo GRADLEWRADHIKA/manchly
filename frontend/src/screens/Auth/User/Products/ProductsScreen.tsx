@@ -5,7 +5,7 @@ import { Plus } from 'lucide-react-native';
 import { useSelector } from 'react-redux';
 import AppHeader from '../../../../components/AppHeader';
 import colors from '../../../../utils/colors';
-import CreatorView from '../../Creator/Products/CreatorView';
+import CreatorView from '../../Creator/Products/Course/CreatorView';
 import UserView from './UserView';
 
 const PurchasesScreen: React.FC = () => {

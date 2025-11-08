@@ -9,9 +9,8 @@ import {
 } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import colors from '../utils/colors';
-import ProductsScreen from '../screens/UnAuth/User/Products/ProductsScreen';
-import WalletCreator from '../screens/UnAuth/Wallet/WalletCreator';
-import ProfileScreen from '../screens/UnAuth/Profile/ProfileScreen';
+import ProductsScreen from '../screens/Auth/User/Products/ProductsScreen';
+import WalletCreator from '../screens/Auth/Wallet/WalletCreator';
 import {
   MessageCircle,
   ShoppingCart,
@@ -19,9 +18,10 @@ import {
   UserPen,
   WalletMinimal,
 } from 'lucide-react-native';
-import CreatorHome from '../screens/UnAuth/Creator/Home/CreatorHome';
-import CreatorChat from '../screens/UnAuth/Creator/Chat/CreatorChat';
-import CreatorView from '../screens/UnAuth/Creator/Products/CreatorView';
+import CreatorHome from '../screens/Auth/Creator/Home/CreatorHome';
+import CreatorChat from '../screens/Auth/Creator/Chat/CreatorChat';
+import CreatorView from '../screens/Auth/Creator/Products/Course/CreatorView';
+import CreatorSetting from '../screens/Auth/Creator/Settings/CreatorSetting';
 
 const Tab = createBottomTabNavigator();
 
@@ -51,8 +51,8 @@ const tabs = [
     Icon: WalletMinimal,
   },
   {
-    name: 'ProfileScreen',
-    component: ProfileScreen,
+    name: 'CreatorSetting',
+    component: CreatorSetting,
     label: 'Profile',
     Icon: UserPen,
   },

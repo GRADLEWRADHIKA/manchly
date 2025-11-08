@@ -7,10 +7,10 @@ import {
   Image,
 } from 'react-native';
 import React, { useEffect, useState, useRef } from 'react';
-import colors from '../../../../utils/colors';
-import AppHeaderWithBack from '../../../../components/AppHeaderWithBack';
+import colors from '../../../../../utils/colors';
+import AppHeaderWithBack from '../../../../../components/AppHeaderWithBack';
 import { useIsFocused, useRoute } from '@react-navigation/native';
-import { getCourseById } from '../../../../store/CourseSlice';
+import { getCourseById } from '../../../../../store/CourseSlice';
 import { useDispatch } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
 import Video from 'react-native-video';
@@ -20,8 +20,8 @@ import { createShimmerPlaceholder } from 'react-native-shimmer-placeholder';
 import { Menu, FAB } from 'react-native-paper';
 import Modal from 'react-native-modal';
 import CourseAddVideoModal from './CourseAddVideoModal';
-import { deleteVideo, updateVideo } from '../../../../store/VideoSlice';
-import DynamicModal from '../../../../components/CommonModal';
+import { deleteVideo, updateVideo } from '../../../../../store/VideoSlice';
+import DynamicModal from '../../../../../components/CommonModal';
 
 const ShimmerPlaceholder = createShimmerPlaceholder(LinearGradient);
 
@@ -165,13 +165,13 @@ const CourseVideoList = () => {
               <Image
                 source={{
                   uri:
-                    item?.thumbnail ||
-                    'https://via.placeholder.com/300x160?text=No+Thumbnail',
+                    item?.thumbnail_url ||
+                    'https://cdn-icons-png.flaticon.com/512/4149/4149650.png',
                 }}
                 style={styles.thumbnail}
                 defaultSource={
-                  item?.thumbnail ||
-                  'https://via.placeholder.com/300x160?text=No+Thumbnail'
+                  item?.thumbnail_url ||
+                  'https://cdn-icons-png.flaticon.com/512/4149/4149650.png'
                 }
               />
               <LinearGradient

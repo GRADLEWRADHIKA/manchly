@@ -10,16 +10,19 @@ import {
   PermissionsAndroid,
 } from 'react-native';
 import { Video, X } from 'lucide-react-native';
-import colors from '../../../../utils/colors';
+import colors from '../../../../../utils/colors';
 import { Controller, useForm } from 'react-hook-form';
-import CustomTextInput from '../../../../components/CustomInput';
+import CustomTextInput from '../../../../../components/CustomInput';
 import { Dropdown } from 'react-native-element-dropdown';
 import { pick, types } from '@react-native-documents/picker';
 import Toast from 'react-native-toast-message';
 import { useRoute } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
-import { createVideoUpload, updateVideo } from '../../../../store/VideoSlice';
+import {
+  createVideoUpload,
+  updateVideo,
+} from '../../../../../store/VideoSlice';
 
 const CourseAddVideoModal = ({ onClose, setRefresh, videoData, isUpdate }) => {
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
@@ -61,8 +64,8 @@ const CourseAddVideoModal = ({ onClose, setRefresh, videoData, isUpdate }) => {
       .then(response => {
         reset();
         setLoading(false);
-        setRefresh(true)
-        onClose()
+        setRefresh(true);
+        onClose();
       })
       .catch(error => {
         console.log(error);
@@ -257,25 +260,31 @@ const CourseAddVideoModal = ({ onClose, setRefresh, videoData, isUpdate }) => {
           )}
         />
 
-        <Text style={styles.label}>Select Video</Text>
-        <TouchableOpacity
-          style={styles.uploadButton}
-          onPress={!uploading ? handleVideoSelect : undefined}
-          disabled={uploading}
-        >
-          <Video color={colors.primary} size={22} />
-          <Text style={styles.uploadText}>
-            {selectedVideo?.name || 'Tap to select video'}
-          </Text>
-        </TouchableOpacity>
+        {isUpdate === true ? (
+          ''
+        ) : (
+          <>
+            <Text style={styles.label}>Select Video</Text>
+            <TouchableOpacity
+              style={styles.uploadButton}
+              onPress={!uploading ? handleVideoSelect : undefined}
+              disabled={uploading}
+            >
+              <Video color={colors.primary} size={22} />
+              <Text style={styles.uploadText}>
+                {selectedVideo?.name || 'Tap to select video'}
+              </Text>
+            </TouchableOpacity>
 
-        {uploading && (
-          <View style={styles.progressContainer}>
-            <ActivityIndicator size="small" color={colors.primary} />
-            <Text style={styles.progressText}>
-              Uploading... {uploadProgress}%
-            </Text>
-          </View>
+            {uploading && (
+              <View style={styles.progressContainer}>
+                <ActivityIndicator size="small" color={colors.primary} />
+                <Text style={styles.progressText}>
+                  Uploading... {uploadProgress}%
+                </Text>
+              </View>
+            )}
+          </>
         )}
 
         <Text style={styles.label}>Video Description</Text>

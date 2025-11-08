@@ -9,9 +9,8 @@ import {
 } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import colors from '../utils/colors';
-import ProductsScreen from '../screens/UnAuth/User/Products/ProductsScreen';
-import PurchasesScreen from '../screens/UnAuth/Purchase/PurchasesScreen';
-import ProfileScreen from '../screens/UnAuth/Profile/ProfileScreen';
+import ProductsScreen from '../screens/Auth/User/Products/ProductsScreen';
+import PurchasesScreen from '../screens/Auth/Purchase/PurchasesScreen';
 import {
   MessageCircle,
   ShoppingCart,
@@ -19,8 +18,9 @@ import {
   House,
   UserPen,
 } from 'lucide-react-native';
-import UserHome from '../screens/UnAuth/User/Home/UserHome';
-import UserChat from '../screens/UnAuth/User/Chat/UserChat';
+import UserHome from '../screens/Auth/User/Home/UserHome';
+import UserChat from '../screens/Auth/User/Chat/UserChat';
+import UserSetting from '../screens/Auth/User/Settings/UserSetting';
 
 const Tab = createBottomTabNavigator();
 
@@ -45,8 +45,8 @@ const tabs = [
     Icon: ShoppingBag,
   },
   {
-    name: 'ProfileScreen',
-    component: ProfileScreen,
+    name: 'UserSetting',
+    component: UserSetting,
     label: 'Profile',
     Icon: UserPen,
   },

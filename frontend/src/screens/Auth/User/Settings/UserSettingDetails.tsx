@@ -1,7 +1,13 @@
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView } from 'react-native'
-import React from 'react'
-import colors from '../../../utils/colors'
-import AppHeaderWithBack from '../../../components/AppHeaderWithBack'
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  ScrollView,
+} from 'react-native';
+import React from 'react';
+import colors from '../../../../utils/colors';
+import AppHeaderWithBack from '../../../../components/AppHeaderWithBack';
 import {
   User,
   Lock,
@@ -11,32 +17,14 @@ import {
   FileText,
   MessageCircleQuestion,
   LogOut,
-} from 'lucide-react-native'
+} from 'lucide-react-native';
 
 const settingsItems = [
-  {
-    title: 'Profile',
-    subtitle: 'Update profile pic, name, city and social profile links',
-    icon: <User size={22} color={colors.black} />,
-    onPress: () => console.log('Profile'),
-  },
   {
     title: 'Lock Direct Message',
     subtitle: 'Make your direct message locked',
     icon: <Lock size={22} color={colors.black} />,
     onPress: () => console.log('Lock Direct Message'),
-  },
-  {
-    title: 'Add Profile Intro',
-    subtitle: 'Add images or video to show up on your profile page',
-    icon: <MonitorPlay size={22} color={colors.black} />,
-    onPress: () => console.log('Add Profile Intro'),
-  },
-  {
-    title: 'Account & Privacy',
-    subtitle: 'Update account & privacy settings',
-    icon: <Key size={22} color={colors.black} />,
-    onPress: () => console.log('Account & Privacy'),
   },
   {
     title: 'FAQs',
@@ -55,22 +43,20 @@ const settingsItems = [
     subtitle: 'Get in touch with team Manchly',
     icon: <MessageCircleQuestion size={22} color={colors.black} />,
     onPress: () => console.log('Need Help'),
-  },
-  // {
-  //   title: 'Sign out',
-  //   subtitle: 'Sign out from this device',
-  //   icon: <LogOut size={22} color={colors.black} />,
-  //   onPress: () => console.log('Sign Out'),
-  // },
-]
+  }
+];
 
-const Settings = () => {
+const UserSettingsDetails = () => {
   return (
     <View style={styles.container}>
       <AppHeaderWithBack title="Settings" />
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         {settingsItems?.map((item, index) => (
-          <TouchableOpacity key={index} style={styles.item} onPress={item.onPress}>
+          <TouchableOpacity
+            key={index}
+            style={styles.item}
+            onPress={item.onPress}
+          >
             <View style={styles.icon}>{item.icon}</View>
             <View style={styles.textContainer}>
               <Text style={styles.title}>{item.title}</Text>
@@ -80,10 +66,10 @@ const Settings = () => {
         ))}
       </ScrollView>
     </View>
-  )
-}
+  );
+};
 
-export default Settings
+export default UserSettingsDetails;
 
 const styles = StyleSheet.create({
   container: {
@@ -117,4 +103,4 @@ const styles = StyleSheet.create({
     color: colors.muted,
     marginTop: 2,
   },
-})
+});

@@ -8,7 +8,7 @@ import {
   Image,
   StatusBar as RNStatusBar,
 } from 'react-native';
-import colors from '../../../utils/colors';
+import colors from '../../../../utils/colors';
 import {
   User2,
   LayoutDashboard,
@@ -19,22 +19,16 @@ import {
   Wallet as WalletIcon,
   ChevronRight,
 } from 'lucide-react-native';
-import LogoutModal from './Components/LogoutModal';
-import AppHeader from '../../../components/AppHeader';
+import LogoutModal from '../../Profile/Components/LogoutModal';
+import AppHeader from '../../../../components/AppHeader';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
-import { logout } from '../../../store/UserSlice';
+import { logout } from '../../../../store/UserSlice';
 
-const APP_VERSION = '10.2.7';
+const APP_VERSION = '0.0.1';
 
-const NewBadge = () => (
-  <View style={styles.badge}>
-    <Text style={styles.badgeText}>NEW</Text>
-  </View>
-);
-
-const ProfileScreen: React.FC = () => {
+const CreatorSetting: React.FC = () => {
   const [logoutVisible, setLogoutVisible] = useState(false);
   const Nav = useNavigation();
   const { user } = useSelector((state: any) => state.userReducer);
@@ -51,16 +45,11 @@ const ProfileScreen: React.FC = () => {
         style={[
           styles.header,
           {
-            backgroundColor:
-              user?.user_type === 'USER' ? colors.secPrimary : colors.primary,
+            backgroundColor: colors.primary,
           },
         ]}
       >
         <View style={styles.greetingWrap}>
-          {/* <Image
-            source={{ uri: 'https://i.pravatar.cc/200?img=12' }}
-            style={styles.avatar}
-          /> */}
           <Image source={{ uri: user?.profile_image }} style={styles.avatar} />
           <Text style={styles.greetingText}>
             Hello,{' '}
@@ -96,73 +85,6 @@ const ProfileScreen: React.FC = () => {
             style={styles.row}
             activeOpacity={0.7}
             onPress={() => {
-              Nav.navigate('Dashboard');
-            }}
-          >
-            <View style={styles.rowLeft}>
-              <View style={styles.rowIcon}>
-                <LayoutDashboard size={20} color={colors.text} />
-              </View>
-              <Text style={styles.rowText}>Dashboard</Text>
-            </View>
-            {RightChevron}
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.row}
-            activeOpacity={0.7}
-            onPress={() => {
-              Nav.navigate('SuperThank');
-            }}
-          >
-            <View style={styles.rowLeft}>
-              <View style={styles.rowIcon}>
-                <Gift size={20} color={colors.text} />
-              </View>
-              <Text style={styles.rowText}>Super Thanks</Text>
-            </View>
-            <NewBadge />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.row}
-            activeOpacity={0.7}
-            onPress={() => {
-              Nav.navigate('Settings');
-            }}
-          >
-            <View style={styles.rowLeft}>
-              <View style={styles.rowIcon}>
-                <SettingsIcon size={20} color={colors.text} />
-              </View>
-              <Text style={styles.rowText}>Settings</Text>
-            </View>
-            {RightChevron}
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.row}
-            activeOpacity={0.7}
-            onPress={() => {
-              Nav.navigate('Lists');
-            }}
-          >
-            <View style={styles.rowLeft}>
-              <View style={styles.rowIcon}>
-                <ListIcon size={20} color={colors.text} />
-              </View>
-              <Text style={styles.rowText}>Lists</Text>
-            </View>
-            {RightChevron}
-          </TouchableOpacity>
-        </View>
-
-        <Text style={styles.sectionHeader}>Account</Text>
-        <View style={styles.section}>
-          <TouchableOpacity
-            style={styles.row}
-            activeOpacity={0.7}
-            onPress={() => {
               Nav.navigate('Earnings');
             }}
           >
@@ -191,6 +113,24 @@ const ProfileScreen: React.FC = () => {
             {RightChevron}
           </TouchableOpacity>
 
+          <TouchableOpacity
+            style={styles.row}
+            activeOpacity={0.7}
+            onPress={() => {
+              Nav.navigate('CreatorSettingsDetails');
+            }}
+          >
+            <View style={styles.rowLeft}>
+              <View style={styles.rowIcon}>
+                <SettingsIcon size={20} color={colors.text} />
+              </View>
+              <Text style={styles.rowText}>Settings</Text>
+            </View>
+            {RightChevron}
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.section}>
           <TouchableOpacity
             style={styles.row}
             activeOpacity={0.7}
@@ -223,7 +163,7 @@ const ProfileScreen: React.FC = () => {
   );
 };
 
-export default ProfileScreen;
+export default CreatorSetting;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.white },

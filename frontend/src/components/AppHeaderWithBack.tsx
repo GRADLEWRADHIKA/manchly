@@ -31,7 +31,9 @@ const AppHeaderWithBack = ({ title }) => {
           <ArrowLeft color="#fff" size={24} />
         </TouchableOpacity>
 
-        <Text style={styles.title}>{title}</Text>
+        <Text style={styles.title}>
+          {title ? title.charAt(0).toUpperCase() + title.slice(1) : ''}
+        </Text>
       </View>
     </View>
   );

@@ -10,7 +10,7 @@ import {
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import colors from '../utils/colors';
 import ProductsScreen from '../screens/Auth/User/Products/ProductsScreen';
-import PurchasesScreen from '../screens/Auth/Purchase/PurchasesScreen';
+import PurchasesScreen from '../screens/Auth/User/Purchase/PurchasesScreen';
 import {
   MessageCircle,
   ShoppingCart,

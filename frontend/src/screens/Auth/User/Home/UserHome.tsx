@@ -1,240 +1,217 @@
-import React, { memo, useState } from 'react';
+import React, { memo, useEffect } from 'react';
 import {
   View,
   Text,
   ScrollView,
-  FlatList,
   StyleSheet,
   Image,
   Dimensions,
   StatusBar as RNStatusBar,
   TouchableOpacity,
+  ActivityIndicator,
+  FlatList,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import colors from '../../../../utils/colors';
-import { Users, Play } from 'lucide-react-native';
-import AppHeader from '../../../../components/AppHeader';
-import Video from 'react-native-video';
-import { useSelector } from 'react-redux';
+import { BellDot, ShoppingCart, Search } from 'lucide-react-native';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
+import Carousel from 'react-native-reanimated-carousel';
+import { getEnrolledCourses } from '../../../../store/EnrollmentSlice';
+import CourseCard from './components/CourseCard';
 
 const { width } = Dimensions.get('window');
 
-type VideoThumbProps = {
-  id: string;
-  videoUrl: string;
-  thumbnailUrl: string;
-  isPlaying: boolean;
-  onPlay: (id: string) => void;
-  onEnded?: () => void;
-  height?: number;
-};
-
 const UserHome = () => {
-  const [playingVideoId, setPlayingVideoId] = useState<string | null>(null);
-    const { token } = useSelector((state: any) => state.userReducer);
+  const { user } = useSelector((state: any) => state.userReducer);
+  const insets = useSafeAreaInsets();
+  const dispatch = useDispatch<any>();
+  const navigation = useNavigation<any>();
 
+  useEffect(() => {
+    dispatch(getEnrolledCourses({}));
+  }, []);
 
-  const handlePlay = (id: string) => setPlayingVideoId(id);
-  const handleEnded = () => setPlayingVideoId(null);
+  const { list: enrolledCourses, loading: enrolledLoading } = useSelector(
+    (state: any) => state.enrollmentsReducer,
+  );
 
-  const featuredContent = [
+  const carouselData = [
     {
-      id: 'f1',
-      title: 'Digital Marketing Masterclass',
-      instructor: 'Sarah Johnson',
+      title: 'Learn Anytime, Anywhere',
       image:
-        'https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop',
-      students: '2.5K',
-      duration: '4.5 hours',
-      videoUrl:
-        'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+        'https://img.freepik.com/free-vector/online-courses-tutorials_23-2148527797.jpg',
     },
-  ];
-
-  const upcomingVideos = [
     {
-      id: 'v1',
-      title: 'SEO Advanced Tips — Part 1',
-      date: 'Tomorrow 6PM',
-      thumbnail:
-        'https://images.pexels.com/photos/3184460/pexels-photo-3184460.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop',
-      videoUrl:
-        'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4',
+      title: 'Upgrade Your Skills Today',
+      image:
+        'https://img.freepik.com/free-vector/education-concept-illustration_114360-6266.jpg',
     },
-     {
-      id: 'v2',
-      title: 'SEO Advanced Tips — Part 1',
-      date: 'Tomorrow 6PM',
-      thumbnail:
-        'https://images.pexels.com/photos/3184460/pexels-photo-3184460.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop',
-      videoUrl:
-        'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4',
+    {
+      title: 'Grow with the Best Instructors',
+      image:
+        'https://img.freepik.com/free-vector/elearning-concept-illustration_114360-6217.jpg',
     },
   ];
 
-  const VideoThumb = memo(
-    ({
-      id,
-      videoUrl,
-      thumbnailUrl,
-      isPlaying,
-      onPlay,
-      onEnded,
-      height = 200,
-    }: VideoThumbProps) => {
-      if (!isPlaying) {
-        // Show thumbnail with a big play button overlay
-        return (
-          <TouchableOpacity
-            activeOpacity={0.9}
-            onPress={() => onPlay(id)}
-            style={[styles.videoShell, { height }]}
-          >
-            <Image
-              source={{ uri: thumbnailUrl }}
-              style={styles.videoThumbImage}
-            />
-            <View style={styles.playOverlay}>
-              <View style={styles.playCircle}>
-                <Play size={28} color="#fff" />
-              </View>
-            </View>
-          </TouchableOpacity>
-        );
-      }
-
-      // When playing, render the actual <Video />
-      return (
-        <View style={[styles.videoShell, { height }]}>
-          <Video
-            source={{ uri: videoUrl }}
-            style={styles.videoPlayerFill}
-            resizeMode="cover"
-            controls
-            paused={false}
-            onEnd={onEnded}
-          />
-        </View>
-      );
-    },
+  const renderCourseItem = ({ item }: any) => (
+    <View style={styles.courseItem}>
+      <CourseCard item={item} />
+    </View>
   );
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.white }}>
       <RNStatusBar barStyle="light-content" />
-      <AppHeader title="Manchly" />
+      <View style={[styles.mainHeader, { paddingTop: insets.top + 10 }]}>
+        <View style={styles.mainHead}>
+          <View style={{ flexDirection: 'row', gap: 5, alignItems: 'center' }}>
+            <Image
+              source={{ uri: user?.profile_image }}
+              style={styles.avatar}
+            />
+            <Text style={styles.secPara}>{user?.name}</Text>
+          </View>
+        </View>
+        <View style={{ flexDirection: 'row', gap: 20 }}>
+          <TouchableOpacity
+            onPress={() => {
+              navigation.navigate('UserCourseSearch');
+            }}
+          >
+            <Search width={22} height={22} color={colors.white} />
+          </TouchableOpacity>
+          <TouchableOpacity>
+            <ShoppingCart width={22} height={22} color={colors.white} />
+          </TouchableOpacity>
+          <TouchableOpacity>
+            <BellDot width={22} height={22} color={colors.white} />
+          </TouchableOpacity>
+        </View>
+      </View>
 
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        <View style={styles.welcomeSection}>
-          <Text style={styles.welcomeTitle}>Welcome 👋</Text>
-          <Text style={styles.welcomeSubtitle}>Explore amazing content!</Text>
+      <ScrollView
+        style={styles.container}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 80 }}
+      >
+        <View style={{ marginTop: 16 }}>
+          <Carousel
+            loop
+            width={width}
+            height={180}
+            autoPlay
+            data={carouselData}
+            scrollAnimationDuration={1500}
+            renderItem={({ item }) => (
+              <View style={styles.carouselCard}>
+                <Image
+                  source={{ uri: item.image }}
+                  style={styles.carouselImage}
+                  resizeMode="cover"
+                />
+                <View style={styles.carouselOverlay}>
+                  <Text style={styles.carouselText}>{item.title}</Text>
+                </View>
+              </View>
+            )}
+          />
         </View>
 
-        <Text style={styles.sectionTitle}>Videos</Text>
-        {featuredContent?.map(item => {
-          const isPlaying = playingVideoId === item.id;
-          return (
-            <View key={item.id} style={styles.featuredCard}>
-              <Text style={styles.featuredTitle}>{item.title}</Text>
-              <Text style={styles.featuredInstructor}>
-                by {item.instructor}
-              </Text>
-              <VideoThumb
-                id={item.id}
-                videoUrl={item.videoUrl}
-                thumbnailUrl={item.image}
-                isPlaying={isPlaying}
-                onPlay={handlePlay}
-                onEnded={handleEnded}
-              />
-            </View>
-          );
-        })}
+        <Text style={styles.sectionTitle}>Your Courses</Text>
 
-        <Text style={styles.sectionTitle}>Upcoming Videos</Text>
-        <FlatList
-          data={upcomingVideos}
-          horizontal
-          renderItem={({ item }) => (
-            <View style={styles.upcomingCard}>
-              <Image source={{ uri: item.thumbnail }} style={styles.thumb} />
-              <Text style={styles.upcomingTitle}>{item.title}</Text>
-              <Text style={styles.upcomingDate}>{item.date}</Text>
-            </View>
-          )}
-          keyExtractor={item => item.id}
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 16 }}
-        />
+        {enrolledLoading ? (
+          <ActivityIndicator size="large" color={colors.secPrimary} />
+        ) : enrolledCourses?.enrollments?.length === 0 ? (
+          <Text style={styles.emptyText}>
+            You haven’t enrolled in any course yet.
+          </Text>
+        ) : (
+          <FlatList
+            horizontal
+            data={enrolledCourses?.enrollments}
+            renderItem={renderCourseItem}
+            keyExtractor={(item: any) => item.id?.toString()}
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.flatListContainer}
+          />
+        )}
       </ScrollView>
     </View>
   );
 };
 
-export default UserHome;
+export default memo(UserHome);
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.white },
-  welcomeSection: { padding: 16, alignItems: 'center' },
-  welcomeTitle: { fontSize: 24, fontWeight: '700', color: colors.text },
-  welcomeSubtitle: { fontSize: 16, color: colors.textSecondary },
+  container: {
+    flex: 1,
+    backgroundColor: colors.white,
+  },
+  mainHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    backgroundColor: colors.secPrimary,
+  },
+  mainHead: {
+    flexDirection: 'row',
+    gap: 5,
+    alignItems: 'center',
+  },
+  avatar: {
+    width: 34,
+    height: 34,
+    borderRadius: 30,
+    backgroundColor: colors.lightGrey,
+  },
+  secPara: {
+    color: colors.white,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  carouselCard: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    marginHorizontal: 10,
+  },
+  carouselImage: {
+    width: '100%',
+    height: 180,
+    borderRadius: 16,
+  },
+  carouselOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    justifyContent: 'flex-end',
+    padding: 16,
+  },
+  carouselText: {
+    color: colors.white,
+    fontSize: 18,
+    fontWeight: '700',
+  },
   sectionTitle: {
     fontSize: 20,
     fontWeight: '700',
     color: colors.text,
-    padding: 16,
-  },
-  featuredCard: {
-    width: width - 40,
-    backgroundColor: colors.surface,
-    borderRadius: 16,
-    padding: 16,
     marginHorizontal: 16,
-    marginBottom: 16,
+    marginTop: 20,
+    marginBottom: 12,
   },
-  featuredTitle: { fontSize: 16, fontWeight: '600', color: colors.text },
-  featuredInstructor: { color: colors.textSecondary, marginBottom: 8 },
-  upcomingCard: {
-    width: 220,
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    marginRight: 16,
-    padding: 10,
+  flatListContainer: {
+    paddingHorizontal: 10,
   },
-  thumb: {
-    width: '100%',
-    height: 120,
-    borderRadius: 10,
-    marginBottom: 8,
+  courseItem: {
+    width: width * 0.45, // 2 cards visible at once
+    marginRight: 14,
   },
-  upcomingTitle: { fontWeight: '600', color: colors.text },
-  upcomingDate: { color: colors.textSecondary, fontSize: 12 },
-  videoShell: {
-    width: '100%',
-    borderRadius: 12,
-    overflow: 'hidden',
-    backgroundColor: '#000',
-    marginTop: 8,
-  },
-  videoThumbImage: {
-    width: '100%',
-    height: '100%',
-  },
-  playOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  playCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: 'rgba(0,0,0,0.55)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  videoPlayerFill: {
-    width: '100%',
-    height: '100%',
+  emptyText: {
+    textAlign: 'center',
+    color: colors.textSecondary,
+    fontSize: 14,
+    marginTop: 40,
   },
 });

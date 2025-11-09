@@ -9,13 +9,19 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
-import { CalendarClock, Video, GraduationCap, Plus, ShoppingBag } from 'lucide-react-native';
+import {
+  CalendarClock,
+  Video,
+  GraduationCap,
+  Plus,
+  ShoppingBag,
+} from 'lucide-react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import AppHeader from '../../../components/AppHeader';
-import colors from '../../../utils/colors';
-import { getEnrolledCourses } from '../../../store/EnrollmentSlice';
-import { getMyTransactions } from '../../../store/PaymentSlice';
+import AppHeader from '../../../../components/AppHeader';
+import colors from '../../../../utils/colors';
+import { getEnrolledCourses } from '../../../../store/EnrollmentSlice';
+import { getMyTransactions } from '../../../../store/PaymentSlice';
 
 const formatINR = (value: any) =>
   typeof value === 'number' ? `₹${value.toLocaleString('en-IN')}` : value;
@@ -38,10 +44,10 @@ const PurchasesScreen = () => {
   const navigation = useNavigation<any>();
 
   const { list: enrolledCourses, loading: enrolledLoading } = useSelector(
-    (state: any) => state.enrollmentsReducer
+    (state: any) => state.enrollmentsReducer,
   );
   const { transactions, loading: transactionsLoading } = useSelector(
-    (state: any) => state.paymentReducer
+    (state: any) => state.paymentReducer,
   );
 
   const [refreshing, setRefreshing] = React.useState(false);
@@ -75,9 +81,7 @@ const PurchasesScreen = () => {
       </View>
     );
   }
-
-  // console.log('---enrolledCourses--------', enrolledCourses)
-
+  
   return (
     <View style={styles.container}>
       <AppHeader title="My Purchases" />
@@ -88,18 +92,21 @@ const PurchasesScreen = () => {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
-        {enrolledCourses?.enrollments && enrolledCourses?.enrollments?.length > 0 ? (
+        {enrolledCourses?.enrollments &&
+        enrolledCourses?.enrollments?.length > 0 ? (
           enrolledCourses?.enrollments?.map((enrollment: any) => {
-            const courseId = enrollment.id || enrollment._id || enrollment.course_id;
-            const courseTitle = enrollment.title || enrollment.course_title || 'Untitled Course';
-            const enrolledDate = enrollment.enrolled_at || enrollment.created_at;
+            const courseId =
+              enrollment.id || enrollment._id || enrollment.course_id;
+            const courseTitle =
+              enrollment.title || enrollment.course_title || 'Untitled Course';
+            const enrolledDate =
+              enrollment.enrolled_at || enrollment.created_at;
             const progress = enrollment.progress || 0;
-            
+
             // Find transaction for this enrollment
             const transaction = transactions?.find(
-              (t: any) => 
-                t.course_id === courseId || 
-                t.enrollment_id === enrollment.id
+              (t: any) =>
+                t.course_id === courseId || t.enrollment_id === enrollment.id,
             );
 
             return (
@@ -141,10 +148,7 @@ const PurchasesScreen = () => {
                     </View>
                     <View style={styles.progressBar}>
                       <View
-                        style={[
-                          styles.progressFill,
-                          { width: `${progress}%` },
-                        ]}
+                        style={[styles.progressFill, { width: `${progress}%` }]}
                       />
                     </View>
                   </View>
@@ -164,7 +168,12 @@ const PurchasesScreen = () => {
                       <Text
                         style={[
                           styles.historyPrice,
-                          { color: transaction.status === 'SUCCESS' ? 'green' : colors.text },
+                          {
+                            color:
+                              transaction.status === 'SUCCESS'
+                                ? 'green'
+                                : colors.text,
+                          },
                         ]}
                       >
                         {transaction.status || 'N/A'}
@@ -181,7 +190,6 @@ const PurchasesScreen = () => {
                   </View>
                 )}
 
-            
                 <View style={styles.footer}>
                   <Text style={[styles.status, styles.completed]}>
                     {progress === 100 ? 'Completed' : 'In Progress'}
@@ -190,7 +198,9 @@ const PurchasesScreen = () => {
                   <TouchableOpacity
                     style={styles.actionBtn}
                     activeOpacity={0.8}
-                    onPress={() => handleViewCourse(courseId)}
+                    onPress={()=>{
+                       navigation.navigate('UserVideoList', { item: enrollment });
+                    }}
                   >
                     <Text style={styles.actionText}>
                       {progress === 100 ? 'Review' : 'Continue Learning'}
@@ -203,7 +213,9 @@ const PurchasesScreen = () => {
         ) : (
           <View style={styles.emptyContainer}>
             <ShoppingBag size={60} color={colors.textSecondary} />
-            <Text style={styles.emptyText}>You haven't purchased any courses yet.</Text>
+            <Text style={styles.emptyText}>
+              You haven't purchased any courses yet.
+            </Text>
             <Text style={styles.emptySubtext}>
               Browse our courses and start learning today!
             </Text>
@@ -387,6 +399,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.text,
     marginTop: 16,
+    textAlign: 'center'
   },
   emptySubtext: {
     fontSize: 14,

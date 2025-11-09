@@ -12,6 +12,8 @@ import WalletCreator from '../screens/Auth/Wallet/WalletCreator';
 import UserBottomTab from './UserBottomTab';
 import UserSettingsDetails from '../screens/Auth/User/Settings/UserSettingDetails';
 import CourseDetailsScreen from '../screens/Auth/Product/CourseDetailsScreen';
+import UserCourseSearch from '../screens/Auth/User/Search/UserCourseSearch';
+import UserVideoList from '../screens/Auth/User/Home/UserVideoList';
 
 const Stack = createNativeStackNavigator();
 
@@ -22,7 +24,10 @@ const UserMainStack = () => {
       screenOptions={{ headerShown: false }}
     >
       <Stack.Screen name="UserBottomTab" component={UserBottomTab} />
-      <Stack.Screen name="UserSettingsDetails" component={UserSettingsDetails} />
+      <Stack.Screen
+        name="UserSettingsDetails"
+        component={UserSettingsDetails}
+      />
       <Stack.Screen name="Earnings" component={Earnings} />
       <Stack.Screen name="UserProfile" component={UserProfile} />
       <Stack.Screen name="Dashboard" component={Dashboard} />
@@ -32,7 +37,12 @@ const UserMainStack = () => {
       <Stack.Screen name="CreateWebinar" component={CreateWebinar} />
       <Stack.Screen name="CreateCourse" component={CreateCourse} />
       <Stack.Screen name="WalletCreator" component={WalletCreator} />
-      <Stack.Screen name="CourseDetailsScreen" component={CourseDetailsScreen} />
+      <Stack.Screen
+        name="CourseDetailsScreen"
+        component={CourseDetailsScreen}
+      />
+      <Stack.Screen name="UserCourseSearch" component={UserCourseSearch} />
+      <Stack.Screen name="UserVideoList" component={UserVideoList} />
     </Stack.Navigator>
   );
 };

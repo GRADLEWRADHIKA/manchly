@@ -1,16 +1,13 @@
-import React, { useState, memo, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  ScrollView,
   FlatList,
   Image,
-  Dimensions,
   ActivityIndicator,
-  Animated,
-  Easing,
+  TextInput,
 } from 'react-native';
 import {
   Users,
@@ -20,16 +17,12 @@ import {
   BookOpen,
   Star,
 } from 'lucide-react-native';
-import Video from 'react-native-video';
 import colors from '../../../../utils/colors';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { fetchCourses } from '../../../../store/CourseSlice';
 import { getEnrolledCourses } from '../../../../store/EnrollmentSlice';
-
-const { width } = Dimensions.get('window');
-const CARD_WIDTH = width - 80;
-const CARD_MARGIN = 12;
+import CustomTextInput from '../../../../components/CustomInput';
 
 const UserView: React.FC = () => {
   const dispatch = useDispatch<any>();
@@ -42,74 +35,34 @@ const UserView: React.FC = () => {
     (state: any) => state.enrollmentsReducer,
   );
 
-  const [playingVideoId, setPlayingVideoId] = useState<string | null>(null);
-  const [videoLoading, setVideoLoading] = useState<{ [key: string]: boolean }>(
-    {},
-  );
-  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     dispatch(fetchCourses({}));
     dispatch(getEnrolledCourses({}));
-
-    // Fade in animation
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 600,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
-    }).start();
   }, []);
-
-  const handlePlay = (id: string) => {
-    setPlayingVideoId(id);
-    setVideoLoading(prev => ({ ...prev, [id]: true }));
-  };
-
-  const handleEnded = () => {
-    setPlayingVideoId(null);
-  };
-
-  const handleVideoLoad = (id: string) => {
-    setVideoLoading(prev => ({ ...prev, [id]: false }));
-  };
-
-  const handleVideoError = (id: string) => {
-    setVideoLoading(prev => ({ ...prev, [id]: false }));
-    setPlayingVideoId(null);
-  };
 
   const enrolledCourseIds = (enrolledCourses.enrollments || []).map(
     (enrollment: any) => enrollment.course_id,
   );
-  const myCourses = (allCourses?.data?.courses || []).filter((course: any) =>
-    enrolledCourseIds.includes(course.id || course._id),
-  );
 
   const browseCourses = allCourses?.data?.courses || [];
+
+  const filteredCourses = browseCourses.filter((course: any) =>
+    course.title?.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
 
   const handleCoursePress = (courseId: string) => {
     navigation.navigate('CourseDetailsScreen', { courseId });
   };
 
-  const getVideoUrl = (course: any) => {
-    return (
-      course.videos?.[0]?.video_url ||
-      course.videos?.[0]?.url ||
-      course?.videos?.playback_url ||
-      null
-    );
-  };
-
   const getRating = (course: any) => {
-    return course.rating || course.average_rating || 4.5; // Default rating
+    return course.rating || course.average_rating || 4.5;
   };
 
   const renderCard = ({ item, isEnrolled }: any) => {
     const courseId = item.id || item._id;
-    const isPlaying = playingVideoId === courseId;
     const price = item.price === 0 ? 'Free' : `₹${item.price}`;
-    const videoUrl = getVideoUrl(item);
     const rating = getRating(item);
     const instructorName =
       item.creator?.name || item.instructor?.name || 'Unknown Instructor';
@@ -117,81 +70,29 @@ const UserView: React.FC = () => {
     const videosCount = item.videos?.length || item.lessons_count || 0;
     const duration = item.duration || '8h 30m';
     const level = item.level || 'Beginner';
-
     const thumbnailUrl =
       item.thumbnail || item.videos?.[0]?.thumbnail_url || item.image || null;
 
     return (
-      <Animated.View
-        style={[
-          styles.card,
-          {
-            opacity: fadeAnim,
-            transform: [
-              {
-                translateY: fadeAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [50, 0],
-                }),
-              },
-            ],
-          },
-        ]}
-      >
-        {/* Video/Thumbnail Section */}
+      <View style={styles.card}>
+        {/* Thumbnail Section */}
         <View style={styles.mediaContainer}>
-          {isPlaying ? (
-            <View style={styles.videoContainer}>
-              {videoLoading[courseId] && (
-                <View style={styles.videoLoading}>
-                  <ActivityIndicator size="large" color={colors.primary} />
-                </View>
-              )}
-              <Video
-                source={{ uri: item?.videos?.playback_url }}
-                style={styles.videoPlayer}
+          <TouchableOpacity style={styles.thumbnailContainer} activeOpacity={1}>
+            {thumbnailUrl ? (
+              <Image
+                source={{ uri: thumbnailUrl }}
+                style={styles.courseThumbnail}
                 resizeMode="cover"
-                paused={!isPlaying}
-                onEnd={handleEnded}
-                onLoad={() => handleVideoLoad(courseId)}
-                onError={() => handleVideoError(courseId)}
-                controls={true}
-                playWhenInactive={false}
-                playInBackground={false}
               />
-            </View>
-          ) : (
-            <TouchableOpacity
-              style={styles.thumbnailContainer}
-              onPress={item?.videos?.playback_url ? () => handlePlay(courseId) : undefined}
-              activeOpacity={item?.videos?.playback_url ? 0.7 : 1}
-            >
-              {thumbnailUrl ? (
-                <Image
-                  source={{ uri: thumbnailUrl }}
-                  style={styles.courseThumbnail}
-                  resizeMode="cover"
-                />
-              ) : (
-                <View style={styles.placeholderThumbnail}>
-                  <BookOpen size={40} color={colors.textSecondary} />
-                </View>
-              )}
-
-              {item?.videos?.playback_url && (
-                <View style={styles.playOverlay}>
-                  <View style={styles.playCircle}>
-                    <Play size={24} color="#fff" fill="#fff" />
-                  </View>
-                </View>
-              )}
-
-              {/* Course Level Badge */}
-              <View style={styles.levelBadge}>
-                <Text style={styles.levelText}>{level}</Text>
+            ) : (
+              <View style={styles.placeholderThumbnail}>
+                <BookOpen size={40} color={colors.textSecondary} />
               </View>
-            </TouchableOpacity>
-          )}
+            )}
+            <View style={styles.levelBadge}>
+              <Text style={styles.levelText}>{level}</Text>
+            </View>
+          </TouchableOpacity>
         </View>
 
         {/* Card Content */}
@@ -215,12 +116,10 @@ const UserView: React.FC = () => {
               <Users size={14} color={colors.textSecondary} />
               <Text style={styles.metaText}>{studentsCount}</Text>
             </View>
-
             <View style={styles.metaItem}>
               <Play size={14} color={colors.textSecondary} />
               <Text style={styles.metaText}>{videosCount}</Text>
             </View>
-
             <View style={styles.metaItem}>
               <Clock size={14} color={colors.textSecondary} />
               <Text style={styles.metaText}>{duration}</Text>
@@ -265,7 +164,7 @@ const UserView: React.FC = () => {
             </View>
           </View>
         </View>
-      </Animated.View>
+      </View>
     );
   };
 
@@ -279,61 +178,52 @@ const UserView: React.FC = () => {
   }
 
   return (
-    <Animated.ScrollView
-      style={{ flex: 1 }}
-      contentContainerStyle={styles.container}
-      showsVerticalScrollIndicator={false}
-    >
+    <View style={styles.container}>
       <View style={styles.hero}>
         <Text style={styles.heroHeading}>Learn from experts</Text>
-        <Text style={styles.heroSub}>
-          Browse courses and start learning today
-        </Text>
       </View>
 
-      <TouchableOpacity
-        style={styles.searchContainer}
-        onPress={() => {
-          console.log('--- Search Pressed ---');
-        }}
-      >
+      {/* 🔍 Search Bar */}
+      <View style={styles.searchContainer}>
         <Search
           size={18}
           color={colors.textSecondary}
           style={{ marginRight: 8 }}
         />
-        <View style={styles.searchInput}>
-          <Text style={styles.searchPlaceholder}>
-            Search courses or instructors...
-          </Text>
-        </View>
-      </TouchableOpacity>
-
-      {myCourses && myCourses.length > 0 && (
-        <View style={styles.section}>
-          <Text style={styles.sectionHeading}>Your Courses</Text>
-          <FlatList
-            data={myCourses}
-            keyExtractor={i => i.id || i._id}
-            renderItem={({ item }) => renderCard({ item, isEnrolled: true })}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.listContent}
-            snapToInterval={CARD_WIDTH + CARD_MARGIN}
-            decelerationRate="fast"
-          />
-        </View>
-      )}
+        <CustomTextInput
+          inputContainerStyle={[
+            styles.searchInput,
+            {
+              borderColor: colors.borderColor,
+            },
+          ]}
+          inputStyle={{
+            fontSize: 16,
+            color: colors.black,
+          }}
+          placeholderTextColor={colors.borderColor}
+          placeholder="Search courses"
+          onChange={setSearchQuery}
+          value={searchQuery}
+        />
+        {/* <TextInput
+          placeholder="Search courses or instructors..."
+          placeholderTextColor={colors.textSecondary}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          style={styles.searchInput}
+        /> */}
+      </View>
 
       <View style={styles.section}>
         <Text style={styles.sectionHeading}>Browse Courses</Text>
-        {coursesLoading && !browseCourses?.length ? (
+        {coursesLoading && !filteredCourses?.length ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="small" color={colors.primary} />
           </View>
         ) : (
           <FlatList
-            data={browseCourses}
+            data={filteredCourses}
             keyExtractor={i => i.id || i._id}
             renderItem={({ item }) => {
               const isEnrolled = enrolledCourseIds.includes(
@@ -341,20 +231,21 @@ const UserView: React.FC = () => {
               );
               return renderCard({ item, isEnrolled });
             }}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.listContent}
-            snapToInterval={CARD_WIDTH + CARD_MARGIN}
+            nestedScrollEnabled
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 250 }}
             decelerationRate="fast"
+            removeClippedSubviews
+            initialNumToRender={5}
             ListEmptyComponent={
               <View style={styles.emptyState}>
-                <Text style={styles.emptyText}>No courses available</Text>
+                <Text style={styles.emptyText}>No courses found</Text>
               </View>
             }
           />
         )}
       </View>
-    </Animated.ScrollView>
+    </View>
   );
 };
 
@@ -362,11 +253,10 @@ export default UserView;
 
 const styles = StyleSheet.create({
   container: {
-    paddingBottom: 120,
     backgroundColor: colors.white,
+    flex: 1,
   },
   loadingContainer: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
@@ -386,19 +276,13 @@ const styles = StyleSheet.create({
     color: colors.text,
     marginBottom: 8,
   },
-  heroSub: {
-    color: colors.textSecondary,
-    fontSize: 16,
-    lineHeight: 22,
-  },
   section: {
-    marginBottom: 24,
+    paddingHorizontal: 16,
   },
   sectionHeading: {
-    fontSize: 20,
-    fontWeight: '700',
+    fontSize: 18,
+    fontWeight: '600',
     color: colors.text,
-    marginHorizontal: 20,
     marginBottom: 16,
   },
   searchContainer: {
@@ -407,66 +291,26 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     marginHorizontal: 20,
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    // paddingVertical: 12,
     borderRadius: 16,
-    marginBottom: 8,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
+    marginBottom: 12,
     elevation: 3,
   },
   searchInput: {
     flex: 1,
-  },
-  searchPlaceholder: {
-    color: colors.textSecondary,
+    color: colors.text,
     fontSize: 16,
   },
-  listContent: {
-    paddingLeft: 20,
-    paddingRight: 8,
-  },
+  thumbnailContainer: { position: 'relative' },
   card: {
-    width: CARD_WIDTH,
-    marginRight: CARD_MARGIN,
+    width: '100%',
     backgroundColor: colors.surface,
     borderRadius: 20,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
     elevation: 5,
-    marginBottom: 8,
+    marginBottom: 16,
   },
-  mediaContainer: {
-    position: 'relative',
-  },
-  videoContainer: {
-    width: '100%',
-    height: 180,
-    backgroundColor: '#000',
-  },
-  videoPlayer: {
-    width: '100%',
-    height: '100%',
-  },
-  videoLoading: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#000',
-  },
-  thumbnailContainer: {
-    position: 'relative',
-  },
+  mediaContainer: { position: 'relative' },
   courseThumbnail: {
     width: '100%',
     height: 180,
@@ -479,22 +323,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  playOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(0,0,0,0.3)',
-  },
-  playCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: '#fff',
-  },
   levelBadge: {
     position: 'absolute',
     top: 12,
@@ -504,14 +332,8 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 8,
   },
-  levelText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  cardBody: {
-    padding: 16,
-  },
+  levelText: { color: '#fff', fontSize: 12, fontWeight: '600' },
+  cardBody: { padding: 16 },
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -526,6 +348,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
     lineHeight: 20,
   },
+  priceContainer: { flex: 1 },
   ratingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -540,49 +363,18 @@ const styles = StyleSheet.create({
     color: colors.text,
     marginLeft: 2,
   },
-  instructor: {
-    color: colors.textSecondary,
-    fontSize: 14,
-    marginBottom: 12,
-  },
-  metaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  metaItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  metaText: {
-    marginLeft: 4,
-    color: colors.textSecondary,
-    fontSize: 12,
-    fontWeight: '500',
-  },
+  instructor: { color: colors.textSecondary, fontSize: 14, marginBottom: 12 },
+  metaRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
+  metaItem: { flexDirection: 'row', alignItems: 'center', marginRight: 16 },
+  metaText: { marginLeft: 4, color: colors.textSecondary, fontSize: 12 },
   footerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  priceContainer: {
-    flex: 1,
-  },
-  priceText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.primary,
-  },
-  enrolledText: {
-    color: colors.success,
-    fontSize: 14,
-  },
-  buttonGroup: {
-    flexDirection: 'row',
-    flex: 2,
-    justifyContent: 'flex-end',
-  },
+  priceText: { fontSize: 18, fontWeight: '700', color: colors.primary },
+  enrolledText: { color: colors.success, fontSize: 14 },
+  buttonGroup: { flexDirection: 'row', justifyContent: 'flex-end' },
   button: {
     paddingHorizontal: 16,
     paddingVertical: 8,
@@ -596,14 +388,13 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
   },
   primaryButtonText: {
-    color: '#fff',
+    color: colors.white,
     fontWeight: '600',
     fontSize: 14,
   },
   outlineButton: {
     borderWidth: 1,
     borderColor: colors.border,
-    backgroundColor: 'transparent',
   },
   outlineButtonText: {
     color: colors.text,
@@ -614,11 +405,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 40,
-    width: CARD_WIDTH,
   },
   emptyText: {
     color: colors.textSecondary,
     fontSize: 16,
-    textAlign: 'center',
+  },
+  nameFields: {
+    paddingHorizontal: 10,
+    height: 44,
+    width: '100%',
+    backgroundColor: colors.lightGrey,
+    marginBottom: 20,
   },
 });

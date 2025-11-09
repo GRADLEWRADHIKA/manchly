@@ -63,7 +63,7 @@ const OTPScreen: React.FC = () => {
         setLoading(false);
       })
       .catch(error => {
-        console.log(error)
+        console.log(error);
       })
       .finally(() => {
         setLoading(false);
@@ -143,7 +143,15 @@ const OTPScreen: React.FC = () => {
         </View>
 
         <TouchableOpacity
-          style={[styles.verifyButton, styles.verifyButtonActive]}
+          style={[
+            styles.verifyButton,
+            {
+              backgroundColor:
+                route?.params?.payload?.tab === 'USER'
+                  ? colors.secPrimary
+                  : colors.primary,
+            },
+          ]}
           onPress={handleSubmit(onSubmit)}
           activeOpacity={0.8}
           disabled={loading === true ? true : false}
@@ -260,7 +268,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   verifyButtonActive: {
-    backgroundColor: colors.primary,
+    // backgroundColor: colors.primary,
   },
   verifyButtonText: {
     fontSize: 16,

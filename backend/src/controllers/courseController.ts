@@ -24,7 +24,8 @@ export class CourseController {
     const { 
       title, 
       description, 
-      thumbnail, 
+      thumbnail,
+      thumbnail_url, 
       price = 0, 
       category, 
       tags = [], 
@@ -54,6 +55,7 @@ export class CourseController {
           title,
           description,
           thumbnail,
+          thumbnail_url,
           price: parseFloat(price),
           category,
           tags: Array.isArray(tags) ? tags : [],
@@ -355,7 +357,8 @@ export class CourseController {
     const { 
       title, 
       description, 
-      thumbnail, 
+      thumbnail,
+      thumbnail_url, 
       price, 
       category, 
       tags, 
@@ -382,6 +385,7 @@ export class CourseController {
       if (title) updateData.title = title;
       if (description !== undefined) updateData.description = description;
       if (thumbnail !== undefined) updateData.thumbnail = thumbnail;
+      if (thumbnail_url !== undefined) updateData.thumbnail_url = thumbnail_url;
       if (price !== undefined) updateData.price = parseFloat(price);
       if (category !== undefined) updateData.category = category;
       if (tags !== undefined) updateData.tags = Array.isArray(tags) ? tags : [];
@@ -466,7 +470,7 @@ export class CourseController {
    */
   static async createVideoUpload(req: any, res: Response) {
     const { courseId } = req.params;
-    const { title, description, is_free = false, order = 0 } = req.body;
+    const { title, description, thumbnail_url, is_free = false, order = 0 } = req.body;
     const userId = req.user.userId;
 
     if (!title) {
@@ -503,6 +507,7 @@ export class CourseController {
           course_id: courseId,
           title,
           description,
+          thumbnail_url,
           mux_upload_id: upload.id,
           upload_url: upload.url,
           status: "UPLOADING",
@@ -618,7 +623,7 @@ export class CourseController {
   static async updateVideo(req: any, res: Response) {
     const { videoId } = req.params;
     const userId = req.user.userId;
-    const { title, description, is_free, order } = req.body;
+    const { title, description, thumbnail_url, is_free, order } = req.body;
 
     try {
       const video = await prisma.videos.findUnique({
@@ -651,6 +656,7 @@ export class CourseController {
         updateData.title = title;
       }
       if (description !== undefined) updateData.description = description;
+      if (thumbnail_url !== undefined) updateData.thumbnail_url = thumbnail_url;
       if (is_free !== undefined) updateData.is_free = Boolean(is_free);
       if (order !== undefined) {
         if (order < 0) {

@@ -49,6 +49,7 @@ model courses {
   title           String
   description     String?      @db.Text
   thumbnail       String?
+  thumbnail_url   String?      @db.Text
   price           Float        @default(0)
   status          CourseStatus @default(DRAFT)
   creator_id      String

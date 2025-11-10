@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Platform,
   PermissionsAndroid,
+  Image,
 } from 'react-native';
 import { Video, X } from 'lucide-react-native';
 import colors from '../../../../../utils/colors';
@@ -23,11 +24,13 @@ import {
   createVideoUpload,
   updateVideo,
 } from '../../../../../store/VideoSlice';
+import { uploadShipDoc } from '../../../../../store/Common';
 
 const CourseAddVideoModal = ({ onClose, setRefresh, videoData, isUpdate }) => {
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
-  const [loading, setLoading] = useState(false);
-  const [uploading, setUploading] = useState(false);
+  const [loading, setLoading] = useState(false); // main submit
+  const [videoUploading, setVideoUploading] = useState(false);
+  const [thumbnailUploading, setThumbnailUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [selectedVideo, setSelectedVideo] = useState<any>(null);
   const route = useRoute();
@@ -41,13 +44,15 @@ const CourseAddVideoModal = ({ onClose, setRefresh, videoData, isUpdate }) => {
     formState: { errors },
   } = useForm({
     defaultValues: {
-      title: videoData?.title,
-      description: videoData?.description,
-      is_free: videoData?.is_free,
+      title: videoData?.title || '',
+      description: videoData?.description || '',
+      is_free: videoData?.is_free ?? false,
       order: String(videoData?.order ?? ''),
+      thumbnail_url: videoData?.thumbnail_url || '',
     },
   });
 
+  // 🔹 Update video
   const onSubmitUpdate = (data: any) => {
     setLoading(true);
     const payload = {
@@ -57,24 +62,33 @@ const CourseAddVideoModal = ({ onClose, setRefresh, videoData, isUpdate }) => {
         description: data?.description,
         is_free: data?.is_free,
         order: data?.order,
+        thumbnail_url: data?.thumbnail_url,
       },
     };
     dispatch(updateVideo(payload))
       .unwrap()
-      .then(response => {
+      .then(() => {
         reset();
-        setLoading(false);
         setRefresh(true);
+        Toast.show({
+          type: 'success',
+          text1: 'Video updated successfully',
+          position: 'bottom',
+        });
         onClose();
       })
-      .catch(error => {
-        console.log(error);
+      .catch(err => {
+        console.error('Update Error:', err);
+        Toast.show({
+          type: 'error',
+          text1: 'Update failed',
+          position: 'bottom',
+        });
       })
-      .finally(() => {
-        setLoading(false);
-      });
+      .finally(() => setLoading(false));
   };
 
+  // 🔹 Video Picker Permission
   const requestVideoPermission = async () => {
     if (Platform.OS === 'android') {
       const permission =
@@ -88,6 +102,7 @@ const CourseAddVideoModal = ({ onClose, setRefresh, videoData, isUpdate }) => {
     return true;
   };
 
+  // 🔹 Pick a Video
   const handleVideoSelect = async () => {
     try {
       const hasPermission = await requestVideoPermission();
@@ -111,7 +126,7 @@ const CourseAddVideoModal = ({ onClose, setRefresh, videoData, isUpdate }) => {
         setSelectedVideo(video);
         Toast.show({
           type: 'success',
-          text1: 'Video Selected',
+          text1: 'Video selected',
           text2: video.name || '1 video selected',
           position: 'bottom',
         });
@@ -127,12 +142,68 @@ const CourseAddVideoModal = ({ onClose, setRefresh, videoData, isUpdate }) => {
     }
   };
 
-  // 🔹 Main form submit + video upload
+  // 🔹 Pick and upload thumbnail
+  const imagePicker = async (onChange: (val: string) => void) => {
+    try {
+      const res = await pick({ type: [types.images] });
+      if (!res || res.length === 0) return;
+
+      const picked = {
+        uri: res[0].uri,
+        type: res[0].type,
+        name: res[0].name,
+      };
+
+      await uploadThumbnail(picked, onChange);
+    } catch (err: any) {
+      console.error('Image Picker Error:', err);
+      Toast.show({
+        type: 'error',
+        text1: 'Image Picker Error',
+        text2: 'Unable to pick image',
+        position: 'bottom',
+      });
+    }
+  };
+
+  const uploadThumbnail = async (file: any, onChange: (val: string) => void) => {
+    setThumbnailUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', {
+        uri: file.uri,
+        type: file.type,
+        name: file.name,
+      });
+
+      const res: any = await dispatch(uploadShipDoc(formData)).unwrap();
+      const newUrl = res?.data?.url;
+      onChange(newUrl);
+
+      Toast.show({
+        type: 'success',
+        text1: 'Thumbnail uploaded successfully',
+        position: 'bottom',
+      });
+    } catch (err) {
+      console.error('Thumbnail Upload Error:', err);
+      Toast.show({
+        type: 'error',
+        text1: 'Thumbnail upload failed',
+        text2: 'Please try again',
+        position: 'bottom',
+      });
+    } finally {
+      setThumbnailUploading(false);
+    }
+  };
+
+  // 🔹 Submit and upload video
   const onSubmit = async (data: any) => {
     if (!selectedVideo) {
       Toast.show({
         type: 'error',
-        text1: 'Please select a video before submitting',
+        text1: 'Please select a video first',
         position: 'bottom',
       });
       return;
@@ -140,7 +211,6 @@ const CourseAddVideoModal = ({ onClose, setRefresh, videoData, isUpdate }) => {
 
     try {
       setLoading(true);
-
       const res = await dispatch(
         createVideoUpload({
           courseId: courseId,
@@ -149,17 +219,17 @@ const CourseAddVideoModal = ({ onClose, setRefresh, videoData, isUpdate }) => {
             description: data.description,
             is_free: data.is_free,
             order: data.order,
+            thumbnail_url: data?.thumbnail_url,
           },
         }),
       ).unwrap();
 
       const uploadUrl = res?.upload_url;
       const videoId = res?.video?.id;
-      if (!uploadUrl || !videoId) {
+      if (!uploadUrl || !videoId)
         throw new Error('Invalid upload URL or video ID');
-      }
 
-      setUploading(true);
+      setVideoUploading(true);
       setUploadProgress(0);
 
       const fileBlob = await fetch(selectedVideo.uri).then(response => {
@@ -174,7 +244,10 @@ const CourseAddVideoModal = ({ onClose, setRefresh, videoData, isUpdate }) => {
 
       xhr.upload.addEventListener('progress', event => {
         if (event.lengthComputable) {
-          const percent = Math.round((event.loaded / event.total) * 100);
+          const percent = Math.min(
+            100,
+            Math.round((event.loaded / event.total) * 100),
+          ); // ✅ Never exceeds 100
           setUploadProgress(percent);
         }
       });
@@ -198,13 +271,14 @@ const CourseAddVideoModal = ({ onClose, setRefresh, videoData, isUpdate }) => {
             position: 'bottom',
           });
         }
+        setVideoUploading(false);
       };
 
       xhr.onerror = () => {
+        setVideoUploading(false);
         Toast.show({
           type: 'error',
-          text1: 'Upload error',
-          text2: 'Network issue or invalid upload URL',
+          text1: 'Network error during upload',
           position: 'bottom',
         });
       };
@@ -212,13 +286,14 @@ const CourseAddVideoModal = ({ onClose, setRefresh, videoData, isUpdate }) => {
       xhr.send(fileBlob);
       setRefresh(true);
     } catch (error: any) {
-      console.log('Upload error:', error);
+      console.error('Upload error:', error);
       Toast.show({
         type: 'error',
         text1: 'Upload failed',
         text2: error.message || 'Something went wrong',
         position: 'bottom',
       });
+      setVideoUploading(false);
     } finally {
       setLoading(false);
     }
@@ -226,21 +301,22 @@ const CourseAddVideoModal = ({ onClose, setRefresh, videoData, isUpdate }) => {
 
   return (
     <View style={styles.modalContainer}>
+      {/* Header */}
       <View style={styles.modalHeader}>
-        <Text style={styles.modalTitle}>Add Course Video</Text>
+        <Text style={styles.modalTitle}>
+          {isUpdate ? 'Update Video' : 'Add Course Video'}
+        </Text>
         <TouchableOpacity
-          onPress={!uploading ? onClose : undefined}
-          style={[styles.closeButton, uploading && { opacity: 0.4 }]}
-          disabled={uploading}
+          onPress={!videoUploading ? onClose : undefined}
+          style={[styles.closeButton, videoUploading && { opacity: 0.4 }]}
+          disabled={videoUploading}
         >
           <X color={colors.text} size={22} />
         </TouchableOpacity>
       </View>
 
-      <ScrollView
-        style={styles.modalContent}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
+        {/* Video Title */}
         <Text style={styles.label}>Video Title</Text>
         <Controller
           name="title"
@@ -260,15 +336,14 @@ const CourseAddVideoModal = ({ onClose, setRefresh, videoData, isUpdate }) => {
           )}
         />
 
-        {isUpdate === true ? (
-          ''
-        ) : (
+        {/* Video Picker */}
+        {!isUpdate && (
           <>
             <Text style={styles.label}>Select Video</Text>
             <TouchableOpacity
               style={styles.uploadButton}
-              onPress={!uploading ? handleVideoSelect : undefined}
-              disabled={uploading}
+              onPress={!videoUploading ? handleVideoSelect : undefined}
+              disabled={videoUploading}
             >
               <Video color={colors.primary} size={22} />
               <Text style={styles.uploadText}>
@@ -276,7 +351,7 @@ const CourseAddVideoModal = ({ onClose, setRefresh, videoData, isUpdate }) => {
               </Text>
             </TouchableOpacity>
 
-            {uploading && (
+            {videoUploading && (
               <View style={styles.progressContainer}>
                 <ActivityIndicator size="small" color={colors.primary} />
                 <Text style={styles.progressText}>
@@ -287,6 +362,7 @@ const CourseAddVideoModal = ({ onClose, setRefresh, videoData, isUpdate }) => {
           </>
         )}
 
+        {/* Description */}
         <Text style={styles.label}>Video Description</Text>
         <Controller
           name="description"
@@ -298,7 +374,7 @@ const CourseAddVideoModal = ({ onClose, setRefresh, videoData, isUpdate }) => {
                 styles.inputField,
                 errors.description && styles.errorBorder,
               ]}
-              placeholder="Enter video description"
+              placeholder="Enter description"
               onChange={onChange}
               onBlur={onBlur}
               value={value}
@@ -306,6 +382,39 @@ const CourseAddVideoModal = ({ onClose, setRefresh, videoData, isUpdate }) => {
           )}
         />
 
+        {/* Thumbnail Upload */}
+        <Text style={styles.label}>Choose Thumbnail</Text>
+        <Controller
+          name="thumbnail_url"
+          control={control}
+          render={({ field: { onChange, value } }) => (
+            <View>
+              <TouchableOpacity
+                onPress={() => imagePicker(onChange)}
+                style={styles.button}
+                disabled={thumbnailUploading}
+              >
+                {thumbnailUploading ? (
+                  <ActivityIndicator color={colors.primary} />
+                ) : (
+                  <Text style={styles.buttonText}>
+                    {value ? 'Change Thumbnail' : 'Choose Thumbnail'}
+                  </Text>
+                )}
+              </TouchableOpacity>
+
+              {value ? (
+                <Image
+                  source={{ uri: value }}
+                  style={styles.imagePreview}
+                  resizeMode="cover"
+                />
+              ) : null}
+            </View>
+          )}
+        />
+
+        {/* Order */}
         <Text style={styles.label}>Video Order</Text>
         <Controller
           name="order"
@@ -326,71 +435,58 @@ const CourseAddVideoModal = ({ onClose, setRefresh, videoData, isUpdate }) => {
           )}
         />
 
+        {/* Free / Paid Dropdown */}
         <Text style={styles.label}>Is this Video Free?</Text>
         <Controller
           control={control}
           name="is_free"
           rules={{ required: 'Status is required' }}
-          render={({ field: { onChange, value } }) => (
+          render={({ field: { onChange, value }, fieldState: { error } }) => (
             <Dropdown
-              style={styles.dropdown}
+              style={[styles.dropdown, error && styles.errorBorder]}
               placeholderStyle={styles.placeholder}
               selectedTextStyle={styles.selectedText}
               data={[
                 { label: 'Yes', value: true },
                 { label: 'No', value: false },
               ]}
-              dropdownPosition="top"
               labelField="label"
               valueField="value"
               placeholder="Select option"
               value={value}
+              dropdownPosition="top"
               onChange={item => onChange(item.value)}
             />
           )}
         />
       </ScrollView>
 
+      {/* Footer */}
       <View style={styles.modalFooter}>
         <TouchableOpacity
           style={styles.cancelButton}
-          onPress={!uploading ? onClose : undefined}
-          disabled={loading || uploading}
+          onPress={!videoUploading ? onClose : undefined}
+          disabled={loading || videoUploading}
         >
           <Text style={styles.cancelButtonText}>Cancel</Text>
         </TouchableOpacity>
 
-        {isUpdate === true ? (
-          <TouchableOpacity
-            style={[
-              styles.saveButton,
-              (loading || uploading) && { opacity: 0.7 },
-            ]}
-            disabled={loading}
-            onPress={handleSubmit(onSubmitUpdate)}
-          >
-            {loading ? (
-              <ActivityIndicator color={colors.white} size="small" />
-            ) : (
-              <Text style={styles.saveButtonText}>Update</Text>
-            )}
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity
-            style={[
-              styles.saveButton,
-              (loading || uploading) && { opacity: 0.7 },
-            ]}
-            onPress={handleSubmit(onSubmit)}
-            disabled={loading || uploading}
-          >
-            {loading || uploading ? (
-              <ActivityIndicator color={colors.white} size="small" />
-            ) : (
-              <Text style={styles.saveButtonText}>Save</Text>
-            )}
-          </TouchableOpacity>
-        )}
+        <TouchableOpacity
+          style={[
+            styles.saveButton,
+            (loading || videoUploading) && { opacity: 0.7 },
+          ]}
+          disabled={loading || videoUploading}
+          onPress={handleSubmit(isUpdate ? onSubmitUpdate : onSubmit)}
+        >
+          {loading || videoUploading ? (
+            <ActivityIndicator color={colors.white} size="small" />
+          ) : (
+            <Text style={styles.saveButtonText}>
+              {isUpdate ? 'Update' : 'Save'}
+            </Text>
+          )}
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -403,7 +499,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    maxHeight: '85%',
+    maxHeight: '100%',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -489,4 +585,26 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   saveButtonText: { color: colors.white, fontWeight: '600', fontSize: 16 },
+  button: {
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    height: 44,
+    width: '100%',
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.borderColor,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: colors.textSecondary,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  imagePreview: {
+    width: '100%',
+    height: 150,
+    borderRadius: 8,
+    marginTop: 10,
+  },
 });

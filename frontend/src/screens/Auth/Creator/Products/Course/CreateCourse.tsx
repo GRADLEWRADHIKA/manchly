@@ -8,6 +8,7 @@ import {
   KeyboardAvoidingView,
   ScrollView,
   Platform,
+  Image,
 } from 'react-native';
 import AppHeaderWithBack from '../../../../../components/AppHeaderWithBack';
 import Toast from 'react-native-toast-message';
@@ -19,6 +20,8 @@ import { useDispatch } from 'react-redux';
 import CustomTextInput from '../../../../../components/CustomInput';
 import { Dropdown } from 'react-native-element-dropdown';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { uploadShipDoc } from '../../../../../store/Common';
+import { pick, types } from '@react-native-documents/picker';
 
 const CreateCourse = () => {
   const [loading, setLoading] = useState(false);
@@ -27,22 +30,88 @@ const CreateCourse = () => {
   const route = useRoute();
   const isUpdated = route?.params?.isUpdated;
   const updateData = route?.params?.data;
+  const [uploading, setUploading] = useState(false);
 
   const {
     control,
     handleSubmit,
     reset,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm({
     defaultValues: {
-      courseTitle: updateData?.title,
-      price: String(updateData?.price??'') || '',
-      description: updateData?.description,
-      level: updateData?.level,
-      status: updateData?.status,
-      category: updateData?.category,
+      courseTitle: updateData?.title || '',
+      price: String(updateData?.price ?? '') || '',
+      description: updateData?.description || '',
+      level: updateData?.level || '',
+      status: updateData?.status || '',
+      category: updateData?.category || '',
+      thumbnail: updateData?.thumbnail || '',
     },
   });
+
+  const imagePicker = async (onChange: (val: string) => void) => {
+    try {
+      const res = await pick({
+        type: [types.images],
+      });
+
+      if (!res || res.length === 0) return;
+
+      const picked = {
+        uri: res[0].uri,
+        type: res[0].type,
+        name: res[0].name,
+        size: res[0].size,
+      };
+
+      await pickImageUpload(picked, onChange);
+    } catch (err: any) {
+      console.error('Document Picker Error:', err);
+      Toast.show({
+        type: 'error',
+        text1: 'Image Picker Error',
+        text2: 'Unable to pick the image. Please try again.',
+        position: 'bottom',
+      });
+    }
+  };
+
+  const pickImageUpload = async (
+    file: any,
+    onChange: (val: string) => void,
+  ) => {
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', {
+        uri: file.uri,
+        type: file.type,
+        name: file.name || 'upload.jpg',
+      });
+
+      const res: any = await dispatch(uploadShipDoc(formData)).unwrap();
+      const newUrl = res?.data?.url;
+      onChange(newUrl);
+
+      Toast.show({
+        type: 'success',
+        text1: 'Image uploaded successfully!',
+        position: 'bottom',
+      });
+    } catch (err: any) {
+      console.error('Image Upload Error:', err);
+      Toast.show({
+        type: 'error',
+        text1: 'Upload Failed',
+        text2: 'Please try again later.',
+        position: 'bottom',
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const onCreateCourse = (data: any) => {
     setLoading(true);
@@ -53,28 +122,28 @@ const CreateCourse = () => {
       category: data?.category.trim() || '',
       level: data?.level,
       status: data?.status,
+      thumbnail: data?.thumbnail,
     };
+
     dispatch(createCourse(payload))
       .unwrap()
-      .then(response => {
+      .then(res => {
+        console.log('-----res----->', res);
         reset();
         Toast.show({
           type: 'success',
           text1: 'Course created successfully!',
         });
         Nav.goBack();
-        setLoading(false);
       })
-      .catch(error => {
+      .catch(err => {
+        console.log('------err------', err);
         Toast.show({
           type: 'error',
           text1: 'Failed to create course',
         });
-        console.log(error);
       })
-      .finally(() => {
-        setLoading(false);
-      });
+      .finally(() => setLoading(false));
   };
 
   const onCourseUpdate = (data: any) => {
@@ -88,34 +157,36 @@ const CreateCourse = () => {
         category: data?.category.trim() || '',
         level: data?.level,
         status: data?.status,
+        thumbnail: data?.thumbnail,
       },
     };
+
     dispatch(updateCourse(payload))
       .unwrap()
-      .then(response => {
+      .then(res => {
+        console.log('-----res----->', res);
         reset();
         Toast.show({
           type: 'success',
           text1: 'Course updated successfully!',
         });
         Nav.goBack();
-        setLoading(false);
       })
-      .catch(error => {
+      .catch(err => {
+        console.log('------err------', err);
         Toast.show({
           type: 'error',
           text1: 'Failed to update course',
         });
-        console.log('------error------', error);
       })
-      .finally(() => {
-        setLoading(false);
-      });
+      .finally(() => setLoading(false));
   };
 
   return (
     <View style={styles.root}>
-      <AppHeaderWithBack title="Create Course" />
+      <AppHeaderWithBack
+        title={isUpdated ? 'Update Course' : 'Create Course'}
+      />
 
       <KeyboardAvoidingView
         style={styles.flexGrow}
@@ -124,226 +195,214 @@ const CreateCourse = () => {
       >
         <ScrollView contentContainerStyle={styles.scrollArea}>
           <View style={styles.formCard}>
+            {/* Course Title */}
             <Text style={styles.label}>Course Title</Text>
             <Controller
               name="courseTitle"
               control={control}
-              rules={{
-                required: true,
-              }}
-              render={({
-                field: { onChange, onBlur, value },
-                fieldState: { error },
-              }) => (
+              rules={{ required: true }}
+              render={({ field: { onChange, onBlur, value } }) => (
                 <CustomTextInput
                   inputContainerStyle={[
                     styles.nameFields,
                     {
-                      borderColor: error ? 'red' : colors.borderColor,
+                      borderColor: errors.courseTitle
+                        ? 'red'
+                        : colors.borderColor,
                     },
                   ]}
-                  inputStyle={{
-                    fontSize: 16,
-                    color: colors.black,
-                  }}
-                  placeholderTextColor={colors.borderColor}
                   placeholder="Enter course title"
+                  value={value}
                   onChange={onChange}
                   onBlur={onBlur}
-                  value={value}
                 />
               )}
             />
-
+            {/* Price */}
             <Text style={styles.label}>Price (INR)</Text>
             <Controller
               name="price"
               control={control}
-              rules={{
-                required: true,
-              }}
-              render={({
-                field: { onChange, onBlur, value },
-                fieldState: { error },
-              }) => (
+              rules={{ required: true }}
+              render={({ field: { onChange, onBlur, value } }) => (
                 <CustomTextInput
                   inputContainerStyle={[
                     styles.nameFields,
-                    {
-                      borderColor: error ? 'red' : colors.borderColor,
-                    },
+                    { borderColor: errors.price ? 'red' : colors.borderColor },
                   ]}
-                  inputStyle={{
-                    fontSize: 16,
-                    color: colors.black,
-                  }}
                   keyboardType="numeric"
-                  placeholderTextColor={colors.borderColor}
                   placeholder="e.g ₹499"
+                  value={value}
                   onChange={onChange}
                   onBlur={onBlur}
-                  value={value}
                 />
               )}
             />
+            {/* Thumbnail */}
+            <Text style={styles.label}>Choose Course Thumbnail</Text>
+            <Controller
+              name="thumbnail"
+              control={control}
+              render={({ field: { onChange, value } }) => (
+                <View>
+                  <TouchableOpacity
+                    onPress={() => imagePicker(onChange)}
+                    style={styles.button}
+                    disabled={uploading}
+                  >
+                    {uploading ? (
+                      <ActivityIndicator color={colors.primary} />
+                    ) : (
+                      <Text style={styles.buttonText}>
+                        {value ? 'Change Thumbnail' : 'Choose Thumbnail'}
+                      </Text>
+                    )}
+                  </TouchableOpacity>
 
+                  {value ? (
+                    <Image
+                      source={{ uri: value }}
+                      style={styles.imagePreview}
+                      resizeMode="cover"
+                    />
+                  ) : null}
+                </View>
+              )}
+            />
+
+            {/* Level */}
             <Text style={styles.label}>Level</Text>
             <Controller
-              control={control}
               name="level"
+              control={control}
               rules={{ required: true }}
               render={({
                 field: { onChange, value },
                 fieldState: { error },
               }) => (
-                <>
-                  <Dropdown
-                    style={[styles.dropdown, error && styles.errorBorder]}
-                    placeholderStyle={styles.placeholder}
-                    selectedTextStyle={styles.selectedText}
-                    containerStyle={{
-                      borderRadius: 10,
-                    }}
-                    data={[
-                      {
-                        label: 'Advanced',
-                        value: 'Advanced',
-                      },
-                      {
-                        label: 'Intermediate',
-                        value: 'Intermediate',
-                      },
-                      {
-                        label: 'Beginner',
-                        value: 'Beginner',
-                      },
-                    ]}
-                    labelField="label"
-                    valueField="value"
-                    placeholder="Select level"
-                    value={value}
-                    onChange={item => onChange(item.value)}
-                    renderItem={item => {
-                      const isSelected = item.value === value;
-                      return (
-                        <View
+                <Dropdown
+                  style={[styles.dropdown, error && styles.errorBorder]}
+                  placeholderStyle={styles.placeholder}
+                  selectedTextStyle={styles.selectedText}
+                  containerStyle={{
+                    borderRadius: 10,
+                  }}
+                  data={[
+                    { label: 'Advanced', value: 'Advanced' },
+                    { label: 'Intermediate', value: 'Intermediate' },
+                    { label: 'Beginner', value: 'Beginner' },
+                  ]}
+                  labelField="label"
+                  valueField="value"
+                  placeholder="Select Department"
+                  value={value}
+                  onChange={item => onChange(item.value)}
+                  renderItem={item => {
+                    const isSelected = item.value === value;
+                    return (
+                      <View
+                        style={{
+                          paddingHorizontal: 10,
+                          paddingVertical: 5,
+                          margin: 10,
+                          backgroundColor: isSelected
+                            ? colors.primary
+                            : colors.white,
+                          borderRadius: 5,
+                        }}
+                      >
+                        <Text
                           style={{
-                            paddingHorizontal: 10,
-                            paddingVertical: 5,
-                            margin: 10,
-                            backgroundColor: isSelected
-                              ? colors.primary
-                              : colors.white,
-                            borderRadius: 5,
+                            color: isSelected
+                              ? colors.white
+                              : colors.textSecondary,
                           }}
                         >
-                          <Text
-                            style={{
-                              color: isSelected ? colors.white : colors.primary,
-                            }}
-                          >
-                            {item.label}
-                          </Text>
-                        </View>
-                      );
-                    }}
-                  />
-                </>
+                          {item.label}
+                        </Text>
+                      </View>
+                    );
+                  }}
+                />
               )}
             />
-
+            {/* Category */}
             <Text style={styles.label}>Category</Text>
             <Controller
               name="category"
               control={control}
-              rules={{
-                required: true,
-              }}
-              render={({
-                field: { onChange, onBlur, value },
-                fieldState: { error },
-              }) => (
+              rules={{ required: true }}
+              render={({ field: { onChange, onBlur, value } }) => (
                 <CustomTextInput
                   inputContainerStyle={[
                     styles.nameFields,
                     {
-                      borderColor: error ? 'red' : colors.borderColor,
+                      borderColor: errors.category ? 'red' : colors.borderColor,
                     },
                   ]}
-                  inputStyle={{
-                    fontSize: 16,
-                    color: colors.black,
-                  }}
-                  placeholderTextColor={colors.borderColor}
                   placeholder="Enter category"
+                  value={value}
                   onChange={onChange}
                   onBlur={onBlur}
-                  value={value}
                 />
               )}
             />
 
+            {/* Status */}
             <Text style={styles.label}>Status</Text>
             <Controller
-              control={control}
               name="status"
+              control={control}
               rules={{ required: true }}
               render={({
                 field: { onChange, value },
                 fieldState: { error },
               }) => (
-                <>
-                  <Dropdown
-                    style={[styles.dropdown, error && styles.errorBorder]}
-                    placeholderStyle={styles.placeholder}
-                    selectedTextStyle={styles.selectedText}
-                    containerStyle={{
-                      borderRadius: 10,
-                    }}
-                    data={[
-                      {
-                        label: 'Draft',
-                        value: 'DRAFT',
-                      },
-                      {
-                        label: 'Published',
-                        value: 'PUBLISHED',
-                      },
-                    ]}
-                    labelField="label"
-                    valueField="value"
-                    placeholder="Select status"
-                    value={value}
-                    onChange={item => onChange(item.value)}
-                    renderItem={item => {
-                      const isSelected = item.value === value;
-                      return (
-                        <View
+                <Dropdown
+                  style={[styles.dropdown, error && styles.errorBorder]}
+                  placeholderStyle={styles.placeholder}
+                  selectedTextStyle={styles.selectedText}
+                  containerStyle={{
+                    borderRadius: 10,
+                  }}
+                  data={[
+                    { label: 'Draft', value: 'DRAFT' },
+                    { label: 'Published', value: 'PUBLISHED' },
+                  ]}
+                  labelField="label"
+                  valueField="value"
+                  placeholder="Select Department"
+                  value={value}
+                  onChange={item => onChange(item.value)}
+                  renderItem={item => {
+                    const isSelected = item.value === value;
+                    return (
+                      <View
+                        style={{
+                          paddingHorizontal: 10,
+                          paddingVertical: 5,
+                          margin: 10,
+                          backgroundColor: isSelected
+                            ? colors.primary
+                            : colors.white,
+                          borderRadius: 5,
+                        }}
+                      >
+                        <Text
                           style={{
-                            paddingHorizontal: 10,
-                            paddingVertical: 5,
-                            margin: 10,
-                            backgroundColor: isSelected
-                              ? colors.primary
-                              : colors.white,
-                            borderRadius: 5,
+                            color: isSelected
+                              ? colors.white
+                              : colors.textSecondary,
                           }}
                         >
-                          <Text
-                            style={{
-                              color: isSelected ? colors.white : colors.primary,
-                            }}
-                          >
-                            {item.label}
-                          </Text>
-                        </View>
-                      );
-                    }}
-                  />
-                </>
+                          {item.label}
+                        </Text>
+                      </View>
+                    );
+                  }}
+                />
               )}
             />
-
             {/* Description */}
             <Text style={styles.label}>About this course</Text>
             <Controller
@@ -355,75 +414,48 @@ const CreateCourse = () => {
                   message: 'Please write a short description',
                 },
               }}
-              render={({
-                field: { onChange, onBlur, value },
-                fieldState: { error },
-              }) => (
+              render={({ field: { onChange, onBlur, value } }) => (
                 <CustomTextInput
                   inputContainerStyle={[
                     styles.textArea,
                     {
-                      borderColor: error ? 'red' : colors.borderColor,
+                      borderColor: errors.description
+                        ? 'red'
+                        : colors.borderColor,
                       alignItems: 'flex-start',
                     },
                   ]}
-                  inputStyle={{
-                    fontSize: 16,
-                    color: colors.black,
-                  }}
-                  placeholderTextColor="#999"
                   placeholder="Write a short description"
                   multiline
-                  textAlignVertical="top"
                   numberOfLines={4}
+                  textAlignVertical="top"
+                  value={value}
                   onChange={onChange}
                   onBlur={onBlur}
-                  value={value}
                 />
               )}
             />
 
             <View style={styles.actionsRow}>
-              {isUpdated === true ? (
-                <TouchableOpacity
-                  style={[
-                    styles.createButton,
-                    loading ? styles.buttonDisabled : null,
-                  ]}
-                  onPress={handleSubmit(onCourseUpdate)}
-                  disabled={loading}
-                >
+              <TouchableOpacity
+                style={[styles.createButton, loading && styles.buttonDisabled]}
+                onPress={handleSubmit(
+                  isUpdated ? onCourseUpdate : onCreateCourse,
+                )}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
                   <Text style={styles.createButtonText}>
-                    {loading ? (
-                      <ActivityIndicator size="small" color="#fff" />
-                    ) : (
-                      'Update'
-                    )}
+                    {isUpdated ? 'Update' : 'Create Course'}
                   </Text>
-                </TouchableOpacity>
-              ) : (
-                <TouchableOpacity
-                  style={[
-                    styles.createButton,
-                    loading ? styles.buttonDisabled : null,
-                  ]}
-                  onPress={handleSubmit(onCreateCourse)}
-                  disabled={loading}
-                >
-                  <Text style={styles.createButtonText}>
-                    {loading ? (
-                      <ActivityIndicator size="small" color="#fff" />
-                    ) : (
-                      'Create Course'
-                    )}
-                  </Text>
-                </TouchableOpacity>
-              )}
+                )}
+              </TouchableOpacity>
             </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-
       <Toast />
     </View>
   );
@@ -451,12 +483,6 @@ const styles = StyleSheet.create({
     color: '#333',
     fontWeight: '600',
   },
-  inputField: {
-    borderWidth: 1,
-    borderColor: '#e6e6e6',
-    borderRadius: 8,
-    paddingLeft: 10,
-  },
   textArea: {
     borderWidth: 1,
     borderColor: '#e6e6e6',
@@ -464,10 +490,13 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
     height: 100,
   },
-  errorText: {
-    color: 'red',
-    fontSize: 12,
-    marginTop: 2,
+  placeholder: {
+    fontSize: 14,
+    color: colors.borderColor,
+  },
+  selectedText: {
+    fontSize: 14,
+    color: colors.primary,
   },
   actionsRow: { marginTop: 18, alignItems: 'flex-end' },
   createButton: {
@@ -475,17 +504,11 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 18,
     borderRadius: 10,
-    width: 150,
+    width: 160,
     alignItems: 'center',
   },
-  createButtonText: {
-    color: '#fff',
-    fontWeight: '700',
-    fontSize: 15,
-  },
-  buttonDisabled: {
-    opacity: 0.65,
-  },
+  createButtonText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+  buttonDisabled: { opacity: 0.65 },
   dropdown: {
     height: 44,
     borderWidth: 1,
@@ -493,19 +516,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 20,
     justifyContent: 'center',
-    // marginTop: 20,
   },
-  selectedText: {
-    fontSize: 16,
-    color: colors.primary,
-  },
-  placeholder: {
-    fontSize: 16,
-    color: colors.borderColor,
-  },
-  errorBorder: {
-    borderColor: 'red',
-  },
+  errorBorder: { borderColor: 'red' },
   nameFields: {
     borderRadius: 8,
     paddingHorizontal: 10,
@@ -513,5 +525,28 @@ const styles = StyleSheet.create({
     width: '100%',
     backgroundColor: colors.white,
     borderWidth: 1,
+    borderColor: colors.borderColor,
+  },
+  button: {
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    height: 44,
+    width: '100%',
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.borderColor,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: colors.textSecondary,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  imagePreview: {
+    width: '100%',
+    height: 150,
+    borderRadius: 8,
+    marginTop: 10,
   },
 });

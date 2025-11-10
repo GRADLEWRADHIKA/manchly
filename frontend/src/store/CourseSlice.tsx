@@ -40,6 +40,7 @@ export const createCourse = createAsyncThunk(
       });
       return res.data?.data;
     } catch (e: any) {
+      console.log('-----e------',JSON.stringify(e))
       const msg = e?.response?.data?.message || 'Failed to create course';
       Toast.show({ type: 'error', text1: msg, position: 'bottom' });
       return rejectWithValue(msg);

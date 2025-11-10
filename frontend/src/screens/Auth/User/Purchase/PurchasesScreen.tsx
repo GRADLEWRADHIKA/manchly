@@ -81,7 +81,7 @@ const PurchasesScreen = () => {
       </View>
     );
   }
-  
+
   return (
     <View style={styles.container}>
       <AppHeader title="My Purchases" />
@@ -198,8 +198,10 @@ const PurchasesScreen = () => {
                   <TouchableOpacity
                     style={styles.actionBtn}
                     activeOpacity={0.8}
-                    onPress={()=>{
-                       navigation.navigate('UserVideoList', { item: enrollment });
+                    onPress={() => {
+                      navigation.navigate('UserVideoList', {
+                        item: enrollment,
+                      });
                     }}
                   >
                     <Text style={styles.actionText}>
@@ -399,7 +401,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.text,
     marginTop: 16,
-    textAlign: 'center'
+    textAlign: 'center',
   },
   emptySubtext: {
     fontSize: 14,

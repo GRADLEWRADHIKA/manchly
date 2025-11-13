@@ -17,6 +17,7 @@ import {
   TrendingUp,
   DollarSign,
   BellDot,
+  IndianRupee,
 } from 'lucide-react-native';
 import colors from '../../../../utils/colors';
 import KycCard from './KeyCard';
@@ -26,6 +27,7 @@ import { ThunkDispatch } from '@reduxjs/toolkit';
 import Toast from 'react-native-toast-message';
 import AppHeaderWithBack from '../../../../components/AppHeaderWithBack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { theme } from '../../../../theme/theme';
 
 const CreatorHome = () => {
   const navigation = useNavigation<any>();
@@ -97,7 +99,7 @@ const CreatorHome = () => {
 
         {/* Quick Stats */}
         <View style={styles.statsSection}>
-          <Text style={styles.sectionTitle}>Quick Stats</Text>
+          <Text style={styles.sectionTitle}>Dashboard</Text>
           <View style={styles.statsGrid}>
             {active ? (
               <KycCard />
@@ -115,7 +117,7 @@ const CreatorHome = () => {
 
         {/* Quick Actions */}
         <View style={styles.actionsSection}>
-          <Text style={styles.sectionTitle}>Quick Actions</Text>
+          {/* <Text style={styles.sectionTitle}>Quick Actions</Text> */}
           <View style={styles.actionsGrid}>
             <TouchableOpacity
               style={[styles.actionCard, styles.actionCardRight]}
@@ -160,7 +162,7 @@ const CreatorHome = () => {
 
         <View style={styles.withdrawCard}>
           <View style={styles.withdrawLeft}>
-            <DollarSign width={22} height={22} color={colors.white} />
+            {/* <IndianRupee width={22} height={22} color={colors.white} /> */}
             <View style={{ marginLeft: 12 }}>
               <Text style={styles.withdrawLabel}>Withdrawable Balance</Text>
               <Text style={styles.withdrawAmount}>₹ 7000</Text>
@@ -228,10 +230,12 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    marginBottom: 12,
+    fontSize: 24,
+    // fontWeight: '200',
+    marginBottom: 25,
     color: colors.text,
+    textAlign: 'center',
+    fontFamily: theme.fonts.semiBold,
   },
   statsGrid: {
     flexDirection: 'row',
@@ -308,38 +312,38 @@ const styles = StyleSheet.create({
   },
   withdrawCard: {
     marginTop: 12,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.white,
     borderRadius: 12,
     padding: 12,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginHorizontal: 16,
+    elevation: 5,
   },
   withdrawLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
   },
   withdrawLabel: {
-    color: colors.white,
+    color: colors.primary,
     fontWeight: '700',
   },
   withdrawAmount: {
-    color: colors.white,
+    color: colors.primary,
     marginTop: 2,
     fontSize: 18,
     fontWeight: '900',
   },
   withdrawBtn: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.primary,
     paddingVertical: 8,
     paddingHorizontal: 14,
     borderRadius: 10,
   },
   withdrawBtnText: {
     fontWeight: '800',
-    color: colors.primary,
+    color: colors.white,
   },
   avatar: {
     width: 54,

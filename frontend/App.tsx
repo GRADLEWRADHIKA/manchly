@@ -30,3 +30,18 @@ export default function App() {
     </Provider>
   );
 }
+
+// gilroy font in react native
+// npm i react-native-asset
+
+// project-root/
+//  ├── android/
+//  ├── ios/
+//  ├── assets/
+//  │    └── fonts/
+//  │         ├── Gilroy-Regular.ttf
+//  │         ├── Gilroy-Medium.ttf
+//  │         ├── Gilroy-Bold.ttf
+//  ├── react-native.config.js
+//  ├── App.js
+//  └── package.json

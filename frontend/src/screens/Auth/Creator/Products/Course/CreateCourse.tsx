@@ -413,6 +413,14 @@ const CreateCourse = () => {
                   value: true,
                   message: 'Please write a short description',
                 },
+                minLength: {
+                  value: 5,
+                  message: 'Description must be at least 10 characters long',
+                },
+                maxLength: {
+                  value: 20,
+                  message: 'Description cannot exceed 200 characters',
+                },
               }}
               render={({ field: { onChange, onBlur, value } }) => (
                 <CustomTextInput
@@ -425,7 +433,7 @@ const CreateCourse = () => {
                       alignItems: 'flex-start',
                     },
                   ]}
-                  placeholder="Write a short description"
+                  placeholder="Write a description (between 5–20 characters)"
                   multiline
                   numberOfLines={4}
                   textAlignVertical="top"

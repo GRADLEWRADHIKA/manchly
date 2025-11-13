@@ -6,6 +6,7 @@ import {
   ActivityIndicator,
   StyleSheet,
   StatusBar as RNStatusBar,
+  Image,
 } from 'react-native';
 import colors from '../../../../../utils/colors';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
@@ -15,6 +16,8 @@ import { deleteCourse, fetchCourses } from '../../../../../store/CourseSlice';
 import DynamicModal from '../../../../../components/CommonModal';
 import AppHeader from '../../../../../components/AppHeader';
 import CourseCard from './CourseCard';
+import { BellDot } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const CreatorView: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -29,6 +32,8 @@ const CreatorView: React.FC = () => {
   const [courseId, setCourseId] = useState('');
   const [deleteLoader, setDeleteLoader] = useState(false);
   const { token } = useSelector((state: any) => state.userReducer);
+  const insets = useSafeAreaInsets();
+  const { user } = useSelector((state: any) => state.userReducer);
 
   useEffect(() => {
     getTheCourse(1, true);
@@ -86,15 +91,39 @@ const CreatorView: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <RNStatusBar barStyle="light-content" />
-      <AppHeader title="Manchly" />
+      <View
+        style={[
+          styles.mainHeader,
+          {
+            paddingTop: insets.top + 10,
+          },
+        ]}
+      >
+        <View style={styles.mainHead}>
+          <View>
+            <Image
+              source={{ uri: user?.profile_image }}
+              style={styles.avatar}
+            />
+          </View>
+          <View>
+            <Text style={styles.firstPara}>Hello,</Text>
+            <Text style={styles.secPara}>{user?.name}</Text>
+          </View>
+        </View>
+        <View>
+          <BellDot width={22} height={22} color={colors.white} />
+        </View>
+      </View>
+      {/* <RNStatusBar barStyle="light-content" />
+      <AppHeader title="Manchly" /> */}
 
-      <View style={styles.heroSection}>
+      {/* <View style={styles.heroSection}>
         <Text style={styles.heroHeading}>Welcome back, Creator! 👋</Text>
         <Text style={styles.heroSub}>
           Manage your courses and track performance
         </Text>
-      </View>
+      </View> */}
 
       {loading ? (
         <View style={styles.loaderContainer}>
@@ -120,6 +149,7 @@ const CreatorView: React.FC = () => {
               onView={() => navigation.navigate('CourseVideoList', { item })}
             />
           )}
+          horizontal
           keyExtractor={item => item.id}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listContent}
@@ -220,5 +250,35 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 20,
+  },
+  mainHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    backgroundColor: colors.primary,
+  },
+  mainHead: {
+    flexDirection: 'row',
+    gap: 5,
+    alignItems: 'center',
+  },
+  avatar: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    backgroundColor: colors.lightGrey,
+    marginRight: 12,
+  },
+  firstPara: {
+    color: colors.white,
+    fontSize: 14,
+    fontWeight: '400',
+  },
+  secPara: {
+    color: colors.white,
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

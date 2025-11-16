@@ -477,7 +477,7 @@ const CreateCourse = () => {
               <TouchableOpacity
                 style={styles.buttonHelp}
                 onPress={() => {
-                  const phoneNumber = '916363790659';
+                  const phoneNumber = '6363790659';
                   const message = 'Hello, I need help with uploading.';
                   const url = `whatsapp://send?phone=91${phoneNumber}&text=${encodeURIComponent(
                     message,

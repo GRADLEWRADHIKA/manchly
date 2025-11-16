@@ -6,9 +6,20 @@ import {
   Animated,
   Image,
   StyleSheet,
+  Dimensions,
 } from 'react-native';
-import { Users, Clock, Edit3, Trash2, ChevronRight } from 'lucide-react-native';
+import {
+  Users,
+  Clock,
+  Edit3,
+  Trash2,
+  ChevronRight,
+  Link,
+} from 'lucide-react-native';
 import colors from '../../../../../utils/colors';
+
+const { width: screenWidth } = Dimensions.get('window');
+const CARD_WIDTH = screenWidth - 60; // Adjusted for horizontal layout
 
 interface Props {
   item: any;
@@ -42,6 +53,7 @@ const CourseCard: React.FC<Props> = ({ item, onEdit, onDelete, onView }) => {
         styles.courseCard,
         {
           transform: [{ scale: scaleAnim }],
+          width: CARD_WIDTH,
         },
       ]}
     >
@@ -50,63 +62,83 @@ const CourseCard: React.FC<Props> = ({ item, onEdit, onDelete, onView }) => {
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         onPress={onView}
+        style={styles.touchable}
       >
-        <View style={styles.cardHeader}>
-          <View style={styles.thumbnailContainer}>
-            <Image
-              source={{
-                uri:
-                  item.thumbnail ||
-                  'https://cdn-icons-png.flaticon.com/512/4149/4149650.png',
-              }}
-              style={styles.thumbnail}
-            />
-          </View>
+        {/* Thumbnail */}
+        <View style={styles.thumbnailContainer}>
+          <Image
+            source={{
+              uri:
+                item.thumbnail ||
+                'https://cdn-icons-png.flaticon.com/512/4149/4149650.png',
+            }}
+            style={styles.thumbnail}
+          />
+        </View>
 
-          <View style={styles.courseInfo}>
-            <View style={styles.titleRow}>
-              <Text style={styles.courseTitle} numberOfLines={2}>
-                {item?.title}
-              </Text>
-              <ChevronRight size={16} color={colors.textSecondary} />
-            </View>
+        {/* Course Content */}
+        <View style={styles.courseContent}>
+          <View style={styles.titleRow}>
+            <Text style={styles.courseTitle} numberOfLines={2}>
+              {item?.title.toUpperCase()}
+            </Text>
+            <ChevronRight size={16} color={colors.textSecondary} />
+          </View>
+          <View>
             <Text style={styles.courseCategory}>{item?.category}</Text>
-            <Text style={styles.description} numberOfLines={2}>
-              {item.description || 'No description available for this course.'}
+
+            <Text style={styles.description} numberOfLines={1}>
+              {item.description}
             </Text>
           </View>
-        </View>
 
-        <View style={styles.metaContainer}>
-          <View style={styles.metaRow}>
-            <View style={styles.metaItem}>
-              <Users size={14} color={colors.primary} />
-              <Text style={styles.metaText}>{item?.language || 'English'}</Text>
-            </View>
-            <View style={styles.metaItem}>
-              <Clock size={14} color={colors.primary} />
-              <Text style={styles.metaText}>{item?.level || 'Beginner'}</Text>
-            </View>
-            <View style={styles.metaItem}>
-              <Text style={styles.durationText}>
-                {item.duration || '8h 30m'}
-              </Text>
+          {/* Meta Information */}
+          <View style={styles.metaContainer}>
+            <View style={styles.metaRow}>
+              <View style={styles.metaItem}>
+                <Users size={14} color={colors.primary} />
+                <Text style={styles.metaText}>
+                  {item?.language || 'English'}
+                </Text>
+              </View>
+              <View style={styles.durationContainer}>
+                <Text style={styles.durationText}>
+                  {item.duration || '8h 30m'}
+                </Text>
+              </View>
+              <View style={styles.metaItem}>
+                <Clock size={14} color={colors.primary} />
+                <Text style={styles.metaText}>{item?.level || 'Beginner'}</Text>
+              </View>
             </View>
           </View>
-        </View>
 
-        <View style={styles.actionsRow}>
-          <TouchableOpacity style={styles.actionBtn} onPress={onEdit}>
-            <Edit3 size={16} color={colors.primary} />
-            <Text style={styles.editBtnText}>Edit</Text>
-          </TouchableOpacity>
+          {/* Actions */}
+          <View style={styles.actionsRow}>
+            <TouchableOpacity style={styles.actionBtn} onPress={onEdit}>
+              <Edit3 size={16} color={colors.primary} />
+              <Text style={styles.editBtnText}>Edit</Text>
+            </TouchableOpacity>
 
-          <View style={styles.actionSeparator} />
+            <View style={styles.actionSeparator} />
 
-          <TouchableOpacity style={styles.actionBtn} onPress={onDelete}>
-            <Trash2 size={16} color={colors.error} />
-            <Text style={styles.deleteBtnText}>Delete</Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.actionBtn}
+              onPress={() => {
+                console.log('--link copy--');
+              }}
+            >
+              <Link size={16} color={colors.primary} />
+              <Text style={styles.editBtnText}>Link</Text>
+            </TouchableOpacity>
+
+            <View style={styles.actionSeparator} />
+
+            <TouchableOpacity style={styles.actionBtn} onPress={onDelete}>
+              <Trash2 size={16} color={colors.error} />
+              <Text style={styles.deleteBtnText}>Delete</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </TouchableOpacity>
     </Animated.View>
@@ -119,7 +151,7 @@ const styles = StyleSheet.create({
   courseCard: {
     backgroundColor: colors.white,
     borderRadius: 20,
-    marginHorizontal: 16,
+    marginHorizontal: 8,
     marginBottom: 16,
     padding: 16,
     shadowColor: colors.primary,
@@ -128,61 +160,75 @@ const styles = StyleSheet.create({
     elevation: 4,
     borderWidth: 1,
     borderColor: 'rgba(0,0,0,0.05)',
+    height: 380,
   },
-  cardHeader: { flexDirection: 'row', marginBottom: 12 },
-  thumbnailContainer: { position: 'relative', marginRight: 12 },
+  touchable: {
+    flex: 1,
+  },
+  thumbnailContainer: {
+    marginBottom: 12,
+    alignItems: 'center',
+  },
   thumbnail: {
-    width: 80,
-    height: 80,
+    width: '100%',
+    height: 120,
     borderRadius: 12,
     backgroundColor: '#F3F4F6',
   },
-  courseInfo: { flex: 1 },
+  courseContent: {
+    flex: 1,
+    justifyContent: 'space-between',
+  },
   titleRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 4,
   },
   courseTitle: {
     fontSize: 16,
     fontWeight: '700',
     color: colors.text,
-    flex: 1,
     marginRight: 8,
+    lineHeight: 20,
   },
   courseCategory: {
     color: colors.primary,
     fontSize: 12,
     fontWeight: '600',
-    marginBottom: 6,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   description: {
     color: colors.textSecondary,
     fontSize: 13,
-    lineHeight: 18,
-    marginBottom: 12,
   },
   metaContainer: {
     backgroundColor: colors.surface,
     borderRadius: 12,
     padding: 12,
-    marginBottom: 12,
   },
   metaRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
   },
-  metaItem: { flexDirection: 'row', alignItems: 'center' },
+  metaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   metaText: {
     marginLeft: 6,
     color: colors.text,
     fontSize: 12,
     fontWeight: '600',
   },
-  durationText: { color: colors.text, fontSize: 12, fontWeight: '600' },
+  durationContainer: {
+    alignItems: 'center',
+  },
+  durationText: {
+    color: colors.text,
+    fontSize: 12,
+    fontWeight: '600',
+  },
   actionsRow: {
     flexDirection: 'row',
     backgroundColor: colors.surface,

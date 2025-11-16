@@ -104,11 +104,11 @@ const CreatorHome = () => {
             {active ? (
               <KycCard />
             ) : (
-              quickStats.map((stat, index) => (
+              quickStats?.map((stat, index) => (
                 <View key={index} style={styles.statCard}>
-                  <View style={styles.statIcon}>{stat.icon}</View>
-                  <Text style={styles.statValue}>{stat.value}</Text>
-                  <Text style={styles.statLabel}>{stat.label}</Text>
+                  <View style={styles.statIcon}>{stat?.icon}</View>
+                  <Text style={styles.statValue}>{stat?.value}</Text>
+                  <Text style={styles.statLabel}>{stat?.label}</Text>
                 </View>
               ))
             )}
@@ -162,10 +162,9 @@ const CreatorHome = () => {
 
         <View style={styles.withdrawCard}>
           <View style={styles.withdrawLeft}>
-            {/* <IndianRupee width={22} height={22} color={colors.white} /> */}
             <View style={{ marginLeft: 12 }}>
               <Text style={styles.withdrawLabel}>Withdrawable Balance</Text>
-              <Text style={styles.withdrawAmount}>₹ 7000</Text>
+              <Text style={styles.withdrawAmount}>₹ *****</Text>
             </View>
           </View>
 

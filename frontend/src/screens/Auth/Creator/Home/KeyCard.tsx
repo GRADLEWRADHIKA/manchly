@@ -25,7 +25,7 @@ const KycCard = () => {
 
 const styles = StyleSheet.create({
   container: {
-    margin: 16,
+    // margin: 16,
   },
   card: {
     backgroundColor: '#fff',

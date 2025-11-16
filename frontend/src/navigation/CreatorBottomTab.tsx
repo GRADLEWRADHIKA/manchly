@@ -77,16 +77,16 @@ const CustomTabBar = ({ state, descriptors, navigation }: any) => {
             style={styles.tabItem}
           >
             <Icon
-              size={isFocused ? 24 : 20}
-              color={isFocused ? colors.primary : colors.black}
+              size={isFocused ? 26 : 20}
+              color={isFocused ? colors.white : colors.muted}
               strokeWidth={isFocused ? 2.2 : 1.8}
             />
             <Text
               style={[
                 styles.tabLabel,
                 {
-                  color: isFocused ? colors.primary : colors.black,
-                  fontWeight: isFocused ? '600' : '400',
+                  color: isFocused ? colors.white : colors.muted,
+                  fontWeight: isFocused ? '700' : '400',
                 },
               ]}
             >
@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: colors.primary,
     height: 78,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.borderColor,

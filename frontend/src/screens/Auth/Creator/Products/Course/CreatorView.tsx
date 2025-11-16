@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
   FlatList,
   ActivityIndicator,
   StyleSheet,
-  StatusBar as RNStatusBar,
   Image,
+  Dimensions,
+  ScrollView,
+  TouchableOpacity,
 } from 'react-native';
 import colors from '../../../../../utils/colors';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
@@ -14,10 +16,20 @@ import { useDispatch, useSelector } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
 import { deleteCourse, fetchCourses } from '../../../../../store/CourseSlice';
 import DynamicModal from '../../../../../components/CommonModal';
-import AppHeader from '../../../../../components/AppHeader';
 import CourseCard from './CourseCard';
-import { BellDot } from 'lucide-react-native';
+import {
+  Award,
+  BellDot,
+  BookOpen,
+  Search,
+  SlidersHorizontal,
+  TrendingUp,
+  Users,
+} from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import CustomTextInput from '../../../../../components/CustomInput';
+
+const { width: screenWidth } = Dimensions.get('window');
 
 const CreatorView: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -31,17 +43,42 @@ const CreatorView: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [courseId, setCourseId] = useState('');
   const [deleteLoader, setDeleteLoader] = useState(false);
-  const { token } = useSelector((state: any) => state.userReducer);
-  const insets = useSafeAreaInsets();
   const { user } = useSelector((state: any) => state.userReducer);
+  const insets = useSafeAreaInsets();
+
+  const [searchCourse, setSearchCourse] = useState('');
+
+  const quickStats = [
+    {
+      label: 'Active Courses',
+      value: '12',
+      icon: <BookOpen size={24} color={colors.primary} />,
+    },
+    {
+      label: 'Students',
+      value: '5.2K',
+      icon: <Users size={24} color={colors.secondary} />,
+    },
+    {
+      label: 'Completion Rate',
+      value: '94%',
+      icon: <Award size={24} color={colors.accent} />,
+    },
+    {
+      label: 'Revenue',
+      value: '₹12.5K',
+      icon: <TrendingUp size={24} color={colors.golden} />,
+    },
+  ];
 
   useEffect(() => {
     getTheCourse(1, true);
   }, [focus]);
 
-  // calling the get the all course api -------
+  // Fetch courses
   const getTheCourse = (pageNum: number, refresh = false) => {
     if (loading || loadingMore) return;
+
     refresh ? setLoading(true) : setLoadingMore(true);
 
     const payload = { page: pageNum, limit: 10 };
@@ -54,14 +91,13 @@ const CreatorView: React.FC = () => {
         setHasMore(newData.length >= 10);
         setPage(pageNum);
       })
-      .catch(error => console.log('----error---', error))
       .finally(() => {
         setLoading(false);
         setLoadingMore(false);
       });
   };
 
-  // calling the delete api  ----
+  // Delete
   const handleDelete = () => {
     setDeleteLoader(true);
     dispatch(deleteCourse(courseId))
@@ -71,13 +107,19 @@ const CreatorView: React.FC = () => {
         setShowModal(false);
         getTheCourse(1, true);
       })
-      .catch(error => {
-        console.log('----error---', error);
-        setDeleteLoader(false);
-      });
+      .catch(() => setDeleteLoader(false));
   };
 
   const handleCancel = () => setShowModal(false);
+
+  // 🔍 Dynamic Search Filter
+  const filteredCourses = useMemo(() => {
+    if (!searchCourse.trim()) return data;
+
+    return data.filter(item =>
+      item?.title?.toLowerCase().includes(searchCourse.toLowerCase()),
+    );
+  }, [searchCourse, data]);
 
   const renderFooter = () => {
     if (!loadingMore) return null;
@@ -89,90 +131,148 @@ const CreatorView: React.FC = () => {
     );
   };
 
+  const renderEmptyState = () => (
+    <View style={styles.emptyState}>
+      <Text style={styles.emptyTitle}>No courses found</Text>
+      <Text style={styles.emptySubtitle}>
+        Try searching with a different name
+      </Text>
+    </View>
+  );
+
   return (
     <View style={styles.container}>
-      <View
-        style={[
-          styles.mainHeader,
-          {
-            paddingTop: insets.top + 10,
-          },
-        ]}
-      >
+      {/* Header */}
+
+      <View style={[styles.mainHeader, { paddingTop: insets.top + 10 }]}>
         <View style={styles.mainHead}>
-          <View>
-            <Image
-              source={{ uri: user?.profile_image }}
-              style={styles.avatar}
-            />
-          </View>
+          <Image source={{ uri: user?.profile_image }} style={styles.avatar} />
           <View>
             <Text style={styles.firstPara}>Hello,</Text>
             <Text style={styles.secPara}>{user?.name}</Text>
           </View>
         </View>
-        <View>
-          <BellDot width={22} height={22} color={colors.white} />
-        </View>
+        <BellDot width={22} height={22} color={colors.white} />
       </View>
-      {/* <RNStatusBar barStyle="light-content" />
-      <AppHeader title="Manchly" /> */}
 
-      {/* <View style={styles.heroSection}>
-        <Text style={styles.heroHeading}>Welcome back, Creator! 👋</Text>
-        <Text style={styles.heroSub}>
-          Manage your courses and track performance
-        </Text>
-      </View> */}
-
-      {loading ? (
-        <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={styles.loadingText}>Loading your courses...</Text>
-        </View>
-      ) : (
-        <FlatList
-          data={data}
-          renderItem={({ item }) => (
-            <CourseCard
-              item={item}
-              onEdit={() =>
-                navigation.navigate('CreateCourse', {
-                  data: item,
-                  isUpdated: true,
-                })
-              }
-              onDelete={() => {
-                setShowModal(true);
-                setCourseId(item?.id);
-              }}
-              onView={() => navigation.navigate('CourseVideoList', { item })}
-            />
-          )}
-          horizontal
-          keyExtractor={item => item.id}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.listContent}
-          ListEmptyComponent={
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyTitle}>No courses yet</Text>
-              <Text style={styles.emptySubtitle}>
-                Create your first course to start teaching
-              </Text>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* Search Box */}
+        <View
+          style={{ flexDirection: 'row', alignItems: 'center' }}
+        >
+          <View style={{width: '90%'}}>
+            <View style={styles.searchHeader}>
+              <Search width={20} height={20} color={colors.textSecondary} />
+              <CustomTextInput
+                inputContainerStyle={[styles.nameFields]}
+                inputStyle={{ fontSize: 16, color: colors.black }}
+                placeholderTextColor={colors.borderColor}
+                placeholder="Search course by name"
+                onChange={text => setSearchCourse(text)}
+                value={searchCourse}
+              />
             </View>
-          }
-          onEndReached={() => {
-            if (hasMore && !loadingMore) getTheCourse(page + 1);
-          }}
-          onEndReachedThreshold={0.3}
-          ListFooterComponent={renderFooter}
-        />
-      )}
+          </View>
+          <TouchableOpacity
+           style={{width: '10%'}}
+            onPress={() => {
+              console.log('---filter---');
+            }}
+          >
+            <SlidersHorizontal size={30} color={colors.primary} />
+          </TouchableOpacity>
+        </View>
 
+        {/* Horizontal List Header */}
+        <View style={styles.listHeader}>
+          <Text style={styles.listTitle}>Your Courses</Text>
+          <Text style={styles.courseCount}>
+            {filteredCourses.length} courses
+          </Text>
+        </View>
+
+        {/* Horizontal FlatList */}
+        {loading ? (
+          <View style={styles.loaderContainer}>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={styles.loadingText}>Loading your courses...</Text>
+          </View>
+        ) : (
+          <View style={styles.horizontalListContainer}>
+            <FlatList
+              data={filteredCourses}
+              nestedScrollEnabled
+              renderItem={({ item, index }) => (
+                <CourseCard
+                  item={item}
+                  onEdit={() =>
+                    navigation.navigate('CreateCourse', {
+                      data: item,
+                      isUpdated: true,
+                    })
+                  }
+                  onDelete={() => {
+                    setShowModal(true);
+                    setCourseId(item?.id);
+                  }}
+                  onView={() =>
+                    navigation.navigate('CourseVideoList', { item })
+                  }
+                />
+              )}
+              horizontal
+              keyExtractor={item => item.id}
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.horizontalListContent}
+              ListEmptyComponent={renderEmptyState}
+              onEndReached={() => {
+                if (hasMore && !loadingMore) getTheCourse(page + 1);
+              }}
+              onEndReachedThreshold={0.1}
+              ListFooterComponent={renderFooter}
+              snapToInterval={screenWidth - 40}
+              snapToAlignment="center"
+              decelerationRate="fast"
+            />
+          </View>
+        )}
+
+        {/* Stats Section */}
+        <View style={styles.statsSection}>
+          <Text style={styles.statsTitle}>Quick Stats</Text>
+          <View style={styles.statsGrid}>
+            {quickStats?.map((stat, index) => (
+              <View key={index} style={styles.statCard}>
+                <View style={styles.statIcon}>{stat?.icon}</View>
+                <Text style={styles.statValue}>{stat?.value}</Text>
+                <Text style={styles.statLabel}>{stat?.label}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        <View style={styles.withdrawCard}>
+          <View style={styles.withdrawLeft}>
+            <View style={{ marginLeft: 12 }}>
+              <Text style={styles.withdrawLabel}>Withdrawable Balance</Text>
+              <Text style={styles.withdrawAmount}>₹ *****</Text>
+            </View>
+          </View>
+
+          <TouchableOpacity style={styles.withdrawBtn} activeOpacity={0.8}>
+            <Text style={styles.withdrawBtnText}>Withdraw</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+
+      {/* Delete Modal */}
       <DynamicModal
         visible={showModal}
         heading="Delete Course"
-        message="Are you sure you want to delete this course? This action cannot be undone and all course data will be lost."
+        message="Are you sure you want to delete this course?"
         onCancel={handleCancel}
         onDelete={handleDelete}
         loading={deleteLoader}
@@ -184,9 +284,10 @@ const CreatorView: React.FC = () => {
 export default CreatorView;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.white,
+  container: { flex: 1, backgroundColor: colors.white },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 20,
   },
   heroSection: {
     backgroundColor: colors.white,
@@ -199,23 +300,15 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
-  heroHeading: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: colors.text,
-    marginBottom: 4,
+  horizontalListContainer: {
+    minHeight: 300,
   },
-  heroSub: {
-    fontSize: 16,
-    color: colors.textSecondary,
-    fontWeight: '500',
-  },
-  listContent: {
+  horizontalListContent: {
     paddingVertical: 16,
-    paddingBottom: 100,
+    paddingHorizontal: 8,
   },
   loaderContainer: {
-    flex: 1,
+    height: 200,
     justifyContent: 'center',
     alignItems: 'center',
     gap: 16,
@@ -226,17 +319,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     gap: 12,
+    width: 200,
   },
-  loadingText: {
-    color: colors.textSecondary,
-    fontSize: 14,
-    fontWeight: '600',
-  },
+  loadingText: { color: colors.textSecondary, fontSize: 14, fontWeight: '600' },
   emptyState: {
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 60,
     paddingHorizontal: 40,
+    width: screenWidth - 32,
   },
   emptyTitle: {
     fontSize: 18,
@@ -259,11 +350,7 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
     backgroundColor: colors.primary,
   },
-  mainHead: {
-    flexDirection: 'row',
-    gap: 5,
-    alignItems: 'center',
-  },
+  mainHead: { flexDirection: 'row', gap: 5, alignItems: 'center' },
   avatar: {
     width: 54,
     height: 54,
@@ -271,14 +358,114 @@ const styles = StyleSheet.create({
     backgroundColor: colors.lightGrey,
     marginRight: 12,
   },
-  firstPara: {
-    color: colors.white,
-    fontSize: 14,
-    fontWeight: '400',
+  firstPara: { color: colors.white, fontSize: 14, fontWeight: '400' },
+  secPara: { color: colors.white, fontSize: 16, fontWeight: '600' },
+  nameFields: { height: 44, width: '95%', borderRadius: 20 },
+  searchHeader: {
+    marginHorizontal: 16,
+    marginVertical: 10,
+    borderColor: colors.borderColor,
+    borderWidth: 1,
+    borderRadius: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 15,
+    gap: 3,
+    backgroundColor: colors.lightGrey,
+    elevation: 3,
   },
-  secPara: {
-    color: colors.white,
-    fontSize: 16,
+  listHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 8,
+    marginTop: 8,
+  },
+  listTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  courseCount: {
+    fontSize: 14,
+    color: colors.textSecondary,
     fontWeight: '600',
+  },
+  statsSection: {
+    padding: 16,
+  },
+  statsTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 10,
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  statCard: {
+    width: '48%',
+    backgroundColor: colors.surface,
+    borderRadius: 20,
+    padding: 16,
+    alignItems: 'center',
+    marginBottom: 12,
+    // Shadow for iOS
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    // Shadow for Android
+    elevation: 4,
+  },
+  statIcon: {
+    marginBottom: 8,
+  },
+  statValue: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    textAlign: 'center',
+  },
+  withdrawCard: {
+    backgroundColor: colors.white,
+    borderRadius: 20,
+    padding: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginHorizontal: 16,
+    elevation: 5,
+  },
+  withdrawLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  withdrawLabel: {
+    color: colors.primary,
+    fontWeight: '700',
+  },
+  withdrawAmount: {
+    color: colors.primary,
+    marginTop: 2,
+    fontSize: 18,
+    fontWeight: '900',
+  },
+  withdrawBtn: {
+    backgroundColor: colors.primary,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+  },
+  withdrawBtnText: {
+    fontWeight: '800',
+    color: colors.white,
   },
 });

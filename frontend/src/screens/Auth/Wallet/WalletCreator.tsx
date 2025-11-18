@@ -26,32 +26,32 @@ const initialTransactions = [
     id: 't1',
     type: 'course',
     title: 'React Native Basics',
-    buyers: 12,
-    amount: 1200,
+    buyers: 0,
+    amount: 0,
     date: '2025-09-28',
   },
   {
     id: 't2',
     type: 'webinar',
     title: 'Advanced JS Webinar',
-    buyers: 45,
-    amount: 4500,
+    buyers: 0,
+    amount: 0,
     date: '2025-09-21',
   },
   {
     id: 't3',
     type: 'course',
     title: 'TypeScript Mastery',
-    buyers: 8,
-    amount: 800,
+    buyers: 0,
+    amount: 0,
     date: '2025-08-13',
   },
   {
     id: 't4',
     type: 'course',
     title: 'UI Patterns',
-    buyers: 5,
-    amount: 500,
+    buyers: 0,
+    amount: 0,
     date: '2025-07-02',
   },
 ];
@@ -131,8 +131,8 @@ const WalletCreator = () => {
         <View style={styles.statIcon}>{icon}</View>
         <Text style={styles.statLabel}>{label}</Text>
       </View>
-      <Text style={styles.statValue}>{value}</Text>
-      {sub ? <Text style={styles.statSub}>{sub}</Text> : null}
+      <Text style={styles.statValue}>****</Text>
+      {sub ? <Text style={styles.statSub}>****</Text> : null}
     </View>
   );
 
@@ -230,7 +230,7 @@ const WalletCreator = () => {
             <View style={{ marginLeft: 12 }}>
               <Text style={styles.withdrawLabel}>Withdrawable Balance</Text>
               <Text style={styles.withdrawAmount}>
-                ₹{withdrawableBalance.toLocaleString()}
+                ₹****
               </Text>
             </View>
           </View>
@@ -242,7 +242,7 @@ const WalletCreator = () => {
                 ? styles.withdrawBtnDisabled
                 : null,
             ]}
-            onPress={handleWithdraw}
+            // onPress={handleWithdraw}
             disabled={withdrawableBalance <= 0 || isWithdrawing}
             activeOpacity={0.8}
           >
@@ -255,12 +255,12 @@ const WalletCreator = () => {
         </View>
 
         {/* Transactions list */}
-        <View style={styles.txListHeader}>
+        {/* <View style={styles.txListHeader}>
           <Text style={styles.txListTitle}>History</Text>
           <Text style={styles.txListSub}>{transactions.length} records</Text>
-        </View>
+        </View> */}
 
-        <FlatList
+        {/* <FlatList
           data={transactions}
           keyExtractor={t => t.id}
           renderItem={renderTransaction}
@@ -269,7 +269,7 @@ const WalletCreator = () => {
           ListEmptyComponent={
             <Text style={styles.empty}>No transactions found</Text>
           }
-        />
+        /> */}
       </View>
 
       <Toast />

@@ -7,6 +7,7 @@ import {
   StyleSheet,
   StatusBar as RNStatusBar,
   Image,
+  ImageBackground,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -18,6 +19,7 @@ import {
   DollarSign,
   BellDot,
   IndianRupee,
+  CircleUser,
 } from 'lucide-react-native';
 import colors from '../../../../utils/colors';
 import KycCard from './KeyCard';
@@ -28,6 +30,7 @@ import Toast from 'react-native-toast-message';
 import AppHeaderWithBack from '../../../../components/AppHeaderWithBack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme } from '../../../../theme/theme';
+import UserIcon from './component/UserIcon';
 
 const CreatorHome = () => {
   const navigation = useNavigation<any>();
@@ -71,21 +74,30 @@ const CreatorHome = () => {
           },
         ]}
       >
-        <View style={styles.mainHead}>
-          <View>
-            <Image
-              source={{ uri: user?.profile_image }}
-              style={styles.avatar}
-            />
+        <ImageBackground
+          source={require('../../../../image/background.png')}
+          resizeMode="cover"
+          style={styles.headerBg}
+        >
+          <View style={styles.headerContent}>
+            <View style={styles.mainHead}>
+              {user?.profile_image ? (
+                <Image
+                  source={{ uri: user?.profile_image }}
+                  style={styles.avatar}
+                />
+              ) : (
+                <UserIcon />
+              )}
+              <View>
+                <Text style={styles.firstPara}>Hello,</Text>
+                <Text style={styles.secPara}>{user?.name}</Text>
+              </View>
+            </View>
+
+            <BellDot width={22} height={22} color={colors.primary} />
           </View>
-          <View>
-            <Text style={styles.firstPara}>Hello,</Text>
-            <Text style={styles.secPara}>{user?.name}</Text>
-          </View>
-        </View>
-        <View>
-          <BellDot width={22} height={22} color={colors.white} />
-        </View>
+        </ImageBackground>
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -188,8 +200,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingBottom: 16,
+    // paddingHorizontal: 16,
+    // paddingBottom: 16,
     backgroundColor: colors.primary,
   },
   mainHead: {
@@ -198,12 +210,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   firstPara: {
-    color: colors.white,
+    color: colors.primary,
     fontSize: 14,
     fontWeight: '400',
   },
   secPara: {
-    color: colors.white,
+    color: colors.primary,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -230,11 +242,11 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 24,
-    // fontWeight: '200',
+    fontWeight: '600',
     marginBottom: 25,
     color: colors.text,
     textAlign: 'center',
-    fontFamily: theme.fonts.semiBold,
+    // fontFamily: theme.fonts.semiBold,
   },
   statsGrid: {
     flexDirection: 'row',
@@ -348,7 +360,18 @@ const styles = StyleSheet.create({
     width: 54,
     height: 54,
     borderRadius: 27,
-    backgroundColor: colors.lightGrey,
+    backgroundColor: colors.primary,
     marginRight: 12,
+  },
+  headerBg: {
+    width: '100%',
+    paddingTop: 10,
+    paddingBottom: 16,
+  },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 15,
   },
 });

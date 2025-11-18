@@ -6,10 +6,12 @@ import {
   TouchableOpacity,
   FlatList,
   Image,
+  ImageBackground,
 } from 'react-native';
 import { MessageCircle } from 'lucide-react-native';
 import AppHeader from '../../../../components/AppHeader';
 import colors from '../../../../utils/colors';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type ChatUser = {
   id: string;
@@ -45,8 +47,13 @@ const chatUsers: ChatUser[] = [
 ];
 
 const CreatorChat = () => {
+  const insets = useSafeAreaInsets();
+
   const renderItem = ({ item }: { item: ChatUser }) => (
-    <TouchableOpacity style={styles.chatRow} onPress={() => console.log('Open chat', item.name)}>
+    <TouchableOpacity
+      style={styles.chatRow}
+      onPress={() => console.log('Open chat', item.name)}
+    >
       {/* Avatar */}
       {item.avatar ? (
         <Image source={{ uri: item.avatar }} style={styles.avatar} />
@@ -81,11 +88,29 @@ const CreatorChat = () => {
 
   return (
     <View style={styles.container}>
-      <AppHeader title="Chats" />
+      {/* <AppHeader title="Chats" /> */}
+      <View
+        style={[
+          styles.mainHeader,
+          {
+            paddingTop: insets.top + 10,
+          },
+        ]}
+      >
+        <ImageBackground
+          source={require('../../../../image/background.png')}
+          resizeMode="cover"
+          style={styles.headerBg}
+        >
+          <View style={styles.headerContent}>
+            <Text style={styles.greetingText}>Chats</Text>
+          </View>
+        </ImageBackground>
+      </View>
 
       <FlatList
         data={chatUsers}
-        keyExtractor={(item) => item.id}
+        keyExtractor={item => item.id}
         renderItem={renderItem}
         contentContainerStyle={styles.listContent}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
@@ -174,5 +199,30 @@ const styles = StyleSheet.create({
     height: StyleSheet.hairlineWidth,
     backgroundColor: '#EAEAEA',
     marginLeft: 76, // indent so it doesn't cross avatar
+  },
+  mainHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    // paddingHorizontal: 16,
+    // paddingBottom: 16,
+    backgroundColor: colors.primary,
+  },
+  headerBg: {
+    width: '100%',
+    // paddingTop: 10,
+    // paddingBottom: 16,
+  },
+  headerContent: {
+    alignItems: 'center',
+    paddingVertical: 17,
+  },
+  mainHead: { flexDirection: 'row', gap: 5, alignItems: 'center' },
+  firstPara: { color: colors.primary, fontSize: 14, fontWeight: '400' },
+  secPara: { color: colors.primary, fontSize: 16, fontWeight: '600' },
+  greetingText: {
+    color: colors.primary,
+    fontSize: 22,
+    fontWeight: '700',
   },
 });

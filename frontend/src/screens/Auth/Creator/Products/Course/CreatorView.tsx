@@ -9,6 +9,7 @@ import {
   Dimensions,
   ScrollView,
   TouchableOpacity,
+  ImageBackground,
 } from 'react-native';
 import colors from '../../../../../utils/colors';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
@@ -28,6 +29,7 @@ import {
 } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import CustomTextInput from '../../../../../components/CustomInput';
+import UserIcon from '../../Home/component/UserIcon';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -51,22 +53,22 @@ const CreatorView: React.FC = () => {
   const quickStats = [
     {
       label: 'Active Courses',
-      value: '12',
+      value: '****',
       icon: <BookOpen size={24} color={colors.primary} />,
     },
     {
       label: 'Students',
-      value: '5.2K',
+      value: '****',
       icon: <Users size={24} color={colors.secondary} />,
     },
     {
       label: 'Completion Rate',
-      value: '94%',
+      value: '****',
       icon: <Award size={24} color={colors.accent} />,
     },
     {
       label: 'Revenue',
-      value: '₹12.5K',
+      value: '****',
       icon: <TrendingUp size={24} color={colors.golden} />,
     },
   ];
@@ -143,8 +145,41 @@ const CreatorView: React.FC = () => {
   return (
     <View style={styles.container}>
       {/* Header */}
+        <View
+        style={[
+          styles.mainHeader,
+          {
+            paddingTop: insets.top + 10,
+          },
+        ]}
+      >
+        <ImageBackground
+          source={require('../../../../../image/background.png')}
+          resizeMode="cover"
+          style={styles.headerBg}
+        >
+          <View style={styles.headerContent}>
+            <View style={styles.mainHead}>
+              {user?.profile_image ? (
+                <Image
+                  source={{ uri: user?.profile_image }}
+                  style={styles.avatar}
+                />
+              ) : (
+                <UserIcon />
+              )}
+              <View>
+                <Text style={styles.firstPara}>Hello,</Text>
+                <Text style={styles.secPara}>{user?.name}</Text>
+              </View>
+            </View>
 
-      <View style={[styles.mainHeader, { paddingTop: insets.top + 10 }]}>
+            <BellDot width={22} height={22} color={colors.primary} />
+          </View>
+        </ImageBackground>
+      </View>
+
+      {/* <View style={[styles.mainHeader, { paddingTop: insets.top + 10 }]}>
         <View style={styles.mainHead}>
           <Image source={{ uri: user?.profile_image }} style={styles.avatar} />
           <View>
@@ -153,7 +188,7 @@ const CreatorView: React.FC = () => {
           </View>
         </View>
         <BellDot width={22} height={22} color={colors.white} />
-      </View>
+      </View> */}
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -346,8 +381,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingBottom: 16,
+    // paddingHorizontal: 16,
+    // paddingBottom: 16,
     backgroundColor: colors.primary,
   },
   mainHead: { flexDirection: 'row', gap: 5, alignItems: 'center' },
@@ -358,8 +393,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.lightGrey,
     marginRight: 12,
   },
-  firstPara: { color: colors.white, fontSize: 14, fontWeight: '400' },
-  secPara: { color: colors.white, fontSize: 16, fontWeight: '600' },
+  firstPara: { color: colors.primary, fontSize: 14, fontWeight: '400' },
+  secPara: { color: colors.primary, fontSize: 16, fontWeight: '600' },
   nameFields: { height: 44, width: '95%', borderRadius: 20 },
   searchHeader: {
     marginHorizontal: 16,
@@ -467,5 +502,16 @@ const styles = StyleSheet.create({
   withdrawBtnText: {
     fontWeight: '800',
     color: colors.white,
+  },
+   headerBg: {
+    width: '100%',
+    paddingTop: 10,
+    paddingBottom: 16,
+  },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 15,
   },
 });

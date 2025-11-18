@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Image,
   StatusBar as RNStatusBar,
+  ImageBackground,
 } from 'react-native';
 import colors from '../../../../utils/colors';
 import {
@@ -18,6 +19,7 @@ import {
   Landmark,
   Wallet as WalletIcon,
   ChevronRight,
+  BellDot,
 } from 'lucide-react-native';
 import LogoutModal from '../../Profile/Components/LogoutModal';
 import AppHeader from '../../../../components/AppHeader';
@@ -25,6 +27,8 @@ import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
 import { logout } from '../../../../store/UserSlice';
+import UserIcon from '../Home/component/UserIcon';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const APP_VERSION = '0.0.1';
 
@@ -33,15 +37,33 @@ const CreatorSetting: React.FC = () => {
   const Nav = useNavigation();
   const { user } = useSelector((state: any) => state.userReducer);
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
+  const insets = useSafeAreaInsets();
 
   const RightChevron = <ChevronRight size={18} color={colors.textSecondary} />;
 
   return (
     <View style={styles.container}>
       <RNStatusBar barStyle="light-content" backgroundColor={colors.primary} />
-      <AppHeader title="Profile" />
-
+      {/* <AppHeader title="Profile" /> */}
       <View
+        style={[
+          styles.mainHeader,
+          {
+            paddingTop: insets.top + 10,
+          },
+        ]}
+      >
+        <ImageBackground
+          source={require('../../../../image/background.png')}
+          resizeMode="cover"
+          style={styles.headerBg}
+        >
+          <View style={styles.headerContent}>
+            <Text style={styles.greetingText}>Profile</Text>
+          </View>
+        </ImageBackground>
+      </View>
+      {/* <View
         style={[
           styles.header,
           {
@@ -58,8 +80,7 @@ const CreatorSetting: React.FC = () => {
               : ''}
           </Text>
         </View>
-      </View>
-
+      </View> */}
       <ScrollView
         style={styles.body}
         contentContainerStyle={{ paddingBottom: 24 }}
@@ -150,7 +171,6 @@ const CreatorSetting: React.FC = () => {
 
         <Text style={styles.version}>{APP_VERSION}</Text>
       </ScrollView>
-
       <LogoutModal
         visible={logoutVisible}
         onCancel={() => setLogoutVisible(false)}
@@ -193,8 +213,8 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   greetingText: {
-    color: '#fff',
-    fontSize: 18,
+    color: colors.primary,
+    fontSize: 22,
     fontWeight: '700',
   },
 
@@ -257,4 +277,24 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.textSecondary,
   },
+  mainHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    // paddingHorizontal: 16,
+    // paddingBottom: 16,
+    backgroundColor: colors.primary,
+  },
+  headerBg: {
+    width: '100%',
+    // paddingTop: 10,
+    // paddingBottom: 16,
+  },
+  headerContent: {
+    alignItems: 'center',
+    paddingVertical: 17,
+  },
+  mainHead: { flexDirection: 'row', gap: 5, alignItems: 'center' },
+  firstPara: { color: colors.primary, fontSize: 14, fontWeight: '400' },
+  secPara: { color: colors.primary, fontSize: 16, fontWeight: '600' },
 });

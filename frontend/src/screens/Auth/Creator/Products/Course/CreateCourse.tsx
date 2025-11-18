@@ -121,7 +121,7 @@ const CreateCourse = () => {
       title: data.courseTitle.trim(),
       description: data.description.trim(),
       price: Number(data.price) || 0,
-      category: data?.category.trim() || '',
+      category: 'video',
       level: data?.level,
       status: data?.status,
       thumbnail: data?.thumbnail,
@@ -329,7 +329,7 @@ const CreateCourse = () => {
               )}
             />
             {/* Category */}
-            <Text style={styles.label}>Category</Text>
+            {/* <Text style={styles.label}>Category</Text>
             <Controller
               name="category"
               control={control}
@@ -348,7 +348,7 @@ const CreateCourse = () => {
                   onBlur={onBlur}
                 />
               )}
-            />
+            /> */}
 
             {/* Status */}
             <Text style={styles.label}>Status</Text>

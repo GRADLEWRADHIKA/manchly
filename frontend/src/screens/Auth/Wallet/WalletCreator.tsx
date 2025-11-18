@@ -8,6 +8,7 @@ import {
   FlatList,
   ActivityIndicator,
   Platform,
+  ImageBackground,
 } from 'react-native';
 import {
   Users,
@@ -18,6 +19,7 @@ import {
 import Toast from 'react-native-toast-message';
 import colors from '../../../utils/colors';
 import AppHeader from '../../../components/AppHeader';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const initialTransactions = [
   {
@@ -60,6 +62,7 @@ const WalletCreator = () => {
     initialTransactions.reduce((s, t) => s + (t.amount ?? 0), 0),
   );
   const [isWithdrawing, setIsWithdrawing] = useState(false);
+  const insets = useSafeAreaInsets();
 
   const totals = useMemo(() => {
     const totalBuyers = transactions.reduce((s, t) => s + (t.buyers ?? 0), 0);
@@ -177,78 +180,96 @@ const WalletCreator = () => {
 
   return (
     <View style={styles.container}>
-      <AppHeader title="My Wallet" />
-      <View style={{padding: 16}}>
-
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Wallet</Text>
-        <Text style={styles.headerSub}>Overview of earnings & buyers</Text>
-      </View>
-
-      {/* Stats */}
-      <View style={styles.statsRow}>
-        {renderStatCard(
-          <Users width={18} height={18} color={colors.primary} />,
-          'Total Buyers',
-          `${totals.totalBuyers}`,
-          `Courses ${totals.totalCourseBuyers} • Webinars ${totals.totalWebinarBuyers}`,
-        )}
-        {renderStatCard(
-          <CreditCard width={18} height={18} color={colors.primary} />,
-          'Total Income',
-          `₹${totals.totalIncome.toLocaleString()}`,
-          `Course ₹${totals.courseIncome.toLocaleString()} • Webinar ₹${totals.webinarIncome.toLocaleString()}`,
-        )}
-      </View>
-
-      {/* Withdrawable balance and action */}
-      <View style={styles.withdrawCard}>
-        <View style={styles.withdrawLeft}>
-          <DollarSign width={22} height={22} color="#fff" />
-          <View style={{ marginLeft: 12 }}>
-            <Text style={styles.withdrawLabel}>Withdrawable Balance</Text>
-            <Text style={styles.withdrawAmount}>
-              ₹{withdrawableBalance.toLocaleString()}
-            </Text>
+      {/* <AppHeader title="My Wallet" /> */}
+      <View
+        style={[
+          styles.mainHeader,
+          {
+            paddingTop: insets.top + 10,
+          },
+        ]}
+      >
+        <ImageBackground
+          source={require('../../../image/background.png')}
+          resizeMode="cover"
+          style={styles.headerBg}
+        >
+          <View style={styles.headerContent}>
+            <Text style={styles.greetingText}>My Wallet</Text>
           </View>
+        </ImageBackground>
+      </View>
+
+      <View style={{ padding: 16 }}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Wallet</Text>
+          <Text style={styles.headerSub}>Overview of earnings & buyers</Text>
         </View>
 
-        <TouchableOpacity
-          style={[
-            styles.withdrawBtn,
-            withdrawableBalance <= 0 || isWithdrawing
-              ? styles.withdrawBtnDisabled
-              : null,
-          ]}
-          onPress={handleWithdraw}
-          disabled={withdrawableBalance <= 0 || isWithdrawing}
-          activeOpacity={0.8}
-        >
-          {isWithdrawing ? (
-            <ActivityIndicator size="small" color="#fff" />
-          ) : (
-            <Text style={styles.withdrawBtnText}>Withdraw</Text>
+        {/* Stats */}
+        <View style={styles.statsRow}>
+          {renderStatCard(
+            <Users width={18} height={18} color={colors.primary} />,
+            'Total Buyers',
+            `${totals.totalBuyers}`,
+            `Courses ${totals.totalCourseBuyers} • Webinars ${totals.totalWebinarBuyers}`,
           )}
-        </TouchableOpacity>
-      </View>
+          {renderStatCard(
+            <CreditCard width={18} height={18} color={colors.primary} />,
+            'Total Income',
+            `₹${totals.totalIncome.toLocaleString()}`,
+            `Course ₹${totals.courseIncome.toLocaleString()} • Webinar ₹${totals.webinarIncome.toLocaleString()}`,
+          )}
+        </View>
 
-      {/* Transactions list */}
-      <View style={styles.txListHeader}>
-        <Text style={styles.txListTitle}>History</Text>
-        <Text style={styles.txListSub}>{transactions.length} records</Text>
-      </View>
+        {/* Withdrawable balance and action */}
+        <View style={styles.withdrawCard}>
+          <View style={styles.withdrawLeft}>
+            {/* <DollarSign width={22} height={22} color="#fff" /> */}
+            <View style={{ marginLeft: 12 }}>
+              <Text style={styles.withdrawLabel}>Withdrawable Balance</Text>
+              <Text style={styles.withdrawAmount}>
+                ₹{withdrawableBalance.toLocaleString()}
+              </Text>
+            </View>
+          </View>
 
-      <FlatList
-        data={transactions}
-        keyExtractor={t => t.id}
-        renderItem={renderTransaction}
-        contentContainerStyle={styles.txList}
-        ItemSeparatorComponent={() => <View style={styles.sep} />}
-        ListEmptyComponent={
-          <Text style={styles.empty}>No transactions found</Text>
-        }
-      />
+          <TouchableOpacity
+            style={[
+              styles.withdrawBtn,
+              withdrawableBalance <= 0 || isWithdrawing
+                ? styles.withdrawBtnDisabled
+                : null,
+            ]}
+            onPress={handleWithdraw}
+            disabled={withdrawableBalance <= 0 || isWithdrawing}
+            activeOpacity={0.8}
+          >
+            {isWithdrawing ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Text style={styles.withdrawBtnText}>Withdraw</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+
+        {/* Transactions list */}
+        <View style={styles.txListHeader}>
+          <Text style={styles.txListTitle}>History</Text>
+          <Text style={styles.txListSub}>{transactions.length} records</Text>
+        </View>
+
+        <FlatList
+          data={transactions}
+          keyExtractor={t => t.id}
+          renderItem={renderTransaction}
+          contentContainerStyle={styles.txList}
+          ItemSeparatorComponent={() => <View style={styles.sep} />}
+          ListEmptyComponent={
+            <Text style={styles.empty}>No transactions found</Text>
+          }
+        />
       </View>
 
       <Toast />
@@ -313,29 +334,30 @@ const styles = StyleSheet.create({
 
   withdrawCard: {
     marginTop: 12,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.white,
     borderRadius: 12,
     padding: 12,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    elevation: 3
   },
   withdrawLeft: { flexDirection: 'row', alignItems: 'center' },
-  withdrawLabel: { color: '#fff', fontWeight: '700' },
+  withdrawLabel: { color: colors.primary, fontWeight: '700' },
   withdrawAmount: {
-    color: '#fff',
+    color: colors.primary,
     marginTop: 2,
     fontSize: 18,
     fontWeight: '900',
   },
   withdrawBtn: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.primary,
     paddingVertical: 8,
     paddingHorizontal: 14,
     borderRadius: 10,
   },
   withdrawBtnDisabled: { opacity: 0.6 },
-  withdrawBtnText: { fontWeight: '800', color: colors.primary },
+  withdrawBtnText: { fontWeight: '800', color: colors.white },
 
   txListHeader: {
     flexDirection: 'row',
@@ -381,4 +403,29 @@ const styles = StyleSheet.create({
 
   sep: { height: 1, backgroundColor: '#f2f2f2', marginVertical: 6 },
   empty: { textAlign: 'center', color: '#888', marginTop: 20 },
+  mainHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    // paddingHorizontal: 16,
+    // paddingBottom: 16,
+    backgroundColor: colors.primary,
+  },
+  headerBg: {
+    width: '100%',
+    // paddingTop: 10,
+    // paddingBottom: 16,
+  },
+  headerContent: {
+    alignItems: 'center',
+    paddingVertical: 17,
+  },
+  mainHead: { flexDirection: 'row', gap: 5, alignItems: 'center' },
+  firstPara: { color: colors.primary, fontSize: 14, fontWeight: '400' },
+  secPara: { color: colors.primary, fontSize: 16, fontWeight: '600' },
+  greetingText: {
+    color: colors.primary,
+    fontSize: 22,
+    fontWeight: '700',
+  },
 });

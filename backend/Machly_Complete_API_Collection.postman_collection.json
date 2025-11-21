@@ -25,6 +25,16 @@
 			"key": "video_id",
 			"value": "",
 			"type": "string"
+		},
+		{
+			"key": "webinar_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "razorpay_order_id",
+			"value": "",
+			"type": "string"
 		}
 	],
 	"item": [
@@ -867,6 +877,310 @@
 				}
 			],
 			"description": "Direct Mux API endpoints (for advanced usage)"
+		},
+		{
+			"name": "Webinars",
+			"item": [
+				{
+					"name": "1. Create Webinar (Creator)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Introduction to AI & Machine Learning\",\n  \"description\": \"Learn the fundamentals of AI and Machine Learning in this comprehensive webinar\",\n  \"thumbnail_url\": \"https://example.com/thumbnail.jpg\",\n  \"price\": 499,\n  \"category\": \"Technology\",\n  \"tags\": [\"AI\", \"Machine Learning\", \"Data Science\"],\n  \"scheduled_at\": \"2025-12-15T15:00:00Z\",\n  \"duration\": 90,\n  \"timezone\": \"Asia/Kolkata\",\n  \"max_participants\": 100,\n  \"status\": \"PUBLISHED\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/webinars",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"webinars"
+							]
+						},
+						"description": "Create a new webinar (Creator only). Zoom meeting is automatically created when status is PUBLISHED."
+					},
+					"response": []
+				},
+				{
+					"name": "2. Get All Webinars",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/webinars?page=1&limit=10&upcoming=true",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"webinars"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "upcoming",
+									"value": "true",
+									"description": "Filter for upcoming webinars only"
+								},
+								{
+									"key": "category",
+									"value": "Technology",
+									"disabled": true
+								},
+								{
+									"key": "search",
+									"value": "AI",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get all webinars. Users see only published webinars. Creators see their own webinars."
+					},
+					"response": []
+				},
+				{
+					"name": "3. Get Webinar by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/webinars/{{webinar_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"webinars",
+								"{{webinar_id}}"
+							]
+						},
+						"description": "Get detailed information about a specific webinar"
+					},
+					"response": []
+				},
+				{
+					"name": "4. Update Webinar (Creator)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Updated Webinar Title\",\n  \"description\": \"Updated description\",\n  \"price\": 599,\n  \"scheduled_at\": \"2025-12-20T16:00:00Z\",\n  \"status\": \"PUBLISHED\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/webinars/{{webinar_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"webinars",
+								"{{webinar_id}}"
+							]
+						},
+						"description": "Update webinar details (Creator only - own webinars). All fields are optional."
+					},
+					"response": []
+				},
+				{
+					"name": "5. Delete Webinar (Creator)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/webinars/{{webinar_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"webinars",
+								"{{webinar_id}}"
+							]
+						},
+						"description": "Delete a webinar (Creator only - own webinars). Also deletes the associated Zoom meeting."
+					},
+					"response": []
+				},
+				{
+					"name": "6. Create Payment Order for Webinar Enrollment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data.razorpay_order) {",
+									"        pm.collectionVariables.set(\"razorpay_order_id\", jsonData.data.razorpay_order.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/webinars/{{webinar_id}}/enroll",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"webinars",
+								"{{webinar_id}}",
+								"enroll"
+							]
+						},
+						"description": "Create payment order for webinar enrollment. For free webinars, enrollment is immediate. For paid webinars, returns Razorpay order details."
+					},
+					"response": []
+				},
+				{
+					"name": "7. Verify Webinar Payment",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"razorpay_order_id\": \"{{razorpay_order_id}}\",\n  \"razorpay_payment_id\": \"pay_xxxxxxxxxxxxx\",\n  \"razorpay_signature\": \"signature_from_razorpay\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/webinars/payment/verify",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"webinars",
+								"payment",
+								"verify"
+							]
+						},
+						"description": "Verify payment and create webinar enrollment. After successful verification, user receives email and WhatsApp notifications with Zoom join link."
+					},
+					"response": []
+				},
+				{
+					"name": "8. Get My Enrolled Webinars",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/webinars/enrolled/me?page=1&limit=10&upcoming=true",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"webinars",
+								"enrolled",
+								"me"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "upcoming",
+									"value": "true",
+									"description": "Filter for upcoming webinars only"
+								}
+							]
+						},
+						"description": "Get list of webinars the user is enrolled in. Includes Zoom join links and passwords."
+					},
+					"response": []
+				},
+				{
+					"name": "9. Get Creator Webinar Statistics",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/webinars/stats/creator",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"webinars",
+								"stats",
+								"creator"
+							]
+						},
+						"description": "Get webinar statistics for creators including total webinars, enrollments, and per-webinar enrollment counts."
+					},
+					"response": []
+				}
+			],
+			"description": "Webinar management endpoints - Create and manage live Zoom webinars with payment integration"
 		},
 		{
 			"name": "Health Check",

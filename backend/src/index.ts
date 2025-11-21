@@ -7,7 +7,9 @@ import uploadRouter from "./routes/upload";
 import muxRouter from "./routes/mux";
 import coursesRouter from "./routes/courses";
 import paymentsRouter from "./routes/payments";
+import webinarsRouter from "./routes/webinars";
 import morgan from "morgan";
+import { webinarCleanupService } from "./utils/webinarCleanup";
 
 dotenv.config();
 const app = express();
@@ -32,7 +34,13 @@ app.use("/upload", uploadRouter);
 app.use("/mux", muxRouter);
 app.use("/courses", coursesRouter);
 app.use("/payments", paymentsRouter);
+app.use("/webinars", webinarsRouter);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  
+  // Start automatic webinar cleanup
+  // Runs every hour to mark expired webinars as COMPLETED
+  webinarCleanupService.startAutomaticCleanup("0 * * * *");
+  console.log("🧹 Webinar cleanup service started");
 });

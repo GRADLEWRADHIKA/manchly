@@ -37,9 +37,12 @@ model users {
   updated_at    DateTime @updatedAt
   last_login    DateTime?
   
-  courses       courses[]
-  enrollments   enrollments[]
-  transactions  transactions[]
+  courses              courses[]
+  enrollments          enrollments[]
+  transactions         transactions[]
+  webinars             webinars[]
+  webinar_enrollments  webinar_enrollments[]
+  webinar_transactions webinar_transactions[]
   
   @@map("users")
 }
@@ -155,4 +158,93 @@ model enrollments {
   @@index([user_id])
   @@index([course_id])
   @@map("enrollments")
+}
+
+enum WebinarStatus {
+  DRAFT
+  PUBLISHED
+  COMPLETED
+  CANCELLED
+}
+
+model webinars {
+  id                    String         @id @default(uuid())
+  title                 String
+  description           String?        @db.Text
+  thumbnail             String?
+  thumbnail_url         String?        @db.Text
+  price                 Float          @default(0)
+  status                WebinarStatus  @default(DRAFT)
+  creator_id            String
+  category              String?
+  tags                  String[]       @default([])
+  scheduled_at          DateTime       // When the webinar is scheduled
+  duration              Int?           // Duration in minutes
+  timezone              String?        @default("UTC")
+  
+  // Zoom meeting details
+  zoom_meeting_id       String?        @unique
+  zoom_join_url         String?        @db.Text
+  zoom_start_url        String?        @db.Text
+  zoom_password         String?
+  
+  max_participants      Int?           // Optional participant limit
+  created_at            DateTime       @default(now())
+  updated_at            DateTime       @updatedAt
+  published_at          DateTime?
+  
+  creator               users                      @relation(fields: [creator_id], references: [id], onDelete: Cascade)
+  enrollments           webinar_enrollments[]
+  transactions          webinar_transactions[]
+  
+  @@index([creator_id])
+  @@index([status])
+  @@index([scheduled_at])
+  @@map("webinars")
+}
+
+model webinar_transactions {
+  id                    String            @id @default(uuid())
+  user_id               String
+  webinar_id            String
+  amount                Float
+  currency              String            @default("INR")
+  status                TransactionStatus @default(PENDING)
+  payment_method        PaymentMethod     @default(RAZORPAY)
+  razorpay_order_id     String?           @unique
+  razorpay_payment_id   String?           @unique
+  razorpay_signature    String?
+  payment_details       Json?             // Store additional payment info
+  failure_reason        String?
+  created_at            DateTime          @default(now())
+  updated_at            DateTime          @updatedAt
+  completed_at          DateTime?
+  
+  user                  users             @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  webinar               webinars          @relation(fields: [webinar_id], references: [id], onDelete: Cascade)
+  
+  @@index([user_id])
+  @@index([webinar_id])
+  @@index([status])
+  @@index([razorpay_order_id])
+  @@index([razorpay_payment_id])
+  @@map("webinar_transactions")
+}
+
+model webinar_enrollments {
+  id                    String   @id @default(uuid())
+  user_id               String
+  webinar_id            String
+  transaction_id        String?  @unique
+  enrolled_at           DateTime @default(now())
+  attended              Boolean  @default(false)
+  attended_at           DateTime?
+  
+  user                  users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  webinar               webinars @relation(fields: [webinar_id], references: [id], onDelete: Cascade)
+  
+  @@unique([user_id, webinar_id])
+  @@index([user_id])
+  @@index([webinar_id])
+  @@map("webinar_enrollments")
 }

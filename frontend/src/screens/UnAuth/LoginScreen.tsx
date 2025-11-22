@@ -98,7 +98,7 @@ const LoginScreen: React.FC = () => {
           });
         })
         .catch(error => {
-          console.log('SMS OTP error ------> ', error);
+          console.log('SMS OTP error ------> ', JSON.stringify(error));
         })
         .finally(() => {
           setLoading(false);

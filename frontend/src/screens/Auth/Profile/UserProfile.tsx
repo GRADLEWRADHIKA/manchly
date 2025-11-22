@@ -28,6 +28,8 @@ const UserProfile = () => {
   const [uploading, setUploading] = useState(false);
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
 
+  console.log('----user------', user)
+
   const imagePicker = async () => {
     try {
       const res = await pick({

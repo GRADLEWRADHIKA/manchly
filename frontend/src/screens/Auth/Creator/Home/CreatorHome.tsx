@@ -133,14 +133,7 @@ const CreatorHome = () => {
           <View style={styles.actionsGrid}>
             <TouchableOpacity
               style={[styles.actionCard, styles.actionCardRight]}
-              onPress={() => {
-                Toast.show({
-                  type: 'info',
-                  text1: 'Feature Coming Soon 🚀',
-                  text2: 'This feature is currently under development.',
-                  position: 'top',
-                });
-              }}
+             onPress={() => navigation.navigate('CreateWebinar')}
             >
               <View
                 style={[

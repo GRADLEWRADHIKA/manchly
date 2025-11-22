@@ -22,15 +22,12 @@ import Toast from 'react-native-toast-message';
 
 const OTPScreen: React.FC = () => {
   const navigation = useNavigation<any>();
-  // const dispatch = useAppDispatch();
-  // const { error } = useAppSelector(s => s.auth);
   const route = useRoute();
   const [loading, setLoading] = useState(false);
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
   const userTypeFromRoute = (route?.params as any)?.userType ?? null;
   const onBack = () => navigation.goBack();
 
-  // console.log('----route-----', route?.params?.payload);
 
   const {
     control,
@@ -55,11 +52,6 @@ const OTPScreen: React.FC = () => {
       .unwrap()
       .then(response => {
         reset();
-        // Toast.show({
-        //   type: 'success',
-        //   text1: 'Login s',
-        //   position: 'bottom',
-        // });
         setLoading(false);
       })
       .catch(error => {

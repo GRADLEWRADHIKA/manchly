@@ -390,7 +390,7 @@ const styles = StyleSheet.create({
     width: 54,
     height: 54,
     borderRadius: 27,
-    backgroundColor: colors.lightGrey,
+    backgroundColor: colors.primary,
     marginRight: 12,
   },
   firstPara: { color: colors.primary, fontSize: 14, fontWeight: '400' },

@@ -6,7 +6,7 @@ import Dashboard from '../screens/Auth/Profile/Dashboard';
 import SuperThank from '../screens/Auth/Profile/SuperThank';
 import Wallet from '../screens/Auth/Profile/Wallet';
 import CreateProducts from '../screens/Auth/Creator/Products/Course/CreateProducts';
-import CreateWebinar from '../screens/Auth/Creator/Products/CreateWebinar';
+import CreateWebinar from '../screens/Auth/Creator/Products/Webinar/CreateWebinar';
 import CreateCourse from '../screens/Auth/Creator/Products/Course/CreateCourse';
 import WalletCreator from '../screens/Auth/Wallet/WalletCreator';
 import CreatorBottomTab from './CreatorBottomTab';

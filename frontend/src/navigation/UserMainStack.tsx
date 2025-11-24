@@ -6,7 +6,7 @@ import Dashboard from '../screens/Auth/Profile/Dashboard';
 import SuperThank from '../screens/Auth/Profile/SuperThank';
 import Wallet from '../screens/Auth/Profile/Wallet';
 import CreateProducts from '../screens/Auth/Creator/Products/Course/CreateProducts';
-import CreateWebinar from '../screens/Auth/Creator/Products/CreateWebinar';
+import CreateWebinarScreen from '../screens/Auth/Creator/Products/Webinar/CreateWebinar';
 import CreateCourse from '../screens/Auth/Creator/Products/Course/CreateCourse';
 import WalletCreator from '../screens/Auth/Wallet/WalletCreator';
 import UserBottomTab from './UserBottomTab';
@@ -34,7 +34,7 @@ const UserMainStack = () => {
       <Stack.Screen name="SuperThank" component={SuperThank} />
       <Stack.Screen name="Wallet" component={Wallet} />
       <Stack.Screen name="CreateProducts" component={CreateProducts} />
-      <Stack.Screen name="CreateWebinar" component={CreateWebinar} />
+      <Stack.Screen name="CreateWebinar" component={CreateWebinarScreen} />
       <Stack.Screen name="CreateCourse" component={CreateCourse} />
       <Stack.Screen name="WalletCreator" component={WalletCreator} />
       <Stack.Screen

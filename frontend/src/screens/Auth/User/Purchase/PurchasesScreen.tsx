@@ -70,7 +70,7 @@ const PurchasesScreen = () => {
   const handleViewCourse = (courseId: string) => {
     navigation.navigate('CourseDetailsScreen', { courseId });
   };
-  if (enrolledLoading && !enrolledCourses?.enrollments.length) {
+  if (enrolledLoading && !enrolledCourses?.enrollments?.length) {
     return (
       <View style={styles.container}>
         <AppHeader title="My Purchases" />

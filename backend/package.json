@@ -25,8 +25,10 @@
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.1",
     "multer": "^1.4.5-lts.1",
+    "node-cron": "^4.2.1",
     "nodemailer": "^6.10.1",
     "rate-limiter-flexible": "^8.0.1",
+    "razorpay": "^2.9.6",
     "ttl-cache": "^1.0.2"
   },
   "devDependencies": {

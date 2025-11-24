@@ -24,7 +24,8 @@ export class CourseController {
     const { 
       title, 
       description, 
-      thumbnail, 
+      thumbnail,
+      thumbnail_url, 
       price = 0, 
       category, 
       tags = [], 
@@ -54,6 +55,7 @@ export class CourseController {
           title,
           description,
           thumbnail,
+          thumbnail_url,
           price: parseFloat(price),
           category,
           tags: Array.isArray(tags) ? tags : [],
@@ -355,7 +357,8 @@ export class CourseController {
     const { 
       title, 
       description, 
-      thumbnail, 
+      thumbnail,
+      thumbnail_url, 
       price, 
       category, 
       tags, 
@@ -382,6 +385,7 @@ export class CourseController {
       if (title) updateData.title = title;
       if (description !== undefined) updateData.description = description;
       if (thumbnail !== undefined) updateData.thumbnail = thumbnail;
+      if (thumbnail_url !== undefined) updateData.thumbnail_url = thumbnail_url;
       if (price !== undefined) updateData.price = parseFloat(price);
       if (category !== undefined) updateData.category = category;
       if (tags !== undefined) updateData.tags = Array.isArray(tags) ? tags : [];
@@ -466,7 +470,7 @@ export class CourseController {
    */
   static async createVideoUpload(req: any, res: Response) {
     const { courseId } = req.params;
-    const { title, description, is_free = false, order = 0 } = req.body;
+    const { title, description, thumbnail_url, is_free = false, order = 0 } = req.body;
     const userId = req.user.userId;
 
     if (!title) {
@@ -503,6 +507,7 @@ export class CourseController {
           course_id: courseId,
           title,
           description,
+          thumbnail_url,
           mux_upload_id: upload.id,
           upload_url: upload.url,
           status: "UPLOADING",
@@ -618,7 +623,7 @@ export class CourseController {
   static async updateVideo(req: any, res: Response) {
     const { videoId } = req.params;
     const userId = req.user.userId;
-    const { title, description, is_free, order } = req.body;
+    const { title, description, thumbnail_url, is_free, order } = req.body;
 
     try {
       const video = await prisma.videos.findUnique({
@@ -651,6 +656,7 @@ export class CourseController {
         updateData.title = title;
       }
       if (description !== undefined) updateData.description = description;
+      if (thumbnail_url !== undefined) updateData.thumbnail_url = thumbnail_url;
       if (is_free !== undefined) updateData.is_free = Boolean(is_free);
       if (order !== undefined) {
         if (order < 0) {
@@ -736,7 +742,10 @@ export class CourseController {
   // ============ ENROLLMENT MANAGEMENT ============
 
   /**
-   * Enroll in a course (USER only)
+   * Enroll in a course (USER only) - DEPRECATED
+   * Note: Direct enrollment is no longer supported for paid courses.
+   * Users must complete payment through /payments/create-order endpoint.
+   * This endpoint only works for FREE courses now.
    */
   static async enrollInCourse(req: any, res: Response) {
     const { courseId } = req.params;
@@ -779,10 +788,35 @@ export class CourseController {
         return ApiResponseHandler.customError(res, "Already enrolled in this course", 400, "ALREADY_ENROLLED");
       }
 
+      // Only allow direct enrollment for FREE courses
+      if (course.price > 0) {
+        return ApiResponseHandler.customError(
+          res, 
+          "This is a paid course. Please use /payments/create-order endpoint to purchase and enroll.", 
+          400, 
+          "PAYMENT_REQUIRED"
+        );
+      }
+
+      // Create transaction record for free course
+      const transaction = await prisma.transactions.create({
+        data: {
+          user_id: userId,
+          course_id: courseId,
+          amount: 0,
+          currency: "INR",
+          status: "SUCCESS",
+          payment_method: "FREE",
+          completed_at: new Date()
+        }
+      });
+
+      // Create enrollment for free course
       const enrollment = await prisma.enrollments.create({
         data: {
           user_id: userId,
-          course_id: courseId
+          course_id: courseId,
+          transaction_id: transaction.id
         },
         include: {
           course: {
@@ -801,7 +835,11 @@ export class CourseController {
         }
       });
 
-      ApiResponseHandler.success(res, { enrollment }, "Successfully enrolled in course", 201);
+      ApiResponseHandler.success(res, { 
+        enrollment,
+        transaction,
+        message: "Successfully enrolled in free course"
+      }, "Successfully enrolled in course", 201);
     } catch (err: any) {
       ApiResponseHandler.unexpectedError(res, err, 500);
     }

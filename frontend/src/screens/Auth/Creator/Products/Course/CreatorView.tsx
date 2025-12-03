@@ -30,11 +30,13 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import CustomTextInput from '../../../../../components/CustomInput';
 import UserIcon from '../../Home/component/UserIcon';
+import { getAllWebinar } from '../../../../../store/WebinarSlice';
+import WebinarCard from '../Webinar/WebinarCard';
 
 const { width: screenWidth } = Dimensions.get('window');
 
 const CreatorView: React.FC = () => {
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation();
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -49,6 +51,7 @@ const CreatorView: React.FC = () => {
   const insets = useSafeAreaInsets();
   const [active, setActive] = useState('course');
   const [searchCourse, setSearchCourse] = useState('');
+  const [webinarData, setWebinarData] = useState([]);
 
   const quickStats = [
     {
@@ -75,6 +78,10 @@ const CreatorView: React.FC = () => {
 
   useEffect(() => {
     getTheCourse(1, true);
+  }, [focus]);
+
+  useEffect(() => {
+    funGetAllWebinar(1, 10);
   }, [focus]);
 
   const getTheCourse = (pageNum: number, refresh = false) => {
@@ -112,6 +119,7 @@ const CreatorView: React.FC = () => {
 
   const handleCancel = () => setShowModal(false);
 
+  // search course-----
   const filteredCourses = useMemo(() => {
     if (!searchCourse.trim()) return data;
 
@@ -119,6 +127,15 @@ const CreatorView: React.FC = () => {
       item?.title?.toLowerCase().includes(searchCourse.toLowerCase()),
     );
   }, [searchCourse, data]);
+
+  // search webinar-----
+  const filteredWebinar = useMemo(() => {
+    if (!searchCourse.trim()) return webinarData;
+
+    return webinarData.filter(item =>
+      item?.title?.toLowerCase().includes(searchCourse.toLowerCase()),
+    );
+  }, [searchCourse, webinarData]);
 
   const renderFooter = () => {
     if (!loadingMore) return null;
@@ -139,9 +156,24 @@ const CreatorView: React.FC = () => {
     </View>
   );
 
+  // get all webinar ------------
+  const funGetAllWebinar = (pageNum: number, dataLimit: number) => {
+    const payload = {
+      page: pageNum,
+      limit: dataLimit,
+      upcoming: true,
+      title: '',
+    };
+    dispatch(getAllWebinar(payload))
+      .unwrap()
+      .then(response => {
+        setWebinarData(response?.data?.data?.webinars);
+      })
+      .finally(() => {});
+  };
+
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View
         style={[
           styles.mainHeader,
@@ -176,22 +208,10 @@ const CreatorView: React.FC = () => {
         </ImageBackground>
       </View>
 
-      {/* <View style={[styles.mainHeader, { paddingTop: insets.top + 10 }]}>
-        <View style={styles.mainHead}>
-          <Image source={{ uri: user?.profile_image }} style={styles.avatar} />
-          <View>
-            <Text style={styles.firstPara}>Hello,</Text>
-            <Text style={styles.secPara}>{user?.name}</Text>
-          </View>
-        </View>
-        <BellDot width={22} height={22} color={colors.white} />
-      </View> */}
-
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Search Box */}
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <View style={{ width: '90%' }}>
             <View style={styles.searchHeader}>
@@ -216,7 +236,6 @@ const CreatorView: React.FC = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Horizontal List Header */}
         <View
           style={[
             styles.listHeader,
@@ -260,53 +279,65 @@ const CreatorView: React.FC = () => {
           })}
         </View>
 
-        {/* Horizontal FlatList */}
-        {loading ? (
-          <View style={styles.loaderContainer}>
-            <ActivityIndicator size="large" color={colors.primary} />
-            <Text style={styles.loadingText}>Loading your courses...</Text>
-          </View>
-        ) : (
-          <View style={styles.horizontalListContainer}>
-            <FlatList
-              data={filteredCourses}
-              nestedScrollEnabled
-              renderItem={({ item, index }) => (
-                <CourseCard
-                  item={item}
-                  onEdit={() =>
-                    navigation.navigate('CreateCourse', {
-                      data: item,
-                      isUpdated: true,
-                    })
-                  }
-                  onDelete={() => {
-                    setShowModal(true);
-                    setCourseId(item?.id);
+        {active === 'course' ? (
+          <>
+            {loading ? (
+              <View style={styles.loaderContainer}>
+                <ActivityIndicator size="large" color={colors.primary} />
+                <Text style={styles.loadingText}>Loading your courses...</Text>
+              </View>
+            ) : (
+              <View style={styles.horizontalListContainer}>
+                <FlatList
+                  data={filteredCourses}
+                  nestedScrollEnabled
+                  renderItem={({ item, index }) => (
+                    <CourseCard
+                      item={item}
+                      onEdit={() =>
+                        navigation.navigate('CreateCourse', {
+                          data: item,
+                          isUpdated: true,
+                        })
+                      }
+                      onDelete={() => {
+                        setShowModal(true);
+                        setCourseId(item?.id);
+                      }}
+                      onView={() =>
+                        navigation.navigate('CourseVideoList', { item })
+                      }
+                    />
+                  )}
+                  horizontal
+                  keyExtractor={item => item.id}
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.horizontalListContent}
+                  ListEmptyComponent={renderEmptyState}
+                  onEndReached={() => {
+                    if (hasMore && !loadingMore) getTheCourse(page + 1);
                   }}
-                  onView={() =>
-                    navigation.navigate('CourseVideoList', { item })
-                  }
+                  onEndReachedThreshold={0.1}
+                  ListFooterComponent={renderFooter}
+                  snapToInterval={screenWidth - 40}
+                  snapToAlignment="center"
+                  decelerationRate="fast"
                 />
-              )}
+              </View>
+            )}
+          </>
+        ) : (
+          <View style={{ marginTop: 10 }}>
+            <FlatList
+              data={filteredWebinar}
               horizontal
-              keyExtractor={item => item.id}
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.horizontalListContent}
-              ListEmptyComponent={renderEmptyState}
-              onEndReached={() => {
-                if (hasMore && !loadingMore) getTheCourse(page + 1);
-              }}
-              onEndReachedThreshold={0.1}
-              ListFooterComponent={renderFooter}
-              snapToInterval={screenWidth - 40}
-              snapToAlignment="center"
-              decelerationRate="fast"
+              keyExtractor={item => item.id}
+              renderItem={({ item }) => <WebinarCard data={item} />}
             />
           </View>
         )}
 
-        {/* Stats Section */}
         <View style={styles.statsSection}>
           <Text style={styles.statsTitle}>Quick Stats</Text>
           <View style={styles.statsGrid}>
@@ -334,7 +365,6 @@ const CreatorView: React.FC = () => {
         </View>
       </ScrollView>
 
-      {/* Delete Modal */}
       <DynamicModal
         visible={showModal}
         heading="Delete Course"

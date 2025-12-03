@@ -2,6 +2,7 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import Toast from 'react-native-toast-message';
 import { instance, setAuthToken } from '../utils/AxiosInstance';
 
+// create webinar api -----------------------
 export const createWebinar = createAsyncThunk(
   'createWebinar',
   async (data: object) => {
@@ -23,7 +24,52 @@ export const createWebinar = createAsyncThunk(
   },
 );
 
-// /webinars?page=1&limit=10&upcoming=true
+// get all webinar -------------------------
+export const getAllWebinar = createAsyncThunk(
+  'getAllWebinar',
+  async (data: object) => {
+    try {
+      const url = `webinars?page=${data?.page}&limit=${data?.limit}&upcoming=true`;
+      const requestBody = data;
+      const response = await instance.get(url, requestBody);
+      console.log('----')
+      return response;
+    } catch (error) {
+      const response = JSON.parse(error?.request?._response || '{}');
+      console.log('---response?.error?.message---', response?.error);
+      Toast.show({
+        type: 'error',
+        text1: response?.error?.message,
+        position: 'bottom',
+      });
+      throw error;
+    }
+  },
+);
+
+// delete your course ---------
+export const deleteWebinar = createAsyncThunk(
+  'deleteWebinar',
+  async (id: string, { rejectWithValue }) => {
+    try {
+      const res = await instance.delete(`webinars/${id}`);
+      Toast.show({
+        type: 'success',
+        text1: 'Webinar deleted',
+        position: 'bottom',
+      });
+      return res.data?.data;
+    } catch (e: any) {
+      const msg = e?.response?.data?.message || 'Failed to delete webinar';
+      Toast.show({
+        type: 'error',
+        text1: msg,
+        position: 'bottom',
+      });
+      return rejectWithValue(msg);
+    }
+  },
+);
 
 export const WebinarSlice = createSlice({
   name: 'webinar',

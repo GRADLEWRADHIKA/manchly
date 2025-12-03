@@ -62,7 +62,6 @@ const CourseVideoList = () => {
   };
 
   const handleVideoError = (error: any) => {
-    console.log('Video playback error:', error);
     setPlayingVideoId(null);
   };
 

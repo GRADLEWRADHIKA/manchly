@@ -2,12 +2,6 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import Toast from 'react-native-toast-message';
 import { instance, setAuthToken } from '../utils/AxiosInstance';
 
-export interface taskState {
-  user: any;
-  loading: boolean;
-  error: string;
-}
-
 export const createWebinar = createAsyncThunk(
   'createWebinar',
   async (data: object) => {
@@ -29,6 +23,8 @@ export const createWebinar = createAsyncThunk(
   },
 );
 
+// /webinars?page=1&limit=10&upcoming=true
+
 export const WebinarSlice = createSlice({
   name: 'webinar',
   initialState: {},
@@ -36,7 +32,6 @@ export const WebinarSlice = createSlice({
   extraReducers: builder => {
     // builder.addCase(verifyOtp.fulfilled, (state, actions) => {
     //   state.user = actions?.payload?.data?.data?.user;
-    //   state.token = actions?.payload?.data?.data?.token;
     //   state.loading = false;
     // })
   },

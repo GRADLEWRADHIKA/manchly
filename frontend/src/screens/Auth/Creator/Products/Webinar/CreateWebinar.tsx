@@ -37,9 +37,9 @@ const CreateWebinarScreen = () => {
   const [uploading, setUploading] = useState(false);
   const [timezones, setTimezones] = useState([]);
   const [activeTags, setActiveTags] = useState(false);
+  const [showTags, setShowTags] = useState(false);
 
   const TAGS = ['AI', 'Machine Learning', 'Data Science'];
-  const [showTags, setShowTags] = useState(false);
 
   const showDatePicker = () => {
     setDatePickerVisibility(true);
@@ -141,28 +141,28 @@ const CreateWebinarScreen = () => {
     },
   });
 
-  const selectedTags = watch('tags');
-
   const onSubmit = (data: any) => {
     setLoading(true);
     const payload = {
-      title: '',
-      description: '',
-      thumbnail_url: '',
-      price: '',
-      category: '',
-      tags: '',
-      scheduled_at: '',
-      duration: '',
-      timezone: '',
-      max_participants: '',
-      status: '',
+      title: data?.title,
+      description: data?.description,
+      thumbnail_url: data?.thumbnail_url,
+      price: Number(data?.price),
+      category: 'webinar',
+      tags: data?.tags,
+      scheduled_at: data?.scheduled_at,
+      duration: Number(data?.duration),
+      timezone: data?.timezone,
+      max_participants: Number(data?.max_participants),
+      status: data?.status,
     };
-    return;
+    console.log('-----payload------', payload)
+    // return;
     dispatch(createWebinar(payload))
       .unwrap()
       .then(response => {
         reset();
+        // console.log('----response-----', response)
         setLoading(false);
       })
       .catch(error => {
@@ -184,7 +184,7 @@ const CreateWebinarScreen = () => {
         >
           <ScrollView
             contentContainerStyle={styles.formScroll}
-            showsVerticalScrollIndicator={true}
+            showsVerticalScrollIndicator={false}
           >
             <Text style={[styles.label, { marginTop: 10 }]}>Title</Text>
             <Controller
@@ -254,7 +254,7 @@ const CreateWebinarScreen = () => {
               )}
             />
 
-            <Text style={styles.label}>Category</Text>
+            {/* <Text style={styles.label}>Category</Text>
             <Controller
               name="category"
               control={control}
@@ -286,7 +286,7 @@ const CreateWebinarScreen = () => {
                   value={value}
                 />
               )}
-            />
+            /> */}
 
             <Text style={styles.label}>Date</Text>
             <Controller
@@ -418,7 +418,7 @@ const CreateWebinarScreen = () => {
                         borderRadius: 8,
                         elevation: 3,
                         marginHorizontal: 2,
-                        marginBottom: 10
+                        marginBottom: 10,
                       }}
                     >
                       {TAGS.map(tag => {
@@ -439,14 +439,18 @@ const CreateWebinarScreen = () => {
                             }}
                             style={{
                               padding: 10,
-                              backgroundColor: isSelected ? '#3498db' : '#ddd',
+                              backgroundColor: isSelected
+                                ? 'black'
+                                : '#efeeeeff',
                               marginBottom: 6,
                               borderRadius: 6,
                             }}
                           >
                             <Text
                               style={{
-                                color: isSelected ? '#fff' : '#000',
+                                color: isSelected
+                                  ? colors.white
+                                  : colors.primary,
                                 fontSize: 13.5,
                               }}
                             >
@@ -575,7 +579,7 @@ const CreateWebinarScreen = () => {
                   ]}
                   labelField="label"
                   valueField="value"
-                  placeholder="Select Department"
+                  placeholder="Select Status"
                   value={value}
                   dropdownPosition="top"
                   onChange={item => onChange(item.value)}
@@ -652,6 +656,7 @@ const CreateWebinarScreen = () => {
         </KeyboardAvoidingView>
         <View style={styles.actions}>
           <TouchableOpacity
+           disabled={loading}
             style={styles.cancelBtn}
             onPress={() => {
               navigation.goBack();
@@ -668,8 +673,11 @@ const CreateWebinarScreen = () => {
             onPress={() => {
               handleSubmit(onSubmit)();
             }}
+            disabled={loading}
           >
-            <Text style={styles.primaryText}>Create Webinar</Text>
+            <Text style={styles.primaryText}>
+              {loading ? <ActivityIndicator color={colors.white} size={'small'} /> : 'Create Webinar'}
+              </Text>
           </TouchableOpacity>
         </View>
       </View>

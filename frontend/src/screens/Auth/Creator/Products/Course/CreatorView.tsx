@@ -47,7 +47,7 @@ const CreatorView: React.FC = () => {
   const [deleteLoader, setDeleteLoader] = useState(false);
   const { user } = useSelector((state: any) => state.userReducer);
   const insets = useSafeAreaInsets();
-
+  const [active, setActive] = useState('course');
   const [searchCourse, setSearchCourse] = useState('');
 
   const quickStats = [
@@ -77,7 +77,6 @@ const CreatorView: React.FC = () => {
     getTheCourse(1, true);
   }, [focus]);
 
-  // Fetch courses
   const getTheCourse = (pageNum: number, refresh = false) => {
     if (loading || loadingMore) return;
 
@@ -99,7 +98,6 @@ const CreatorView: React.FC = () => {
       });
   };
 
-  // Delete
   const handleDelete = () => {
     setDeleteLoader(true);
     dispatch(deleteCourse(courseId))
@@ -114,7 +112,6 @@ const CreatorView: React.FC = () => {
 
   const handleCancel = () => setShowModal(false);
 
-  // 🔍 Dynamic Search Filter
   const filteredCourses = useMemo(() => {
     if (!searchCourse.trim()) return data;
 
@@ -145,7 +142,7 @@ const CreatorView: React.FC = () => {
   return (
     <View style={styles.container}>
       {/* Header */}
-        <View
+      <View
         style={[
           styles.mainHeader,
           {
@@ -195,10 +192,8 @@ const CreatorView: React.FC = () => {
         contentContainerStyle={styles.scrollContent}
       >
         {/* Search Box */}
-        <View
-          style={{ flexDirection: 'row', alignItems: 'center' }}
-        >
-          <View style={{width: '90%'}}>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <View style={{ width: '90%' }}>
             <View style={styles.searchHeader}>
               <Search width={20} height={20} color={colors.textSecondary} />
               <CustomTextInput
@@ -212,7 +207,7 @@ const CreatorView: React.FC = () => {
             </View>
           </View>
           <TouchableOpacity
-           style={{width: '10%'}}
+            style={{ width: '10%' }}
             onPress={() => {
               console.log('---filter---');
             }}
@@ -222,11 +217,47 @@ const CreatorView: React.FC = () => {
         </View>
 
         {/* Horizontal List Header */}
-        <View style={styles.listHeader}>
-          <Text style={styles.listTitle}>Your Courses</Text>
-          <Text style={styles.courseCount}>
-            {filteredCourses.length} courses
-          </Text>
+        <View
+          style={[
+            styles.listHeader,
+            { flexDirection: 'row', gap: 10, marginLeft: 20 },
+          ]}
+        >
+          {['course', 'webinar'].map(item => {
+            const isActive = active === item;
+
+            return (
+              <TouchableOpacity
+                key={item}
+                activeOpacity={0.8}
+                onPress={() => setActive(item)}
+                style={{
+                  paddingHorizontal: 18,
+                  paddingVertical: 8,
+                  borderRadius: 12,
+                  backgroundColor: isActive ? colors.primary : colors.white,
+                  borderWidth: isActive ? 0 : 1,
+                  borderColor: colors.borderColor,
+                  shadowColor: colors.primary,
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: isActive ? 0.15 : 0,
+                  shadowRadius: 4,
+                  elevation: isActive ? 5 : 0,
+                  transform: [{ scale: isActive ? 1.03 : 1 }],
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 15,
+                    fontWeight: '600',
+                    color: isActive ? colors.white : colors.text,
+                  }}
+                >
+                  {item === 'course' ? 'Courses' : 'Webinar'}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
 
         {/* Horizontal FlatList */}
@@ -409,14 +440,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.lightGrey,
     elevation: 3,
   },
-  listHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 8,
-    marginTop: 8,
-  },
   listTitle: {
     fontSize: 20,
     fontWeight: '700',
@@ -503,7 +526,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: colors.white,
   },
-   headerBg: {
+  headerBg: {
     width: '100%',
     paddingTop: 10,
     paddingBottom: 16,
@@ -513,5 +536,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 15,
+  },
+  listHeader: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    paddingVertical: 10,
   },
 });

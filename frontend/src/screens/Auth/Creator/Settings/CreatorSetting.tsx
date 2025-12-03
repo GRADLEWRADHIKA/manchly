@@ -20,6 +20,7 @@ import {
   Wallet as WalletIcon,
   ChevronRight,
   BellDot,
+  LogOut,
 } from 'lucide-react-native';
 import LogoutModal from '../../Profile/Components/LogoutModal';
 import AppHeader from '../../../../components/AppHeader';
@@ -159,7 +160,7 @@ const CreatorSetting: React.FC = () => {
           >
             <View style={styles.rowLeft}>
               <View style={styles.rowIcon}>
-                <SettingsIcon size={20} color={colors.error} />
+                <LogOut size={20} color={colors.error} />
               </View>
               <Text style={[styles.rowText, { color: colors.error }]}>
                 Logout

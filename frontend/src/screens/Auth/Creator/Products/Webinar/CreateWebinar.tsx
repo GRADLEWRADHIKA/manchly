@@ -13,7 +13,7 @@ import {
   ActivityIndicator,
   Image,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import colors from '../../../../../utils/colors';
 import AppHeaderWithBack from '../../../../../components/AppHeaderWithBack';
 import { Controller, useForm } from 'react-hook-form';
@@ -38,6 +38,8 @@ const CreateWebinarScreen = () => {
   const [timezones, setTimezones] = useState([]);
   const [activeTags, setActiveTags] = useState(false);
   const [showTags, setShowTags] = useState(false);
+  const route = useRoute();
+  const updatedata = route?.params?.data;
 
   const TAGS = ['AI', 'Machine Learning', 'Data Science'];
 
@@ -127,17 +129,17 @@ const CreateWebinarScreen = () => {
     formState: { errors },
   } = useForm({
     defaultValues: {
-      title: '',
-      description: '',
-      thumbnail_url: '',
-      price: '',
-      category: '',
-      tags: [],
-      scheduled_at: '',
-      duration: '',
-      timezone: '',
-      max_participants: '',
-      status: '',
+      title: updatedata?.title,
+      description: updatedata?.description,
+      thumbnail_url: updatedata?.thumbnail_url,
+      price: String(updatedata?.price),
+      category: updatedata?.category,
+      tags: updatedata?.tags,
+      scheduled_at: updatedata?.scheduled_at,
+      duration: String(updatedata?.duration),
+      timezone: updatedata?.timezone,
+      max_participants: String(updatedata?.max_participants),
+      status: updatedata?.status,
     },
   });
 
@@ -156,7 +158,7 @@ const CreateWebinarScreen = () => {
       max_participants: Number(data?.max_participants),
       status: data?.status,
     };
-    console.log('-----payload------', payload)
+    console.log('-----payload------', payload);
     // return;
     dispatch(createWebinar(payload))
       .unwrap()
@@ -654,9 +656,11 @@ const CreateWebinarScreen = () => {
             />
           </ScrollView>
         </KeyboardAvoidingView>
-        <View style={styles.actions}>
+
+        {updatedata ? (
+           <View style={styles.actions}>
           <TouchableOpacity
-           disabled={loading}
+          //  disabled={loading}
             style={styles.cancelBtn}
             onPress={() => {
               navigation.goBack();
@@ -671,15 +675,47 @@ const CreateWebinarScreen = () => {
           <TouchableOpacity
             style={styles.primaryButton}
             onPress={() => {
-              handleSubmit(onSubmit)();
+              // handleSubmit(onSubmit)();
             }}
             disabled={loading}
           >
             <Text style={styles.primaryText}>
-              {loading ? <ActivityIndicator color={colors.white} size={'small'} /> : 'Create Webinar'}
+              {loading ? <ActivityIndicator color={colors.white} size={'small'} /> : 'Update Webinar'}
               </Text>
           </TouchableOpacity>
         </View>
+        ) : (
+          <View style={styles.actions}>
+            <TouchableOpacity
+              disabled={loading}
+              style={styles.cancelBtn}
+              onPress={() => {
+                navigation.goBack();
+                reset();
+              }}
+            >
+              <Text style={styles.cancelText}>Cancel</Text>
+            </TouchableOpacity>
+
+            <View style={{ width: '10%' }} />
+
+            <TouchableOpacity
+              style={styles.primaryButton}
+              onPress={() => {
+                handleSubmit(onSubmit)();
+              }}
+              disabled={loading}
+            >
+              <Text style={styles.primaryText}>
+                {loading ? (
+                  <ActivityIndicator color={colors.white} size={'small'} />
+                ) : (
+                  'Create Webinar'
+                )}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
     </View>
   );

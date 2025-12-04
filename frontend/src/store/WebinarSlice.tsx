@@ -50,9 +50,33 @@ export const getAllWebinar = createAsyncThunk(
 // delete your course ---------
 export const deleteWebinar = createAsyncThunk(
   'deleteWebinar',
-  async (id: string, { rejectWithValue }) => {
+  async (id, { rejectWithValue }) => {
     try {
       const res = await instance.delete(`webinars/${id}`);
+      Toast.show({
+        type: 'success',
+        text1: 'Webinar deleted',
+        position: 'bottom',
+      });
+      return res.data?.data;
+    } catch (e: any) {
+      const msg = e?.response?.data?.message || 'Failed to delete webinar';
+      Toast.show({
+        type: 'error',
+        text1: msg,
+        position: 'bottom',
+      });
+      return rejectWithValue(msg);
+    }
+  },
+);
+
+// update webinar -------------------
+export const updateWebinar = createAsyncThunk(
+  'updateWebinar',
+  async (id, { rejectWithValue }) => {
+    try {
+      const res = await instance.put(`webinars/${id}`);
       Toast.show({
         type: 'success',
         text1: 'Webinar deleted',

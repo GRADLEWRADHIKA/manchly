@@ -52,6 +52,7 @@ const CreatorView: React.FC = () => {
   const [active, setActive] = useState('course');
   const [searchCourse, setSearchCourse] = useState('');
   const [webinarData, setWebinarData] = useState([]);
+  const [refreshWebinar, setRefreshWebinar] = useState(false)
 
   const quickStats = [
     {
@@ -82,7 +83,7 @@ const CreatorView: React.FC = () => {
 
   useEffect(() => {
     funGetAllWebinar(1, 10);
-  }, [focus]);
+  }, [focus, refreshWebinar]);
 
   const getTheCourse = (pageNum: number, refresh = false) => {
     if (loading || loadingMore) return;
@@ -333,7 +334,11 @@ const CreatorView: React.FC = () => {
               horizontal
               showsHorizontalScrollIndicator={false}
               keyExtractor={item => item.id}
-              renderItem={({ item }) => <WebinarCard data={item} />}
+              renderItem={({ item }) => 
+              <WebinarCard 
+              data={item}
+              setRefreshWebinar={setRefreshWebinar}
+               />}
             />
           </View>
         )}

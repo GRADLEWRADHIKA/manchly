@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, Image, TouchableOpacity } from 'react-native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import moment from 'moment-timezone';
 import colors from '../../../../../utils/colors';
 import { EllipsisVertical } from 'lucide-react-native';
@@ -8,14 +8,34 @@ import DynamicModal from '../../../../../components/CommonModal';
 import { useDispatch } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
 import { deleteWebinar } from '../../../../../store/WebinarSlice';
+import { useNavigation } from '@react-navigation/native';
 
-const WebinarCard = ({ data }) => {
+interface WebinarData {
+  id: string;
+  title: string;
+  thumbnail_url?: string;
+  tags?: string[];
+  creator?: {
+    name?: string;
+    profile_image?: string;
+  };
+  name?: string;
+  profile_image?: string;
+  price: number;
+  scheduled_at: string | Date;
+}
+
+interface WebinarCardProps {
+  data: WebinarData;
+}
+
+const WebinarCard: React.FC<WebinarCardProps> = ({ data, setRefreshWebinar }) => {
   const [menuVisible, setMenuVisible] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [deleteLoader, setDeleteLoader] = useState(false);
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
-
-  console.log(data)
+  const [webinarId, setWebinarId] = useState<string>();
+  const Nav = useNavigation();
 
   const handleMenuOpen = (id: string) => {
     setMenuVisible(id);
@@ -25,13 +45,18 @@ const WebinarCard = ({ data }) => {
     setMenuVisible(null);
   };
 
-  const handleCancel = () => setShowModal(false);
+  // close the modal ------------
+  const handleCancel = () => {
+    setShowModal(false);
+  };
 
+  // delete the webinar ----------
   const handleDelete = () => {
     setDeleteLoader(true);
-    dispatch(deleteWebinar(''))
+    dispatch(deleteWebinar(webinarId))
       .unwrap()
       .then(() => {
+        setRefreshWebinar(true)
         setDeleteLoader(false);
         setShowModal(false);
       })
@@ -41,7 +66,6 @@ const WebinarCard = ({ data }) => {
   return (
     <>
       <TouchableOpacity style={styles.card} onPress={() => {}}>
-        {/* Thumbnail */}
         <Image
           source={{
             uri:
@@ -51,7 +75,6 @@ const WebinarCard = ({ data }) => {
           style={styles.thumbnail}
         />
 
-        {/* Title + Menu */}
         <View style={styles.row}>
           <View style={{ width: '90%' }}>
             <Text numberOfLines={2} style={styles.title}>
@@ -75,7 +98,7 @@ const WebinarCard = ({ data }) => {
             <Menu.Item
               onPress={() => {
                 handleMenuClose();
-                setMenuVisible(null);
+                Nav.navigate('CreateWebinar',{ data: data})
               }}
               title="Edit"
               style={styles.menuItem}
@@ -84,8 +107,8 @@ const WebinarCard = ({ data }) => {
             <Menu.Item
               onPress={() => {
                 handleMenuClose();
-                setMenuVisible(null);
-                setShowModal(true)
+                setShowModal(true);
+                setWebinarId(data?.id);
               }}
               title="Delete"
               titleStyle={styles.deleteText}
@@ -94,7 +117,6 @@ const WebinarCard = ({ data }) => {
           </Menu>
         </View>
 
-        {/* Tags */}
         <View style={styles.tagContainer}>
           {data?.tags?.slice(0, 2).map((tag, index) => (
             <Text key={index} style={styles.tag}>
@@ -103,7 +125,6 @@ const WebinarCard = ({ data }) => {
           ))}
         </View>
 
-        {/* Creator */}
         <View style={styles.creatorRow}>
           <Image
             source={{
@@ -116,7 +137,6 @@ const WebinarCard = ({ data }) => {
           </Text>
         </View>
 
-        {/* Footer */}
         <View style={styles.footer}>
           <Text style={styles.price}>₹{data.price}</Text>
           <Text style={styles.date}>

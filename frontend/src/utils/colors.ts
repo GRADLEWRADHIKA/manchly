@@ -14,7 +14,7 @@ const colors = {
   borderColor: '#aeafb1ff',
   white: '#ffffff',
   black: '#000000',
-  lightGrey: '#f9f9f9',
+  lightGrey: '#eee8e8ff',
   golden: '#ffb606',
   micButtonGolden: '#eddfc3'
 };

@@ -32,7 +32,6 @@ export const getAllWebinar = createAsyncThunk(
       const url = `webinars?page=${data?.page}&limit=${data?.limit}&upcoming=true`;
       const requestBody = data;
       const response = await instance.get(url, requestBody);
-      console.log('----')
       return response;
     } catch (error) {
       const response = JSON.parse(error?.request?._response || '{}');
@@ -74,22 +73,22 @@ export const deleteWebinar = createAsyncThunk(
 // update webinar -------------------
 export const updateWebinar = createAsyncThunk(
   'updateWebinar',
-  async (id, { rejectWithValue }) => {
+  async (
+    { webinar_id, body }: { webinar_id: string; body: any },
+    { rejectWithValue },
+  ) => {
     try {
-      const res = await instance.put(`webinars/${id}`);
+      const res = await instance.put(`webinars/${webinar_id}`, body);
       Toast.show({
         type: 'success',
-        text1: 'Webinar deleted',
+        text1: 'Webinar updated',
         position: 'bottom',
       });
       return res.data?.data;
     } catch (e: any) {
-      const msg = e?.response?.data?.message || 'Failed to delete webinar';
-      Toast.show({
-        type: 'error',
-        text1: msg,
-        position: 'bottom',
-      });
+      console.log('------error-----', e.request);
+      const msg = e?.response?.data?.message || 'Failed to update webinar';
+      Toast.show({ type: 'error', text1: msg, position: 'bottom' });
       return rejectWithValue(msg);
     }
   },

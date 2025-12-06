@@ -22,7 +22,10 @@ import { Dropdown } from 'react-native-element-dropdown';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { useDispatch } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
-import { createWebinar } from '../../../../../store/WebinarSlice';
+import {
+  createWebinar,
+  updateWebinar,
+} from '../../../../../store/WebinarSlice';
 import Toast from 'react-native-toast-message';
 import { pick, types } from '@react-native-documents/picker';
 import { uploadShipDoc } from '../../../../../store/Common';
@@ -158,13 +161,45 @@ const CreateWebinarScreen = () => {
       max_participants: Number(data?.max_participants),
       status: data?.status,
     };
-    console.log('-----payload------', payload);
-    // return;
     dispatch(createWebinar(payload))
       .unwrap()
       .then(response => {
         reset();
-        // console.log('----response-----', response)
+        navigation.goBack();
+        setLoading(false);
+      })
+      .catch(error => {
+        console.log(error);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  };
+
+  // calling the update the webinar
+  const onUpdateSubmit = (data: any) => {
+    setLoading(true);
+    const payload = {
+      webinar_id: updatedata?.id,
+      body: {
+        title: data?.title,
+        description: data?.description,
+        thumbnail_url: data?.thumbnail_url,
+        price: Number(data?.price),
+        category: 'webinar',
+        tags: data?.tags,
+        scheduled_at: data?.scheduled_at,
+        duration: Number(data?.duration),
+        timezone: data?.timezone,
+        max_participants: Number(data?.max_participants),
+        status: data?.status,
+      },
+    };
+    dispatch(updateWebinar(payload))
+      .unwrap()
+      .then(response => {
+        reset();
+        navigation.goBack();
         setLoading(false);
       })
       .catch(error => {
@@ -658,32 +693,36 @@ const CreateWebinarScreen = () => {
         </KeyboardAvoidingView>
 
         {updatedata ? (
-           <View style={styles.actions}>
-          <TouchableOpacity
-          //  disabled={loading}
-            style={styles.cancelBtn}
-            onPress={() => {
-              navigation.goBack();
-              reset();
-            }}
-          >
-            <Text style={styles.cancelText}>Cancel</Text>
-          </TouchableOpacity>
+          <View style={styles.actions}>
+            <TouchableOpacity
+              disabled={loading}
+              style={styles.cancelBtn}
+              onPress={() => {
+                navigation.goBack();
+                reset();
+              }}
+            >
+              <Text style={styles.cancelText}>Cancel</Text>
+            </TouchableOpacity>
 
-          <View style={{ width: '10%' }} />
+            <View style={{ width: '10%' }} />
 
-          <TouchableOpacity
-            style={styles.primaryButton}
-            onPress={() => {
-              // handleSubmit(onSubmit)();
-            }}
-            disabled={loading}
-          >
-            <Text style={styles.primaryText}>
-              {loading ? <ActivityIndicator color={colors.white} size={'small'} /> : 'Update Webinar'}
+            <TouchableOpacity
+              style={styles.primaryButton}
+              onPress={() => {
+                handleSubmit(onUpdateSubmit)();
+              }}
+              disabled={loading}
+            >
+              <Text style={styles.primaryText}>
+                {loading ? (
+                  <ActivityIndicator color={colors.white} size={'small'} />
+                ) : (
+                  'Update Webinar'
+                )}
               </Text>
-          </TouchableOpacity>
-        </View>
+            </TouchableOpacity>
+          </View>
         ) : (
           <View style={styles.actions}>
             <TouchableOpacity

@@ -1,5 +1,5 @@
 // PurchasesScreen.tsx
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -22,6 +22,7 @@ import AppHeader from '../../../../components/AppHeader';
 import colors from '../../../../utils/colors';
 import { getEnrolledCourses } from '../../../../store/EnrollmentSlice';
 import { getMyTransactions } from '../../../../store/PaymentSlice';
+import ButtonSection from '../Products/component/ButtonSection';
 
 const formatINR = (value: any) =>
   typeof value === 'number' ? `₹${value.toLocaleString('en-IN')}` : value;
@@ -49,6 +50,7 @@ const PurchasesScreen = () => {
   const { transactions, loading: transactionsLoading } = useSelector(
     (state: any) => state.paymentReducer,
   );
+  const [active, setActive] = useState('courses');
 
   const [refreshing, setRefreshing] = React.useState(false);
 
@@ -85,6 +87,10 @@ const PurchasesScreen = () => {
   return (
     <View style={styles.container}>
       <AppHeader title="My Purchases" />
+
+      <View style={{ marginTop: 10 }}>
+        <ButtonSection setActive={setActive} active={active} />
+      </View>
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}

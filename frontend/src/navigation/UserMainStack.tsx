@@ -14,6 +14,7 @@ import UserSettingsDetails from '../screens/Auth/User/Settings/UserSettingDetail
 import CourseDetailsScreen from '../screens/Auth/Product/CourseDetailsScreen';
 import UserCourseSearch from '../screens/Auth/User/Search/UserCourseSearch';
 import UserVideoList from '../screens/Auth/User/Home/UserVideoList';
+import WebinarDetails from '../screens/Auth/User/Home/WebinarDetails';
 
 const Stack = createNativeStackNavigator();
 
@@ -43,6 +44,7 @@ const UserMainStack = () => {
       />
       <Stack.Screen name="UserCourseSearch" component={UserCourseSearch} />
       <Stack.Screen name="UserVideoList" component={UserVideoList} />
+      <Stack.Screen name="WebinarDetails" component={WebinarDetails} />
     </Stack.Navigator>
   );
 };

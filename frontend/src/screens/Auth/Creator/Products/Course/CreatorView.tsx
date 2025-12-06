@@ -52,7 +52,7 @@ const CreatorView: React.FC = () => {
   const [active, setActive] = useState('course');
   const [searchCourse, setSearchCourse] = useState('');
   const [webinarData, setWebinarData] = useState([]);
-  const [refreshWebinar, setRefreshWebinar] = useState(false)
+  const [refreshWebinar, setRefreshWebinar] = useState(false);
 
   const quickStats = [
     {
@@ -332,13 +332,15 @@ const CreatorView: React.FC = () => {
             <FlatList
               data={filteredWebinar}
               horizontal
+              contentContainerStyle={{ paddingRight: 100 }}
               showsHorizontalScrollIndicator={false}
               keyExtractor={item => item.id}
-              renderItem={({ item }) => 
-              <WebinarCard 
-              data={item}
-              setRefreshWebinar={setRefreshWebinar}
-               />}
+              renderItem={({ item }) => (
+                <WebinarCard
+                  data={item}
+                  setRefreshWebinar={setRefreshWebinar}
+                />
+              )}
             />
           </View>
         )}

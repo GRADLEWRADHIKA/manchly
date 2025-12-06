@@ -168,9 +168,7 @@ export default UserSetting;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.white },
-
   header: {
-    // backgroundColor: colors.primary,
     paddingBottom: 18,
     paddingHorizontal: 16,
   },

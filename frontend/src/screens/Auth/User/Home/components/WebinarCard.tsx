@@ -12,7 +12,7 @@ const WebinarCard = ({ data }) => {
     if (words.length <= 3) return text;
     return words.slice(0, 3).join(' ') + '...';
   };
-
+  
   return (
     <TouchableOpacity
       style={styles.card}

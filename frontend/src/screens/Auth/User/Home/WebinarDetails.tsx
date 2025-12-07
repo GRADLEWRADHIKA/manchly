@@ -6,17 +6,92 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
-import React from 'react';
+import React, { useState } from 'react';
 import { useRoute } from '@react-navigation/native';
 import colors from '../../../../utils/colors';
 import AppHeaderWithBack from '../../../../components/AppHeaderWithBack';
 import { Calendar, Clock, User, Tag, ImageOff } from 'lucide-react-native';
+import {
+  createWebinarEnroll,
+  createWebinarVerify,
+} from '../../../../store/WebinarSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { ThunkDispatch } from '@reduxjs/toolkit';
+import RazorpayCheckout from 'react-native-razorpay';
+import Toast from 'react-native-toast-message';
 
 const WebinarDetails = () => {
   const { params } = useRoute();
   const data = params?.data;
-
   const hasThumbnail = !!data?.thumbnail_url;
+  const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
+  const [loading, setLoading] = useState(false);
+  const { user } = useSelector((state: any) => state.userReducer);
+
+  const onVerifyWebinar = async () => {
+    try {
+      // Step 1: Create Razorpay order
+      const orderResponse = await dispatch(
+        createWebinarEnroll(data?.id),
+      ).unwrap();
+      console.log('--orderResponse--', orderResponse);
+
+      // Extract data from response
+      const razorpay_order = orderResponse?.razorpay_order;
+      const razorpay_key_id = orderResponse?.razorpay_key_id;
+      const user_details = orderResponse?.user_details;
+      const course_details = orderResponse?.course_details;
+
+      // Razorpay Checkout Options
+      const options = {
+        description: course_details?.title || course.title,
+        image: course_details?.thumbnail || course.thumbnail || '',
+        currency: razorpay_order.currency || 'INR',
+        key: razorpay_key_id,
+        amount: razorpay_order.amount,
+        name: 'Manchly',
+        order_id: razorpay_order.id,
+        prefill: {
+          email: user_details?.email || user?.email || '',
+          contact: user_details?.phone || user?.phone || '',
+          name: user_details?.name || user?.name || user?.full_name || '',
+        },
+        theme: { color: colors.primary },
+      };
+
+      // Razorpay Checkout UI
+      const paymentResult = await RazorpayCheckout.open(options);
+
+      Toast.show({
+        type: 'info',
+        text1: 'Verifying Payment...',
+        text2: 'Please wait a moment.',
+      });
+
+      // Step 3: Verify payment on backend
+      await dispatch(
+        createWebinarVerify({
+          razorpay_order_id: paymentResult.razorpay_order_id,
+          razorpay_payment_id: paymentResult.razorpay_payment_id,
+          razorpay_signature: paymentResult.razorpay_signature,
+        }),
+      ).unwrap();
+
+      Toast.show({
+        type: 'success',
+        text1: 'Payment Successful 🎉',
+        text2: 'You have successfully enrolled in this webinar.',
+      });
+    } catch (error) {
+      console.log('----Payment Error: ---', error);
+
+      Toast.show({
+        type: 'error',
+        text1: 'Payment Failed ❌',
+        text2: error?.message || 'Something went wrong, please try again.',
+      });
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -79,9 +154,7 @@ const WebinarDetails = () => {
       </ScrollView>
 
       <View style={styles.bottomBar}>
-        <TouchableOpacity style={styles.buyButton} onPress={()=>{
-            console.log('--paynow--')
-        }}>
+        <TouchableOpacity style={styles.buyButton} onPress={onVerifyWebinar}>
           <Text style={styles.buyText}>Buy Now</Text>
         </TouchableOpacity>
       </View>

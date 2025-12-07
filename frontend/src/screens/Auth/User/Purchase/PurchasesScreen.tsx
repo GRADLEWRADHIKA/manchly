@@ -236,6 +236,7 @@ const PurchasesScreen = () => {
           </View>
         )}
       </ScrollView>
+      
     </View>
   );
 };

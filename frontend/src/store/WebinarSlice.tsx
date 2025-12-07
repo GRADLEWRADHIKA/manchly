@@ -94,6 +94,50 @@ export const updateWebinar = createAsyncThunk(
   },
 );
 
+// create Webinar Enroll  -----------
+export const createWebinarEnroll = createAsyncThunk(
+  'createWebinarEnroll',
+  async (data: object) => {
+    try {
+      const url = `webinars/${data}/enroll`;
+      const requestBody = data;
+      const response = await instance.post(url, requestBody);
+      return response;
+    } catch (error) {
+      const response = JSON.parse(error?.request?._response || '{}');
+      console.log('---response---', response);
+      Toast.show({
+        type: 'error',
+        text1: response?.error?.message || 'Failed to buy',
+        position: 'bottom',
+      });
+      throw error;
+    }
+  },
+);
+
+// webinars payment verify-------------
+export const createWebinarVerify = createAsyncThunk(
+  'createWebinarVerify',
+  async (data: object) => {
+    try {
+      const url = 'webinars/payment/verify';
+      const requestBody = data;
+      const response = await instance.post(url, requestBody);
+      return response;
+    } catch (error) {
+      const response = JSON.parse(error?.request?._response || '{}');
+      console.log('---response---', response);
+      Toast.show({
+        type: 'error',
+        text1: response?.error?.message || 'Failed to buy',
+        position: 'bottom',
+      });
+      throw error;
+    }
+  },
+);
+
 export const WebinarSlice = createSlice({
   name: 'webinar',
   initialState: {},

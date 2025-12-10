@@ -13,9 +13,15 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import colors from '../../../../utils/colors';
-import { BellDot, ShoppingCart, Search, BookOpen, PlayCircle } from 'lucide-react-native';
+import {
+  BellDot,
+  ShoppingCart,
+  Search,
+  BookOpen,
+  PlayCircle,
+} from 'lucide-react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import Carousel from 'react-native-reanimated-carousel';
 import { getEnrolledCourses } from '../../../../store/EnrollmentSlice';
 import CourseCard from './components/CourseCard';
@@ -30,19 +36,36 @@ const UserHome = () => {
   const dispatch = useDispatch<any>();
   const navigation = useNavigation<any>();
   const [webinarData, setWebinarData] = useState([]);
+  const focus = useIsFocused();
 
   useEffect(() => {
     dispatch(getEnrolledCourses({}));
-  }, []);
+  }, [focus]);
+
+  useEffect(() => {
+    funGetAllWebinar(1, 5);
+  }, [focus]);
 
   const { list: enrolledCourses, loading: enrolledLoading } = useSelector(
     (state: any) => state.enrollmentsReducer,
   );
 
   const carouselData = [
-    { title: 'Learn Anytime, Anywhere', image: 'https://img.freepik.com/free-vector/online-courses-tutorials_23-2148527797.jpg' },
-    { title: 'Upgrade Your Skills Today', image: 'https://img.freepik.com/free-vector/education-concept-illustration_114360-6266.jpg' },
-    { title: 'Grow with the Best Instructors', image: 'https://img.freepik.com/free-vector/elearning-concept-illustration_114360-6217.jpg' },
+    {
+      title: 'Learn Anytime, Anywhere',
+      image:
+        'https://img.freepik.com/free-vector/online-courses-tutorials_23-2148527797.jpg',
+    },
+    {
+      title: 'Upgrade Your Skills Today',
+      image:
+        'https://img.freepik.com/free-vector/education-concept-illustration_114360-6266.jpg',
+    },
+    {
+      title: 'Grow with the Best Instructors',
+      image:
+        'https://img.freepik.com/free-vector/elearning-concept-illustration_114360-6217.jpg',
+    },
   ];
 
   const renderCourseItem = ({ item }: any) => (
@@ -59,7 +82,12 @@ const UserHome = () => {
 
   // Fetch Webinars
   const funGetAllWebinar = (pageNum: number, dataLimit: number) => {
-    const payload = { page: pageNum, limit: dataLimit, upcoming: true, title: '' };
+    const payload = {
+      page: pageNum,
+      limit: dataLimit,
+      upcoming: true,
+      title: '',
+    };
     dispatch(getAllWebinar(payload))
       .unwrap()
       .then(response => {
@@ -67,11 +95,6 @@ const UserHome = () => {
       });
   };
 
-  useEffect(() => {
-    funGetAllWebinar(1, 10);
-  }, []);
-
-  // ❗ NEW — Empty State Card UI
   const EmptyCard = ({ icon: Icon, title, btnText, onPress }: any) => (
     <View style={styles.emptyCard}>
       <Icon size={48} color={colors.secPrimary} />
@@ -88,12 +111,17 @@ const UserHome = () => {
       <View style={[styles.mainHeader, { paddingTop: insets.top + 10 }]}>
         <View style={styles.mainHead}>
           <View style={{ flexDirection: 'row', gap: 5, alignItems: 'center' }}>
-            <Image source={{ uri: user?.profile_image }} style={styles.avatar} />
+            <Image
+              source={{ uri: user?.profile_image }}
+              style={styles.avatar}
+            />
             <Text style={styles.secPara}>{user?.name}</Text>
           </View>
         </View>
         <View style={{ flexDirection: 'row', gap: 20 }}>
-          <TouchableOpacity onPress={() => navigation.navigate('UserCourseSearch')}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('UserCourseSearch')}
+          >
             <Search width={22} height={22} color={colors.white} />
           </TouchableOpacity>
           <TouchableOpacity>
@@ -121,7 +149,11 @@ const UserHome = () => {
             scrollAnimationDuration={1500}
             renderItem={({ item }) => (
               <View style={styles.carouselCard}>
-                <Image source={{ uri: item.image }} style={styles.carouselImage} resizeMode="cover" />
+                <Image
+                  source={{ uri: item.image }}
+                  style={styles.carouselImage}
+                  resizeMode="cover"
+                />
                 <View style={styles.carouselOverlay}>
                   <Text style={styles.carouselText}>{item.title}</Text>
                 </View>
@@ -135,7 +167,6 @@ const UserHome = () => {
 
         {enrolledLoading ? (
           <ActivityIndicator size="large" color={colors.secPrimary} />
-
         ) : enrolledCourses?.enrollments?.length === 0 ? (
           <EmptyCard
             icon={BookOpen}
@@ -143,7 +174,6 @@ const UserHome = () => {
             btnText="Browse Courses"
             onPress={() => navigation.navigate('UserCourseSearch')}
           />
-
         ) : (
           <FlatList
             horizontal
@@ -156,16 +186,16 @@ const UserHome = () => {
         )}
 
         {/* Webinars Section */}
-        <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>Join Webinar</Text>
+        <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>
+          Join Webinar
+        </Text>
 
         {webinarData.length === 0 ? (
           <EmptyCard
             icon={PlayCircle}
             title="No Webinars Available"
             btnText="Explore Webinars"
-            onPress={() => navigation.navigate('AllWebinars')}
           />
-
         ) : (
           <FlatList
             horizontal

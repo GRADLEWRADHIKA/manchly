@@ -1,4 +1,11 @@
-import { StyleSheet, Text, View, Image, TouchableOpacity } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  Image,
+  TouchableOpacity,
+  Linking,
+} from 'react-native';
 import React, { useEffect, useState } from 'react';
 import moment from 'moment-timezone';
 import colors from '../../../../../utils/colors';
@@ -29,7 +36,10 @@ interface WebinarCardProps {
   data: WebinarData;
 }
 
-const WebinarCard: React.FC<WebinarCardProps> = ({ data, setRefreshWebinar }) => {
+const WebinarCard: React.FC<WebinarCardProps> = ({
+  data,
+  setRefreshWebinar,
+}) => {
   const [menuVisible, setMenuVisible] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [deleteLoader, setDeleteLoader] = useState(false);
@@ -56,16 +66,36 @@ const WebinarCard: React.FC<WebinarCardProps> = ({ data, setRefreshWebinar }) =>
     dispatch(deleteWebinar(webinarId))
       .unwrap()
       .then(() => {
-        setRefreshWebinar(true)
+        setRefreshWebinar(true);
         setDeleteLoader(false);
         setShowModal(false);
       })
       .catch(() => setDeleteLoader(false));
   };
 
+  console.log(data);
+
   return (
     <>
-      <TouchableOpacity style={styles.card} onPress={() => {}}>
+      <TouchableOpacity
+        style={styles.card}
+        onPress={() => {
+          const meetingId = data?.zoom_meeting_id;
+          const password = data?.zoom_password;
+
+          if (meetingId && password) {
+            const zoomURL = `zoomus://zoom.us/join?confno=${meetingId}&pwd=${password}`;
+
+            Linking.openURL(zoomURL).catch(() => {
+              if (data?.zoom_join_url) {
+                Linking.openURL(data.zoom_join_url);
+              }
+            });
+          } else {
+            console.log('Meeting ID or password missing');
+          }
+        }}
+      >
         <Image
           source={{
             uri:
@@ -98,7 +128,7 @@ const WebinarCard: React.FC<WebinarCardProps> = ({ data, setRefreshWebinar }) =>
             <Menu.Item
               onPress={() => {
                 handleMenuClose();
-                Nav.navigate('CreateWebinar',{ data: data})
+                Nav.navigate('CreateWebinar', { data: data });
               }}
               title="Edit"
               style={styles.menuItem}

@@ -35,7 +35,6 @@ export const getAllWebinar = createAsyncThunk(
       return response;
     } catch (error) {
       const response = JSON.parse(error?.request?._response || '{}');
-      console.log('---response?.error?.message---', response?.error);
       Toast.show({
         type: 'error',
         text1: response?.error?.message,
@@ -99,7 +98,30 @@ export const createWebinarEnroll = createAsyncThunk(
   'createWebinarEnroll',
   async (data: object) => {
     try {
-      const url = `webinars/${data}/enroll`;
+      const url = `webinars/${data?.webinar_id}/enroll`;
+      // console.log(url)
+      // return
+      const requestBody = data;
+      const response = await instance.post(url, requestBody);
+      return response;
+    } catch (error) {
+      const response = JSON.parse(error?.request?._response || '{}');
+      Toast.show({
+        type: 'error',
+        text1: response?.error?.message || 'Failed to Enroll',
+        position: 'bottom',
+      });
+      throw error;
+    }
+  },
+);
+
+// webinars payment verify-------------
+export const createWebinarVerify = createAsyncThunk(
+  'createWebinarVerify',
+  async (data: object) => {
+    try {
+      const url = 'webinars/payment/verify';
       const requestBody = data;
       const response = await instance.post(url, requestBody);
       return response;
@@ -116,14 +138,14 @@ export const createWebinarEnroll = createAsyncThunk(
   },
 );
 
-// webinars payment verify-------------
-export const createWebinarVerify = createAsyncThunk(
+// get Enrolled Webinar -----
+export const getEnrolledWebinar = createAsyncThunk(
   'createWebinarVerify',
   async (data: object) => {
     try {
-      const url = 'webinars/payment/verify';
+      const url = `webinars/enrolled/me?page=${data?.page}&limit=${data?.limit}&upcoming=${data?.upcoming}`;
       const requestBody = data;
-      const response = await instance.post(url, requestBody);
+      const response = await instance.get(url, requestBody);
       return response;
     } catch (error) {
       const response = JSON.parse(error?.request?._response || '{}');

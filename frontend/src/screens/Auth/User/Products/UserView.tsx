@@ -17,6 +17,8 @@ import { getEnrolledCourses } from '../../../../store/EnrollmentSlice';
 import CustomTextInput from '../../../../components/CustomInput';
 import CourseCard from './component/CourseCard';
 import ButtonSection from './component/ButtonSection';
+import { getAllWebinar } from '../../../../store/WebinarSlice';
+import EnrolledWebinarCard from './component/EnrolledWebinarCard';
 
 const UserView: React.FC = () => {
   const dispatch = useDispatch<any>();
@@ -30,6 +32,11 @@ const UserView: React.FC = () => {
     (state: any) => state.enrollmentsReducer,
   );
   const [active, setActive] = useState('courses');
+  const [webinarData, setWebinarData] = useState([]);
+
+  useEffect(() => {
+    funGetAllWebinar(1, 5);
+  }, []);
 
   useEffect(() => {
     dispatch(fetchCourses({}));
@@ -50,6 +57,20 @@ const UserView: React.FC = () => {
     navigation.navigate('CourseDetailsScreen', { courseId });
   };
 
+  const funGetAllWebinar = (pageNum: number, dataLimit: number) => {
+    const payload = {
+      page: pageNum,
+      limit: dataLimit,
+      upcoming: true,
+      title: '',
+    };
+    dispatch(getAllWebinar(payload))
+      .unwrap()
+      .then(response => {
+        setWebinarData(response?.data?.data?.webinars);
+      });
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.hero}>
@@ -57,7 +78,6 @@ const UserView: React.FC = () => {
           {active === 'courses' ? 'Learn from experts' : 'Join webinar'}
         </Text>
       </View>
-      
 
       <View style={styles.searchContainer}>
         <Search
@@ -109,7 +129,16 @@ const UserView: React.FC = () => {
           </View>
         </>
       ) : (
-        ''
+        <FlatList
+          data={webinarData}
+          keyExtractor={item => item?.id}
+          renderItem={({ item }) => (
+            <View style={{marginHorizontal: 12}}>
+              <EnrolledWebinarCard item={item} />
+            </View>
+          )}
+          showsVerticalScrollIndicator={false}
+        />
       )}
     </View>
   );

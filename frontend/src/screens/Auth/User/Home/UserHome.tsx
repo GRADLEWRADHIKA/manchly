@@ -19,6 +19,7 @@ import {
   Search,
   BookOpen,
   PlayCircle,
+  User,
 } from 'lucide-react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
@@ -111,10 +112,23 @@ const UserHome = () => {
       <View style={[styles.mainHeader, { paddingTop: insets.top + 10 }]}>
         <View style={styles.mainHead}>
           <View style={{ flexDirection: 'row', gap: 5, alignItems: 'center' }}>
-            <Image
-              source={{ uri: user?.profile_image }}
-              style={styles.avatar}
-            />
+            {user?.profile_image ? (
+              <Image
+                source={{ uri: user?.profile_image }}
+                style={styles.avatar}
+              />
+            ) : (
+              <View
+                style={{
+                  borderWidth: 2,
+                  padding: 2,
+                  borderRadius: 50,
+                  borderColor: colors.white,
+                }}
+              >
+                <User color={'white'} />
+              </View>
+            )}
             <Text style={styles.secPara}>{user?.name}</Text>
           </View>
         </View>

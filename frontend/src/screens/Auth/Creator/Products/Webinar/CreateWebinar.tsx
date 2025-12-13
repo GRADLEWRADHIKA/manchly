@@ -18,7 +18,7 @@ import colors from '../../../../../utils/colors';
 import AppHeaderWithBack from '../../../../../components/AppHeaderWithBack';
 import { Controller, useForm } from 'react-hook-form';
 import CustomTextInput from '../../../../../components/CustomInput';
-import { Dropdown } from 'react-native-element-dropdown';
+import { Dropdown, MultiSelect } from 'react-native-element-dropdown';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { useDispatch } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
@@ -44,7 +44,12 @@ const CreateWebinarScreen = () => {
   const route = useRoute();
   const updatedata = route?.params?.data;
 
-  const TAGS = ['AI', 'Machine Learning', 'Data Science'];
+  // const TAGS = ['AI', 'Machine Learning', 'Data Science'];
+  const TAGS = [
+    { label: 'AI', value: 'AI' },
+    { label: 'Machine Learning', value: 'Machine Learning' },
+    { label: 'Data Science', value: 'Data Science' },
+  ];
 
   const showDatePicker = () => {
     setDatePickerVisibility(true);
@@ -135,13 +140,13 @@ const CreateWebinarScreen = () => {
       title: updatedata?.title,
       description: updatedata?.description,
       thumbnail_url: updatedata?.thumbnail_url,
-      price: String(updatedata?.price),
+      price: String(updatedata?.price ?? '') || '',
       category: updatedata?.category,
       tags: updatedata?.tags,
       scheduled_at: updatedata?.scheduled_at,
-      duration: String(updatedata?.duration),
+      duration: String(updatedata?.duration ?? '') || '',
       timezone: updatedata?.timezone,
-      max_participants: String(updatedata?.max_participants),
+      max_participants: String(updatedata?.max_participants ?? '') || '',
       status: updatedata?.status,
     },
   });
@@ -429,76 +434,23 @@ const CreateWebinarScreen = () => {
               control={control}
               name="tags"
               render={({ field: { value, onChange } }) => (
-                <>
-                  <TouchableOpacity
-                    style={{
-                      padding: 10,
-                      borderRadius: 8,
-                      marginBottom: 10,
-                      borderWidth: 1,
-                      height: 44,
-                      borderColor: colors.borderColor,
-                      justifyContent: 'center',
-                    }}
-                    onPress={() => setShowTags(!showTags)}
-                  >
-                    <Text style={{ fontSize: 13.5 }}>
-                      {value.length > 0 ? value.join(' , ') : 'Select Tags'}
-                    </Text>
-                  </TouchableOpacity>
-
-                  {showTags && (
-                    <View
-                      style={{
-                        backgroundColor: colors.white,
-                        padding: 10,
-                        borderRadius: 8,
-                        elevation: 3,
-                        marginHorizontal: 2,
-                        marginBottom: 10,
-                      }}
-                    >
-                      {TAGS.map(tag => {
-                        const isSelected = value.includes(tag);
-
-                        return (
-                          <TouchableOpacity
-                            key={tag}
-                            onPress={() => {
-                              let updated = [];
-
-                              if (isSelected) {
-                                updated = value.filter(item => item !== tag);
-                              } else {
-                                updated = [...value, tag];
-                              }
-                              onChange(updated);
-                            }}
-                            style={{
-                              padding: 10,
-                              backgroundColor: isSelected
-                                ? 'black'
-                                : '#efeeeeff',
-                              marginBottom: 6,
-                              borderRadius: 6,
-                            }}
-                          >
-                            <Text
-                              style={{
-                                color: isSelected
-                                  ? colors.white
-                                  : colors.primary,
-                                fontSize: 13.5,
-                              }}
-                            >
-                              {tag}
-                            </Text>
-                          </TouchableOpacity>
-                        );
-                      })}
-                    </View>
-                  )}
-                </>
+                <MultiSelect
+                  style={styles.dropdown}
+                  containerStyle={styles.dropdownContainer}
+                  placeholderStyle={styles.placeholder}
+                  selectedTextStyle={styles.selectedText}
+                  data={TAGS}
+                  labelField="label"
+                  valueField="value"
+                  placeholder="Select Tags"
+                  value={value}
+                  onChange={item => {
+                    onChange(item);
+                  }}
+                  selectedStyle={styles.selectedItem}
+                  activeColor="#00000010"
+                  alwaysRenderSelectedItem={true}
+                />
               )}
             />
 
@@ -962,5 +914,12 @@ const styles = StyleSheet.create({
     color: colors.black,
     lineHeight: 26,
     fontWeight: '500',
+  },
+  dropdownContainer: {
+    borderRadius: 8,
+  },
+  selectedItem: {
+    borderRadius: 6,
+    // backgroundColor: '#000',
   },
 });

@@ -474,7 +474,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 15,
     gap: 3,
-    backgroundColor: colors.lightGrey,
+    backgroundColor: colors.white,
     elevation: 3,
   },
   listTitle: {

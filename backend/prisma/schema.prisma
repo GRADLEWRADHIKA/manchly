@@ -26,6 +26,18 @@ enum VideoStatus {
   ERROR
 }
 
+enum ConversationType {
+  DIRECT
+  GROUP
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  FILE
+  SYSTEM
+}
+
 model users {
   id            String   @id @default(uuid())
   email         String   @unique
@@ -37,12 +49,16 @@ model users {
   updated_at    DateTime @updatedAt
   last_login    DateTime?
   
-  courses              courses[]
-  enrollments          enrollments[]
-  transactions         transactions[]
-  webinars             webinars[]
-  webinar_enrollments  webinar_enrollments[]
-  webinar_transactions webinar_transactions[]
+  courses                  courses[]
+  enrollments              enrollments[]
+  transactions             transactions[]
+  webinars                 webinars[]
+  webinar_enrollments      webinar_enrollments[]
+  webinar_transactions     webinar_transactions[]
+  conversation_participants conversation_participants[]
+  messages                 messages[]
+  group_members            group_members[]
+  created_groups           groups[]
   
   @@map("users")
 }
@@ -247,4 +263,93 @@ model webinar_enrollments {
   @@index([user_id])
   @@index([webinar_id])
   @@map("webinar_enrollments")
+}
+
+// Chat Models
+
+model conversations {
+  id                String           @id @default(uuid())
+  type              ConversationType @default(DIRECT)
+  name              String?          // For group chats
+  group_id          String?          @unique
+  last_message_at   DateTime         @default(now())
+  created_at        DateTime         @default(now())
+  updated_at        DateTime         @updatedAt
+  
+  group             groups?                      @relation(fields: [group_id], references: [id], onDelete: Cascade)
+  participants      conversation_participants[]
+  messages          messages[]
+  
+  @@index([type])
+  @@index([last_message_at])
+  @@map("conversations")
+}
+
+model conversation_participants {
+  id              String   @id @default(uuid())
+  conversation_id String
+  user_id         String
+  joined_at       DateTime @default(now())
+  last_read_at    DateTime?
+  
+  conversation    conversations @relation(fields: [conversation_id], references: [id], onDelete: Cascade)
+  user            users         @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  
+  @@unique([conversation_id, user_id])
+  @@index([user_id])
+  @@index([conversation_id])
+  @@map("conversation_participants")
+}
+
+model messages {
+  id              String      @id @default(uuid())
+  conversation_id String
+  sender_id       String
+  content         String      @db.Text
+  type            MessageType @default(TEXT)
+  attachment_url  String?     @db.Text
+  is_read         Boolean     @default(false)
+  created_at      DateTime    @default(now())
+  updated_at      DateTime    @updatedAt
+  
+  conversation    conversations @relation(fields: [conversation_id], references: [id], onDelete: Cascade)
+  sender          users         @relation(fields: [sender_id], references: [id], onDelete: Cascade)
+  
+  @@index([conversation_id])
+  @@index([sender_id])
+  @@index([created_at])
+  @@map("messages")
+}
+
+model groups {
+  id          String   @id @default(uuid())
+  name        String
+  description String?  @db.Text
+  avatar_url  String?  @db.Text
+  creator_id  String
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  
+  creator      users          @relation(fields: [creator_id], references: [id], onDelete: Cascade)
+  conversation conversations?
+  members      group_members[]
+  
+  @@index([creator_id])
+  @@map("groups")
+}
+
+model group_members {
+  id         String   @id @default(uuid())
+  group_id   String
+  user_id    String
+  is_admin   Boolean  @default(false)
+  joined_at  DateTime @default(now())
+  
+  group      groups   @relation(fields: [group_id], references: [id], onDelete: Cascade)
+  user       users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  
+  @@unique([group_id, user_id])
+  @@index([group_id])
+  @@index([user_id])
+  @@map("group_members")
 }

@@ -5,7 +5,12 @@ export interface AuthenticatedRequest extends Request {
   user?: { id: string; email?: string; [k: string]: any };
 }
 
-export async function authMiddleware(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+// Named `authenticate` to match imports in route files
+export async function authenticate(
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) {
   const authHeader = req.headers["authorization"];
   if (!authHeader) return res.status(401).json({ error: "Missing Authorization header" });
 

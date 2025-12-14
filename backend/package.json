@@ -8,7 +8,14 @@
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "prisma:generate": "prisma generate",
     "migrate:dev": "prisma migrate dev --name init",
-    "migrate:deploy": "prisma migrate deploy"
+    "migrate:deploy": "prisma migrate deploy",
+    "pm2:start": "pm2 start ecosystem.config.js --env production",
+    "pm2:stop": "pm2 stop machly-backend",
+    "pm2:restart": "pm2 restart machly-backend",
+    "pm2:delete": "pm2 delete machly-backend",
+    "pm2:logs": "pm2 logs machly-backend",
+    "pm2:status": "pm2 status",
+    "pm2:monit": "pm2 monit"
   },
   "dependencies": {
     "@aws-sdk/client-sns": "^3.907.0",
@@ -29,6 +36,7 @@
     "nodemailer": "^6.10.1",
     "rate-limiter-flexible": "^8.0.1",
     "razorpay": "^2.9.6",
+    "socket.io": "^4.8.1",
     "ttl-cache": "^1.0.2"
   },
   "devDependencies": {

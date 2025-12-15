@@ -38,6 +38,7 @@ const UserHome = () => {
   const navigation = useNavigation<any>();
   const [webinarData, setWebinarData] = useState([]);
   const focus = useIsFocused();
+  const { token } = useSelector((state: any) => state.userReducer);
 
   useEffect(() => {
     dispatch(getEnrolledCourses({}));

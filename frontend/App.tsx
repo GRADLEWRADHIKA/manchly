@@ -13,11 +13,11 @@ export default function App() {
   useEffect(() => {
     SplashScreen.hide();
   }, []);
-  
+
   return (
     <Provider store={store}>
-      <PaperProvider>
-        <PersistGate loading={null} persistor={persistor}>
+      <PersistGate loading={null} persistor={persistor}>
+        <PaperProvider>
           <StatusBar
             translucent={false}
             backgroundColor="white"
@@ -25,23 +25,8 @@ export default function App() {
           />
           <Router />
           <Toast />
-        </PersistGate>
-      </PaperProvider>
+        </PaperProvider>
+      </PersistGate>
     </Provider>
   );
 }
-
-// gilroy font in react native
-// npm i react-native-asset
-
-// project-root/
-//  ├── android/
-//  ├── ios/
-//  ├── assets/
-//  │    └── fonts/
-//  │         ├── Gilroy-Regular.ttf
-//  │         ├── Gilroy-Medium.ttf
-//  │         ├── Gilroy-Bold.ttf
-//  ├── react-native.config.js
-//  ├── App.js
-//  └── package.json

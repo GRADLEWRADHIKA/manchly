@@ -21,6 +21,7 @@ getAccessToken();
 // Function to set the Bearer token in the Authorization header
 export const setAuthToken = (token: string) => {
   if (token) {
+    console.log('----token-----', token)
     instance.defaults.headers.common.Authorization = `Bearer ${token}`;
     uploadInstance.defaults.headers.common.Authorization = `bearer ${token}`;
   } else {

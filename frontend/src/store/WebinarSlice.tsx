@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import Toast from 'react-native-toast-message';
-import { instance, setAuthToken } from '../utils/AxiosInstance';
+import { instance } from '../utils/AxiosInstance';
 
 // create webinar api -----------------------
 export const createWebinar = createAsyncThunk(

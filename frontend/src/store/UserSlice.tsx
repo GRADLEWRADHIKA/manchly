@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import Toast from 'react-native-toast-message';
-import { instance, setAuthToken } from '../utils/AxiosInstance';
+import { instance } from '../utils/AxiosInstance';
 
 export interface taskState {
   user: any;
@@ -56,7 +56,7 @@ export const verifyOtp = createAsyncThunk('verifyOtp', async (data: object) => {
     const requestBody = data;
     const response = await instance.post(url, requestBody);
     if (response.data) {
-      setAuthToken(response?.data?.data?.token);
+
     }
     return response;
   } catch (error) {

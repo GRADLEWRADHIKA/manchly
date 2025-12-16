@@ -64,7 +64,7 @@ const EnrolledWebinarCard = ({ item }) => {
           </Text>
         </View>
 
-        {webinar?.is_enrolled && (
+        {/* {webinar?.is_enrolled && ( */}
           <TouchableOpacity
             style={styles.joinBtn}
             onPress={() =>
@@ -74,7 +74,7 @@ const EnrolledWebinarCard = ({ item }) => {
             <Video size={20} color="#fff" />
             <Text style={styles.joinText}>Join Webinar</Text>
           </TouchableOpacity>
-        )}
+        {/* )} */}
       </View>
     </View>
   );

@@ -8,8 +8,10 @@ import { PaperProvider } from 'react-native-paper';
 import { PersistGate } from 'redux-persist/integration/react';
 import { store, persistor } from './src/store/Store';
 import SplashScreen from 'react-native-splash-screen';
+import { injectStore } from './src/utils/AxiosInstance';
 
 export default function App() {
+  injectStore(store);
   useEffect(() => {
     SplashScreen.hide();
   }, []);

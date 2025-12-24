@@ -25,6 +25,7 @@ import {
   updateVideo,
 } from '../../../../../store/VideoSlice';
 import { uploadShipDoc } from '../../../../../store/Common';
+import { requestMediaPermission } from '../../../../../utils/mediaPermission';
 
 const CourseAddVideoModal = ({ onClose, setRefresh, videoData, isUpdate }) => {
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
@@ -89,33 +90,22 @@ const CourseAddVideoModal = ({ onClose, setRefresh, videoData, isUpdate }) => {
   };
 
   // 🔹 Video Picker Permission
-  const requestVideoPermission = async () => {
-    if (Platform.OS === 'android') {
-      const permission =
-        Platform.Version >= 33
-          ? PermissionsAndroid.PERMISSIONS.READ_MEDIA_VIDEO
-          : PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE;
+  // const requestVideoPermission = async () => {
+  //   if (Platform.OS === 'android') {
+  //     const permission =
+  //       Platform.Version >= 33
+  //         ? PermissionsAndroid.PERMISSIONS.READ_MEDIA_VIDEO
+  //         : PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE;
 
-      const granted = await PermissionsAndroid.request(permission);
-      return granted === PermissionsAndroid.RESULTS.GRANTED;
-    }
-    return true;
-  };
+  //     const granted = await PermissionsAndroid.request(permission);
+  //     return granted === PermissionsAndroid.RESULTS.GRANTED;
+  //   }
+  //   return true;
+  // };
 
   // 🔹 Pick a Video
   const handleVideoSelect = async () => {
     try {
-      const hasPermission = await requestVideoPermission();
-      if (!hasPermission) {
-        Toast.show({
-          type: 'error',
-          text1: 'Permission denied',
-          text2: 'Please allow video access in settings',
-          position: 'bottom',
-        });
-        return;
-      }
-
       const response = await pick({
         type: [types.video],
         allowMultiSelection: false,
@@ -144,6 +134,17 @@ const CourseAddVideoModal = ({ onClose, setRefresh, videoData, isUpdate }) => {
 
   // 🔹 Pick and upload thumbnail
   const imagePicker = async (onChange: (val: string) => void) => {
+    const hasPermission = await requestMediaPermission();
+
+    if (!hasPermission) {
+      Toast.show({
+        type: 'error',
+        text1: 'Permission required',
+        text2: 'Please allow media access to upload images',
+      });
+      return;
+    }
+
     try {
       const res = await pick({ type: [types.images] });
       if (!res || res.length === 0) return;
@@ -166,7 +167,10 @@ const CourseAddVideoModal = ({ onClose, setRefresh, videoData, isUpdate }) => {
     }
   };
 
-  const uploadThumbnail = async (file: any, onChange: (val: string) => void) => {
+  const uploadThumbnail = async (
+    file: any,
+    onChange: (val: string) => void,
+  ) => {
     setThumbnailUploading(true);
     try {
       const formData = new FormData();
@@ -315,7 +319,10 @@ const CourseAddVideoModal = ({ onClose, setRefresh, videoData, isUpdate }) => {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.modalContent}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Video Title */}
         <Text style={styles.label}>Video Title</Text>
         <Controller

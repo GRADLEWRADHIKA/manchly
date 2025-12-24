@@ -19,6 +19,7 @@ import { ThunkDispatch } from '@reduxjs/toolkit';
 import Toast from 'react-native-toast-message';
 import DocumentPicker, { pick, types } from '@react-native-documents/picker';
 import { uploadShipDoc } from '../../../store/Common';
+import { requestMediaPermission } from '../../../utils/mediaPermission';
 
 const UserProfile = () => {
   const navigation = useNavigation<any>();
@@ -28,9 +29,18 @@ const UserProfile = () => {
   const [uploading, setUploading] = useState(false);
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
 
-  console.log('----user------', user)
-
   const imagePicker = async () => {
+    const hasPermission = await requestMediaPermission();
+
+    if (!hasPermission) {
+      Toast.show({
+        type: 'error',
+        text1: 'Permission required',
+        text2: 'Please allow media access to upload images',
+      });
+      return;
+    }
+
     try {
       const res = await pick({
         type: [types.images],
@@ -178,7 +188,10 @@ const UserProfile = () => {
           name="name"
           control={control}
           rules={{ required: 'Please enter your name' }}
-          render={({ field: { onChange, onBlur, value }, fieldState: { error } }) => (
+          render={({
+            field: { onChange, onBlur, value },
+            fieldState: { error },
+          }) => (
             <CustomTextInput
               placeholder="Enter Full Name"
               inputContainerStyle={[
@@ -234,7 +247,9 @@ const UserProfile = () => {
             onPress={() => navigation.goBack()}
             disabled={loading || uploading}
           >
-            <Text style={[styles.buttonText, { color: colors.black }]}>Back</Text>
+            <Text style={[styles.buttonText, { color: colors.black }]}>
+              Back
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity

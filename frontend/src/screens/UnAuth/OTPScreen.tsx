@@ -28,6 +28,7 @@ const OTPScreen: React.FC = () => {
   const userTypeFromRoute = (route?.params as any)?.userType ?? null;
   const onBack = () => navigation.goBack();
 
+  // console.log(route?.params?.payload?.tab)
 
   const {
     control,
@@ -47,6 +48,7 @@ const OTPScreen: React.FC = () => {
       phone_number: route?.params?.payload?.phone_number,
       code: route?.params?.dummyOtp,
       purpose: route?.params?.payload?.purpose,
+      user_type: route?.params?.payload?.tab
     };
     dispatch(verifyOtp(payload))
       .unwrap()
@@ -169,7 +171,7 @@ const OTPScreen: React.FC = () => {
             style={styles.resendButton}
             onPress={() => console.log('Resend OTP (placeholder)')}
           >
-            <Text style={styles.resendText}>Didn't receive code? Resend</Text>
+            {/* <Text style={styles.resendText}>Didn't receive code? Resend</Text> */}
           </TouchableOpacity>
         </View>
       </View>

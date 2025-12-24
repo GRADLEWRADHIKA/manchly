@@ -24,6 +24,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { uploadShipDoc } from '../../../../../store/Common';
 import { pick, types } from '@react-native-documents/picker';
 import { CloudUpload } from 'lucide-react-native';
+import { requestMediaPermission } from '../../../../../utils/mediaPermission';
 
 const CreateCourse = () => {
   const [loading, setLoading] = useState(false);
@@ -54,6 +55,17 @@ const CreateCourse = () => {
   });
 
   const imagePicker = async (onChange: (val: string) => void) => {
+    const hasPermission = await requestMediaPermission();
+
+    if (!hasPermission) {
+      Toast.show({
+        type: 'error',
+        text1: 'Permission required',
+        text2: 'Please allow media access to upload images',
+      });
+      return;
+    }
+
     try {
       const res = await pick({
         type: [types.images],

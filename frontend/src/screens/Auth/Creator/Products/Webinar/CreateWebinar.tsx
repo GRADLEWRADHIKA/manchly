@@ -30,6 +30,7 @@ import Toast from 'react-native-toast-message';
 import { pick, types } from '@react-native-documents/picker';
 import { uploadShipDoc } from '../../../../../store/Common';
 import moment from 'moment-timezone';
+import { requestMediaPermission } from '../../../../../utils/mediaPermission';
 
 const CreateWebinarScreen = () => {
   const navigation = useNavigation();
@@ -68,6 +69,16 @@ const CreateWebinarScreen = () => {
   }, []);
 
   const imagePicker = async (onChange: (val: string) => void) => {
+     const hasPermission = await requestMediaPermission();
+    
+        if (!hasPermission) {
+          Toast.show({
+            type: 'error',
+            text1: 'Permission required',
+            text2: 'Please allow media access to upload images',
+          });
+          return;
+        }
     try {
       const res = await pick({
         type: [types.images],

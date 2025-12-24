@@ -1,6 +1,6 @@
 import 'react-native-gesture-handler';
 import React, { useEffect } from 'react';
-import { StatusBar } from 'react-native';
+import { PermissionsAndroid, Platform, StatusBar } from 'react-native';
 import { Provider } from 'react-redux';
 import Toast from 'react-native-toast-message';
 import Router from './src/navigation/Router';

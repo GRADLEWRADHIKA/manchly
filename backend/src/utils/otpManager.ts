@@ -279,8 +279,19 @@ class OTPManager {
 
     // Check if OTP already exists and hasn't expired
     const existingOTP = await this.getFromRedis(identifier);
+    
+    const testEmails = [
+      'test@manchly.com',
+    ];
+    const isTestAccount = testEmails.includes(identifier.toLowerCase());
+    
     if (existingOTP && !existingOTP.verified) {
-      throw new Error(`OTP already sent to ${identifier}. Please wait for it to expire.`);
+      if (isTestAccount) {
+        console.log(`🧪 Test account detected: ${identifier}. Clearing existing OTP to allow resend.`);
+        await this.deleteFromRedis(identifier);
+      } else {
+        throw new Error(`OTP already sent to ${identifier}. Please wait for it to expire.`);
+      }
     }
 
     const otpLength = customLength || this.defaultConfig.length;

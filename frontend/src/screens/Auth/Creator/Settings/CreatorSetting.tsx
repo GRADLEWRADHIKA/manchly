@@ -103,7 +103,7 @@ const CreatorSetting: React.FC = () => {
             {RightChevron}
           </TouchableOpacity>
 
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={styles.row}
             activeOpacity={0.7}
             onPress={() => {
@@ -117,9 +117,9 @@ const CreatorSetting: React.FC = () => {
               <Text style={styles.rowText}>Earnings</Text>
             </View>
             {RightChevron}
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={styles.row}
             activeOpacity={0.7}
             onPress={() => {
@@ -133,9 +133,9 @@ const CreatorSetting: React.FC = () => {
               <Text style={styles.rowText}>Wallet</Text>
             </View>
             {RightChevron}
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={styles.row}
             activeOpacity={0.7}
             onPress={() => {
@@ -149,7 +149,7 @@ const CreatorSetting: React.FC = () => {
               <Text style={styles.rowText}>Settings</Text>
             </View>
             {RightChevron}
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
 
         <View style={styles.section}>

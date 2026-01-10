@@ -46,7 +46,10 @@ const chatUsers: ChatUser[] = [
 
 const UserChat = () => {
   const renderItem = ({ item }: { item: ChatUser }) => (
-    <TouchableOpacity style={styles.chatRow} onPress={() => console.log('Open chat', item.name)}>
+    <TouchableOpacity
+      style={styles.chatRow}
+      onPress={() => console.log('Open chat', item.name)}
+    >
       {/* Avatar */}
       {item.avatar ? (
         <Image source={{ uri: item.avatar }} style={styles.avatar} />
@@ -83,13 +86,17 @@ const UserChat = () => {
     <View style={styles.container}>
       <AppHeader title="Chats" />
 
-      <FlatList
+      <Text style={{ marginTop: 200, textAlign: 'center' }}>
+        This feature is currently under development.
+      </Text>
+
+      {/* <FlatList
         data={chatUsers}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         contentContainerStyle={styles.listContent}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
-      />
+      /> */}
     </View>
   );
 };

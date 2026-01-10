@@ -108,13 +108,15 @@ const CreatorChat = () => {
         </ImageBackground>
       </View>
 
-      <FlatList
+     <Text style={{marginTop: 200, textAlign: 'center'}}>This feature is currently under development.</Text>
+
+      {/* <FlatList
         data={chatUsers}
         keyExtractor={item => item.id}
         renderItem={renderItem}
         contentContainerStyle={styles.listContent}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
-      />
+      /> */}
     </View>
   );
 };

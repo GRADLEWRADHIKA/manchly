@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { UserCheck } from 'lucide-react-native';
+import Toast from 'react-native-toast-message';
 
 const KycCard = () => {
   return (
@@ -15,7 +16,17 @@ const KycCard = () => {
             Complete your KYC to unlock all features and secure your account.
           </Text>
         </View>
-        <TouchableOpacity style={styles.button} onPress={()=>{}}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => {
+            Toast.show({
+              type: 'info',
+              text1: 'Feature Pending',
+              text2: 'This feature is currently under development.',
+              visibilityTime: 4000,
+            });
+          }}
+        >
           <Text style={styles.buttonText}>Verify Now</Text>
         </TouchableOpacity>
       </View>

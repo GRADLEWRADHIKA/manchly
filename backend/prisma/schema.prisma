@@ -44,7 +44,7 @@ model users {
   name          String?
   phone         String?  @unique
   profile_image String?
-  user_type     UserType @default(USER)
+  user_type     UserType[] @default([USER])
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
   last_login    DateTime?

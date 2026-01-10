@@ -52,7 +52,7 @@ export class ApiResponseHandler {
       ...(code && { code }),
       ...(details && { details })
     };
-
+   console.log("customError------",errorResponse);
     res.status(statusCode).json({
       success: false,
       error: errorResponse,
@@ -72,6 +72,8 @@ export class ApiResponseHandler {
     statusCode: number = 500
   ): void {
     const errorMessage = error instanceof Error ? error.message : error;
+
+    console.log("customError------",errorMessage);
     
     res.status(statusCode).json({
       success: false,

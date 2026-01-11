@@ -111,7 +111,9 @@ export class AuthController {
     // Normalize and validate user_type
     let userTypesArray: UserType[];
     try {
-      userTypesArray = this.normalizeUserTypes(user_type);
+      userTypesArray = AuthController.normalizeUserTypes(user_type);
+
+      console.log("userTypesArray---",userTypesArray);
       
       // Validate that at least one valid type was provided
       if (userTypesArray.length === 0) {
@@ -123,6 +125,8 @@ export class AuthController {
         );
       }
     } catch (error) {
+
+      console.log("error---",error);
       return ApiResponseHandler.customError(
         res, 
         "Invalid user type(s). Must be USER, CREATOR, or ADMIN", 
@@ -477,40 +481,40 @@ export class AuthController {
     const { user } = req;
 
     // Validate and process user_type if provided
-    let userTypesArray: string[] | undefined = undefined;
+    let userTypesArray: UserType[] | undefined = undefined;
     if (user_type) {
-      const validUserTypes = ["USER", "CREATOR", "ADMIN"];
-      
-      // Normalize user_type to array
-      let typesToAdd: string[] = [];
-      if (Array.isArray(user_type)) {
-        typesToAdd = user_type;
-      } else {
-        typesToAdd = [user_type];
-      }
-      
-      // Validate all user types
-      const invalidTypes = typesToAdd.filter(type => !validUserTypes.includes(type));
-      if (invalidTypes.length > 0) {
+      try {
+        // Normalize the new user types
+        const newTypes = AuthController.normalizeUserTypes(user_type);
+        
+        if (newTypes.length === 0) {
+          return ApiResponseHandler.customError(
+            res, 
+            "Invalid user type(s). Must be USER, CREATOR, or ADMIN", 
+            400, 
+            "INVALID_USER_TYPE"
+          );
+        }
+        
+        // Get existing user to merge user types
+        const existingUser = await prisma.users.findUnique({ where: { id: user.userId } });
+        if (existingUser) {
+          const existingTypes: UserType[] = Array.isArray(existingUser.user_type) 
+            ? existingUser.user_type 
+            : existingUser.user_type ? [existingUser.user_type] : [];
+          // Merge and remove duplicates
+          userTypesArray = [...new Set([...existingTypes, ...newTypes])];
+        } else {
+          // If user doesn't exist (shouldn't happen), just use the provided types
+          userTypesArray = newTypes;
+        }
+      } catch (error) {
         return ApiResponseHandler.customError(
           res, 
-          `Invalid user type(s): ${invalidTypes.join(", ")}. Must be USER, CREATOR, or ADMIN`, 
+          "Invalid user type(s). Must be USER, CREATOR, or ADMIN", 
           400, 
           "INVALID_USER_TYPE"
         );
-      }
-      
-      // Get existing user to merge user types
-      const existingUser = await prisma.users.findUnique({ where: { id: user.userId } });
-      if (existingUser) {
-        const existingTypes = Array.isArray(existingUser.user_type) 
-          ? existingUser.user_type 
-          : [existingUser.user_type];
-        // Merge and remove duplicates
-        userTypesArray = [...new Set([...existingTypes, ...typesToAdd])] as UserType[];
-      } else {
-        // If user doesn't exist (shouldn't happen), just use the provided types
-        userTypesArray = [...new Set(typesToAdd)] as UserType[];
       }
     }
 

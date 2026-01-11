@@ -2,33 +2,30 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   StatusBar as RNStatusBar,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { ArrowLeft, Shield } from 'lucide-react-native';
-import colors from '../../utils/colors';
 import { Controller, useForm } from 'react-hook-form';
-import CustomTextInput from '../../components/CustomInput';
-import { verifyOtp } from '../../store/UserSlice';
 import { useDispatch } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
 import Toast from 'react-native-toast-message';
+import { OtpInput } from 'react-native-otp-entry';
+
+import colors from '../../utils/colors';
+import { verifyOtp } from '../../store/UserSlice';
 
 const OTPScreen: React.FC = () => {
   const navigation = useNavigation<any>();
-  const route = useRoute();
-  const [loading, setLoading] = useState(false);
+  const route = useRoute<any>();
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
-  const userTypeFromRoute = (route?.params as any)?.userType ?? null;
-  const onBack = () => navigation.goBack();
+  const [loading, setLoading] = useState(false);
 
-  // console.log(route?.params?.payload?.tab)
+  const onBack = () => navigation.goBack();
 
   const {
     control,
@@ -37,27 +34,36 @@ const OTPScreen: React.FC = () => {
     formState: { errors },
   } = useForm({
     defaultValues: {
-      otp: route?.params?.dummyOtp,
+      otp: '',
     },
   });
 
   const onSubmit = (data: any) => {
     setLoading(true);
+
     const payload = {
       email: route?.params?.payload?.email,
       phone_number: route?.params?.payload?.phone_number,
       code: route?.params?.dummyOtp,
       purpose: route?.params?.payload?.purpose,
-      user_type: route?.params?.payload?.tab
+      user_type: route?.params?.payload?.tab,
     };
+
     dispatch(verifyOtp(payload))
       .unwrap()
-      .then(response => {
+      .then(() => {
+        Toast.show({
+          type: 'success',
+          text1: 'OTP Verified Successfully',
+        });
         reset();
-        setLoading(false);
       })
       .catch(error => {
-        console.log(error);
+        Toast.show({
+          type: 'error',
+          text1: 'Verification Failed',
+          text2: error?.message || 'Invalid OTP',
+        });
       })
       .finally(() => {
         setLoading(false);
@@ -66,75 +72,67 @@ const OTPScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <RNStatusBar
-        barStyle="dark-content"
-        backgroundColor="transparent"
-        translucent={false}
-      />
+      <RNStatusBar barStyle="dark-content" backgroundColor="transparent" />
 
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={onBack}>
           <ArrowLeft size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Verify Phone</Text>
-        <View style={styles.placeholder} />
+        <View style={{ width: 40 }} />
       </View>
 
+      {/* CONTENT */}
       <View style={styles.content}>
         <View style={styles.iconContainer}>
           <Shield size={48} color={colors.primary} />
         </View>
 
         <Text style={styles.title}>Enter Verification Code</Text>
-        <Text style={styles.subtitle}>We've sent a 6-digit code to{'\n'}</Text>
+        <Text style={styles.subtitle}>
+          We've sent a 6-digit code to your phone
+        </Text>
 
-        <Text style={{ marginBottom: 12, color: colors.textSecondary }}>
+        <Text style={styles.userTypeText}>
           Signing up as:{' '}
-          <Text style={{ color: colors.text, fontWeight: '600' }}>
+          <Text style={styles.userTypeValue}>
             {route?.params?.payload?.tab}
           </Text>
         </Text>
 
-        <View style={styles.otpContainer}>
-          <Controller
-            name="otp"
-            control={control}
-            rules={{
-              required: {
-                value: true,
-                message: 'OTP is required',
-              },
-              pattern: {
-                value: /^[0-9]{6}$/,
-                message: 'OTP must be exactly 6 digits',
-              },
-            }}
-            render={({
-              field: { onChange, onBlur, value },
-              fieldState: { error },
-            }) => (
-              <CustomTextInput
-                inputContainerStyle={[
-                  styles.nameFields,
-                  {
-                    borderColor: error ? 'red' : colors.borderColor,
-                  },
-                ]}
-                inputStyle={{
-                  fontSize: 16,
-                  color: colors.black,
-                }}
-                placeholderTextColor={colors.borderColor}
-                placeholder="Enter OTP"
+        {/* OTP INPUT */}
+        <Controller
+          control={control}
+          name="otp"
+          rules={{
+            required: 'OTP is required',
+            minLength: {
+              value: 6,
+              message: 'OTP must be 6 digits',
+            },
+          }}
+          render={({ field: { onChange }, fieldState: { error } }) => (
+            <>
+              <OtpInput
+                numberOfDigits={6}
+                autoFocus
                 keyboardType="numeric"
-                maxLength={68}
-                onChange={text => onChange(text.replace(/[^0-9]/g, ''))}
-                onBlur={onBlur}
-                value={value}
+                onTextChange={onChange}
+                focusColor={colors.primary}
+                theme={{
+                  containerStyle: styles.otpWrapper,
+                  pinCodeContainerStyle: [
+                    styles.otpBox,
+                    { borderColor: error ? 'red' : colors.borderColor },
+                  ],
+                  pinCodeTextStyle: styles.otpText,
+                }}
               />
-            )}
-          />
-        </View>
+
+              {error && <Text style={styles.errorText}>{error.message}</Text>}
+            </>
+          )}
+        />
 
         <TouchableOpacity
           style={[
@@ -147,37 +145,26 @@ const OTPScreen: React.FC = () => {
             },
           ]}
           onPress={handleSubmit(onSubmit)}
+          disabled={loading}
           activeOpacity={0.8}
-          disabled={loading === true ? true : false}
         >
           {loading ? (
-            <ActivityIndicator color={colors.white} size={'small'} />
+            <ActivityIndicator color={colors.white} />
           ) : (
-            <Text
-              style={[styles.verifyButtonText, styles.verifyButtonTextActive]}
-            >
-              Verify & Continue
-            </Text>
+            <Text style={styles.verifyButtonText}>Verify & Continue</Text>
           )}
         </TouchableOpacity>
 
-        <View style={styles.helpSection}>
-          <Text style={styles.helpText}>
-            For demo purposes, use{' '}
-            <Text style={styles.demoCode}>{route?.params?.dummyOtp}</Text>
-          </Text>
-
-          <TouchableOpacity
-            style={styles.resendButton}
-            onPress={() => console.log('Resend OTP (placeholder)')}
-          >
-            {/* <Text style={styles.resendText}>Didn't receive code? Resend</Text> */}
-          </TouchableOpacity>
-        </View>
+        <Text style={styles.helpText}>
+          For demo use:{' '}
+          <Text style={styles.demoCode}>{route?.params?.dummyOtp}</Text>
+        </Text>
       </View>
     </SafeAreaView>
   );
 };
+
+export default OTPScreen;
 
 const styles = StyleSheet.create({
   container: {
@@ -188,27 +175,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    padding: 16,
   },
   backButton: {
-    padding: 8,
+    padding: 6,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
     color: colors.text,
   },
-  placeholder: {
-    width: 40,
-  },
   content: {
-    flex: 1,
+    // flex: 1,
     paddingHorizontal: 24,
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: 120,
   },
   iconContainer: {
     width: 80,
@@ -223,90 +205,67 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '700',
     color: colors.text,
-    textAlign: 'center',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
     color: colors.textSecondary,
-    textAlign: 'center',
-    marginBottom: 40,
-    lineHeight: 24,
-  },
-  phoneNumber: {
-    fontWeight: '600',
-    color: colors.text,
-  },
-  otpContainer: {
-    width: '100%',
-    marginBottom: 32,
-  },
-  otpInput: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    color: colors.text,
-    fontWeight: '600',
-    fontSize: 24,
-    letterSpacing: 8,
+    marginBottom: 24,
     textAlign: 'center',
   },
-  verifyButton: {
-    width: '100%',
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    paddingVertical: 16,
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  verifyButtonActive: {
-    // backgroundColor: colors.primary,
-  },
-  verifyButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.muted,
-  },
-  verifyButtonTextActive: {
-    color: '#ffffff',
-  },
-  helpSection: {
-    alignItems: 'center',
-    marginTop: 8,
-    width: '100%',
-  },
-  helpText: {
+  userTypeText: {
     fontSize: 14,
     color: colors.textSecondary,
+    marginBottom: 16,
+  },
+  userTypeValue: {
+    fontWeight: '600',
+    color: colors.text,
+  },
+
+  /* OTP */
+  otpWrapper: {
+    width: '100%',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  otpBox: {
+    width: 48,
+    height: 56,
+    borderWidth: 1,
+    borderRadius: 10,
+    backgroundColor: colors.white,
+  },
+  otpText: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: colors.text,
+  },
+  errorText: {
+    color: 'red',
     marginBottom: 12,
+  },
+
+  verifyButton: {
+    width: '100%',
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginTop: 12,
+  },
+  verifyButtonText: {
+    color: colors.white,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+
+  helpText: {
+    marginTop: 20,
+    fontSize: 14,
+    color: colors.textSecondary,
   },
   demoCode: {
     fontWeight: '700',
     color: colors.primary,
   },
-  resendButton: { padding: 8 },
-  resendText: {
-    fontSize: 14,
-    color: colors.primary,
-    fontWeight: '500',
-  },
-  savedNote: {
-    fontSize: 13,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    marginTop: 8,
-  },
-  nameFields: {
-    borderRadius: 12,
-    paddingHorizontal: 10,
-    height: 44,
-    width: '100%',
-    backgroundColor: colors.white,
-    borderWidth: 1,
-    marginBottom: 20,
-  },
 });
-
-export default OTPScreen;

@@ -134,16 +134,16 @@ const CourseAddVideoModal = ({ onClose, setRefresh, videoData, isUpdate }) => {
 
   // 🔹 Pick and upload thumbnail
   const imagePicker = async (onChange: (val: string) => void) => {
-    const hasPermission = await requestMediaPermission();
+    // const hasPermission = await requestMediaPermission();
 
-    if (!hasPermission) {
-      Toast.show({
-        type: 'error',
-        text1: 'Permission required',
-        text2: 'Please allow media access to upload images',
-      });
-      return;
-    }
+    // if (!hasPermission) {
+    //   Toast.show({
+    //     type: 'error',
+    //     text1: 'Permission required',
+    //     text2: 'Please allow media access to upload images',
+    //   });
+    //   return;
+    // }
 
     try {
       const res = await pick({ type: [types.images] });

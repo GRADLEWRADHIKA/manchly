@@ -19,7 +19,8 @@ import CustomTextInput from '../../components/CustomInput';
 import { useDispatch } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
 import Toast from 'react-native-toast-message';
-import { sendOtpEmail, sendOtpSms } from '../../store/UserSlice';
+import { checkAuthData, sendOtpEmail, sendOtpSms } from '../../store/UserSlice';
+import ChooseUserType from './ChooseUserType';
 
 const USER_TYPES = ['CREATOR', 'USER'] as const;
 type UserType = (typeof USER_TYPES)[number];
@@ -31,6 +32,8 @@ const LoginScreen: React.FC = () => {
   const [buttonWidths, setButtonWidths] = useState<number[]>([0, 0]);
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
   const [loading, setLoading] = useState(false);
+  const [openUserModal, setOpenUserModal] = useState(false);
+  const [selectUserType, setSelectUserType] = useState('');
 
   useEffect(() => {
     const idx = USER_TYPES.indexOf(userType);
@@ -74,61 +77,94 @@ const LoginScreen: React.FC = () => {
     const isPhoneNumber = /^\d+$/.test(data?.phoneEmail);
     const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data?.phoneEmail);
 
-    const payload = {
-      phone_number: isPhoneNumber ? data?.phoneEmail : '',
+    const payloadVerify = {
       email: isEmail ? data?.phoneEmail : '',
-      purpose: 'login',
-      tab: userType,
+      phone: isPhoneNumber ? data?.phoneEmail : '',
     };
+    dispatch(checkAuthData(payloadVerify))
+      .unwrap()
+      .then(response => {
+        if (response?.data?.data?.exists) {
+          const payload = {
+            phone_number: isPhoneNumber ? data?.phoneEmail : '',
+            email: isEmail ? data?.phoneEmail : '',
+            purpose: 'login',
+            tab: userType,
+          };
 
-    if (isPhoneNumber) {
-      dispatch(sendOtpSms(payload))
-        .unwrap()
-        .then(response => {
-          Toast.show({
-            type: 'success',
-            text1: `Login OTP is ${response?.data?.data?.otp}`,
-            position: 'top',
-          });
-          reset();
-          setLoading(false);
-          Nav.navigate('OTPScreen', {
-            payload,
-            dummyOtp: response?.data?.data?.otp,
-          });
-        })
-        .catch(error => {
-          console.log('SMS OTP error ------> ', JSON.stringify(error));
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    } else if (isEmail) {
-      dispatch(sendOtpEmail(payload))
-        .unwrap()
-        .then(response => {
-          Toast.show({
-            type: 'success',
-            text1: `Login OTP is ${response?.data?.data?.otp}`,
-            position: 'top',
-          });
-          reset();
-          setLoading(false);
-          Nav.navigate('OTPScreen', {
-            payload,
-            dummyOtp: response?.data?.data?.otp,
-          });
-        })
-        .catch(error => {
-          console.log('Email OTP error ------> ', error);
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    } else {
-      console.log('Invalid input — not a valid email or phone number');
-      setLoading(false);
-    }
+          if (isPhoneNumber) {
+            dispatch(sendOtpSms(payload))
+              .unwrap()
+              .then(response => {
+                Toast.show({
+                  type: 'success',
+                  text1: `Login OTP is ${response?.data?.data?.otp}`,
+                  position: 'top',
+                });
+                reset();
+                setLoading(false);
+                Nav.navigate('OTPScreen', {
+                  payload,
+                  dummyOtp: response?.data?.data?.otp,
+                });
+              })
+              .catch(error => {
+                console.log('SMS OTP error ------> ', JSON.stringify(error));
+              })
+              .finally(() => {
+                setLoading(false);
+              });
+          } else if (isEmail) {
+            dispatch(sendOtpEmail(payload))
+              .unwrap()
+              .then(response => {
+                Toast.show({
+                  type: 'success',
+                  text1: `Login OTP is ${response?.data?.data?.otp}`,
+                  position: 'top',
+                });
+                reset();
+                setLoading(false);
+                Nav.navigate('OTPScreen', {
+                  payload,
+                  dummyOtp: response?.data?.data?.otp,
+                });
+              })
+              .catch(error => {
+                console.log('Email OTP error ------> ', error);
+              })
+              .finally(() => {
+                setLoading(false);
+              });
+          } else {
+            console.log('Invalid input — not a valid email or phone number');
+            setLoading(false);
+          }
+        } else {
+          // if (openUserModal) {
+          //   setOpenUserModal(true);
+          // } else {
+          // }
+          // Nav.navigate('SignupScreen', {
+          //   phoneOrEmail: isPhoneNumber ? data?.phoneEmail : data?.phoneEmail,
+          // });
+          // setLoading(false);
+          // openModal()
+          setOpenUserModal(true);
+        }
+      })
+      .catch(error => {
+        console.log(error);
+        setLoading(false);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+    return;
+  };
+
+  const openModal = (type: string) => {
+    Nav.navigate('SignupScreen', { type: type });
   };
 
   return (
@@ -141,14 +177,7 @@ const LoginScreen: React.FC = () => {
 
       <View style={styles.content}>
         <View style={styles.logoSection}>
-          <View
-            // style={[
-            //   styles.logoContainer,
-            //   userType === 'CREATOR'
-            //     ? { backgroundColor: colors.primary }
-            //     : { backgroundColor: colors.secPrimary },
-            // ]}
-          >
+          <View>
             <Image
               source={require('../../image/Logo.jpg')}
               style={styles.logoContainer}
@@ -281,17 +310,25 @@ const LoginScreen: React.FC = () => {
 
           <Text style={styles.termsText}>
             By continuing, you agree to our{' '}
-            <Text style={styles.linkText}>Terms of Service</Text> and{' '}
-            <Text style={styles.linkText}>Privacy Policy</Text>
+            <Text style={styles.linkText} onPress={() => {}}>
+              Terms of Service
+            </Text>{' '}
+            and{' '}
+            <Text style={styles.linkText} onPress={() => {}}>
+              Privacy Policy
+            </Text>
           </Text>
-
-          <View style={styles.signupTextContainer}>
-            <Text style={styles.dontHaveAccount}>Don’t have an account? </Text>
-            <TouchableOpacity onPress={() => Nav.navigate('SignupScreen')}>
-              <Text style={styles.createAccountText}>Create one now</Text>
-            </TouchableOpacity>
-          </View>
         </View>
+
+        <ChooseUserType
+          visible={openUserModal}
+          onClose={() => {
+            setOpenUserModal(false);
+          }}
+          onConfirm={type => {
+            openModal(type);
+          }}
+        />
 
         <View style={styles.featuresSection} />
       </View>

@@ -13,7 +13,6 @@ const Router = () => {
   const { user } = useSelector((state: any) => state.userReducer);
 
 
-
   return (
     <SafeAreaProvider>
       <NavigationContainer>

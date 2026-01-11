@@ -5882,6 +5882,11 @@ react-native-modal@^14.0.0-rc.1:
   dependencies:
     react-native-animatable "1.4.0"
 
+react-native-otp-entry@^1.8.5:
+  version "1.8.5"
+  resolved "https://registry.npmjs.org/react-native-otp-entry/-/react-native-otp-entry-1.8.5.tgz"
+  integrity sha512-TZNkIuUzZKAAWrC8X/A22ZHJdycLysxUNysrGf0yTmDLRUyf4zLXwVFcDYUcRNe763Hjaf5qvtKGILb6lDGzoA==
+
 react-native-paper@^5.14.5:
   version "5.14.5"
   resolved "https://registry.npmjs.org/react-native-paper/-/react-native-paper-5.14.5.tgz"

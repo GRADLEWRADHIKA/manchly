@@ -56,7 +56,6 @@ export const verifyOtp = createAsyncThunk('verifyOtp', async (data: object) => {
     const requestBody = data;
     const response = await instance.post(url, requestBody);
     if (response.data) {
-
     }
     return response;
   } catch (error) {
@@ -102,9 +101,29 @@ export const signUp = createAsyncThunk('signUp', async (data: object) => {
     return response;
   } catch (error) {
     const err = JSON.parse(error?.request?._response);
+    console.log('-=--err---', err)
     Toast.show({
       type: 'error',
-      text1: err?.msg,
+      text1: 'Error',
+      text2: err?.msg || err?.error?.message,
+      position: 'bottom',
+    });
+    throw error;
+  }
+});
+
+export const checkAuthData = createAsyncThunk('checkAuthData', async (data: object) => {
+  try {
+    const url = 'auth/check-user';
+    const requestBody = data;
+    const response = await instance.post(url, requestBody);
+    return response;
+  } catch (error) {
+    const err = JSON.parse(error?.request?._response);
+    Toast.show({
+      type: 'error',
+      text1: 'Error',
+      text2: err?.msg || err?.error?.message,
       position: 'bottom',
     });
     throw error;

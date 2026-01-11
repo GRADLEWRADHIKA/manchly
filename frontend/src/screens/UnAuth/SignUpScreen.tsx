@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { ArrowRight } from 'lucide-react-native';
 import colors from '../../utils/colors';
 import { Controller, useForm } from 'react-hook-form';
@@ -27,9 +27,11 @@ const USER_TYPES = [
 
 const SignupScreen: React.FC = () => {
   const Nav = useNavigation<any>();
-  const [userType, setUserType] = useState('Creator');
+  // const [userType, setUserType] = useState('Creator');
   const [loading, setLoading] = useState(false);
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
+  const route = useRoute();
+  const userType = route?.params?.type;
 
   const {
     control,
@@ -41,7 +43,6 @@ const SignupScreen: React.FC = () => {
       name: '',
       email: '',
       phone: '',
-      userType: '',
     },
   });
 
@@ -51,7 +52,7 @@ const SignupScreen: React.FC = () => {
       email: data?.email,
       phone: data?.phone,
       name: data?.name,
-      user_type: data?.userType,
+      user_type: userType,
     };
     dispatch(signUp(payload))
       .unwrap()
@@ -174,7 +175,7 @@ const SignupScreen: React.FC = () => {
         />
 
         {/* ===== User Type Dropdown ===== */}
-        <Text style={styles.label}>User Type</Text>
+        {/* <Text style={styles.label}>User Type</Text>
         <Controller
           control={control}
           name="userType"
@@ -224,7 +225,7 @@ const SignupScreen: React.FC = () => {
               />
             </>
           )}
-        />
+        /> */}
 
         {/* ===== Create Account Button ===== */}
         <TouchableOpacity

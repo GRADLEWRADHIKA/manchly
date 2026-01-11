@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import prisma from "../prismaClient";
 import { ApiResponseHandler } from "../utils/ApiResponseHandler";
 import MuxManager from "../utils/MuxManager";
+import { UserType } from "@prisma/client";
+import { isCreator, isUser } from "../utils/userTypeHelper";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -45,7 +47,7 @@ export class CourseController {
 
     // Check if user is a creator
     const user = await prisma.users.findUnique({ where: { id: userId } });
-    if (!user || user.user_type !== "CREATOR") {
+    if (!user || !isCreator(user.user_type)) {
       return ApiResponseHandler.customError(res, "Only creators can create courses", 403, "FORBIDDEN");
     }
 
@@ -112,7 +114,7 @@ export class CourseController {
       // Build where clause based on user type
       const whereClause: any = {};
 
-      if (user.user_type === "CREATOR") {
+      if (isCreator(user.user_type)) {
         // Creators see only their courses
         whereClause.creator_id = userId;
         
@@ -170,7 +172,7 @@ export class CourseController {
               },
               orderBy: { order: 'asc' }
             },
-            enrollments: user.user_type === "USER" ? {
+            enrollments: isUser(user.user_type) ? {
               where: { user_id: userId },
               select: {
                 id: true,
@@ -305,7 +307,7 @@ export class CourseController {
           videos: {
             orderBy: { order: 'asc' }
           },
-          enrollments: user.user_type === "USER" ? {
+          enrollments: isUser(user.user_type) ? {
             where: { user_id: userId }
           } : true
         }
@@ -316,21 +318,21 @@ export class CourseController {
       }
 
       // Check access permissions
-      if (user.user_type === "CREATOR" && course.creator_id !== userId) {
+      if (isCreator(user.user_type) && course.creator_id !== userId) {
         return ApiResponseHandler.customError(res, "You don't have access to this course", 403, "FORBIDDEN");
       }
 
-      if (user.user_type === "USER" && course.status !== "PUBLISHED") {
+      if (isUser(user.user_type) && course.status !== "PUBLISHED") {
         return ApiResponseHandler.customError(res, "Course not available", 403, "COURSE_NOT_AVAILABLE");
       }
 
-      const isEnrolled = user.user_type === "USER" && 
+      const isEnrolled = isUser(user.user_type) && 
                          course.enrollments && 
                          course.enrollments.length > 0;
 
       // Filter videos based on enrollment status
       let videosToShow = course.videos;
-      if (user.user_type === "USER" && !isEnrolled) {
+      if (isUser(user.user_type) && !isEnrolled) {
         // Show only free videos to non-enrolled users
         videosToShow = course.videos.filter(v => v.is_free);
       }
@@ -758,7 +760,7 @@ export class CourseController {
         return ApiResponseHandler.customError(res, "User not found", 404, "USER_NOT_FOUND");
       }
 
-      if (user.user_type !== "USER") {
+      if (!isUser(user.user_type)) {
         return ApiResponseHandler.customError(res, "Only regular users can enroll in courses", 403, "FORBIDDEN");
       }
 
@@ -994,7 +996,7 @@ export class CourseController {
     try {
       const user = await prisma.users.findUnique({ where: { id: userId } });
       
-      if (!user || user.user_type !== "CREATOR") {
+      if (!user || !isCreator(user.user_type)) {
         return ApiResponseHandler.customError(res, "Only creators can view statistics", 403, "FORBIDDEN");
       }
 

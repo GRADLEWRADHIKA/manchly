@@ -4,6 +4,7 @@ import { ApiResponseHandler } from "../utils/ApiResponseHandler";
 import ZoomMeetingManager from "../utils/zoomManager";
 import EmailService from "../services/EmailService";
 import WhatsAppService from "../services/WhatsAppService";
+import { isCreator, isUser } from "../utils/userTypeHelper";
 import crypto from "crypto";
 import dotenv from "dotenv";
 
@@ -63,7 +64,7 @@ export class WebinarController {
 
     // Check if user is a creator
     const user = await prisma.users.findUnique({ where: { id: userId } });
-    if (!user || user.user_type !== "CREATOR") {
+    if (!user || !isCreator(user.user_type)) {
       return ApiResponseHandler.customError(res, "Only creators can create webinars", 403, "FORBIDDEN");
     }
 
@@ -176,7 +177,7 @@ export class WebinarController {
       // Build where clause based on user type
       const whereClause: any = {};
 
-      if (user.user_type === "CREATOR") {
+      if (isCreator(user.user_type)) {
         // Creators see only their webinars
         whereClause.creator_id = userId;
 
@@ -222,7 +223,7 @@ export class WebinarController {
                 profile_image: true
               }
             },
-            enrollments: user.user_type === "USER" ? {
+            enrollments: isUser(user.user_type) ? {
               where: { user_id: userId },
               select: {
                 id: true,
@@ -243,7 +244,7 @@ export class WebinarController {
 
       // Add enrollment status for users
       const webinarsWithStatus = webinars.map(webinar => {
-        const isEnrolled = user.user_type === "USER" &&
+        const isEnrolled = isUser(user.user_type) &&
           webinar.enrollments &&
           webinar.enrollments.length > 0;
 
@@ -295,7 +296,7 @@ export class WebinarController {
               profile_image: true
             }
           },
-          enrollments: user.user_type === "USER" ? {
+          enrollments: isUser(user.user_type) ? {
             where: { user_id: userId }
           } : true,
           _count: {
@@ -311,15 +312,15 @@ export class WebinarController {
       }
 
       // Check access permissions
-      if (user.user_type === "CREATOR" && webinar.creator_id !== userId) {
+      if (isCreator(user.user_type) && webinar.creator_id !== userId) {
         return ApiResponseHandler.customError(res, "You don't have access to this webinar", 403, "FORBIDDEN");
       }
 
-      if (user.user_type === "USER" && webinar.status !== "PUBLISHED") {
+      if (isUser(user.user_type) && webinar.status !== "PUBLISHED") {
         return ApiResponseHandler.customError(res, "Webinar not available", 403, "WEBINAR_NOT_AVAILABLE");
       }
 
-      const isEnrolled = user.user_type === "USER" &&
+      const isEnrolled = isUser(user.user_type) &&
         webinar.enrollments &&
         webinar.enrollments.length > 0;
 
@@ -525,7 +526,7 @@ export class WebinarController {
         return ApiResponseHandler.customError(res, "User not found", 404, "USER_NOT_FOUND");
       }
 
-      if (user.user_type !== "USER") {
+      if (!isUser(user.user_type)) {
         return ApiResponseHandler.customError(res, "Only regular users can enroll in webinars", 403, "FORBIDDEN");
       }
 
@@ -882,7 +883,7 @@ export class WebinarController {
     try {
       const user = await prisma.users.findUnique({ where: { id: userId } });
 
-      if (!user || user.user_type !== "CREATOR") {
+      if (!user || !isCreator(user.user_type)) {
         return ApiResponseHandler.customError(res, "Only creators can view statistics", 403, "FORBIDDEN");
       }
 

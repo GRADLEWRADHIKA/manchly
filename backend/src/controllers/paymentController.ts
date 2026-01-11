@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import prisma from "../prismaClient";
 import { ApiResponseHandler } from "../utils/ApiResponseHandler";
+import { isUser, isCreator } from "../utils/userTypeHelper";
 import crypto from "crypto";
 import dotenv from "dotenv";
 
@@ -31,7 +32,7 @@ export class PaymentController {
         return ApiResponseHandler.customError(res, "User not found", 404, "USER_NOT_FOUND");
       }
 
-      if (user.user_type !== "USER") {
+      if (!isUser(user.user_type)) {
         return ApiResponseHandler.customError(res, "Only regular users can purchase courses", 403, "FORBIDDEN");
       }
 
@@ -543,7 +544,7 @@ export class PaymentController {
     try {
       const user = await prisma.users.findUnique({ where: { id: userId } });
       
-      if (!user || user.user_type !== "CREATOR") {
+      if (!user || !isCreator(user.user_type)) {
         return ApiResponseHandler.customError(res, "Only creators can view sales", 403, "FORBIDDEN");
       }
 

@@ -92,6 +92,9 @@ router.put("/profile", authenticateToken, AuthController.updateProfile);
 // 10. Get Current User (Protected)
 router.get("/me", authenticateToken, AuthController.getCurrentUser);
 
+// 11. Check if user exists by email or phone
+router.post("/check-user", AuthController.checkUserExists);
+
 // Health check endpoint
 router.get("/health", AuthController.healthCheck);
 

@@ -571,6 +571,81 @@ export class AuthController {
     }
   }
 
+  // 11. Check if user exists by email or phone
+  static async checkUserExists(req: Request, res: Response) {
+    const { email, phone } = req.body;
+
+    // At least one identifier must be provided
+    if (!email && !phone) {
+      return ApiResponseHandler.customError(
+        res,
+        "Email or phone number is required",
+        400,
+        "MISSING_IDENTIFIER"
+      );
+    }
+
+    try {
+      // Build where clause
+      const whereClause: any = {};
+      
+      if (email && phone) {
+        // Check if either email or phone matches
+        whereClause.OR = [
+          { email },
+          { phone }
+        ];
+      } else if (email) {
+        whereClause.email = email;
+      } else if (phone) {
+        whereClause.phone = phone;
+      }
+
+      // Check if user exists
+      const user = await prisma.users.findFirst({
+        where: whereClause,
+        select: {
+          id: true,
+          email: true,
+          phone: true,
+          name: true,
+          user_type: true,
+          created_at: true
+        }
+      });
+
+      if (user) {
+        return ApiResponseHandler.success(
+          res,
+          {
+            exists: true,
+            user: {
+              id: user.id,
+              email: user.email,
+              phone: user.phone,
+              name: user.name,
+              user_type: user.user_type
+            }
+          },
+          "User found",
+          200
+        );
+      } else {
+        return ApiResponseHandler.success(
+          res,
+          {
+            exists: false,
+            user: null
+          },
+          "User not found",
+          200
+        );
+      }
+    } catch (err: any) {
+      ApiResponseHandler.unexpectedError(res, err, 500);
+    }
+  }
+
   // Health check endpoint
   static async healthCheck(req: Request, res: Response) {
     try {

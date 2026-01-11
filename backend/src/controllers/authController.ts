@@ -66,6 +66,34 @@ function isValidPhoneNumber(phone: string): boolean {
 }
 
 export class AuthController {
+  // Helper function to normalize user_type to UserType array
+  private static normalizeUserTypes(user_type: string | string[] | undefined): UserType[] {
+    const validUserTypes: UserType[] = [UserType.USER, UserType.CREATOR, UserType.ADMIN];
+    
+    if (!user_type) {
+      return [UserType.USER];
+    }
+    
+    // Normalize to array
+    const typesArray = Array.isArray(user_type) ? user_type : [user_type];
+    
+    // Validate and convert to UserType enum values
+    const normalizedTypes: UserType[] = [];
+    for (const type of typesArray) {
+      const upperType = type.toUpperCase();
+      if (upperType === 'USER') {
+        normalizedTypes.push(UserType.USER);
+      } else if (upperType === 'CREATOR') {
+        normalizedTypes.push(UserType.CREATOR);
+      } else if (upperType === 'ADMIN') {
+        normalizedTypes.push(UserType.ADMIN);
+      }
+    }
+    
+    // Remove duplicates and return
+    return [...new Set(normalizedTypes)];
+  }
+
   // 1. Signup - create user record
   static async signup(req: Request, res: Response) {
     const { email, phone, name, user_type } = req.body;
@@ -80,34 +108,27 @@ export class AuthController {
       return ApiResponseHandler.customError(res, "Invalid email format", 400, "INVALID_EMAIL_FORMAT");
     }
 
-    // Validate user_type - can be a single string or array of strings
-    const validUserTypes = ["USER", "CREATOR", "ADMIN"];
-    let userTypesArray: string[] = [];
-    
-    if (user_type) {
-      // If user_type is provided, normalize it to an array
-      if (Array.isArray(user_type)) {
-        userTypesArray = user_type;
-      } else {
-        userTypesArray = [user_type];
-      }
+    // Normalize and validate user_type
+    let userTypesArray: UserType[];
+    try {
+      userTypesArray = this.normalizeUserTypes(user_type);
       
-      // Validate all user types
-      const invalidTypes = userTypesArray.filter(type => !validUserTypes.includes(type));
-      if (invalidTypes.length > 0) {
+      // Validate that at least one valid type was provided
+      if (userTypesArray.length === 0) {
         return ApiResponseHandler.customError(
           res, 
-          `Invalid user type(s): ${invalidTypes.join(", ")}. Must be USER, CREATOR, or ADMIN`, 
+          "Invalid user type(s). Must be USER, CREATOR, or ADMIN", 
           400, 
           "INVALID_USER_TYPE"
         );
       }
-      
-      // Remove duplicates
-      userTypesArray = [...new Set(userTypesArray)];
-    } else {
-      // Default to USER if not provided
-      userTypesArray = ["USER"];
+    } catch (error) {
+      return ApiResponseHandler.customError(
+        res, 
+        "Invalid user type(s). Must be USER, CREATOR, or ADMIN", 
+        400, 
+        "INVALID_USER_TYPE"
+      );
     }
 
     try {
@@ -124,16 +145,20 @@ export class AuthController {
       if (existingUser) {
         // If email matches, update the user and merge user types
         if (existingUser.email === email) {
+          // Ensure existingTypes is properly typed
+          const existingTypesArray: UserType[] = Array.isArray(existingUser.user_type) 
+            ? existingUser.user_type 
+            : existingUser.user_type ? [existingUser.user_type] : [];
+          
           // Merge existing user types with new ones, remove duplicates
-          const existingTypes = existingUser.user_type || [];
-          const mergedTypes = [...new Set([...existingTypes, ...userTypesArray])];
+          const mergedTypes: UserType[] = [...new Set([...existingTypesArray, ...userTypesArray])];
           
           const user = await prisma.users.update({
             where: { email },
             data: { 
               phone, 
               name, 
-              user_type: mergedTypes as UserType[]
+              user_type: mergedTypes
             }
           });
 
@@ -151,13 +176,13 @@ export class AuthController {
         }
       }
 
-      // Create new user
+      // Create new user - ensure user_type is properly formatted as array
       const user = await prisma.users.create({
         data: { 
           email, 
           phone, 
           name, 
-          user_type: userTypesArray as UserType[]
+          user_type: userTypesArray.length > 0 ? userTypesArray : [UserType.USER]
         }
       });
 

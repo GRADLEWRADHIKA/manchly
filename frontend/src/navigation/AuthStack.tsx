@@ -3,12 +3,14 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LoginScreen from '../screens/UnAuth/LoginScreen';
 import OTPScreen from '../screens/UnAuth/OTPScreen';
 import SignupScreen from '../screens/UnAuth/SignUpScreen';
+import FirstPage from '../screens/UnAuth/FirstPage';
 
 export type AuthStackParamList = {
   LoginScreen: undefined;
   OTPScreen: undefined;
   SignupScreen: undefined;
   CheckDataType: undefined;
+  FirstPage: undefined;
 };
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
@@ -16,9 +18,10 @@ const Stack = createNativeStackNavigator<AuthStackParamList>();
 const AuthStack = () => {
   return (
     <Stack.Navigator
-      initialRouteName="LoginScreen"
+      initialRouteName="FirstPage"
       screenOptions={{ headerShown: false }}
     >
+      <Stack.Screen name="FirstPage" component={FirstPage} />
       <Stack.Screen name="LoginScreen" component={LoginScreen} />
       <Stack.Screen name="OTPScreen" component={OTPScreen} />
       <Stack.Screen name="SignupScreen" component={SignupScreen} />

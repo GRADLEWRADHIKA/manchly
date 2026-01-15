@@ -9,9 +9,11 @@ import {
   LayoutChangeEvent,
   ActivityIndicator,
   Image,
+  BackHandler,
 } from 'react-native';
+import { useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { ArrowRight } from 'lucide-react-native';
 import colors from '../../utils/colors';
 import { Controller, useForm } from 'react-hook-form';
@@ -47,6 +49,24 @@ const LoginScreen: React.FC = () => {
       mass: 0.8,
     }).start();
   }, [userType, buttonWidths, indicatorX]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        BackHandler.exitApp(); // close app
+        return true; // block navigation
+      };
+
+      const subscription = BackHandler.addEventListener(
+        'hardwareBackPress',
+        onBackPress,
+      );
+
+      return () => {
+        subscription.remove(); 
+      };
+    }, []),
+  );
 
   const onButtonLayout = (index: number) => (e: LayoutChangeEvent) => {
     const w = e.nativeEvent.layout.width;
@@ -141,15 +161,6 @@ const LoginScreen: React.FC = () => {
             setLoading(false);
           }
         } else {
-          // if (openUserModal) {
-          //   setOpenUserModal(true);
-          // } else {
-          // }
-          // Nav.navigate('SignupScreen', {
-          //   phoneOrEmail: isPhoneNumber ? data?.phoneEmail : data?.phoneEmail,
-          // });
-          // setLoading(false);
-          // openModal()
           setOpenUserModal(true);
         }
       })

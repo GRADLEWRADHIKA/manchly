@@ -12,6 +12,7 @@ import WalletCreator from '../screens/Auth/Wallet/WalletCreator';
 import CreatorBottomTab from './CreatorBottomTab';
 import CourseVideoList from '../screens/Auth/Creator/Products/Course/CourseVideoList';
 import CreatorSettingsDetails from '../screens/Auth/Creator/Settings/CreatorSettingDetails';
+import KYCVerificationScreen from '../screens/UnAuth/Profile/KYCVerificationScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -33,6 +34,7 @@ const CreatorMainStack = () => {
       <Stack.Screen name="CreateCourse" component={CreateCourse} />
       <Stack.Screen name="WalletCreator" component={WalletCreator} />
       <Stack.Screen name="CourseVideoList" component={CourseVideoList} />
+      <Stack.Screen name="KYCVerificationScreen" component={KYCVerificationScreen} />
     </Stack.Navigator>
   );
 };

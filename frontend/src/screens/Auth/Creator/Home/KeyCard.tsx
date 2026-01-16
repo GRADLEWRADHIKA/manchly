@@ -1,9 +1,15 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { UserCheck } from 'lucide-react-native';
-import Toast from 'react-native-toast-message';
+import { useNavigation } from '@react-navigation/native';
 
 const KycCard = () => {
+  const navigation = useNavigation<any>();
+
+  const handleVerifyKYC = () => {
+    navigation.navigate('KYCVerificationScreen');
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.card}>
@@ -18,14 +24,7 @@ const KycCard = () => {
         </View>
         <TouchableOpacity
           style={styles.button}
-          onPress={() => {
-            Toast.show({
-              type: 'info',
-              text1: 'Feature Pending',
-              text2: 'This feature is currently under development.',
-              visibilityTime: 4000,
-            });
-          }}
+          onPress={handleVerifyKYC}
         >
           <Text style={styles.buttonText}>Verify Now</Text>
         </TouchableOpacity>

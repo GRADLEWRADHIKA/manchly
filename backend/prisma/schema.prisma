@@ -39,15 +39,21 @@ enum MessageType {
 }
 
 model users {
-  id            String   @id @default(uuid())
-  email         String   @unique
-  name          String?
-  phone         String?  @unique
-  profile_image String?
-  user_type     UserType[] @default([USER])
-  created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
-  last_login    DateTime?
+  id                  String   @id @default(uuid())
+  email               String   @unique
+  name                String?
+  phone               String?  @unique
+  profile_image       String?
+  dob                 String?  // Date of Birth (YYYY-MM-DD format)
+  pan_number          String?  // Masked PAN (e.g., ABCDE****F)
+  kyc_verified        Boolean  @default(false)
+  kyc_status          String?  // PENDING, VERIFIED, FAILED
+  kyc_verified_at     DateTime?
+  kyc_verification_id String?  // Reference to kyc_verifications
+  user_type           UserType[] @default([USER])
+  created_at          DateTime @default(now())
+  updated_at          DateTime @updatedAt
+  last_login          DateTime?
   
   courses                  courses[]
   enrollments              enrollments[]
@@ -59,6 +65,7 @@ model users {
   messages                 messages[]
   group_members            group_members[]
   created_groups           groups[]
+  kyc_verifications        kyc_verifications[]
   
   @@map("users")
 }
@@ -352,4 +359,31 @@ model group_members {
   @@index([group_id])
   @@index([user_id])
   @@map("group_members")
+}
+
+enum KYCStatus {
+  PENDING
+  VERIFIED
+  FAILED
+}
+
+model kyc_verifications {
+  id                String    @id @default(uuid())
+  user_id           String
+  pan_number        String
+  status            KYCStatus @default(PENDING)
+  verification_type String    @default("PAN")
+  pan_details       Json?     // Full PAN details from Digio API
+  match_details     Json?     // {name_match: true, dob_match: true}
+  unique_request_id String    // Digio unique request ID
+  verified_at       DateTime?
+  created_at        DateTime  @default(now())
+  updated_at        DateTime  @updatedAt
+  
+  user              users     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  
+  @@index([user_id])
+  @@index([pan_number])
+  @@index([status])
+  @@map("kyc_verifications")
 }

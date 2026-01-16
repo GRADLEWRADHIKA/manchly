@@ -14,6 +14,7 @@ import paymentsRouter from "./routes/payments";
 import webinarsRouter from "./routes/webinars";
 import chatRouter from "./routes/chat";
 import groupsRouter from "./routes/groups";
+import kycRouter from "./routes/kyc";
 import morgan from "morgan";
 import { webinarCleanupService } from "./utils/webinarCleanup";
 import { initializeSocketIO } from "./utils/socketHandler";
@@ -68,6 +69,7 @@ app.use("/payments", paymentsRouter);
 app.use("/webinars", webinarsRouter);
 app.use("/chat", chatRouter);
 app.use("/groups", groupsRouter);
+app.use("/kyc", kycRouter);
 
 const listenPort = useHttps ? HTTPS_PORT : PORT;
 

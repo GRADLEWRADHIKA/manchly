@@ -35,7 +35,6 @@ const LoginScreen: React.FC = () => {
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
   const [loading, setLoading] = useState(false);
   const [openUserModal, setOpenUserModal] = useState(false);
-  const [selectUserType, setSelectUserType] = useState('');
 
   useEffect(() => {
     const idx = USER_TYPES.indexOf(userType);
@@ -53,8 +52,8 @@ const LoginScreen: React.FC = () => {
   useFocusEffect(
     useCallback(() => {
       const onBackPress = () => {
-        BackHandler.exitApp(); // close app
-        return true; // block navigation
+        BackHandler.exitApp();
+        return true;
       };
 
       const subscription = BackHandler.addEventListener(

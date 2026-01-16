@@ -571,11 +571,9 @@ export class AuthController {
     }
   }
 
-  // 11. Check if user exists by email or phone
   static async checkUserExists(req: Request, res: Response) {
     const { email, phone } = req.body;
 
-    // At least one identifier must be provided
     if (!email && !phone) {
       return ApiResponseHandler.customError(
         res,
@@ -586,11 +584,9 @@ export class AuthController {
     }
 
     try {
-      // Build where clause
       const whereClause: any = {};
       
       if (email && phone) {
-        // Check if either email or phone matches
         whereClause.OR = [
           { email },
           { phone }
@@ -601,7 +597,6 @@ export class AuthController {
         whereClause.phone = phone;
       }
 
-      // Check if user exists
       const user = await prisma.users.findFirst({
         where: whereClause,
         select: {

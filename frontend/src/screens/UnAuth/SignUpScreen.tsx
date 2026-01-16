@@ -7,6 +7,7 @@ import {
   StatusBar as RNStatusBar,
   ScrollView,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -15,6 +16,7 @@ import colors from '../../utils/colors';
 import { Controller, useForm } from 'react-hook-form';
 import CustomTextInput from '../../components/CustomInput';
 import { Dropdown } from 'react-native-element-dropdown';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { signUp } from '../../store/UserSlice';
 import { ThunkDispatch } from '@reduxjs/toolkit';
 import { useDispatch } from 'react-redux';
@@ -29,6 +31,7 @@ const SignupScreen: React.FC = () => {
   const Nav = useNavigation<any>();
   // const [userType, setUserType] = useState('Creator');
   const [loading, setLoading] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
   const route = useRoute();
   const userType = route?.params?.type;
@@ -37,14 +40,40 @@ const SignupScreen: React.FC = () => {
     control,
     handleSubmit,
     reset,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm({
     defaultValues: {
       name: '',
       email: '',
       phone: '',
+      dob: new Date(),
     },
   });
+
+  const dob = watch('dob');
+
+  const formatDate = (date: Date) => {
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
+  const formatDateForAPI = (date: Date) => {
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${year}-${month}-${day}`;
+  };
+
+  const onDateChange = (event: any, selectedDate?: Date) => {
+    setShowDatePicker(Platform.OS === 'ios');
+    if (selectedDate) {
+      setValue('dob', selectedDate);
+    }
+  };
 
   const onSubmit = (data: any) => {
     setLoading(true);
@@ -52,6 +81,7 @@ const SignupScreen: React.FC = () => {
       email: data?.email,
       phone: data?.phone,
       name: data?.name,
+      dob: formatDateForAPI(data?.dob),
       user_type: userType,
     };
     dispatch(signUp(payload))
@@ -171,6 +201,50 @@ const SignupScreen: React.FC = () => {
               onBlur={onBlur}
               value={value}
             />
+          )}
+        />
+
+        <Text style={styles.label}>Date of Birth</Text>
+        <Controller
+          name="dob"
+          control={control}
+          rules={{
+            required: 'Please select your date of birth',
+            validate: (value) => {
+              const today = new Date();
+              const age = today.getFullYear() - value.getFullYear();
+              const monthDiff = today.getMonth() - value.getMonth();
+              if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < value.getDate())) {
+                return age - 1 >= 18 ? true : 'You must be at least 18 years old';
+              }
+              return age >= 18 ? true : 'You must be at least 18 years old';
+            },
+          }}
+          render={({ field: { value }, fieldState: { error } }) => (
+            <>
+              <TouchableOpacity
+                style={[
+                  styles.datePickerButton,
+                  { borderColor: error ? 'red' : colors.borderColor },
+                ]}
+                onPress={() => setShowDatePicker(true)}
+              >
+                <Text style={[styles.datePickerText, !value && styles.placeholderText]}>
+                  {value ? formatDate(value) : 'Select Date of Birth (DD/MM/YYYY)'}
+                </Text>
+              </TouchableOpacity>
+              {error && <Text style={styles.errorText}>{error.message}</Text>}
+              {showDatePicker && (
+                <DateTimePicker
+                  value={value || new Date()}
+                  mode="date"
+                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  onChange={onDateChange}
+                  maximumDate={new Date()}
+                  minimumDate={new Date(1900, 0, 1)}
+                />
+              )}
+            </>
           )}
         />
 
@@ -385,5 +459,21 @@ const styles = StyleSheet.create({
   selectedText: {
     fontSize: 14,
     color: colors.text,
+  },
+  datePickerButton: {
+    height: 44,
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    justifyContent: 'center',
+    backgroundColor: colors.white,
+    marginBottom: 4,
+  },
+  datePickerText: {
+    fontSize: 14,
+    color: colors.text,
+  },
+  placeholderText: {
+    color: colors.borderColor,
   },
 });

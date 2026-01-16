@@ -19,6 +19,8 @@ import {
   Wallet as WalletIcon,
   ChevronRight,
   LogOut,
+  Shield,
+  CheckCircle,
 } from 'lucide-react-native';
 import LogoutModal from '../../Profile/Components/LogoutModal';
 import AppHeader from '../../../../components/AppHeader';
@@ -32,7 +34,7 @@ const APP_VERSION = '0.0.1';
 const UserSetting: React.FC = () => {
   const [logoutVisible, setLogoutVisible] = useState(false);
   const Nav = useNavigation();
-  const { user } = useSelector((state: any) => state.userReducer);
+  const { user, kycStatus } = useSelector((state: any) => state.userReducer);
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
 
   const RightChevron = <ChevronRight size={18} color={colors.textSecondary} />;
@@ -78,6 +80,31 @@ const UserSetting: React.FC = () => {
                 <User2 size={20} color={colors.text} />
               </View>
               <Text style={styles.rowText}>My Profile</Text>
+            </View>
+            {RightChevron}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.row}
+            activeOpacity={0.7}
+            onPress={() => {
+              Nav.navigate('KYCVerificationScreen');
+            }}
+          >
+            <View style={styles.rowLeft}>
+              <View style={styles.rowIcon}>
+                {kycStatus?.verified ? (
+                  <CheckCircle size={20} color="green" />
+                ) : (
+                  <Shield size={20} color={colors.primary} />
+                )}
+              </View>
+              <View style={styles.rowTextContainer}>
+                <Text style={styles.rowText}>KYC Verification</Text>
+                {kycStatus?.verified && (
+                  <Text style={styles.kycStatusText}>Verified</Text>
+                )}
+              </View>
             </View>
             {RightChevron}
           </TouchableOpacity>
@@ -236,6 +263,16 @@ const styles = StyleSheet.create({
   rowText: {
     fontSize: 16,
     color: colors.text,
+  },
+  rowTextContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  kycStatusText: {
+    fontSize: 12,
+    color: 'green',
+    fontWeight: '600',
   },
 
   badge: {

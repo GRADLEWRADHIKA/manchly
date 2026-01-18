@@ -32,7 +32,7 @@ const FirstPage = () => {
           activeOpacity={0.9}
           style={styles.mainHeader}
           onPress={() => {
-            Nav.navigate('LoginScreen');
+            Nav.navigate('NewLoginScreen');
           }}
         >
           <Text style={styles.mainTop}>Get Started</Text>

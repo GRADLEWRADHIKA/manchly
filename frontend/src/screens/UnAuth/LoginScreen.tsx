@@ -62,7 +62,7 @@ const LoginScreen: React.FC = () => {
       );
 
       return () => {
-        subscription.remove(); 
+        subscription.remove();
       };
     }, []),
   );
@@ -384,9 +384,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   formSection: {
-    // flex: 1,
     justifyContent: 'center',
-    // paddingVertical: 20,
     marginTop: 60,
   },
   title: {

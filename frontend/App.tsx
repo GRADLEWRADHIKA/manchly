@@ -10,6 +10,7 @@ import { store, persistor } from './src/store/Store';
 import SplashScreen from 'react-native-splash-screen';
 import { injectStore } from './src/utils/AxiosInstance';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 export default function App() {
   injectStore(store);
@@ -20,6 +21,7 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
+        <GestureHandlerRootView style={{ flex: 1 }}>
         <Provider store={store}>
           <PersistGate loading={null} persistor={persistor}>
             <PaperProvider>
@@ -33,6 +35,7 @@ export default function App() {
             </PaperProvider>
           </PersistGate>
         </Provider>
+        </GestureHandlerRootView>
       </SafeAreaView>
     </SafeAreaProvider>
   );

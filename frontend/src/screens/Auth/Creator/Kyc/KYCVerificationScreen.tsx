@@ -12,10 +12,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { CheckCircle, XCircle, Shield, AlertCircle } from 'lucide-react-native';
-import colors from '../../../utils/colors';
-import AppHeaderWithBack from '../../../components/AppHeaderWithBack';
-import CustomTextInput from '../../../components/CustomInput';
-import { verifyPAN, verifyKYC, getKYCStatus } from '../../../store/UserSlice';
+import colors from '../../../../utils/colors';
+import AppHeaderWithBack from '../../../../components/AppHeaderWithBack';
+import CustomTextInput from '../../../../components/CustomInput';
+import { verifyPAN, verifyKYC, getKYCStatus } from '../../../../store/UserSlice';
 import { Controller, useForm } from 'react-hook-form';
 import DateTimePicker from '@react-native-community/datetimepicker';
 

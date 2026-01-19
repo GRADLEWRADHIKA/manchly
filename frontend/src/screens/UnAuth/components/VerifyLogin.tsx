@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   StyleSheet,
   Text,
@@ -6,6 +6,7 @@ import {
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
+  BackHandler,
 } from 'react-native';
 import colors from '../../../utils/colors';
 import { Controller, useForm } from 'react-hook-form';
@@ -19,6 +20,8 @@ import {
 } from '../../../store/UserSlice';
 import Toast from 'react-native-toast-message';
 import { OtpInput } from 'react-native-otp-entry';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { useFocusEffect } from '@react-navigation/native';
 
 type VerifyLoginProps = {
   selectedType: string | null;
@@ -30,7 +33,10 @@ type FormValues = {
   otp: string;
 };
 
-const VerifyLogin: React.FC<VerifyLoginProps> = ({ selectedType, setActive }) => {
+const VerifyLogin: React.FC<VerifyLoginProps> = ({
+  selectedType,
+  setActive,
+}) => {
   const [loading, setLoading] = useState(false);
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
   const [otpSuccess, setOtpSuccess] = useState(false);
@@ -51,7 +57,6 @@ const VerifyLogin: React.FC<VerifyLoginProps> = ({ selectedType, setActive }) =>
 
   const onSubmit = (data: any) => {
     setLoading(true);
-
     setLoginValue(data.phoneEmail);
 
     const isPhoneNumber = /^\d+$/.test(data?.phoneEmail);
@@ -61,6 +66,7 @@ const VerifyLogin: React.FC<VerifyLoginProps> = ({ selectedType, setActive }) =>
       email: isEmail ? data?.phoneEmail : '',
       phone: isPhoneNumber ? data?.phoneEmail : '',
     };
+
     dispatch(checkAuthData(payloadVerify))
       .unwrap()
       .then(response => {
@@ -75,59 +81,38 @@ const VerifyLogin: React.FC<VerifyLoginProps> = ({ selectedType, setActive }) =>
           if (isPhoneNumber) {
             dispatch(sendOtpSms(payload))
               .unwrap()
-              .then(response => {
+              .then(res => {
                 Toast.show({
                   type: 'success',
-                  text1: `Login OTP is ${response?.data?.data?.otp}`,
-                  position: 'top',
+                  text1: `Login OTP is ${res?.data?.data?.otp}`,
                 });
-                setOtpData(response?.data?.data?.otp);
+                setOtpData(res?.data?.data?.otp);
                 setOtpSuccess(true);
                 reset();
-                setLoading(false);
               })
-              .catch(error => {
-                console.log('SMS OTP error ------> ', JSON.stringify(error));
-              })
-              .finally(() => {
-                setLoading(false);
-              });
+              .finally(() => setLoading(false));
           } else if (isEmail) {
             dispatch(sendOtpEmail(payload))
               .unwrap()
-              .then(response => {
+              .then(res => {
                 Toast.show({
                   type: 'success',
-                  text1: `Login OTP is ${response?.data?.data?.otp}`,
-                  position: 'top',
+                  text1: `Login OTP is ${res?.data?.data?.otp}`,
                 });
-                setOtpData(response?.data?.data?.otp);
+                setOtpData(res?.data?.data?.otp);
                 setOtpSuccess(true);
                 reset();
-                setLoading(false);
               })
-              .catch(error => {
-                console.log('Email OTP error ------> ', error);
-              })
-              .finally(() => {
-                setLoading(false);
-              });
+              .finally(() => setLoading(false));
           } else {
-            console.log('Invalid input — not a valid email or phone number');
             setLoading(false);
           }
         } else {
-          setActive(3)
+          setActive(3);
+          setLoading(false);
         }
       })
-      .catch(error => {
-        console.log(error);
-        setLoading(false);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-    return;
+      .catch(() => setLoading(false));
   };
 
   const onOtpSubmit = (data: any) => {
@@ -154,20 +139,40 @@ const VerifyLogin: React.FC<VerifyLoginProps> = ({ selectedType, setActive }) =>
         reset();
       })
       .catch(error => {
-        console.log('OTP verification error ------> ', error);
         Toast.show({
           type: 'error',
           text1: 'Verification Failed',
           text2: error?.message || 'Invalid OTP',
         });
       })
-      .finally(() => {
-        setLoading(false);
-      });
+      .finally(() => setLoading(false));
   };
 
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        setActive(1);
+        return true;
+      };
+
+      // Add the listener and store the subscription
+      const backHandler = BackHandler.addEventListener(
+        'hardwareBackPress',
+        onBackPress,
+      );
+
+      // Cleanup function
+      return () => backHandler.remove();
+    }, [setActive]), // Add setActive to dependencies
+  );
+  
   return (
-    <View style={styles.container}>
+    <KeyboardAwareScrollView
+      contentContainerStyle={styles.container}
+      enableOnAndroid
+      keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
+    >
       <View style={styles.mainHeader}>
         <Text style={styles.title}>Welcome Back</Text>
         <Text style={styles.subTitle}>Let’s Get Started</Text>
@@ -201,7 +206,6 @@ const VerifyLogin: React.FC<VerifyLoginProps> = ({ selectedType, setActive }) =>
                   pinCodeTextStyle: styles.otpText,
                 }}
               />
-
               {error && <Text style={styles.errorText}>{error.message}</Text>}
             </>
           )}
@@ -235,44 +239,39 @@ const VerifyLogin: React.FC<VerifyLoginProps> = ({ selectedType, setActive }) =>
         />
       )}
 
-      {otpSuccess && (
-        <Text style={{ color: colors.white, marginTop: 20 }}>{otpData}</Text>
-      )}
-
-      {otpSuccess ? (
-        <TouchableOpacity
-          style={styles.btnHeader}
-          onPress={handleSubmit(onOtpSubmit)}
-        >
+      <TouchableOpacity
+        style={styles.btnHeader}
+        onPress={
+          otpSuccess ? handleSubmit(onOtpSubmit) : handleSubmit(onSubmit)
+        }
+      >
+        {loading ? (
+          <ActivityIndicator color={colors.primary} />
+        ) : (
           <Text style={styles.btnHeaderText}>
-            {loading ? (
-              <ActivityIndicator color={colors.primary} />
-            ) : (
-              'Verify Otp'
-            )}
+            {otpSuccess ? 'Verify OTP' : 'Send Verification Code'}
           </Text>
-        </TouchableOpacity>
-      ) : (
-        <TouchableOpacity
-          style={styles.btnHeader}
-          onPress={handleSubmit(onSubmit)}
-        >
-          <Text style={styles.btnHeaderText}>
-            {loading ? (
-              <ActivityIndicator color={colors.primary} />
-            ) : (
-              'Send Verification Code'
-            )}
-          </Text>
-        </TouchableOpacity>
-      )}
+        )}
+      </TouchableOpacity>
 
       <Text style={styles.termsText}>
         By continuing, you agree to our{' '}
         <Text style={styles.linkText}>Terms of Service</Text> and{' '}
         <Text style={styles.linkText}>Privacy Policy</Text>
       </Text>
-    </View>
+
+      <TouchableOpacity
+        onPress={() => setActive(3)}
+        style={{ marginTop: 20, alignItems: 'center' }}
+      >
+        <Text style={{ color: colors.white }}>
+          Didn't have an account?{' '}
+          <Text style={{ color: colors.white, fontWeight: '600' }}>
+            Create one now
+          </Text>
+        </Text>
+      </TouchableOpacity>
+    </KeyboardAwareScrollView>
   );
 };
 
@@ -283,6 +282,7 @@ const styles = StyleSheet.create({
     paddingTop: 50,
     paddingBottom: 40,
     paddingHorizontal: 20,
+    flexGrow: 1,
   },
 
   mainHeader: {
@@ -332,20 +332,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.white,
     textAlign: 'center',
-    lineHeight: 18,
     marginTop: 20,
-    marginBottom: 8,
   },
 
   linkText: {
     color: colors.white,
     fontWeight: '600',
   },
+
   otpWrapper: {
     width: '100%',
     justifyContent: 'space-between',
     marginBottom: 16,
   },
+
   otpBox: {
     width: 48,
     height: 56,
@@ -353,11 +353,13 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: colors.white,
   },
+
   otpText: {
     fontSize: 20,
     fontWeight: '600',
     color: colors.text,
   },
+
   errorText: {
     color: 'red',
     marginBottom: 12,

@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
   },
   card: {
     width: '100%',
-     alignItems: 'center',
+    alignItems: 'center',
     borderRadius: 16,
     backgroundColor: colors.surface,
     padding: 18,

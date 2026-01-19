@@ -15,7 +15,7 @@ import CourseDetailsScreen from '../screens/Auth/Product/CourseDetailsScreen';
 import UserCourseSearch from '../screens/Auth/User/Search/UserCourseSearch';
 import UserVideoList from '../screens/Auth/User/Home/UserVideoList';
 import WebinarDetails from '../screens/Auth/User/Home/WebinarDetails';
-import KYCVerificationScreen from '../screens/UnAuth/Profile/KYCVerificationScreen';
+import KYCVerificationScreen from '../screens/Auth/Creator/Kyc/KYCVerificationScreen';
 
 const Stack = createNativeStackNavigator();
 

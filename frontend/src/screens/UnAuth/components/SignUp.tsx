@@ -1,12 +1,13 @@
 import {
   ActivityIndicator,
+  BackHandler,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import colors from '../../../utils/colors';
 import { Controller, useForm } from 'react-hook-form';
 import { signUp } from '../../../store/UserSlice';
@@ -15,6 +16,8 @@ import { ThunkDispatch } from '@reduxjs/toolkit';
 import Toast from 'react-native-toast-message';
 import { MoveRight } from 'lucide-react-native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { useFocusEffect } from '@react-navigation/native';
 
 const SignUp = ({ selectedType, setActive }) => {
   const [loading, setLoading] = useState(false);
@@ -70,17 +73,39 @@ const SignUp = ({ selectedType, setActive }) => {
       .finally(() => setLoading(false));
   };
 
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        setActive(2);
+        return true;
+      };
+
+      // Add the listener and store the subscription
+      const backHandler = BackHandler.addEventListener(
+        'hardwareBackPress',
+        onBackPress,
+      );
+
+      // Cleanup function
+      return () => backHandler.remove();
+    }, [setActive]), // Add setActive to dependencies
+  );
+
   return (
-    <View style={styles.container}>
+    <KeyboardAwareScrollView
+      contentContainerStyle={styles.container}
+      enableOnAndroid
+      keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
+    >
       <Text style={styles.title}>Sign Up</Text>
 
+      {/* Full Name */}
       <Text style={styles.label}>Full Name</Text>
       <Controller
         name="name"
         control={control}
-        rules={{
-          required: 'Please enter your full name',
-        }}
+        rules={{ required: 'Please enter your full name' }}
         render={({ field: { onChange, value } }) => (
           <TextInput
             placeholder="Enter full name"
@@ -92,6 +117,7 @@ const SignUp = ({ selectedType, setActive }) => {
         )}
       />
 
+      {/* DOB */}
       <Text style={styles.label}>Date of Birth</Text>
       <Controller
         control={control}
@@ -108,7 +134,7 @@ const SignUp = ({ selectedType, setActive }) => {
               onPress={showDatePicker}
             >
               <Text style={{ color: colors.white }}>
-                {value ? value : 'Select Date'}
+                {value || 'Select Date'}
               </Text>
             </TouchableOpacity>
 
@@ -130,6 +156,7 @@ const SignUp = ({ selectedType, setActive }) => {
         )}
       />
 
+      {/* Email */}
       <Text style={styles.label}>Email Address</Text>
       <Controller
         name="email"
@@ -148,11 +175,13 @@ const SignUp = ({ selectedType, setActive }) => {
             value={value}
             onChangeText={onChange}
             keyboardType="email-address"
+            autoCapitalize="none"
             style={styles.input}
           />
         )}
       />
 
+      {/* Phone */}
       <Text style={styles.label}>Phone Number</Text>
       <Controller
         name="phone"
@@ -181,17 +210,18 @@ const SignUp = ({ selectedType, setActive }) => {
         style={styles.btnHeader}
         onPress={handleSubmit(onSubmit)}
         disabled={loading}
+        activeOpacity={0.8}
       >
         {loading ? (
           <ActivityIndicator color={colors.primary} />
         ) : (
           <>
             <Text style={styles.btnHeaderText}>Create Account</Text>
-            <MoveRight />
+            <MoveRight color={colors.primary} />
           </>
         )}
       </TouchableOpacity>
-    </View>
+    </KeyboardAwareScrollView>
   );
 };
 
@@ -202,11 +232,14 @@ const styles = StyleSheet.create({
     paddingTop: 50,
     paddingBottom: 40,
     paddingHorizontal: 20,
+    flexGrow: 1,
   },
+
   title: {
     fontSize: 35,
     fontWeight: '600',
     color: colors.white,
+    marginBottom: 10,
   },
 
   label: {
@@ -230,9 +263,9 @@ const styles = StyleSheet.create({
 
   btnHeader: {
     backgroundColor: colors.white,
-    padding: 10,
+    padding: 12,
     borderRadius: 8,
-    marginTop: 20,
+    marginTop: 25,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -241,7 +274,7 @@ const styles = StyleSheet.create({
 
   btnHeaderText: {
     color: colors.primary,
-    fontWeight: '500',
+    fontWeight: '600',
     fontSize: 16,
   },
 });

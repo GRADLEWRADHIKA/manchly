@@ -24,7 +24,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { uploadShipDoc } from '../../../../../store/Common';
 import { pick, types } from '@react-native-documents/picker';
 import { CloudUpload } from 'lucide-react-native';
-import { requestMediaPermission } from '../../../../../utils/mediaPermission';
+import FacingIssues from './components/FacingIssues';
 
 const CreateCourse = () => {
   const [loading, setLoading] = useState(false);
@@ -55,17 +55,6 @@ const CreateCourse = () => {
   });
 
   const imagePicker = async (onChange: (val: string) => void) => {
-    // const hasPermission = await requestMediaPermission();
-
-    // if (!hasPermission) {
-    //   Toast.show({
-    //     type: 'error',
-    //     text1: 'Permission required',
-    //     text2: 'Please allow media access to upload images',
-    //   });
-    //   return;
-    // }
-
     try {
       const res = await pick({
         type: [types.images],
@@ -128,10 +117,40 @@ const CreateCourse = () => {
   };
 
   const onCreateCourse = (data: any) => {
+    const description = data?.description?.trim();
+
+    // REQUIRED
+    if (!description) {
+      Toast.show({
+        type: 'error',
+        text1: 'Please write a short description',
+      });
+      return;
+    }
+
+    // MIN LENGTH
+    if (description.length < 5) {
+      Toast.show({
+        type: 'error',
+        text1: 'Description must be at least 5 characters long',
+      });
+      return;
+    }
+
+    // MAX LENGTH
+    if (description.length > 20) {
+      Toast.show({
+        type: 'error',
+        text1: 'Description cannot exceed 20 characters',
+      });
+      return;
+    }
+
     setLoading(true);
+
     const payload = {
       title: data.courseTitle.trim(),
-      description: data.description.trim(),
+      description,
       price: Number(data.price) || 0,
       category: 'video',
       level: data?.level,
@@ -142,7 +161,6 @@ const CreateCourse = () => {
     dispatch(createCourse(payload))
       .unwrap()
       .then(res => {
-        console.log('-----res----->', res);
         reset();
         Toast.show({
           type: 'success',
@@ -151,7 +169,6 @@ const CreateCourse = () => {
         Nav.goBack();
       })
       .catch(err => {
-        console.log('------err------', err);
         Toast.show({
           type: 'error',
           text1: 'Failed to create course',
@@ -160,7 +177,37 @@ const CreateCourse = () => {
       .finally(() => setLoading(false));
   };
 
+
   const onCourseUpdate = (data: any) => {
+
+    const description = data?.description?.trim();
+
+    // REQUIRED
+    if (!description) {
+      Toast.show({
+        type: 'error',
+        text1: 'Please write a short description',
+      });
+      return;
+    }
+
+    // MIN LENGTH
+    if (description.length < 5) {
+      Toast.show({
+        type: 'error',
+        text1: 'Description must be at least 5 characters long',
+      });
+      return;
+    }
+
+    // MAX LENGTH
+    if (description.length > 20) {
+      Toast.show({
+        type: 'error',
+        text1: 'Description cannot exceed 20 characters',
+      });
+      return;
+    }
     setLoading(true);
     const payload = {
       id: updateData?.id,
@@ -308,7 +355,7 @@ const CreateCourse = () => {
                   ]}
                   labelField="label"
                   valueField="value"
-                  placeholder="Select Department"
+                  placeholder="Select level"
                   value={value}
                   onChange={item => onChange(item.value)}
                   renderItem={item => {
@@ -385,7 +432,7 @@ const CreateCourse = () => {
                   ]}
                   labelField="label"
                   valueField="value"
-                  placeholder="Select Department"
+                  placeholder="Select status"
                   value={value}
                   onChange={item => onChange(item.value)}
                   renderItem={item => {
@@ -418,39 +465,24 @@ const CreateCourse = () => {
               )}
             />
             {/* Description */}
-            <Text style={styles.label}>About this course</Text>
+            <Text style={styles.label}>Headline</Text>
             <Controller
               name="description"
               control={control}
               rules={{
-                required: {
-                  value: true,
-                  message: 'Please write a short description',
-                },
-                minLength: {
-                  value: 5,
-                  message: 'Description must be at least 10 characters long',
-                },
-                maxLength: {
-                  value: 20,
-                  message: 'Description cannot exceed 200 characters',
-                },
+                required: false,
               }}
               render={({ field: { onChange, onBlur, value } }) => (
                 <CustomTextInput
                   inputContainerStyle={[
-                    styles.textArea,
+                    styles.nameFields,
                     {
                       borderColor: errors.description
                         ? 'red'
                         : colors.borderColor,
-                      alignItems: 'flex-start',
                     },
                   ]}
-                  placeholder="Write a description (between 5–20 characters)"
-                  multiline
-                  numberOfLines={4}
-                  textAlignVertical="top"
+                  placeholder="Write a headline (between 5-20 characters)"
                   value={value}
                   onChange={onChange}
                   onBlur={onBlur}
@@ -477,51 +509,11 @@ const CreateCourse = () => {
             </View>
           </View>
 
-          <View style={styles.uploadHeader}>
-            <View style={styles.uploadMain}>
-              <View style={styles.secHead}>
-                <CloudUpload width={40} height={40} color={colors.primary} />
-              </View>
-              <View style={styles.mainHead}>
-                <Text style={styles.mainPara}>facing issues in upload</Text>
-              </View>
-              <View style={{ width: '5%' }}></View>
-              <TouchableOpacity
-                style={styles.buttonHelp}
-                onPress={() => {
-                  const phoneNumber = '6363790659';
-                  const message = 'Hello, I need help with uploading.';
-                  const url = `whatsapp://send?phone=91${phoneNumber}&text=${encodeURIComponent(
-                    message,
-                  )}`;
+          <FacingIssues
+            title="facing issues in upload"
+            messgae="Hello, I need help with uploading."
+          />
 
-                  Linking.canOpenURL(url)
-                    .then(supported => {
-                      if (!supported) {
-                        Toast.show({
-                          type: 'error',
-                          text1: 'WhatsApp not installed',
-                          text2: 'Please install WhatsApp to contact support',
-                          position: 'bottom',
-                        });
-                      } else {
-                        return Linking.openURL(url);
-                      }
-                    })
-                    .catch(err => {
-                      Toast.show({
-                        type: 'error',
-                        text1: 'Something went wrong',
-                        text2: err?.message || 'Unable to open WhatsApp',
-                        position: 'bottom',
-                      });
-                    });
-                }}
-              >
-                <Text style={styles.buttonHelpPara}>Get help!</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
         </ScrollView>
       </KeyboardAvoidingView>
       <Toast />

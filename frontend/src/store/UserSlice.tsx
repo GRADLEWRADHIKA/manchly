@@ -18,10 +18,10 @@ export const sendOtpSms = createAsyncThunk(
       return response;
     } catch (error) {
       const response = JSON.parse(error?.request?._response || '{}');
-      console.log('---response---', response);
       Toast.show({
         type: 'error',
-        text1: response?.error?.message,
+        text1: 'Error',
+        text2: response?.error?.message,
         position: 'bottom',
       });
       throw error;
@@ -41,10 +41,10 @@ export const sendOtpEmail = createAsyncThunk(
       const response = JSON.parse(error?.request?._response || '{}');
       Toast.show({
         type: 'error',
-        text1: response?.error?.message,
+        text1: 'Error',
+        text2: response?.error?.message,
         position: 'bottom',
       });
-      console.log('---error in sending otp Email -----', error?.request);
       throw error;
     }
   },
@@ -113,7 +113,7 @@ export const signUp = createAsyncThunk('signUp', async (data: object) => {
       }
     } catch (parseError) {
     }
-    
+
     Toast.show({
       type: 'error',
       text1: 'Error',
@@ -155,7 +155,7 @@ export const verifyPAN = createAsyncThunk('kyc/verifyPAN', async (panNumber: str
   } catch (error: any) {
     let errorMessage = 'Invalid PAN number';
     let isNotImplemented = false;
-    
+
     try {
       if (error?.request?._response) {
         const err = JSON.parse(error.request._response);
@@ -188,7 +188,7 @@ export const verifyPAN = createAsyncThunk('kyc/verifyPAN', async (panNumber: str
       }
     } catch (parseError) {
     }
-    
+
     Toast.show({
       type: 'error',
       text1: isNotImplemented ? 'Feature Not Available' : 'PAN Verification Failed',
@@ -205,7 +205,7 @@ export const verifyKYC = createAsyncThunk(
     try {
       const url = 'kyc/verify';
       const response = await instance.post(url, data);
-      
+
       const result = response.data?.data;
       if (result?.verified) {
         Toast.show({
@@ -226,7 +226,7 @@ export const verifyKYC = createAsyncThunk(
     } catch (error: any) {
       let errorMessage = 'Verification failed';
       let isNotImplemented = false;
-      
+
       try {
         if (error?.request?._response) {
           const err = JSON.parse(error.request._response);
@@ -261,7 +261,7 @@ export const verifyKYC = createAsyncThunk(
       } catch (parseError) {
         // If parsing fails, use default message
       }
-      
+
       Toast.show({
         type: 'error',
         text1: isNotImplemented ? 'Feature Not Available' : 'KYC Verification Failed',

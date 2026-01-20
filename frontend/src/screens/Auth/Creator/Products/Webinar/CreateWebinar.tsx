@@ -31,6 +31,7 @@ import { pick, types } from '@react-native-documents/picker';
 import { uploadShipDoc } from '../../../../../store/Common';
 import moment from 'moment-timezone';
 import { requestMediaPermission } from '../../../../../utils/mediaPermission';
+import FacingIssues from '../Course/components/FacingIssues';
 
 const CreateWebinarScreen = () => {
   const navigation = useNavigation();
@@ -70,7 +71,7 @@ const CreateWebinarScreen = () => {
 
   const imagePicker = async (onChange: (val: string) => void) => {
     //  const hasPermission = await requestMediaPermission();
-    
+
     //     if (!hasPermission) {
     //       Toast.show({
     //         type: 'error',
@@ -163,6 +164,35 @@ const CreateWebinarScreen = () => {
   });
 
   const onSubmit = (data: any) => {
+
+    const description = data?.description?.trim();
+
+    // REQUIRED
+    if (!description) {
+      Toast.show({
+        type: 'error',
+        text1: 'Please write a short description',
+      });
+      return;
+    }
+
+    // MIN LENGTH
+    if (description.length < 5) {
+      Toast.show({
+        type: 'error',
+        text1: 'Description must be at least 5 characters long',
+      });
+      return;
+    }
+
+    // MAX LENGTH
+    if (description.length > 20) {
+      Toast.show({
+        type: 'error',
+        text1: 'Description cannot exceed 20 characters',
+      });
+      return;
+    }
     setLoading(true);
     const payload = {
       title: data?.title,
@@ -194,6 +224,36 @@ const CreateWebinarScreen = () => {
 
   // calling the update the webinar
   const onUpdateSubmit = (data: any) => {
+
+
+    const description = data?.description?.trim();
+
+    // REQUIRED
+    if (!description) {
+      Toast.show({
+        type: 'error',
+        text1: 'Please write a short description',
+      });
+      return;
+    }
+
+    // MIN LENGTH
+    if (description.length < 5) {
+      Toast.show({
+        type: 'error',
+        text1: 'Description must be at least 5 characters long',
+      });
+      return;
+    }
+
+    // MAX LENGTH
+    if (description.length > 20) {
+      Toast.show({
+        type: 'error',
+        text1: 'Description cannot exceed 20 characters',
+      });
+      return;
+    }
     setLoading(true);
     const payload = {
       webinar_id: updatedata?.id,
@@ -440,7 +500,7 @@ const CreateWebinarScreen = () => {
               )}
             />
 
-            <Text style={styles.label}>Tags</Text>
+            <Text style={styles.label}>Categories</Text>
             <Controller
               control={control}
               name="tags"
@@ -453,7 +513,7 @@ const CreateWebinarScreen = () => {
                   data={TAGS}
                   labelField="label"
                   valueField="value"
-                  placeholder="Select Tags"
+                  placeholder="Select Categories"
                   value={value}
                   onChange={item => {
                     onChange(item);
@@ -613,45 +673,41 @@ const CreateWebinarScreen = () => {
               )}
             />
 
-            <Text style={styles.label}>Description</Text>
+            <Text style={styles.label}>Headline</Text>
             <Controller
               name="description"
               control={control}
               rules={{
-                required: {
-                  value: true,
-                  message: 'Please write a short description',
-                },
-                minLength: {
-                  value: 5,
-                  message: 'Description must be at least 10 characters long',
-                },
-                maxLength: {
-                  value: 20,
-                  message: 'Description cannot exceed 200 characters',
-                },
+                required: false
               }}
-              render={({ field: { onChange, onBlur, value } }) => (
+              render={({ field: { onChange, onBlur, value, }, fieldState: { error } }) => (
                 <CustomTextInput
                   inputContainerStyle={[
-                    styles.textArea,
+                    styles.nameFields,
                     {
-                      borderColor: errors.description
-                        ? 'red'
-                        : colors.borderColor,
-                      alignItems: 'flex-start',
+                      borderColor: error ? 'red' : colors.borderColor,
                     },
                   ]}
-                  placeholder="Write a description (between 5–20 characters)"
-                  multiline
-                  numberOfLines={4}
-                  textAlignVertical="top"
-                  value={value}
+                  inputStyle={{
+                    fontSize: 14,
+                    color: colors.black,
+                  }}
+                  placeholderTextColor={colors.borderColor}
+                  placeholder="Write a headline (between 5–20 characters)"
                   onChange={onChange}
                   onBlur={onBlur}
+                  value={value}
                 />
               )}
             />
+
+            <View style={{ marginHorizontal: 5 }}>
+              <FacingIssues
+                title="facing issues in Webinar creation"
+                messgae="Hello, I need help with webinar creation."
+              />
+            </View>
+
           </ScrollView>
         </KeyboardAvoidingView>
 
@@ -718,6 +774,8 @@ const CreateWebinarScreen = () => {
             </TouchableOpacity>
           </View>
         )}
+
+
       </View>
     </View>
   );

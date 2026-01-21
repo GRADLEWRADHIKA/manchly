@@ -11,38 +11,36 @@ import {
 import colors from '../../../../utils/colors';
 import {
   User2,
-  LayoutDashboard,
-  Gift,
   Settings as SettingsIcon,
   List as ListIcon,
-  Landmark,
   Wallet as WalletIcon,
   ChevronRight,
   LogOut,
-  Shield,
-  CheckCircle,
+  Headset,
+  Megaphone,
+  GraduationCap,
+  Notebook,
 } from 'lucide-react-native';
 import LogoutModal from '../../Profile/Components/LogoutModal';
-import AppHeader from '../../../../components/AppHeader';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
 import { logout } from '../../../../store/UserSlice';
-
-const APP_VERSION = '0.0.1';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const UserSetting: React.FC = () => {
   const [logoutVisible, setLogoutVisible] = useState(false);
   const Nav = useNavigation();
-  const { user, kycStatus } = useSelector((state: any) => state.userReducer);
+  const { user, } = useSelector((state: any) => state.userReducer);
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
+  const insets = useSafeAreaInsets();
 
   const RightChevron = <ChevronRight size={18} color={colors.textSecondary} />;
 
   return (
     <View style={styles.container}>
       <RNStatusBar barStyle="light-content" backgroundColor={colors.primary} />
-      <AppHeader title="Profile" />
+      <View style={[styles.mainHeader, { paddingTop: insets.top + 10 }]} />
 
       <View
         style={[
@@ -68,6 +66,30 @@ const UserSetting: React.FC = () => {
         contentContainerStyle={{ paddingBottom: 24 }}
       >
         <View style={styles.section}>
+
+          <View style={styles.topCardWrapper}>
+            <View style={{ width: '48%' }}>
+              <TouchableOpacity style={styles.topCard} activeOpacity={0.9}>
+                <Headset size={20} />
+                <Text style={styles.topCardText}>Help & Support</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={[styles.topCard, { marginTop: 10 }]} activeOpacity={0.9}>
+                <GraduationCap size={25} strokeWidth={1.5} />
+                <Text style={styles.topCardText}>My Learning</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.mainHeaderCard}>
+              <View style={{ alignItems: 'center', gap: 8 }}>
+                <Notebook size={20} />
+                <Text>About</Text>
+              </View>
+              <Text style={{ marginTop: 10, textAlign: 'center', fontSize: 12, color: colors.textSecondary }}>
+                Learn more about our app, features, and community.
+              </Text>
+            </View>
+          </View>
+
           <TouchableOpacity
             style={styles.row}
             activeOpacity={0.7}
@@ -84,78 +106,6 @@ const UserSetting: React.FC = () => {
             {RightChevron}
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.row}
-            activeOpacity={0.7}
-            onPress={() => {
-              Nav.navigate('KYCVerificationScreen');
-            }}
-          >
-            <View style={styles.rowLeft}>
-              <View style={styles.rowIcon}>
-                {kycStatus?.verified ? (
-                  <CheckCircle size={20} color="green" />
-                ) : (
-                  <Shield size={20} color={colors.primary} />
-                )}
-              </View>
-              <View style={styles.rowTextContainer}>
-                <Text style={styles.rowText}>KYC Verification</Text>
-                {kycStatus?.verified && (
-                  <Text style={styles.kycStatusText}>Verified</Text>
-                )}
-              </View>
-            </View>
-            {RightChevron}
-          </TouchableOpacity>
-
-          {/* <TouchableOpacity
-            style={styles.row}
-            activeOpacity={0.7}
-            onPress={() => {
-              Nav.navigate('Earnings');
-            }}
-          >
-            <View style={styles.rowLeft}>
-              <View style={styles.rowIcon}>
-                <Landmark size={20} color={colors.text} />
-              </View>
-              <Text style={styles.rowText}>Earnings</Text>
-            </View>
-            {RightChevron}
-          </TouchableOpacity> */}
-
-          {/* <TouchableOpacity
-            style={styles.row}
-            activeOpacity={0.7}
-            onPress={() => {
-              Nav.navigate('Wallet');
-            }}
-          >
-            <View style={styles.rowLeft}>
-              <View style={styles.rowIcon}>
-                <WalletIcon size={20} color={colors.text} />
-              </View>
-              <Text style={styles.rowText}>Wallet</Text>
-            </View>
-            {RightChevron}
-          </TouchableOpacity> */}
-
-          {/* <TouchableOpacity
-            style={styles.row}
-            activeOpacity={0.7}
-            onPress={() => {
-              Nav.navigate('UserSettingsDetails');
-            }}
-          >
-            <View style={styles.rowLeft}>
-              <View style={styles.rowIcon}>
-                <SettingsIcon size={20} color={colors.text} />
-              </View>
-              <Text style={styles.rowText}>Settings</Text>
-            </View>
-            {RightChevron}
-          </TouchableOpacity> */}
         </View>
 
         <View style={styles.section}>
@@ -176,7 +126,7 @@ const UserSetting: React.FC = () => {
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.version}>{APP_VERSION}</Text>
+        {/* <Text style={styles.version}>{APP_VERSION}</Text> */}
       </ScrollView>
 
       <LogoutModal
@@ -293,4 +243,43 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.textSecondary,
   },
+  topCardWrapper: {
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    marginTop: 20,
+    marginBottom: 10,
+    flexDirection: 'row',
+  },
+
+  topCard: {
+    borderColor: colors.border,
+    paddingVertical: 20,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: colors.white,
+    elevation: 5,
+    justifyContent: 'center'
+  },
+
+  topCardText: {
+    color: colors.text,
+    fontSize: 16,
+  },
+
+  mainHeader: {
+    backgroundColor: colors.secPrimary,
+  },
+  mainHeaderCard: {
+    width: '48%',
+    borderColor: colors.border,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 20,
+    elevation: 5,
+    backgroundColor: colors.white,
+  }
 });

@@ -17,7 +17,7 @@ const ChooseType = ({ setSelectedType, setActive }) => {
         }}
       >
         <View>
-          <Text style={styles.subtitle}>Creator</Text>
+          <Text style={styles.subtitle}>creator</Text>
           <Text style={styles.description}>Create & publish content</Text>
         </View>
         <MoveRight />
@@ -32,7 +32,7 @@ const ChooseType = ({ setSelectedType, setActive }) => {
         }}
       >
         <View>
-          <Text style={styles.subtitle}>User</Text>
+          <Text style={styles.subtitle}>user</Text>
           <Text style={styles.description}>Browse & consume content</Text>
         </View>
         <MoveRight />
@@ -74,13 +74,12 @@ const styles = StyleSheet.create({
   },
 
   subtitle: {
-    fontSize: 20,
+    fontSize: 25,
     fontWeight: '700',
-    marginBottom: 5,
   },
 
   description: {
-    fontSize: 16,
+    fontSize: 14,
     color: colors.primary,
   },
 

@@ -203,7 +203,7 @@ const CreateWebinarScreen = () => {
       tags: data?.tags,
       scheduled_at: data?.scheduled_at,
       duration: Number(data?.duration),
-      timezone: data?.timezone,
+      timezone: 'Asia/Kolkata',
       max_participants: Number(data?.max_participants),
       status: data?.status,
     };
@@ -559,7 +559,7 @@ const CreateWebinarScreen = () => {
               )}
             />
 
-            <Text style={styles.label}>Time zone</Text>
+            {/* <Text style={styles.label}>Time zone</Text>
             <Controller
               name="timezone"
               control={control}
@@ -615,7 +615,7 @@ const CreateWebinarScreen = () => {
                   }}
                 />
               )}
-            />
+            /> */}
 
             <Text style={styles.label}>Status</Text>
             <Controller

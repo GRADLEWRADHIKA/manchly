@@ -6,6 +6,7 @@ import { ApiResponseHandler } from "../utils/ApiResponseHandler";
 import { JWTRequest } from "../middleware/jwtAuth";
 
 const DIGIO_API_URL = "https://api.digio.in/v3/client/kyc/fetch_id_data";
+const DIGIO_BANK_VERIFY_URL = "https://api.digio.in/v4/client/verify/bank_account";
 const DIGIO_API_KEY = process.env.DIGIO_API_KEY || "";
 const DIGIO_API_SECRET = process.env.DIGIO_API_SECRET || "";
 
@@ -351,6 +352,134 @@ export class KYCController {
         error.message || "Failed to fetch KYC status",
         500,
         "KYC_STATUS_ERROR"
+      );
+    }
+  }
+
+  static async verifyBankAccount(req: JWTRequest, res: Response) {
+    try {
+      const { 
+        account_number, 
+        ifsc_code, 
+        account_holder_name,
+        validation_mode = "PENNY_LESS"
+      } = req.body;
+      const userId = req.user?.userId;
+
+      if (!account_number || !ifsc_code) {
+        return ApiResponseHandler.customError(
+          res,
+          "Account number and IFSC code are required",
+          400,
+          "MISSING_FIELDS"
+        );
+      }
+
+      if (account_number.length < 8 || account_number.length > 18) {
+        return ApiResponseHandler.customError(
+          res,
+          "Account number must be between 8 and 18 characters",
+          400,
+          "INVALID_ACCOUNT_NUMBER"
+        );
+      }
+
+      if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(ifsc_code.toUpperCase())) {
+        return ApiResponseHandler.customError(
+          res,
+          "Invalid IFSC code format",
+          400,
+          "INVALID_IFSC_FORMAT"
+        );
+      }
+
+      const validModes = ["PENNY_LESS", "PENNY_DROP", "AUTO"];
+      if (!validModes.includes(validation_mode)) {
+        return ApiResponseHandler.customError(
+          res,
+          "Validation mode must be one of: PENNY_LESS, PENNY_DROP, AUTO",
+          400,
+          "INVALID_VALIDATION_MODE"
+        );
+      }
+
+      const uniqueRequestId = uuidv4();
+
+      const requestPayload: any = {
+        beneficiary_account_no: account_number,
+        beneficiary_ifsc: ifsc_code.toUpperCase(),
+        unique_request_id: uniqueRequestId,
+        validation_mode: validation_mode,
+      };
+
+      if (account_holder_name) {
+        requestPayload.beneficiary_name = account_holder_name;
+      }
+
+      const digioResponse = await axios.post(
+        DIGIO_BANK_VERIFY_URL,
+        requestPayload,
+        {
+          headers: {
+            accept: "application/json",
+            "content-type": "application/json",
+            Authorization: getAuthHeader(),
+          },
+        }
+      );
+
+      const digioData = digioResponse.data;
+      console.log("Digio Bank Verification Response:", JSON.stringify(digioData, null, 2));
+
+      const bankDetails = {
+        id: digioData.id || uniqueRequestId,
+        verified: digioData.verified || false,
+        verified_at: digioData.verified_at || null,
+        beneficiary_name_with_bank: digioData.beneficiary_name_with_bank || "",
+        error_msg: digioData.error_msg || null,
+        fuzzy_match_result: digioData.fuzzy_match_result || null,
+        fuzzy_match_score: digioData.fuzzy_match_score || null,
+        error_code: digioData.error_code || null,
+        validation_mode: digioData.validation_mode || validation_mode,
+      };
+
+      try {
+        await prisma.$executeRaw`
+          INSERT INTO kyc_verifications (id, user_id, pan_number, status, verification_type, pan_details, unique_request_id, created_at, updated_at)
+          VALUES (gen_random_uuid(), ${userId}, NULL, ${bankDetails.verified ? "VERIFIED" : "FAILED"}, 'BANK_ACCOUNT', ${JSON.stringify(bankDetails)}::jsonb, ${uniqueRequestId}, NOW(), NOW())
+          ON CONFLICT DO NOTHING
+        `;
+      } catch (dbError) {
+        console.log("KYC verification table not found, skipping database save");
+      }
+
+      return ApiResponseHandler.success(
+        res,
+        {
+          bank_verification: bankDetails,
+          verification_id: uniqueRequestId,
+          account_number: account_number.replace(/(\d{4})\d+(\d{4})/, "$1****$2"), // Mask account number
+          ifsc_code: ifsc_code.toUpperCase(),
+        },
+        bankDetails.verified 
+          ? "Bank account verified successfully" 
+          : "Bank account verification failed"
+      );
+    } catch (error: any) {
+      console.error("Bank verification error:", error);
+
+      let errorMessage = "Bank account verification failed";
+      if (error?.response?.data) {
+        errorMessage = error.response.data.message || error.response.data.error_msg || errorMessage;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+
+      return ApiResponseHandler.customError(
+        res,
+        errorMessage,
+        error?.response?.status || 500,
+        "BANK_VERIFICATION_FAILED"
       );
     }
   }

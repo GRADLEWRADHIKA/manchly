@@ -27,5 +27,12 @@ router.post("/verify", jwtAuth, KYCController.verifyKYC);
  */
 router.get("/status", jwtAuth, KYCController.getKYCStatus);
 
+/**
+ * @route   POST /api/kyc/verify-bank
+ * @desc    Verify bank account using Digio Pennyless API
+ * @access  Protected
+ */
+router.post("/verify-bank", jwtAuth, KYCController.verifyBankAccount);
+
 export default router;
 

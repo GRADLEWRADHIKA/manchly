@@ -88,11 +88,43 @@ export class KYCController {
         console.log("KYC verification table not found, skipping database save");
       }
 
+      let updatedUser = null;
+      try {
+        const userResult = await prisma.$queryRaw<Array<{
+          id: string;
+          email: string;
+          name: string | null;
+          phone: string | null;
+          profile_image: string | null;
+          pan_number: string | null;
+          kyc_verified: boolean;
+          kyc_status: string | null;
+          kyc_verified_at: Date | null;
+          kyc_verification_id: string | null;
+          user_type: string[];
+          created_at: Date;
+          updated_at: Date;
+          last_login: Date | null;
+        }>>`
+          SELECT 
+            id, email, name, phone, profile_image, 
+            pan_number, kyc_verified, kyc_status, 
+            kyc_verified_at, kyc_verification_id, 
+            user_type, created_at, updated_at, last_login
+          FROM users
+          WHERE id = ${userId}
+        `;
+        updatedUser = userResult[0] || null;
+      } catch (userError) {
+        console.log("Error fetching user data:", userError);
+      }
+
       return ApiResponseHandler.success(
         res,
         {
           pan_details: panDetails,
           verification_id: uniqueRequestId,
+          user: updatedUser,
         },
         "PAN verified successfully"
       );

@@ -78,9 +78,10 @@ export class KYCController {
 
       // Save verification attempt (if kyc_verifications table exists)
       try {
+        const kycRecordId = uuidv4();
         await prisma.$executeRaw`
           INSERT INTO kyc_verifications (id, user_id, pan_number, status, verification_type, pan_details, unique_request_id, created_at, updated_at)
-          VALUES (gen_random_uuid(), ${userId}, ${pan_number.toUpperCase()}, 'PENDING', 'PAN', ${JSON.stringify(panDetails)}::jsonb, ${uniqueRequestId}, NOW(), NOW())
+          VALUES (${kycRecordId}, ${userId}, ${pan_number.toUpperCase()}, 'PENDING', 'PAN', ${JSON.stringify(panDetails)}::jsonb, ${uniqueRequestId}, NOW(), NOW())
           ON CONFLICT DO NOTHING
         `;
       } catch (dbError) {
@@ -476,9 +477,10 @@ export class KYCController {
       };
 
       try {
+        const kycRecordId = uuidv4();
         await prisma.$executeRaw`
           INSERT INTO kyc_verifications (id, user_id, pan_number, status, verification_type, pan_details, unique_request_id, created_at, updated_at)
-          VALUES (gen_random_uuid(), ${userId}, NULL, ${bankDetails.verified ? "VERIFIED" : "FAILED"}, 'BANK_ACCOUNT', ${JSON.stringify(bankDetails)}::jsonb, ${uniqueRequestId}, NOW(), NOW())
+          VALUES (${kycRecordId}, ${userId}, NULL, ${bankDetails.verified ? "VERIFIED" : "FAILED"}, 'BANK_ACCOUNT', ${JSON.stringify(bankDetails)}::jsonb, ${uniqueRequestId}, NOW(), NOW())
           ON CONFLICT DO NOTHING
         `;
       } catch (dbError) {

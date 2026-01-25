@@ -370,7 +370,7 @@ enum KYCStatus {
 model kyc_verifications {
   id                String    @id @default(uuid())
   user_id           String
-  pan_number        String
+  pan_number        String?   // Nullable for bank account verifications
   status            KYCStatus @default(PENDING)
   verification_type String    @default("PAN")
   pan_details       Json?     // Full PAN details from Digio API

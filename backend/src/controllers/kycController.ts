@@ -166,6 +166,28 @@ export class KYCController {
         );
       }
 
+      // Check if PAN number is already verified for another user
+      const maskedPAN =
+        pan_number.toUpperCase().substring(0, 5) +
+        "****" +
+        pan_number.toUpperCase().substring(9);
+      
+      const existingUser = await prisma.$queryRaw<Array<{ id: string }>>`
+        SELECT id FROM users 
+        WHERE pan_number = ${maskedPAN} 
+        AND id != ${userId}
+        LIMIT 1
+      `;
+
+      if (existingUser && existingUser.length > 0) {
+        return ApiResponseHandler.customError(
+          res,
+          "PAN number is already verified for another user",
+          400,
+          "PAN_ALREADY_VERIFIED"
+        );
+      }
+
       // Generate unique request ID
       const uniqueRequestId = uuidv4();
 
@@ -230,12 +252,6 @@ export class KYCController {
 
         // Update user KYC status
         if (verified) {
-          // Mask PAN: ABCDE****F
-          const maskedPAN =
-            pan_number.toUpperCase().substring(0, 5) +
-            "****" +
-            pan_number.toUpperCase().substring(9);
-
           await prisma.$executeRaw`
             UPDATE users 
             SET pan_number = ${maskedPAN}, 
@@ -246,9 +262,11 @@ export class KYCController {
             WHERE id = ${userId}
           `;
         } else {
+          // Verification failed/rejected - set kyc_verified to false
           await prisma.$executeRaw`
             UPDATE users 
-            SET kyc_status = 'FAILED',
+            SET kyc_verified = false,
+                kyc_status = 'FAILED',
                 kyc_verification_id = ${kycRecordId}
             WHERE id = ${userId}
           `;
@@ -284,6 +302,17 @@ export class KYCController {
         );
       } catch (dbError: any) {
         console.error("Database error:", dbError);
+        
+        // Check if it's a unique constraint violation (PAN already exists)
+        if (dbError?.code === '23505' || dbError?.meta?.code === '23505') {
+          return ApiResponseHandler.customError(
+            res,
+            "PAN number is already verified for another user",
+            400,
+            "PAN_ALREADY_VERIFIED"
+          );
+        }
+        
         // Return response even if DB save fails
         return ApiResponseHandler.success(
           res,

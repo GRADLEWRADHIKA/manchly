@@ -39,7 +39,8 @@
     "rate-limiter-flexible": "^8.0.1",
     "razorpay": "^2.9.6",
     "socket.io": "^4.8.1",
-    "ttl-cache": "^1.0.2"
+    "ttl-cache": "^1.0.2",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
@@ -49,7 +50,9 @@
     "@types/multer": "^2.0.0",
     "@types/node": "^20.0.0",
     "@types/nodemailer": "^7.0.2",
+    "@types/uuid": "^10.0.0",
     "prisma": "^5.0.0",
+    "ts-node": "^10.9.1",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.0.0"
   }

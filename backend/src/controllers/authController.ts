@@ -94,9 +94,21 @@ export class AuthController {
     return [...new Set(normalizedTypes)];
   }
 
+  // Helper to validate date of birth format (YYYY-MM-DD)
+  private static isValidDOB(dob: string): boolean {
+    const dobRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dobRegex.test(dob)) {
+      return false;
+    }
+    const date = new Date(dob);
+    const today = new Date();
+    // Check if date is valid and not in the future
+    return date instanceof Date && !isNaN(date.getTime()) && date <= today;
+  }
+
   // 1. Signup - create user record
   static async signup(req: Request, res: Response) {
-    const { email, phone, name, user_type } = req.body;
+    const { email, phone, name, user_type, dob } = req.body;
 
     if (!email) {
       return ApiResponseHandler.customError(res, "Email is required", 400, "MISSING_EMAIL");
@@ -106,6 +118,9 @@ export class AuthController {
     }
     if (!isValidEmail(email)) {
       return ApiResponseHandler.customError(res, "Invalid email format", 400, "INVALID_EMAIL_FORMAT");
+    }
+    if (dob && !AuthController.isValidDOB(dob)) {
+      return ApiResponseHandler.customError(res, "Invalid date of birth format. Use YYYY-MM-DD format", 400, "INVALID_DOB_FORMAT");
     }
 
     // Normalize and validate user_type
@@ -162,7 +177,8 @@ export class AuthController {
             data: { 
               phone, 
               name, 
-              user_type: mergedTypes
+              user_type: mergedTypes,
+              ...(dob && { dob })
             }
           });
 
@@ -186,7 +202,8 @@ export class AuthController {
           email, 
           phone, 
           name, 
-          user_type: userTypesArray.length > 0 ? userTypesArray : [UserType.USER]
+          user_type: userTypesArray.length > 0 ? userTypesArray : [UserType.USER],
+          ...(dob && { dob })
         }
       });
 
@@ -383,6 +400,8 @@ export class AuthController {
           id: user.id,
           email: user.email,
           name: user.name,
+          dob: (user as any).dob,
+          kyc_verified: (user as any).kyc_verified,
           phone: user.phone,
           user_type: email==='test@manchly.com' ? user_type : user_type
         }

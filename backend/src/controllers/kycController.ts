@@ -76,15 +76,48 @@ export class KYCController {
         remarks: digioData.remarks || "",
       };
 
+      // Check if verification was successful
+      const isVerified = digioData.status === "valid" || digioData.status === "VALID";
+      const verificationStatus = isVerified ? "VERIFIED" : "FAILED";
+
       // Save verification attempt (if kyc_verifications table exists)
       try {
         const kycRecordId = uuidv4();
-        await prisma.$executeRaw`
-          INSERT INTO kyc_verifications (id, user_id, pan_number, status, verification_type, pan_details, unique_request_id, created_at, updated_at)
-          VALUES (${kycRecordId}, ${userId}, ${pan_number.toUpperCase()}, 'PENDING', 'PAN', ${JSON.stringify(panDetails)}::jsonb, ${uniqueRequestId}, NOW(), NOW())
+        await prisma.$executeRawUnsafe(`
+          INSERT INTO kyc_verifications (id, user_id, pan_number, status, verification_type, pan_details, unique_request_id, verified_at, created_at, updated_at)
+          VALUES ($1, $2, $3, $4::"KYCStatus", 'PAN', $5::jsonb, $6, $7, NOW(), NOW())
           ON CONFLICT DO NOTHING
-        `;
+        `, kycRecordId, userId, pan_number.toUpperCase(), verificationStatus, JSON.stringify(panDetails), uniqueRequestId, isVerified ? new Date() : null);
+
+        // Update user KYC status if verification succeeded
+        if (isVerified) {
+          // Mask PAN: ABCDE****F
+          const maskedPAN =
+            pan_number.toUpperCase().substring(0, 5) +
+            "****" +
+            pan_number.toUpperCase().substring(9);
+
+          await prisma.$executeRaw`
+            UPDATE users 
+            SET pan_number = ${maskedPAN}, 
+                kyc_verified = true, 
+                kyc_status = 'VERIFIED', 
+                kyc_verified_at = NOW(),
+                kyc_verification_id = ${kycRecordId}
+            WHERE id = ${userId}
+          `;
+        } else {
+          // Verification failed - set kyc_verified to false
+          await prisma.$executeRaw`
+            UPDATE users 
+            SET kyc_verified = false,
+                kyc_status = 'FAILED',
+                kyc_verification_id = ${kycRecordId}
+            WHERE id = ${userId}
+          `;
+        }
       } catch (dbError) {
+        console.log("Error saving KYC verification:", JSON.stringify(dbError, null, 2));
         // Table might not exist yet, just log and continue
         console.log("KYC verification table not found, skipping database save");
       }
@@ -92,6 +125,7 @@ export class KYCController {
       let updatedUser = null;
       try {
         const userResult = await prisma.$queryRaw<Array<{
+          dob: string | null;
           id: string;
           email: string;
           name: string | null;
@@ -110,7 +144,7 @@ export class KYCController {
           SELECT 
             id, email, name, phone, profile_image, 
             pan_number, kyc_verified, kyc_status, 
-            kyc_verified_at, kyc_verification_id, 
+            kyc_verified_at, kyc_verification_id,dob,
             user_type, created_at, updated_at, last_login
           FROM users
           WHERE id = ${userId}
@@ -245,10 +279,11 @@ export class KYCController {
       // Save KYC verification record
       try {
         const kycRecordId = uuidv4();
-        await prisma.$executeRaw`
+        const statusValue = verified ? "VERIFIED" : "FAILED";
+        await prisma.$executeRawUnsafe(`
           INSERT INTO kyc_verifications (id, user_id, pan_number, status, verification_type, pan_details, match_details, unique_request_id, verified_at, created_at, updated_at)
-          VALUES (${kycRecordId}, ${userId}, ${pan_number.toUpperCase()}, ${verified ? "VERIFIED" : "FAILED"}, 'PAN', ${JSON.stringify(panDetails)}::jsonb, ${JSON.stringify({ name_match: finalNameMatch, dob_match: finalDobMatch })}::jsonb, ${uniqueRequestId}, ${verified ? new Date() : null}, NOW(), NOW())
-        `;
+          VALUES ($1, $2, $3, $4::"KYCStatus", 'PAN', $5::jsonb, $6::jsonb, $7, $8, NOW(), NOW())
+        `, kycRecordId, userId, pan_number.toUpperCase(), statusValue, JSON.stringify(panDetails), JSON.stringify({ name_match: finalNameMatch, dob_match: finalDobMatch }), uniqueRequestId, verified ? new Date() : null);
 
         // Update user KYC status
         if (verified) {
@@ -507,11 +542,12 @@ export class KYCController {
 
       try {
         const kycRecordId = uuidv4();
-        await prisma.$executeRaw`
+        const bankStatusValue = bankDetails.verified ? "VERIFIED" : "FAILED";
+        await prisma.$executeRawUnsafe(`
           INSERT INTO kyc_verifications (id, user_id, pan_number, status, verification_type, pan_details, unique_request_id, created_at, updated_at)
-          VALUES (${kycRecordId}, ${userId}, NULL, ${bankDetails.verified ? "VERIFIED" : "FAILED"}, 'BANK_ACCOUNT', ${JSON.stringify(bankDetails)}::jsonb, ${uniqueRequestId}, NOW(), NOW())
+          VALUES ($1, $2, NULL, $3::"KYCStatus", 'BANK_ACCOUNT', $4::jsonb, $5, NOW(), NOW())
           ON CONFLICT DO NOTHING
-        `;
+        `, kycRecordId, userId, bankStatusValue, JSON.stringify(bankDetails), uniqueRequestId);
       } catch (dbError) {
         console.log("KYC verification table not found, skipping database save");
       }

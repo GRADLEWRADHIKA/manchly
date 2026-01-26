@@ -117,7 +117,13 @@ export class PaymentController {
       }
 
       // Create Razorpay order for paid courses
-      const amountInPaise = Math.round(course.price * 100); // Convert to paise
+      // Calculate price with 18% GST and 5% platform fee on GST
+      const gstAmount = course.price * 0.18; // 18% GST
+      const platformFee = gstAmount * 0.05; // 5% platform fee on GST amount
+      const finalAmount = course.price + gstAmount + platformFee; // Base price + GST + Platform fee
+      const finalAmountRounded = parseFloat(finalAmount.toFixed(2)); // Fix to 2 decimal places
+      
+      const amountInPaise = Math.round(finalAmountRounded * 100); // Convert to paise
       
       const razorpayOrder = await razorpay.orders.create({
         amount: amountInPaise,
@@ -136,7 +142,7 @@ export class PaymentController {
         data: {
           user_id: userId,
           course_id: courseId,
-          amount: course.price,
+          amount: finalAmountRounded,
           currency: "INR",
           status: "PENDING",
           payment_method: "RAZORPAY",
@@ -174,7 +180,8 @@ export class PaymentController {
         course_details: {
           id: course.id,
           title: course.title,
-          price: course.price,
+          price: finalAmountRounded,
+          original_price: course.price,
           thumbnail: course.thumbnail
         }
       }, "Razorpay order created successfully", 201);

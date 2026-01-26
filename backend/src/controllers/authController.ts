@@ -496,7 +496,7 @@ export class AuthController {
 
   // 9. Update User Profile (Protected)
   static async updateProfile(req: any, res: Response) {
-    const { name, phone_number, user_type, profile_image } = req.body;
+    const { name, phone_number, user_type, profile_image,dob } = req.body;
     const { user } = req;
 
     // Validate and process user_type if provided
@@ -541,7 +541,8 @@ export class AuthController {
       const updateData: any = {
         name,
         phone: phone_number,
-        profile_image
+        profile_image,
+        dob
       };
       
       if (userTypesArray !== undefined) {

@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Image,
   StatusBar as RNStatusBar,
+  Linking,
 } from 'react-native';
 import colors from '../../../../utils/colors';
 import {
@@ -22,6 +23,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
 import { logout } from '../../../../store/UserSlice';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
 
 const CreatorSetting: React.FC = () => {
   const [logoutVisible, setLogoutVisible] = useState(false);
@@ -56,14 +58,73 @@ const CreatorSetting: React.FC = () => {
         style={styles.body}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Top Cards */}
         <View style={styles.topCardWrapper}>
-          <TouchableOpacity style={styles.topCard} activeOpacity={0.9}>
+          <TouchableOpacity style={styles.topCard} activeOpacity={0.9}
+            onPress={() => {
+              const phoneNumber = '6363790659';
+              const message = 'Hello, I am Crator,I need help.';
+              const url = `whatsapp://send?phone=91${phoneNumber}&text=${encodeURIComponent(
+                message,
+              )}`;
+
+              Linking.canOpenURL(url)
+                .then(supported => {
+                  if (!supported) {
+                    Toast.show({
+                      type: 'error',
+                      text1: 'WhatsApp not installed',
+                      text2: 'Please install WhatsApp to contact support',
+                      position: 'bottom',
+                    });
+                  } else {
+                    return Linking.openURL(url);
+                  }
+                })
+                .catch(err => {
+                  Toast.show({
+                    type: 'error',
+                    text1: 'Something went wrong',
+                    text2: err?.message || 'Unable to open WhatsApp',
+                    position: 'bottom',
+                  });
+                });
+            }}
+          >
             <Headset size={20} />
             <Text style={styles.topCardText}>Help & Support</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.topCard} activeOpacity={0.9}>
+          <TouchableOpacity style={styles.topCard} activeOpacity={0.9}
+            onPress={() => {
+              const phoneNumber = '6363790659';
+              const message = 'Hello, I am Crator,I need help for marketing';
+              const url = `whatsapp://send?phone=91${phoneNumber}&text=${encodeURIComponent(
+                message,
+              )}`;
+
+              Linking.canOpenURL(url)
+                .then(supported => {
+                  if (!supported) {
+                    Toast.show({
+                      type: 'error',
+                      text1: 'WhatsApp not installed',
+                      text2: 'Please install WhatsApp to contact support',
+                      position: 'bottom',
+                    });
+                  } else {
+                    return Linking.openURL(url);
+                  }
+                })
+                .catch(err => {
+                  Toast.show({
+                    type: 'error',
+                    text1: 'Something went wrong',
+                    text2: err?.message || 'Unable to open WhatsApp',
+                    position: 'bottom',
+                  });
+                });
+            }}
+          >
             <Megaphone size={20} />
             <Text style={styles.topCardText}>Contact for Marketing</Text>
           </TouchableOpacity>
@@ -82,7 +143,6 @@ const CreatorSetting: React.FC = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Profile */}
         <View style={styles.section}>
           <TouchableOpacity
             style={styles.row}

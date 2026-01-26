@@ -6,12 +6,15 @@ import {
   TouchableOpacity,
   FlatList,
   Image,
+  StatusBar as RNStatusBar,
   ImageBackground,
 } from 'react-native';
-import { MessageCircle } from 'lucide-react-native';
+import { MessageCircle, UserIcon } from 'lucide-react-native';
 import AppHeader from '../../../../components/AppHeader';
 import colors from '../../../../utils/colors';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import LinearGradient from 'react-native-linear-gradient';
+import { useSelector } from 'react-redux';
 
 type ChatUser = {
   id: string;
@@ -48,6 +51,8 @@ const chatUsers: ChatUser[] = [
 
 const CreatorChat = () => {
   const insets = useSafeAreaInsets();
+  const { user } = useSelector((state: any) => state.userReducer);
+
 
   const renderItem = ({ item }: { item: ChatUser }) => (
     <TouchableOpacity
@@ -88,27 +93,10 @@ const CreatorChat = () => {
 
   return (
     <View style={styles.container}>
-      {/* <AppHeader title="Chats" /> */}
-      <View
-        style={[
-          styles.mainHeader,
-          {
-            paddingTop: insets.top + 10,
-          },
-        ]}
-      >
-        <ImageBackground
-          source={require('../../../../image/background.png')}
-          resizeMode="cover"
-          style={styles.headerBg}
-        >
-          <View style={styles.headerContent}>
-            <Text style={styles.greetingText}>Chats</Text>
-          </View>
-        </ImageBackground>
-      </View>
+      <RNStatusBar barStyle="light-content" />
+      <AppHeader title="Chats" />
 
-     <Text style={{marginTop: 200, textAlign: 'center'}}>This feature is currently under development.</Text>
+      <Text style={{ marginTop: 200, textAlign: 'center' }}>This feature is currently under development.</Text>
 
       {/* <FlatList
         data={chatUsers}

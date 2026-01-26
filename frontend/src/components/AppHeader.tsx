@@ -25,7 +25,9 @@ const AppHeader = ({ title = 'Manchly' }) => {
     </View>
   );
 };
+
 export default AppHeader;
+
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',

@@ -524,9 +524,17 @@ const CreateCourse = () => {
 export default CreateCourse;
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#fff' },
-  flexGrow: { flex: 1 },
-  scrollArea: { padding: 16, paddingBottom: 40 },
+  root: {
+    flex: 1,
+    backgroundColor: '#fff'
+  },
+  flexGrow: {
+    flex: 1
+  },
+  scrollArea: {
+    padding: 16,
+    paddingBottom: 40
+  },
   formCard: {
     backgroundColor: '#fff',
     borderRadius: 12,
@@ -558,7 +566,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.primary,
   },
-  actionsRow: { marginTop: 18, alignItems: 'flex-end' },
+  actionsRow: {
+    marginTop: 18,
+    alignItems: 'flex-end'
+  },
   createButton: {
     backgroundColor: colors.primary,
     paddingVertical: 12,
@@ -567,8 +578,14 @@ const styles = StyleSheet.create({
     width: 160,
     alignItems: 'center',
   },
-  createButtonText: { color: '#fff', fontWeight: '700', fontSize: 15 },
-  buttonDisabled: { opacity: 0.65 },
+  createButtonText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 15
+  },
+  buttonDisabled: {
+    opacity: 0.65
+  },
   dropdown: {
     height: 44,
     borderWidth: 1,

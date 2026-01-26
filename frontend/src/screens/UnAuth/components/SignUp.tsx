@@ -52,7 +52,8 @@ const SignUp = ({ selectedType, setActive }) => {
       dob: data.dob,
       user_type: selectedType,
     };
-
+    // console.log('---payload--', payload)
+    // return
     dispatch(signUp(payload))
       .unwrap()
       .then(() => {

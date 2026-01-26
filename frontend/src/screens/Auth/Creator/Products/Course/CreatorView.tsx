@@ -9,7 +9,7 @@ import {
   Dimensions,
   ScrollView,
   TouchableOpacity,
-  ImageBackground,
+  StatusBar as RNStatusBar,
 } from 'react-native';
 import colors from '../../../../../utils/colors';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
@@ -32,6 +32,7 @@ import CustomTextInput from '../../../../../components/CustomInput';
 import UserIcon from '../../Home/component/UserIcon';
 import { getAllWebinar } from '../../../../../store/WebinarSlice';
 import WebinarCard from '../Webinar/WebinarCard';
+import LinearGradient from 'react-native-linear-gradient';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -170,22 +171,22 @@ const CreatorView: React.FC = () => {
       .then(response => {
         setWebinarData(response?.data?.data?.webinars);
       })
-      .finally(() => {});
+      .finally(() => { });
   };
 
   return (
     <View style={styles.container}>
+      <RNStatusBar barStyle="light-content" />
       <View
         style={[
           styles.mainHeader,
-          {
-            paddingTop: insets.top + 10,
-          },
+          { paddingTop: insets.top + 10, backgroundColor: colors.primary },
         ]}
       >
-        <ImageBackground
-          source={require('../../../../../image/background.png')}
-          resizeMode="cover"
+        <LinearGradient
+          colors={['#ffffff', '#c2c2c2']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
           style={styles.headerBg}
         >
           <View style={styles.headerContent}>
@@ -198,15 +199,23 @@ const CreatorView: React.FC = () => {
               ) : (
                 <UserIcon />
               )}
+
               <View>
-                <Text style={styles.firstPara}>Hello,</Text>
-                <Text style={styles.secPara}>{user?.name}</Text>
+                <Text style={styles.secPara}>
+                  Hi,{' '}
+                  {user?.name
+                    ? user.name.charAt(0).toUpperCase() +
+                    user.name.slice(1)
+                    : 'User'}{' '}
+                  👋
+                </Text>
+                <Text style={styles.firstPara}>Welcome back</Text>
               </View>
             </View>
 
             <BellDot width={22} height={22} color={colors.primary} />
           </View>
-        </ImageBackground>
+        </LinearGradient>
       </View>
 
       <ScrollView
@@ -449,21 +458,34 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    // paddingHorizontal: 16,
-    // paddingBottom: 16,
     backgroundColor: colors.primary,
   },
-  mainHead: { flexDirection: 'row', gap: 5, alignItems: 'center' },
+  mainHead: {
+    flexDirection: 'row',
+    gap: 10,
+    alignItems: 'center'
+  },
   avatar: {
     width: 54,
     height: 54,
     borderRadius: 27,
     backgroundColor: colors.primary,
-    marginRight: 12,
   },
-  firstPara: { color: colors.primary, fontSize: 14, fontWeight: '400' },
-  secPara: { color: colors.primary, fontSize: 16, fontWeight: '600' },
-  nameFields: { height: 44, width: '95%', borderRadius: 20 },
+  firstPara: {
+    color: colors.primary,
+    fontSize: 14,
+    fontWeight: '400'
+  },
+  secPara: {
+    color: colors.primary,
+    fontSize: 16,
+    fontWeight: '600'
+  },
+  nameFields: {
+    height: 44,
+    width: '95%',
+    borderRadius: 20
+  },
   searchHeader: {
     marginHorizontal: 16,
     marginVertical: 10,
@@ -508,12 +530,10 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: 'center',
     marginBottom: 12,
-    // Shadow for iOS
     shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.15,
     shadowRadius: 6,
-    // Shadow for Android
     elevation: 4,
   },
   statIcon: {
@@ -572,7 +592,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 15,
+    paddingHorizontal: 16,
   },
   listHeader: {
     flexDirection: 'row',

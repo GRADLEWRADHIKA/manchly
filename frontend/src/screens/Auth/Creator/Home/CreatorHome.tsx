@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,6 @@ import {
   StyleSheet,
   StatusBar as RNStatusBar,
   Image,
-  ImageBackground,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -16,49 +15,41 @@ import {
   Users,
   Award,
   TrendingUp,
-  DollarSign,
   BellDot,
-  IndianRupee,
-  CircleUser,
 } from 'lucide-react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import colors from '../../../../utils/colors';
 import KycCard from './KeyCard';
-import AppHeader from '../../../../components/AppHeader';
-import { useDispatch, useSelector } from 'react-redux';
-import { ThunkDispatch } from '@reduxjs/toolkit';
-import Toast from 'react-native-toast-message';
-import AppHeaderWithBack from '../../../../components/AppHeaderWithBack';
+import { useSelector } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { theme } from '../../../../theme/theme';
 import UserIcon from './component/UserIcon';
+import Toast from 'react-native-toast-message';
 
 const CreatorHome = () => {
   const navigation = useNavigation<any>();
-  const [active, setActive] = useState(true);
   const { user } = useSelector((state: any) => state.userReducer);
-  const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
   const insets = useSafeAreaInsets();
 
   const quickStats = [
     {
       label: 'Active Courses',
-      value: '12',
-      icon: <BookOpen size={24} color={colors.primary} />,
+      value: '0',
+      icon: <BookOpen size={26} color={colors.primary} />,
     },
     {
       label: 'Students',
-      value: '5.2K',
-      icon: <Users size={24} color={colors.secondary} />,
+      value: '0',
+      icon: <Users size={26} color={colors.secondary} />,
     },
     {
       label: 'Completion Rate',
-      value: '94%',
-      icon: <Award size={24} color={colors.accent} />,
+      value: '0%',
+      icon: <Award size={26} color={colors.accent} />,
     },
     {
       label: 'Revenue',
-      value: '₹12.5K',
-      icon: <TrendingUp size={24} color={colors.golden} />,
+      value: '₹0',
+      icon: <TrendingUp size={26} color={colors.golden} />,
     },
   ];
 
@@ -69,14 +60,13 @@ const CreatorHome = () => {
       <View
         style={[
           styles.mainHeader,
-          {
-            paddingTop: insets.top + 10,
-          },
+          { paddingTop: insets.top + 10, backgroundColor: colors.primary },
         ]}
       >
-        <ImageBackground
-          source={require('../../../../image/background.png')}
-          resizeMode="cover"
+        <LinearGradient
+          colors={['#ffffff', '#dcdcdc']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
           style={styles.headerBg}
         >
           <View style={styles.headerContent}>
@@ -89,53 +79,75 @@ const CreatorHome = () => {
               ) : (
                 <UserIcon />
               )}
+
               <View>
-                <Text style={styles.firstPara}>Hello,</Text>
-                <Text style={styles.secPara}>{user?.name}</Text>
+                <Text style={styles.secPara}>
+                  Hi,{' '}
+                  {user?.name
+                    ? user.name.charAt(0).toUpperCase() +
+                    user.name.slice(1)
+                    : 'User'}{' '}
+                  👋
+                </Text>
+                <Text style={styles.firstPara}>Welcome back</Text>
               </View>
             </View>
 
-            <BellDot width={22} height={22} color={colors.primary} />
+            <BellDot size={22} color={colors.primary} />
           </View>
-        </ImageBackground>
+        </LinearGradient>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Welcome Section */}
-        {/* <View style={styles.welcomeSection}>
-          <Text style={styles.welcomeTitle}>Welcome back! 👋</Text>
-          <Text style={styles.welcomeSubtitle}>
-            A Manch for every Creator...
-          </Text>
-        </View> */}
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {user?.kyc_verified ? (
+          <>
+            <Text style={styles.sectionTitle}>Dashboard</Text>
 
-        {/* Quick Stats */}
-        <View style={styles.statsSection}>
-          <Text style={styles.sectionTitle}>Dashboard</Text>
-          <View style={styles.statsGrid}>
-            {active ? (
-              <KycCard />
-            ) : (
-              quickStats?.map((stat, index) => (
-                <View key={index} style={styles.statCard}>
-                  <View style={styles.statIcon}>{stat?.icon}</View>
-                  <Text style={styles.statValue}>{stat?.value}</Text>
-                  <Text style={styles.statLabel}>{stat?.label}</Text>
-                </View>
-              ))
-            )}
-          </View>
-        </View>
+            <View style={styles.statsGrid}>
+              {quickStats.map((stat, index) => (
+                <LinearGradient
+                  key={index}
+                  colors={['#ffffff', '#f4f6f8']}
+                  style={styles.statCard}
+                >
+                  <View>
+                    {stat?.icon}
+                  </View>
 
-        {/* Quick Actions */}
+                  <Text style={styles.statValue}>
+                    {stat?.value}
+                  </Text>
+
+                  <Text style={styles.statLabel}>
+                    {stat?.label}
+                  </Text>
+                </LinearGradient>
+              ))}
+            </View>
+          </>
+        ) : (
+          <KycCard />
+        )}
+
         <View style={styles.actionsSection}>
-          {/* <Text style={styles.sectionTitle}>Quick Actions</Text> */}
           <View style={styles.actionsGrid}>
             <TouchableOpacity
               style={[styles.actionCard, styles.actionCardRight]}
-             onPress={() => navigation.navigate('CreateWebinar')}
+              onPress={() => {
+                if (user?.kyc_verified) {
+                  navigation.navigate('CreateWebinar');
+                } else {
+                  Toast.show({
+                    type: 'error',
+                    text1: 'KYC Required',
+                    text2: 'Please complete your KYC first',
+                    position: 'top',
+                  });
+                }
+              }}
             >
               <View
+
                 style={[
                   styles.actionIcon,
                   { backgroundColor: `${colors.primary}20` },
@@ -149,7 +161,18 @@ const CreatorHome = () => {
 
             <TouchableOpacity
               style={styles.actionCard}
-              onPress={() => navigation.navigate('CreateCourse')}
+              onPress={() => {
+                if (user?.kyc_verified) {
+                  navigation.navigate('CreateCourse');
+                } else {
+                  Toast.show({
+                    type: 'error',
+                    text1: 'KYC Required',
+                    text2: 'Please complete your KYC first',
+                    position: 'top',
+                  });
+                }
+              }}
             >
               <View
                 style={[
@@ -166,17 +189,19 @@ const CreatorHome = () => {
         </View>
 
         <View style={styles.withdrawCard}>
-          <View style={styles.withdrawLeft}>
-            <View style={{ marginLeft: 12 }}>
-              <Text style={styles.withdrawLabel}>Withdrawable Balance</Text>
-              <Text style={styles.withdrawAmount}>₹ *****</Text>
-            </View>
+          <View>
+            <Text style={styles.withdrawLabel}>
+              Withdrawable Balance
+            </Text>
+            <Text style={styles.withdrawAmount}>₹ *****</Text>
           </View>
 
-          <TouchableOpacity style={styles.withdrawBtn} activeOpacity={0.8}>
+          <TouchableOpacity style={styles.withdrawBtn}>
             <Text style={styles.withdrawBtnText}>Withdraw</Text>
           </TouchableOpacity>
         </View>
+
+        <View style={{ height: 30 }} />
       </ScrollView>
     </View>
   );
@@ -187,116 +212,115 @@ export default CreatorHome;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white,
   },
+
   mainHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    // paddingHorizontal: 16,
-    // paddingBottom: 16,
-    backgroundColor: colors.primary,
+    width: '100%',
   },
+
+  headerBg: {
+    paddingVertical: 12,
+  },
+
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    alignItems: 'center',
+  },
+
   mainHead: {
     flexDirection: 'row',
-    gap: 5,
     alignItems: 'center',
+    gap: 12,
   },
-  firstPara: {
-    color: colors.primary,
-    fontSize: 14,
-    fontWeight: '400',
+
+  avatar: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    backgroundColor: colors.primary,
   },
+
   secPara: {
-    color: colors.primary,
     fontSize: 16,
-    fontWeight: '600',
-  },
-  content: {
-    flex: 1,
-    backgroundColor: colors.white,
-  },
-  welcomeSection: {
-    padding: 16,
-    alignItems: 'center',
-  },
-  welcomeTitle: {
-    fontSize: 24,
     fontWeight: '700',
-    color: colors.text,
+    color: colors.primary,
   },
-  welcomeSubtitle: {
-    fontSize: 16,
-    color: colors.textSecondary,
-    marginTop: 4,
+
+  firstPara: {
+    fontSize: 13,
+    color: colors.primary,
   },
-  statsSection: {
-    padding: 16,
-  },
+
   sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    marginBottom: 25,
-    color: colors.text,
+    fontSize: 22,
+    fontWeight: '700',
     textAlign: 'center',
-    // fontFamily: theme.fonts.semiBold,
+    marginVertical: 20,
+    color: colors.text,
   },
+
   statsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
   },
+
   statCard: {
-    flex: 1,
-    minWidth: '45%',
-    backgroundColor: colors.surface,
-    borderRadius: 16,
-    padding: 16,
+    width: '48%',
+    borderRadius: 20,
+    paddingVertical: 22,
+    marginBottom: 16,
     alignItems: 'center',
-    marginRight: 12,
+    elevation: 6,
+  },
+
+  iconWrapper: {
+    width: 50,
+    height: 50,
+    borderRadius: 26,
+    backgroundColor: '#ffffff',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: 12,
-    // Shadow for iOS
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    // Shadow for Android
-    elevation: 4,
+    elevation: 3,
   },
-  statIcon: {
-    marginBottom: 8,
-  },
+
   statValue: {
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: '800',
     color: colors.text,
   },
+
   statLabel: {
-    fontSize: 12,
+    fontSize: 13,
     color: colors.textSecondary,
+    marginTop: 4,
   },
+
   actionsSection: {
     padding: 16,
   },
+
   actionsGrid: {
     flexDirection: 'row',
   },
+
   actionCard: {
     flex: 1,
     backgroundColor: colors.surface,
-    borderRadius: 16,
+    borderRadius: 18,
     padding: 20,
     alignItems: 'center',
-    // Shadow for iOS
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    // Shadow for Android
     elevation: 4,
   },
+
   actionCardRight: {
     marginRight: 12,
   },
+
   actionIcon: {
     width: 48,
     height: 48,
@@ -305,66 +329,51 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
+
   actionTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
     color: colors.text,
   },
+
   actionSubtitle: {
     fontSize: 12,
     color: colors.textSecondary,
   },
+
   withdrawCard: {
-    marginTop: 12,
-    backgroundColor: colors.white,
-    borderRadius: 12,
-    padding: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     marginHorizontal: 16,
+    marginTop: 10,
+    backgroundColor: colors.white,
+    borderRadius: 14,
+    padding: 14,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     elevation: 5,
   },
-  withdrawLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
+
   withdrawLabel: {
     color: colors.primary,
     fontWeight: '700',
   },
+
   withdrawAmount: {
     color: colors.primary,
-    marginTop: 2,
     fontSize: 18,
     fontWeight: '900',
+    marginTop: 2,
   },
+
   withdrawBtn: {
     backgroundColor: colors.primary,
+    paddingHorizontal: 18,
     paddingVertical: 8,
-    paddingHorizontal: 14,
     borderRadius: 10,
   },
+
   withdrawBtnText: {
-    fontWeight: '800',
     color: colors.white,
-  },
-  avatar: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
-    backgroundColor: colors.primary,
-    marginRight: 12,
-  },
-  headerBg: {
-    width: '100%',
-    paddingTop: 10,
-    paddingBottom: 16,
-  },
-  headerContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 15,
+    fontWeight: '800',
   },
 });

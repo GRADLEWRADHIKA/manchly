@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Image,
   StatusBar as RNStatusBar,
+  Linking,
 } from 'react-native';
 import colors from '../../../../utils/colors';
 import {
@@ -27,6 +28,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
 import { logout } from '../../../../store/UserSlice';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
 
 const UserSetting: React.FC = () => {
   const [logoutVisible, setLogoutVisible] = useState(false);
@@ -69,7 +71,36 @@ const UserSetting: React.FC = () => {
 
           <View style={styles.topCardWrapper}>
             <View style={{ width: '48%' }}>
-              <TouchableOpacity style={styles.topCard} activeOpacity={0.9}>
+              <TouchableOpacity style={styles.topCard} activeOpacity={0.9}
+                onPress={() => {
+                  const phoneNumber = '6363790659';
+                  const message = 'Hello, I am user,I need help.';
+                  const url = `whatsapp://send?phone=91${phoneNumber}&text=${encodeURIComponent(
+                    message,
+                  )}`;
+
+                  Linking.canOpenURL(url)
+                    .then(supported => {
+                      if (!supported) {
+                        Toast.show({
+                          type: 'error',
+                          text1: 'WhatsApp not installed',
+                          text2: 'Please install WhatsApp to contact support',
+                          position: 'bottom',
+                        });
+                      } else {
+                        return Linking.openURL(url);
+                      }
+                    })
+                    .catch(err => {
+                      Toast.show({
+                        type: 'error',
+                        text1: 'Something went wrong',
+                        text2: err?.message || 'Unable to open WhatsApp',
+                        position: 'bottom',
+                      });
+                    });
+                }} >
                 <Headset size={20} />
                 <Text style={styles.topCardText}>Help & Support</Text>
               </TouchableOpacity>

@@ -142,10 +142,10 @@ export const checkAuthData = createAsyncThunk('checkAuthData', async (data: obje
   }
 });
 
-export const verifyPAN = createAsyncThunk('kyc/verifyPAN', async (panNumber: string) => {
+export const verifyPAN = createAsyncThunk('verifyPAN', async (data: object) => {
   try {
     const url = 'kyc/verify-pan';
-    const response = await instance.post(url, { pan_number: panNumber });
+    const response = await instance.post(url, data);
     Toast.show({
       type: 'success',
       text1: 'PAN verified successfully',
@@ -153,133 +153,7 @@ export const verifyPAN = createAsyncThunk('kyc/verifyPAN', async (panNumber: str
     });
     return response.data;
   } catch (error: any) {
-    let errorMessage = 'Invalid PAN number';
-    let isNotImplemented = false;
-
-    try {
-      if (error?.request?._response) {
-        const err = JSON.parse(error.request._response);
-        errorMessage = err?.error?.message || err?.message || errorMessage;
-        if (
-          errorMessage.toLowerCase().includes('development') ||
-          errorMessage.toLowerCase().includes('not implemented') ||
-          errorMessage.toLowerCase().includes('coming soon') ||
-          error?.response?.status === 404 ||
-          error?.response?.status === 501
-        ) {
-          isNotImplemented = true;
-          errorMessage = 'KYC feature is not yet available. Please contact support.';
-        }
-      } else if (error?.response?.data?.message) {
-        errorMessage = error.response.data.message;
-        if (
-          errorMessage.toLowerCase().includes('development') ||
-          errorMessage.toLowerCase().includes('not implemented') ||
-          errorMessage.toLowerCase().includes('coming soon')
-        ) {
-          isNotImplemented = true;
-          errorMessage = 'KYC feature is not yet available. Please contact support.';
-        }
-      } else if (error?.response?.status === 404 || error?.response?.status === 501) {
-        isNotImplemented = true;
-        errorMessage = 'KYC feature is not yet available. Please contact support.';
-      } else if (error?.message) {
-        errorMessage = error.message;
-      }
-    } catch (parseError) {
-    }
-
-    Toast.show({
-      type: 'error',
-      text1: isNotImplemented ? 'Feature Not Available' : 'PAN Verification Failed',
-      text2: errorMessage,
-      position: 'bottom',
-    });
-    throw error;
-  }
-});
-
-export const verifyKYC = createAsyncThunk(
-  'kyc/verify',
-  async (data: { pan_number: string; user_name: string; user_dob: string }) => {
-    try {
-      const url = 'kyc/verify';
-      const response = await instance.post(url, data);
-
-      const result = response.data?.data;
-      if (result?.verified) {
-        Toast.show({
-          type: 'success',
-          text1: 'KYC Verified Successfully!',
-          text2: 'Your identity has been verified',
-          position: 'bottom',
-        });
-      } else {
-        Toast.show({
-          type: 'error',
-          text1: 'KYC Verification Failed',
-          text2: 'PAN details do not match your information',
-          position: 'bottom',
-        });
-      }
-      return response.data;
-    } catch (error: any) {
-      let errorMessage = 'Verification failed';
-      let isNotImplemented = false;
-
-      try {
-        if (error?.request?._response) {
-          const err = JSON.parse(error.request._response);
-          errorMessage = err?.error?.message || err?.message || errorMessage;
-          // Check if it's a "not implemented" or "in development" message
-          if (
-            errorMessage.toLowerCase().includes('development') ||
-            errorMessage.toLowerCase().includes('not implemented') ||
-            errorMessage.toLowerCase().includes('coming soon') ||
-            error?.response?.status === 404 ||
-            error?.response?.status === 501
-          ) {
-            isNotImplemented = true;
-            errorMessage = 'KYC verification feature is not yet available. Please contact support.';
-          }
-        } else if (error?.response?.data?.message) {
-          errorMessage = error.response.data.message;
-          if (
-            errorMessage.toLowerCase().includes('development') ||
-            errorMessage.toLowerCase().includes('not implemented') ||
-            errorMessage.toLowerCase().includes('coming soon')
-          ) {
-            isNotImplemented = true;
-            errorMessage = 'KYC verification feature is not yet available. Please contact support.';
-          }
-        } else if (error?.response?.status === 404 || error?.response?.status === 501) {
-          isNotImplemented = true;
-          errorMessage = 'KYC verification feature is not yet available. Please contact support.';
-        } else if (error?.message) {
-          errorMessage = error.message;
-        }
-      } catch (parseError) {
-        // If parsing fails, use default message
-      }
-
-      Toast.show({
-        type: 'error',
-        text1: isNotImplemented ? 'Feature Not Available' : 'KYC Verification Failed',
-        text2: errorMessage,
-        position: 'bottom',
-      });
-      throw error;
-    }
-  }
-);
-
-export const getKYCStatus = createAsyncThunk('kyc/status', async () => {
-  try {
-    const url = 'kyc/status';
-    const response = await instance.get(url);
-    return response.data;
-  } catch (error: any) {
-    throw error;
+    console.log('--error-->')
   }
 });
 
@@ -316,31 +190,13 @@ export const UserSlice = createSlice({
         state.user = actions?.payload?.data?.data?.user;
         state.loading = false;
       })
+      .addCase(verifyPAN.fulfilled, (state, actions) => {
+        state.user = actions?.payload?.data?.user;
+        state.loading = false;
+      })
       .addCase(verifyOtp.rejected, state => {
         state.loading = false;
       })
-      .addCase(verifyPAN.pending, state => {
-        state.kycVerifying = true;
-      })
-      .addCase(verifyPAN.fulfilled, (state, action) => {
-        state.kycVerifying = false;
-      })
-      .addCase(verifyPAN.rejected, state => {
-        state.kycVerifying = false;
-      })
-      .addCase(verifyKYC.pending, state => {
-        state.kycVerifying = true;
-      })
-      .addCase(verifyKYC.fulfilled, (state, action) => {
-        state.kycVerifying = false;
-        state.kycStatus = action.payload?.data;
-      })
-      .addCase(verifyKYC.rejected, state => {
-        state.kycVerifying = false;
-      })
-      .addCase(getKYCStatus.fulfilled, (state, action) => {
-        state.kycStatus = action.payload?.data;
-      });
   },
 });
 

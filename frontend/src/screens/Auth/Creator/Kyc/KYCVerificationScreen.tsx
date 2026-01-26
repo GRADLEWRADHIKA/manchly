@@ -6,34 +6,34 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
+  StatusBar as RNStatusBar,
   Alert,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { CheckCircle, XCircle, Shield, AlertCircle } from 'lucide-react-native';
 import colors from '../../../../utils/colors';
 import AppHeaderWithBack from '../../../../components/AppHeaderWithBack';
 import CustomTextInput from '../../../../components/CustomInput';
-import { verifyPAN, verifyKYC, getKYCStatus } from '../../../../store/UserSlice';
+import { verifyPAN } from '../../../../store/UserSlice';
 import { Controller, useForm } from 'react-hook-form';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import Toast from 'react-native-toast-message';
 
 const KYCVerificationScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const dispatch = useDispatch<any>();
-  const { user, kycStatus, kycVerifying } = useSelector(
-    (state: any) => state.userReducer
+  const { user } = useSelector((state: any) => state.userReducer
   );
 
-  const [panDetails, setPanDetails] = useState<any>(null);
-  const [userName, setUserName] = useState<string>(user?.name || '');
-  const [userDob, setUserDob] = useState<string>(user?.dob || '');
-  const [step, setStep] = useState<'enter-details' | 'enter-pan' | 'verify-details'>('enter-details');
+  console.log('--v--', user)
+
+  const [loading, setLoading] = useState(false)
 
   const {
     control,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -43,172 +43,41 @@ const KYCVerificationScreen: React.FC = () => {
     },
   });
 
-  useEffect(() => {
-    dispatch(getKYCStatus());
-  }, []);
-
-  const handleSubmitDetails = (data: { full_name: string; dob: string }) => {
-    if (!data.full_name || !data.dob) {
-      Alert.alert('Missing Information', 'Please enter both your full name and date of birth.');
-      return;
-    }
-    
-    setUserName(data.full_name.trim());
-    setUserDob(data.dob);
-    setStep('enter-pan');
-  };
-
-  const handleVerifyPAN = async (data: { pan_number: string }) => {
-    try {
-      const panNumber = data.pan_number.toUpperCase().trim();
-      
-      if (!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(panNumber)) {
-        Alert.alert('Invalid PAN', 'Please enter a valid PAN number (e.g., ABCDE1234F)');
-        return;
-      }
-
-      const result = await dispatch(
-        verifyPAN(panNumber)
-      ).unwrap();
-      
-      setPanDetails(result?.data?.pan_details);
-      setStep('verify-details');
-    } catch (error: any) {
-      console.error('PAN verification error:', error);
-      
-      const errorMessage = error?.message || '';
-      if (
-        errorMessage.toLowerCase().includes('development') ||
-        errorMessage.toLowerCase().includes('not available') ||
-        error?.response?.status === 404 ||
-        error?.response?.status === 501
-      ) {
-        Alert.alert(
-          'Feature Not Available',
-          'KYC verification is currently under development. Please contact support for more information.',
-          [{ text: 'OK' }]
-        );
-      }
-    }
-  };
-
-  const handleVerifyKYC = async () => {
-    if (!panDetails || !userName || !userDob) {
-      Alert.alert('Missing Information', 'Please ensure all details are entered correctly.');
-      return;
-    }
-
-    try {
-      const result = await dispatch(
-        verifyKYC({
-          pan_number: panDetails.pan,
-          user_name: userName,
-          user_dob: userDob,
-        })
-      ).unwrap();
-
-      if (result?.data?.verified) {
-        Alert.alert(
-          'KYC Verified! ✅',
-          'Your identity has been successfully verified.',
-          [
-            {
-              text: 'OK',
-              onPress: () => {
-                navigation.goBack();
-                dispatch(getKYCStatus());
-              },
-            },
-          ]
-        );
-      } else {
-        Alert.alert(
-          'Verification Failed',
-          'PAN details do not match your information. Please check your name and date of birth.',
-          [{ text: 'OK' }]
-        );
-      }
-    } catch (error: any) {
-      console.error('KYC verification error:', error);
-      
-      const errorMessage = error?.message || '';
-      if (
-        errorMessage.toLowerCase().includes('development') ||
-        errorMessage.toLowerCase().includes('not available') ||
-        error?.response?.status === 404 ||
-        error?.response?.status === 501
-      ) {
-        Alert.alert(
-          'Feature Not Available',
-          'KYC verification is currently under development. Please contact support for more information.',
-          [{ text: 'OK' }]
-        );
-      }
-    }
-  };
-
-  const formatDate = (dateString: string | undefined) => {
-    if (!dateString) return 'N/A';
-    const parts = dateString.split('-');
-    if (parts.length === 3) {
-      const [day, month, year] = parts;
-      return `${day}/${month}/${year}`;
-    }
-    return dateString;
-  };
-
-  const compareNames = (name1: string, name2: string): boolean => {
-    const normalize = (str: string) =>
-      str
-        .toUpperCase()
-        .trim()
-        .replace(/\s+/g, ' ');
-    return normalize(name1) === normalize(name2);
-  };
-
-  const compareDOB = (dob1: string | undefined, dob2: string | undefined): boolean => {
-    if (!dob1 || !dob2) {
-      return false;
-    }
-    
-  
-    if (dob1.includes('-') && dob2.includes('-')) {
-      const [d1, m1, y1] = dob1.split('-');
-      const [y2, m2, d2] = dob2.split('-');
-      
-      if (!d1 || !m1 || !y1 || !y2 || !m2 || !d2) {
-        return false;
-      }
-      
-      return d1 === d2 && m1 === m2 && y1 === y2;
-    }
-    return false;
-  };
-
-  const nameMatch = panDetails && panDetails.name && userName
-    ? compareNames(panDetails.name, userName)
-    : false;
-  const dobMatch = panDetails && userDob
-    ? true 
-    : false;
+  const onSubmit = (data) => {
+    setLoading(true)
+    const payload = {
+      pan_number: data?.pan_number,
+      user_name: data?.full_name,
+      user_dob: data?.dob
+    };
+    console.log('--payload--', payload)
+    dispatch(verifyPAN(payload))
+      .unwrap()
+      .then(response => {
+        console.log('--resonse--', response)
+        reset();
+        Toast.show({
+          type: 'success',
+          text1: response?.message,
+          position: 'bottom',
+        });
+        setLoading(false);
+      })
+      .catch(error => {
+        console.log('error ------> ', error);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
+      <RNStatusBar barStyle="light-content" />
       <AppHeaderWithBack title="KYC Verification" />
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Status Card */}
-        {kycStatus?.verified && (
-          <View style={styles.statusCard}>
-            <CheckCircle size={48} color="green" />
-            <Text style={styles.statusTitle}>KYC Verified</Text>
-            <Text style={styles.statusText}>
-              Your identity has been verified successfully
-            </Text>
-          </View>
-        )}
 
-        {/* Info Card */}
         <View style={styles.infoCard}>
           <Shield size={24} color={colors.primary} />
           <Text style={styles.infoTitle}>Verify Your Identity</Text>
@@ -217,301 +86,137 @@ const KYCVerificationScreen: React.FC = () => {
           </Text>
         </View>
 
-        {/* Step 1: Enter Name and DOB */}
-        {step === 'enter-details' && (
-          <View style={styles.stepContainer}>
-            <Text style={styles.stepTitle}>Step 1: Enter Your Details</Text>
-            <Text style={styles.stepSubtitle}>
-              Please enter your full name and date of birth as per your PAN card
-            </Text>
+        <View style={styles.stepContainer}>
 
-            <Controller
-              name="full_name"
-              control={control}
-              rules={{
-                required: 'Full name is required',
-                minLength: {
-                  value: 2,
-                  message: 'Name must be at least 2 characters',
-                },
-              }}
-              render={({
-                field: { onChange, onBlur, value },
-                fieldState: { error },
-              }) => (
+          <Controller
+            name="full_name"
+            control={control}
+            rules={{
+              required: 'Full name is required',
+              minLength: {
+                value: 2,
+                message: 'Name must be at least 2 characters',
+              },
+            }}
+            render={({
+              field: { onChange, onBlur, value },
+              fieldState: { error },
+            }) => (
+              <>
+                <Text style={styles.inputLabel}>Full Name (as per PAN card)</Text>
+                <CustomTextInput
+                  placeholder="Enter Full Name"
+                  value={value}
+                  onChange={(text: any) => {
+                    const nameText = typeof text === 'string' ? text : text?.nativeEvent?.text || '';
+                    onChange(nameText);
+                  }}
+                  disabled={true}
+                  onBlur={onBlur}
+                  inputContainerStyle={[
+                    styles.input,
+                    { borderColor: error ? 'red' : colors.borderColor },
+                  ]}
+                />
+              </>
+            )}
+          />
+
+          <Controller
+            name="dob"
+            control={control}
+            rules={{
+              required: 'Date of birth is required',
+            }}
+            render={({
+              field: { onChange, value },
+              fieldState: { error },
+            }) => {
+              const [showPicker, setShowPicker] = useState(false);
+              const dobDate = value ? new Date(value) : new Date(2000, 0, 1);
+
+              return (
                 <>
-                  <Text style={styles.inputLabel}>Full Name (as per PAN card)</Text>
-                  <CustomTextInput
-                    placeholder="Enter Full Name"
-                    value={value}
-                    onChange={(text: any) => {
-                      const nameText = typeof text === 'string' ? text : text?.nativeEvent?.text || '';
-                      onChange(nameText);
-                    }}
-                    onBlur={onBlur}
-                    inputContainerStyle={[
+                  <Text style={styles.inputLabel}>Date of Birth (as per PAN card)</Text>
+                  <TouchableOpacity
+                    disabled={true}
+                    onPress={() => setShowPicker(true)}
+                    style={[
                       styles.input,
+                      styles.datePickerButton,
                       { borderColor: error ? 'red' : colors.borderColor },
                     ]}
-                  />
-                  {error && <Text style={styles.errorText}>{error.message}</Text>}
-                </>
-              )}
-            />
-
-            <Controller
-              name="dob"
-              control={control}
-              rules={{
-                required: 'Date of birth is required',
-              }}
-              render={({
-                field: { onChange, value },
-                fieldState: { error },
-              }) => {
-                const [showPicker, setShowPicker] = useState(false);
-                const dobDate = value ? new Date(value) : new Date(2000, 0, 1);
-
-                return (
-                  <>
-                    <Text style={styles.inputLabel}>Date of Birth (as per PAN card)</Text>
-                    <TouchableOpacity
-                      onPress={() => setShowPicker(true)}
-                      style={[
-                        styles.input,
-                        styles.datePickerButton,
-                        { borderColor: error ? 'red' : colors.borderColor },
-                      ]}
-                    >
-                      <Text style={[styles.datePickerText, !value && { color: '#999' }]}>
-                        {value ? value : 'Select Date of Birth (YYYY-MM-DD)'}
-                      </Text>
-                    </TouchableOpacity>
-                    {showPicker && (
-                      <DateTimePicker
-                        value={dobDate}
-                        mode="date"
-                        display="default"
-                        maximumDate={new Date()}
-                        onChange={(event, selectedDate) => {
-                          setShowPicker(false);
-                          if (selectedDate) {
-                            const formattedDate = selectedDate.toISOString().split('T')[0];
-                            onChange(formattedDate);
-                          }
-                        }}
-                      />
-                    )}
-                    {error && <Text style={styles.errorText}>{error.message}</Text>}
-                  </>
-                );
-              }}
-            />
-
-            <TouchableOpacity
-              style={styles.verifyButton}
-              onPress={handleSubmit(handleSubmitDetails)}
-            >
-              <Text style={styles.verifyButtonText}>Continue</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* Step 2: Enter PAN */}
-        {step === 'enter-pan' && (
-          <View style={styles.stepContainer}>
-            <Text style={styles.stepTitle}>Step 2: Enter PAN Number</Text>
-            <Text style={styles.stepSubtitle}>
-              Enter your 10-digit PAN number
-            </Text>
-            
-            <View style={styles.summaryCard}>
-              <Text style={styles.summaryTitle}>Your Details:</Text>
-              <Text style={styles.summaryText}>Name: {userName}</Text>
-              <Text style={styles.summaryText}>DOB: {formatDate(userDob)}</Text>
-            </View>
-
-            <Controller
-              name="pan_number"
-              control={control}
-              rules={{
-                required: 'PAN number is required',
-                pattern: {
-                  value: /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/,
-                  message: 'Invalid PAN format (e.g., ABCDE1234F)',
-                },
-              }}
-              render={({
-                field: { onChange, onBlur, value },
-                fieldState: { error },
-              }) => (
-                <>
-                  <CustomTextInput
-                    placeholder="Enter PAN Number (e.g., ABCDE1234F)"
-                    value={value}
-                    onChange={(text: any) => {
-                      const panText = typeof text === 'string' ? text : text?.nativeEvent?.text || '';
-                      onChange(panText.toUpperCase());
-                    }}
-                    onBlur={onBlur}
-                    inputContainerStyle={[
-                      styles.input,
-                      { borderColor: error ? 'red' : colors.borderColor },
-                    ]}
-                    maxLength={10}
-                    autoCapitalize="characters"
-                  />
-                  {error && <Text style={styles.errorText}>{error.message}</Text>}
-                </>
-              )}
-            />
-
-            <TouchableOpacity
-              style={[
-                styles.verifyButton,
-                kycVerifying && styles.verifyButtonDisabled,
-              ]}
-              onPress={handleSubmit(handleVerifyPAN)}
-              disabled={kycVerifying}
-            >
-              {kycVerifying ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={styles.verifyButtonText}>Verify PAN</Text>
-              )}
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* Step 3: Verify Details Match */}
-        {step === 'verify-details' && panDetails && (
-          <View style={styles.stepContainer}>
-            <Text style={styles.stepTitle}>Step 3: Verify Details</Text>
-            <Text style={styles.stepSubtitle}>
-              Please verify that the PAN details match your information
-            </Text>
-
-            {/* PAN Details Card */}
-            <View style={styles.detailsCard}>
-              <Text style={styles.detailsTitle}>PAN Details</Text>
-              
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>PAN Number:</Text>
-                <Text style={styles.detailValue}>{panDetails.pan}</Text>
-              </View>
-
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Name on PAN:</Text>
-                <Text style={styles.detailValue}>{panDetails.name}</Text>
-              </View>
-
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Date of Birth:</Text>
-                <Text style={styles.detailValue}>
-                  {user?.dob ? formatDate(user.dob) : 'N/A'}
-                </Text>
-              </View>
-              {user?.dob && (
-                <Text style={[styles.detailValue, { fontSize: 12, color: colors.textSecondary, marginTop: -8 }]}>
-                  (From your profile)
-                </Text>
-              )}
-            </View>
-
-            {/* Match Status */}
-            <View style={styles.matchContainer}>
-              <Text style={styles.matchTitle}>Verification Status</Text>
-
-              <View style={styles.matchRow}>
-                <View style={styles.matchItem}>
-                  {nameMatch ? (
-                    <CheckCircle size={20} color="green" />
-                  ) : (
-                    <XCircle size={20} color="red" />
+                  >
+                    <Text style={[styles.datePickerText, !value && { color: '#999' }]}>
+                      {value ? value : 'Select Date of Birth (YYYY-MM-DD)'}
+                    </Text>
+                  </TouchableOpacity>
+                  {showPicker && (
+                    <DateTimePicker
+                      value={dobDate}
+                      mode="date"
+                      display="default"
+                      maximumDate={new Date()}
+                      onChange={(event, selectedDate) => {
+                        setShowPicker(false);
+                        if (selectedDate) {
+                          const formattedDate = selectedDate.toISOString().split('T')[0];
+                          onChange(formattedDate);
+                        }
+                      }}
+                    />
                   )}
-                  <Text style={styles.matchLabel}>Name Match</Text>
-                </View>
-                <Text
-                  style={[
-                    styles.matchStatus,
-                    nameMatch ? styles.matchSuccess : styles.matchError,
+                </>
+              );
+            }}
+          />
+
+          <Controller
+            name="pan_number"
+            control={control}
+            rules={{
+              required: 'PAN number is required',
+              pattern: {
+                value: /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/,
+                message: 'Invalid PAN format (e.g., ABCDE1234F)',
+              },
+            }}
+            render={({
+              field: { onChange, onBlur, value },
+              fieldState: { error },
+            }) => (
+              <>
+                <Text style={styles.inputLabel}>Enter your 10-digit PAN number</Text>
+                <CustomTextInput
+                  placeholder="Enter PAN Number (e.g., ABCDE1234F)"
+                  value={value}
+                  onChange={(text: any) => {
+                    const panText = typeof text === 'string' ? text : text?.nativeEvent?.text || '';
+                    onChange(panText.toUpperCase());
+                  }}
+                  onBlur={onBlur}
+                  inputContainerStyle={[
+                    styles.input,
+                    { borderColor: error ? 'red' : colors.borderColor },
                   ]}
-                >
-                  {nameMatch ? '✓ Matched' : '✗ Not Matched'}
-                </Text>
-              </View>
+                  maxLength={10}
+                  autoCapitalize="characters"
+                />
+              </>
+            )}
+          />
 
-              <View style={styles.matchRow}>
-                <View style={styles.matchItem}>
-                  {dobMatch ? (
-                    <CheckCircle size={20} color="green" />
-                  ) : (
-                    <XCircle size={20} color="red" />
-                  )}
-                  <Text style={styles.matchLabel}>DOB Match</Text>
-                </View>
-                <Text
-                  style={[
-                    styles.matchStatus,
-                    dobMatch ? styles.matchSuccess : styles.matchError,
-                  ]}
-                >
-                  {dobMatch ? '✓ Matched' : '✗ Not Matched'}
-                </Text>
-              </View>
+          <TouchableOpacity
+            disabled={loading}
+            style={styles.verifyButton}
+            onPress={handleSubmit(onSubmit)}
+          >
+            <Text style={styles.verifyButtonText}>{loading ? <ActivityIndicator color={colors.white} size={'small'} /> : 'Verify PAN'}</Text>
+          </TouchableOpacity>
+        </View>
 
-              {!nameMatch || !dobMatch ? (
-                <View style={styles.warningBox}>
-                  <AlertCircle size={20} color="orange" />
-                  <Text style={styles.warningText}>
-                    PAN details do not match your account information. Please
-                    check your name and date of birth.
-                  </Text>
-                </View>
-              ) : (
-                <View style={styles.successBox}>
-                  <CheckCircle size={20} color="green" />
-                  <Text style={styles.successText}>
-                    All details match! You can proceed with verification.
-                  </Text>
-                </View>
-              )}
-            </View>
-
-            {/* Action Buttons */}
-            <View style={styles.actionContainer}>
-              <TouchableOpacity
-                style={styles.backButton}
-                onPress={() => {
-                  setStep('enter-pan');
-                  setPanDetails(null);
-                }}
-              >
-                <Text style={styles.backButtonText}>Back</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[
-                  styles.confirmButton,
-                  (!nameMatch || !dobMatch) && styles.confirmButtonDisabled,
-                  kycVerifying && styles.confirmButtonDisabled,
-                ]}
-                onPress={handleVerifyKYC}
-                disabled={!nameMatch || !dobMatch || kycVerifying}
-              >
-                {kycVerifying ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <Text style={styles.confirmButtonText}>
-                    Confirm Verification
-                  </Text>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -774,4 +479,3 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
 });
-

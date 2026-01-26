@@ -67,6 +67,7 @@ const UserView: React.FC = () => {
     dispatch(getAllWebinar(payload))
       .unwrap()
       .then(response => {
+        console.log('res--', response?.data?.data?.webinars)
         setWebinarData(response?.data?.data?.webinars);
       });
   };

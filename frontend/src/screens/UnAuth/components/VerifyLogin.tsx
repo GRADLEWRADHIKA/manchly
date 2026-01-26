@@ -51,7 +51,7 @@ const VerifyLogin: React.FC<VerifyLoginProps> = ({
   } = useForm<FormValues>({
     defaultValues: {
       phoneEmail: '',
-      otp: '',
+      otp: otpData || '',
     },
   });
 
@@ -165,7 +165,7 @@ const VerifyLogin: React.FC<VerifyLoginProps> = ({
       return () => backHandler.remove();
     }, [setActive]), // Add setActive to dependencies
   );
-  
+
   return (
     <KeyboardAwareScrollView
       contentContainerStyle={styles.container}

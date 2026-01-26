@@ -28,6 +28,7 @@ import { getEnrolledCourses } from '../../../../store/EnrollmentSlice';
 import CourseCard from './components/CourseCard';
 import { getAllWebinar } from '../../../../store/WebinarSlice';
 import WebinarCard from './components/WebinarCard';
+import { fetchCourses } from '../../../../store/CourseSlice';
 
 const { width } = Dimensions.get('window');
 
@@ -39,6 +40,7 @@ const UserHome = () => {
   const [webinarData, setWebinarData] = useState([]);
   const focus = useIsFocused();
   const { token } = useSelector((state: any) => state.userReducer);
+
   useEffect(() => {
     dispatch(getEnrolledCourses({}));
   }, [focus]);
@@ -152,7 +154,6 @@ const UserHome = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 80 }}
       >
-        {/* Carousel */}
         <View style={{ marginTop: 16 }}>
           <Carousel
             loop
@@ -176,7 +177,6 @@ const UserHome = () => {
           />
         </View>
 
-        {/* Courses Section */}
         <Text style={styles.sectionTitle}>Your Courses</Text>
 
         {enrolledLoading ? (
@@ -199,7 +199,6 @@ const UserHome = () => {
           />
         )}
 
-        {/* Webinars Section */}
         <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>
           Join Webinar
         </Text>
@@ -227,10 +226,11 @@ const UserHome = () => {
 
 export default memo(UserHome);
 
-// ---------------- STYLES ----------------
-
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.white },
+  container: {
+    flex: 1,
+    backgroundColor: colors.white
+  },
 
   mainHeader: {
     flexDirection: 'row',
@@ -241,7 +241,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.secPrimary,
   },
 
-  mainHead: { flexDirection: 'row', gap: 5, alignItems: 'center' },
+  mainHead: {
+    flexDirection: 'row',
+    gap: 5,
+    alignItems: 'center'
+  },
 
   avatar: {
     width: 34,
@@ -250,7 +254,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.lightGrey,
   },
 
-  secPara: { color: colors.white, fontSize: 16, fontWeight: '600' },
+  secPara: {
+    color: colors.white,
+    fontSize: 16,
+    fontWeight: '600'
+  },
 
   carouselCard: {
     borderRadius: 16,
@@ -258,7 +266,11 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
   },
 
-  carouselImage: { width: '100%', height: 180, borderRadius: 16 },
+  carouselImage: {
+    width: '100%',
+    height: 180,
+    borderRadius: 16
+  },
 
   carouselOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -282,11 +294,15 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
 
-  flatListContainer: { paddingHorizontal: 10 },
+  flatListContainer: {
+    paddingHorizontal: 10
+  },
 
-  courseItem: { width: width * 0.45, marginRight: 14 },
+  courseItem: {
+    width: width * 0.45,
+    marginRight: 14
+  },
 
-  // ⭐ NEW — Empty Card UI
   emptyCard: {
     marginHorizontal: 16,
     marginTop: 20,
@@ -315,5 +331,8 @@ const styles = StyleSheet.create({
     borderRadius: 30,
   },
 
-  emptyButtonText: { color: colors.white, fontWeight: '600' },
+  emptyButtonText: {
+    color: colors.white,
+    fontWeight: '600'
+  },
 });

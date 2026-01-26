@@ -17,81 +17,79 @@ import CustomTextInput from '../../../components/CustomInput';
 import { updateProfile } from '../../../store/UserSlice';
 import { ThunkDispatch } from '@reduxjs/toolkit';
 import Toast from 'react-native-toast-message';
-import DocumentPicker, { pick, types } from '@react-native-documents/picker';
+import { pick, types } from '@react-native-documents/picker';
 import { uploadShipDoc } from '../../../store/Common';
-import { requestMediaPermission } from '../../../utils/mediaPermission';
+import DateTimePicker from 'react-native-modal-datetime-picker';
 
 const UserProfile = () => {
   const navigation = useNavigation<any>();
   const { user } = useSelector((state: any) => state.userReducer);
+  const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
+
   const [imageAdd, setImageAdd] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
+  const [showDobPicker, setShowDobPicker] = useState(false);
+
+  console.log('--iser---', user)
+
+  const {
+    control,
+    handleSubmit,
+    reset,
+  } = useForm({
+    defaultValues: {
+      email: user?.email || '',
+      phone: user?.phone || '',
+      name: user?.name || '',
+      dob: user?.dob || '',
+    },
+  });
+
+  /* ================= IMAGE PICKER ================= */
 
   const imagePicker = async () => {
-    // const hasPermission = await requestMediaPermission();
-
-    // if (!hasPermission) {
-    //   Toast.show({
-    //     type: 'error',
-    //     text1: 'Permission required',
-    //     text2: 'Please allow media access to upload images',
-    //   });
-    //   return;
-    // }
-
     try {
       const res = await pick({
         type: [types.images],
       });
 
-      if (!res || res.length === 0) return;
+      if (!res?.length) return;
 
-      const picked = {
+      const file = {
         uri: res[0].uri,
         type: res[0].type,
-        name: res[0].name,
-        size: res[0].size,
+        name: res[0].name || 'image.jpg',
       };
 
-      pickImageUpload(picked);
-    } catch (err: any) {
-      console.error('Document Picker Error:', err);
+      uploadImage(file);
+    } catch (err) {
       Toast.show({
         type: 'error',
-        text1: 'Image Picker Error',
-        text2: 'Unable to pick the image. Please try again.',
+        text1: 'Image Picker Failed',
         position: 'bottom',
       });
     }
   };
 
-  const pickImageUpload = async (file: any) => {
+  const uploadImage = async (file: any) => {
     setUploading(true);
     try {
       const formData = new FormData();
-      formData.append('file', {
-        uri: file.uri,
-        type: file.type,
-        name: file.name || 'upload.jpg',
-      });
+      formData.append('file', file);
 
       const res: any = await dispatch(uploadShipDoc(formData)).unwrap();
-      const newData = res?.data?.url;
-      setImageAdd(newData);
+      setImageAdd(res?.data?.url);
 
       Toast.show({
         type: 'success',
         text1: 'Image uploaded successfully',
         position: 'bottom',
       });
-    } catch (err: any) {
-      console.error('Image Upload Error:', err);
+    } catch (error) {
       Toast.show({
         type: 'error',
-        text1: 'Upload Failed',
-        text2: 'Please try again later.',
+        text1: 'Image upload failed',
         position: 'bottom',
       });
     } finally {
@@ -99,25 +97,13 @@ const UserProfile = () => {
     }
   };
 
-  const {
-    control,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm({
-    defaultValues: {
-      email: user?.email,
-      phone: user?.phone,
-      name: user?.name,
-    },
-  });
+  /* ================= UPDATE PROFILE ================= */
 
   const onUpdate = async (data: any) => {
     if (uploading) {
       Toast.show({
         type: 'info',
-        text1: 'Please wait',
-        text2: 'Image is still uploading...',
+        text1: 'Image is uploading',
         position: 'bottom',
       });
       return;
@@ -126,12 +112,16 @@ const UserProfile = () => {
     setLoading(true);
     try {
       const payload = {
-        name: data?.name || user?.name,
+        name: data?.name,
+        dob: data?.dob,
         profile_image: imageAdd || user?.profile_image,
       };
 
-      const response = await dispatch(updateProfile(payload)).unwrap();
-      console.log('----response----', response);
+      console.log('--paylaod--', payload)
+
+      // return
+
+      await dispatch(updateProfile(payload)).unwrap();
 
       Toast.show({
         type: 'success',
@@ -141,12 +131,10 @@ const UserProfile = () => {
 
       navigation.goBack();
       reset();
-    } catch (error: any) {
-      console.error('Update Profile Error:', error);
+    } catch (error) {
       Toast.show({
         type: 'error',
-        text1: 'Update Failed',
-        text2: 'Something went wrong. Please try again.',
+        text1: 'Update failed',
         position: 'bottom',
       });
     } finally {
@@ -154,21 +142,21 @@ const UserProfile = () => {
     }
   };
 
+  /* ================= UI ================= */
+
   return (
     <View style={styles.container}>
       <AppHeaderWithBack title="My Profile" />
 
       <View style={styles.content}>
+        {/* PROFILE IMAGE */}
         <TouchableOpacity
           style={styles.profileImageContainer}
           onPress={uploading ? undefined : imagePicker}
           disabled={uploading}
         >
           {uploading ? (
-            <View style={styles.uploadingView}>
-              <ActivityIndicator size="small" color={colors.primary} />
-              <Text style={styles.uploadText}>Uploading...</Text>
-            </View>
+            <ActivityIndicator color={colors.primary} />
           ) : user?.profile_image || imageAdd ? (
             <Image
               source={{ uri: imageAdd || user?.profile_image }}
@@ -178,91 +166,104 @@ const UserProfile = () => {
             <User2 size={50} color={colors.text} />
           )}
 
-          {!uploading && (
-            <Text style={styles.uploadText}>Upload Profile Picture</Text>
-          )}
+          <Text style={styles.uploadText}>Upload Profile Picture</Text>
         </TouchableOpacity>
 
+        {/* NAME */}
         <Text style={styles.label}>Full Name</Text>
         <Controller
           name="name"
           control={control}
-          rules={{ required: 'Please enter your name' }}
-          render={({
-            field: { onChange, onBlur, value },
-            fieldState: { error },
-          }) => (
+          rules={{ required: 'Name is required' }}
+          render={({ field: { onChange, value } }) => (
             <CustomTextInput
               placeholder="Enter Full Name"
-              inputContainerStyle={[
-                styles.input,
-                { borderColor: error ? 'red' : colors.borderColor },
-              ]}
-              onChange={onChange}
-              onBlur={onBlur}
               value={value}
+              onChange={onChange}
+              inputContainerStyle={styles.input}
             />
           )}
         />
 
-        <Text style={styles.label}>Email Address</Text>
+        {/* DOB */}
+        <Text style={styles.label}>Date of Birth</Text>
+        <Controller
+          name="dob"
+          control={control}
+          render={({ field: { value, onChange } }) => (
+            <>
+              <TouchableOpacity
+                style={[styles.input, styles.datePicker]}
+                onPress={() => setShowDobPicker(true)}
+              >
+                <Text style={{ color: value ? colors.text : '#999' }}>
+                  {value || 'Select Date of Birth'}
+                </Text>
+              </TouchableOpacity>
+
+              <DateTimePicker
+                isVisible={showDobPicker}
+                mode="date"
+                maximumDate={new Date()}
+                onConfirm={(date) => {
+                  setShowDobPicker(false);
+                  const formatted = date.toISOString().split('T')[0];
+                  onChange(formatted);
+                }}
+                onCancel={() => setShowDobPicker(false)}
+              />
+            </>
+          )}
+        />
+
+        {/* EMAIL */}
+        <Text style={styles.label}>Email</Text>
         <Controller
           name="email"
           control={control}
           render={({ field: { value } }) => (
             <CustomTextInput
-              placeholder="Enter Email Address"
-              keyboardType="email-address"
-              inputContainerStyle={[
-                styles.input,
-                { borderColor: colors.borderColor },
-              ]}
-              disabled
               value={value}
+              disabled
+              inputContainerStyle={styles.input}
             />
           )}
         />
 
-        <Text style={styles.label}>Phone Number</Text>
+        {/* PHONE */}
+        <Text style={styles.label}>Phone</Text>
         <Controller
           name="phone"
           control={control}
           render={({ field: { value } }) => (
             <CustomTextInput
-              placeholder="Enter Phone Number"
-              keyboardType="phone-pad"
-              inputContainerStyle={[
-                styles.input,
-                { borderColor: colors.borderColor },
-              ]}
-              disabled
               value={value}
+              disabled
+              inputContainerStyle={styles.input}
             />
           )}
         />
 
+        {/* BUTTONS */}
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={[styles.button, styles.backButton]}
             onPress={() => navigation.goBack()}
-            disabled={loading || uploading}
           >
-            <Text style={[styles.buttonText, { color: colors.black }]}>
-              Back
-            </Text>
+            <Text style={{ color: colors.black }}>Back</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[
               styles.button,
               styles.updateButton,
-              (loading || uploading) && { opacity: 0.6 },
+              loading && { opacity: 0.6 },
             ]}
             onPress={handleSubmit(onUpdate)}
-            disabled={loading || uploading}
+            disabled={loading}
           >
             {loading ? (
-              <ActivityIndicator color={colors.white} size="small" />
+              <ActivityIndicator color={colors.white} />
             ) : (
               <Text style={styles.buttonText}>Update</Text>
             )}
@@ -275,6 +276,8 @@ const UserProfile = () => {
 
 export default UserProfile;
 
+/* ================= STYLES ================= */
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -282,15 +285,10 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 20,
-    flex: 1,
   },
   profileImageContainer: {
     alignItems: 'center',
-    marginBottom: 20,
-  },
-  uploadingView: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    marginBottom: 25,
   },
   profileImage: {
     width: 100,
@@ -301,30 +299,32 @@ const styles = StyleSheet.create({
   uploadText: {
     fontSize: 14,
     color: colors.text,
-    marginTop: 4,
   },
   label: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: colors.text,
-    marginBottom: 6,
     marginTop: 10,
+    marginBottom: 6,
+    fontSize: 14,
+    color: colors.text,
   },
   input: {
+    height: 44,
+    borderWidth: 1,
+    borderColor: colors.borderColor,
     borderRadius: 8,
     paddingHorizontal: 10,
-    height: 44,
+    justifyContent: 'center',
     backgroundColor: colors.white,
-    borderWidth: 1,
-    marginBottom: 4,
+  },
+  datePicker: {
+    justifyContent: 'center',
   },
   buttonContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     marginTop: 30,
+    justifyContent: 'space-between',
   },
   button: {
-    flex: 0.48,
+    width: '48%',
     height: 44,
     borderRadius: 8,
     alignItems: 'center',
@@ -339,6 +339,5 @@ const styles = StyleSheet.create({
   buttonText: {
     color: colors.white,
     fontWeight: '600',
-    fontSize: 16,
   },
 });

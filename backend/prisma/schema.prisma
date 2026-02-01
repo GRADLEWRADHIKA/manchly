@@ -146,6 +146,8 @@ model webinars {
   category         String?
   tags             String[]               @default([])
   scheduled_at     DateTime
+  start_time       String?
+  end_time         String?
   duration         Int?
   timezone         String?                @default("UTC")
   zoom_meeting_id  String?                @unique

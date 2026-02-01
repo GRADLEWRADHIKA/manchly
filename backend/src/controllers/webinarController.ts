@@ -29,6 +29,15 @@ const zoomManager = new ZoomMeetingManager({
 const emailService = new EmailService();
 const whatsAppService = new WhatsAppService();
 
+/** Validates time string in "HH:MM" or "HH:MM:SS" format (e.g. "15:00", "09:30"). Returns trimmed string or null if invalid. */
+function parseTimeString(value: unknown): string | null {
+  if (value == null || typeof value !== "string") return null;
+  const trimmed = value.trim();
+  // HH:MM or H:MM or HH:MM:SS (24h)
+  if (!/^([0-1]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/.test(trimmed)) return null;
+  return trimmed;
+}
+
 export class WebinarController {
   // ============ WEBINAR MANAGEMENT ============
 
@@ -45,6 +54,8 @@ export class WebinarController {
       category,
       tags = [],
       scheduled_at,
+      start_time,
+      end_time,
       duration = 60,
       timezone = "UTC",
       max_participants,
@@ -60,6 +71,16 @@ export class WebinarController {
 
     if (!scheduled_at) {
       return ApiResponseHandler.customError(res, "Scheduled date and time is required", 400, "MISSING_SCHEDULE");
+    }
+
+    // Validate start_time / end_time format ("15:00" or "15:00:00")
+    const parsedStartTime = start_time != null && start_time !== "" ? parseTimeString(start_time) : null;
+    const parsedEndTime = end_time != null && end_time !== "" ? parseTimeString(end_time) : null;
+    if (start_time != null && start_time !== "" && parsedStartTime === null) {
+      return ApiResponseHandler.customError(res, "start_time must be in HH:MM format (e.g. 15:00)", 400, "INVALID_START_TIME");
+    }
+    if (end_time != null && end_time !== "" && parsedEndTime === null) {
+      return ApiResponseHandler.customError(res, "end_time must be in HH:MM format (e.g. 15:00)", 400, "INVALID_END_TIME");
     }
 
     // Check if user is a creator
@@ -122,6 +143,8 @@ export class WebinarController {
           category,
           tags: Array.isArray(tags) ? tags : [],
           scheduled_at: scheduledDate,
+          start_time: parsedStartTime ?? undefined,
+          end_time: parsedEndTime ?? undefined,
           duration,
           timezone,
           max_participants,
@@ -354,6 +377,8 @@ export class WebinarController {
       category,
       tags,
       scheduled_at,
+      start_time,
+      end_time,
       duration,
       timezone,
       max_participants,
@@ -385,6 +410,20 @@ export class WebinarController {
       if (duration !== undefined) updateData.duration = duration;
       if (timezone !== undefined) updateData.timezone = timezone;
       if (max_participants !== undefined) updateData.max_participants = max_participants;
+      if (start_time !== undefined) {
+        const parsedStart = parseTimeString(start_time);
+        if (start_time !== "" && parsedStart === null) {
+          return ApiResponseHandler.customError(res, "start_time must be in HH:MM format (e.g. 15:00)", 400, "INVALID_START_TIME");
+        }
+        updateData.start_time = parsedStart;
+      }
+      if (end_time !== undefined) {
+        const parsedEnd = parseTimeString(end_time);
+        if (end_time !== "" && parsedEnd === null) {
+          return ApiResponseHandler.customError(res, "end_time must be in HH:MM format (e.g. 15:00)", 400, "INVALID_END_TIME");
+        }
+        updateData.end_time = parsedEnd;
+      }
 
       // Handle scheduled date update
       if (scheduled_at) {

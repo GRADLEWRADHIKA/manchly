@@ -38,6 +38,37 @@ function parseTimeString(value: unknown): string | null {
   return trimmed;
 }
 
+/** Converts "HH:MM" or "HH:MM:SS" to minutes since midnight. */
+function timeStringToMinutes(timeStr: string): number {
+  const parts = timeStr.trim().split(":");
+  const h = parseInt(parts[0], 10) || 0;
+  const m = parseInt(parts[1], 10) || 0;
+  return h * 60 + m;
+}
+
+/** Converts minutes since midnight to "HH:MM" (same format as start_time). Wraps past 24h using modulo. */
+function minutesToTimeString(totalMinutes: number): string {
+  const wrapped = ((totalMinutes % (24 * 60)) + (24 * 60)) % (24 * 60);
+  const h = Math.floor(wrapped / 60);
+  const m = wrapped % 60;
+  return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
+}
+
+/** Calculates end_time from start_time (e.g. "15:00") + duration in minutes. Returns "HH:MM". */
+function calculateEndTime(startTimeStr: string, durationMinutes: number): string {
+  const startMins = timeStringToMinutes(startTimeStr);
+  return minutesToTimeString(startMins + durationMinutes);
+}
+
+/** Combines date from scheduled_at with time from start_time (e.g. "15:00"). Returns Date so it's not midnight. */
+function combineDateWithTime(date: Date, timeStr: string): Date {
+  const y = date.getUTCFullYear();
+  const mo = date.getUTCMonth();
+  const d = date.getUTCDate();
+  const [h, m] = timeStr.trim().split(":").map((x) => parseInt(x, 10) || 0);
+  return new Date(Date.UTC(y, mo, d, h, m, 0, 0));
+}
+
 export class WebinarController {
   // ============ WEBINAR MANAGEMENT ============
 
@@ -90,8 +121,13 @@ export class WebinarController {
     }
 
     try {
-      // Validate scheduled date is in the future
-      const scheduledDate = new Date(scheduled_at);
+      // scheduled_at = date from scheduled_at + time from start_time (so not 12 AM)
+      let scheduledDate = new Date(scheduled_at);
+      if (parsedStartTime) {
+        scheduledDate = combineDateWithTime(scheduledDate, parsedStartTime);
+      }
+
+      console.log('scheduledDate', scheduledDate);
       if (scheduledDate <= new Date()) {
         return ApiResponseHandler.customError(res, "Scheduled date must be in the future", 400, "INVALID_SCHEDULE");
       }
@@ -144,7 +180,7 @@ export class WebinarController {
           tags: Array.isArray(tags) ? tags : [],
           scheduled_at: scheduledDate,
           start_time: parsedStartTime ?? undefined,
-          end_time: parsedEndTime ?? undefined,
+          end_time: parsedStartTime && (duration !== undefined && duration !== null) ? calculateEndTime(parsedStartTime, Number(duration)) : (parsedEndTime ?? undefined),
           duration,
           timezone,
           max_participants,
@@ -378,7 +414,6 @@ export class WebinarController {
       tags,
       scheduled_at,
       start_time,
-      end_time,
       duration,
       timezone,
       max_participants,
@@ -417,28 +452,46 @@ export class WebinarController {
         }
         updateData.start_time = parsedStart;
       }
-      if (end_time !== undefined) {
-        const parsedEnd = parseTimeString(end_time);
-        if (end_time !== "" && parsedEnd === null) {
-          return ApiResponseHandler.customError(res, "end_time must be in HH:MM format (e.g. 15:00)", 400, "INVALID_END_TIME");
-        }
-        updateData.end_time = parsedEnd;
+
+      // Calculate end_time from start_time + duration (same "HH:MM" format)
+      const effectiveStartTime = updateData.start_time ?? (existingWebinar as { start_time?: string | null }).start_time;
+      const effectiveDuration = updateData.duration ?? existingWebinar.duration ?? 0;
+      if (effectiveStartTime && typeof effectiveDuration === "number" && effectiveDuration >= 0) {
+        updateData.end_time = calculateEndTime(effectiveStartTime, effectiveDuration);
       }
 
-      // Handle scheduled date update
+      // scheduled_at = date from scheduled_at + time from start_time (so not 12 AM)
+      const effectiveStartTimeForDate = updateData.start_time ?? (existingWebinar as { start_time?: string | null }).start_time;
       if (scheduled_at) {
-        const scheduledDate = new Date(scheduled_at);
-        if (scheduledDate <= new Date()) {
+        let baseDate = new Date(scheduled_at);
+        if (effectiveStartTimeForDate) {
+          baseDate = combineDateWithTime(baseDate, effectiveStartTimeForDate);
+        }
+        if (baseDate <= new Date()) {
           return ApiResponseHandler.customError(res, "Scheduled date must be in the future", 400, "INVALID_SCHEDULE");
         }
-        updateData.scheduled_at = scheduledDate;
+        updateData.scheduled_at = baseDate;
 
         // Update Zoom meeting if it exists
         if (existingWebinar.zoom_meeting_id) {
           try {
             await zoomManager.updateMeeting(existingWebinar.zoom_meeting_id, {
-              start_time: scheduledDate.toISOString(),
-              duration: duration || existingWebinar.duration || 60
+              start_time: baseDate.toISOString(),
+              duration: duration ?? existingWebinar.duration ?? 60
+            });
+          } catch (error) {
+            console.error('Error updating Zoom meeting:', error);
+          }
+        }
+      } else if (effectiveStartTimeForDate) {
+        // Only start_time updated: combine existing scheduled_at date with new start_time
+        updateData.scheduled_at = combineDateWithTime(existingWebinar.scheduled_at, effectiveStartTimeForDate);
+
+        if (existingWebinar.zoom_meeting_id) {
+          try {
+            await zoomManager.updateMeeting(existingWebinar.zoom_meeting_id, {
+              start_time: updateData.scheduled_at.toISOString(),
+              duration: updateData.duration ?? existingWebinar.duration ?? 60
             });
           } catch (error) {
             console.error('Error updating Zoom meeting:', error);
@@ -458,8 +511,8 @@ export class WebinarController {
               topic: title || existingWebinar.title,
               agenda: description || existingWebinar.description || '',
               type: 2,
-              start_time: (scheduled_at ? new Date(scheduled_at) : existingWebinar.scheduled_at).toISOString(),
-              duration: duration || existingWebinar.duration || 60,
+              start_time: (updateData.scheduled_at ?? existingWebinar.scheduled_at).toISOString(),
+              duration: duration ?? existingWebinar.duration ?? 60,
               timezone: timezone || existingWebinar.timezone || 'UTC',
               settings: {
                 host_video: true,

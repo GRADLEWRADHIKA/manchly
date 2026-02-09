@@ -33,6 +33,7 @@ import UserIcon from '../../Home/component/UserIcon';
 import { getAllWebinar } from '../../../../../store/WebinarSlice';
 import WebinarCard from '../Webinar/WebinarCard';
 import LinearGradient from 'react-native-linear-gradient';
+import DashboardCard from '../../Home/component/DashboardCard';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -58,22 +59,22 @@ const CreatorView: React.FC = () => {
   const quickStats = [
     {
       label: 'Active Courses',
-      value: '****',
+      value: '0',
       icon: <BookOpen size={24} color={colors.primary} />,
     },
     {
       label: 'Students',
-      value: '****',
+      value: '0',
       icon: <Users size={24} color={colors.secondary} />,
     },
     {
       label: 'Completion Rate',
-      value: '****',
+      value: '0',
       icon: <Award size={24} color={colors.accent} />,
     },
     {
       label: 'Revenue',
-      value: '****',
+      value: '0',
       icon: <TrendingUp size={24} color={colors.golden} />,
     },
   ];
@@ -171,7 +172,7 @@ const CreatorView: React.FC = () => {
       .then(response => {
         setWebinarData(response?.data?.data?.webinars);
       })
-      .finally(() => { });
+      .finally(() => {});
   };
 
   return (
@@ -204,8 +205,7 @@ const CreatorView: React.FC = () => {
                 <Text style={styles.secPara}>
                   Hi,{' '}
                   {user?.name
-                    ? user.name.charAt(0).toUpperCase() +
-                    user.name.slice(1)
+                    ? user.name.charAt(0).toUpperCase() + user.name.slice(1)
                     : 'User'}{' '}
                   👋
                 </Text>
@@ -356,13 +356,23 @@ const CreatorView: React.FC = () => {
 
         <View style={styles.statsSection}>
           <Text style={styles.statsTitle}>Quick Stats</Text>
-          <View style={styles.statsGrid}>
+          {/* <View style={styles.statsGrid}>
             {quickStats?.map((stat, index) => (
               <View key={index} style={styles.statCard}>
                 <View style={styles.statIcon}>{stat?.icon}</View>
                 <Text style={styles.statValue}>{stat?.value}</Text>
                 <Text style={styles.statLabel}>{stat?.label}</Text>
               </View>
+            ))}
+          </View> */}
+          <View style={styles.statsGrid}>
+            {quickStats.map((stat, index) => (
+              <DashboardCard
+                key={index}
+                icon={stat.icon}
+                value={stat.value}
+                label={stat.label}
+              />
             ))}
           </View>
         </View>
@@ -463,7 +473,7 @@ const styles = StyleSheet.create({
   mainHead: {
     flexDirection: 'row',
     gap: 10,
-    alignItems: 'center'
+    alignItems: 'center',
   },
   avatar: {
     width: 54,
@@ -474,17 +484,17 @@ const styles = StyleSheet.create({
   firstPara: {
     color: colors.primary,
     fontSize: 14,
-    fontWeight: '400'
+    fontWeight: '400',
   },
   secPara: {
     color: colors.primary,
     fontSize: 16,
-    fontWeight: '600'
+    fontWeight: '600',
   },
   nameFields: {
     height: 44,
     width: '95%',
-    borderRadius: 20
+    borderRadius: 20,
   },
   searchHeader: {
     marginHorizontal: 16,

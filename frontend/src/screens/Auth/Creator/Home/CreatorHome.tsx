@@ -24,6 +24,7 @@ import { useSelector } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import UserIcon from './component/UserIcon';
 import Toast from 'react-native-toast-message';
+import DashboardCard from './component/DashboardCard';
 
 const CreatorHome = () => {
   const navigation = useNavigation<any>();
@@ -84,8 +85,7 @@ const CreatorHome = () => {
                 <Text style={styles.secPara}>
                   Hi,{' '}
                   {user?.name
-                    ? user.name.charAt(0).toUpperCase() +
-                    user.name.slice(1)
+                    ? user.name.charAt(0).toUpperCase() + user.name.slice(1)
                     : 'User'}{' '}
                   👋
                 </Text>
@@ -105,23 +105,12 @@ const CreatorHome = () => {
 
             <View style={styles.statsGrid}>
               {quickStats.map((stat, index) => (
-                <LinearGradient
+                <DashboardCard
                   key={index}
-                  colors={['#ffffff', '#f4f6f8']}
-                  style={styles.statCard}
-                >
-                  <View>
-                    {stat?.icon}
-                  </View>
-
-                  <Text style={styles.statValue}>
-                    {stat?.value}
-                  </Text>
-
-                  <Text style={styles.statLabel}>
-                    {stat?.label}
-                  </Text>
-                </LinearGradient>
+                  icon={stat.icon}
+                  value={stat.value}
+                  label={stat.label}
+                />
               ))}
             </View>
           </>
@@ -147,7 +136,6 @@ const CreatorHome = () => {
               }}
             >
               <View
-
                 style={[
                   styles.actionIcon,
                   { backgroundColor: `${colors.primary}20` },
@@ -190,9 +178,7 @@ const CreatorHome = () => {
 
         <View style={styles.withdrawCard}>
           <View>
-            <Text style={styles.withdrawLabel}>
-              Withdrawable Balance
-            </Text>
+            <Text style={styles.withdrawLabel}>Withdrawable Balance</Text>
             <Text style={styles.withdrawAmount}>₹ *****</Text>
           </View>
 

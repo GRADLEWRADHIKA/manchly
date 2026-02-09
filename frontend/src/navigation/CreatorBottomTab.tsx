@@ -1,4 +1,3 @@
-// CreatorBottomTab.tsx
 import React from 'react';
 import {
   View,
@@ -9,7 +8,6 @@ import {
 } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import colors from '../utils/colors';
-import ProductsScreen from '../screens/Auth/User/Products/ProductsScreen';
 import WalletCreator from '../screens/Auth/Wallet/WalletCreator';
 import {
   MessageCircle,

@@ -14,7 +14,7 @@ import { signUp } from '../../../store/UserSlice';
 import { useDispatch } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
 import Toast from 'react-native-toast-message';
-import { MoveRight } from 'lucide-react-native';
+import { MoveRight, AlertTriangle } from 'lucide-react-native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useFocusEffect } from '@react-navigation/native';
@@ -52,8 +52,7 @@ const SignUp = ({ selectedType, setActive }) => {
       dob: data.dob,
       user_type: selectedType,
     };
-    // console.log('---payload--', payload)
-    // return
+
     dispatch(signUp(payload))
       .unwrap()
       .then(() => {
@@ -81,15 +80,13 @@ const SignUp = ({ selectedType, setActive }) => {
         return true;
       };
 
-      // Add the listener and store the subscription
       const backHandler = BackHandler.addEventListener(
         'hardwareBackPress',
         onBackPress,
       );
 
-      // Cleanup function
       return () => backHandler.remove();
-    }, [setActive]), // Add setActive to dependencies
+    }, [setActive]),
   );
 
   return (
@@ -100,6 +97,16 @@ const SignUp = ({ selectedType, setActive }) => {
       showsVerticalScrollIndicator={false}
     >
       <Text style={styles.title}>Sign Up</Text>
+
+      {selectedType === 'CREATOR' ? (
+        <View style={styles.warningBox}>
+          <AlertTriangle size={18} color="#FFC107" />
+          <Text style={styles.warningText}>
+            Please enter your exact Full Name and Date of Birth as per your PAN
+            card. These details cannot be changed later.
+          </Text>
+        </View>
+      ) : null}
 
       {/* Full Name */}
       <Text style={styles.label}>Full Name</Text>
@@ -240,7 +247,25 @@ const styles = StyleSheet.create({
     fontSize: 35,
     fontWeight: '600',
     color: colors.white,
-    marginBottom: 10,
+    marginBottom: 8,
+  },
+
+  warningBox: {
+    flexDirection: 'row',
+    backgroundColor: '#2A2A2A',
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 15,
+    borderLeftWidth: 4,
+    borderLeftColor: '#FFC107',
+    gap: 8,
+  },
+
+  warningText: {
+    color: '#FFC107',
+    fontSize: 13,
+    flex: 1,
+    lineHeight: 18,
   },
 
   label: {

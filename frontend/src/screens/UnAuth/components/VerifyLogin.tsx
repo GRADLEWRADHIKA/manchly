@@ -43,6 +43,8 @@ const VerifyLogin: React.FC<VerifyLoginProps> = ({
   const [otpData, setOtpData] = useState('');
   const [loginValue, setLoginValue] = useState('');
 
+  console.log('---otpData--', otpData)
+
   const {
     control,
     handleSubmit,
@@ -86,6 +88,7 @@ const VerifyLogin: React.FC<VerifyLoginProps> = ({
                   type: 'success',
                   text1: `Login OTP is ${res?.data?.data?.otp}`,
                 });
+                console.log('---res?.data?.data?.otp--',res?.data?.data?.otp)
                 setOtpData(res?.data?.data?.otp);
                 setOtpSuccess(true);
                 reset();
@@ -99,6 +102,7 @@ const VerifyLogin: React.FC<VerifyLoginProps> = ({
                   type: 'success',
                   text1: `Login OTP is ${res?.data?.data?.otp}`,
                 });
+                console.log('---res?.data?.data?.otp--',res?.data?.data?.otp)
                 setOtpData(res?.data?.data?.otp);
                 setOtpSuccess(true);
                 reset();
@@ -134,7 +138,7 @@ const VerifyLogin: React.FC<VerifyLoginProps> = ({
       .then(() => {
         Toast.show({
           type: 'success',
-          text1: 'OTP Verified Successfully',
+          text1: 'Login Successfully',
         });
         reset();
       })

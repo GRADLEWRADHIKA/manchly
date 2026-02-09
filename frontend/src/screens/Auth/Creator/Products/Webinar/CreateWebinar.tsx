@@ -4,12 +4,10 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  TextInput,
   Platform,
   KeyboardAvoidingView,
   ScrollView,
   StatusBar,
-  Button,
   ActivityIndicator,
   Image,
 } from 'react-native';
@@ -18,7 +16,7 @@ import colors from '../../../../../utils/colors';
 import AppHeaderWithBack from '../../../../../components/AppHeaderWithBack';
 import { Controller, useForm } from 'react-hook-form';
 import CustomTextInput from '../../../../../components/CustomInput';
-import { Dropdown, MultiSelect } from 'react-native-element-dropdown';
+import { Dropdown } from 'react-native-element-dropdown';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { useDispatch } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
@@ -30,28 +28,21 @@ import Toast from 'react-native-toast-message';
 import { pick, types } from '@react-native-documents/picker';
 import { uploadShipDoc } from '../../../../../store/Common';
 import moment from 'moment-timezone';
-import { requestMediaPermission } from '../../../../../utils/mediaPermission';
 import FacingIssues from '../Course/components/FacingIssues';
+import { CirclePlus } from 'lucide-react-native';
 
 const CreateWebinarScreen = () => {
   const navigation = useNavigation();
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
-  const [selectedDate, setSelectedDate] = useState('');
   const [loading, setLoading] = useState(false);
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
   const [uploading, setUploading] = useState(false);
   const [timezones, setTimezones] = useState([]);
-  const [activeTags, setActiveTags] = useState(false);
-  const [showTags, setShowTags] = useState(false);
   const route = useRoute();
   const updatedata = route?.params?.data;
-
-  // const TAGS = ['AI', 'Machine Learning', 'Data Science'];
-  const TAGS = [
-    { label: 'AI', value: 'AI' },
-    { label: 'Machine Learning', value: 'Machine Learning' },
-    { label: 'Data Science', value: 'Data Science' },
-  ];
+  const [tagInput, setTagInput] = useState('');
+  const [tagList, setTagList] = useState<string[]>(updatedata?.tags || []);
+  const [isTimePickerVisible, setTimePickerVisibility] = useState(false);
 
   const showDatePicker = () => {
     setDatePickerVisibility(true);
@@ -60,6 +51,9 @@ const CreateWebinarScreen = () => {
   const hideDatePicker = () => {
     setDatePickerVisibility(false);
   };
+
+  const showTimePicker = () => setTimePickerVisibility(true);
+  const hideTimePicker = () => setTimePickerVisibility(false);
 
   useEffect(() => {
     const zones = moment.tz.names().map(tz => ({
@@ -70,16 +64,6 @@ const CreateWebinarScreen = () => {
   }, []);
 
   const imagePicker = async (onChange: (val: string) => void) => {
-    //  const hasPermission = await requestMediaPermission();
-
-    //     if (!hasPermission) {
-    //       Toast.show({
-    //         type: 'error',
-    //         text1: 'Permission required',
-    //         text2: 'Please allow media access to upload images',
-    //       });
-    //       return;
-    //     }
     try {
       const res = await pick({
         type: [types.images],
@@ -156,6 +140,7 @@ const CreateWebinarScreen = () => {
       category: updatedata?.category,
       tags: updatedata?.tags,
       scheduled_at: updatedata?.scheduled_at,
+      start_time: updatedata?.start_time || '',
       duration: String(updatedata?.duration ?? '') || '',
       timezone: updatedata?.timezone,
       max_participants: String(updatedata?.max_participants ?? '') || '',
@@ -164,7 +149,6 @@ const CreateWebinarScreen = () => {
   });
 
   const onSubmit = (data: any) => {
-
     const description = data?.description?.trim();
 
     // REQUIRED
@@ -200,6 +184,8 @@ const CreateWebinarScreen = () => {
       thumbnail_url: data?.thumbnail_url,
       price: Number(data?.price),
       category: 'webinar',
+      start_time: data?.start_time,
+      end_time: null,
       tags: data?.tags,
       scheduled_at: data?.scheduled_at,
       duration: Number(data?.duration),
@@ -224,8 +210,6 @@ const CreateWebinarScreen = () => {
 
   // calling the update the webinar
   const onUpdateSubmit = (data: any) => {
-
-
     const description = data?.description?.trim();
 
     // REQUIRED
@@ -263,6 +247,8 @@ const CreateWebinarScreen = () => {
         thumbnail_url: data?.thumbnail_url,
         price: Number(data?.price),
         category: 'webinar',
+        start_time: data?.start_time,
+        end_time: null,
         tags: data?.tags,
         scheduled_at: data?.scheduled_at,
         duration: Number(data?.duration),
@@ -271,6 +257,8 @@ const CreateWebinarScreen = () => {
         status: data?.status,
       },
     };
+    // console.log('--paypoad--', payload)
+    // return
     dispatch(updateWebinar(payload))
       .unwrap()
       .then(response => {
@@ -290,6 +278,7 @@ const CreateWebinarScreen = () => {
     <View style={styles.safe}>
       <StatusBar barStyle="light-content" backgroundColor="#fff" />
       <AppHeaderWithBack title="Create Webinar" />
+
       <View style={styles.container}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -367,40 +356,6 @@ const CreateWebinarScreen = () => {
               )}
             />
 
-            {/* <Text style={styles.label}>Category</Text>
-            <Controller
-              name="category"
-              control={control}
-              rules={{
-                required: {
-                  value: true,
-                  message: 'This field is required',
-                },
-              }}
-              render={({
-                field: { onChange, onBlur, value },
-                fieldState: { error },
-              }) => (
-                <CustomTextInput
-                  inputContainerStyle={[
-                    styles.nameFields,
-                    {
-                      borderColor: error ? 'red' : colors.borderColor,
-                    },
-                  ]}
-                  inputStyle={{
-                    fontSize: 14,
-                    color: colors.black,
-                  }}
-                  placeholderTextColor={colors.borderColor}
-                  placeholder="Enter category for the webinar"
-                  onChange={onChange}
-                  onBlur={onBlur}
-                  value={value}
-                />
-              )}
-            /> */}
-
             <Text style={styles.label}>Date</Text>
             <Controller
               control={control}
@@ -429,6 +384,41 @@ const CreateWebinarScreen = () => {
                     onCancel={hideDatePicker}
                   />
                 </TouchableOpacity>
+              )}
+            />
+
+            <Text style={styles.label}>Start Time</Text>
+
+            <Controller
+              control={control}
+              name="start_time"
+              rules={{ required: true }}
+              render={({
+                field: { onChange, value },
+                fieldState: { error },
+              }) => (
+                <>
+                  <TouchableOpacity
+                    style={[styles.datePicker, error && styles.errorBorder]}
+                    onPress={showTimePicker}
+                  >
+                    <Text style={{ fontSize: 14, color: colors.primary }}>
+                      {value ? value : 'Select start time (24h)'}
+                    </Text>
+                  </TouchableOpacity>
+
+                  <DateTimePickerModal
+                    isVisible={isTimePickerVisible}
+                    mode="time"
+                    is24Hour={true}
+                    onConfirm={date => {
+                      const formattedTime = moment(date).format('HH:mm'); // ✅ 24-hour format
+                      onChange(formattedTime);
+                      hideTimePicker();
+                    }}
+                    onCancel={hideTimePicker}
+                  />
+                </>
               )}
             />
 
@@ -504,24 +494,97 @@ const CreateWebinarScreen = () => {
             <Controller
               control={control}
               name="tags"
-              render={({ field: { value, onChange } }) => (
-                <MultiSelect
-                  style={styles.dropdown}
-                  containerStyle={styles.dropdownContainer}
-                  placeholderStyle={styles.placeholder}
-                  selectedTextStyle={styles.selectedText}
-                  data={TAGS}
-                  labelField="label"
-                  valueField="value"
-                  placeholder="Select Categories"
-                  value={value}
-                  onChange={item => {
-                    onChange(item);
-                  }}
-                  selectedStyle={styles.selectedItem}
-                  activeColor="#00000010"
-                  alwaysRenderSelectedItem={true}
-                />
+              defaultValue={tagList}
+              render={({ field: { onChange }, fieldState: { error } }) => (
+                <>
+                  <View style={styles.customHeader}>
+                    <CustomTextInput
+                      inputContainerStyle={[
+                        styles.nameFields,
+                        {
+                          borderColor: error ? 'red' : colors.borderColor,
+                          width: '90%',
+                          marginBottom: 0,
+                        },
+                      ]}
+                      inputStyle={{
+                        fontSize: 14,
+                        color: colors.black,
+                      }}
+                      placeholderTextColor={colors.borderColor}
+                      placeholder="Enter tag"
+                      value={tagInput}
+                      onChange={text => {
+                        // if (text.includes(' ')) return;
+                        setTagInput(text);
+                      }}
+                    />
+
+                    <TouchableOpacity
+                      style={styles.secHeader}
+                      onPress={() => {
+                        const trimmed = tagInput.trim();
+
+                        if (!trimmed) {
+                          Toast.show({
+                            type: 'error',
+                            text1: 'Please enter a tag',
+                          });
+                          return;
+                        }
+
+                        if (tagList.length >= 3) {
+                          Toast.show({
+                            type: 'error',
+                            text1: 'You can add only 3 tags',
+                          });
+                          return;
+                        }
+
+                        if (tagList.includes(trimmed)) {
+                          Toast.show({
+                            type: 'error',
+                            text1: 'Tag already added',
+                          });
+                          return;
+                        }
+
+                        const updatedTags = [...tagList, trimmed];
+                        setTagList(updatedTags);
+                        onChange(updatedTags);
+                        setTagInput('');
+                      }}
+                    >
+                      <CirclePlus
+                        size={30}
+                        color={colors.primary}
+                        strokeWidth={1.6}
+                      />
+                    </TouchableOpacity>
+                  </View>
+
+                  {tagList?.length > 0 && (
+                    <View style={styles.tagContainer}>
+                      {tagList?.map((tag, index) => (
+                        <View key={index} style={styles.tagItem}>
+                          <Text style={styles.tagText}>{tag}</Text>
+
+                          <TouchableOpacity
+                            onPress={() => {
+                              const updated = tagList.filter(
+                                (_, i) => i !== index,
+                              );
+                              setTagList(updated);
+                              onChange(updated);
+                            }}
+                          >
+                            <Text style={styles.removeTag}>✕</Text>
+                          </TouchableOpacity>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+                </>
               )}
             />
 
@@ -558,64 +621,6 @@ const CreateWebinarScreen = () => {
                 />
               )}
             />
-
-            {/* <Text style={styles.label}>Time zone</Text>
-            <Controller
-              name="timezone"
-              control={control}
-              rules={{ required: true }}
-              render={({
-                field: { onChange, value },
-                fieldState: { error },
-              }) => (
-                <Dropdown
-                  style={[styles.dropdown, error && styles.errorBorder]}
-                  placeholderStyle={styles.placeholder}
-                  selectedTextStyle={styles.selectedText}
-                  containerStyle={{
-                    borderRadius: 10,
-                  }}
-                  data={timezones}
-                  labelField="label"
-                  valueField="value"
-                  search
-                  inputSearchStyle={{
-                    borderRadius: 10,
-                  }}
-                  searchPlaceholder="Search by country name"
-                  placeholder="Enter timezone for the webinar"
-                  value={value}
-                  dropdownPosition="top"
-                  onChange={item => onChange(item.value)}
-                  renderItem={item => {
-                    const isSelected = item.value === value;
-                    return (
-                      <View
-                        style={{
-                          paddingHorizontal: 10,
-                          paddingVertical: 5,
-                          margin: 10,
-                          backgroundColor: isSelected
-                            ? colors.primary
-                            : colors.white,
-                          borderRadius: 5,
-                        }}
-                      >
-                        <Text
-                          style={{
-                            color: isSelected
-                              ? colors.white
-                              : colors.textSecondary,
-                          }}
-                        >
-                          {item.label}
-                        </Text>
-                      </View>
-                    );
-                  }}
-                />
-              )}
-            /> */}
 
             <Text style={styles.label}>Status</Text>
             <Controller
@@ -678,9 +683,12 @@ const CreateWebinarScreen = () => {
               name="description"
               control={control}
               rules={{
-                required: false
+                required: false,
               }}
-              render={({ field: { onChange, onBlur, value, }, fieldState: { error } }) => (
+              render={({
+                field: { onChange, onBlur, value },
+                fieldState: { error },
+              }) => (
                 <CustomTextInput
                   inputContainerStyle={[
                     styles.nameFields,
@@ -707,7 +715,6 @@ const CreateWebinarScreen = () => {
                 messgae="Hello, I need help with webinar creation."
               />
             </View>
-
           </ScrollView>
         </KeyboardAvoidingView>
 
@@ -774,8 +781,6 @@ const CreateWebinarScreen = () => {
             </TouchableOpacity>
           </View>
         )}
-
-
       </View>
     </View>
   );
@@ -990,5 +995,43 @@ const styles = StyleSheet.create({
   selectedItem: {
     borderRadius: 6,
     // backgroundColor: '#000',
+  },
+  customHeader: {
+    flexDirection: 'row',
+    marginBottom: 10,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  secHeader: {
+    width: '10%',
+    alignItems: 'center',
+  },
+  tagContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 10,
+  },
+
+  tagItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.primary,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
+    marginRight: 8,
+    marginBottom: 8,
+  },
+
+  tagText: {
+    color: colors.white,
+    fontSize: 13,
+    marginRight: 6,
+  },
+
+  removeTag: {
+    color: colors.white,
+    fontSize: 14,
+    fontWeight: 'bold',
   },
 });

@@ -15,7 +15,7 @@ if linkage != nil
 end
 
 target 'Manchly' do
-  config = use_native_modules!z
+  config = use_native_modules!
 
   use_react_native!(
     :path => config[:reactNativePath],

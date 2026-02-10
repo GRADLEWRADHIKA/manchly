@@ -19,7 +19,7 @@ import {
 import colors from '../../../../../utils/colors';
 
 const { width: screenWidth } = Dimensions.get('window');
-const CARD_WIDTH = screenWidth - 60; // Adjusted for horizontal layout
+const CARD_WIDTH = screenWidth - 60;
 
 interface Props {
   item: any;
@@ -30,6 +30,8 @@ interface Props {
 
 const CourseCard: React.FC<Props> = ({ item, onEdit, onDelete, onView }) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  console.log('--item--', item?.id)
 
   const handlePressIn = () => {
     Animated.spring(scaleAnim, {
@@ -125,7 +127,7 @@ const CourseCard: React.FC<Props> = ({ item, onEdit, onDelete, onView }) => {
             <TouchableOpacity
               style={styles.actionBtn}
               onPress={() => {
-                console.log('--link copy--');
+                console.log('--generate link and share it-', item?.id);
               }}
             >
               <Link size={16} color={colors.primary} />

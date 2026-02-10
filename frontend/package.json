@@ -43,6 +43,7 @@
     "react-native-reanimated-carousel": "^4.0.3",
     "react-native-safe-area-context": "^5.6.1",
     "react-native-screens": "^4",
+    "react-native-share": "^12.2.5",
     "react-native-shimmer-placeholder": "^2.0.9",
     "react-native-size-matters": "^0.4.2",
     "react-native-splash-screen": "^3.3.0",

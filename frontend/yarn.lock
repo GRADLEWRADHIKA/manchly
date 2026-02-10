@@ -5955,6 +5955,11 @@ react-native-screens@^4, "react-native-screens@>= 4.0.0":
     react-freeze "^1.0.0"
     warn-once "^0.1.0"
 
+react-native-share@^12.2.5:
+  version "12.2.5"
+  resolved "https://registry.npmjs.org/react-native-share/-/react-native-share-12.2.5.tgz"
+  integrity sha512-2uwd/PdlUyvpsSBfL7OMiL4sD0Ja51wu5m62JSIXjrtlF+uSTUOGsMrE49ncIRYziqAfYUeI195WwhpvqXB0ww==
+
 react-native-shimmer-placeholder@^2.0.9:
   version "2.0.9"
   resolved "https://registry.npmjs.org/react-native-shimmer-placeholder/-/react-native-shimmer-placeholder-2.0.9.tgz"

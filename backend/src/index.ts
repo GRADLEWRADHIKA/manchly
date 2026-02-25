@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
+import path from "path";
 import dotenv from "dotenv";
 import { createServer as createHttpServer } from "http";
 import { createServer as createHttpsServer } from "https";
@@ -15,6 +16,7 @@ import webinarsRouter from "./routes/webinars";
 import chatRouter from "./routes/chat";
 import groupsRouter from "./routes/groups";
 import kycRouter from "./routes/kyc";
+import adminRouter from "./routes/admin";
 import morgan from "morgan";
 import { webinarCleanupService } from "./utils/webinarCleanup";
 import { initializeSocketIO } from "./utils/socketHandler";
@@ -58,10 +60,16 @@ app.use("/payments/webhook", bodyParser.raw({ type: "application/json" }), payme
 // Regular JSON parsing for other routes
 app.use(bodyParser.json({ limit: "10mb" }));
 
-app.get("/", (_req, res) => res.json({ ok: true }));
+// Serve static files from public folder (frontend)
+const publicDir = path.join(process.cwd(), "public");
+app.use(express.static(publicDir));
+
+// API root
+app.get("/api", (_req, res) => res.json({ ok: true }));
 
 app.use(morgan('dev'));
 app.use("/auth", authRouter);
+app.use("/admin", adminRouter);
 app.use("/upload", uploadRouter);
 app.use("/mux", muxRouter);
 app.use("/courses", coursesRouter);

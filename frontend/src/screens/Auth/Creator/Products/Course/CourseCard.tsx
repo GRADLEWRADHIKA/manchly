@@ -7,6 +7,7 @@ import {
   Image,
   StyleSheet,
   Dimensions,
+  Share,
 } from 'react-native';
 import {
   Users,
@@ -126,9 +127,6 @@ const CourseCard: React.FC<Props> = ({ item, onEdit, onDelete, onView }) => {
 
             <TouchableOpacity
               style={styles.actionBtn}
-              onPress={() => {
-                console.log('--generate link and share it-', item?.id);
-              }}
             >
               <Link size={16} color={colors.primary} />
               <Text style={styles.editBtnText}>Link</Text>

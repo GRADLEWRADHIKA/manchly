@@ -16,8 +16,10 @@ import {
   Trash2,
   ChevronRight,
   Link,
+  Info,
 } from 'lucide-react-native';
 import colors from '../../../../../utils/colors';
+import { useNavigation } from '@react-navigation/native';
 
 const { width: screenWidth } = Dimensions.get('window');
 const CARD_WIDTH = screenWidth - 60;
@@ -31,8 +33,9 @@ interface Props {
 
 const CourseCard: React.FC<Props> = ({ item, onEdit, onDelete, onView }) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
+  const navigation = useNavigation<any>();
 
-  console.log('--item--', item?.id)
+  console.log('--item--', item?.id);
 
   const handlePressIn = () => {
     Animated.spring(scaleAnim, {
@@ -98,12 +101,17 @@ const CourseCard: React.FC<Props> = ({ item, onEdit, onDelete, onView }) => {
           {/* Meta Information */}
           <View style={styles.metaContainer}>
             <View style={styles.metaRow}>
-              <View style={styles.metaItem}>
-                <Users size={14} color={colors.primary} />
-                <Text style={styles.metaText}>
-                  {item?.language || 'English'}
-                </Text>
-              </View>
+              <TouchableOpacity
+                style={styles.metaItem}
+                onPress={() => {
+                  navigation.navigate('CourseDetailsScreen', {
+                    courseId: item?.id,
+                  });
+                }}
+              >
+                <Info size={14} color={colors.primary} />
+                <Text style={styles.metaText}>Info</Text>
+              </TouchableOpacity>
               <View style={styles.durationContainer}>
                 <Text style={styles.durationText}>
                   {item.duration || '8h 30m'}
@@ -125,9 +133,7 @@ const CourseCard: React.FC<Props> = ({ item, onEdit, onDelete, onView }) => {
 
             <View style={styles.actionSeparator} />
 
-            <TouchableOpacity
-              style={styles.actionBtn}
-            >
+            <TouchableOpacity style={styles.actionBtn}>
               <Link size={16} color={colors.primary} />
               <Text style={styles.editBtnText}>Link</Text>
             </TouchableOpacity>

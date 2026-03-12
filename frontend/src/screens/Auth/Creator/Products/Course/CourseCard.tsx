@@ -133,7 +133,14 @@ const CourseCard: React.FC<Props> = ({ item, onEdit, onDelete, onView }) => {
 
             <View style={styles.actionSeparator} />
 
-            <TouchableOpacity style={styles.actionBtn}>
+            <TouchableOpacity
+              style={styles.actionBtn}
+              onPress={() => {
+                Share.share({
+                  message: `https://manchly.chottu.link/course/${item?.id}`,
+                });
+              }}
+            >
               <Link size={16} color={colors.primary} />
               <Text style={styles.editBtnText}>Link</Text>
             </TouchableOpacity>

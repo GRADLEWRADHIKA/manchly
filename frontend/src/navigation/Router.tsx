@@ -8,6 +8,15 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import UserMainStack from './UserMainStack';
 import CreatorMainStack from './CreatorMainStack';
 
+const linking = {
+  prefixes: ['https://manchly.chottu.link', 'http://manchly.chottu.link'],
+  config: {
+    screens: {
+      CourseDetailsScreen: 'course/:courseId',
+    },
+  },
+};
+
 const Router = () => {
   const { token } = useSelector((state: any) => state.userReducer);
   const { user } = useSelector((state: any) => state.userReducer);
@@ -15,7 +24,7 @@ const Router = () => {
 
   return (
     <SafeAreaProvider>
-      <NavigationContainer>
+      <NavigationContainer linking={linking}>
         {token ? (
           user?.user_type === 'USER' ? (
             <UserMainStack />

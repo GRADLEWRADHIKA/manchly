@@ -11,11 +11,13 @@ import SplashScreen from 'react-native-splash-screen';
 import { injectStore } from './src/utils/AxiosInstance';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { initializeChottuLink } from 'react-native-chottulink-sdk';
 
 export default function App() {
   injectStore(store);
   useEffect(() => {
     SplashScreen.hide();
+    initializeChottuLink('c_app_Xn5WbBZdEmObUbFRf8D91YiM3ZLD2CO6');
   }, []);
 
   return (

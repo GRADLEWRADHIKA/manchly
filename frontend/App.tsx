@@ -12,31 +12,35 @@ import { injectStore } from './src/utils/AxiosInstance';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { initializeChottuLink } from 'react-native-chottulink-sdk';
+import { Settings, AppEventsLogger } from 'react-native-fbsdk-next';
 
 export default function App() {
   injectStore(store);
+
   useEffect(() => {
     SplashScreen.hide();
     initializeChottuLink('c_app_Xn5WbBZdEmObUbFRf8D91YiM3ZLD2CO6');
+    Settings.initializeSDK();
+    AppEventsLogger.logEvent('fb_mobile_activate_app');
   }, []);
 
   return (
     <SafeAreaProvider>
       <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
         <GestureHandlerRootView style={{ flex: 1 }}>
-        <Provider store={store}>
-          <PersistGate loading={null} persistor={persistor}>
-            <PaperProvider>
-              <StatusBar
-                translucent={false}
-                backgroundColor="white"
-                barStyle="dark-content"
-              />
-              <Router />
-              <Toast />
-            </PaperProvider>
-          </PersistGate>
-        </Provider>
+          <Provider store={store}>
+            <PersistGate loading={null} persistor={persistor}>
+              <PaperProvider>
+                <StatusBar
+                  translucent={false}
+                  backgroundColor="white"
+                  barStyle="dark-content"
+                />
+                <Router />
+                <Toast />
+              </PaperProvider>
+            </PersistGate>
+          </Provider>
         </GestureHandlerRootView>
       </SafeAreaView>
     </SafeAreaProvider>

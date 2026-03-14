@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Manchly</string>
+    <string name="facebook_app_id">775457321965461</string>
+    <string name="facebook_client_token">f44ffa8938c34d90a0d581c652e11074</string>
 </resources>

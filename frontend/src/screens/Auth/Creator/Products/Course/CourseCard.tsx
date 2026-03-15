@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,9 @@ import {
   StyleSheet,
   Dimensions,
   Share,
+  ActivityIndicator,
 } from 'react-native';
+import { createDynamicLink } from 'react-native-chottulink-sdk';
 import {
   Users,
   Clock,
@@ -34,8 +36,7 @@ interface Props {
 const CourseCard: React.FC<Props> = ({ item, onEdit, onDelete, onView }) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const navigation = useNavigation<any>();
-
-  console.log('--item--', item?.id);
+  const [sharing, setSharing] = useState(false);
 
   const handlePressIn = () => {
     Animated.spring(scaleAnim, {
@@ -135,13 +136,40 @@ const CourseCard: React.FC<Props> = ({ item, onEdit, onDelete, onView }) => {
 
             <TouchableOpacity
               style={styles.actionBtn}
-              onPress={() => {
+              disabled={sharing}
+              onPress={async () => {
                 Share.share({
                   message: `https://manchly.chottu.link/course/${item?.id}`,
                 });
+                // try {
+                //   setSharing(true);
+                //   const result = await createDynamicLink({
+                //     destinationURL: `https://manchly.chottu.link/course/${item?.id}`,
+                //     domain: 'manchly.chottu.link',
+                //     androidBehaviour: 2,
+                //     linkName: item?.title || 'Course Link',
+                //     socialTitle: item?.title,
+                //     socialDescription: item?.description,
+                //     socialImageUrl: item?.thumbnail,
+                //   });
+                //   await Share.share({
+                //     message: result.shortURL,
+                //   });
+                // } catch {
+                //   // Fallback to direct URL if dynamic link creation fails
+                //   await Share.share({
+                //     message: `https://manchly.chottu.link/course/${item?.id}`,
+                //   });
+                // } finally {
+                //   setSharing(false);
+                // }
               }}
             >
-              <Link size={16} color={colors.primary} />
+              {sharing ? (
+                <ActivityIndicator size={16} color={colors.primary} />
+              ) : (
+                <Link size={16} color={colors.primary} />
+              )}
               <Text style={styles.editBtnText}>Link</Text>
             </TouchableOpacity>
 

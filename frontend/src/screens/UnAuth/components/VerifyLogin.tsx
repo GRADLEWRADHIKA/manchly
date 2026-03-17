@@ -23,6 +23,7 @@ import Toast from 'react-native-toast-message';
 import { OtpInput } from 'react-native-otp-entry';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useFocusEffect } from '@react-navigation/native';
+import NotificationService from '../../../services/NotificationService';
 
 type VerifyLoginProps = {
   selectedType: string | null;
@@ -118,11 +119,13 @@ const VerifyLogin: React.FC<VerifyLoginProps> = ({
       .catch(() => setLoading(false));
   };
 
-  const onOtpSubmit = (data: any) => {
+  const onOtpSubmit = async (data: any) => {
     setLoading(true);
 
     const isPhoneNumber = /^\d+$/.test(loginValue);
     const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(loginValue);
+
+    const fcmToken = await NotificationService.getToken();
 
     const payload = {
       email: isEmail ? loginValue : '',
@@ -130,6 +133,7 @@ const VerifyLogin: React.FC<VerifyLoginProps> = ({
       code: data?.otp,
       purpose: 'login',
       user_type: selectedType,
+      fcm_token: fcmToken,
     };
 
     dispatch(verifyOtp(payload))

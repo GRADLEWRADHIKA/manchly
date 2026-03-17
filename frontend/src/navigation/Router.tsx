@@ -7,10 +7,10 @@ import {
 import AuthStack from './AuthStack';
 import { useSelector } from 'react-redux';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-
 import UserMainStack from './UserMainStack';
 import CreatorMainStack from './CreatorMainStack';
 import { getAppLinkDataFromUrl } from 'react-native-chottulink-sdk';
+import NotificationService from '../services/NotificationService';
 
 export const navigationRef = createRef<NavigationContainerRef<any>>();
 
@@ -86,6 +86,50 @@ const Router = () => {
   const { token } = useSelector((state: any) => state.userReducer);
   const { user } = useSelector((state: any) => state.userReducer);
   const pendingCourseId = useRef<string | null>(null);
+
+  // Setup FCM notifications
+  useEffect(() => {
+    const setupNotifications = async () => {
+      await NotificationService.requestPermission();
+      await NotificationService.createChannel();
+      const fcmToken = await NotificationService.getToken();
+      // TODO: Send fcmToken to your backend to associate with user
+      console.log('FCM Token:', fcmToken);
+    };
+
+    setupNotifications();
+
+    // Foreground notification — displayed via notifee
+    const unsubForeground = NotificationService.onForegroundMessage();
+
+    // Background notification tap handler
+    const unsubOpened = NotificationService.onNotificationOpenedApp(
+      (remoteMessage) => {
+        console.log('Notification opened:', remoteMessage);
+        // TODO: Navigate based on remoteMessage.data
+      },
+    );
+
+    // Check if app was opened from a killed state notification
+    NotificationService.getInitialNotification().then((remoteMessage) => {
+      if (remoteMessage) {
+        console.log('App opened from notification:', remoteMessage);
+        // TODO: Navigate based on remoteMessage.data
+      }
+    });
+
+    // Token refresh listener
+    const unsubTokenRefresh = NotificationService.onTokenRefresh((newToken) => {
+      console.log('FCM Token refreshed:', newToken);
+      // TODO: Send new token to backend
+    });
+
+    return () => {
+      unsubForeground();
+      unsubOpened();
+      unsubTokenRefresh();
+    };
+  }, []);
 
   // Handle deep link when user is not authenticated — save it for after login
   useEffect(() => {

@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import Toast from 'react-native-toast-message';
 import { instance } from '../utils/AxiosInstance';
+import NotificationService from '../services/NotificationService';
 
 export interface taskState {
   user: any;
@@ -55,8 +56,6 @@ export const verifyOtp = createAsyncThunk('verifyOtp', async (data: object) => {
     const url = 'auth/verify-otp';
     const requestBody = data;
     const response = await instance.post(url, requestBody);
-    if (response.data) {
-    }
     return response;
   } catch (error) {
     const err = error?.request?._response;
@@ -168,6 +167,8 @@ export const UserSlice = createSlice({
       state.isAuth = false;
       state.token = '';
       state.kycStatus = null;
+      // Remove FCM token on logout
+      NotificationService.removeToken();
     },
   },
   extraReducers: builder => {

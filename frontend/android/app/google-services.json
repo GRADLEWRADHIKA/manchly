@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "388003962589",
+    "project_id": "manchly",
+    "storage_bucket": "manchly.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:388003962589:android:4f6cd6a876bc0545d44534",
+        "android_client_info": {
+          "package_name": "com.manchly"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBQ-CSNRsR0XKLKINzmM9zhF4Ufx7tERbU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

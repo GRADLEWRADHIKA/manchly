@@ -20,14 +20,9 @@ const PREFIXES = ['https://manchly.chottu.link', 'http://manchly.chottu.link'];
 const resolveUrl = async (url: string | null): Promise<string | null> => {
   if (!url) return null;
   try {
-    // If URL already has /course/ path, return as-is
     if (/\/course\/[^/?#]+/.test(url)) return url;
 
-    // Check if it's a chottulink short URL that needs resolving
-    if (
-      url.includes('manchly.chottu.link') &&
-      !url.includes('/course/')
-    ) {
+    if (url.includes('manchly.chottu.link') && !url.includes('/course/')) {
       const result = await getAppLinkDataFromUrl(url);
       if (result?.link) return result.link;
     }
@@ -44,7 +39,6 @@ const linking = {
       CourseDetailsScreen: 'course/:courseId',
     },
   },
-  // Resolve short URLs before React Navigation tries to match them
   async getInitialURL(): Promise<string | null> {
     const url = await Linking.getInitialURL();
     return resolveUrl(url);
@@ -103,9 +97,6 @@ const Router = () => {
       }
     };
 
-    // Only need to handle pre-auth deep links here.
-    // Post-auth deep links are handled by the linking config's
-    // custom getInitialURL and subscribe (which resolve short URLs).
     if (!token) {
       Linking.getInitialURL().then(handleDeepLink);
 
@@ -134,7 +125,7 @@ const Router = () => {
     <SafeAreaProvider>
       <NavigationContainer ref={navigationRef} linking={linking}>
         {token ? (
-          user?.user_type === 'USER' ? (
+          user?.user_type.includes('USER')  ? (
             <UserMainStack />
           ) : (
             <CreatorMainStack />

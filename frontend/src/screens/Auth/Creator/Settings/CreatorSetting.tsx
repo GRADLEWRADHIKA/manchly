@@ -148,7 +148,7 @@ const CreatorSetting: React.FC = () => {
           <TouchableOpacity
             style={styles.row}
             activeOpacity={0.7}
-            onPress={() => Nav.navigate('UserProfile')}
+            onPress={() => Nav.navigate('CreatorProfile')}
           >
             <View style={styles.rowLeft}>
               <View style={styles.rowIcon}>

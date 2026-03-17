@@ -89,7 +89,6 @@ const VerifyLogin: React.FC<VerifyLoginProps> = ({
                   type: 'success',
                   text1: `Login OTP is ${res?.data?.data?.otp}`,
                 });
-                console.log('---res?.data?.data?.otp--',res?.data?.data?.otp)
                 setOtpData(res?.data?.data?.otp);
                 setOtpSuccess(true);
                 reset();
@@ -103,7 +102,6 @@ const VerifyLogin: React.FC<VerifyLoginProps> = ({
                   type: 'success',
                   text1: `Login OTP is ${res?.data?.data?.otp}`,
                 });
-                console.log('---res?.data?.data?.otp--',res?.data?.data?.otp)
                 setOtpData(res?.data?.data?.otp);
                 setOtpSuccess(true);
                 reset();

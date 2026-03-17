@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
   },
   title: {
     color: '#fff',
-    fontSize: fp(22),
+    fontSize: fp(18),
     fontWeight: '700',
   },
   mainHeader: {

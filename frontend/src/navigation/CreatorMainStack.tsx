@@ -2,6 +2,7 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Earnings from '../screens/Auth/Profile/Earnings';
 import UserProfile from '../screens/Auth/Profile/UserProfile';
+import CreatorProfile from '../screens/Auth/Creator/Profile/CreatorProfile';
 import Dashboard from '../screens/Auth/Profile/Dashboard';
 import SuperThank from '../screens/Auth/Profile/SuperThank';
 import Wallet from '../screens/Auth/Profile/Wallet';
@@ -30,6 +31,7 @@ const CreatorMainStack = () => {
       />
       <Stack.Screen name="Earnings" component={Earnings} />
       <Stack.Screen name="UserProfile" component={UserProfile} />
+      <Stack.Screen name="CreatorProfile" component={CreatorProfile} />
       <Stack.Screen name="Dashboard" component={Dashboard} />
       <Stack.Screen name="SuperThank" component={SuperThank} />
       <Stack.Screen name="Wallet" component={Wallet} />

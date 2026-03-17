@@ -5,6 +5,7 @@ import { Calendar, Clock, User, Video } from 'lucide-react-native';
 import moment from 'moment-timezone';
 import { useNavigation } from '@react-navigation/native';
 import { IndianRupee } from 'lucide-react-native';
+import { wp, hp, fp } from '../../../../../utils/responsive';
 
 const EnrolledWebinarCard = ({ item }) => {
   const webinar = item;
@@ -31,7 +32,7 @@ const EnrolledWebinarCard = ({ item }) => {
         </Text>
 
         <View style={styles.row}>
-          <Calendar size={18} color={colors.textSecondary} />
+          <Calendar size={wp(18)} color={colors.textSecondary} />
           <Text style={styles.infoText}>
             {moment(webinar?.scheduled_at)
               .tz(webinar?.timezone)
@@ -40,7 +41,7 @@ const EnrolledWebinarCard = ({ item }) => {
         </View>
 
         <View style={styles.row}>
-          <Clock size={18} color={colors.textSecondary} />
+          <Clock size={wp(18)} color={colors.textSecondary} />
           <Text style={styles.infoText}>
             {moment(webinar?.scheduled_at)
               .tz(webinar?.timezone)
@@ -50,13 +51,13 @@ const EnrolledWebinarCard = ({ item }) => {
         </View>
 
         <View style={styles.row}>
-          <User size={18} color={colors.textSecondary} />
+          <User size={wp(18)} color={colors.textSecondary} />
           <Text style={styles.infoText}>{webinar?.creator?.name}</Text>
         </View>
 
-        {/* ⭐ PRICE SECTION */}
+        {/* PRICE SECTION */}
         <View style={styles.row}>
-          <IndianRupee size={18} color={colors.textSecondary} />
+          <IndianRupee size={wp(18)} color={colors.textSecondary} />
           <Text
             style={[styles.infoText, { fontWeight: '700', color: colors.text }]}
           >
@@ -71,7 +72,7 @@ const EnrolledWebinarCard = ({ item }) => {
               navigation.navigate('WebinarDetails', { data: item })
             }
           >
-            <Video size={20} color="#fff" />
+            <Video size={wp(20)} color="#fff" />
             <Text style={styles.joinText}>Join Webinar</Text>
           </TouchableOpacity>
         {/* )} */}
@@ -86,8 +87,8 @@ const styles = StyleSheet.create({
   cardContainer: {
     width: '100%',
     backgroundColor: colors.white,
-    borderRadius: 14,
-    marginBottom: 15,
+    borderRadius: wp(14),
+    marginBottom: hp(15),
     overflow: 'hidden',
     elevation: 10,
     shadowColor: '#0009',
@@ -95,45 +96,45 @@ const styles = StyleSheet.create({
   },
   thumbnail: {
     width: '100%',
-    height: 160,
+    height: hp(160),
     backgroundColor: colors.muted,
   },
   contentBox: {
-    padding: 12,
+    padding: wp(12),
   },
   title: {
-    fontSize: 17,
+    fontSize: fp(17),
     fontWeight: '700',
     color: colors.text,
   },
   description: {
-    fontSize: 13,
+    fontSize: fp(13),
     color: colors.textSecondary,
-    marginVertical: 5,
+    marginVertical: hp(5),
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 4,
-    gap: 6,
+    marginTop: hp(4),
+    gap: wp(6),
   },
   infoText: {
-    fontSize: 13,
+    fontSize: fp(13),
     color: colors.textSecondary,
   },
   joinBtn: {
-    marginTop: 12,
+    marginTop: hp(12),
     backgroundColor: colors.secPrimary,
-    paddingVertical: 10,
-    borderRadius: 10,
+    paddingVertical: hp(10),
+    borderRadius: wp(10),
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 8,
+    gap: wp(8),
   },
   joinText: {
     color: '#fff',
     fontWeight: '600',
-    fontSize: 15,
+    fontSize: fp(15),
   },
 });

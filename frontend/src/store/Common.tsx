@@ -1,6 +1,4 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import axios from 'axios';
-import Toast from 'react-native-toast-message';
 import { instance, uploadInstance } from '../utils/AxiosInstance';
 
 

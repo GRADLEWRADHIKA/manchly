@@ -9,6 +9,7 @@ import {
 import React, { useEffect, useState } from 'react';
 import moment from 'moment-timezone';
 import colors from '../../../../../utils/colors';
+import { wp, hp, fp } from '../../../../../utils/responsive';
 import { EllipsisVertical } from 'lucide-react-native';
 import { Menu } from 'react-native-paper';
 import DynamicModal from '../../../../../components/CommonModal';
@@ -120,7 +121,7 @@ const WebinarCard: React.FC<WebinarCardProps> = ({
                 onPress={() => handleMenuOpen(data?.id)}
                 style={styles.menuButton}
               >
-                <EllipsisVertical color={colors.primary} size={20} />
+                <EllipsisVertical color={colors.primary} size={wp(20)} />
               </TouchableOpacity>
             }
             contentStyle={styles.menuContent}
@@ -191,72 +192,72 @@ export default WebinarCard;
 
 const styles = StyleSheet.create({
   card: {
-    width: 260,
+    width: wp(260),
     backgroundColor: colors.white,
-    borderRadius: 16,
-    paddingBottom: 12,
+    borderRadius: wp(16),
+    paddingBottom: hp(12),
     overflow: 'hidden',
     elevation: 4,
     shadowColor: colors.primary,
     shadowOpacity: 0.15,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 3 },
-    marginLeft: 20,
-    marginVertical: 5,
+    marginLeft: wp(20),
+    marginVertical: hp(5),
   },
 
   thumbnail: {
     width: '100%',
-    height: 140,
+    height: hp(140),
     backgroundColor: colors.borderColor,
   },
 
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 10,
-    paddingHorizontal: 12,
+    marginVertical: hp(10),
+    paddingHorizontal: wp(12),
   },
 
   title: {
-    fontSize: 16,
+    fontSize: fp(16),
     fontWeight: '700',
     color: colors.primary,
   },
 
   tagContainer: {
     flexDirection: 'row',
-    paddingHorizontal: 12,
-    marginTop: 6,
+    paddingHorizontal: wp(12),
+    marginTop: hp(6),
   },
 
   tag: {
-    fontSize: 12,
+    fontSize: fp(12),
     backgroundColor: '#E8F1FF',
     color: '#3E7BFA',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
-    marginRight: 6,
+    paddingHorizontal: wp(8),
+    paddingVertical: hp(3),
+    borderRadius: wp(8),
+    marginRight: wp(6),
   },
 
   creatorRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 10,
-    paddingHorizontal: 12,
+    marginTop: hp(10),
+    paddingHorizontal: wp(12),
   },
 
   creatorImg: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
+    width: wp(26),
+    height: hp(26),
+    borderRadius: wp(13),
     backgroundColor: '#ddd',
   },
 
   creatorName: {
-    marginLeft: 8,
-    fontSize: 14,
+    marginLeft: wp(8),
+    fontSize: fp(14),
     color: '#555',
     fontWeight: '500',
   },
@@ -265,33 +266,33 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    marginTop: 12,
+    paddingHorizontal: wp(12),
+    marginTop: hp(12),
   },
 
   price: {
-    fontSize: 16,
+    fontSize: fp(16),
     color: '#000',
     fontWeight: '700',
   },
 
   date: {
-    fontSize: 12,
+    fontSize: fp(12),
     color: '#888',
   },
 
   menuButton: {
-    padding: 4,
+    padding: wp(4),
   },
 
   menuContent: {
     backgroundColor: colors.white,
-    borderRadius: 8,
+    borderRadius: wp(8),
     elevation: 4,
   },
 
   menuItem: {
-    paddingVertical: 8,
+    paddingVertical: hp(8),
   },
 
   deleteText: {

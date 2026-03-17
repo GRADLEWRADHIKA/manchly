@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import React, { useCallback, useState } from 'react';
 import colors from '../../../utils/colors';
+import { wp, hp, fp } from '../../../utils/responsive';
 import { Controller, useForm } from 'react-hook-form';
 import { signUp } from '../../../store/UserSlice';
 import { useDispatch } from 'react-redux';
@@ -237,70 +238,70 @@ export default SignUp;
 
 const styles = StyleSheet.create({
   container: {
-    paddingTop: 50,
-    paddingBottom: 40,
-    paddingHorizontal: 20,
+    paddingTop: hp(50),
+    paddingBottom: hp(40),
+    paddingHorizontal: wp(20),
     flexGrow: 1,
   },
 
   title: {
-    fontSize: 35,
+    fontSize: fp(35),
     fontWeight: '600',
     color: colors.white,
-    marginBottom: 8,
+    marginBottom: hp(8),
   },
 
   warningBox: {
     flexDirection: 'row',
     backgroundColor: '#2A2A2A',
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 15,
-    borderLeftWidth: 4,
+    borderRadius: wp(8),
+    padding: wp(10),
+    marginBottom: hp(15),
+    borderLeftWidth: wp(4),
     borderLeftColor: '#FFC107',
-    gap: 8,
+    gap: wp(8),
   },
 
   warningText: {
     color: '#FFC107',
-    fontSize: 13,
+    fontSize: fp(13),
     flex: 1,
-    lineHeight: 18,
+    lineHeight: fp(18),
   },
 
   label: {
-    fontSize: 14,
+    fontSize: fp(14),
     fontWeight: '500',
     color: colors.white,
-    marginBottom: 6,
-    marginTop: 10,
+    marginBottom: hp(6),
+    marginTop: hp(10),
   },
 
   input: {
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    height: 44,
+    borderRadius: wp(8),
+    paddingHorizontal: wp(10),
+    height: hp(44),
     backgroundColor: 'grey',
-    borderWidth: 1.5,
-    marginBottom: 4,
+    borderWidth: wp(1.5),
+    marginBottom: hp(4),
     borderColor: colors.white,
     color: colors.white,
   },
 
   btnHeader: {
     backgroundColor: colors.white,
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 25,
+    padding: wp(12),
+    borderRadius: wp(8),
+    marginTop: hp(25),
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 10,
+    gap: wp(10),
   },
 
   btnHeaderText: {
     color: colors.primary,
     fontWeight: '600',
-    fontSize: 16,
+    fontSize: fp(16),
   },
 });

@@ -21,6 +21,7 @@ import {
   Info,
 } from 'lucide-react-native';
 import colors from '../../../../../utils/colors';
+import { wp, hp, fp } from '../../../../../utils/responsive';
 import { useNavigation } from '@react-navigation/native';
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -89,7 +90,7 @@ const CourseCard: React.FC<Props> = ({ item, onEdit, onDelete, onView }) => {
             <Text style={styles.courseTitle} numberOfLines={2}>
               {item?.title.toUpperCase()}
             </Text>
-            <ChevronRight size={16} color={colors.textSecondary} />
+            <ChevronRight size={wp(16)} color={colors.textSecondary} />
           </View>
           <View>
             <Text style={styles.courseCategory}>{item?.category}</Text>
@@ -110,7 +111,7 @@ const CourseCard: React.FC<Props> = ({ item, onEdit, onDelete, onView }) => {
                   });
                 }}
               >
-                <Info size={14} color={colors.primary} />
+                <Info size={wp(14)} color={colors.primary} />
                 <Text style={styles.metaText}>Info</Text>
               </TouchableOpacity>
               <View style={styles.durationContainer}>
@@ -119,7 +120,7 @@ const CourseCard: React.FC<Props> = ({ item, onEdit, onDelete, onView }) => {
                 </Text>
               </View>
               <View style={styles.metaItem}>
-                <Clock size={14} color={colors.primary} />
+                <Clock size={wp(14)} color={colors.primary} />
                 <Text style={styles.metaText}>{item?.level || 'Beginner'}</Text>
               </View>
             </View>
@@ -128,7 +129,7 @@ const CourseCard: React.FC<Props> = ({ item, onEdit, onDelete, onView }) => {
           {/* Actions */}
           <View style={styles.actionsRow}>
             <TouchableOpacity style={styles.actionBtn} onPress={onEdit}>
-              <Edit3 size={16} color={colors.primary} />
+              <Edit3 size={wp(16)} color={colors.primary} />
               <Text style={styles.editBtnText}>Edit</Text>
             </TouchableOpacity>
 
@@ -166,9 +167,9 @@ const CourseCard: React.FC<Props> = ({ item, onEdit, onDelete, onView }) => {
               }}
             >
               {sharing ? (
-                <ActivityIndicator size={16} color={colors.primary} />
+                <ActivityIndicator size={wp(16)} color={colors.primary} />
               ) : (
-                <Link size={16} color={colors.primary} />
+                <Link size={wp(16)} color={colors.primary} />
               )}
               <Text style={styles.editBtnText}>Link</Text>
             </TouchableOpacity>
@@ -176,7 +177,7 @@ const CourseCard: React.FC<Props> = ({ item, onEdit, onDelete, onView }) => {
             <View style={styles.actionSeparator} />
 
             <TouchableOpacity style={styles.actionBtn} onPress={onDelete}>
-              <Trash2 size={16} color={colors.error} />
+              <Trash2 size={wp(16)} color={colors.error} />
               <Text style={styles.deleteBtnText}>Delete</Text>
             </TouchableOpacity>
           </View>
@@ -191,29 +192,29 @@ export default CourseCard;
 const styles = StyleSheet.create({
   courseCard: {
     backgroundColor: colors.white,
-    borderRadius: 20,
-    marginHorizontal: 8,
-    marginBottom: 16,
-    padding: 16,
+    borderRadius: wp(20),
+    marginHorizontal: wp(8),
+    marginBottom: hp(16),
+    padding: wp(16),
     shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowRadius: 12,
     elevation: 4,
-    borderWidth: 1,
+    borderWidth: wp(1),
     borderColor: 'rgba(0,0,0,0.05)',
-    height: 380,
+    height: hp(380),
   },
   touchable: {
     flex: 1,
   },
   thumbnailContainer: {
-    marginBottom: 12,
+    marginBottom: hp(12),
     alignItems: 'center',
   },
   thumbnail: {
     width: '100%',
-    height: 120,
-    borderRadius: 12,
+    height: hp(120),
+    borderRadius: wp(12),
     backgroundColor: '#F3F4F6',
   },
   courseContent: {
@@ -226,27 +227,27 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   courseTitle: {
-    fontSize: 16,
+    fontSize: fp(16),
     fontWeight: '700',
     color: colors.text,
-    marginRight: 8,
-    lineHeight: 20,
+    marginRight: wp(8),
+    lineHeight: fp(20),
   },
   courseCategory: {
     color: colors.primary,
-    fontSize: 12,
+    fontSize: fp(12),
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   description: {
     color: colors.textSecondary,
-    fontSize: 13,
+    fontSize: fp(13),
   },
   metaContainer: {
     backgroundColor: colors.surface,
-    borderRadius: 12,
-    padding: 12,
+    borderRadius: wp(12),
+    padding: wp(12),
   },
   metaRow: {
     flexDirection: 'row',
@@ -257,9 +258,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   metaText: {
-    marginLeft: 6,
+    marginLeft: wp(6),
     color: colors.text,
-    fontSize: 12,
+    fontSize: fp(12),
     fontWeight: '600',
   },
   durationContainer: {
@@ -267,38 +268,38 @@ const styles = StyleSheet.create({
   },
   durationText: {
     color: colors.text,
-    fontSize: 12,
+    fontSize: fp(12),
     fontWeight: '600',
   },
   actionsRow: {
     flexDirection: 'row',
     backgroundColor: colors.surface,
-    borderRadius: 12,
-    padding: 4,
+    borderRadius: wp(12),
+    padding: wp(4),
   },
   actionBtn: {
     flex: 1,
     flexDirection: 'row',
-    paddingVertical: 10,
-    borderRadius: 8,
+    paddingVertical: hp(10),
+    borderRadius: wp(8),
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
+    gap: wp(6),
   },
   editBtnText: {
     color: colors.primary,
-    fontSize: 14,
+    fontSize: fp(14),
     fontWeight: '700',
   },
   deleteBtnText: {
     color: colors.error,
-    fontSize: 14,
+    fontSize: fp(14),
     fontWeight: '700',
   },
   actionSeparator: {
-    width: 1,
-    height: 20,
+    width: wp(1),
+    height: hp(20),
     backgroundColor: '#E5E7EB',
-    marginVertical: 4,
+    marginVertical: hp(4),
   },
 });

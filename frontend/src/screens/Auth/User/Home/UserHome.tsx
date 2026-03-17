@@ -29,6 +29,7 @@ import CourseCard from './components/CourseCard';
 import { getAllWebinar } from '../../../../store/WebinarSlice';
 import WebinarCard from './components/WebinarCard';
 import { fetchCourses } from '../../../../store/CourseSlice';
+import { wp, hp, fp } from '../../../../utils/responsive';
 
 const { width } = Dimensions.get('window');
 
@@ -100,7 +101,7 @@ const UserHome = () => {
 
   const EmptyCard = ({ icon: Icon, title, btnText, onPress }: any) => (
     <View style={styles.emptyCard}>
-      <Icon size={48} color={colors.secPrimary} />
+      <Icon size={wp(48)} color={colors.secPrimary} />
       <Text style={styles.emptyTitle}>{title}</Text>
       <TouchableOpacity onPress={onPress} style={styles.emptyButton}>
         <Text style={styles.emptyButtonText}>{btnText}</Text>
@@ -111,9 +112,9 @@ const UserHome = () => {
   return (
     <View style={{ flex: 1, backgroundColor: colors.white }}>
       <RNStatusBar barStyle="light-content" />
-      <View style={[styles.mainHeader, { paddingTop: insets.top + 10 }]}>
+      <View style={[styles.mainHeader, { paddingTop: insets.top + hp(10) }]}>
         <View style={styles.mainHead}>
-          <View style={{ flexDirection: 'row', gap: 5, alignItems: 'center' }}>
+          <View style={{ flexDirection: 'row', gap: wp(5), alignItems: 'center' }}>
             {user?.profile_image ? (
               <Image
                 source={{ uri: user?.profile_image }}
@@ -122,9 +123,9 @@ const UserHome = () => {
             ) : (
               <View
                 style={{
-                  borderWidth: 2,
-                  padding: 2,
-                  borderRadius: 50,
+                  borderWidth: wp(2),
+                  padding: wp(2),
+                  borderRadius: wp(50),
                   borderColor: colors.white,
                 }}
               >
@@ -134,17 +135,17 @@ const UserHome = () => {
             <Text style={styles.secPara}>{user?.name}</Text>
           </View>
         </View>
-        <View style={{ flexDirection: 'row', gap: 20 }}>
+        <View style={{ flexDirection: 'row', gap: wp(20) }}>
           <TouchableOpacity
             onPress={() => navigation.navigate('UserCourseSearch')}
           >
-            <Search width={22} height={22} color={colors.white} />
+            <Search width={wp(22)} height={hp(22)} color={colors.white} />
           </TouchableOpacity>
           <TouchableOpacity>
-            <ShoppingCart width={22} height={22} color={colors.white} />
+            <ShoppingCart width={wp(22)} height={hp(22)} color={colors.white} />
           </TouchableOpacity>
           <TouchableOpacity>
-            <BellDot width={22} height={22} color={colors.white} />
+            <BellDot width={wp(22)} height={hp(22)} color={colors.white} />
           </TouchableOpacity>
         </View>
       </View>
@@ -152,13 +153,13 @@ const UserHome = () => {
       <ScrollView
         style={styles.container}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 80 }}
+        contentContainerStyle={{ paddingBottom: hp(80) }}
       >
-        <View style={{ marginTop: 16 }}>
+        <View style={{ marginTop: hp(16) }}>
           <Carousel
             loop
             width={width}
-            height={180}
+            height={hp(180)}
             autoPlay
             data={carouselData}
             scrollAnimationDuration={1500}
@@ -236,78 +237,78 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingBottom: 16,
+    paddingHorizontal: wp(16),
+    paddingBottom: hp(16),
     backgroundColor: colors.secPrimary,
   },
 
   mainHead: {
     flexDirection: 'row',
-    gap: 5,
+    gap: wp(5),
     alignItems: 'center'
   },
 
   avatar: {
-    width: 34,
-    height: 34,
-    borderRadius: 30,
+    width: wp(34),
+    height: hp(34),
+    borderRadius: wp(30),
     backgroundColor: colors.lightGrey,
   },
 
   secPara: {
     color: colors.white,
-    fontSize: 16,
+    fontSize: fp(16),
     fontWeight: '600'
   },
 
   carouselCard: {
-    borderRadius: 16,
+    borderRadius: wp(16),
     overflow: 'hidden',
-    marginHorizontal: 10,
+    marginHorizontal: wp(10),
   },
 
   carouselImage: {
     width: '100%',
-    height: 180,
-    borderRadius: 16
+    height: hp(180),
+    borderRadius: wp(16)
   },
 
   carouselOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.35)',
     justifyContent: 'flex-end',
-    padding: 16,
+    padding: wp(16),
   },
 
   carouselText: {
     color: colors.white,
-    fontSize: 18,
+    fontSize: fp(18),
     fontWeight: '700',
   },
 
   sectionTitle: {
-    fontSize: 20,
+    fontSize: fp(20),
     fontWeight: '700',
     color: colors.text,
-    marginHorizontal: 16,
-    marginTop: 20,
-    marginBottom: 12,
+    marginHorizontal: wp(16),
+    marginTop: hp(20),
+    marginBottom: hp(12),
   },
 
   flatListContainer: {
-    paddingHorizontal: 10
+    paddingHorizontal: wp(10)
   },
 
   courseItem: {
     width: width * 0.45,
-    marginRight: 14
+    marginRight: wp(14)
   },
 
   emptyCard: {
-    marginHorizontal: 16,
-    marginTop: 20,
-    padding: 22,
-    borderRadius: 16,
+    marginHorizontal: wp(16),
+    marginTop: hp(20),
+    padding: wp(22),
+    borderRadius: wp(16),
     backgroundColor: '#F4F5F7',
     alignItems: 'center',
     shadowColor: '#000',
@@ -317,18 +318,18 @@ const styles = StyleSheet.create({
   },
 
   emptyTitle: {
-    fontSize: 16,
+    fontSize: fp(16),
     fontWeight: '600',
     color: colors.textSecondary,
-    marginTop: 10,
-    marginBottom: 15,
+    marginTop: hp(10),
+    marginBottom: hp(15),
   },
 
   emptyButton: {
     backgroundColor: colors.secPrimary,
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    borderRadius: 30,
+    paddingHorizontal: wp(18),
+    paddingVertical: hp(10),
+    borderRadius: wp(30),
   },
 
   emptyButtonText: {

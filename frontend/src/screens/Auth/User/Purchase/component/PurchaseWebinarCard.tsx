@@ -10,6 +10,7 @@ import React from 'react';
 import colors from '../../../../../utils/colors';
 import { Calendar, Clock, User, Video } from 'lucide-react-native';
 import moment from 'moment-timezone';
+import { wp, hp, fp } from '../../../../../utils/responsive';
 
 const PurchaseWebinarCard = ({ item }) => {
   const webinar = item?.webinar;
@@ -35,19 +36,19 @@ const PurchaseWebinarCard = ({ item }) => {
         </View>
 
         <View style={styles.row}>
-          <User size={18} color={colors.textSecondary} />
+          <User size={wp(18)} color={colors.textSecondary} />
           <Text style={styles.creatorName}>{webinar?.creator?.name}</Text>
         </View>
 
         <View style={styles.row}>
-          <Calendar size={18} color={colors.secPrimary} />
+          <Calendar size={wp(18)} color={colors.secPrimary} />
           <Text style={styles.infoText}>
             {moment(webinar?.scheduled_at).format('DD MMM YYYY')}
           </Text>
         </View>
 
         <View style={styles.row}>
-          <Clock size={18} color={colors.secPrimary} />
+          <Clock size={wp(18)} color={colors.secPrimary} />
           <Text style={styles.infoText}>{webinar?.duration} mins</Text>
         </View>
 
@@ -72,7 +73,7 @@ const PurchaseWebinarCard = ({ item }) => {
             }
           }}
         >
-          <Video size={18} color={colors.white} />
+          <Video size={wp(18)} color={colors.white} />
           <Text style={styles.joinText}>Join Webinar</Text>
         </TouchableOpacity>
       </View>
@@ -85,77 +86,77 @@ export default PurchaseWebinarCard;
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.white,
-    borderRadius: 12,
-    marginVertical: 12,
+    borderRadius: wp(12),
+    marginVertical: hp(12),
     overflow: 'hidden',
     elevation: 3,
     borderWidth: 0.1,
     borderColor: colors.borderColor,
-    marginHorizontal: 10,
+    marginHorizontal: wp(10),
   },
 
   thumbnail: {
     width: '100%',
-    height: 150,
+    height: hp(150),
     backgroundColor: colors.lightGrey,
   },
 
   content: {
-    padding: 12,
+    padding: wp(12),
   },
 
   title: {
-    fontSize: 18,
+    fontSize: fp(18),
     fontWeight: '700',
     color: colors.black,
   },
 
   tagContainer: {
     flexDirection: 'row',
-    marginTop: 6,
+    marginTop: hp(6),
     flexWrap: 'wrap',
   },
 
   tag: {
     backgroundColor: colors.lightGrey,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-    marginRight: 6,
-    fontSize: 12,
+    paddingHorizontal: wp(8),
+    paddingVertical: hp(4),
+    borderRadius: wp(6),
+    marginRight: wp(6),
+    fontSize: fp(12),
     color: colors.secPrimary,
   },
 
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 6,
+    marginTop: hp(6),
   },
 
   creatorName: {
-    marginLeft: 6,
-    fontSize: 14,
+    marginLeft: wp(6),
+    fontSize: fp(14),
     color: colors.textSecondary,
   },
 
   infoText: {
-    marginLeft: 6,
-    fontSize: 14,
+    marginLeft: wp(6),
+    fontSize: fp(14),
     color: colors.textSecondary,
   },
 
   price: {
-    fontSize: 16,
+    fontSize: fp(16),
     fontWeight: '700',
-    marginTop: 10,
+    marginTop: hp(10),
     color: colors.accent,
   },
 
   joinBtn: {
-    marginTop: 14,
+    marginTop: hp(14),
     backgroundColor: colors.secPrimary,
-    paddingVertical: 10,
-    borderRadius: 8,
+    paddingVertical: hp(10),
+    borderRadius: wp(8),
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -163,8 +164,8 @@ const styles = StyleSheet.create({
 
   joinText: {
     color: colors.white,
-    fontSize: 16,
-    marginLeft: 6,
+    fontSize: fp(16),
+    marginLeft: wp(6),
     fontWeight: '600',
   },
 });

@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import React, { useEffect, useState, useRef } from 'react';
 import colors from '../../../../../utils/colors';
+import { wp, hp, fp } from '../../../../../utils/responsive';
 import AppHeaderWithBack from '../../../../../components/AppHeaderWithBack';
 import { useIsFocused, useRoute } from '@react-navigation/native';
 import { getCourseById } from '../../../../../store/CourseSlice';
@@ -179,11 +180,11 @@ const CourseVideoList = () => {
               />
               <View style={styles.playButtonContainer}>
                 <View style={styles.playButton}>
-                  <Play color={colors.white} size={20} fill={colors.white} />
+                  <Play color={colors.white} size={wp(20)} fill={colors.white} />
                 </View>
               </View>
               <View style={styles.durationBadge}>
-                <Clock color={colors.white} size={12} />
+                <Clock color={colors.white} size={wp(12)} />
                 <Text style={styles.durationBadgeText}>
                   {item?.duration || 0}m
                 </Text>
@@ -205,7 +206,7 @@ const CourseVideoList = () => {
                   onPress={() => handleMenuOpen(item.id)}
                   style={styles.menuButton}
                 >
-                  <MoreVertical color={colors.textSecondary} size={20} />
+                  <MoreVertical color={colors.textSecondary} size={wp(20)} />
                 </TouchableOpacity>
               }
               contentStyle={styles.menuContent}
@@ -265,7 +266,7 @@ const CourseVideoList = () => {
       ) : (
         <View style={styles.noDataContainer}>
           <View style={styles.noDataIcon}>
-            <Play color={colors.primary} size={48} />
+            <Play color={colors.primary} size={wp(48)} />
           </View>
           <Text style={styles.noDataTitle}>No Videos Available</Text>
           <Text style={styles.noDataSubtitle}>
@@ -274,7 +275,7 @@ const CourseVideoList = () => {
         </View>
       )}
 
-      <View style={{ marginRight: 10, marginBottom: 10 }}>
+      <View style={{ marginRight: wp(10), marginBottom: hp(10) }}>
         <FAB
           icon={({ size, color }) => <Plus size={size} color={color} />}
           style={styles.fab}
@@ -318,14 +319,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   listContainer: {
-    paddingVertical: 8,
-    paddingBottom: 20,
+    paddingVertical: hp(8),
+    paddingBottom: hp(20),
   },
   card: {
     backgroundColor: colors.white,
-    borderRadius: 16,
-    marginHorizontal: 16,
-    marginVertical: 6,
+    borderRadius: wp(16),
+    marginHorizontal: wp(16),
+    marginVertical: hp(6),
     shadowColor: colors.black,
     shadowOffset: {
       width: 0,
@@ -335,7 +336,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
     overflow: 'hidden',
-    borderWidth: 1,
+    borderWidth: wp(1),
     borderColor: colors.border,
   },
   mediaContainer: {
@@ -346,7 +347,7 @@ const styles = StyleSheet.create({
   },
   thumbnail: {
     width: '100%',
-    height: 200,
+    height: hp(200),
     backgroundColor: colors.lightGrey,
   },
   thumbnailGradient: {
@@ -354,7 +355,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: 60,
+    height: hp(60),
   },
   playButtonContainer: {
     position: 'absolute',
@@ -367,59 +368,59 @@ const styles = StyleSheet.create({
   },
   playButton: {
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: wp(50),
+    height: hp(50),
+    borderRadius: wp(25),
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
+    borderWidth: wp(2),
     borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   durationBadge: {
     position: 'absolute',
-    bottom: 12,
-    right: 12,
+    bottom: hp(12),
+    right: wp(12),
     backgroundColor: 'rgba(0, 0, 0, 0.8)',
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingHorizontal: wp(8),
+    paddingVertical: hp(4),
+    borderRadius: wp(12),
   },
   durationBadgeText: {
     color: colors.white,
-    fontSize: 12,
+    fontSize: fp(12),
     fontWeight: '600',
-    marginLeft: 4,
+    marginLeft: wp(4),
   },
   videoPlayer: {
     width: '100%',
-    height: 200,
+    height: hp(200),
     backgroundColor: colors.black,
   },
   content: {
-    padding: 16,
+    padding: wp(16),
   },
   titleRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 6,
+    marginBottom: hp(6),
   },
   title: {
-    fontSize: 16,
+    fontSize: fp(16),
     fontWeight: '700',
     color: colors.text,
-    lineHeight: 22,
+    lineHeight: fp(22),
     flex: 1,
-    marginRight: 8,
+    marginRight: wp(8),
   },
   menuButton: {
-    padding: 4,
+    padding: wp(4),
   },
   menuContent: {
     backgroundColor: colors.white,
-    borderRadius: 8,
+    borderRadius: wp(8),
     elevation: 4,
     shadowColor: colors.black,
     shadowOffset: { width: 0, height: 2 },
@@ -427,7 +428,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   menuItem: {
-    paddingVertical: 8,
+    paddingVertical: hp(8),
   },
   deleteText: {
     color: colors.error,
@@ -437,7 +438,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   duration: {
-    fontSize: 13,
+    fontSize: fp(13),
     color: colors.textSecondary,
     fontWeight: '500',
   },
@@ -445,53 +446,53 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.lightGrey,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
+    paddingHorizontal: wp(12),
+    paddingVertical: hp(6),
+    borderRadius: wp(8),
     alignSelf: 'flex-start',
   },
   pauseButtonText: {
     color: colors.primary,
-    fontSize: 12,
+    fontSize: fp(12),
     fontWeight: '600',
-    marginLeft: 4,
+    marginLeft: wp(4),
   },
   noDataContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 40,
+    paddingHorizontal: wp(40),
   },
   noDataIcon: {
     backgroundColor: colors.lightGrey,
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: wp(100),
+    height: hp(100),
+    borderRadius: wp(50),
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
-    borderWidth: 1,
+    marginBottom: hp(20),
+    borderWidth: wp(1),
     borderColor: colors.border,
   },
   noDataTitle: {
-    fontSize: 20,
+    fontSize: fp(20),
     fontWeight: '700',
     color: colors.text,
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: hp(8),
   },
   noDataSubtitle: {
-    fontSize: 14,
+    fontSize: fp(14),
     color: colors.textSecondary,
     textAlign: 'center',
-    lineHeight: 20,
+    lineHeight: fp(20),
   },
   // Shimmer Styles
   shimmerCard: {
     backgroundColor: colors.white,
-    borderRadius: 16,
-    marginHorizontal: 16,
-    marginVertical: 6,
+    borderRadius: wp(16),
+    marginHorizontal: wp(16),
+    marginVertical: hp(6),
     shadowColor: colors.black,
     shadowOffset: {
       width: 0,
@@ -501,35 +502,35 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
     overflow: 'hidden',
-    borderWidth: 1,
+    borderWidth: wp(1),
     borderColor: colors.border,
   },
   shimmerThumbnail: {
     width: '100%',
-    height: 200,
+    height: hp(200),
   },
   shimmerContent: {
-    padding: 16,
+    padding: wp(16),
   },
   shimmerTitle: {
     width: '80%',
-    height: 18,
-    borderRadius: 4,
-    marginBottom: 8,
+    height: hp(18),
+    borderRadius: wp(4),
+    marginBottom: hp(8),
   },
   shimmerDuration: {
     width: '40%',
-    height: 14,
-    borderRadius: 4,
+    height: hp(14),
+    borderRadius: wp(4),
   },
   // FAB Styles
   fab: {
     position: 'absolute',
-    margin: 16,
+    margin: wp(16),
     right: 0,
     bottom: 0,
     backgroundColor: colors.primary,
-    borderRadius: 50,
+    borderRadius: wp(50),
   },
   // Modal Styles
   modal: {

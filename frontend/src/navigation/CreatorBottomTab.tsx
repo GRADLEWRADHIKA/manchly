@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import colors from '../utils/colors';
+import { wp, hp, fp } from '../utils/responsive';
 import WalletCreator from '../screens/Auth/Wallet/WalletCreator';
 import {
   MessageCircle,
@@ -124,20 +125,20 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     alignItems: 'center',
     backgroundColor: colors.primary,
-    height: 78,
+    height: hp(78),
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.borderColor,
-    paddingBottom: Platform.select({ ios: 12, android: 10 }),
-    paddingTop: 10,
+    paddingBottom: Platform.select({ ios: hp(12), android: hp(10) }),
+    paddingTop: hp(10),
   },
   tabItem: {
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
+    gap: wp(6),
     flex: 1,
   },
   tabLabel: {
-    fontSize: 10,
+    fontSize: fp(10),
     fontWeight: '600',
   },
 });

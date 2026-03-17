@@ -20,6 +20,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
 import RazorpayCheckout from 'react-native-razorpay';
 import Toast from 'react-native-toast-message';
+import { wp, hp, fp } from '../../../../utils/responsive';
 
 const WebinarDetails = () => {
   const { params } = useRoute();
@@ -29,77 +30,6 @@ const WebinarDetails = () => {
   const [loading, setLoading] = useState(false);
   const { user } = useSelector((state: any) => state.userReducer);
   const { token } = useSelector((state: any) => state.userReducer);
-
-  // const onVerifyWebinar = async () => {
-  //   setLoading(true);
-  //   try {
-  //     // Step 1: Create Razorpay order
-  //     const payload = {
-  //       webinar_id: data?.id,
-  //     };
-  //     const orderResponse = await dispatch(
-  //       createWebinarEnroll(payload),
-  //     ).unwrap();
-  //     // return
-
-  //     // Extract data from response
-  //     const razorpay_order = orderResponse?.data?.data?.razorpay_order;
-  //     const razorpay_key_id = orderResponse?.data?.data?.razorpay_key_id;
-  //     const user_details = orderResponse?.data?.data?.user_details;
-  //     const webinar_details = orderResponse?.data?.data?.webinar_details;
-
-  //     // Razorpay Checkout Options
-  //     const options = {
-  //       description: webinar_details?.title,
-  //       image: webinar_details?.thumbnail,
-  //       currency: razorpay_order.currency || 'INR',
-  //       key: razorpay_key_id,
-  //       amount: razorpay_order.amount,
-  //       name: 'Manchly',
-  //       order_id: razorpay_order.id,
-  //       prefill: {
-  //         email: user_details?.email || user?.email || '',
-  //         contact: user_details?.phone || user?.phone || '',
-  //         name: user_details?.name || user?.name || user?.full_name || '',
-  //       },
-  //       theme: { color: colors.primary },
-  //     };
-
-  //     // Razorpay Checkout UI
-  //     const paymentResult = await RazorpayCheckout.open(options);
-
-  //     Toast.show({
-  //       type: 'info',
-  //       text1: 'Verifying Payment...',
-  //       text2: 'Please wait a moment.',
-  //     });
-
-  //     // Step 3: Verify payment on backend
-  //     await dispatch(
-  //       createWebinarVerify({
-  //         razorpay_order_id: paymentResult.razorpay_order_id,
-  //         razorpay_payment_id: paymentResult.razorpay_payment_id,
-  //         razorpay_signature: paymentResult.razorpay_signature,
-  //       }),
-  //     ).unwrap();
-
-  //     Toast.show({
-  //       type: 'success',
-  //       text1: 'Payment Successful 🎉',
-  //       text2: 'You have successfully enrolled in this webinar.',
-  //     });
-  //   } catch (error) {
-  //     console.log('----Payment Error: ---', error);
-  //     setLoading(false);
-  //     Toast.show({
-  //       type: 'error',
-  //       text1: 'Payment Failed ❌',
-  //       text2: error?.message || 'Something went wrong, please try again.',
-  //     });
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
 
   const onVerifyWebinar = async () => {
     setLoading(true);
@@ -113,11 +43,6 @@ const WebinarDetails = () => {
         const payload = { webinar_id: data?.id };
         orderResponse = await dispatch(createWebinarEnroll(payload)).unwrap();
       } catch (err) {
-        // Toast.show({
-        //   type: 'error',
-        //   text1: 'Failed to Create Order ❌',
-        //   text2: err?.message || 'Unable to create payment order.',
-        // });
         return;
       }
 
@@ -205,7 +130,7 @@ const WebinarDetails = () => {
     <View style={styles.container}>
       <AppHeaderWithBack title="Webinar Details" />
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: hp(120) }}>
         <View style={styles.thumbnailWrapper}>
           {hasThumbnail ? (
             <Image
@@ -214,7 +139,7 @@ const WebinarDetails = () => {
             />
           ) : (
             <View style={styles.thumbnailPlaceholder}>
-              <ImageOff size={60} color={colors.textSecondary} />
+              <ImageOff size={wp(60)} color={colors.textSecondary} />
               <Text style={styles.noImageText}>No Thumbnail Available</Text>
             </View>
           )}
@@ -223,28 +148,28 @@ const WebinarDetails = () => {
         <Text style={styles.title}>{data?.title}</Text>
 
         <View style={styles.row}>
-          <User size={18} color={colors.textSecondary} />
+          <User size={wp(18)} color={colors.textSecondary} />
           <Text style={styles.host}>
             Hosted by {data?.creator?.name || 'Unknown'}
           </Text>
         </View>
 
         <View style={styles.row}>
-          <Calendar size={18} color={colors.textSecondary} />
+          <Calendar size={wp(18)} color={colors.textSecondary} />
           <Text style={styles.detailText}>
             {new Date(data?.scheduled_at).toDateString()}
           </Text>
         </View>
 
         <View style={styles.row}>
-          <Clock size={18} color={colors.textSecondary} />
+          <Clock size={wp(18)} color={colors.textSecondary} />
           <Text style={styles.detailText}>{data?.duration} mins</Text>
         </View>
 
         <View style={styles.tagContainer}>
           {data?.tags?.map((tag, index) => (
             <View key={index} style={styles.tag}>
-              <Tag size={14} color={colors.white} />
+              <Tag size={wp(14)} color={colors.white} />
               <Text style={styles.tagText}>{tag}</Text>
             </View>
           ))}
@@ -286,7 +211,7 @@ const styles = StyleSheet.create({
 
   thumbnailWrapper: {
     width: '100%',
-    height: 220,
+    height: hp(220),
     backgroundColor: colors.lightGrey,
     justifyContent: 'center',
     alignItems: 'center',
@@ -301,106 +226,106 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   noImageText: {
-    marginTop: 8,
+    marginTop: hp(8),
     color: colors.textSecondary,
-    fontSize: 14,
+    fontSize: fp(14),
   },
 
   title: {
-    fontSize: 22,
+    fontSize: fp(22),
     fontWeight: '700',
-    marginTop: 15,
-    paddingHorizontal: 15,
+    marginTop: hp(15),
+    paddingHorizontal: wp(15),
     color: colors.text,
   },
 
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 8,
-    paddingHorizontal: 15,
-    gap: 6,
+    marginTop: hp(8),
+    paddingHorizontal: wp(15),
+    gap: wp(6),
   },
   host: {
     color: colors.textSecondary,
-    fontSize: 14,
+    fontSize: fp(14),
   },
   detailText: {
     color: colors.textSecondary,
-    fontSize: 14,
+    fontSize: fp(14),
   },
 
   tagContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginTop: 15,
-    paddingHorizontal: 15,
-    gap: 8,
+    marginTop: hp(15),
+    paddingHorizontal: wp(15),
+    gap: wp(8),
   },
   tag: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.secPrimary,
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    borderRadius: 20,
-    gap: 4,
+    paddingVertical: hp(5),
+    paddingHorizontal: wp(10),
+    borderRadius: wp(20),
+    gap: wp(4),
   },
   tagText: {
     color: colors.white,
-    fontSize: 12,
+    fontSize: fp(12),
   },
 
   priceBox: {
-    marginTop: 20,
-    paddingHorizontal: 15,
+    marginTop: hp(20),
+    paddingHorizontal: wp(15),
   },
   price: {
-    fontSize: 26,
+    fontSize: fp(26),
     fontWeight: '700',
     color: colors.primary,
   },
   participants: {
-    fontSize: 14,
+    fontSize: fp(14),
     color: colors.textSecondary,
-    marginTop: 4,
+    marginTop: hp(4),
   },
 
   sectionTitle: {
-    fontSize: 18,
+    fontSize: fp(18),
     fontWeight: '600',
-    marginTop: 25,
-    paddingHorizontal: 15,
+    marginTop: hp(25),
+    paddingHorizontal: wp(15),
     color: colors.text,
   },
   description: {
-    fontSize: 14,
+    fontSize: fp(14),
     color: colors.textSecondary,
-    marginTop: 8,
-    paddingHorizontal: 15,
-    lineHeight: 20,
-    paddingBottom: 40,
+    marginTop: hp(8),
+    paddingHorizontal: wp(15),
+    lineHeight: fp(20),
+    paddingBottom: hp(40),
   },
 
   bottomBar: {
     position: 'absolute',
     bottom: 0,
     width: '100%',
-    padding: 15,
+    padding: wp(15),
     backgroundColor: colors.white,
-    borderTopWidth: 1,
+    borderTopWidth: wp(1),
     borderColor: colors.border,
-    marginBottom: 10,
+    marginBottom: hp(10),
   },
   buyButton: {
     backgroundColor: colors.secPrimary,
-    paddingVertical: 14,
-    borderRadius: 10,
+    paddingVertical: hp(14),
+    borderRadius: wp(10),
     alignItems: 'center',
   },
   buyText: {
     color: colors.white,
     fontWeight: '700',
-    fontSize: 16,
+    fontSize: fp(16),
   },
 });

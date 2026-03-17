@@ -18,6 +18,7 @@ import { ThunkDispatch } from '@reduxjs/toolkit';
 import { getCourseById } from '../../../../store/CourseSlice';
 import Video from 'react-native-video';
 import { X } from 'lucide-react-native';
+import { wp, hp, fp } from '../../../../utils/responsive';
 
 const UserVideoList = () => {
   const route = useRoute();
@@ -99,7 +100,7 @@ const UserVideoList = () => {
               style={styles.closeBtn}
               onPress={() => setSelectedVideo(null)}
             >
-              <X size={28} color={colors.white} />
+              <X size={wp(28)} color={colors.white} />
             </TouchableOpacity>
 
             {selectedVideo && (
@@ -131,40 +132,40 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   listContainer: {
-    padding: 16,
+    padding: wp(16),
   },
   card: {
     flexDirection: 'row',
     backgroundColor: '#F8F9FB',
-    borderRadius: 12,
-    marginBottom: 14,
+    borderRadius: wp(12),
+    marginBottom: hp(14),
     overflow: 'hidden',
     elevation: 2,
   },
   thumbnail: {
-    width: 120,
-    height: 90,
-    borderTopLeftRadius: 12,
-    borderBottomLeftRadius: 12,
+    width: wp(120),
+    height: hp(90),
+    borderTopLeftRadius: wp(12),
+    borderBottomLeftRadius: wp(12),
   },
   cardContent: {
     flex: 1,
-    padding: 10,
+    padding: wp(10),
     justifyContent: 'center',
   },
   videoTitle: {
-    fontSize: 16,
+    fontSize: fp(16),
     fontWeight: '600',
     color: colors.black,
-    marginBottom: 4,
+    marginBottom: hp(4),
   },
   videoDesc: {
-    fontSize: 13,
+    fontSize: fp(13),
     color: '#555',
-    marginBottom: 6,
+    marginBottom: hp(6),
   },
   duration: {
-    fontSize: 12,
+    fontSize: fp(12),
     color: colors.primary,
     fontWeight: '500',
   },
@@ -174,7 +175,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyText: {
-    fontSize: 16,
+    fontSize: fp(16),
     color: '#888',
   },
   modalContainer: {
@@ -194,8 +195,8 @@ const styles = StyleSheet.create({
   },
   closeBtn: {
     position: 'absolute',
-    top: 40,
-    right: 20,
+    top: hp(40),
+    right: wp(20),
     zIndex: 10,
   },
 });

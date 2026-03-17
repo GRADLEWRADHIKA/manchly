@@ -8,6 +8,7 @@ import {
   Platform,
 } from 'react-native';
 import colors from '../../../../utils/colors';
+import { wp, hp, fp } from '../../../../utils/responsive';
 
 type Props = {
   visible: boolean;
@@ -59,14 +60,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#00000066',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 24,
+    padding: wp(24),
   },
   card: {
     width: '100%',
     alignItems: 'center',
-    borderRadius: 16,
+    borderRadius: wp(16),
     backgroundColor: colors.surface,
-    padding: 18,
+    padding: wp(18),
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -78,30 +79,30 @@ const styles = StyleSheet.create({
     }),
   },
   title: {
-    fontSize: 18,
+    fontSize: fp(18),
     fontWeight: '800',
     color: colors.text,
-    marginBottom: 6,
+    marginBottom: hp(6),
   },
   message: {
-    fontSize: 14,
+    fontSize: fp(14),
     color: colors.textSecondary,
-    marginBottom: 16,
+    marginBottom: hp(16),
   },
   actions: {
     flexDirection: 'row',
-    gap: 90,
+    gap: wp(90),
   },
   btn: {
-    minWidth: 96,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    borderRadius: 10,
+    minWidth: wp(96),
+    paddingVertical: hp(12),
+    paddingHorizontal: wp(14),
+    borderRadius: wp(10),
     alignItems: 'center',
   },
   cancel: {
     backgroundColor: colors.white,
-    borderWidth: 1,
+    borderWidth: wp(1),
     borderColor: colors.border,
   },
   cancelText: {
@@ -111,7 +112,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.error,
   },
   btnText: {
-    fontSize: 14,
+    fontSize: fp(14),
     fontWeight: '700',
     color: '#fff',
   },

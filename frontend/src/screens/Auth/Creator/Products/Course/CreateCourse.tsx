@@ -14,6 +14,7 @@ import {
 import AppHeaderWithBack from '../../../../../components/AppHeaderWithBack';
 import Toast from 'react-native-toast-message';
 import colors from '../../../../../utils/colors';
+import { wp, hp, fp } from '../../../../../utils/responsive';
 import { useForm, Controller } from 'react-hook-form';
 import { createCourse, updateCourse } from '../../../../../store/CourseSlice';
 import { ThunkDispatch } from '@reduxjs/toolkit';
@@ -95,6 +96,7 @@ const CreateCourse = () => {
       });
 
       const res: any = await dispatch(uploadShipDoc(formData)).unwrap();
+      console.log('----res----', res?.data?.url)
       const newUrl = res?.data?.url;
       onChange(newUrl);
 
@@ -346,7 +348,7 @@ const CreateCourse = () => {
                   placeholderStyle={styles.placeholder}
                   selectedTextStyle={styles.selectedText}
                   containerStyle={{
-                    borderRadius: 10,
+                    borderRadius: wp(10),
                   }}
                   data={[
                     { label: 'Advanced', value: 'Advanced' },
@@ -363,13 +365,13 @@ const CreateCourse = () => {
                     return (
                       <View
                         style={{
-                          paddingHorizontal: 10,
-                          paddingVertical: 5,
-                          margin: 10,
+                          paddingHorizontal: wp(10),
+                          paddingVertical: hp(5),
+                          margin: wp(10),
                           backgroundColor: isSelected
                             ? colors.primary
                             : colors.white,
-                          borderRadius: 5,
+                          borderRadius: wp(5),
                         }}
                       >
                         <Text
@@ -424,7 +426,7 @@ const CreateCourse = () => {
                   placeholderStyle={styles.placeholder}
                   selectedTextStyle={styles.selectedText}
                   containerStyle={{
-                    borderRadius: 10,
+                    borderRadius: wp(10),
                   }}
                   data={[
                     { label: 'Draft', value: 'DRAFT' },
@@ -440,13 +442,13 @@ const CreateCourse = () => {
                     return (
                       <View
                         style={{
-                          paddingHorizontal: 10,
-                          paddingVertical: 5,
-                          margin: 10,
+                          paddingHorizontal: wp(10),
+                          paddingVertical: hp(5),
+                          margin: wp(10),
                           backgroundColor: isSelected
                             ? colors.primary
                             : colors.white,
-                          borderRadius: 5,
+                          borderRadius: wp(5),
                         }}
                       >
                         <Text
@@ -532,125 +534,125 @@ const styles = StyleSheet.create({
     flex: 1
   },
   scrollArea: {
-    padding: 16,
-    paddingBottom: 40
+    padding: wp(16),
+    paddingBottom: hp(40)
   },
   formCard: {
     backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: wp(12),
+    padding: wp(16),
     shadowColor: '#000',
     shadowOpacity: 0.06,
     shadowRadius: 10,
     elevation: 3,
   },
   label: {
-    fontSize: 14,
-    marginTop: 12,
-    marginBottom: 6,
+    fontSize: fp(14),
+    marginTop: hp(12),
+    marginBottom: hp(6),
     color: '#333',
     fontWeight: '600',
   },
   textArea: {
-    borderWidth: 1,
+    borderWidth: wp(1),
     borderColor: '#e6e6e6',
-    borderRadius: 8,
-    paddingLeft: 10,
-    height: 100,
+    borderRadius: wp(8),
+    paddingLeft: wp(10),
+    height: hp(100),
   },
   placeholder: {
-    fontSize: 14,
+    fontSize: fp(14),
     color: colors.borderColor,
   },
   selectedText: {
-    fontSize: 14,
+    fontSize: fp(14),
     color: colors.primary,
   },
   actionsRow: {
-    marginTop: 18,
+    marginTop: hp(18),
     alignItems: 'flex-end'
   },
   createButton: {
     backgroundColor: colors.primary,
-    paddingVertical: 12,
-    paddingHorizontal: 18,
-    borderRadius: 10,
-    width: 160,
+    paddingVertical: hp(12),
+    paddingHorizontal: wp(18),
+    borderRadius: wp(10),
+    width: wp(160),
     alignItems: 'center',
   },
   createButtonText: {
     color: '#fff',
     fontWeight: '700',
-    fontSize: 15
+    fontSize: fp(15)
   },
   buttonDisabled: {
     opacity: 0.65
   },
   dropdown: {
-    height: 44,
-    borderWidth: 1,
+    height: hp(44),
+    borderWidth: wp(1),
     borderColor: colors.borderColor,
-    borderRadius: 8,
-    paddingHorizontal: 20,
+    borderRadius: wp(8),
+    paddingHorizontal: wp(20),
     justifyContent: 'center',
   },
   errorBorder: { borderColor: 'red' },
   nameFields: {
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    height: 44,
+    borderRadius: wp(8),
+    paddingHorizontal: wp(10),
+    height: hp(44),
     width: '100%',
     backgroundColor: colors.white,
-    borderWidth: 1,
+    borderWidth: wp(1),
     borderColor: colors.borderColor,
   },
   button: {
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    height: 44,
+    borderRadius: wp(8),
+    paddingHorizontal: wp(10),
+    height: hp(44),
     width: '100%',
     backgroundColor: colors.white,
-    borderWidth: 1,
+    borderWidth: wp(1),
     borderColor: colors.borderColor,
     justifyContent: 'center',
     alignItems: 'center',
   },
   buttonText: {
     color: colors.textSecondary,
-    fontSize: 14,
+    fontSize: fp(14),
     fontWeight: '500',
   },
   imagePreview: {
     width: '100%',
-    height: 150,
-    borderRadius: 8,
-    marginTop: 10,
+    height: hp(150),
+    borderRadius: wp(8),
+    marginTop: hp(10),
   },
   uploadHeader: {
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: hp(20),
   },
   uploadMain: {
     flexDirection: 'row',
-    padding: 16,
-    borderRadius: 10,
+    padding: wp(16),
+    borderRadius: wp(10),
     backgroundColor: colors.white,
     elevation: 5,
     alignItems: 'center',
   },
   buttonHelp: {
     width: '30%',
-    borderWidth: 1,
+    borderWidth: wp(1),
     alignItems: 'center',
     backgroundColor: colors.primary,
-    borderRadius: 5,
-    paddingVertical: 5,
+    borderRadius: wp(5),
+    paddingVertical: hp(5),
   },
   buttonHelpPara: {
-    fontSize: 14,
+    fontSize: fp(14),
     color: colors.white,
     fontWeight: '500',
-    borderRadius: 10,
+    borderRadius: wp(10),
   },
   secHead: {
     width: '20%',
@@ -661,7 +663,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   mainPara: {
-    fontSize: 16,
+    fontSize: fp(16),
     fontWeight: '500',
   },
 });

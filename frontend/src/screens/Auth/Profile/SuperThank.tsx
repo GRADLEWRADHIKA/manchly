@@ -21,6 +21,7 @@ import {
 } from 'lucide-react-native';
 import AppHeaderWithBack from '../../../components/AppHeaderWithBack';
 import colors from '../../../utils/colors';
+import { wp, hp, fp } from '../../../utils/responsive';
 
 const PURPLE = '#6A1B9A';
 const PURPLE_DARK = '#551480';
@@ -64,9 +65,9 @@ const SuperThanks = () => {
               <Rocket size={56} color="#FFF" />
             </View>
             <View style={styles.cloudRow}>
-              <View style={[styles.cloud, { width: 70 }]} />
-              <View style={[styles.cloud, { width: 110 }]} />
-              <View style={[styles.cloud, { width: 80 }]} />
+              <View style={[styles.cloud, { width: wp(70) }]} />
+              <View style={[styles.cloud, { width: wp(110) }]} />
+              <View style={[styles.cloud, { width: wp(80) }]} />
             </View>
           </View>
 
@@ -119,43 +120,43 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingTop: 4,
-    paddingBottom: 10,
+    paddingHorizontal: wp(14),
+    paddingTop: hp(4),
+    paddingBottom: hp(10),
     backgroundColor: PURPLE,
   },
   iconBtn: {
-    width: 40,
-    height: 36,
+    width: wp(40),
+    height: hp(36),
     alignItems: 'center',
     justifyContent: 'center',
   },
   iconBtnRight: {
-    width: 40,
-    height: 36,
+    width: wp(40),
+    height: hp(36),
     alignItems: 'center',
     justifyContent: 'center',
   },
   headerTitle: {
     flex: 1,
     color: '#FFF',
-    fontSize: 18,
+    fontSize: fp(18),
     fontWeight: '700',
     textAlign: 'left',
-    paddingLeft: 2,
+    paddingLeft: wp(2),
   },
 
   body: {
     flex: 1,
-    paddingHorizontal: 16,
-    paddingTop: 24,
+    paddingHorizontal: wp(16),
+    paddingTop: hp(24),
   },
 
   card: {
     backgroundColor: CARD_BG,
-    borderRadius: 16,
-    padding: 18,
-    borderWidth: 1,
+    borderRadius: wp(16),
+    padding: wp(18),
+    borderWidth: wp(1),
     borderColor: BORDER,
     shadowColor: '#000',
     shadowOpacity: 0.08,
@@ -166,38 +167,38 @@ const styles = StyleSheet.create({
 
   illustrationWrap: {
     alignItems: 'center',
-    marginTop: 6,
-    marginBottom: 18,
+    marginTop: hp(6),
+    marginBottom: hp(18),
   },
   illustrationCircle: {
-    width: 160,
-    height: 160,
-    borderRadius: 160,
+    width: wp(160),
+    height: wp(160),
+    borderRadius: wp(160),
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.primary,
   },
   cloudRow: {
     flexDirection: 'row',
-    gap: 10,
-    marginTop: 10,
+    gap: wp(10),
+    marginTop: hp(10),
   },
   cloud: {
-    height: 18,
-    borderRadius: 999,
+    height: hp(18),
+    borderRadius: wp(999),
     backgroundColor: '#EDE9FE',
   },
 
   linkPill: {
     alignSelf: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 999,
+    paddingHorizontal: wp(16),
+    paddingVertical: hp(10),
+    borderRadius: wp(999),
     backgroundColor: '#F3F4F6',
-    borderWidth: 1,
+    borderWidth: wp(1),
     borderColor: '#E5E7EB',
-    marginBottom: 12,
-    minWidth: 240,
+    marginBottom: hp(12),
+    minWidth: wp(240),
   },
   linkText: {
     textAlign: 'center',
@@ -209,24 +210,24 @@ const styles = StyleSheet.create({
   desc: {
     color: MUTED,
     textAlign: 'left',
-    lineHeight: 20,
+    lineHeight: fp(20),
   },
 
   actionsRow: {
-    marginTop: 18,
+    marginTop: hp(18),
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: wp(12),
   },
   shareBtn: {
     flex: 1,
-    height: 48,
-    borderRadius: 12,
+    height: hp(48),
+    borderRadius: wp(12),
     backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
-    gap: 10,
+    gap: wp(10),
   },
   shareLabel: {
     color: '#FFF',
@@ -234,10 +235,10 @@ const styles = StyleSheet.create({
     letterSpacing: 1.2,
   },
   copyIconBtn: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    borderWidth: 1,
+    width: wp(48),
+    height: hp(48),
+    borderRadius: wp(12),
+    borderWidth: wp(1),
     borderColor: BORDER,
     alignItems: 'center',
     justifyContent: 'center',

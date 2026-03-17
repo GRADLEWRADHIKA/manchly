@@ -15,6 +15,7 @@ import { Users, Play, CheckCircle } from 'lucide-react-native';
 import RazorpayCheckout from 'react-native-razorpay';
 
 import colors from '../../../../../utils/colors';
+import { wp, hp, fp } from '../../../../../utils/responsive';
 import AppHeaderWithBack from '../../../../../components/AppHeaderWithBack';
 import { getCourseById } from '../../../../../store/CourseSlice';
 import { createPaymentOrder, verifyPayment } from '../../../../../store/PaymentSlice';
@@ -99,14 +100,14 @@ const CourseDetailsScreen: React.FC = () => {
 
           <View style={styles.statsContainer}>
             <View style={styles.statItem}>
-              <Users size={18} color={colors.textSecondary} />
+              <Users size={wp(18)} color={colors.textSecondary} />
               <Text style={styles.statText}>
                 {course.enrollments?.length || 0} students
               </Text>
             </View>
 
             <View style={styles.statItem}>
-              <Play size={18} color={colors.textSecondary} />
+              <Play size={wp(18)} color={colors.textSecondary} />
               <Text style={styles.statText}>
                 {course.videos?.length || 0} videos
               </Text>
@@ -179,60 +180,60 @@ const PriceRow = ({ label, value }: any) => (
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.white },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  thumbnail: { width: '100%', height: 220 },
-  content: { padding: 16 },
-  title: { fontSize: 24, fontWeight: '700', color: colors.text },
-  instructor: { color: colors.textSecondary, marginBottom: 16 },
-  section: { marginVertical: 16 },
-  sectionTitle: { fontSize: 18, fontWeight: '600', marginBottom: 10 },
-  description: { fontSize: 15, lineHeight: 22 },
-  statsContainer: { flexDirection: 'row', gap: 16, marginVertical: 12 },
-  statItem: { flexDirection: 'row', gap: 6, alignItems: 'center' },
+  thumbnail: { width: '100%', height: hp(220) },
+  content: { padding: wp(16) },
+  title: { fontSize: fp(24), fontWeight: '700', color: colors.text },
+  instructor: { color: colors.textSecondary, marginBottom: hp(16) },
+  section: { marginVertical: hp(16) },
+  sectionTitle: { fontSize: fp(18), fontWeight: '600', marginBottom: hp(10) },
+  description: { fontSize: fp(15), lineHeight: fp(22) },
+  statsContainer: { flexDirection: 'row', gap: wp(16), marginVertical: hp(12) },
+  statItem: { flexDirection: 'row', gap: wp(6), alignItems: 'center' },
   statText: { color: colors.textSecondary },
 
   priceBox: {
     backgroundColor: colors.surface,
-    padding: 16,
-    borderRadius: 12,
-    marginTop: 20,
+    padding: wp(16),
+    borderRadius: wp(12),
+    marginTop: hp(20),
   },
   priceRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginVertical: 6,
+    marginVertical: hp(6),
   },
   priceLabel: { color: colors.textSecondary },
   priceValue: { fontWeight: '600' },
 
   totalRow: {
-    borderTopWidth: 1,
+    borderTopWidth: wp(1),
     borderColor: colors.border,
-    marginTop: 10,
-    paddingTop: 10,
+    marginTop: hp(10),
+    paddingTop: hp(10),
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
-  totalLabel: { fontSize: 16, fontWeight: '700' },
-  totalValue: { fontSize: 18, fontWeight: '800', color: colors.primary },
+  totalLabel: { fontSize: fp(16), fontWeight: '700' },
+  totalValue: { fontSize: fp(18), fontWeight: '800', color: colors.primary },
 
   bottomBar: {
-    padding: 16,
-    borderTopWidth: 1,
+    padding: wp(16),
+    borderTopWidth: wp(1),
     borderColor: colors.border,
   },
   purchaseButton: {
     backgroundColor: colors.secPrimary,
-    paddingVertical: 16,
-    borderRadius: 12,
+    paddingVertical: hp(16),
+    borderRadius: wp(12),
     alignItems: 'center',
   },
   purchaseButtonDisabled: { opacity: 0.6 },
-  purchaseText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  purchaseText: { color: '#fff', fontSize: fp(16), fontWeight: '700' },
 
   enrolledContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 8,
+    gap: wp(8),
   },
   enrolledText: { color: colors.primary, fontWeight: '700' },
 });

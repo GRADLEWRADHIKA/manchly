@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import colors from '../../../../../utils/colors';
+import { wp, hp, fp } from '../../../../../utils/responsive';
 
 interface Props {
   icon: React.ReactNode;
@@ -25,30 +26,30 @@ export default DashboardCard;
 const styles = StyleSheet.create({
   card: {
     width: '48%',
-    borderRadius: 20,
-    paddingVertical: 10,
-    marginBottom: 16,
+    borderRadius: wp(20),
+    paddingVertical: hp(10),
+    marginBottom: hp(16),
     alignItems: 'center',
     elevation: 6,
   },
 
   iconWrapper: {
-    width: 50,
-    height: 50,
+    width: wp(50),
+    height: hp(50),
     backgroundColor: colors.white,
     justifyContent: 'center',
     alignItems: 'center',
   },
 
   value: {
-    fontSize: 22,
+    fontSize: fp(22),
     fontWeight: '800',
     color: colors.text,
   },
 
   label: {
-    fontSize: 13,
+    fontSize: fp(13),
     color: colors.textSecondary,
-    marginTop: 4,
+    marginTop: hp(4),
   },
 });

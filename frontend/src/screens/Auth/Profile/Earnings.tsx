@@ -15,13 +15,14 @@ import {
   CreditCard,
 } from 'lucide-react-native';
 import colors from '../../../utils/colors';
+import { wp, hp, fp } from '../../../utils/responsive';
 import AppHeaderWithBack from '../../../components/AppHeaderWithBack';
 
 const Earnings = () => {
   return (
     <View style={styles.container}>
       <AppHeaderWithBack title="Earnings" />
-      <View style={{ padding: 16 }}>
+      <View style={{ padding: wp(16) }}>
         {/* Withdrawable Balance Card */}
         <View style={styles.balanceCard}>
           <View style={styles.balanceHeader}>
@@ -106,26 +107,26 @@ const styles = StyleSheet.create({
   },
   balanceCard: {
     backgroundColor: '#f2e7fc',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
+    borderRadius: wp(12),
+    padding: wp(16),
+    marginBottom: hp(16),
   },
   balanceHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: hp(12),
   },
   balanceTitle: {
-    fontSize: 16,
+    fontSize: fp(16),
     fontWeight: '600',
-    marginLeft: 8,
+    marginLeft: wp(8),
   },
   withdrawButton: {
     alignSelf: 'flex-start',
     backgroundColor: colors.primary,
-    paddingVertical: 6,
-    paddingHorizontal: 16,
-    borderRadius: 8,
+    paddingVertical: hp(6),
+    paddingHorizontal: wp(16),
+    borderRadius: wp(8),
   },
   withdrawText: {
     color: colors.white,
@@ -133,47 +134,47 @@ const styles = StyleSheet.create({
   },
   bankSection: {
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: hp(16),
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: fp(16),
     fontWeight: '600',
-    marginBottom: 4,
+    marginBottom: hp(4),
   },
   sectionSubtitle: {
-    fontSize: 13,
+    fontSize: fp(13),
     color: '#666',
-    marginBottom: 16,
+    marginBottom: hp(16),
     textAlign: 'center',
   },
   bankImage: {
-    width: 120,
-    height: 120,
-    marginBottom: 8,
+    width: wp(120),
+    height: hp(120),
+    marginBottom: hp(8),
   },
   noDetails: {
     color: '#666',
-    marginBottom: 12,
+    marginBottom: hp(12),
   },
   addBankButton: {
-    borderWidth: 1,
+    borderWidth: wp(1),
     borderColor: colors.primary,
-    borderRadius: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+    borderRadius: wp(8),
+    paddingVertical: hp(8),
+    paddingHorizontal: wp(16),
   },
   addBankText: {
     color: colors.primary,
     fontWeight: '600',
   },
   menuContainer: {
-    marginTop: 10,
+    marginTop: hp(10),
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 14,
-    borderBottomWidth: 1,
+    paddingVertical: hp(14),
+    borderBottomWidth: wp(1),
     borderBottomColor: '#eee',
   },
   menuLeft: {
@@ -181,17 +182,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   menuText: {
-    marginLeft: 12,
-    fontSize: 15,
+    marginLeft: wp(12),
+    fontSize: fp(15),
     fontWeight: '500',
   },
   bankIconWrapper: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: wp(100),
+    height: hp(100),
+    borderRadius: wp(50),
     backgroundColor: '#f5f5f5',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: hp(12),
   },
 });

@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { UserCheck } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
+import { wp, hp, fp } from '../../../../utils/responsive';
 
 const KycCard = () => {
   const navigation = useNavigation<any>();
@@ -14,7 +15,7 @@ const KycCard = () => {
     <View style={styles.container}>
       <View style={styles.card}>
         <View style={styles.iconContainer}>
-          <UserCheck size={40} color="#4caf50" />
+          <UserCheck size={wp(40)} color="#4caf50" />
         </View>
         <View style={styles.textContainer}>
           <Text style={styles.title}>Verify Your KYC</Text>
@@ -39,8 +40,8 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 20,
+    borderRadius: wp(12),
+    padding: wp(20),
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 2 },
@@ -49,32 +50,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   iconContainer: {
-    marginBottom: 16,
+    marginBottom: hp(16),
   },
   textContainer: {
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: hp(20),
   },
   title: {
-    fontSize: 18,
+    fontSize: fp(18),
     fontWeight: 'bold',
-    marginBottom: 8,
+    marginBottom: hp(8),
   },
   description: {
-    fontSize: 14,
+    fontSize: fp(14),
     color: '#555',
     textAlign: 'center',
   },
   button: {
     backgroundColor: '#4caf50',
-    paddingVertical: 10,
-    paddingHorizontal: 30,
-    borderRadius: 8,
+    paddingVertical: hp(10),
+    paddingHorizontal: wp(30),
+    borderRadius: wp(8),
   },
   buttonText: {
     color: '#fff',
     fontWeight: 'bold',
-    fontSize: 16,
+    fontSize: fp(16),
   },
 });
 

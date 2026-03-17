@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { Video, X } from 'lucide-react-native';
 import colors from '../../../../../utils/colors';
+import { wp, hp, fp } from '../../../../../utils/responsive';
 import { Controller, useForm } from 'react-hook-form';
 import CustomTextInput from '../../../../../components/CustomInput';
 import { Dropdown } from 'react-native-element-dropdown';
@@ -315,7 +316,7 @@ const CourseAddVideoModal = ({ onClose, setRefresh, videoData, isUpdate }) => {
           style={[styles.closeButton, videoUploading && { opacity: 0.4 }]}
           disabled={videoUploading}
         >
-          <X color={colors.text} size={22} />
+          <X color={colors.text} size={wp(22)} />
         </TouchableOpacity>
       </View>
 
@@ -352,7 +353,7 @@ const CourseAddVideoModal = ({ onClose, setRefresh, videoData, isUpdate }) => {
               onPress={!videoUploading ? handleVideoSelect : undefined}
               disabled={videoUploading}
             >
-              <Video color={colors.primary} size={22} />
+              <Video color={colors.primary} size={wp(22)} />
               <Text style={styles.uploadText}>
                 {selectedVideo?.name || 'Tap to select video'}
               </Text>
@@ -504,114 +505,114 @@ export default CourseAddVideoModal;
 const styles = StyleSheet.create({
   modalContainer: {
     backgroundColor: colors.white,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: wp(20),
+    borderTopRightRadius: wp(20),
     maxHeight: '100%',
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    borderBottomWidth: 1,
+    borderBottomWidth: wp(1),
     borderColor: colors.border,
-    padding: 16,
+    padding: wp(16),
   },
-  modalTitle: { fontSize: 18, fontWeight: '700', color: colors.text },
-  closeButton: { padding: 4 },
-  modalContent: { padding: 20 },
+  modalTitle: { fontSize: fp(18), fontWeight: '700', color: colors.text },
+  closeButton: { padding: wp(4) },
+  modalContent: { padding: wp(20) },
   label: {
-    fontSize: 14,
+    fontSize: fp(14),
     color: '#333',
     fontWeight: '600',
-    marginBottom: 6,
-    marginTop: 12,
+    marginBottom: hp(6),
+    marginTop: hp(12),
   },
   inputField: {
-    borderWidth: 1,
+    borderWidth: wp(1),
     borderColor: colors.borderColor,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    height: 44,
+    borderRadius: wp(8),
+    paddingHorizontal: wp(10),
+    height: hp(44),
     backgroundColor: colors.white,
   },
   uploadButton: {
     flexDirection: 'row',
     alignItems: 'center',
     borderColor: colors.borderColor,
-    borderWidth: 1,
-    borderRadius: 8,
-    height: 44,
-    paddingHorizontal: 10,
+    borderWidth: wp(1),
+    borderRadius: wp(8),
+    height: hp(44),
+    paddingHorizontal: wp(10),
     backgroundColor: colors.white,
   },
-  uploadText: { marginLeft: 10, fontSize: 16, color: colors.textSecondary },
+  uploadText: { marginLeft: wp(10), fontSize: fp(16), color: colors.textSecondary },
   progressContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 8,
-    marginBottom: 4,
-    gap: 10,
+    marginTop: hp(8),
+    marginBottom: hp(4),
+    gap: wp(10),
   },
   progressText: {
-    fontSize: 14,
+    fontSize: fp(14),
     color: colors.primary,
     fontWeight: '600',
   },
   dropdown: {
-    height: 44,
-    borderWidth: 1,
+    height: hp(44),
+    borderWidth: wp(1),
     borderColor: colors.borderColor,
-    borderRadius: 8,
-    paddingHorizontal: 12,
+    borderRadius: wp(8),
+    paddingHorizontal: wp(12),
     justifyContent: 'center',
   },
   placeholder: { color: colors.borderColor },
-  selectedText: { color: colors.primary, fontSize: 16 },
+  selectedText: { color: colors.primary, fontSize: fp(16) },
   errorBorder: { borderColor: 'red' },
   modalFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 10,
-    marginHorizontal: 20,
-    marginBottom: 20,
+    gap: wp(10),
+    marginHorizontal: wp(20),
+    marginBottom: hp(20),
   },
   cancelButton: {
     flex: 1,
-    paddingVertical: 10,
-    borderWidth: 1,
+    paddingVertical: hp(10),
+    borderWidth: wp(1),
     borderColor: colors.border,
-    borderRadius: 8,
+    borderRadius: wp(8),
     alignItems: 'center',
   },
   cancelButtonText: { color: colors.text, fontWeight: '600' },
   saveButton: {
     flex: 1,
     backgroundColor: colors.primary,
-    borderRadius: 8,
+    borderRadius: wp(8),
     alignItems: 'center',
     justifyContent: 'center',
   },
-  saveButtonText: { color: colors.white, fontWeight: '600', fontSize: 16 },
+  saveButtonText: { color: colors.white, fontWeight: '600', fontSize: fp(16) },
   button: {
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    height: 44,
+    borderRadius: wp(8),
+    paddingHorizontal: wp(10),
+    height: hp(44),
     width: '100%',
     backgroundColor: colors.white,
-    borderWidth: 1,
+    borderWidth: wp(1),
     borderColor: colors.borderColor,
     justifyContent: 'center',
     alignItems: 'center',
   },
   buttonText: {
     color: colors.textSecondary,
-    fontSize: 14,
+    fontSize: fp(14),
     fontWeight: '500',
   },
   imagePreview: {
     width: '100%',
-    height: 150,
-    borderRadius: 8,
-    marginTop: 10,
+    height: hp(150),
+    borderRadius: wp(8),
+    marginTop: hp(10),
   },
 });

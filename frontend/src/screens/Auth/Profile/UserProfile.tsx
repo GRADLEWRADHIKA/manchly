@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import colors from '../../../utils/colors';
+import { wp, hp, fp } from '../../../utils/responsive';
 import AppHeaderWithBack from '../../../components/AppHeaderWithBack';
 import { User2 } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -284,34 +285,34 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
   },
   content: {
-    padding: 20,
+    padding: wp(20),
   },
   profileImageContainer: {
     alignItems: 'center',
-    marginBottom: 25,
+    marginBottom: hp(25),
   },
   profileImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    marginBottom: 8,
+    width: wp(100),
+    height: wp(100),
+    borderRadius: wp(50),
+    marginBottom: hp(8),
   },
   uploadText: {
-    fontSize: 14,
+    fontSize: fp(14),
     color: colors.text,
   },
   label: {
-    marginTop: 10,
-    marginBottom: 6,
-    fontSize: 14,
+    marginTop: hp(10),
+    marginBottom: hp(6),
+    fontSize: fp(14),
     color: colors.text,
   },
   input: {
-    height: 44,
-    borderWidth: 1,
+    height: hp(44),
+    borderWidth: wp(1),
     borderColor: colors.borderColor,
-    borderRadius: 8,
-    paddingHorizontal: 10,
+    borderRadius: wp(8),
+    paddingHorizontal: wp(10),
     justifyContent: 'center',
     backgroundColor: colors.white,
   },
@@ -320,13 +321,13 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     flexDirection: 'row',
-    marginTop: 30,
+    marginTop: hp(30),
     justifyContent: 'space-between',
   },
   button: {
     width: '48%',
-    height: 44,
-    borderRadius: 8,
+    height: hp(44),
+    borderRadius: wp(8),
     alignItems: 'center',
     justifyContent: 'center',
   },

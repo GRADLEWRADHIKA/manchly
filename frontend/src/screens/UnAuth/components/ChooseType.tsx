@@ -1,6 +1,7 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import React from 'react';
 import colors from '../../../utils/colors';
+import { wp, hp, fp } from '../../../utils/responsive';
 import { MoveRight } from 'lucide-react-native';
 
 const ChooseType = ({ setSelectedType, setActive }) => {
@@ -51,45 +52,45 @@ export default ChooseType;
 
 const styles = StyleSheet.create({
   container: {
-    paddingTop: 50,
-    paddingBottom: 40,
+    paddingTop: hp(50),
+    paddingBottom: hp(40),
   },
 
   title: {
-    fontSize: 36,
+    fontSize: fp(36),
     fontWeight: '900',
     color: colors.white,
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: hp(20),
   },
 
   card: {
-    marginTop: 20,
+    marginTop: hp(20),
     backgroundColor: colors.white,
-    padding: 20,
-    borderRadius: 25,
+    padding: wp(20),
+    borderRadius: wp(25),
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
 
   subtitle: {
-    fontSize: 25,
+    fontSize: fp(25),
     fontWeight: '700',
   },
 
   description: {
-    fontSize: 14,
+    fontSize: fp(14),
     color: colors.primary,
   },
 
   termsText: {
-    fontSize: 14,
+    fontSize: fp(14),
     color: colors.white,
     textAlign: 'center',
-    lineHeight: 18,
-    marginTop: 20,
-    marginBottom: 8,
+    lineHeight: fp(18),
+    marginTop: hp(20),
+    marginBottom: hp(8),
   },
 
   linkText: {

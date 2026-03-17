@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import colors from '../utils/colors';
+import { wp, hp, fp } from '../utils/responsive';
 
 const { width } = Dimensions.get('window');
 
@@ -72,32 +73,32 @@ const styles = StyleSheet.create({
   container: {
     width: width * 0.85,
     backgroundColor: '#fff',
-    borderRadius: 15,
-    padding: 20,
+    borderRadius: wp(15),
+    padding: wp(20),
     elevation: 10,
   },
   heading: {
-    fontSize: 18,
+    fontSize: fp(18),
     fontWeight: '700',
     color: '#333',
     textAlign: 'center',
   },
   message: {
-    fontSize: 15,
+    fontSize: fp(15),
     color: '#666',
     textAlign: 'center',
-    marginVertical: 15,
-    lineHeight: 20,
+    marginVertical: hp(15),
+    lineHeight: fp(20),
   },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-evenly',
-    marginTop: 10,
+    marginTop: hp(10),
   },
   button: {
     width: '40%',
-    paddingVertical: 10,
-    borderRadius: 10,
+    paddingVertical: hp(10),
+    borderRadius: wp(10),
     alignItems: 'center',
   },
   cancelButton: {

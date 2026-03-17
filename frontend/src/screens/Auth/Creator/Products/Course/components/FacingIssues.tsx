@@ -3,6 +3,7 @@ import React from 'react'
 import { CloudUpload } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 import colors from '../../../../../../utils/colors';
+import { wp, hp, fp } from '../../../../../../utils/responsive';
 
 const FacingIssues = ({ messgae, title }) => {
     return (
@@ -10,7 +11,7 @@ const FacingIssues = ({ messgae, title }) => {
             <View style={styles.uploadHeader}>
                 <View style={styles.uploadMain}>
                     <View style={styles.secHead}>
-                        <CloudUpload width={40} height={40} color={colors.primary} />
+                        <CloudUpload width={wp(40)} height={hp(40)} color={colors.primary} />
                     </View>
                     <View style={styles.mainHead}>
                         <Text style={styles.mainPara}>{title}</Text>
@@ -60,19 +61,19 @@ export default FacingIssues
 
 const styles = StyleSheet.create({
     buttonHelpPara: {
-        fontSize: 14,
+        fontSize: fp(14),
         color: colors.white,
         fontWeight: '500',
-        borderRadius: 10,
+        borderRadius: wp(10),
     },
     uploadHeader: {
         alignItems: 'center',
-        marginTop: 20,
+        marginTop: hp(20),
     },
     uploadMain: {
         flexDirection: 'row',
-        padding: 16,
-        borderRadius: 10,
+        padding: wp(16),
+        borderRadius: wp(10),
         backgroundColor: colors.white,
         elevation: 5,
         alignItems: 'center',
@@ -86,15 +87,15 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     mainPara: {
-        fontSize: 16,
+        fontSize: fp(16),
         fontWeight: '500',
     },
     buttonHelp: {
         width: '30%',
-        borderWidth: 1,
+        borderWidth: wp(1),
         alignItems: 'center',
         backgroundColor: colors.primary,
-        borderRadius: 5,
-        paddingVertical: 5,
+        borderRadius: wp(5),
+        paddingVertical: hp(5),
     },
 })

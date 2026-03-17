@@ -9,6 +9,7 @@ import {
   BackHandler,
 } from 'react-native';
 import colors from '../../../utils/colors';
+import { wp, hp, fp } from '../../../utils/responsive';
 import { Controller, useForm } from 'react-hook-form';
 import { useDispatch } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
@@ -266,7 +267,7 @@ const VerifyLogin: React.FC<VerifyLoginProps> = ({
 
       <TouchableOpacity
         onPress={() => setActive(3)}
-        style={{ marginTop: 20, alignItems: 'center' }}
+        style={{ marginTop: hp(20), alignItems: 'center' }}
       >
         <Text style={{ color: colors.white }}>
           Didn't have an account?{' '}
@@ -283,60 +284,60 @@ export default VerifyLogin;
 
 const styles = StyleSheet.create({
   container: {
-    paddingTop: 50,
-    paddingBottom: 40,
-    paddingHorizontal: 20,
+    paddingTop: hp(50),
+    paddingBottom: hp(40),
+    paddingHorizontal: wp(20),
     flexGrow: 1,
   },
 
   mainHeader: {
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: hp(30),
   },
 
   title: {
-    fontSize: 30,
+    fontSize: fp(30),
     fontWeight: '600',
     color: colors.white,
   },
 
   subTitle: {
-    fontSize: 16,
-    marginTop: 5,
+    fontSize: fp(16),
+    marginTop: hp(5),
     color: colors.white,
   },
 
   input: {
-    height: 55,
-    borderWidth: 1.5,
+    height: hp(55),
+    borderWidth: wp(1.5),
     borderColor: '#ddd',
-    borderRadius: 12,
-    paddingHorizontal: 15,
-    fontSize: 16,
+    borderRadius: wp(12),
+    paddingHorizontal: wp(15),
+    fontSize: fp(16),
     color: colors.white,
   },
 
   btnHeader: {
-    borderWidth: 1,
-    marginTop: 20,
+    borderWidth: wp(1),
+    marginTop: hp(20),
     borderColor: colors.white,
     backgroundColor: colors.white,
-    paddingVertical: 15,
-    borderRadius: 12,
+    paddingVertical: hp(15),
+    borderRadius: wp(12),
     alignItems: 'center',
   },
 
   btnHeaderText: {
     color: colors.primary,
-    fontSize: 16,
+    fontSize: fp(16),
     fontWeight: '600',
   },
 
   termsText: {
-    fontSize: 14,
+    fontSize: fp(14),
     color: colors.white,
     textAlign: 'center',
-    marginTop: 20,
+    marginTop: hp(20),
   },
 
   linkText: {
@@ -347,25 +348,25 @@ const styles = StyleSheet.create({
   otpWrapper: {
     width: '100%',
     justifyContent: 'space-between',
-    marginBottom: 16,
+    marginBottom: hp(16),
   },
 
   otpBox: {
-    width: 48,
-    height: 56,
-    borderWidth: 1,
-    borderRadius: 10,
+    width: wp(48),
+    height: hp(56),
+    borderWidth: wp(1),
+    borderRadius: wp(10),
     backgroundColor: colors.white,
   },
 
   otpText: {
-    fontSize: 20,
+    fontSize: fp(20),
     fontWeight: '600',
     color: colors.text,
   },
 
   errorText: {
     color: 'red',
-    marginBottom: 12,
+    marginBottom: hp(12),
   },
 });

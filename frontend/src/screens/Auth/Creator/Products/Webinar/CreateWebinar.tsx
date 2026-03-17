@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import colors from '../../../../../utils/colors';
+import { wp, hp, fp } from '../../../../../utils/responsive';
 import AppHeaderWithBack from '../../../../../components/AppHeaderWithBack';
 import { Controller, useForm } from 'react-hook-form';
 import CustomTextInput from '../../../../../components/CustomInput';
@@ -288,7 +289,7 @@ const CreateWebinarScreen = () => {
             contentContainerStyle={styles.formScroll}
             showsVerticalScrollIndicator={false}
           >
-            <Text style={[styles.label, { marginTop: 10 }]}>Title</Text>
+            <Text style={[styles.label, { marginTop: hp(10) }]}>Title</Text>
             <Controller
               name="title"
               control={control}
@@ -310,7 +311,7 @@ const CreateWebinarScreen = () => {
                     },
                   ]}
                   inputStyle={{
-                    fontSize: 14,
+                    fontSize: fp(14),
                     color: colors.black,
                   }}
                   placeholderTextColor={colors.borderColor}
@@ -344,7 +345,7 @@ const CreateWebinarScreen = () => {
                     },
                   ]}
                   inputStyle={{
-                    fontSize: 14,
+                    fontSize: fp(14),
                     color: colors.black,
                   }}
                   placeholderTextColor={colors.borderColor}
@@ -369,7 +370,7 @@ const CreateWebinarScreen = () => {
                   style={[styles.datePicker, error && styles.errorBorder]}
                   onPress={showDatePicker}
                 >
-                  <Text style={{ fontSize: 14, color: colors.primary }}>
+                  <Text style={{ fontSize: fp(14), color: colors.primary }}>
                     {value ? value : 'Select Date'}
                   </Text>
 
@@ -402,7 +403,7 @@ const CreateWebinarScreen = () => {
                     style={[styles.datePicker, error && styles.errorBorder]}
                     onPress={showTimePicker}
                   >
-                    <Text style={{ fontSize: 14, color: colors.primary }}>
+                    <Text style={{ fontSize: fp(14), color: colors.primary }}>
                       {value ? value : 'Select start time (24h)'}
                     </Text>
                   </TouchableOpacity>
@@ -439,7 +440,7 @@ const CreateWebinarScreen = () => {
                     {uploading ? (
                       <ActivityIndicator color={colors.primary} />
                     ) : (
-                      <Text style={{ fontSize: 13.5, color: colors.primary }}>
+                      <Text style={{ fontSize: fp(13.5), color: colors.primary }}>
                         {value ? 'Change Thumbnail' : 'Choose Thumbnail'}
                       </Text>
                     )}
@@ -478,7 +479,7 @@ const CreateWebinarScreen = () => {
                     },
                   ]}
                   inputStyle={{
-                    fontSize: 14,
+                    fontSize: fp(14),
                     color: colors.black,
                   }}
                   placeholderTextColor={colors.borderColor}
@@ -508,7 +509,7 @@ const CreateWebinarScreen = () => {
                         },
                       ]}
                       inputStyle={{
-                        fontSize: 14,
+                        fontSize: fp(14),
                         color: colors.black,
                       }}
                       placeholderTextColor={colors.borderColor}
@@ -556,7 +557,7 @@ const CreateWebinarScreen = () => {
                       }}
                     >
                       <CirclePlus
-                        size={30}
+                        size={wp(30)}
                         color={colors.primary}
                         strokeWidth={1.6}
                       />
@@ -610,7 +611,7 @@ const CreateWebinarScreen = () => {
                     },
                   ]}
                   inputStyle={{
-                    fontSize: 14,
+                    fontSize: fp(14),
                     color: colors.black,
                   }}
                   placeholderTextColor={colors.borderColor}
@@ -636,7 +637,7 @@ const CreateWebinarScreen = () => {
                   placeholderStyle={styles.placeholder}
                   selectedTextStyle={styles.selectedText}
                   containerStyle={{
-                    borderRadius: 10,
+                    borderRadius: wp(10),
                   }}
                   data={[
                     { label: 'Published', value: 'PUBLISHED' },
@@ -653,13 +654,13 @@ const CreateWebinarScreen = () => {
                     return (
                       <View
                         style={{
-                          paddingHorizontal: 10,
-                          paddingVertical: 5,
-                          margin: 10,
+                          paddingHorizontal: wp(10),
+                          paddingVertical: hp(5),
+                          margin: wp(10),
                           backgroundColor: isSelected
                             ? colors.primary
                             : colors.white,
-                          borderRadius: 5,
+                          borderRadius: wp(5),
                         }}
                       >
                         <Text
@@ -697,7 +698,7 @@ const CreateWebinarScreen = () => {
                     },
                   ]}
                   inputStyle={{
-                    fontSize: 14,
+                    fontSize: fp(14),
                     color: colors.black,
                   }}
                   placeholderTextColor={colors.borderColor}
@@ -709,7 +710,7 @@ const CreateWebinarScreen = () => {
               )}
             />
 
-            <View style={{ marginHorizontal: 5 }}>
+            <View style={{ marginHorizontal: wp(5) }}>
               <FacingIssues
                 title="facing issues in Webinar creation"
                 messgae="Hello, I need help with webinar creation."
@@ -795,39 +796,39 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    paddingHorizontal: 16,
+    paddingHorizontal: wp(16),
   },
   keyboardWrapper: {
     flex: 1,
   },
   formScroll: {
-    paddingBottom: 24,
+    paddingBottom: hp(24),
   },
   field: {
-    marginTop: 12,
+    marginTop: hp(12),
   },
   label: {
-    fontSize: 13,
-    marginBottom: 6,
+    fontSize: fp(13),
+    marginBottom: hp(6),
     color: '#333',
     fontWeight: '600',
   },
   input: {
-    borderWidth: 1,
+    borderWidth: wp(1),
     borderColor: '#e6e6e6',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 10,
-    fontSize: 15,
+    paddingHorizontal: wp(12),
+    paddingVertical: hp(10),
+    borderRadius: wp(10),
+    fontSize: fp(15),
     color: '#222',
     backgroundColor: '#fff',
   },
   textArea: {
-    borderWidth: 1,
+    borderWidth: wp(1),
     borderColor: '#e6e6e6',
-    borderRadius: 10,
-    paddingLeft: 10,
-    height: 100,
+    borderRadius: wp(10),
+    paddingLeft: wp(10),
+    height: hp(100),
   },
   row: {
     flexDirection: 'row',
@@ -837,62 +838,62 @@ const styles = StyleSheet.create({
   inputWithIcon: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
+    borderWidth: wp(1),
     borderColor: '#e6e6e6',
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    borderRadius: 10,
+    paddingHorizontal: wp(10),
+    paddingVertical: hp(8),
+    borderRadius: wp(10),
     backgroundColor: '#fff',
   },
   inputInside: {
-    marginLeft: 8,
+    marginLeft: wp(8),
     flex: 1,
-    fontSize: 15,
+    fontSize: fp(15),
     color: '#222',
   },
   previewCard: {
-    marginTop: 14,
-    padding: 12,
-    borderRadius: 10,
-    borderWidth: 1,
+    marginTop: hp(14),
+    padding: wp(12),
+    borderRadius: wp(10),
+    borderWidth: wp(1),
     borderColor: '#f0f0f0',
     backgroundColor: colors.white,
   },
   previewTitle: {
     fontWeight: '700',
-    marginBottom: 8,
+    marginBottom: hp(8),
     color: '#333',
   },
   previewRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 6,
+    marginTop: hp(6),
   },
   previewText: {
-    marginLeft: 8,
+    marginLeft: wp(8),
     color: '#555',
-    fontSize: 14,
+    fontSize: fp(14),
   },
   actions: {
-    marginTop: 15,
+    marginTop: hp(15),
     flexDirection: 'row',
-    marginBottom: 25,
+    marginBottom: hp(25),
   },
   cancelButton: {
-    borderWidth: 1,
+    borderWidth: wp(1),
     backgroundColor: colors.white,
-    paddingVertical: 10,
-    paddingHorizontal: 15,
+    paddingVertical: hp(10),
+    paddingHorizontal: wp(15),
   },
   cancelText: {
     color: colors.primary,
     fontWeight: '600',
-    fontSize: 16,
+    fontSize: fp(16),
   },
   primaryText: {
     color: colors.white,
     fontWeight: '600',
-    fontSize: 16,
+    fontSize: fp(16),
   },
   savingRow: {
     flexDirection: 'row',
@@ -900,105 +901,105 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     backgroundColor: colors.primary,
-    borderWidth: 1,
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    borderRadius: 10,
+    borderWidth: wp(1),
+    paddingVertical: hp(10),
+    paddingHorizontal: wp(15),
+    borderRadius: wp(10),
     width: '45%',
     alignItems: 'center',
     justifyContent: 'center',
   },
   cancelBtn: {
-    paddingVertical: 10,
-    borderRadius: 10,
+    paddingVertical: hp(10),
+    borderRadius: wp(10),
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
+    borderWidth: wp(1),
     width: '45%',
   },
   nameFields: {
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    height: 44,
+    borderRadius: wp(10),
+    paddingHorizontal: wp(10),
+    height: hp(44),
     width: '100%',
-    borderWidth: 1,
-    marginBottom: 10,
+    borderWidth: wp(1),
+    marginBottom: hp(10),
   },
   dropdown: {
-    height: 44,
-    borderWidth: 1,
+    height: hp(44),
+    borderWidth: wp(1),
     borderColor: colors.borderColor,
-    borderRadius: 10,
-    paddingHorizontal: 12,
+    borderRadius: wp(10),
+    paddingHorizontal: wp(12),
     justifyContent: 'center',
-    marginBottom: 10,
+    marginBottom: hp(10),
   },
   errorBorder: {
     borderColor: 'red',
   },
   placeholder: {
-    fontSize: 14,
+    fontSize: fp(14),
     color: colors.borderColor,
   },
   selectedText: {
-    fontSize: 14,
+    fontSize: fp(14),
     color: colors.primary,
   },
   datePicker: {
     flex: 1,
     justifyContent: 'center',
-    borderWidth: 1,
-    borderRadius: 10,
-    height: 44,
+    borderWidth: wp(1),
+    borderRadius: wp(10),
+    height: hp(44),
     borderColor: colors.borderColor,
-    paddingLeft: 12,
-    marginBottom: 10,
+    paddingLeft: wp(12),
+    marginBottom: hp(10),
   },
   imagePreview: {
     width: '100%',
-    height: 150,
-    borderRadius: 8,
-    marginTop: 10,
+    height: hp(150),
+    borderRadius: wp(8),
+    marginTop: hp(10),
   },
   tags: {
-    borderWidth: 1,
+    borderWidth: wp(1),
     borderColor: colors.borderColor,
-    borderRadius: 10,
-    height: 44,
-    marginBottom: 10,
+    borderRadius: wp(10),
+    height: hp(44),
+    marginBottom: hp(10),
     justifyContent: 'center',
-    paddingLeft: 12,
+    paddingLeft: wp(12),
   },
   tagsText: {
-    fontSize: 14,
+    fontSize: fp(14),
     color: colors.textSecondary,
   },
   tagsList: {
-    borderWidth: 1,
+    borderWidth: wp(1),
     borderColor: colors.borderColor,
-    marginBottom: 10,
-    padding: 10,
-    borderRadius: 10,
+    marginBottom: hp(10),
+    padding: wp(10),
+    borderRadius: wp(10),
     backgroundColor: colors.white,
     elevation: 5,
-    marginHorizontal: 2,
+    marginHorizontal: wp(2),
   },
   tagsPara: {
-    fontSize: 14,
+    fontSize: fp(14),
     color: colors.black,
-    lineHeight: 26,
+    lineHeight: fp(26),
     fontWeight: '500',
   },
   dropdownContainer: {
-    borderRadius: 8,
+    borderRadius: wp(8),
   },
   selectedItem: {
-    borderRadius: 6,
+    borderRadius: wp(6),
     // backgroundColor: '#000',
   },
   customHeader: {
     flexDirection: 'row',
-    marginBottom: 10,
+    marginBottom: hp(10),
     alignItems: 'center',
     justifyContent: 'space-between',
   },
@@ -1009,29 +1010,29 @@ const styles = StyleSheet.create({
   tagContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginTop: 10,
+    marginTop: hp(10),
   },
 
   tagItem: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.primary,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 20,
-    marginRight: 8,
-    marginBottom: 8,
+    paddingHorizontal: wp(10),
+    paddingVertical: hp(5),
+    borderRadius: wp(20),
+    marginRight: wp(8),
+    marginBottom: hp(8),
   },
 
   tagText: {
     color: colors.white,
-    fontSize: 13,
-    marginRight: 6,
+    fontSize: fp(13),
+    marginRight: wp(6),
   },
 
   removeTag: {
     color: colors.white,
-    fontSize: 14,
+    fontSize: fp(14),
     fontWeight: 'bold',
   },
 });

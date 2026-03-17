@@ -19,6 +19,7 @@ import CourseCard from './component/CourseCard';
 import ButtonSection from './component/ButtonSection';
 import { getAllWebinar } from '../../../../store/WebinarSlice';
 import EnrolledWebinarCard from './component/EnrolledWebinarCard';
+import { wp, hp, fp } from '../../../../utils/responsive';
 
 const UserView: React.FC = () => {
   const dispatch = useDispatch<any>();
@@ -82,9 +83,9 @@ const UserView: React.FC = () => {
 
       <View style={styles.searchContainer}>
         <Search
-          size={18}
+          size={wp(18)}
           color={colors.textSecondary}
-          style={{ marginRight: 8 }}
+          style={{ marginRight: wp(8) }}
         />
         <CustomTextInput
           inputContainerStyle={styles.searchInput}
@@ -109,7 +110,7 @@ const UserView: React.FC = () => {
                   item.id || item._id,
                 );
                 return (
-                  <View style={{ paddingHorizontal: 5 }}>
+                  <View style={{ paddingHorizontal: wp(5) }}>
                     <CourseCard
                       item={item}
                       isEnrolled={isEnrolled}
@@ -120,7 +121,7 @@ const UserView: React.FC = () => {
                 );
               }}
               showsVerticalScrollIndicator={false}
-              contentContainerStyle={{ paddingBottom: 200 }}
+              contentContainerStyle={{ paddingBottom: hp(200) }}
               ListEmptyComponent={
                 <View style={styles.emptyState}>
                   <Text style={styles.emptyText}>No courses found</Text>
@@ -134,7 +135,7 @@ const UserView: React.FC = () => {
           data={webinarData}
           keyExtractor={item => item?.id}
           renderItem={({ item }) => (
-            <View style={{marginHorizontal: 12}}>
+            <View style={{marginHorizontal: wp(12)}}>
               <EnrolledWebinarCard item={item} />
             </View>
           )}
@@ -153,47 +154,47 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
   },
   hero: {
-    padding: 20,
-    paddingBottom: 10,
+    padding: wp(20),
+    paddingBottom: hp(10),
   },
   heroHeading: {
-    fontSize: 28,
+    fontSize: fp(28),
     fontWeight: '800',
     color: colors.text,
   },
   section: {
-    paddingHorizontal: 16,
+    paddingHorizontal: wp(16),
   },
   sectionHeading: {
-    fontSize: 18,
+    fontSize: fp(18),
     fontWeight: '600',
-    marginBottom: 14,
+    marginBottom: hp(14),
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.surface,
-    borderRadius: 16,
-    marginBottom: 12,
-    marginHorizontal: 20,
-    paddingHorizontal: 12,
+    borderRadius: wp(16),
+    marginBottom: hp(12),
+    marginHorizontal: wp(20),
+    paddingHorizontal: wp(12),
     elevation: 5,
   },
   searchInput: {
     flex: 1,
   },
   emptyState: {
-    padding: 40,
+    padding: wp(40),
     alignItems: 'center',
   },
   emptyText: {
     color: colors.textSecondary,
-    fontSize: 16,
+    fontSize: fp(16),
   },
   tabBtn: {
-    paddingVertical: 8,
-    paddingHorizontal: 18,
-    borderRadius: 20,
+    paddingVertical: hp(8),
+    paddingHorizontal: wp(18),
+    borderRadius: wp(20),
     backgroundColor: '#F2F2F2',
   },
   activeTabBtn: {
@@ -201,7 +202,7 @@ const styles = StyleSheet.create({
   },
   tabText: {
     color: '#555',
-    fontSize: 14,
+    fontSize: fp(14),
     fontWeight: '500',
   },
   activeTabText: {
@@ -209,8 +210,8 @@ const styles = StyleSheet.create({
   },
   buttonHeader: {
     flexDirection: 'row',
-    marginHorizontal: 20,
-    gap: 12,
-    marginVertical: 10,
+    marginHorizontal: wp(20),
+    gap: wp(12),
+    marginVertical: hp(10),
   },
 });

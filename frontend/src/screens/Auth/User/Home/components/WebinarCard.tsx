@@ -3,6 +3,7 @@ import React from 'react';
 import { Calendar, Clock, User, Tag } from 'lucide-react-native';
 import colors from '../../../../../utils/colors';
 import { useNavigation } from '@react-navigation/native';
+import { wp, hp, fp } from '../../../../../utils/responsive';
 
 const WebinarCard = ({ data }) => {
   const navigation = useNavigation<any>();
@@ -12,7 +13,7 @@ const WebinarCard = ({ data }) => {
     if (words.length <= 3) return text;
     return words.slice(0, 3).join(' ') + '...';
   };
-  
+
   return (
     <TouchableOpacity
       style={styles.card}
@@ -30,26 +31,26 @@ const WebinarCard = ({ data }) => {
         <Text style={styles.title}>{limitToWords(data?.title)}</Text>
 
         <View style={styles.row}>
-          <User size={16} color={colors.textSecondary} />
+          <User size={wp(16)} color={colors.textSecondary} />
           <Text style={styles.creator}>{data?.creator?.name}</Text>
         </View>
 
         <View style={styles.row}>
-          <Calendar size={16} color={colors.textSecondary} />
+          <Calendar size={wp(16)} color={colors.textSecondary} />
           <Text style={styles.metaText}>
             {new Date(data?.scheduled_at).toDateString()}
           </Text>
         </View>
 
         <View style={styles.row}>
-          <Clock size={16} color={colors.textSecondary} />
+          <Clock size={wp(16)} color={colors.textSecondary} />
           <Text style={styles.metaText}>{data?.duration} mins</Text>
         </View>
 
         <View style={styles.tagContainer}>
           {data?.tags?.map((tag, i) => (
             <View key={i} style={styles.tag}>
-              <Tag size={12} color={colors.white} />
+              <Tag size={wp(12)} color={colors.white} />
               <Text style={styles.tagText}>{tag}</Text>
             </View>
           ))}
@@ -66,8 +67,8 @@ export default WebinarCard;
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.white,
-    borderRadius: 14,
-    marginVertical: 12,
+    borderRadius: wp(14),
+    marginVertical: hp(12),
     elevation: 5,
     shadowColor: '#000',
     shadowOpacity: 0.1,
@@ -80,64 +81,64 @@ const styles = StyleSheet.create({
 
   thumbnail: {
     width: '100%',
-    height: 160,
+    height: hp(160),
     backgroundColor: colors.lightGrey,
   },
 
   content: {
-    padding: 14,
+    padding: wp(14),
   },
 
   title: {
-    fontSize: 18,
+    fontSize: fp(18),
     fontWeight: '700',
     color: colors.text,
-    marginBottom: 6,
+    marginBottom: hp(6),
   },
 
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 4,
-    gap: 6,
+    marginBottom: hp(4),
+    gap: wp(6),
   },
 
   creator: {
     color: colors.textSecondary,
-    fontSize: 14,
+    fontSize: fp(14),
   },
 
   metaText: {
     color: colors.textSecondary,
-    fontSize: 13,
+    fontSize: fp(13),
   },
 
   tagContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 6,
-    marginVertical: 8,
+    gap: wp(6),
+    marginVertical: hp(8),
   },
 
   tag: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: wp(4),
     backgroundColor: colors.secPrimary,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 20,
+    paddingHorizontal: wp(10),
+    paddingVertical: hp(4),
+    borderRadius: wp(20),
   },
 
   tagText: {
     color: colors.white,
-    fontSize: 12,
+    fontSize: fp(12),
     fontWeight: '600',
   },
 
   price: {
-    marginTop: 4,
-    fontSize: 18,
+    marginTop: hp(4),
+    fontSize: fp(18),
     fontWeight: '700',
     color: colors.primary,
   },

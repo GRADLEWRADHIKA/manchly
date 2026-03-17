@@ -7,6 +7,7 @@ import {
   StatusBar as RNStatusBar,
 } from 'react-native';
 import colors from '../../utils/colors';
+import { wp, hp, fp } from '../../utils/responsive';
 import ChooseType from './components/ChooseType';
 import VerifyLogin from './components/VerifyLogin';
 import SignUp from './components/SignUp';
@@ -58,15 +59,15 @@ const styles = StyleSheet.create({
 
   title: {
     color: colors.white,
-    fontSize: 26,
+    fontSize: fp(26),
     fontWeight: '600',
   },
 
   mainHeader: {
     backgroundColor: 'grey',
-    borderTopLeftRadius: 50,
-    borderTopRightRadius: 50,
-    paddingTop: 20,
-    paddingHorizontal: 20,
+    borderTopLeftRadius: wp(50),
+    borderTopRightRadius: wp(50),
+    paddingTop: hp(20),
+    paddingHorizontal: wp(20),
   },
 });

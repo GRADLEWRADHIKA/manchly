@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import React from 'react';
 import colors from '../../utils/colors';
+import { wp, hp, fp } from '../../utils/responsive';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MoveRight } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -60,25 +61,25 @@ const styles = StyleSheet.create({
     height: '20%',
   },
   mainHeader: {
-    borderWidth: 1,
+    borderWidth: wp(1),
     borderColor: colors.white,
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    marginHorizontal: 20,
-    borderRadius: 20,
+    paddingHorizontal: wp(20),
+    paddingVertical: hp(15),
+    marginHorizontal: wp(20),
+    borderRadius: wp(20),
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
   mainTop: {
-    fontSize: 16,
+    fontSize: fp(16),
     color: colors.white,
     fontWeight: '500',
   },
   botPara: {
-    fontSize: 20,
+    fontSize: fp(20),
     color: colors.white,
-    marginHorizontal: 20,
-    marginTop: 20,
+    marginHorizontal: wp(20),
+    marginTop: hp(20),
     textAlign: 'center',
     fontWeight: '500',
   },

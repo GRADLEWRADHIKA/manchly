@@ -17,6 +17,7 @@ import Toast from 'react-native-toast-message';
 import { OtpInput } from 'react-native-otp-entry';
 
 import colors from '../../utils/colors';
+import { wp, hp, fp } from '../../utils/responsive';
 import { verifyOtp } from '../../store/UserSlice';
 
 const OTPScreen: React.FC = () => {
@@ -79,7 +80,7 @@ const OTPScreen: React.FC = () => {
           <ArrowLeft size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Verify Phone</Text>
-        <View style={{ width: 40 }} />
+        <View style={{ width: wp(40) }} />
       </View>
 
       {/* CONTENT */}
@@ -175,48 +176,48 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 16,
+    padding: wp(16),
   },
   backButton: {
-    padding: 6,
+    padding: wp(6),
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: fp(18),
     fontWeight: '600',
     color: colors.text,
   },
   content: {
     // flex: 1,
-    paddingHorizontal: 24,
+    paddingHorizontal: wp(24),
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 120,
+    marginTop: hp(120),
   },
   iconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: wp(80),
+    height: wp(80),
+    borderRadius: wp(40),
     backgroundColor: `${colors.primary}20`,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: hp(32),
   },
   title: {
-    fontSize: 24,
+    fontSize: fp(24),
     fontWeight: '700',
     color: colors.text,
-    marginBottom: 8,
+    marginBottom: hp(8),
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: fp(16),
     color: colors.textSecondary,
-    marginBottom: 24,
+    marginBottom: hp(24),
     textAlign: 'center',
   },
   userTypeText: {
-    fontSize: 14,
+    fontSize: fp(14),
     color: colors.textSecondary,
-    marginBottom: 16,
+    marginBottom: hp(16),
   },
   userTypeValue: {
     fontWeight: '600',
@@ -227,41 +228,41 @@ const styles = StyleSheet.create({
   otpWrapper: {
     width: '100%',
     justifyContent: 'space-between',
-    marginBottom: 16,
+    marginBottom: hp(16),
   },
   otpBox: {
-    width: 48,
-    height: 56,
-    borderWidth: 1,
-    borderRadius: 10,
+    width: wp(48),
+    height: hp(56),
+    borderWidth: wp(1),
+    borderRadius: wp(10),
     backgroundColor: colors.white,
   },
   otpText: {
-    fontSize: 20,
+    fontSize: fp(20),
     fontWeight: '600',
     color: colors.text,
   },
   errorText: {
     color: 'red',
-    marginBottom: 12,
+    marginBottom: hp(12),
   },
 
   verifyButton: {
     width: '100%',
-    paddingVertical: 16,
-    borderRadius: 12,
+    paddingVertical: hp(16),
+    borderRadius: wp(12),
     alignItems: 'center',
-    marginTop: 12,
+    marginTop: hp(12),
   },
   verifyButtonText: {
     color: colors.white,
-    fontSize: 16,
+    fontSize: fp(16),
     fontWeight: '600',
   },
 
   helpText: {
-    marginTop: 20,
-    fontSize: 14,
+    marginTop: hp(20),
+    fontSize: fp(14),
     color: colors.textSecondary,
   },
   demoCode: {

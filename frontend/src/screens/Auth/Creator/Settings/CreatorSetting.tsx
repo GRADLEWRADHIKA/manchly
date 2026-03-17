@@ -10,6 +10,7 @@ import {
   Linking,
 } from 'react-native';
 import colors from '../../../../utils/colors';
+import { wp, hp, fp } from '../../../../utils/responsive';
 import {
   User2,
   ChevronRight,
@@ -33,14 +34,14 @@ const CreatorSetting: React.FC = () => {
   const insets = useSafeAreaInsets();
 
   const RightChevron = (
-    <ChevronRight size={18} color={colors.textSecondary} />
+    <ChevronRight size={wp(18)} color={colors.textSecondary} />
   );
 
   return (
     <View style={styles.container}>
       <RNStatusBar barStyle="light-content" backgroundColor={colors.primary} />
 
-      <View style={[styles.mainHeader, { paddingTop: insets.top + 10 }]} />
+      <View style={[styles.mainHeader, { paddingTop: insets.top + hp(10) }]} />
 
       <View style={styles.header}>
         <View style={styles.greetingWrap}>
@@ -90,7 +91,7 @@ const CreatorSetting: React.FC = () => {
                 });
             }}
           >
-            <Headset size={20} />
+            <Headset size={wp(20)} />
             <Text style={styles.topCardText}>Help & Support</Text>
           </TouchableOpacity>
 
@@ -125,14 +126,14 @@ const CreatorSetting: React.FC = () => {
                 });
             }}
           >
-            <Megaphone size={20} />
+            <Megaphone size={wp(20)} />
             <Text style={styles.topCardText}>Contact for Marketing</Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.withdrawCard}>
           <View style={styles.withdrawLeft}>
-            <View style={{ marginLeft: 12 }}>
+            <View style={{ marginLeft: wp(12) }}>
               <Text style={styles.withdrawLabel}>Withdrawable Balance</Text>
               <Text style={styles.withdrawAmount}>₹ *****</Text>
             </View>
@@ -151,7 +152,7 @@ const CreatorSetting: React.FC = () => {
           >
             <View style={styles.rowLeft}>
               <View style={styles.rowIcon}>
-                <User2 size={20} color={colors.text} />
+                <User2 size={wp(20)} color={colors.text} />
               </View>
               <Text style={styles.rowText}>My Profile</Text>
             </View>
@@ -168,7 +169,7 @@ const CreatorSetting: React.FC = () => {
           >
             <View style={styles.rowLeft}>
               <View style={styles.rowIcon}>
-                <LogOut size={20} color={colors.error} />
+                <LogOut size={wp(20)} color={colors.error} />
               </View>
               <Text style={styles.logoutText}>Logout</Text>
             </View>
@@ -203,8 +204,8 @@ const styles = StyleSheet.create({
 
   header: {
     backgroundColor: colors.primary,
-    paddingBottom: 18,
-    paddingHorizontal: 16,
+    paddingBottom: hp(18),
+    paddingHorizontal: wp(16),
   },
 
   greetingWrap: {
@@ -213,16 +214,16 @@ const styles = StyleSheet.create({
   },
 
   avatar: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
+    width: wp(54),
+    height: hp(54),
+    borderRadius: wp(27),
     backgroundColor: '#ffffff33',
-    marginRight: 12,
+    marginRight: wp(12),
   },
 
   greetingText: {
     color: colors.white,
-    fontSize: 22,
+    fontSize: fp(22),
     fontWeight: '700',
   },
 
@@ -232,26 +233,26 @@ const styles = StyleSheet.create({
   },
 
   scrollContent: {
-    paddingBottom: 24,
+    paddingBottom: hp(24),
   },
 
   topCardWrapper: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    marginTop: 20,
-    marginBottom: 10,
+    paddingHorizontal: wp(16),
+    marginTop: hp(20),
+    marginBottom: hp(10),
   },
 
   topCard: {
     width: '48%',
     borderColor: colors.border,
-    paddingVertical: 15,
-    paddingHorizontal: 10,
-    borderRadius: 8,
+    paddingVertical: hp(15),
+    paddingHorizontal: wp(10),
+    borderRadius: wp(8),
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: wp(8),
     backgroundColor: colors.white,
     elevation: 5,
     justifyContent: 'center'
@@ -259,7 +260,7 @@ const styles = StyleSheet.create({
 
   topCardText: {
     color: colors.text,
-    fontSize: 14,
+    fontSize: fp(14),
   },
 
   section: {
@@ -270,8 +271,8 @@ const styles = StyleSheet.create({
   },
 
   row: {
-    paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingHorizontal: wp(16),
+    paddingVertical: hp(16),
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -286,32 +287,32 @@ const styles = StyleSheet.create({
   },
 
   rowIcon: {
-    width: 28,
+    width: wp(28),
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: wp(12),
   },
 
   rowText: {
-    fontSize: 16,
+    fontSize: fp(16),
     color: colors.text,
   },
 
   logoutText: {
-    fontSize: 16,
+    fontSize: fp(16),
     color: colors.error,
   },
 
   withdrawCard: {
-    marginTop: 12,
+    marginTop: hp(12),
     backgroundColor: colors.white,
-    borderRadius: 12,
-    padding: 12,
+    borderRadius: wp(12),
+    padding: wp(12),
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginHorizontal: 16,
+    marginHorizontal: wp(16),
     elevation: 5,
-    marginBottom: 20,
+    marginBottom: hp(20),
   },
   withdrawLeft: {
     flexDirection: 'row',
@@ -323,15 +324,15 @@ const styles = StyleSheet.create({
   },
   withdrawAmount: {
     color: colors.primary,
-    marginTop: 2,
-    fontSize: 18,
+    marginTop: hp(2),
+    fontSize: fp(18),
     fontWeight: '900',
   },
   withdrawBtn: {
     backgroundColor: colors.primary,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 10,
+    paddingVertical: hp(8),
+    paddingHorizontal: wp(14),
+    borderRadius: wp(10),
   },
   withdrawBtnText: {
     fontWeight: '800',

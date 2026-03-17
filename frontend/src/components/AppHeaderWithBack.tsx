@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { ArrowLeft } from 'lucide-react-native';
 import colors from '../utils/colors';
+import { wp, hp, fp } from '../utils/responsive';
 import { useSelector } from 'react-redux';
 
 const AppHeaderWithBack = ({ title }) => {
@@ -16,7 +17,7 @@ const AppHeaderWithBack = ({ title }) => {
       style={[
         styles.container,
         {
-          paddingTop: insets.top + 10,
+          paddingTop: insets.top + hp(10),
           backgroundColor:
             user?.user_type === 'USER' ? colors.secPrimary : colors.primary,
         },
@@ -28,7 +29,7 @@ const AppHeaderWithBack = ({ title }) => {
           onPress={() => navigation.goBack()}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <ArrowLeft color="#fff" size={24} />
+          <ArrowLeft color="#fff" size={wp(24)} />
         </TouchableOpacity>
 
         <Text style={styles.title}>
@@ -46,17 +47,17 @@ const styles = StyleSheet.create({
     // backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingBottom: 14,
+    paddingBottom: hp(14),
   },
   backButton: {
     position: 'absolute',
-    left: 16,
+    left: wp(16),
     top: '50%',
     transform: [{ translateY: -12 }],
   },
   title: {
     color: '#fff',
-    fontSize: 22,
+    fontSize: fp(22),
     fontWeight: '700',
   },
   mainHeader: {

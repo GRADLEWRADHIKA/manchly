@@ -18,30 +18,31 @@ import {
   MessageCircleQuestion,
   LogOut,
 } from 'lucide-react-native';
+import { wp, hp, fp } from '../../../../utils/responsive';
 
 const settingsItems = [
   {
     title: 'Lock Direct Message',
     subtitle: 'Make your direct message locked',
-    icon: <Lock size={22} color={colors.black} />,
+    icon: <Lock size={wp(22)} color={colors.black} />,
     onPress: () => console.log('Lock Direct Message'),
   },
   {
     title: 'FAQs',
     subtitle: 'Have a doubt about Manchly? Use our FAQ guide to solve them',
-    icon: <HelpCircle size={22} color={colors.black} />,
+    icon: <HelpCircle size={wp(22)} color={colors.black} />,
     onPress: () => console.log('FAQs'),
   },
   {
     title: 'Upload your Invoice Details',
     subtitle: 'Sign and enter GST details.',
-    icon: <FileText size={22} color={colors.black} />,
+    icon: <FileText size={wp(22)} color={colors.black} />,
     onPress: () => console.log('Upload Invoice Details'),
   },
   {
     title: 'Need help?',
     subtitle: 'Get in touch with team Manchly',
-    icon: <MessageCircleQuestion size={22} color={colors.black} />,
+    icon: <MessageCircleQuestion size={wp(22)} color={colors.black} />,
     onPress: () => console.log('Need Help'),
   }
 ];
@@ -77,30 +78,30 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
   },
   scrollContainer: {
-    paddingVertical: 8,
+    paddingVertical: hp(8),
   },
   item: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 20,
+    paddingVertical: hp(16),
+    paddingHorizontal: wp(20),
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.border,
   },
   icon: {
-    marginRight: 16,
+    marginRight: wp(16),
   },
   textContainer: {
     flex: 1,
   },
   title: {
-    fontSize: 16,
+    fontSize: fp(16),
     fontWeight: '600',
     color: colors.black,
   },
   subtitle: {
-    fontSize: 13,
+    fontSize: fp(13),
     color: colors.muted,
-    marginTop: 2,
+    marginTop: hp(2),
   },
 });

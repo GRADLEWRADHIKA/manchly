@@ -18,6 +18,7 @@ import {
 } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 import colors from '../../../utils/colors';
+import { wp, hp, fp } from '../../../utils/responsive';
 import AppHeader from '../../../components/AppHeader';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -185,7 +186,7 @@ const WalletCreator = () => {
         style={[
           styles.mainHeader,
           {
-            paddingTop: insets.top + 10,
+            paddingTop: insets.top + hp(10),
           },
         ]}
       >
@@ -200,7 +201,7 @@ const WalletCreator = () => {
         </ImageBackground>
       </View>
 
-      <View style={{ padding: 16 }}>
+      <View style={{ padding: wp(16) }}>
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Wallet</Text>
@@ -227,7 +228,7 @@ const WalletCreator = () => {
         <View style={styles.withdrawCard}>
           <View style={styles.withdrawLeft}>
             {/* <DollarSign width={22} height={22} color="#fff" /> */}
-            <View style={{ marginLeft: 12 }}>
+            <View style={{ marginLeft: wp(12) }}>
               <Text style={styles.withdrawLabel}>Withdrawable Balance</Text>
               <Text style={styles.withdrawAmount}>
                 ₹****
@@ -285,33 +286,33 @@ const styles = StyleSheet.create({
     // backgroundColor: '#fff',
   },
   header: {
-    marginBottom: 12,
+    marginBottom: hp(12),
   },
   headerTitle: {
-    fontSize: 22,
+    fontSize: fp(22),
     fontWeight: '800',
     color: '#111',
   },
   headerSub: {
-    marginTop: 4,
+    marginTop: hp(4),
     color: '#666',
   },
 
   statsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 12,
-    marginBottom: 14,
+    gap: wp(12),
+    marginBottom: hp(14),
   },
   statCard: {
     flex: 1,
     backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 12,
+    borderRadius: wp(12),
+    padding: wp(12),
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: '#eee',
-    marginRight: 8,
-    minHeight: 92,
+    marginRight: wp(8),
+    minHeight: hp(92),
     justifyContent: 'space-between',
     shadowColor: '#000',
     shadowOpacity: 0.03,
@@ -320,23 +321,23 @@ const styles = StyleSheet.create({
   },
   statTop: { flexDirection: 'row', alignItems: 'center' },
   statIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
+    width: wp(36),
+    height: wp(36),
+    borderRadius: wp(10),
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#F6FBFF',
-    marginRight: 10,
+    marginRight: wp(10),
   },
   statLabel: { fontWeight: '700' },
-  statValue: { marginTop: 6, fontSize: 18, fontWeight: '800', color: '#111' },
-  statSub: { marginTop: 4, color: '#666', fontSize: 12 },
+  statValue: { marginTop: hp(6), fontSize: fp(18), fontWeight: '800', color: '#111' },
+  statSub: { marginTop: hp(4), color: '#666', fontSize: fp(12) },
 
   withdrawCard: {
-    marginTop: 12,
+    marginTop: hp(12),
     backgroundColor: colors.white,
-    borderRadius: 12,
-    padding: 12,
+    borderRadius: wp(12),
+    padding: wp(12),
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -346,45 +347,45 @@ const styles = StyleSheet.create({
   withdrawLabel: { color: colors.primary, fontWeight: '700' },
   withdrawAmount: {
     color: colors.primary,
-    marginTop: 2,
-    fontSize: 18,
+    marginTop: hp(2),
+    fontSize: fp(18),
     fontWeight: '900',
   },
   withdrawBtn: {
     backgroundColor: colors.primary,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 10,
+    paddingVertical: hp(8),
+    paddingHorizontal: wp(14),
+    borderRadius: wp(10),
   },
   withdrawBtnDisabled: { opacity: 0.6 },
   withdrawBtnText: { fontWeight: '800', color: colors.white },
 
   txListHeader: {
     flexDirection: 'row',
-    marginTop: 16,
+    marginTop: hp(16),
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    marginBottom: hp(8),
   },
-  txListTitle: { fontWeight: '800', fontSize: 16 },
+  txListTitle: { fontWeight: '800', fontSize: fp(16) },
   txListSub: { color: '#888' },
 
   txList: {
-    paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+    paddingBottom: Platform.OS === 'ios' ? hp(40) : hp(24),
   },
   txRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: hp(12),
   },
   txLeft: {
-    width: 40,
+    width: wp(40),
     alignItems: 'center',
   },
   txBadge: {
-    width: 38,
-    height: 38,
-    borderRadius: 10,
+    width: wp(38),
+    height: wp(38),
+    borderRadius: wp(10),
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -392,17 +393,17 @@ const styles = StyleSheet.create({
   withdrawBadge: { backgroundColor: '#fceaea' },
   txBadgeText: { fontWeight: '800', color: '#333' },
 
-  txMiddle: { flex: 1, paddingHorizontal: 8 },
+  txMiddle: { flex: 1, paddingHorizontal: wp(8) },
   txTitle: { fontWeight: '700' },
-  txMeta: { color: '#777', marginTop: 4, fontSize: 12 },
+  txMeta: { color: '#777', marginTop: hp(4), fontSize: fp(12) },
 
   txRight: { alignItems: 'flex-end' },
   txAmount: { fontWeight: '800' },
   txAmountPositive: { color: '#116530' },
   txAmountNegative: { color: '#8b0000' },
 
-  sep: { height: 1, backgroundColor: '#f2f2f2', marginVertical: 6 },
-  empty: { textAlign: 'center', color: '#888', marginTop: 20 },
+  sep: { height: hp(1), backgroundColor: '#f2f2f2', marginVertical: hp(6) },
+  empty: { textAlign: 'center', color: '#888', marginTop: hp(20) },
   mainHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -418,14 +419,14 @@ const styles = StyleSheet.create({
   },
   headerContent: {
     alignItems: 'center',
-    paddingVertical: 17,
+    paddingVertical: hp(17),
   },
-  mainHead: { flexDirection: 'row', gap: 5, alignItems: 'center' },
-  firstPara: { color: colors.primary, fontSize: 14, fontWeight: '400' },
-  secPara: { color: colors.primary, fontSize: 16, fontWeight: '600' },
+  mainHead: { flexDirection: 'row', gap: wp(5), alignItems: 'center' },
+  firstPara: { color: colors.primary, fontSize: fp(14), fontWeight: '400' },
+  secPara: { color: colors.primary, fontSize: fp(16), fontWeight: '600' },
   greetingText: {
     color: colors.primary,
-    fontSize: 22,
+    fontSize: fp(22),
     fontWeight: '700',
   },
 });

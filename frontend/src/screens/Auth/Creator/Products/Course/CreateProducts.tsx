@@ -10,6 +10,7 @@ import {
   ScrollView,
 } from 'react-native';
 import colors from '../../../../../utils/colors';
+import { wp, hp, fp } from '../../../../../utils/responsive';
 import AppHeaderWithBack from '../../../../../components/AppHeaderWithBack';
 import {
   Lock,
@@ -95,7 +96,7 @@ const CreateProducts = () => {
         { width: tileSize, height: tileSize, backgroundColor: item.bg },
       ]}
     >
-      <item.Icon size={34} color="#fff" />
+      <item.Icon size={wp(34)} color="#fff" />
       <Text style={styles.tileText}>{item.title}</Text>
     </Pressable>
   );
@@ -104,7 +105,7 @@ const CreateProducts = () => {
     <View style={styles.container}>
       <AppHeaderWithBack title="Create" />
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: hp(24) }}>
         {/* Banner */}
         <TouchableOpacity
           activeOpacity={0.8}
@@ -143,11 +144,11 @@ const styles = StyleSheet.create({
   },
   banner: {
     backgroundColor: '#6A1B9A', // purple strip like the screenshot
-    marginHorizontal: 16,
-    marginTop: 12,
-    borderRadius: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 14,
+    marginHorizontal: wp(16),
+    marginTop: hp(12),
+    borderRadius: wp(12),
+    paddingVertical: hp(14),
+    paddingHorizontal: wp(14),
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.12,
@@ -156,19 +157,19 @@ const styles = StyleSheet.create({
   },
   bannerText: {
     color: '#FFFFFF',
-    fontSize: 14.5,
-    lineHeight: 20,
+    fontSize: fp(14.5),
+    lineHeight: fp(20),
     fontWeight: '600',
   },
   gridWrap: {
-    marginTop: 14,
-    paddingHorizontal: 16,
+    marginTop: hp(14),
+    paddingHorizontal: wp(16),
   },
   tile: {
-    borderRadius: 18,
+    borderRadius: wp(18),
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 12,
+    padding: wp(12),
     // soft shadow
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 3 },
@@ -180,8 +181,8 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     textAlign: 'center',
     fontWeight: '700',
-    marginTop: 10,
-    fontSize: 12.5,
-    lineHeight: 16,
+    marginTop: hp(10),
+    fontSize: fp(12.5),
+    lineHeight: fp(16),
   },
 });

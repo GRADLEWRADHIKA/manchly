@@ -19,6 +19,7 @@ import ButtonSection from '../Products/component/ButtonSection';
 import PurchaseCoursCard from './component/PurchaseCoursCard';
 import PurchaseWebinarCard from './component/PurchaseWebinarCard';
 import { getEnrolledWebinar } from '../../../../store/WebinarSlice';
+import { wp, hp, fp } from '../../../../utils/responsive';
 
 const PurchasesScreen = () => {
   const dispatch = useDispatch<any>();
@@ -109,7 +110,7 @@ const PurchasesScreen = () => {
     <View style={styles.container}>
       <AppHeader title="My Purchases" />
 
-      <View style={{ marginTop: 10 }}>
+      <View style={{ marginTop: hp(10) }}>
         <ButtonSection setActive={setActive} active={active} />
       </View>
 
@@ -119,7 +120,7 @@ const PurchasesScreen = () => {
           keyExtractor={item =>
             item?.id?.toString() || Math.random().toString()
           }
-          contentContainerStyle={{ padding: 16, paddingBottom: 120 }}
+          contentContainerStyle={{ padding: wp(16), paddingBottom: hp(120) }}
           renderItem={({ item }) => {
             const transaction = transactions?.find(
               (t: any) =>
@@ -147,7 +148,7 @@ const PurchasesScreen = () => {
               <ActivityIndicator
                 size="large"
                 color={colors.primary}
-                style={{ padding: 20 }}
+                style={{ padding: wp(20) }}
               />
             ) : null
           }
@@ -171,40 +172,40 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-    marginTop: 12,
-    fontSize: 14,
+    marginTop: hp(12),
+    fontSize: fp(14),
     color: colors.textSecondary,
   },
 
   emptyContainer: {
     flex: 1,
     alignItems: 'center',
-    marginTop: 80,
-    paddingHorizontal: 40,
+    marginTop: hp(80),
+    paddingHorizontal: wp(40),
   },
   emptyText: {
-    fontSize: 18,
+    fontSize: fp(18),
     fontWeight: '600',
     color: colors.text,
-    marginTop: 16,
+    marginTop: hp(16),
     textAlign: 'center',
   },
   emptySubtext: {
-    fontSize: 14,
+    fontSize: fp(14),
     color: colors.textSecondary,
-    marginTop: 8,
+    marginTop: hp(8),
     textAlign: 'center',
   },
   browseBtn: {
     backgroundColor: colors.primary,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 10,
-    marginTop: 20,
+    paddingVertical: hp(12),
+    paddingHorizontal: wp(24),
+    borderRadius: wp(10),
+    marginTop: hp(20),
   },
   browseText: {
     color: '#fff',
     fontWeight: '700',
-    fontSize: 15,
+    fontSize: fp(15),
   },
 });

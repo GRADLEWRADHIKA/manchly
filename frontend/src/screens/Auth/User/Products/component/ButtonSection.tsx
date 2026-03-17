@@ -1,6 +1,7 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import React from 'react';
 import colors from '../../../../../utils/colors';
+import { wp, hp, fp } from '../../../../../utils/responsive';
 
 const ButtonSection = ({ setActive, active }) => {
   return (
@@ -35,14 +36,14 @@ export default ButtonSection;
 const styles = StyleSheet.create({
   buttonHeader: {
     flexDirection: 'row',
-    marginHorizontal: 20,
-    gap: 12,
-    marginVertical: 10,
+    marginHorizontal: wp(20),
+    gap: wp(12),
+    marginVertical: hp(10),
   },
   tabBtn: {
-    paddingVertical: 8,
-    paddingHorizontal: 18,
-    borderRadius: 20,
+    paddingVertical: hp(8),
+    paddingHorizontal: wp(18),
+    borderRadius: wp(20),
     backgroundColor: colors.lightGrey,
   },
   activeTabBtn: {
@@ -50,7 +51,7 @@ const styles = StyleSheet.create({
   },
   tabText: {
     color: colors.primary,
-    fontSize: 14,
+    fontSize: fp(14),
     fontWeight: '500',
   },
   activeTabText: {

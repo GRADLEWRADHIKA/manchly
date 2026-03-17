@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import colors from '../utils/colors';
+import { wp, hp, fp } from '../utils/responsive';
 import { useSelector } from 'react-redux';
 
 const AppHeader = ({ title = 'Manchly' }) => {
@@ -13,7 +14,7 @@ const AppHeader = ({ title = 'Manchly' }) => {
       style={[
         styles.container,
         {
-          paddingTop: insets.top + 10,
+          paddingTop: insets.top + hp(10),
           backgroundColor:
             user?.user_type === 'USER'
               ? colors.secPrimary
@@ -31,11 +32,11 @@ export default AppHeader;
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-    paddingBottom: 14,
+    paddingBottom: hp(14),
   },
   title: {
     color: '#fff',
-    fontSize: 22,
+    fontSize: fp(22),
     fontWeight: '700',
   },
 });

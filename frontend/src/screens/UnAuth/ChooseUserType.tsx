@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { User, Star, X, Check } from 'lucide-react-native';
 import colors from '../../utils/colors';
+import { wp, hp, fp } from '../../utils/responsive';
 
 type UserType = 'USER' | 'CREATOR' | null;
 
@@ -131,8 +132,8 @@ const styles = StyleSheet.create({
   container: {
     width: '88%',
     backgroundColor: colors.surface,
-    borderRadius: 16,
-    padding: 20,
+    borderRadius: wp(16),
+    padding: wp(20),
   },
   header: {
     flexDirection: 'row',
@@ -140,26 +141,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontSize: 18,
+    fontSize: fp(18),
     fontWeight: '700',
     color: colors.text,
   },
   subtitle: {
-    marginTop: 6,
-    fontSize: 13,
+    marginTop: hp(6),
+    fontSize: fp(13),
     color: colors.textSecondary,
   },
   optionsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 20,
+    marginTop: hp(20),
   },
   optionCard: {
     width: '48%',
-    borderWidth: 1,
+    borderWidth: wp(1),
     borderColor: colors.border,
-    borderRadius: 14,
-    padding: 16,
+    borderRadius: wp(14),
+    padding: wp(16),
     alignItems: 'center',
     backgroundColor: colors.white,
   },
@@ -168,14 +169,14 @@ const styles = StyleSheet.create({
     borderColor: colors.secPrimary,
   },
   optionTitle: {
-    marginTop: 10,
-    fontSize: 16,
+    marginTop: hp(10),
+    fontSize: fp(16),
     fontWeight: '600',
     color: colors.text,
   },
   optionDesc: {
-    marginTop: 4,
-    fontSize: 12,
+    marginTop: hp(4),
+    fontSize: fp(12),
     textAlign: 'center',
     color: colors.textSecondary,
   },
@@ -183,14 +184,14 @@ const styles = StyleSheet.create({
     color: colors.white,
   },
   confirmButton: {
-    marginTop: 22,
+    marginTop: hp(22),
     backgroundColor: colors.primary,
-    paddingVertical: 14,
-    borderRadius: 12,
+    paddingVertical: hp(14),
+    borderRadius: wp(12),
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 8,
+    gap: wp(8),
   },
   disabledButton: {
     backgroundColor: colors.muted,
@@ -198,6 +199,6 @@ const styles = StyleSheet.create({
   confirmText: {
     color: colors.white,
     fontWeight: '600',
-    fontSize: 15,
+    fontSize: fp(15),
   },
 });

@@ -12,6 +12,7 @@ import {
 import { MessageCircle, UserIcon } from 'lucide-react-native';
 import AppHeader from '../../../../components/AppHeader';
 import colors from '../../../../utils/colors';
+import { wp, hp, fp } from '../../../../utils/responsive';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import { useSelector } from 'react-redux';
@@ -64,7 +65,7 @@ const CreatorChat = () => {
         <Image source={{ uri: item.avatar }} style={styles.avatar} />
       ) : (
         <View style={styles.avatarPlaceholder}>
-          <MessageCircle size={20} color="#fff" />
+          <MessageCircle size={wp(20)} color="#fff" />
         </View>
       )}
 
@@ -96,7 +97,7 @@ const CreatorChat = () => {
       <RNStatusBar barStyle="light-content" />
       <AppHeader title="Chats" />
 
-      <Text style={{ marginTop: 200, textAlign: 'center' }}>This feature is currently under development.</Text>
+      <Text style={{ marginTop: hp(200), textAlign: 'center' }}>This feature is currently under development.</Text>
 
       {/* <FlatList
         data={chatUsers}
@@ -117,25 +118,25 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   listContent: {
-    paddingVertical: 8,
+    paddingVertical: hp(8),
   },
   chatRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: wp(16),
+    paddingVertical: hp(12),
   },
   avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    marginRight: 12,
+    width: wp(48),
+    height: hp(48),
+    borderRadius: wp(24),
+    marginRight: wp(12),
   },
   avatarPlaceholder: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    marginRight: 12,
+    width: wp(48),
+    height: hp(48),
+    borderRadius: wp(24),
+    marginRight: wp(12),
     backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
@@ -147,16 +148,16 @@ const styles = StyleSheet.create({
   chatHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 4,
+    marginBottom: hp(4),
   },
   name: {
-    fontSize: 16,
+    fontSize: fp(16),
     fontWeight: '600',
     flexShrink: 1,
     color: '#111',
   },
   time: {
-    fontSize: 12,
+    fontSize: fp(12),
     color: '#888',
   },
   chatFooter: {
@@ -165,30 +166,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   lastMessage: {
-    fontSize: 14,
+    fontSize: fp(14),
     color: '#666',
     flexShrink: 1,
     flex: 1,
-    marginRight: 8,
+    marginRight: wp(8),
   },
   unreadBadge: {
     backgroundColor: colors.primary,
-    borderRadius: 10,
-    minWidth: 20,
-    height: 20,
-    paddingHorizontal: 6,
+    borderRadius: wp(10),
+    minWidth: wp(20),
+    height: hp(20),
+    paddingHorizontal: wp(6),
     justifyContent: 'center',
     alignItems: 'center',
   },
   unreadText: {
     color: '#fff',
-    fontSize: 12,
+    fontSize: fp(12),
     fontWeight: 'bold',
   },
   separator: {
     height: StyleSheet.hairlineWidth,
     backgroundColor: '#EAEAEA',
-    marginLeft: 76, // indent so it doesn't cross avatar
+    marginLeft: wp(76), // indent so it doesn't cross avatar
   },
   mainHeader: {
     flexDirection: 'row',
@@ -205,14 +206,14 @@ const styles = StyleSheet.create({
   },
   headerContent: {
     alignItems: 'center',
-    paddingVertical: 17,
+    paddingVertical: hp(17),
   },
-  mainHead: { flexDirection: 'row', gap: 5, alignItems: 'center' },
-  firstPara: { color: colors.primary, fontSize: 14, fontWeight: '400' },
-  secPara: { color: colors.primary, fontSize: 16, fontWeight: '600' },
+  mainHead: { flexDirection: 'row', gap: wp(5), alignItems: 'center' },
+  firstPara: { color: colors.primary, fontSize: fp(14), fontWeight: '400' },
+  secPara: { color: colors.primary, fontSize: fp(16), fontWeight: '600' },
   greetingText: {
     color: colors.primary,
-    fontSize: 22,
+    fontSize: fp(22),
     fontWeight: '700',
   },
 });

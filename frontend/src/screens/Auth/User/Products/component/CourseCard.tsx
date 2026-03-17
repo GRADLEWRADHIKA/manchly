@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import colors from '../../../../../utils/colors';
 import { Users, Clock, Play, BookOpen, Star } from 'lucide-react-native';
+import { wp, hp, fp } from '../../../../../utils/responsive';
 
 interface CourseCardProps {
   item: any;
@@ -38,7 +39,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
             <Image source={{ uri: thumbnailUrl }} style={styles.courseThumbnail} />
           ) : (
             <View style={styles.placeholderThumbnail}>
-              <BookOpen size={40} color={colors.textSecondary} />
+              <BookOpen size={wp(40)} color={colors.textSecondary} />
             </View>
           )}
 
@@ -56,7 +57,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
           </Text>
 
           <View style={styles.ratingContainer}>
-            <Star size={14} color="#FFD700" fill="#FFD700" />
+            <Star size={wp(14)} color="#FFD700" fill="#FFD700" />
             <Text style={styles.ratingText}>{rating}</Text>
           </View>
         </View>
@@ -67,17 +68,17 @@ const CourseCard: React.FC<CourseCardProps> = ({
 
         <View style={styles.metaRow}>
           <View style={styles.metaItem}>
-            <Users size={14} color={colors.textSecondary} />
+            <Users size={wp(14)} color={colors.textSecondary} />
             <Text style={styles.metaText}>{studentsCount}</Text>
           </View>
 
           <View style={styles.metaItem}>
-            <Play size={14} color={colors.textSecondary} />
+            <Play size={wp(14)} color={colors.textSecondary} />
             <Text style={styles.metaText}>{videosCount}</Text>
           </View>
 
           <View style={styles.metaItem}>
-            <Clock size={14} color={colors.textSecondary} />
+            <Clock size={wp(14)} color={colors.textSecondary} />
             <Text style={styles.metaText}>{duration}</Text>
           </View>
         </View>
@@ -128,75 +129,75 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     backgroundColor: colors.surface,
-    borderRadius: 20,
+    borderRadius: wp(20),
     overflow: 'hidden',
     elevation: 5,
-    marginBottom: 16,
+    marginBottom: hp(16),
   },
   mediaContainer: { position: 'relative' },
   thumbnailContainer: { position: 'relative' },
-  courseThumbnail: { width: '100%', height: 180 },
+  courseThumbnail: { width: '100%', height: hp(180) },
   placeholderThumbnail: {
     width: '100%',
-    height: 180,
+    height: hp(180),
     backgroundColor: colors.surface,
     justifyContent: 'center',
     alignItems: 'center',
   },
   levelBadge: {
     position: 'absolute',
-    top: 10,
-    left: 10,
+    top: hp(10),
+    left: wp(10),
     backgroundColor: '#00000099',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
+    paddingHorizontal: wp(8),
+    paddingVertical: hp(4),
+    borderRadius: wp(8),
   },
-  levelText: { color: '#fff', fontSize: 12, fontWeight: '600' },
-  cardBody: { padding: 16 },
+  levelText: { color: '#fff', fontSize: fp(12), fontWeight: '600' },
+  cardBody: { padding: wp(16) },
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 6,
+    marginBottom: hp(6),
   },
   title: {
-    fontSize: 16,
+    fontSize: fp(16),
     fontWeight: '700',
     flex: 1,
     color: colors.text,
-    marginRight: 10,
+    marginRight: wp(10),
   },
   ratingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFD70022',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 6,
+    paddingHorizontal: wp(6),
+    paddingVertical: hp(2),
+    borderRadius: wp(6),
   },
-  ratingText: { fontSize: 12, fontWeight: '600', marginLeft: 2 },
-  instructor: { fontSize: 14, color: colors.textSecondary, marginBottom: 10 },
-  metaRow: { flexDirection: 'row', marginBottom: 12 },
-  metaItem: { flexDirection: 'row', alignItems: 'center', marginRight: 12 },
-  metaText: { marginLeft: 4, color: colors.textSecondary },
+  ratingText: { fontSize: fp(12), fontWeight: '600', marginLeft: wp(2) },
+  instructor: { fontSize: fp(14), color: colors.textSecondary, marginBottom: hp(10) },
+  metaRow: { flexDirection: 'row', marginBottom: hp(12) },
+  metaItem: { flexDirection: 'row', alignItems: 'center', marginRight: wp(12) },
+  metaText: { marginLeft: wp(4), color: colors.textSecondary },
   footerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  priceText: { fontSize: 18, fontWeight: '700', color: colors.primary },
-  enrolledText: { color: colors.success, fontSize: 14 },
+  priceText: { fontSize: fp(18), fontWeight: '700', color: colors.primary },
+  enrolledText: { color: colors.success, fontSize: fp(14) },
   buttonGroup: { flexDirection: 'row' },
   button: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 12,
-    marginLeft: 8,
+    paddingHorizontal: wp(16),
+    paddingVertical: hp(8),
+    borderRadius: wp(12),
+    marginLeft: wp(8),
   },
   primaryButton: {},
   primaryButtonText: { color: colors.white, fontWeight: '600' },
   outlineButton: {
-    borderWidth: 1,
+    borderWidth: wp(1),
     borderColor: colors.border,
   },
   outlineButtonText: { color: colors.text, fontWeight: '600' },

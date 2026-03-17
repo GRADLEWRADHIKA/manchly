@@ -16,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { ArrowRight } from 'lucide-react-native';
 import colors from '../../utils/colors';
+import { wp, hp, fp } from '../../utils/responsive';
 import { Controller, useForm } from 'react-hook-form';
 import CustomTextInput from '../../components/CustomInput';
 import { useDispatch } from 'react-redux';
@@ -274,7 +275,7 @@ const LoginScreen: React.FC = () => {
                     },
                   ]}
                   inputStyle={{
-                    fontSize: 16,
+                    fontSize: fp(16),
                     color: colors.black,
                   }}
                   placeholderTextColor={colors.borderColor}
@@ -353,73 +354,73 @@ const styles = StyleSheet.create({
   },
   content: {
     // flex: 1,
-    paddingHorizontal: 24,
+    paddingHorizontal: wp(24),
     justifyContent: 'space-between',
   },
   logoSection: {
     alignItems: 'center',
-    paddingTop: 40,
+    paddingTop: hp(40),
   },
   logoContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: wp(100),
+    height: wp(100),
+    borderRadius: wp(50),
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: hp(12),
     shadowColor: '#000',
     shadowOpacity: 0.08,
     shadowRadius: 8,
     elevation: 4,
   },
   logoText: {
-    fontSize: 20,
+    fontSize: fp(20),
     fontWeight: '700',
     color: '#ffffff',
   },
   tagline: {
-    fontSize: 14,
+    fontSize: fp(14),
     color: colors.textSecondary,
     textAlign: 'center',
     fontWeight: '500',
   },
   formSection: {
     justifyContent: 'center',
-    marginTop: 60,
+    marginTop: hp(60),
   },
   title: {
-    fontSize: 24,
+    fontSize: fp(24),
     fontWeight: '700',
     color: colors.text,
     textAlign: 'center',
-    marginBottom: 6,
+    marginBottom: hp(6),
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: fp(14),
     color: colors.textSecondary,
     textAlign: 'center',
-    marginBottom: 18,
+    marginBottom: hp(18),
   },
   segmentWrapper: {
     alignItems: 'center',
-    marginBottom: 18,
+    marginBottom: hp(18),
   },
   segmentBackground: {
     width: '90%',
     flexDirection: 'row',
     backgroundColor: colors.surface,
-    borderRadius: 12,
+    borderRadius: wp(12),
     overflow: 'hidden',
     position: 'relative',
   },
   segmentButton: {
     flex: 1,
-    paddingVertical: 12,
+    paddingVertical: hp(12),
     justifyContent: 'center',
     alignItems: 'center',
   },
   segmentText: {
-    fontSize: 14,
+    fontSize: fp(14),
     color: colors.textSecondary,
     fontWeight: '600',
   },
@@ -432,19 +433,19 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     backgroundColor: colors.primary,
-    borderRadius: 12,
+    borderRadius: wp(12),
     opacity: 0.12,
   },
   inputContainer: {
-    marginBottom: 24,
+    marginBottom: hp(24),
   },
   continueButton: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 12,
-    paddingVertical: 14,
-    marginBottom: 16,
+    borderRadius: wp(12),
+    paddingVertical: hp(14),
+    marginBottom: hp(16),
   },
   continueButtonActive: {
     backgroundColor: colors.primary,
@@ -455,20 +456,20 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   continueButtonText: {
-    fontSize: 16,
+    fontSize: fp(16),
     fontWeight: '600',
     color: colors.muted,
-    marginRight: 8,
+    marginRight: wp(8),
   },
   continueButtonTextActive: {
     color: '#ffffff',
   },
   termsText: {
-    fontSize: 13,
+    fontSize: fp(13),
     color: colors.textSecondary,
     textAlign: 'center',
-    lineHeight: 18,
-    marginBottom: 8,
+    lineHeight: fp(18),
+    marginBottom: hp(8),
   },
   linkText: {
     color: colors.primary,
@@ -478,28 +479,28 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 50,
+    marginTop: hp(50),
   },
   dontHaveAccount: {
-    fontSize: 14,
+    fontSize: fp(14),
     color: colors.textSecondary,
   },
   createAccountText: {
-    fontSize: 14,
+    fontSize: fp(14),
     color: colors.primary,
     fontWeight: '600',
   },
   featuresSection: {
-    paddingBottom: 30,
+    paddingBottom: hp(30),
   },
   nameFields: {
-    borderRadius: 12,
-    paddingHorizontal: 10,
-    height: 44,
+    borderRadius: wp(12),
+    paddingHorizontal: wp(10),
+    height: hp(44),
     width: '100%',
     backgroundColor: colors.white,
-    borderWidth: 1,
-    marginBottom: 20,
+    borderWidth: wp(1),
+    marginBottom: hp(20),
   },
   image: {},
 });

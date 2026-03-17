@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import React, { useState } from 'react';
 import colors from '../utils/colors';
+import { wp, hp, fp } from '../utils/responsive';
 // import EyeIcon from './EyeIcon';
 // import EyeHideIcon from './EyeHideIcon';
 //   import SearchIcon from './SearchIcon';
@@ -112,21 +113,21 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 56,
+    height: hp(56),
   },
   textInput: {
-    fontSize: 14,
-    marginTop: 2,
+    fontSize: fp(14),
+    marginTop: hp(2),
     color: colors.black
 
   },
   searchIcon: {
     position: 'absolute',
-    fontSize: 20,
-    left: 10,
+    fontSize: fp(20),
+    left: wp(10),
   },
   placeholder: {
     color: colors.black,
-    fontSize: 14
+    fontSize: fp(14)
   }
 });

@@ -29,6 +29,7 @@ import { ThunkDispatch } from '@reduxjs/toolkit';
 import { logout } from '../../../../store/UserSlice';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
+import { wp, hp, fp } from '../../../../utils/responsive';
 
 const UserSetting: React.FC = () => {
   const [logoutVisible, setLogoutVisible] = useState(false);
@@ -37,12 +38,12 @@ const UserSetting: React.FC = () => {
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
   const insets = useSafeAreaInsets();
 
-  const RightChevron = <ChevronRight size={18} color={colors.textSecondary} />;
+  const RightChevron = <ChevronRight size={wp(18)} color={colors.textSecondary} />;
 
   return (
     <View style={styles.container}>
       <RNStatusBar barStyle="light-content" backgroundColor={colors.primary} />
-      <View style={[styles.mainHeader, { paddingTop: insets.top + 10 }]} />
+      <View style={[styles.mainHeader, { paddingTop: insets.top + hp(10) }]} />
 
       <View
         style={[
@@ -65,7 +66,7 @@ const UserSetting: React.FC = () => {
 
       <ScrollView
         style={styles.body}
-        contentContainerStyle={{ paddingBottom: 24 }}
+        contentContainerStyle={{ paddingBottom: hp(24) }}
       >
         <View style={styles.section}>
 
@@ -101,21 +102,21 @@ const UserSetting: React.FC = () => {
                       });
                     });
                 }} >
-                <Headset size={20} />
+                <Headset size={wp(20)} />
                 <Text style={styles.topCardText}>Help & Support</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={[styles.topCard, { marginTop: 10 }]} activeOpacity={0.9}>
-                <GraduationCap size={25} strokeWidth={1.5} />
+              <TouchableOpacity style={[styles.topCard, { marginTop: hp(10) }]} activeOpacity={0.9}>
+                <GraduationCap size={wp(25)} strokeWidth={1.5} />
                 <Text style={styles.topCardText}>My Learning</Text>
               </TouchableOpacity>
             </View>
             <View style={styles.mainHeaderCard}>
-              <View style={{ alignItems: 'center', gap: 8 }}>
-                <Notebook size={20} />
+              <View style={{ alignItems: 'center', gap: wp(8) }}>
+                <Notebook size={wp(20)} />
                 <Text>About</Text>
               </View>
-              <Text style={{ marginTop: 10, textAlign: 'center', fontSize: 12, color: colors.textSecondary }}>
+              <Text style={{ marginTop: hp(10), textAlign: 'center', fontSize: fp(12), color: colors.textSecondary }}>
                 Learn more about our app, features, and community.
               </Text>
             </View>
@@ -130,7 +131,7 @@ const UserSetting: React.FC = () => {
           >
             <View style={styles.rowLeft}>
               <View style={styles.rowIcon}>
-                <User2 size={20} color={colors.text} />
+                <User2 size={wp(20)} color={colors.text} />
               </View>
               <Text style={styles.rowText}>My Profile</Text>
             </View>
@@ -147,7 +148,7 @@ const UserSetting: React.FC = () => {
           >
             <View style={styles.rowLeft}>
               <View style={styles.rowIcon}>
-                <LogOut size={20} color={colors.error} />
+                <LogOut size={wp(20)} color={colors.error} />
               </View>
               <Text style={[styles.rowText, { color: colors.error }]}>
                 Logout
@@ -177,42 +178,42 @@ export default UserSetting;
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.white },
   header: {
-    paddingBottom: 18,
-    paddingHorizontal: 16,
+    paddingBottom: hp(18),
+    paddingHorizontal: wp(16),
   },
   headerTitle: {
     textAlign: 'center',
     color: '#fff',
-    fontSize: 22,
+    fontSize: fp(22),
     fontWeight: '800',
     letterSpacing: 1,
-    marginBottom: 16,
+    marginBottom: hp(16),
   },
   greetingWrap: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   avatar: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
+    width: wp(54),
+    height: hp(54),
+    borderRadius: wp(27),
     backgroundColor: '#ffffff33',
-    marginRight: 12,
+    marginRight: wp(12),
   },
   greetingText: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: fp(18),
     fontWeight: '700',
   },
 
   body: { flex: 1, backgroundColor: colors.white },
 
   sectionHeader: {
-    fontSize: 14,
+    fontSize: fp(14),
     color: colors.textSecondary,
-    paddingHorizontal: 16,
-    paddingTop: 20,
-    paddingBottom: 8,
+    paddingHorizontal: wp(16),
+    paddingTop: hp(20),
+    paddingBottom: hp(8),
   },
 
   section: {
@@ -223,8 +224,8 @@ const styles = StyleSheet.create({
   },
 
   row: {
-    paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingHorizontal: wp(16),
+    paddingVertical: hp(16),
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -237,59 +238,59 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   rowIcon: {
-    width: 28,
+    width: wp(28),
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: wp(12),
   },
   rowText: {
-    fontSize: 16,
+    fontSize: fp(16),
     color: colors.text,
   },
   rowTextContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: wp(8),
   },
   kycStatusText: {
-    fontSize: 12,
+    fontSize: fp(12),
     color: 'green',
     fontWeight: '600',
   },
 
   badge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingHorizontal: wp(10),
+    paddingVertical: hp(4),
     backgroundColor: '#ff2d55',
-    borderRadius: 999,
+    borderRadius: wp(999),
   },
   badgeText: {
     color: '#fff',
-    fontSize: 11,
+    fontSize: fp(11),
     fontWeight: '700',
   },
 
   version: {
-    paddingHorizontal: 16,
-    paddingTop: 18,
-    fontSize: 13,
+    paddingHorizontal: wp(16),
+    paddingTop: hp(18),
+    fontSize: fp(13),
     color: colors.textSecondary,
   },
   topCardWrapper: {
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    marginTop: 20,
-    marginBottom: 10,
+    paddingHorizontal: wp(16),
+    marginTop: hp(20),
+    marginBottom: hp(10),
     flexDirection: 'row',
   },
 
   topCard: {
     borderColor: colors.border,
-    paddingVertical: 20,
-    paddingHorizontal: 10,
-    borderRadius: 8,
+    paddingVertical: hp(20),
+    paddingHorizontal: wp(10),
+    borderRadius: wp(8),
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: wp(8),
     backgroundColor: colors.white,
     elevation: 5,
     justifyContent: 'center'
@@ -297,7 +298,7 @@ const styles = StyleSheet.create({
 
   topCardText: {
     color: colors.text,
-    fontSize: 16,
+    fontSize: fp(16),
   },
 
   mainHeader: {
@@ -306,10 +307,10 @@ const styles = StyleSheet.create({
   mainHeaderCard: {
     width: '48%',
     borderColor: colors.border,
-    borderRadius: 8,
+    borderRadius: wp(8),
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 20,
+    paddingVertical: hp(20),
     elevation: 5,
     backgroundColor: colors.white,
   }

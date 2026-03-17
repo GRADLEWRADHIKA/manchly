@@ -19,6 +19,7 @@ import {
 } from 'lucide-react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import colors from '../../../../utils/colors';
+import { wp, hp, fp } from '../../../../utils/responsive';
 import KycCard from './KeyCard';
 import { useSelector } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -35,22 +36,22 @@ const CreatorHome = () => {
     {
       label: 'Active Courses',
       value: '0',
-      icon: <BookOpen size={26} color={colors.primary} />,
+      icon: <BookOpen size={wp(26)} color={colors.primary} />,
     },
     {
       label: 'Students',
       value: '0',
-      icon: <Users size={26} color={colors.secondary} />,
+      icon: <Users size={wp(26)} color={colors.secondary} />,
     },
     {
       label: 'Completion Rate',
       value: '0%',
-      icon: <Award size={26} color={colors.accent} />,
+      icon: <Award size={wp(26)} color={colors.accent} />,
     },
     {
       label: 'Revenue',
       value: '₹0',
-      icon: <TrendingUp size={26} color={colors.golden} />,
+      icon: <TrendingUp size={wp(26)} color={colors.golden} />,
     },
   ];
 
@@ -61,7 +62,7 @@ const CreatorHome = () => {
       <View
         style={[
           styles.mainHeader,
-          { paddingTop: insets.top + 10, backgroundColor: colors.primary },
+          { paddingTop: insets.top + hp(10), backgroundColor: colors.primary },
         ]}
       >
         <LinearGradient
@@ -93,7 +94,7 @@ const CreatorHome = () => {
               </View>
             </View>
 
-            <BellDot size={22} color={colors.primary} />
+            <BellDot size={wp(22)} color={colors.primary} />
           </View>
         </LinearGradient>
       </View>
@@ -141,7 +142,7 @@ const CreatorHome = () => {
                   { backgroundColor: `${colors.primary}20` },
                 ]}
               >
-                <Play size={24} color={colors.primary} />
+                <Play size={wp(24)} color={colors.primary} />
               </View>
               <Text style={styles.actionTitle}>Start Live</Text>
               <Text style={styles.actionSubtitle}>Go live instantly</Text>
@@ -168,7 +169,7 @@ const CreatorHome = () => {
                   { backgroundColor: `${colors.secondary}20` },
                 ]}
               >
-                <BookOpen size={24} color={colors.secondary} />
+                <BookOpen size={wp(24)} color={colors.secondary} />
               </View>
               <Text style={styles.actionTitle}>Create Course</Text>
               <Text style={styles.actionSubtitle}>Build new content</Text>
@@ -187,7 +188,7 @@ const CreatorHome = () => {
           </TouchableOpacity>
         </View>
 
-        <View style={{ height: 30 }} />
+        <View style={{ height: hp(30) }} />
       </ScrollView>
     </View>
   );
@@ -205,45 +206,45 @@ const styles = StyleSheet.create({
   },
 
   headerBg: {
-    paddingVertical: 12,
+    paddingVertical: hp(12),
   },
 
   headerContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
+    paddingHorizontal: wp(16),
     alignItems: 'center',
   },
 
   mainHead: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: wp(12),
   },
 
   avatar: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
+    width: wp(54),
+    height: hp(54),
+    borderRadius: wp(27),
     backgroundColor: colors.primary,
   },
 
   secPara: {
-    fontSize: 16,
+    fontSize: fp(16),
     fontWeight: '700',
     color: colors.primary,
   },
 
   firstPara: {
-    fontSize: 13,
+    fontSize: fp(13),
     color: colors.primary,
   },
 
   sectionTitle: {
-    fontSize: 22,
+    fontSize: fp(22),
     fontWeight: '700',
     textAlign: 'center',
-    marginVertical: 20,
+    marginVertical: hp(20),
     color: colors.text,
   },
 
@@ -251,43 +252,43 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
+    paddingHorizontal: wp(16),
   },
 
   statCard: {
     width: '48%',
-    borderRadius: 20,
-    paddingVertical: 22,
-    marginBottom: 16,
+    borderRadius: wp(20),
+    paddingVertical: hp(22),
+    marginBottom: hp(16),
     alignItems: 'center',
     elevation: 6,
   },
 
   iconWrapper: {
-    width: 50,
-    height: 50,
-    borderRadius: 26,
+    width: wp(50),
+    height: hp(50),
+    borderRadius: wp(26),
     backgroundColor: '#ffffff',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: hp(12),
     elevation: 3,
   },
 
   statValue: {
-    fontSize: 22,
+    fontSize: fp(22),
     fontWeight: '800',
     color: colors.text,
   },
 
   statLabel: {
-    fontSize: 13,
+    fontSize: fp(13),
     color: colors.textSecondary,
-    marginTop: 4,
+    marginTop: hp(4),
   },
 
   actionsSection: {
-    padding: 16,
+    padding: wp(16),
   },
 
   actionsGrid: {
@@ -297,42 +298,42 @@ const styles = StyleSheet.create({
   actionCard: {
     flex: 1,
     backgroundColor: colors.surface,
-    borderRadius: 18,
-    padding: 20,
+    borderRadius: wp(18),
+    padding: wp(20),
     alignItems: 'center',
     elevation: 4,
   },
 
   actionCardRight: {
-    marginRight: 12,
+    marginRight: wp(12),
   },
 
   actionIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: wp(48),
+    height: hp(48),
+    borderRadius: wp(24),
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: hp(12),
   },
 
   actionTitle: {
-    fontSize: 16,
+    fontSize: fp(16),
     fontWeight: '700',
     color: colors.text,
   },
 
   actionSubtitle: {
-    fontSize: 12,
+    fontSize: fp(12),
     color: colors.textSecondary,
   },
 
   withdrawCard: {
-    marginHorizontal: 16,
-    marginTop: 10,
+    marginHorizontal: wp(16),
+    marginTop: hp(10),
     backgroundColor: colors.white,
-    borderRadius: 14,
-    padding: 14,
+    borderRadius: wp(14),
+    padding: wp(14),
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -346,16 +347,16 @@ const styles = StyleSheet.create({
 
   withdrawAmount: {
     color: colors.primary,
-    fontSize: 18,
+    fontSize: fp(18),
     fontWeight: '900',
-    marginTop: 2,
+    marginTop: hp(2),
   },
 
   withdrawBtn: {
     backgroundColor: colors.primary,
-    paddingHorizontal: 18,
-    paddingVertical: 8,
-    borderRadius: 10,
+    paddingHorizontal: wp(18),
+    paddingVertical: hp(8),
+    borderRadius: wp(10),
   },
 
   withdrawBtnText: {

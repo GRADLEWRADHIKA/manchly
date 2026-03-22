@@ -127,7 +127,7 @@ const CreatorSetting: React.FC = () => {
             }}
           >
             <Megaphone size={wp(20)} />
-            <Text style={styles.topCardText}>Contact for Marketing</Text>
+            <Text style={styles.topCardText}>Marketing Contact</Text>
           </TouchableOpacity>
         </View>
 

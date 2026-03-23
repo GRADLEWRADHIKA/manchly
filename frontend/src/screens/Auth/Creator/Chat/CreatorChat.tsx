@@ -1,102 +1,101 @@
 import React from 'react';
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import {
-  StyleSheet,
-  Text,
-  View,
-  TouchableOpacity,
-  FlatList,
-  Image,
-  ImageBackground,
-} from 'react-native';
-import { MessageCircle, UserIcon } from 'lucide-react-native';
-import AppHeader from '../../../../components/AppHeader';
+  MessageCircle,
+  Search,
+  Send,
+  Users,
+  Sparkles,
+} from 'lucide-react-native';
 import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
-import { useSelector } from 'react-redux';
-
-type ChatUser = {
-  id: string;
-  name: string;
-  avatar?: string;
-  lastMessage: string;
-  time: string;
-  unread?: number;
-};
-
-const chatUsers: ChatUser[] = [
-  {
-    id: 'u1',
-    name: 'John Doe',
-    avatar: 'https://i.pravatar.cc/150?img=3',
-    lastMessage: 'Hey! How are you?',
-    time: '2:18 PM',
-    unread: 2,
-  },
-  {
-    id: 'u2',
-    name: 'Sarah Smith',
-    avatar: 'https://i.pravatar.cc/150?img=5',
-    lastMessage: 'Meeting confirmed for 5 PM.',
-    time: '1:10 PM',
-  },
-  {
-    id: 'u3',
-    name: 'Michael Lee',
-    lastMessage: 'Awesome, let’s do it.',
-    time: 'Yesterday',
-  },
-];
 
 const CreatorChat = () => {
   const insets = useSafeAreaInsets();
-  const { user } = useSelector((state: any) => state.userReducer);
-
-
-  const renderItem = ({ item }: { item: ChatUser }) => (
-    <TouchableOpacity
-      style={styles.chatRow}
-      onPress={() => {}}
-    >
-      {/* Avatar */}
-      {item.avatar ? (
-        <Image source={{ uri: item.avatar }} style={styles.avatar} />
-      ) : (
-        <View style={styles.avatarPlaceholder}>
-          <MessageCircle size={wp(20)} color="#fff" />
-        </View>
-      )}
-
-      {/* User Info */}
-      <View style={styles.chatInfo}>
-        <View style={styles.chatHeader}>
-          <Text style={styles.name} numberOfLines={1}>
-            {item.name}
-          </Text>
-          <Text style={styles.time}>{item.time}</Text>
-        </View>
-
-        <View style={styles.chatFooter}>
-          <Text style={styles.lastMessage} numberOfLines={1}>
-            {item.lastMessage}
-          </Text>
-          {item.unread ? (
-            <View style={styles.unreadBadge}>
-              <Text style={styles.unreadText}>{item.unread}</Text>
-            </View>
-          ) : null}
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
 
   return (
     <View style={styles.container}>
-      <AppHeader title="Chats" />
+      {/* Header */}
+      <View style={[styles.headerWrapper, { paddingTop: insets.top }]}>
+        <LinearGradient
+          colors={[colors.gradientStart, colors.gradientEnd]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.header}
+        >
+          <View style={styles.headerRow}>
+            <Text style={styles.headerTitle}>Chats</Text>
+            <TouchableOpacity style={styles.searchBtn}>
+              <Search size={wp(20)} color={colors.primary} />
+            </TouchableOpacity>
+          </View>
+        </LinearGradient>
+      </View>
 
-      <Text style={{ marginTop: hp(200), textAlign: 'center' }}>This feature is currently under development.</Text>
+      {/* Coming Soon Content */}
+      <View style={styles.content}>
+        {/* Illustration area */}
+        <View style={styles.illustrationWrap}>
+          <View style={styles.iconCircleOuter}>
+            <View style={styles.iconCircleInner}>
+              <MessageCircle size={wp(40)} color={colors.primary} />
+            </View>
+          </View>
+          <View style={styles.floatingBadge1}>
+            <Send size={wp(14)} color={colors.info} />
+          </View>
+          <View style={styles.floatingBadge2}>
+            <Sparkles size={wp(14)} color={colors.golden} />
+          </View>
+        </View>
 
+        <Text style={styles.comingTitle}>Chat is Coming Soon</Text>
+        <Text style={styles.comingDesc}>
+          Connect directly with your students, answer questions, and build your
+          community — all within the app.
+        </Text>
+
+        {/* Feature preview cards */}
+        <View style={styles.featureList}>
+          <View style={styles.featureCard}>
+            <View style={[styles.featureIcon, { backgroundColor: '#EEF2FF' }]}>
+              <MessageCircle size={wp(18)} color={colors.info} />
+            </View>
+            <View style={styles.featureText}>
+              <Text style={styles.featureTitle}>Direct Messaging</Text>
+              <Text style={styles.featureDesc}>
+                1-on-1 chat with your enrolled students
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.featureCard}>
+            <View style={[styles.featureIcon, { backgroundColor: '#ECFDF5' }]}>
+              <Users size={wp(18)} color={colors.accent} />
+            </View>
+            <View style={styles.featureText}>
+              <Text style={styles.featureTitle}>Group Discussions</Text>
+              <Text style={styles.featureDesc}>
+                Create course-specific group chats
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.featureCard}>
+            <View style={[styles.featureIcon, { backgroundColor: '#FEF3C7' }]}>
+              <Send size={wp(18)} color={colors.golden} />
+            </View>
+            <View style={styles.featureText}>
+              <Text style={styles.featureTitle}>Broadcast Updates</Text>
+              <Text style={styles.featureDesc}>
+                Send announcements to all your students
+              </Text>
+            </View>
+          </View>
+        </View>
+      </View>
     </View>
   );
 };
@@ -106,105 +105,153 @@ export default CreatorChat;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: colors.surface,
   },
-  listContent: {
-    paddingVertical: hp(8),
-  },
-  chatRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: wp(16),
-    paddingVertical: hp(12),
-  },
-  avatar: {
-    width: wp(48),
-    height: hp(48),
-    borderRadius: wp(24),
-    marginRight: wp(12),
-  },
-  avatarPlaceholder: {
-    width: wp(48),
-    height: hp(48),
-    borderRadius: wp(24),
-    marginRight: wp(12),
+  headerWrapper: {
     backgroundColor: colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
-  chatInfo: {
-    flex: 1,
-    justifyContent: 'center',
+  header: {
+    paddingHorizontal: wp(20),
+    paddingVertical: hp(14),
   },
-  chatHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: hp(4),
-  },
-  name: {
-    fontSize: fp(16),
-    fontWeight: '600',
-    flexShrink: 1,
-    color: '#111',
-  },
-  time: {
-    fontSize: fp(12),
-    color: '#888',
-  },
-  chatFooter: {
+  headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  lastMessage: {
-    fontSize: fp(14),
-    color: '#666',
-    flexShrink: 1,
-    flex: 1,
-    marginRight: wp(8),
-  },
-  unreadBadge: {
-    backgroundColor: colors.primary,
-    borderRadius: wp(10),
-    minWidth: wp(20),
-    height: hp(20),
-    paddingHorizontal: wp(6),
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  unreadText: {
-    color: '#fff',
-    fontSize: fp(12),
-    fontWeight: 'bold',
-  },
-  separator: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: '#EAEAEA',
-    marginLeft: wp(76), // indent so it doesn't cross avatar
-  },
-  mainHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    // paddingHorizontal: 16,
-    // paddingBottom: 16,
-    backgroundColor: colors.primary,
-  },
-  headerBg: {
-    width: '100%',
-    // paddingTop: 10,
-    // paddingBottom: 16,
-  },
-  headerContent: {
-    alignItems: 'center',
-    paddingVertical: hp(17),
-  },
-  mainHead: { flexDirection: 'row', gap: wp(5), alignItems: 'center' },
-  firstPara: { color: colors.primary, fontSize: fp(14), fontWeight: '400' },
-  secPara: { color: colors.primary, fontSize: fp(16), fontWeight: '600' },
-  greetingText: {
-    color: colors.primary,
+  headerTitle: {
     fontSize: fp(22),
+    fontWeight: '800',
+    color: colors.primary,
+  },
+  searchBtn: {
+    width: wp(38),
+    height: wp(38),
+    borderRadius: wp(19),
+    backgroundColor: 'rgba(0,0,0,0.06)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  // Content
+  content: {
+    flex: 1,
+    alignItems: 'center',
+    paddingHorizontal: wp(24),
+    paddingTop: hp(36),
+  },
+
+  // Illustration
+  illustrationWrap: {
+    position: 'relative',
+    marginBottom: hp(24),
+  },
+  iconCircleOuter: {
+    width: wp(100),
+    height: wp(100),
+    borderRadius: wp(50),
+    backgroundColor: colors.lightGrey,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  iconCircleInner: {
+    width: wp(72),
+    height: wp(72),
+    borderRadius: wp(36),
+    backgroundColor: colors.white,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 3,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+  },
+  floatingBadge1: {
+    position: 'absolute',
+    top: hp(2),
+    right: -wp(6),
+    width: wp(32),
+    height: wp(32),
+    borderRadius: wp(16),
+    backgroundColor: colors.white,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 4,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  floatingBadge2: {
+    position: 'absolute',
+    bottom: hp(2),
+    left: -wp(6),
+    width: wp(32),
+    height: wp(32),
+    borderRadius: wp(16),
+    backgroundColor: colors.white,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 4,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+
+  comingTitle: {
+    fontSize: fp(22),
+    fontWeight: '800',
+    color: colors.text,
+    textAlign: 'center',
+    marginBottom: hp(8),
+  },
+  comingDesc: {
+    fontSize: fp(14),
+    color: colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: fp(20),
+    marginBottom: hp(28),
+    paddingHorizontal: wp(8),
+  },
+
+  // Feature cards
+  featureList: {
+    width: '100%',
+    gap: hp(10),
+  },
+  featureCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.white,
+    borderRadius: wp(14),
+    padding: wp(14),
+    elevation: 2,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+  },
+  featureIcon: {
+    width: wp(42),
+    height: wp(42),
+    borderRadius: wp(12),
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: wp(14),
+  },
+  featureText: {
+    flex: 1,
+  },
+  featureTitle: {
+    fontSize: fp(14),
     fontWeight: '700',
+    color: colors.text,
+  },
+  featureDesc: {
+    fontSize: fp(12),
+    color: colors.textSecondary,
+    marginTop: hp(2),
   },
 });

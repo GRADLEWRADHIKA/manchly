@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
   },
   videoDesc: {
     fontSize: fp(12),
-    color: '#555',
+    color: colors.textTertiary,
     lineHeight: fp(17),
   },
   emptyContainer: {
@@ -268,16 +268,16 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: fp(16),
-    color: '#888',
+    color: colors.textMuted,
   },
   // Modal styles
   modalContainer: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: colors.black,
   },
   playerSection: {
     width: '100%',
-    backgroundColor: '#000',
+    backgroundColor: colors.black,
   },
   videoInfoContainer: {
     flex: 1,

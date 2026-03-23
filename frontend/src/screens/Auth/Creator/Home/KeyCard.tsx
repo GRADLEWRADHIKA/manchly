@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { UserCheck } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { wp, hp, fp } from '../../../../utils/responsive';
+import colors from '../../../../utils/colors';
 
 const KycCard = () => {
   const navigation = useNavigation<any>();
@@ -39,10 +40,10 @@ const styles = StyleSheet.create({
     // margin: 16,
   },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
     borderRadius: wp(12),
     padding: wp(20),
-    shadowColor: '#000',
+    shadowColor: colors.black,
     shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 8,
@@ -63,7 +64,7 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: fp(14),
-    color: '#555',
+    color: colors.textTertiary,
     textAlign: 'center',
   },
   button: {
@@ -73,7 +74,7 @@ const styles = StyleSheet.create({
     borderRadius: wp(8),
   },
   buttonText: {
-    color: '#fff',
+    color: colors.white,
     fontWeight: 'bold',
     fontSize: fp(16),
   },

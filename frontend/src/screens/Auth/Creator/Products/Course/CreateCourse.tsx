@@ -498,7 +498,7 @@ const CreateCourse = () => {
                 disabled={loading}
               >
                 {loading ? (
-                  <ActivityIndicator size="small" color="#fff" />
+                  <ActivityIndicator size="small" color={colors.white} />
                 ) : (
                   <Text style={styles.createButtonText}>
                     {isUpdated ? 'Update' : 'Create Course'}
@@ -525,7 +525,7 @@ export default CreateCourse;
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#fff'
+    backgroundColor: colors.white,
   },
   flexGrow: {
     flex: 1
@@ -535,10 +535,10 @@ const styles = StyleSheet.create({
     paddingBottom: hp(40)
   },
   formCard: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
     borderRadius: wp(12),
     padding: wp(16),
-    shadowColor: '#000',
+    shadowColor: colors.black,
     shadowOpacity: 0.06,
     shadowRadius: 10,
     elevation: 3,
@@ -547,7 +547,7 @@ const styles = StyleSheet.create({
     fontSize: fp(14),
     marginTop: hp(12),
     marginBottom: hp(6),
-    color: '#333',
+    color: colors.heading,
     fontWeight: '600',
   },
   textArea: {
@@ -578,7 +578,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   createButtonText: {
-    color: '#fff',
+    color: colors.white,
     fontWeight: '700',
     fontSize: fp(15)
   },

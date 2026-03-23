@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
     padding: wp(18),
     borderWidth: wp(1),
     borderColor: BORDER,
-    shadowColor: '#000',
+    shadowColor: colors.black,
     shadowOpacity: 0.08,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 4 },

@@ -63,7 +63,7 @@ const CreatorHome = () => {
         ]}
       >
         <LinearGradient
-          colors={['#ffffff', '#dcdcdc']}
+          colors={[colors.gradientStart, colors.gradientEnd]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={styles.headerBg}
@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
     width: wp(50),
     height: hp(50),
     borderRadius: wp(26),
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.white,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: hp(12),

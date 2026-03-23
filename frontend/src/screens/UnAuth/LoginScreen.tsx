@@ -357,7 +357,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: hp(12),
-    shadowColor: '#000',
+    shadowColor: colors.black,
     shadowOpacity: 0.08,
     shadowRadius: 8,
     elevation: 4,
@@ -365,7 +365,7 @@ const styles = StyleSheet.create({
   logoText: {
     fontSize: fp(20),
     fontWeight: '700',
-    color: '#ffffff',
+    color: colors.white,
   },
   tagline: {
     fontSize: fp(14),
@@ -451,7 +451,7 @@ const styles = StyleSheet.create({
     marginRight: wp(8),
   },
   continueButtonTextActive: {
-    color: '#ffffff',
+    color: colors.white,
   },
   termsText: {
     fontSize: fp(13),

@@ -150,7 +150,7 @@ const CreatorView: React.FC = () => {
         ]}
       >
         <LinearGradient
-          colors={['#ffffff', '#c2c2c2']}
+          colors={[colors.gradientStart, colors.gradientEnd]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={styles.headerBg}
@@ -313,7 +313,7 @@ const styles = StyleSheet.create({
     padding: wp(20),
     borderBottomLeftRadius: wp(24),
     borderBottomRightRadius: wp(24),
-    shadowColor: '#000',
+    shadowColor: colors.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,

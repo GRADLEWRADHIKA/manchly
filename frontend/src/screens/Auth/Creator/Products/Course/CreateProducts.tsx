@@ -96,7 +96,7 @@ const CreateProducts = () => {
         { width: tileSize, height: tileSize, backgroundColor: item.bg },
       ]}
     >
-      <item.Icon size={wp(34)} color="#fff" />
+      <item.Icon size={wp(34)} color={colors.white} />
       <Text style={styles.tileText}>{item.title}</Text>
     </Pressable>
   );
@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     borderRadius: wp(12),
     paddingVertical: hp(14),
     paddingHorizontal: wp(14),
-    shadowColor: '#000',
+    shadowColor: colors.black,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.12,
     shadowRadius: 8,
@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: wp(12),
     // soft shadow
-    shadowColor: '#000',
+    shadowColor: colors.black,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.12,
     shadowRadius: 6,

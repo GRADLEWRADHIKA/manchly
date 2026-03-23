@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
   },
   container: {
     width: width * 0.85,
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
     borderRadius: wp(15),
     padding: wp(20),
     elevation: 10,
@@ -80,12 +80,12 @@ const styles = StyleSheet.create({
   heading: {
     fontSize: fp(18),
     fontWeight: '700',
-    color: '#333',
+    color: colors.heading,
     textAlign: 'center',
   },
   message: {
     fontSize: fp(15),
-    color: '#666',
+    color: colors.subtext,
     textAlign: 'center',
     marginVertical: hp(15),
     lineHeight: fp(20),

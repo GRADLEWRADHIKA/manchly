@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
     borderRadius: wp(16),
     backgroundColor: '#F4F5F7',
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: colors.black,
     shadowOpacity: 0.1,
     shadowRadius: 6,
     elevation: 3,

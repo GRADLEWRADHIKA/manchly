@@ -12,7 +12,7 @@ interface Props {
 
 const DashboardCard: React.FC<Props> = ({ icon, value, label }) => {
   return (
-    <LinearGradient colors={['#ffffff', '#f4f6f8']} style={styles.card}>
+    <LinearGradient colors={[colors.gradientStart, colors.surface]} style={styles.card}>
       <View style={styles.iconWrapper}>{icon}</View>
 
       <Text style={styles.value}>{value}</Text>

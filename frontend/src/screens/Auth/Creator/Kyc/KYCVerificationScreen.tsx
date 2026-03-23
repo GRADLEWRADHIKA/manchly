@@ -306,7 +306,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   verifyButtonText: {
-    color: '#fff',
+    color: colors.white,
     fontSize: fp(16),
     fontWeight: '600',
   },
@@ -436,7 +436,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   confirmButtonText: {
-    color: '#fff',
+    color: colors.white,
     fontSize: fp(16),
     fontWeight: '600',
   },

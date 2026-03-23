@@ -1,279 +1,168 @@
-// Wallet.jsx
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  FlatList,
-  ActivityIndicator,
-  Platform,
-  ImageBackground,
+  ScrollView,
 } from 'react-native';
 import {
+  ArrowLeft,
+  Wallet,
+  TrendingUp,
   Users,
-  CreditCard,
-  DollarSign,
-  ArrowUpRight,
+  IndianRupee,
+  BookOpen,
+  Presentation,
+  ArrowDownToLine,
+  History,
+  ChevronRight,
 } from 'lucide-react-native';
-import Toast from 'react-native-toast-message';
 import colors from '../../../utils/colors';
 import { wp, hp, fp } from '../../../utils/responsive';
-import AppHeader from '../../../components/AppHeader';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-const initialTransactions = [
-  {
-    id: 't1',
-    type: 'course',
-    title: 'React Native Basics',
-    buyers: 0,
-    amount: 0,
-    date: '2025-09-28',
-  },
-  {
-    id: 't2',
-    type: 'webinar',
-    title: 'Advanced JS Webinar',
-    buyers: 0,
-    amount: 0,
-    date: '2025-09-21',
-  },
-  {
-    id: 't3',
-    type: 'course',
-    title: 'TypeScript Mastery',
-    buyers: 0,
-    amount: 0,
-    date: '2025-08-13',
-  },
-  {
-    id: 't4',
-    type: 'course',
-    title: 'UI Patterns',
-    buyers: 0,
-    amount: 0,
-    date: '2025-07-02',
-  },
-];
+import { useNavigation } from '@react-navigation/native';
+import LinearGradient from 'react-native-linear-gradient';
 
 const WalletCreator = () => {
-  const [transactions, setTransactions] = useState(initialTransactions);
-  const [withdrawableBalance, setWithdrawableBalance] = useState(
-    initialTransactions.reduce((s, t) => s + (t.amount ?? 0), 0),
-  );
-  const [isWithdrawing, setIsWithdrawing] = useState(false);
   const insets = useSafeAreaInsets();
-
-  const totals = useMemo(() => {
-    const totalBuyers = transactions.reduce((s, t) => s + (t.buyers ?? 0), 0);
-    const totalCourseBuyers = transactions
-      .filter(t => t.type === 'course')
-      .reduce((s, t) => s + (t.buyers ?? 0), 0);
-    const totalWebinarBuyers = transactions
-      .filter(t => t.type === 'webinar')
-      .reduce((s, t) => s + (t.buyers ?? 0), 0);
-    const courseIncome = transactions
-      .filter(t => t.type === 'course')
-      .reduce((s, t) => s + (t.amount ?? 0), 0);
-    const webinarIncome = transactions
-      .filter(t => t.type === 'webinar')
-      .reduce((s, t) => s + (t.amount ?? 0), 0);
-    const totalIncome = courseIncome + webinarIncome;
-    return {
-      totalBuyers,
-      totalCourseBuyers,
-      totalWebinarBuyers,
-      courseIncome,
-      webinarIncome,
-      totalIncome,
-    };
-  }, [transactions]);
-
-  const handleWithdraw = () => {
-    if (withdrawableBalance <= 0) {
-      Toast.show({
-        type: 'info',
-        text1: 'Nothing to withdraw',
-        text2: 'Your balance is zero.',
-      });
-      return;
-    }
-
-    setIsWithdrawing(true);
-
-    setTimeout(() => {
-      const amount = withdrawableBalance;
-      setWithdrawableBalance(0);
-
-      const newTx = {
-        id: `w_${Date.now()}`,
-        type: 'withdraw',
-        title: 'Withdrawal to bank',
-        buyers: 0,
-        amount: -amount,
-        date: new Date().toISOString().slice(0, 10),
-      };
-      setTransactions(prev => [newTx, ...prev]);
-
-      setIsWithdrawing(false);
-
-      Toast.show({
-        type: 'success',
-        text1: 'Withdraw successful',
-        text2: `₹${amount.toLocaleString()} credited to your bank account.`,
-      });
-    }, 1500);
-  };
-
-  const renderStatCard = (icon, label, value, sub) => (
-    <View style={styles.statCard}>
-      <View style={styles.statTop}>
-        <View style={styles.statIcon}>{icon}</View>
-        <Text style={styles.statLabel}>{label}</Text>
-      </View>
-      <Text style={styles.statValue}>****</Text>
-      {sub ? <Text style={styles.statSub}>****</Text> : null}
-    </View>
-  );
-
-  const renderTransaction = ({ item }) => {
-    const isWithdraw = item.type === 'withdraw';
-    return (
-      <View style={styles.txRow}>
-        <View style={styles.txLeft}>
-          <View
-            style={[
-              styles.txBadge,
-              isWithdraw ? styles.withdrawBadge : styles.incomeBadge,
-            ]}
-          >
-            <Text style={styles.txBadgeText}>
-              {isWithdraw ? 'W' : item.type === 'webinar' ? 'WB' : 'C'}
-            </Text>
-          </View>
-        </View>
-        <View style={styles.txMiddle}>
-          <Text style={styles.txTitle}>{item.title}</Text>
-          <Text style={styles.txMeta}>
-            {item.buyers
-              ? `${item.buyers} buyer${item.buyers > 1 ? 's' : ''} • `
-              : ''}
-            {item.date}
-          </Text>
-        </View>
-        <View style={styles.txRight}>
-          <Text
-            style={[
-              styles.txAmount,
-              isWithdraw ? styles.txAmountNegative : styles.txAmountPositive,
-            ]}
-          >
-            {isWithdraw
-              ? `-₹${Math.abs(item.amount).toLocaleString()}`
-              : `₹${item.amount.toLocaleString()}`}
-          </Text>
-          <ArrowUpRight width={14} height={14} color={colors.primary} />
-        </View>
-      </View>
-    );
-  };
+  const navigation = useNavigation();
 
   return (
     <View style={styles.container}>
-      {/* <AppHeader title="My Wallet" /> */}
-      <View
-        style={[
-          styles.mainHeader,
-          {
-            paddingTop: insets.top + hp(10),
-          },
-        ]}
-      >
-        <ImageBackground
-          source={require('../../../image/background.png')}
-          resizeMode="cover"
-          style={styles.headerBg}
+      {/* Header */}
+      <View style={[styles.headerWrapper, { paddingTop: insets.top }]}>
+        <LinearGradient
+          colors={[colors.gradientStart, colors.gradientEnd]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.header}
         >
-          <View style={styles.headerContent}>
-            <Text style={styles.greetingText}>My Wallet</Text>
-          </View>
-        </ImageBackground>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backBtn}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <ArrowLeft size={wp(22)} color={colors.primary} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>My Wallet</Text>
+        </LinearGradient>
       </View>
 
-      <View style={{ padding: wp(16) }}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Wallet</Text>
-          <Text style={styles.headerSub}>Overview of earnings & buyers</Text>
-        </View>
-
-        {/* Stats */}
-        <View style={styles.statsRow}>
-          {renderStatCard(
-            <Users width={18} height={18} color={colors.primary} />,
-            'Total Buyers',
-            `${totals.totalBuyers}`,
-            `Courses ${totals.totalCourseBuyers} • Webinars ${totals.totalWebinarBuyers}`,
-          )}
-          {renderStatCard(
-            <CreditCard width={18} height={18} color={colors.primary} />,
-            'Total Income',
-            `₹${totals.totalIncome.toLocaleString()}`,
-            `Course ₹${totals.courseIncome.toLocaleString()} • Webinar ₹${totals.webinarIncome.toLocaleString()}`,
-          )}
-        </View>
-
-        {/* Withdrawable balance and action */}
-        <View style={styles.withdrawCard}>
-          <View style={styles.withdrawLeft}>
-            {/* <DollarSign width={22} height={22} color="#fff" /> */}
-            <View style={{ marginLeft: wp(12) }}>
-              <Text style={styles.withdrawLabel}>Withdrawable Balance</Text>
-              <Text style={styles.withdrawAmount}>
-                ₹****
-              </Text>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* Balance Card */}
+        <View style={styles.balanceCard}>
+          <LinearGradient
+            colors={[colors.primary, '#1a1a1a']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.balanceGradient}
+          >
+            <View style={styles.balanceHeader}>
+              <View style={styles.balanceIconWrap}>
+                <Wallet size={wp(20)} color={colors.white} />
+              </View>
+              <Text style={styles.balanceLabel}>Available Balance</Text>
             </View>
+            <Text style={styles.balanceAmount}>₹ *****</Text>
+            <Text style={styles.balanceHint}>
+              Tap withdraw to transfer to bank
+            </Text>
+
+            <TouchableOpacity style={styles.withdrawBtn} activeOpacity={0.8}>
+              <ArrowDownToLine size={wp(16)} color={colors.primary} />
+              <Text style={styles.withdrawBtnText}>Withdraw</Text>
+            </TouchableOpacity>
+          </LinearGradient>
+        </View>
+
+        {/* Quick Stats */}
+        <Text style={styles.sectionTitle}>Earnings Overview</Text>
+        <View style={styles.statsGrid}>
+          <View style={styles.statCard}>
+            <View style={[styles.statIconWrap, { backgroundColor: '#EEF2FF' }]}>
+              <TrendingUp size={wp(18)} color={colors.info} />
+            </View>
+            <Text style={styles.statValue}>₹ ****</Text>
+            <Text style={styles.statLabel}>Total Earnings</Text>
           </View>
 
-          <TouchableOpacity
-            style={[
-              styles.withdrawBtn,
-              withdrawableBalance <= 0 || isWithdrawing
-                ? styles.withdrawBtnDisabled
-                : null,
-            ]}
-            // onPress={handleWithdraw}
-            disabled={withdrawableBalance <= 0 || isWithdrawing}
-            activeOpacity={0.8}
-          >
-            {isWithdrawing ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <Text style={styles.withdrawBtnText}>Withdraw</Text>
-            )}
+          <View style={styles.statCard}>
+            <View style={[styles.statIconWrap, { backgroundColor: '#FEF3C7' }]}>
+              <Users size={wp(18)} color={colors.golden} />
+            </View>
+            <Text style={styles.statValue}>****</Text>
+            <Text style={styles.statLabel}>Total Buyers</Text>
+          </View>
+
+          <View style={styles.statCard}>
+            <View style={[styles.statIconWrap, { backgroundColor: '#ECFDF5' }]}>
+              <BookOpen size={wp(18)} color={colors.accent} />
+            </View>
+            <Text style={styles.statValue}>₹ ****</Text>
+            <Text style={styles.statLabel}>Course Income</Text>
+          </View>
+1
+          <View style={styles.statCard}>
+            <View style={[styles.statIconWrap, { backgroundColor: '#FDF2F8' }]}>
+              <Presentation size={wp(18)} color={colors.secondary} />
+            </View>
+            <Text style={styles.statValue}>₹ ****</Text>
+            <Text style={styles.statLabel}>Webinar Income</Text>
+          </View>
+        </View>
+
+        <View style={styles.txHeader}>
+          <View style={styles.txHeaderLeft}>
+            <Text style={styles.sectionTitleOne}>Recent Transactions</Text>
+          </View>
+          <TouchableOpacity>
+            <Text style={styles.seeAllText}>See All</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Transactions list */}
-        {/* <View style={styles.txListHeader}>
-          <Text style={styles.txListTitle}>History</Text>
-          <Text style={styles.txListSub}>{transactions.length} records</Text>
-        </View> */}
+        <View style={styles.txSection}>
+          <View style={styles.txEmptyCard}>
+            <IndianRupee size={wp(32)} color={colors.muted} />
+            <Text style={styles.txEmptyTitle}>No transactions yet</Text>
+            <Text style={styles.txEmptyDesc}>
+              Your earnings from courses and webinars will appear here
+            </Text>
+          </View>
+        </View>
 
-        {/* <FlatList
-          data={transactions}
-          keyExtractor={t => t.id}
-          renderItem={renderTransaction}
-          contentContainerStyle={styles.txList}
-          ItemSeparatorComponent={() => <View style={styles.sep} />}
-          ListEmptyComponent={
-            <Text style={styles.empty}>No transactions found</Text>
-          }
-        /> */}
-      </View>
+        <Text style={[styles.sectionTitle, { marginTop: hp(20) }]}>
+          Quick Actions
+        </Text>
+        <TouchableOpacity style={styles.actionRow} activeOpacity={0.7}>
+          <View style={styles.actionLeft}>
+            <View style={[styles.actionIcon, { backgroundColor: '#EEF2FF' }]}>
+              <IndianRupee size={wp(18)} color={colors.info} />
+            </View>
+            <View>
+              <Text style={styles.actionTitle}>Payment Settings</Text>
+              <Text style={styles.actionDesc}>Manage bank account & UPI</Text>
+            </View>
+          </View>
+          <ChevronRight size={wp(18)} color={colors.muted} />
+        </TouchableOpacity>
 
-      <Toast />
+        <TouchableOpacity style={styles.actionRow} activeOpacity={0.7}>
+          <View style={styles.actionLeft}>
+            <View style={[styles.actionIcon, { backgroundColor: '#ECFDF5' }]}>
+              <History size={wp(18)} color={colors.accent} />
+            </View>
+            <View>
+              <Text style={styles.actionTitle}>Transaction History</Text>
+              <Text style={styles.actionDesc}>View all past transactions</Text>
+            </View>
+          </View>
+          <ChevronRight size={wp(18)} color={colors.muted} />
+        </TouchableOpacity>
+      </ScrollView>
     </View>
   );
 };
@@ -283,150 +172,233 @@ export default WalletCreator;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // backgroundColor: '#fff',
+    backgroundColor: colors.surface,
+  },
+  headerWrapper: {
+    backgroundColor: colors.primary,
   },
   header: {
-    marginBottom: hp(12),
-  },
-  headerTitle: {
-    fontSize: fp(22),
-    fontWeight: '800',
-    color: '#111',
-  },
-  headerSub: {
-    marginTop: hp(4),
-    color: '#666',
-  },
-
-  statsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: wp(12),
-    marginBottom: hp(14),
+    alignItems: 'center',
+    paddingHorizontal: wp(16),
+    paddingVertical: hp(14),
   },
-  statCard: {
-    flex: 1,
-    backgroundColor: '#fff',
-    borderRadius: wp(12),
-    padding: wp(12),
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#eee',
-    marginRight: wp(8),
-    minHeight: hp(92),
-    justifyContent: 'space-between',
-    shadowColor: '#000',
-    shadowOpacity: 0.03,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  statTop: { flexDirection: 'row', alignItems: 'center' },
-  statIcon: {
+  backBtn: {
     width: wp(36),
     height: wp(36),
-    borderRadius: wp(10),
+    borderRadius: wp(18),
+    backgroundColor: 'rgba(0,0,0,0.06)',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F6FBFF',
+    marginRight: wp(12),
+  },
+  headerTitle: {
+    fontSize: fp(20),
+    fontWeight: '700',
+    color: colors.primary,
+  },
+  scrollContent: {
+    paddingBottom: hp(30),
+  },
+
+  // Balance Card
+  balanceCard: {
+    marginHorizontal: wp(16),
+    marginTop: hp(16),
+    borderRadius: wp(20),
+    overflow: 'hidden',
+    elevation: 6,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+  },
+  balanceGradient: {
+    padding: wp(20),
+    paddingBottom: wp(16),
+  },
+  balanceHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: hp(12),
+  },
+  balanceIconWrap: {
+    width: wp(36),
+    height: wp(36),
+    borderRadius: wp(18),
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginRight: wp(10),
   },
-  statLabel: { fontWeight: '700' },
-  statValue: { marginTop: hp(6), fontSize: fp(18), fontWeight: '800', color: '#111' },
-  statSub: { marginTop: hp(4), color: '#666', fontSize: fp(12) },
-
-  withdrawCard: {
-    marginTop: hp(12),
-    backgroundColor: colors.white,
-    borderRadius: wp(12),
-    padding: wp(12),
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    elevation: 3
+  balanceLabel: {
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: fp(14),
+    fontWeight: '500',
   },
-  withdrawLeft: { flexDirection: 'row', alignItems: 'center' },
-  withdrawLabel: { color: colors.primary, fontWeight: '700' },
-  withdrawAmount: {
-    color: colors.primary,
-    marginTop: hp(2),
-    fontSize: fp(18),
+  balanceAmount: {
+    color: colors.white,
+    fontSize: fp(32),
     fontWeight: '900',
+    letterSpacing: 1,
+    marginBottom: hp(4),
+  },
+  balanceHint: {
+    color: 'rgba(255,255,255,0.5)',
+    fontSize: fp(12),
+    marginBottom: hp(16),
   },
   withdrawBtn: {
-    backgroundColor: colors.primary,
-    paddingVertical: hp(8),
-    paddingHorizontal: wp(14),
-    borderRadius: wp(10),
-  },
-  withdrawBtnDisabled: { opacity: 0.6 },
-  withdrawBtnText: { fontWeight: '800', color: colors.white },
-
-  txListHeader: {
-    flexDirection: 'row',
-    marginTop: hp(16),
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: hp(8),
-  },
-  txListTitle: { fontWeight: '800', fontSize: fp(16) },
-  txListSub: { color: '#888' },
-
-  txList: {
-    paddingBottom: Platform.OS === 'ios' ? hp(40) : hp(24),
-  },
-  txRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.white,
     paddingVertical: hp(12),
+    borderRadius: wp(12),
+    gap: wp(8),
   },
-  txLeft: {
-    width: wp(40),
-    alignItems: 'center',
+  withdrawBtnText: {
+    fontWeight: '800',
+    color: colors.primary,
+    fontSize: fp(15),
   },
-  txBadge: {
+
+  // Section
+  sectionTitle: {
+    fontSize: fp(16),
+    fontWeight: '700',
+    color: colors.text,
+    marginHorizontal: wp(16),
+    marginTop: hp(24),
+    marginBottom: hp(12),
+  },
+
+  sectionTitleOne: {
+    fontSize: fp(16),
+    fontWeight: '700',
+    color: colors.text,
+    marginVertical: hp(15),
+  },
+
+  // Stats Grid
+  statsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: wp(12),
+    gap: wp(10),
+  },
+  statCard: {
+    width: '47%',
+    backgroundColor: colors.white,
+    borderRadius: wp(16),
+    padding: wp(14),
+    elevation: 2,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+  },
+  statIconWrap: {
     width: wp(38),
     height: wp(38),
-    borderRadius: wp(10),
+    borderRadius: wp(12),
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: hp(10),
+  },
+  statValue: {
+    fontSize: fp(18),
+    fontWeight: '800',
+    color: colors.text,
+    marginBottom: hp(2),
+  },
+  statLabel: {
+    fontSize: fp(12),
+    color: colors.textSecondary,
+    fontWeight: '500',
+  },
+
+  // Transactions
+  txSection: {
+    marginTop: hp(4),
+  },
+  txHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginHorizontal: wp(15),
+  },
+  txHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  seeAllText: {
+    color: colors.info,
+    fontSize: fp(13),
+    fontWeight: '600',
+  },
+  txEmptyCard: {
+    backgroundColor: colors.white,
+    marginHorizontal: wp(16),
+    borderRadius: wp(16),
+    padding: wp(24),
+    alignItems: 'center',
+    elevation: 1,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+  },
+  txEmptyTitle: {
+    fontSize: fp(15),
+    fontWeight: '700',
+    color: colors.text,
+    marginTop: hp(10),
+  },
+  txEmptyDesc: {
+    fontSize: fp(13),
+    color: colors.textSecondary,
+    textAlign: 'center',
+    marginTop: hp(4),
+    lineHeight: fp(18),
+  },
+
+  // Quick Actions
+  actionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.white,
+    marginHorizontal: wp(16),
+    marginBottom: hp(10),
+    padding: wp(14),
+    borderRadius: wp(14),
+    elevation: 2,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+  },
+  actionLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(12),
+  },
+  actionIcon: {
+    width: wp(40),
+    height: wp(40),
+    borderRadius: wp(12),
     justifyContent: 'center',
     alignItems: 'center',
   },
-  incomeBadge: { backgroundColor: '#e8f9f0' },
-  withdrawBadge: { backgroundColor: '#fceaea' },
-  txBadgeText: { fontWeight: '800', color: '#333' },
-
-  txMiddle: { flex: 1, paddingHorizontal: wp(8) },
-  txTitle: { fontWeight: '700' },
-  txMeta: { color: '#777', marginTop: hp(4), fontSize: fp(12) },
-
-  txRight: { alignItems: 'flex-end' },
-  txAmount: { fontWeight: '800' },
-  txAmountPositive: { color: '#116530' },
-  txAmountNegative: { color: '#8b0000' },
-
-  sep: { height: hp(1), backgroundColor: '#f2f2f2', marginVertical: hp(6) },
-  empty: { textAlign: 'center', color: '#888', marginTop: hp(20) },
-  mainHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    // paddingHorizontal: 16,
-    // paddingBottom: 16,
-    backgroundColor: colors.primary,
+  actionTitle: {
+    fontSize: fp(14),
+    fontWeight: '600',
+    color: colors.text,
   },
-  headerBg: {
-    width: '100%',
-    // paddingTop: 10,
-    // paddingBottom: 16,
-  },
-  headerContent: {
-    alignItems: 'center',
-    paddingVertical: hp(17),
-  },
-  mainHead: { flexDirection: 'row', gap: wp(5), alignItems: 'center' },
-  firstPara: { color: colors.primary, fontSize: fp(14), fontWeight: '400' },
-  secPara: { color: colors.primary, fontSize: fp(16), fontWeight: '600' },
-  greetingText: {
-    color: colors.primary,
-    fontSize: fp(22),
-    fontWeight: '700',
+  actionDesc: {
+    fontSize: fp(12),
+    color: colors.textSecondary,
+    marginTop: hp(1),
   },
 });

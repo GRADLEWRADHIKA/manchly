@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   purchaseButtonDisabled: { opacity: 0.6 },
-  purchaseText: { color: '#fff', fontSize: fp(16), fontWeight: '700' },
+  purchaseText: { color: colors.white, fontSize: fp(16), fontWeight: '700' },
 
   enrolledContainer: {
     flexDirection: 'row',

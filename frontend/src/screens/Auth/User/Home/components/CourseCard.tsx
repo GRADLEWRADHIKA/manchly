@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     elevation: 3,
     marginBottom: hp(16),
-    shadowColor: '#000',
+    shadowColor: colors.black,
     shadowOpacity: 0.08,
     shadowRadius: 3,
   },

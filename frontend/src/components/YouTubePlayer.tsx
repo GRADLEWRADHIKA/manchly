@@ -403,7 +403,7 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
     aspectRatio: 16 / 9,
-    backgroundColor: '#000',
+    backgroundColor: colors.black,
     borderRadius: wp(12),
     overflow: 'hidden',
   },
@@ -413,7 +413,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: '#000',
+    backgroundColor: colors.black,
     zIndex: 999,
     elevation: 999,
   },

@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
   },
   sectionSubtitle: {
     fontSize: fp(13),
-    color: '#666',
+    color: colors.subtext,
     marginBottom: hp(16),
     textAlign: 'center',
   },
@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
     marginBottom: hp(8),
   },
   noDetails: {
-    color: '#666',
+    color: colors.subtext,
     marginBottom: hp(12),
   },
   addBankButton: {
@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: hp(14),
     borderBottomWidth: wp(1),
-    borderBottomColor: '#eee',
+    borderBottomColor: colors.borderLight,
   },
   menuLeft: {
     flexDirection: 'row',

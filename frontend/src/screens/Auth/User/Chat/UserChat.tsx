@@ -56,7 +56,7 @@ const UserChat = () => {
         <Image source={{ uri: item.avatar }} style={styles.avatar} />
       ) : (
         <View style={styles.avatarPlaceholder}>
-          <MessageCircle size={wp(20)} color="#fff" />
+          <MessageCircle size={wp(20)} color={colors.white} />
         </View>
       )}
 
@@ -107,7 +107,7 @@ export default UserChat;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
   },
   listContent: {
     paddingVertical: hp(8),
@@ -146,11 +146,11 @@ const styles = StyleSheet.create({
     fontSize: fp(16),
     fontWeight: '600',
     flexShrink: 1,
-    color: '#111',
+    color: colors.text,
   },
   time: {
     fontSize: fp(12),
-    color: '#888',
+    color: colors.textMuted,
   },
   chatFooter: {
     flexDirection: 'row',
@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
   },
   lastMessage: {
     fontSize: fp(14),
-    color: '#666',
+    color: colors.subtext,
     flexShrink: 1,
     flex: 1,
     marginRight: wp(8),
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   unreadText: {
-    color: '#fff',
+    color: colors.white,
     fontSize: fp(12),
     fontWeight: 'bold',
   },

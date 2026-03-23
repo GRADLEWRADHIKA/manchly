@@ -200,12 +200,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#5C5CFF',
   },
   tabText: {
-    color: '#555',
+    color: colors.textTertiary,
     fontSize: fp(14),
     fontWeight: '500',
   },
   activeTabText: {
-    color: '#fff',
+    color: colors.white,
   },
   buttonHeader: {
     flexDirection: 'row',

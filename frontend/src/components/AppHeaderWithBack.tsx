@@ -29,7 +29,7 @@ const AppHeaderWithBack = ({ title }) => {
           onPress={() => navigation.goBack()}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <ArrowLeft color="#fff" size={wp(24)} />
+          <ArrowLeft color={colors.white} size={wp(24)} />
         </TouchableOpacity>
 
         <Text style={styles.title}>
@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
     transform: [{ translateY: -12 }],
   },
   title: {
-    color: '#fff',
+    color: colors.white,
     fontSize: fp(18),
     fontWeight: '700',
   },

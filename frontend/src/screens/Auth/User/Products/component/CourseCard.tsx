@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
     paddingVertical: hp(4),
     borderRadius: wp(8),
   },
-  levelText: { color: '#fff', fontSize: fp(12), fontWeight: '600' },
+  levelText: { color: colors.white, fontSize: fp(12), fontWeight: '600' },
   cardBody: { padding: wp(16) },
   headerRow: {
     flexDirection: 'row',

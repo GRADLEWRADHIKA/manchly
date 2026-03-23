@@ -164,7 +164,7 @@ const PurchasesScreen = () => {
 export default PurchasesScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1, backgroundColor: colors.white },
 
   loadingContainer: {
     flex: 1,
@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
     marginTop: hp(20),
   },
   browseText: {
-    color: '#fff',
+    color: colors.white,
     fontWeight: '700',
     fontSize: fp(15),
   },

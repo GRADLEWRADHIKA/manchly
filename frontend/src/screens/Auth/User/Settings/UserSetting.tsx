@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     textAlign: 'center',
-    color: '#fff',
+    color: colors.white,
     fontSize: fp(22),
     fontWeight: '800',
     letterSpacing: 1,
@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
     marginRight: wp(12),
   },
   greetingText: {
-    color: '#fff',
+    color: colors.white,
     fontSize: fp(18),
     fontWeight: '700',
   },
@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
     borderRadius: wp(999),
   },
   badgeText: {
-    color: '#fff',
+    color: colors.white,
     fontSize: fp(11),
     fontWeight: '700',
   },

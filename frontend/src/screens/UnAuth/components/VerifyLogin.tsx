@@ -310,7 +310,7 @@ const styles = StyleSheet.create({
   input: {
     height: hp(55),
     borderWidth: wp(1.5),
-    borderColor: '#ddd',
+    borderColor: colors.placeholder,
     borderRadius: wp(12),
     paddingHorizontal: wp(15),
     fontSize: fp(16),

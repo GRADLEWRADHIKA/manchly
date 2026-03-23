@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
     padding: wp(18),
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
+        shadowColor: colors.black,
         shadowOpacity: 0.2,
         shadowRadius: 12,
         shadowOffset: { width: 0, height: 6 },
@@ -114,6 +114,6 @@ const styles = StyleSheet.create({
   btnText: {
     fontSize: fp(14),
     fontWeight: '700',
-    color: '#fff',
+    color: colors.white,
   },
 });

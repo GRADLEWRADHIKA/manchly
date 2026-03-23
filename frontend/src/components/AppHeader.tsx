@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
     paddingBottom: hp(14),
   },
   title: {
-    color: '#fff',
+    color: colors.white,
     fontSize: fp(22),
     fontWeight: '700',
   },

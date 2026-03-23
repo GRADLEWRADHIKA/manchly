@@ -409,7 +409,7 @@ const styles = StyleSheet.create({
     marginRight: wp(8),
   },
   continueButtonTextActive: {
-    color: '#ffffff',
+    color: colors.white,
   },
   termsText: {
     fontSize: fp(13),

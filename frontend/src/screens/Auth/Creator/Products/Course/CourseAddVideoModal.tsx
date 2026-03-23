@@ -493,7 +493,7 @@ const styles = StyleSheet.create({
   modalContent: { padding: wp(20) },
   label: {
     fontSize: fp(14),
-    color: '#333',
+    color: colors.heading,
     fontWeight: '600',
     marginBottom: hp(6),
     marginTop: hp(12),

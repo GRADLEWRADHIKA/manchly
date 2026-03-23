@@ -6,8 +6,13 @@ const colors = {
   surface: '#f8fafc',
   text: '#000000',
   textSecondary: '#64748b',
+  textTertiary: '#555555',
+  textMuted: '#888888',
+  heading: '#333333',
+  subtext: '#666666',
   muted: '#b2b4b7ff',
   border: '#ccd0d6ff',
+  borderLight: '#eeeeee',
   error: '#EF4444',
   success: '#10B981',
   info: '#3B82F6',
@@ -16,7 +21,11 @@ const colors = {
   black: '#000000',
   lightGrey: '#eee8e8ff',
   golden: '#ffb606',
-  micButtonGolden: '#eddfc3'
+  micButtonGolden: '#eddfc3',
+  gradientStart: '#ffffff',
+  gradientEnd: '#dcdcdc',
+  shadow: '#000000',
+  placeholder: '#dddddd',
 };
 
 export default colors;

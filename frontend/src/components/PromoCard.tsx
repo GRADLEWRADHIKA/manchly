@@ -34,5 +34,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(14),
     borderRadius: wp(18),
   },
-  btnText: { color: '#fff', fontWeight: '700' },
+  btnText: { color: colors.white, fontWeight: '700' },
 });

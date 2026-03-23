@@ -248,13 +248,13 @@ const styles = StyleSheet.create({
     width: wp(26),
     height: hp(26),
     borderRadius: wp(13),
-    backgroundColor: '#ddd',
+    backgroundColor: colors.placeholder,
   },
 
   creatorName: {
     marginLeft: wp(8),
     fontSize: fp(14),
-    color: '#555',
+    color: colors.textTertiary,
     fontWeight: '500',
   },
 
@@ -268,13 +268,13 @@ const styles = StyleSheet.create({
 
   price: {
     fontSize: fp(16),
-    color: '#000',
+    color: colors.black,
     fontWeight: '700',
   },
 
   date: {
     fontSize: fp(12),
-    color: '#888',
+    color: colors.textMuted,
   },
 
   menuButton: {

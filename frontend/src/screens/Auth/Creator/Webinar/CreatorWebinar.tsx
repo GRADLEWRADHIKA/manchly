@@ -81,7 +81,7 @@ const CreatorWebinar = () => {
     <View style={styles.container}>
       <View style={[styles.headerWrapper, { paddingTop: insets.top }]}>
         <LinearGradient
-          colors={['#ffffff', '#dcdcdc']}
+          colors={[colors.gradientStart, colors.gradientEnd]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={styles.header}

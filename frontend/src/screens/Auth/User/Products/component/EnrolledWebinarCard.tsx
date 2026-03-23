@@ -72,7 +72,7 @@ const EnrolledWebinarCard = ({ item }) => {
               navigation.navigate('WebinarDetails', { data: item })
             }
           >
-            <Video size={wp(20)} color="#fff" />
+            <Video size={wp(20)} color={colors.white} />
             <Text style={styles.joinText}>Join Webinar</Text>
           </TouchableOpacity>
         {/* )} */}
@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
     gap: wp(8),
   },
   joinText: {
-    color: '#fff',
+    color: colors.white,
     fontWeight: '600',
     fontSize: fp(15),
   },

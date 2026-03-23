@@ -804,7 +804,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: fp(13),
     marginBottom: hp(6),
-    color: '#333',
+    color: colors.heading,
     fontWeight: '600',
   },
   input: {
@@ -814,8 +814,8 @@ const styles = StyleSheet.create({
     paddingVertical: hp(10),
     borderRadius: wp(10),
     fontSize: fp(15),
-    color: '#222',
-    backgroundColor: '#fff',
+    color: colors.text,
+    backgroundColor: colors.white,
   },
   textArea: {
     borderWidth: wp(1),
@@ -837,13 +837,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(10),
     paddingVertical: hp(8),
     borderRadius: wp(10),
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
   },
   inputInside: {
     marginLeft: wp(8),
     flex: 1,
     fontSize: fp(15),
-    color: '#222',
+    color: colors.text,
   },
   previewCard: {
     marginTop: hp(14),
@@ -856,7 +856,7 @@ const styles = StyleSheet.create({
   previewTitle: {
     fontWeight: '700',
     marginBottom: hp(8),
-    color: '#333',
+    color: colors.heading,
   },
   previewRow: {
     flexDirection: 'row',
@@ -865,7 +865,7 @@ const styles = StyleSheet.create({
   },
   previewText: {
     marginLeft: wp(8),
-    color: '#555',
+    color: colors.textTertiary,
     fontSize: fp(14),
   },
   actions: {

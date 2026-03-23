@@ -14,101 +14,116 @@ import {
   Users,
   Award,
   TrendingUp,
-  BellDot,
+  Bell,
+  UserCircle,
+  Sparkles,
+  ChevronRight,
 } from 'lucide-react-native';
-import LinearGradient from 'react-native-linear-gradient';
 import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
 import KycCard from './KeyCard';
+
+const DARK = '#111111';
+const DARK_CARD = '#1c1c1e';
+const DARK_BORDER = '#2c2c2e';
+const DARK_MUTED = '#999999';
 import { useSelector } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import UserIcon from './component/UserIcon';
 import Toast from 'react-native-toast-message';
-import DashboardCard from './component/DashboardCard';
 
 const CreatorHome = () => {
   const navigation = useNavigation<any>();
   const { user } = useSelector((state: any) => state.userReducer);
   const insets = useSafeAreaInsets();
 
+  const displayName = user?.name
+    ? user.name.charAt(0).toUpperCase() + user.name.slice(1)
+    : 'Creator';
+
   const quickStats = [
     {
       label: 'Active Courses',
       value: '0',
-      icon: <BookOpen size={wp(26)} color={colors.primary} />,
+      icon: <BookOpen size={wp(20)} color="#60A5FA" />,
+      accent: '#60A5FA',
     },
     {
       label: 'Students',
       value: '0',
-      icon: <Users size={wp(26)} color={colors.secondary} />,
+      icon: <Users size={wp(20)} color="#F472B6" />,
+      accent: '#F472B6',
     },
     {
-      label: 'Completion Rate',
+      label: 'Completion',
       value: '0%',
-      icon: <Award size={wp(26)} color={colors.accent} />,
+      icon: <Award size={wp(20)} color="#34D399" />,
+      accent: '#34D399',
     },
     {
       label: 'Revenue',
       value: '₹0',
-      icon: <TrendingUp size={wp(26)} color={colors.golden} />,
+      icon: <TrendingUp size={wp(20)} color="#FBBF24" />,
+      accent: '#FBBF24',
     },
   ];
 
+  const handleKycGuard = (screen: string) => {
+    if (user?.kyc_verified) {
+      navigation.navigate(screen);
+    } else {
+      Toast.show({
+        type: 'error',
+        text1: 'KYC Required',
+        text2: 'Please complete your KYC first',
+        position: 'top',
+      });
+    }
+  };
+
   return (
     <View style={styles.container}>
-      <View
-        style={[
-          styles.mainHeader,
-          { paddingTop: insets.top + hp(10), backgroundColor: colors.primary },
-        ]}
-      >
-        <LinearGradient
-          colors={[colors.gradientStart, colors.gradientEnd]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.headerBg}
-        >
-          <View style={styles.headerContent}>
-            <View style={styles.mainHead}>
-              {user?.profile_image ? (
-                <Image
-                  source={{ uri: user?.profile_image }}
-                  style={styles.avatar}
-                />
-              ) : (
-                <UserIcon />
-              )}
-
-              <View>
-                <Text style={styles.secPara}>
-                  Hi,{' '}
-                  {user?.name
-                    ? user.name.charAt(0).toUpperCase() + user.name.slice(1)
-                    : 'User'}{' '}
-                  👋
-                </Text>
-                <Text style={styles.firstPara}>Welcome back</Text>
+      {/* Dark Header */}
+      <View style={[styles.headerWrapper, { paddingTop: insets.top }]}>
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            {user?.profile_image ? (
+              <Image source={{ uri: user.profile_image }} style={styles.avatar} />
+            ) : (
+              <View style={styles.avatarFallback}>
+                <UserCircle size={wp(28)} color={colors.white} />
               </View>
+            )}
+            <View>
+              <Text style={styles.greetingSub}>Welcome back</Text>
+              <Text style={styles.greeting}>{displayName}</Text>
             </View>
-
-            <BellDot size={wp(22)} color={colors.primary} />
           </View>
-        </LinearGradient>
+          <TouchableOpacity
+            style={styles.bellBtn}
+            onPress={() => navigation.navigate('CreatorNotification')}
+          >
+            <Bell size={wp(20)} color={colors.white} />
+          </TouchableOpacity>
+        </View>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* KYC or Dashboard */}
         {user?.kyc_verified ? (
           <>
             <Text style={styles.sectionTitle}>Dashboard</Text>
-
             <View style={styles.statsGrid}>
               {quickStats.map((stat, index) => (
-                <DashboardCard
-                  key={index}
-                  icon={stat.icon}
-                  value={stat.value}
-                  label={stat.label}
-                />
+                <View key={index} style={styles.statCard}>
+                  <View style={[styles.statIconWrap, { backgroundColor: stat.accent + '15' }]}>
+                    {stat.icon}
+                  </View>
+                  <Text style={styles.statValue}>{stat.value}</Text>
+                  <Text style={styles.statLabel}>{stat.label}</Text>
+                </View>
               ))}
             </View>
           </>
@@ -116,76 +131,46 @@ const CreatorHome = () => {
           <KycCard />
         )}
 
-        <View style={styles.actionsSection}>
-          <View style={styles.actionsGrid}>
-            <TouchableOpacity
-              style={[styles.actionCard, styles.actionCardRight]}
-              onPress={() => {
-                if (user?.kyc_verified) {
-                  navigation.navigate('CreateWebinar');
-                } else {
-                  Toast.show({
-                    type: 'error',
-                    text1: 'KYC Required',
-                    text2: 'Please complete your KYC first',
-                    position: 'top',
-                  });
-                }
-              }}
-            >
-              <View
-                style={[
-                  styles.actionIcon,
-                  { backgroundColor: `${colors.primary}20` },
-                ]}
-              >
-                <Play size={wp(24)} color={colors.primary} />
-              </View>
-              <Text style={styles.actionTitle}>Start Live</Text>
-              <Text style={styles.actionSubtitle}>Go live instantly</Text>
-            </TouchableOpacity>
+        {/* Quick Actions */}
+        <Text style={styles.sectionTitle}>Quick Actions</Text>
+        <View style={styles.actionsRow}>
+          <TouchableOpacity
+            style={styles.actionCard}
+            activeOpacity={0.85}
+            onPress={() => handleKycGuard('CreateWebinar')}
+          >
+            <View style={[styles.actionIconWrap, { backgroundColor: '#FF4D4D20' }]}>
+              <Play size={wp(22)} color="#FF4D4D" fill="#FF4D4D" />
+            </View>
+            <View style={styles.actionTextWrap}>
+              <Text style={styles.actionTitle}>Go Live</Text>
+              <Text style={styles.actionDesc}>Start a webinar</Text>
+            </View>
+            <ChevronRight size={wp(18)} color={DARK_MUTED} />
+          </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.actionCard}
-              onPress={() => {
-                if (user?.kyc_verified) {
-                  navigation.navigate('CreateCourse');
-                } else {
-                  Toast.show({
-                    type: 'error',
-                    text1: 'KYC Required',
-                    text2: 'Please complete your KYC first',
-                    position: 'top',
-                  });
-                }
-              }}
-            >
-              <View
-                style={[
-                  styles.actionIcon,
-                  { backgroundColor: `${colors.secondary}20` },
-                ]}
-              >
-                <BookOpen size={wp(24)} color={colors.secondary} />
-              </View>
-              <Text style={styles.actionTitle}>Create Course</Text>
-              <Text style={styles.actionSubtitle}>Build new content</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        <View style={styles.withdrawCard}>
-          <View>
-            <Text style={styles.withdrawLabel}>Withdrawable Balance</Text>
-            <Text style={styles.withdrawAmount}>₹ *****</Text>
-          </View>
-
-          <TouchableOpacity style={styles.withdrawBtn}>
-            <Text style={styles.withdrawBtnText}>Withdraw</Text>
+          <TouchableOpacity
+            style={styles.actionCard}
+            activeOpacity={0.85}
+            onPress={() => handleKycGuard('CreateCourse')}
+          >
+            <View style={[styles.actionIconWrap, { backgroundColor: '#8B5CF620' }]}>
+              <BookOpen size={wp(22)} color="#8B5CF6" />
+            </View>
+            <View style={styles.actionTextWrap}>
+              <Text style={styles.actionTitle}>New Course</Text>
+              <Text style={styles.actionDesc}>Create content</Text>
+            </View>
+            <ChevronRight size={wp(18)} color={DARK_MUTED} />
           </TouchableOpacity>
         </View>
 
-        <View style={{ height: hp(30) }} />
+        <View style={styles.tipCard}>
+          <Sparkles size={wp(16)} color="#FBBF24" />
+          <Text style={styles.tipText}>
+            Tip: Creators who go live weekly get 3x more engagement!
+          </Text>
+        </View>
       </ScrollView>
     </View>
   );
@@ -196,168 +181,173 @@ export default CreatorHome;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: colors.surface,
   },
 
-  mainHeader: {
-    width: '100%',
+  headerWrapper: {
+    backgroundColor: DARK,
   },
-
-  headerBg: {
-    paddingVertical: hp(12),
-  },
-
-  headerContent: {
+  header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: wp(16),
     alignItems: 'center',
+    paddingHorizontal: wp(16),
+    paddingVertical: hp(14),
   },
-
-  mainHead: {
+  headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(12),
   },
-
   avatar: {
-    width: wp(54),
-    height: hp(54),
-    borderRadius: wp(27),
-    backgroundColor: colors.primary,
+    width: wp(46),
+    height: wp(46),
+    borderRadius: wp(23),
+    borderWidth: 2,
+    borderColor: DARK_BORDER,
+  },
+  avatarFallback: {
+    width: wp(46),
+    height: wp(46),
+    borderRadius: wp(23),
+    backgroundColor: DARK_CARD,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: DARK_BORDER,
+  },
+  greetingSub: {
+    fontSize: fp(12),
+    color: DARK_MUTED,
+    fontWeight: '500',
+  },
+  greeting: {
+    fontSize: fp(18),
+    fontWeight: '800',
+    color: colors.white,
+    marginTop: hp(1),
+  },
+  bellBtn: {
+    width: wp(40),
+    height: wp(40),
+    borderRadius: wp(20),
+    backgroundColor: DARK_CARD,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: DARK_BORDER,
   },
 
-  secPara: {
-    fontSize: fp(16),
-    fontWeight: '700',
-    color: colors.primary,
+  scrollContent: {
+    paddingBottom: hp(30),
   },
 
-  firstPara: {
-    fontSize: fp(13),
-    color: colors.primary,
-  },
-
+  // Section
   sectionTitle: {
-    fontSize: fp(22),
+    fontSize: fp(17),
     fontWeight: '700',
-    textAlign: 'center',
-    marginVertical: hp(20),
     color: colors.text,
+    marginHorizontal: wp(16),
+    marginTop: hp(20),
+    marginBottom: hp(12),
   },
 
+  // Stats
   statsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     paddingHorizontal: wp(16),
+    rowGap: hp(10),
   },
-
   statCard: {
     width: '48%',
-    borderRadius: wp(20),
-    paddingVertical: hp(22),
-    marginBottom: hp(16),
-    alignItems: 'center',
-    elevation: 6,
-  },
-
-  iconWrapper: {
-    width: wp(50),
-    height: hp(50),
-    borderRadius: wp(26),
     backgroundColor: colors.white,
+    borderRadius: wp(16),
+    padding: wp(14),
+    elevation: 2,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+  },
+  statIconWrap: {
+    width: wp(40),
+    height: wp(40),
+    borderRadius: wp(12),
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: hp(12),
-    elevation: 3,
+    marginBottom: hp(10),
   },
-
   statValue: {
     fontSize: fp(22),
     fontWeight: '800',
     color: colors.text,
   },
-
   statLabel: {
-    fontSize: fp(13),
-    color: colors.textSecondary,
-    marginTop: hp(4),
-  },
-
-  actionsSection: {
-    padding: wp(16),
-  },
-
-  actionsGrid: {
-    flexDirection: 'row',
-  },
-
-  actionCard: {
-    flex: 1,
-    backgroundColor: colors.surface,
-    borderRadius: wp(18),
-    padding: wp(20),
-    alignItems: 'center',
-    elevation: 4,
-  },
-
-  actionCardRight: {
-    marginRight: wp(12),
-  },
-
-  actionIcon: {
-    width: wp(48),
-    height: hp(48),
-    borderRadius: wp(24),
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: hp(12),
-  },
-
-  actionTitle: {
-    fontSize: fp(16),
-    fontWeight: '700',
-    color: colors.text,
-  },
-
-  actionSubtitle: {
     fontSize: fp(12),
     color: colors.textSecondary,
-  },
-
-  withdrawCard: {
-    marginHorizontal: wp(16),
-    marginTop: hp(10),
-    backgroundColor: colors.white,
-    borderRadius: wp(14),
-    padding: wp(14),
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    elevation: 5,
-  },
-
-  withdrawLabel: {
-    color: colors.primary,
-    fontWeight: '700',
-  },
-
-  withdrawAmount: {
-    color: colors.primary,
-    fontSize: fp(18),
-    fontWeight: '900',
+    fontWeight: '500',
     marginTop: hp(2),
   },
 
-  withdrawBtn: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: wp(18),
-    paddingVertical: hp(8),
-    borderRadius: wp(10),
+  // Quick Actions
+  actionsRow: {
+    paddingHorizontal: wp(16),
+    gap: hp(10),
+  },
+  actionCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.white,
+    borderRadius: wp(16),
+    padding: wp(14),
+    elevation: 2,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+  },
+  actionIconWrap: {
+    width: wp(46),
+    height: wp(46),
+    borderRadius: wp(14),
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: wp(14),
+  },
+  actionTextWrap: {
+    flex: 1,
+  },
+  actionTitle: {
+    fontSize: fp(15),
+    fontWeight: '700',
+    color: colors.text,
+  },
+  actionDesc: {
+    fontSize: fp(12),
+    color: colors.textSecondary,
+    marginTop: hp(2),
   },
 
-  withdrawBtnText: {
-    color: colors.white,
-    fontWeight: '800',
+  // Tip
+  tipCard: {
+    marginHorizontal: wp(16),
+    marginTop: hp(20),
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEF9E7',
+    borderRadius: wp(12),
+    padding: wp(14),
+    gap: wp(10),
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+  },
+  tipText: {
+    flex: 1,
+    fontSize: fp(13),
+    color: colors.text,
+    lineHeight: fp(18),
+    fontWeight: '500',
   },
 });

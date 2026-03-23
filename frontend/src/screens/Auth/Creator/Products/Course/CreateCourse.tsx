@@ -9,7 +9,6 @@ import {
   ScrollView,
   Platform,
   Image,
-  Linking,
 } from 'react-native';
 import AppHeaderWithBack from '../../../../../components/AppHeaderWithBack';
 import Toast from 'react-native-toast-message';
@@ -24,14 +23,21 @@ import { Dropdown } from 'react-native-element-dropdown';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { uploadShipDoc } from '../../../../../store/Common';
 import { pick, types } from '@react-native-documents/picker';
-import { CloudUpload } from 'lucide-react-native';
+import {
+  Type,
+  IndianRupee,
+  ImagePlus,
+  BarChart3,
+  ToggleLeft,
+  FileText,
+} from 'lucide-react-native';
 import FacingIssues from './components/FacingIssues';
 
 const CreateCourse = () => {
   const [loading, setLoading] = useState(false);
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
   const Nav = useNavigation<any>();
-  const route = useRoute();
+  const route = useRoute<any>();
   const isUpdated = route?.params?.isUpdated;
   const updateData = route?.params?.data;
   const [uploading, setUploading] = useState(false);
@@ -40,8 +46,6 @@ const CreateCourse = () => {
     control,
     handleSubmit,
     reset,
-    setValue,
-    watch,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -57,22 +61,13 @@ const CreateCourse = () => {
 
   const imagePicker = async (onChange: (val: string) => void) => {
     try {
-      const res = await pick({
-        type: [types.images],
-      });
-
+      const res = await pick({ type: [types.images] });
       if (!res || res.length === 0) return;
-
-      const picked = {
-        uri: res[0].uri,
-        type: res[0].type,
-        name: res[0].name,
-        size: res[0].size,
-      };
-
-      await pickImageUpload(picked, onChange);
+      await pickImageUpload(
+        { uri: res[0].uri, type: res[0].type, name: res[0].name },
+        onChange,
+      );
     } catch (err: any) {
-      console.error('Document Picker Error:', err);
       Toast.show({
         type: 'error',
         text1: 'Image Picker Error',
@@ -82,10 +77,7 @@ const CreateCourse = () => {
     }
   };
 
-  const pickImageUpload = async (
-    file: any,
-    onChange: (val: string) => void,
-  ) => {
+  const pickImageUpload = async (file: any, onChange: (val: string) => void) => {
     setUploading(true);
     try {
       const formData = new FormData();
@@ -94,428 +86,317 @@ const CreateCourse = () => {
         type: file.type,
         name: file.name || 'upload.jpg',
       });
-
       const res: any = await dispatch(uploadShipDoc(formData)).unwrap();
-      const newUrl = res?.data?.url;
-      onChange(newUrl);
-
-      Toast.show({
-        type: 'success',
-        text1: 'Image uploaded successfully!',
-        position: 'bottom',
-      });
-    } catch (err: any) {
-      console.error('Image Upload Error:', err);
-      Toast.show({
-        type: 'error',
-        text1: 'Upload Failed',
-        text2: 'Please try again later.',
-        position: 'bottom',
-      });
+      onChange(res?.data?.url);
+      Toast.show({ type: 'success', text1: 'Image uploaded!', position: 'bottom' });
+    } catch {
+      Toast.show({ type: 'error', text1: 'Upload Failed', position: 'bottom' });
     } finally {
       setUploading(false);
     }
   };
 
-  const onCreateCourse = (data: any) => {
-    const description = data?.description?.trim();
-
-    // REQUIRED
+  const validateDescription = (description: string) => {
     if (!description) {
-      Toast.show({
-        type: 'error',
-        text1: 'Please write a short description',
-      });
-      return;
+      Toast.show({ type: 'error', text1: 'Please write a short description' });
+      return false;
     }
-
-    // MIN LENGTH
     if (description.length < 5) {
-      Toast.show({
-        type: 'error',
-        text1: 'Description must be at least 5 characters long',
-      });
-      return;
+      Toast.show({ type: 'error', text1: 'Description must be at least 5 characters' });
+      return false;
     }
-
-    // MAX LENGTH
     if (description.length > 20) {
-      Toast.show({
-        type: 'error',
-        text1: 'Description cannot exceed 20 characters',
-      });
-      return;
+      Toast.show({ type: 'error', text1: 'Description cannot exceed 20 characters' });
+      return false;
     }
-
-    setLoading(true);
-
-    const payload = {
-      title: data.courseTitle.trim(),
-      description,
-      price: Number(data.price) || 0,
-      category: 'video',
-      level: data?.level,
-      status: data?.status,
-      thumbnail: data?.thumbnail,
-    };
-
-    dispatch(createCourse(payload))
-      .unwrap()
-      .then(res => {
-        reset();
-        Toast.show({
-          type: 'success',
-          text1: 'Course created successfully!',
-        });
-        Nav.goBack();
-      })
-      .catch(err => {
-        Toast.show({
-          type: 'error',
-          text1: 'Failed to create course',
-        });
-      })
-      .finally(() => setLoading(false));
+    return true;
   };
 
-
-  const onCourseUpdate = (data: any) => {
-
-    const description = data?.description?.trim();
-
-    // REQUIRED
-    if (!description) {
-      Toast.show({
-        type: 'error',
-        text1: 'Please write a short description',
-      });
-      return;
-    }
-
-    // MIN LENGTH
-    if (description.length < 5) {
-      Toast.show({
-        type: 'error',
-        text1: 'Description must be at least 5 characters long',
-      });
-      return;
-    }
-
-    // MAX LENGTH
-    if (description.length > 20) {
-      Toast.show({
-        type: 'error',
-        text1: 'Description cannot exceed 20 characters',
-      });
-      return;
-    }
+  const onCreateCourse = (data: any) => {
+    if (!validateDescription(data?.description?.trim())) return;
     setLoading(true);
-    const payload = {
-      id: updateData?.id,
-      body: {
+    dispatch(
+      createCourse({
         title: data.courseTitle.trim(),
         description: data.description.trim(),
         price: Number(data.price) || 0,
-        category: data?.category.trim() || '',
+        category: 'video',
         level: data?.level,
         status: data?.status,
         thumbnail: data?.thumbnail,
-      },
-    };
-
-    dispatch(updateCourse(payload))
+      }),
+    )
       .unwrap()
-      .then(res => {
+      .then(() => {
         reset();
-        Toast.show({
-          type: 'success',
-          text1: 'Course updated successfully!',
-        });
+        Toast.show({ type: 'success', text1: 'Course created!' });
         Nav.goBack();
       })
-      .catch(err => {
-        Toast.show({
-          type: 'error',
-          text1: 'Failed to update course',
-        });
-      })
+      .catch(() => Toast.show({ type: 'error', text1: 'Failed to create course' }))
       .finally(() => setLoading(false));
+  };
+
+  const onCourseUpdate = (data: any) => {
+    if (!validateDescription(data?.description?.trim())) return;
+    setLoading(true);
+    dispatch(
+      updateCourse({
+        id: updateData?.id,
+        body: {
+          title: data.courseTitle.trim(),
+          description: data.description.trim(),
+          price: Number(data.price) || 0,
+          category: data?.category?.trim() || '',
+          level: data?.level,
+          status: data?.status,
+          thumbnail: data?.thumbnail,
+        },
+      }),
+    )
+      .unwrap()
+      .then(() => {
+        reset();
+        Toast.show({ type: 'success', text1: 'Course updated!' });
+        Nav.goBack();
+      })
+      .catch(() => Toast.show({ type: 'error', text1: 'Failed to update course' }))
+      .finally(() => setLoading(false));
+  };
+
+  const renderDropdownItem = (item: any, selectedValue: any) => {
+    const isSelected = item.value === selectedValue;
+    return (
+      <View
+        style={[
+          styles.dropdownItem,
+          isSelected && styles.dropdownItemSelected,
+        ]}
+      >
+        <Text
+          style={[
+            styles.dropdownItemText,
+            isSelected && styles.dropdownItemTextSelected,
+          ]}
+        >
+          {item.label}
+        </Text>
+      </View>
+    );
   };
 
   return (
     <View style={styles.root}>
-      <AppHeaderWithBack
-        title={isUpdated ? 'Update Course' : 'Create Course'}
-      />
+      <AppHeaderWithBack title={isUpdated ? 'Update Course' : 'Create Course'} />
 
       <KeyboardAvoidingView
-        style={styles.flexGrow}
+        style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={80}
       >
-        <ScrollView contentContainerStyle={styles.scrollArea}>
-          <View style={styles.formCard}>
-            {/* Course Title */}
+        <ScrollView
+          contentContainerStyle={styles.scrollArea}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Title */}
+          <View style={styles.labelRow}>
+            <Type size={wp(14)} color={colors.textSecondary} />
             <Text style={styles.label}>Course Title</Text>
-            <Controller
-              name="courseTitle"
-              control={control}
-              rules={{ required: true }}
-              render={({ field: { onChange, onBlur, value } }) => (
-                <CustomTextInput
-                  inputContainerStyle={[
-                    styles.nameFields,
-                    {
-                      borderColor: errors.courseTitle
-                        ? 'red'
-                        : colors.borderColor,
-                    },
-                  ]}
-                  placeholder="Enter course title"
-                  value={value}
-                  onChange={onChange}
-                  onBlur={onBlur}
-                />
-              )}
-            />
-            {/* Price */}
+          </View>
+          <Controller
+            name="courseTitle"
+            control={control}
+            rules={{ required: true }}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <CustomTextInput
+                inputContainerStyle={[
+                  styles.input,
+                  errors.courseTitle && styles.errorBorder,
+                ]}
+                placeholder="Enter course title"
+                value={value}
+                onChange={onChange}
+                onBlur={onBlur}
+              />
+            )}
+          />
+
+          {/* Price */}
+          <View style={styles.labelRow}>
+            <IndianRupee size={wp(14)} color={colors.textSecondary} />
             <Text style={styles.label}>Price (INR)</Text>
-            <Controller
-              name="price"
-              control={control}
-              rules={{ required: true }}
-              render={({ field: { onChange, onBlur, value } }) => (
-                <CustomTextInput
-                  inputContainerStyle={[
-                    styles.nameFields,
-                    { borderColor: errors.price ? 'red' : colors.borderColor },
-                  ]}
-                  keyboardType="numeric"
-                  placeholder="e.g ₹499"
-                  value={value}
-                  onChange={onChange}
-                  onBlur={onBlur}
-                />
-              )}
-            />
-            {/* Thumbnail */}
-            <Text style={styles.label}>Choose Course Thumbnail</Text>
-            <Controller
-              name="thumbnail"
-              control={control}
-              render={({ field: { onChange, value } }) => (
-                <View>
-                  <TouchableOpacity
-                    onPress={() => imagePicker(onChange)}
-                    style={styles.button}
-                    disabled={uploading}
-                  >
-                    {uploading ? (
-                      <ActivityIndicator color={colors.primary} />
-                    ) : (
-                      <Text style={styles.buttonText}>
+          </View>
+          <Controller
+            name="price"
+            control={control}
+            rules={{ required: true }}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <CustomTextInput
+                inputContainerStyle={[
+                  styles.input,
+                  errors.price && styles.errorBorder,
+                ]}
+                keyboardType="numeric"
+                placeholder="e.g ₹499"
+                value={value}
+                onChange={onChange}
+                onBlur={onBlur}
+              />
+            )}
+          />
+
+          {/* Thumbnail */}
+          <View style={styles.labelRow}>
+            <ImagePlus size={wp(14)} color={colors.textSecondary} />
+            <Text style={styles.label}>Course Thumbnail</Text>
+          </View>
+          <Controller
+            name="thumbnail"
+            control={control}
+            render={({ field: { onChange, value } }) => (
+              <View>
+                <TouchableOpacity
+                  onPress={() => imagePicker(onChange)}
+                  style={styles.thumbnailBtn}
+                  disabled={uploading}
+                  activeOpacity={0.7}
+                >
+                  {uploading ? (
+                    <ActivityIndicator color={colors.primary} />
+                  ) : (
+                    <>
+                      <ImagePlus size={wp(18)} color={colors.textSecondary} />
+                      <Text style={styles.thumbnailBtnText}>
                         {value ? 'Change Thumbnail' : 'Choose Thumbnail'}
                       </Text>
-                    )}
-                  </TouchableOpacity>
+                    </>
+                  )}
+                </TouchableOpacity>
+                {value ? (
+                  <Image
+                    source={{ uri: value }}
+                    style={styles.imagePreview}
+                    resizeMode="cover"
+                  />
+                ) : null}
+              </View>
+            )}
+          />
 
-                  {value ? (
-                    <Image
-                      source={{ uri: value }}
-                      style={styles.imagePreview}
-                      resizeMode="cover"
-                    />
-                  ) : null}
-                </View>
-              )}
-            />
-
-            {/* Level */}
+          {/* Level */}
+          <View style={styles.labelRow}>
+            <BarChart3 size={wp(14)} color={colors.textSecondary} />
             <Text style={styles.label}>Level</Text>
-            <Controller
-              name="level"
-              control={control}
-              rules={{ required: true }}
-              render={({
-                field: { onChange, value },
-                fieldState: { error },
-              }) => (
-                <Dropdown
-                  style={[styles.dropdown, error && styles.errorBorder]}
-                  placeholderStyle={styles.placeholder}
-                  selectedTextStyle={styles.selectedText}
-                  containerStyle={{
-                    borderRadius: wp(10),
-                  }}
-                  data={[
-                    { label: 'Advanced', value: 'Advanced' },
-                    { label: 'Intermediate', value: 'Intermediate' },
-                    { label: 'Beginner', value: 'Beginner' },
-                  ]}
-                  labelField="label"
-                  valueField="value"
-                  placeholder="Select level"
-                  value={value}
-                  onChange={item => onChange(item.value)}
-                  renderItem={item => {
-                    const isSelected = item.value === value;
-                    return (
-                      <View
-                        style={{
-                          paddingHorizontal: wp(10),
-                          paddingVertical: hp(5),
-                          margin: wp(10),
-                          backgroundColor: isSelected
-                            ? colors.primary
-                            : colors.white,
-                          borderRadius: wp(5),
-                        }}
-                      >
-                        <Text
-                          style={{
-                            color: isSelected
-                              ? colors.white
-                              : colors.textSecondary,
-                          }}
-                        >
-                          {item.label}
-                        </Text>
-                      </View>
-                    );
-                  }}
-                />
-              )}
-            />
-            {/* Category */}
-            {/* <Text style={styles.label}>Category</Text>
-            <Controller
-              name="category"
-              control={control}
-              rules={{ required: true }}
-              render={({ field: { onChange, onBlur, value } }) => (
-                <CustomTextInput
-                  inputContainerStyle={[
-                    styles.nameFields,
-                    {
-                      borderColor: errors.category ? 'red' : colors.borderColor,
-                    },
-                  ]}
-                  placeholder="Enter category"
-                  value={value}
-                  onChange={onChange}
-                  onBlur={onBlur}
-                />
-              )}
-            /> */}
-
-            {/* Status */}
-            <Text style={styles.label}>Status</Text>
-            <Controller
-              name="status"
-              control={control}
-              rules={{ required: true }}
-              render={({
-                field: { onChange, value },
-                fieldState: { error },
-              }) => (
-                <Dropdown
-                  style={[styles.dropdown, error && styles.errorBorder]}
-                  placeholderStyle={styles.placeholder}
-                  selectedTextStyle={styles.selectedText}
-                  containerStyle={{
-                    borderRadius: wp(10),
-                  }}
-                  data={[
-                    { label: 'Draft', value: 'DRAFT' },
-                    { label: 'Published', value: 'PUBLISHED' },
-                  ]}
-                  labelField="label"
-                  valueField="value"
-                  placeholder="Select status"
-                  value={value}
-                  onChange={item => onChange(item.value)}
-                  renderItem={item => {
-                    const isSelected = item.value === value;
-                    return (
-                      <View
-                        style={{
-                          paddingHorizontal: wp(10),
-                          paddingVertical: hp(5),
-                          margin: wp(10),
-                          backgroundColor: isSelected
-                            ? colors.primary
-                            : colors.white,
-                          borderRadius: wp(5),
-                        }}
-                      >
-                        <Text
-                          style={{
-                            color: isSelected
-                              ? colors.white
-                              : colors.textSecondary,
-                          }}
-                        >
-                          {item.label}
-                        </Text>
-                      </View>
-                    );
-                  }}
-                />
-              )}
-            />
-            {/* Description */}
-            <Text style={styles.label}>Headline</Text>
-            <Controller
-              name="description"
-              control={control}
-              rules={{
-                required: false,
-              }}
-              render={({ field: { onChange, onBlur, value } }) => (
-                <CustomTextInput
-                  inputContainerStyle={[
-                    styles.nameFields,
-                    {
-                      borderColor: errors.description
-                        ? 'red'
-                        : colors.borderColor,
-                    },
-                  ]}
-                  placeholder="Write a headline (between 5-20 characters)"
-                  value={value}
-                  onChange={onChange}
-                  onBlur={onBlur}
-                />
-              )}
-            />
-
-            <View style={styles.actionsRow}>
-              <TouchableOpacity
-                style={[styles.createButton, loading && styles.buttonDisabled]}
-                onPress={handleSubmit(
-                  isUpdated ? onCourseUpdate : onCreateCourse,
-                )}
-                disabled={loading}
-              >
-                {loading ? (
-                  <ActivityIndicator size="small" color={colors.white} />
-                ) : (
-                  <Text style={styles.createButtonText}>
-                    {isUpdated ? 'Update' : 'Create Course'}
-                  </Text>
-                )}
-              </TouchableOpacity>
-            </View>
           </View>
+          <Controller
+            name="level"
+            control={control}
+            rules={{ required: true }}
+            render={({ field: { onChange, value }, fieldState: { error } }) => (
+              <Dropdown
+                style={[styles.dropdown, error && styles.errorBorder]}
+                placeholderStyle={styles.placeholderText}
+                selectedTextStyle={styles.selectedText}
+                containerStyle={styles.dropdownContainer}
+                data={[
+                  { label: 'Beginner', value: 'Beginner' },
+                  { label: 'Intermediate', value: 'Intermediate' },
+                  { label: 'Advanced', value: 'Advanced' },
+                ]}
+                labelField="label"
+                valueField="value"
+                placeholder="Select level"
+                value={value}
+                onChange={item => onChange(item.value)}
+                renderItem={item => renderDropdownItem(item, value)}
+              />
+            )}
+          />
+
+          {/* Status */}
+          <View style={styles.labelRow}>
+            <ToggleLeft size={wp(14)} color={colors.textSecondary} />
+            <Text style={styles.label}>Status</Text>
+          </View>
+          <Controller
+            name="status"
+            control={control}
+            rules={{ required: true }}
+            render={({ field: { onChange, value }, fieldState: { error } }) => (
+              <Dropdown
+                style={[styles.dropdown, error && styles.errorBorder]}
+                placeholderStyle={styles.placeholderText}
+                selectedTextStyle={styles.selectedText}
+                containerStyle={styles.dropdownContainer}
+                data={[
+                  { label: 'Draft', value: 'DRAFT' },
+                  { label: 'Published', value: 'PUBLISHED' },
+                ]}
+                labelField="label"
+                valueField="value"
+                placeholder="Select status"
+                value={value}
+                onChange={item => onChange(item.value)}
+                renderItem={item => renderDropdownItem(item, value)}
+              />
+            )}
+          />
+
+          {/* Headline */}
+          <View style={styles.labelRow}>
+            <FileText size={wp(14)} color={colors.textSecondary} />
+            <Text style={styles.label}>Headline</Text>
+          </View>
+          <Controller
+            name="description"
+            control={control}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <CustomTextInput
+                inputContainerStyle={[
+                  styles.input,
+                  errors.description && styles.errorBorder,
+                ]}
+                placeholder="Write a headline (5-20 characters)"
+                value={value}
+                onChange={onChange}
+                onBlur={onBlur}
+              />
+            )}
+          />
 
           <FacingIssues
             title="facing issues in upload"
             messgae="Hello, I need help with uploading."
           />
-
         </ScrollView>
+
+        {/* Bottom Actions */}
+        <View style={styles.actions}>
+          <TouchableOpacity
+            style={styles.cancelBtn}
+            onPress={() => {
+              Nav.goBack();
+              reset();
+            }}
+            disabled={loading}
+          >
+            <Text style={styles.cancelText}>Cancel</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.primaryBtn, loading && { opacity: 0.7 }]}
+            onPress={handleSubmit(isUpdated ? onCourseUpdate : onCreateCourse)}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator size="small" color={colors.white} />
+            ) : (
+              <Text style={styles.primaryText}>
+                {isUpdated ? 'Update Course' : 'Create Course'}
+              </Text>
+            )}
+          </TouchableOpacity>
+        </View>
       </KeyboardAvoidingView>
-      <Toast />
     </View>
   );
 };
@@ -525,39 +406,101 @@ export default CreateCourse;
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
   },
-  flexGrow: {
-    flex: 1
+  flex: {
+    flex: 1,
   },
   scrollArea: {
     padding: wp(16),
-    paddingBottom: hp(40)
+    paddingBottom: hp(20),
   },
-  formCard: {
-    backgroundColor: colors.white,
-    borderRadius: wp(12),
-    padding: wp(16),
-    shadowColor: colors.black,
-    shadowOpacity: 0.06,
-    shadowRadius: 10,
-    elevation: 3,
+
+  // Labels
+  labelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(6),
+    marginTop: hp(14),
+    marginBottom: hp(6),
   },
   label: {
-    fontSize: fp(14),
-    marginTop: hp(12),
-    marginBottom: hp(6),
+    fontSize: fp(13),
     color: colors.heading,
     fontWeight: '600',
   },
-  textArea: {
-    borderWidth: wp(1),
-    borderColor: '#e6e6e6',
-    borderRadius: wp(8),
-    paddingLeft: wp(10),
-    height: hp(100),
+
+  // Inputs
+  input: {
+    borderRadius: wp(12),
+    paddingHorizontal: wp(12),
+    height: hp(46),
+    width: '100%',
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.borderColor,
   },
-  placeholder: {
+  errorBorder: {
+    borderColor: colors.error,
+  },
+
+  // Thumbnail
+  thumbnailBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: wp(8),
+    borderRadius: wp(12),
+    height: hp(46),
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.borderColor,
+    borderStyle: 'dashed',
+  },
+  thumbnailBtnText: {
+    color: colors.textSecondary,
+    fontSize: fp(14),
+    fontWeight: '500',
+  },
+  imagePreview: {
+    width: '100%',
+    height: hp(160),
+    borderRadius: wp(12),
+    marginTop: hp(10),
+  },
+
+  // Dropdowns
+  dropdown: {
+    height: hp(46),
+    borderWidth: 1,
+    borderColor: colors.borderColor,
+    borderRadius: wp(12),
+    paddingHorizontal: wp(14),
+    justifyContent: 'center',
+    backgroundColor: colors.white,
+  },
+  dropdownContainer: {
+    borderRadius: wp(12),
+    overflow: 'hidden',
+  },
+  dropdownItem: {
+    paddingHorizontal: wp(14),
+    paddingVertical: hp(10),
+    marginHorizontal: wp(6),
+    marginVertical: hp(3),
+    borderRadius: wp(8),
+  },
+  dropdownItemSelected: {
+    backgroundColor: colors.primary,
+  },
+  dropdownItemText: {
+    color: colors.textSecondary,
+    fontSize: fp(14),
+  },
+  dropdownItemTextSelected: {
+    color: colors.white,
+  },
+  placeholderText: {
     fontSize: fp(14),
     color: colors.borderColor,
   },
@@ -565,102 +508,43 @@ const styles = StyleSheet.create({
     fontSize: fp(14),
     color: colors.primary,
   },
-  actionsRow: {
-    marginTop: hp(18),
-    alignItems: 'flex-end'
+
+  // Bottom Actions
+  actions: {
+    flexDirection: 'row',
+    gap: wp(12),
+    paddingHorizontal: wp(16),
+    paddingVertical: hp(14),
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    backgroundColor: colors.white,
   },
-  createButton: {
-    backgroundColor: colors.primary,
-    paddingVertical: hp(12),
-    paddingHorizontal: wp(18),
-    borderRadius: wp(10),
-    width: wp(160),
+  cancelBtn: {
+    flex: 1,
+    paddingVertical: hp(14),
+    borderRadius: wp(12),
     alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
-  createButtonText: {
+  cancelText: {
+    color: colors.text,
+    fontWeight: '600',
+    fontSize: fp(15),
+  },
+  primaryBtn: {
+    flex: 2,
+    backgroundColor: colors.primary,
+    paddingVertical: hp(14),
+    borderRadius: wp(12),
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  primaryText: {
     color: colors.white,
     fontWeight: '700',
-    fontSize: fp(15)
-  },
-  buttonDisabled: {
-    opacity: 0.65
-  },
-  dropdown: {
-    height: hp(44),
-    borderWidth: wp(1),
-    borderColor: colors.borderColor,
-    borderRadius: wp(8),
-    paddingHorizontal: wp(20),
-    justifyContent: 'center',
-  },
-  errorBorder: { borderColor: 'red' },
-  nameFields: {
-    borderRadius: wp(8),
-    paddingHorizontal: wp(10),
-    height: hp(44),
-    width: '100%',
-    backgroundColor: colors.white,
-    borderWidth: wp(1),
-    borderColor: colors.borderColor,
-  },
-  button: {
-    borderRadius: wp(8),
-    paddingHorizontal: wp(10),
-    height: hp(44),
-    width: '100%',
-    backgroundColor: colors.white,
-    borderWidth: wp(1),
-    borderColor: colors.borderColor,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: colors.textSecondary,
-    fontSize: fp(14),
-    fontWeight: '500',
-  },
-  imagePreview: {
-    width: '100%',
-    height: hp(150),
-    borderRadius: wp(8),
-    marginTop: hp(10),
-  },
-  uploadHeader: {
-    alignItems: 'center',
-    marginTop: hp(20),
-  },
-  uploadMain: {
-    flexDirection: 'row',
-    padding: wp(16),
-    borderRadius: wp(10),
-    backgroundColor: colors.white,
-    elevation: 5,
-    alignItems: 'center',
-  },
-  buttonHelp: {
-    width: '30%',
-    borderWidth: wp(1),
-    alignItems: 'center',
-    backgroundColor: colors.primary,
-    borderRadius: wp(5),
-    paddingVertical: hp(5),
-  },
-  buttonHelpPara: {
-    fontSize: fp(14),
-    color: colors.white,
-    fontWeight: '500',
-    borderRadius: wp(10),
-  },
-  secHead: {
-    width: '20%',
-    alignItems: 'center',
-  },
-  mainHead: {
-    width: '45%',
-    alignItems: 'center',
-  },
-  mainPara: {
-    fontSize: fp(16),
-    fontWeight: '500',
+    fontSize: fp(15),
   },
 });

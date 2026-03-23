@@ -29,7 +29,18 @@ import { pick, types } from '@react-native-documents/picker';
 import { uploadShipDoc } from '../../../../../store/Common';
 import moment from 'moment-timezone';
 import FacingIssues from '../Course/components/FacingIssues';
-import { CirclePlus } from 'lucide-react-native';
+import {
+  CirclePlus,
+  Calendar,
+  Clock,
+  ImagePlus,
+  Timer,
+  Tag,
+  UsersRound,
+  ToggleLeft,
+  Type,
+  IndianRupee,
+} from 'lucide-react-native';
 
 const CreateWebinarScreen = () => {
   const navigation = useNavigation();
@@ -37,8 +48,8 @@ const CreateWebinarScreen = () => {
   const [loading, setLoading] = useState(false);
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
   const [uploading, setUploading] = useState(false);
-  const [timezones, setTimezones] = useState([]);
-  const route = useRoute();
+  const [timezones, setTimezones] = useState<any[]>([]);
+  const route = useRoute<any>();
   const updatedata = route?.params?.data;
   const [tagInput, setTagInput] = useState('');
   const [tagList, setTagList] = useState<string[]>(updatedata?.tags || []);
@@ -129,8 +140,6 @@ const CreateWebinarScreen = () => {
     control,
     handleSubmit,
     reset,
-    watch,
-    formState: { errors },
   } = useForm({
     defaultValues: {
       title: updatedata?.title,
@@ -195,13 +204,11 @@ const CreateWebinarScreen = () => {
     };
     dispatch(createWebinar(payload))
       .unwrap()
-      .then(response => {
+      .then(() => {
         reset();
         navigation.goBack();
-        setLoading(false);
       })
-      .catch(error => {
-      })
+      .catch(() => {})
       .finally(() => {
         setLoading(false);
       });
@@ -258,13 +265,11 @@ const CreateWebinarScreen = () => {
     };
     dispatch(updateWebinar(payload))
       .unwrap()
-      .then(response => {
+      .then(() => {
         reset();
         navigation.goBack();
-        setLoading(false);
       })
-      .catch(error => {
-      })
+      .catch(() => {})
       .finally(() => {
         setLoading(false);
       });
@@ -272,7 +277,7 @@ const CreateWebinarScreen = () => {
 
   return (
     <View style={styles.safe}>
-      <AppHeaderWithBack title="Create Webinar" />
+      <AppHeaderWithBack title={updatedata ? 'Update Webinar' : 'Create Webinar'} />
 
       <View style={styles.container}>
         <KeyboardAvoidingView
@@ -283,7 +288,10 @@ const CreateWebinarScreen = () => {
             contentContainerStyle={styles.formScroll}
             showsVerticalScrollIndicator={false}
           >
-            <Text style={[styles.label, { marginTop: hp(10) }]}>Title</Text>
+            <View style={[styles.labelRow, { marginTop: hp(10) }]}>
+              <Type size={wp(14)} color={colors.textSecondary} />
+              <Text style={styles.label}>Title</Text>
+            </View>
             <Controller
               name="title"
               control={control}
@@ -317,7 +325,10 @@ const CreateWebinarScreen = () => {
               )}
             />
 
-            <Text style={styles.label}>Price</Text>
+            <View style={styles.labelRow}>
+              <IndianRupee size={wp(14)} color={colors.textSecondary} />
+              <Text style={styles.label}>Price</Text>
+            </View>
             <Controller
               name="price"
               control={control}
@@ -351,7 +362,10 @@ const CreateWebinarScreen = () => {
               )}
             />
 
-            <Text style={styles.label}>Date</Text>
+            <View style={styles.labelRow}>
+              <Calendar size={wp(14)} color={colors.textSecondary} />
+              <Text style={styles.label}>Date</Text>
+            </View>
             <Controller
               control={control}
               name="scheduled_at"
@@ -382,7 +396,10 @@ const CreateWebinarScreen = () => {
               )}
             />
 
-            <Text style={styles.label}>Start Time</Text>
+            <View style={styles.labelRow}>
+              <Clock size={wp(14)} color={colors.textSecondary} />
+              <Text style={styles.label}>Start Time</Text>
+            </View>
 
             <Controller
               control={control}
@@ -417,7 +434,10 @@ const CreateWebinarScreen = () => {
               )}
             />
 
-            <Text style={styles.label}>Select Thumbnnail</Text>
+            <View style={styles.labelRow}>
+              <ImagePlus size={wp(14)} color={colors.textSecondary} />
+              <Text style={styles.label}>Select Thumbnail</Text>
+            </View>
             <Controller
               name="thumbnail_url"
               control={control}
@@ -451,7 +471,10 @@ const CreateWebinarScreen = () => {
               )}
             />
 
-            <Text style={styles.label}>Duration</Text>
+            <View style={styles.labelRow}>
+              <Timer size={wp(14)} color={colors.textSecondary} />
+              <Text style={styles.label}>Duration</Text>
+            </View>
             <Controller
               name="duration"
               control={control}
@@ -485,7 +508,10 @@ const CreateWebinarScreen = () => {
               )}
             />
 
-            <Text style={styles.label}>Categories</Text>
+            <View style={styles.labelRow}>
+              <Tag size={wp(14)} color={colors.textSecondary} />
+              <Text style={styles.label}>Categories</Text>
+            </View>
             <Controller
               control={control}
               name="tags"
@@ -509,10 +535,7 @@ const CreateWebinarScreen = () => {
                       placeholderTextColor={colors.borderColor}
                       placeholder="Enter tag"
                       value={tagInput}
-                      onChange={text => {
-                        // if (text.includes(' ')) return;
-                        setTagInput(text);
-                      }}
+                      onChange={setTagInput as any}
                     />
 
                     <TouchableOpacity
@@ -583,7 +606,10 @@ const CreateWebinarScreen = () => {
               )}
             />
 
-            <Text style={styles.label}>Number of Participant</Text>
+            <View style={styles.labelRow}>
+              <UsersRound size={wp(14)} color={colors.textSecondary} />
+              <Text style={styles.label}>Max Participants</Text>
+            </View>
             <Controller
               name="max_participants"
               control={control}
@@ -617,7 +643,10 @@ const CreateWebinarScreen = () => {
               )}
             />
 
-            <Text style={styles.label}>Status</Text>
+            <View style={styles.labelRow}>
+              <ToggleLeft size={wp(14)} color={colors.textSecondary} />
+              <Text style={styles.label}>Status</Text>
+            </View>
             <Controller
               name="status"
               control={control}
@@ -673,7 +702,10 @@ const CreateWebinarScreen = () => {
               )}
             />
 
-            <Text style={styles.label}>Headline</Text>
+            <View style={styles.labelRow}>
+              <Type size={wp(14)} color={colors.textSecondary} />
+              <Text style={styles.label}>Headline</Text>
+            </View>
             <Controller
               name="description"
               control={control}
@@ -713,69 +745,32 @@ const CreateWebinarScreen = () => {
           </ScrollView>
         </KeyboardAvoidingView>
 
-        {updatedata ? (
-          <View style={styles.actions}>
-            <TouchableOpacity
-              disabled={loading}
-              style={styles.cancelBtn}
-              onPress={() => {
-                navigation.goBack();
-                reset();
-              }}
-            >
-              <Text style={styles.cancelText}>Cancel</Text>
-            </TouchableOpacity>
+        <View style={styles.actions}>
+          <TouchableOpacity
+            disabled={loading}
+            style={styles.cancelBtn}
+            onPress={() => {
+              navigation.goBack();
+              reset();
+            }}
+          >
+            <Text style={styles.cancelText}>Cancel</Text>
+          </TouchableOpacity>
 
-            <View style={{ width: '10%' }} />
-
-            <TouchableOpacity
-              style={styles.primaryButton}
-              onPress={() => {
-                handleSubmit(onUpdateSubmit)();
-              }}
-              disabled={loading}
-            >
+          <TouchableOpacity
+            style={[styles.primaryButton, loading && { opacity: 0.7 }]}
+            onPress={handleSubmit(updatedata ? onUpdateSubmit : onSubmit)}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color={colors.white} size="small" />
+            ) : (
               <Text style={styles.primaryText}>
-                {loading ? (
-                  <ActivityIndicator color={colors.white} size={'small'} />
-                ) : (
-                  'Update Webinar'
-                )}
+                {updatedata ? 'Update Webinar' : 'Create Webinar'}
               </Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <View style={styles.actions}>
-            <TouchableOpacity
-              disabled={loading}
-              style={styles.cancelBtn}
-              onPress={() => {
-                navigation.goBack();
-                reset();
-              }}
-            >
-              <Text style={styles.cancelText}>Cancel</Text>
-            </TouchableOpacity>
-
-            <View style={{ width: '10%' }} />
-
-            <TouchableOpacity
-              style={styles.primaryButton}
-              onPress={() => {
-                handleSubmit(onSubmit)();
-              }}
-              disabled={loading}
-            >
-              <Text style={styles.primaryText}>
-                {loading ? (
-                  <ActivityIndicator color={colors.white} size={'small'} />
-                ) : (
-                  'Create Webinar'
-                )}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -798,118 +793,51 @@ const styles = StyleSheet.create({
   formScroll: {
     paddingBottom: hp(24),
   },
-  field: {
-    marginTop: hp(12),
+  labelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(6),
+    marginBottom: hp(6),
   },
   label: {
     fontSize: fp(13),
-    marginBottom: hp(6),
     color: colors.heading,
     fontWeight: '600',
-  },
-  input: {
-    borderWidth: wp(1),
-    borderColor: '#e6e6e6',
-    paddingHorizontal: wp(12),
-    paddingVertical: hp(10),
-    borderRadius: wp(10),
-    fontSize: fp(15),
-    color: colors.text,
-    backgroundColor: colors.white,
-  },
-  textArea: {
-    borderWidth: wp(1),
-    borderColor: '#e6e6e6',
-    borderRadius: wp(10),
-    paddingLeft: wp(10),
-    height: hp(100),
-  },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  rowItem: { flex: 1 },
-  inputWithIcon: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: wp(1),
-    borderColor: '#e6e6e6',
-    paddingHorizontal: wp(10),
-    paddingVertical: hp(8),
-    borderRadius: wp(10),
-    backgroundColor: colors.white,
-  },
-  inputInside: {
-    marginLeft: wp(8),
-    flex: 1,
-    fontSize: fp(15),
-    color: colors.text,
-  },
-  previewCard: {
-    marginTop: hp(14),
-    padding: wp(12),
-    borderRadius: wp(10),
-    borderWidth: wp(1),
-    borderColor: '#f0f0f0',
-    backgroundColor: colors.white,
-  },
-  previewTitle: {
-    fontWeight: '700',
-    marginBottom: hp(8),
-    color: colors.heading,
-  },
-  previewRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: hp(6),
-  },
-  previewText: {
-    marginLeft: wp(8),
-    color: colors.textTertiary,
-    fontSize: fp(14),
   },
   actions: {
-    marginTop: hp(15),
     flexDirection: 'row',
-    marginBottom: hp(25),
+    gap: wp(12),
+    paddingVertical: hp(16),
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
   },
-  cancelButton: {
-    borderWidth: wp(1),
-    backgroundColor: colors.white,
+  cancelBtn: {
+    flex: 1,
     paddingVertical: hp(10),
-    paddingHorizontal: wp(15),
+    borderRadius: wp(12),
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   cancelText: {
-    color: colors.primary,
+    color: colors.text,
     fontWeight: '600',
-    fontSize: fp(16),
+    fontSize: fp(15),
+  },
+  primaryButton: {
+    flex: 2,
+    backgroundColor: colors.primary,
+    paddingVertical: hp(10),
+    borderRadius: wp(12),
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   primaryText: {
     color: colors.white,
-    fontWeight: '600',
-    fontSize: fp(16),
-  },
-  savingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  primaryButton: {
-    backgroundColor: colors.primary,
-    borderWidth: wp(1),
-    paddingVertical: hp(10),
-    paddingHorizontal: wp(15),
-    borderRadius: wp(10),
-    width: '45%',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cancelBtn: {
-    paddingVertical: hp(10),
-    borderRadius: wp(10),
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: wp(1),
-    width: '45%',
+    fontWeight: '700',
+    fontSize: fp(15),
   },
   nameFields: {
     borderRadius: wp(10),
@@ -954,42 +882,6 @@ const styles = StyleSheet.create({
     height: hp(150),
     borderRadius: wp(8),
     marginTop: hp(10),
-  },
-  tags: {
-    borderWidth: wp(1),
-    borderColor: colors.borderColor,
-    borderRadius: wp(10),
-    height: hp(44),
-    marginBottom: hp(10),
-    justifyContent: 'center',
-    paddingLeft: wp(12),
-  },
-  tagsText: {
-    fontSize: fp(14),
-    color: colors.textSecondary,
-  },
-  tagsList: {
-    borderWidth: wp(1),
-    borderColor: colors.borderColor,
-    marginBottom: hp(10),
-    padding: wp(10),
-    borderRadius: wp(10),
-    backgroundColor: colors.white,
-    elevation: 5,
-    marginHorizontal: wp(2),
-  },
-  tagsPara: {
-    fontSize: fp(14),
-    color: colors.black,
-    lineHeight: fp(26),
-    fontWeight: '500',
-  },
-  dropdownContainer: {
-    borderRadius: wp(8),
-  },
-  selectedItem: {
-    borderRadius: wp(6),
-    // backgroundColor: '#000',
   },
   customHeader: {
     flexDirection: 'row',

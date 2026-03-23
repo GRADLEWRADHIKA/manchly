@@ -32,8 +32,6 @@ const UserProfile = () => {
   const [uploading, setUploading] = useState(false);
   const [showDobPicker, setShowDobPicker] = useState(false);
 
-  console.log('--iser---', user)
-
   const {
     control,
     handleSubmit,
@@ -117,8 +115,6 @@ const UserProfile = () => {
         dob: data?.dob,
         profile_image: imageAdd || user?.profile_image,
       };
-
-      console.log('--paylaod--', payload)
 
       // return
 

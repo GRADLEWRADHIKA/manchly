@@ -35,6 +35,7 @@ interface WebinarData {
 
 interface WebinarCardProps {
   data: WebinarData;
+  setRefreshWebinar?: (val: boolean) => void;
 }
 
 const WebinarCard: React.FC<WebinarCardProps> = ({
@@ -56,12 +57,10 @@ const WebinarCard: React.FC<WebinarCardProps> = ({
     setMenuVisible(null);
   };
 
-  // close the modal ------------
   const handleCancel = () => {
     setShowModal(false);
   };
 
-  // delete the webinar ----------
   const handleDelete = () => {
     setDeleteLoader(true);
     dispatch(deleteWebinar(webinarId))
@@ -73,8 +72,6 @@ const WebinarCard: React.FC<WebinarCardProps> = ({
       })
       .catch(() => setDeleteLoader(false));
   };
-
-  console.log(data);
 
   return (
     <>
@@ -93,7 +90,6 @@ const WebinarCard: React.FC<WebinarCardProps> = ({
               }
             });
           } else {
-            console.log('Meeting ID or password missing');
           }
         }}
       >

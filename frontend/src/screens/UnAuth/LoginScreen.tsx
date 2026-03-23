@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  StatusBar as RNStatusBar,
   Animated,
   LayoutChangeEvent,
   ActivityIndicator,
@@ -129,7 +128,6 @@ const LoginScreen: React.FC = () => {
                 });
               })
               .catch(error => {
-                console.log('SMS OTP error ------> ', JSON.stringify(error));
               })
               .finally(() => {
                 setLoading(false);
@@ -151,13 +149,11 @@ const LoginScreen: React.FC = () => {
                 });
               })
               .catch(error => {
-                console.log('Email OTP error ------> ', error);
               })
               .finally(() => {
                 setLoading(false);
               });
           } else {
-            console.log('Invalid input — not a valid email or phone number');
             setLoading(false);
           }
         } else {
@@ -165,7 +161,6 @@ const LoginScreen: React.FC = () => {
         }
       })
       .catch(error => {
-        console.log(error);
         setLoading(false);
       })
       .finally(() => {
@@ -180,12 +175,6 @@ const LoginScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <RNStatusBar
-        barStyle="dark-content"
-        backgroundColor="transparent"
-        translucent={false}
-      />
-
       <View style={styles.content}>
         <View style={styles.logoSection}>
           <View>

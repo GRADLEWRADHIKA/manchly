@@ -135,35 +135,6 @@ const CourseDetailsScreen: React.FC = () => {
         </View>
       </ScrollView>
 
-      {/* BOTTOM BAR */}
-      {/* <View style={styles.bottomBar}>
-        {isEnrolled ? (
-          <View style={styles.enrolledContainer}>
-            <CheckCircle size={24} color={colors.primary} />
-            <Text style={styles.enrolledText}>
-              Already Enrolled
-            </Text>
-          </View>
-        ) : (
-          <TouchableOpacity
-            style={[
-              styles.purchaseButton,
-              (purchasing || loading) &&
-              styles.purchaseButtonDisabled,
-            ]}
-            onPress={handlePurchase}
-            disabled={purchasing || loading}
-          >
-            {purchasing || loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.purchaseText}>
-                Purchase for ₹{total.toFixed(2)}
-              </Text>
-            )}
-          </TouchableOpacity>
-        )}
-      </View> */}
     </View>
   );
 };

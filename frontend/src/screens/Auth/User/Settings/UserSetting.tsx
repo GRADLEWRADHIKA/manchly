@@ -6,7 +6,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   Image,
-  StatusBar as RNStatusBar,
   Linking,
 } from 'react-native';
 import colors from '../../../../utils/colors';
@@ -42,7 +41,6 @@ const UserSetting: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <RNStatusBar barStyle="light-content" backgroundColor={colors.primary} />
       <View style={[styles.mainHeader, { paddingTop: insets.top + hp(10) }]} />
 
       <View

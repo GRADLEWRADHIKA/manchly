@@ -49,7 +49,7 @@ const UserChat = () => {
   const renderItem = ({ item }: { item: ChatUser }) => (
     <TouchableOpacity
       style={styles.chatRow}
-      onPress={() => console.log('Open chat', item.name)}
+      onPress={() => {}}
     >
       {/* Avatar */}
       {item.avatar ? (

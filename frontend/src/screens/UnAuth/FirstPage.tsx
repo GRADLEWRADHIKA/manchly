@@ -2,7 +2,6 @@ import {
   StyleSheet,
   Text,
   View,
-  StatusBar as RNStatusBar,
   Image,
   TouchableOpacity,
 } from 'react-native';
@@ -17,11 +16,6 @@ const FirstPage = () => {
   const Nav = useNavigation<any>();
   return (
     <SafeAreaView style={styles.container}>
-      <RNStatusBar
-        barStyle="light-content"
-        backgroundColor="transparent"
-        translucent={false}
-      />
       <View style={styles.firstHalf}>
         <Image
           source={require('../../image/boarding.jpg')}

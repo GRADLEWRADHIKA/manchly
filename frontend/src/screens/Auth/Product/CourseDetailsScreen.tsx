@@ -45,8 +45,6 @@ const CourseDetailsScreen: React.FC = () => {
   const total = price + gst + platformFee;
   const amountInPaise = Math.round(total * 100);
 
-  console.log(total)
-
   useEffect(() => {
     if (courseId) {
       dispatch(getCourseById(courseId));
@@ -72,8 +70,6 @@ const CourseDetailsScreen: React.FC = () => {
       const orderResponse = await dispatch(
         createPaymentOrder(courseId)
       ).unwrap();
-
-      console.log('--orderResponse--', orderResponse)
 
       const { razorpay_order, razorpay_key_id, user_details } =
         orderResponse || {};
@@ -133,8 +129,6 @@ const CourseDetailsScreen: React.FC = () => {
         ]
       );
     } catch (error: any) {
-      console.log('Payment Error:', error);
-
       if (error?.code === 2) {
         Alert.alert('Cancelled', 'Payment was cancelled');
       } else {

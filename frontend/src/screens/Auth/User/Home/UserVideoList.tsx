@@ -9,6 +9,7 @@ import {
   Image,
   ActivityIndicator,
   Modal,
+  SafeAreaView,
 } from 'react-native';
 import colors from '../../../../utils/colors';
 import AppHeaderWithBack from '../../../../components/AppHeaderWithBack';
@@ -16,8 +17,9 @@ import { useRoute } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
 import { getCourseById } from '../../../../store/CourseSlice';
-import Video from 'react-native-video';
-import { X } from 'lucide-react-native';
+import YouTubePlayer from '../../../../components/YouTubePlayer';
+import { Play, Clock } from 'lucide-react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import { wp, hp, fp } from '../../../../utils/responsive';
 
 const UserVideoList = () => {
@@ -38,7 +40,6 @@ const UserVideoList = () => {
         setLoading(false);
       })
       .catch(error => {
-        console.log('----error---', error);
         setLoading(false);
       });
   };
@@ -54,20 +55,35 @@ const UserVideoList = () => {
       activeOpacity={0.9}
       onPress={() => setSelectedVideo(item)}
     >
-      <Image source={{ uri: item?.thumbnail_url }} style={styles.thumbnail} />
+      <View style={styles.thumbnailWrapper}>
+        <Image source={{ uri: item?.thumbnail_url }} style={styles.thumbnail} />
+        <LinearGradient
+          colors={['transparent', 'rgba(0,0,0,0.5)']}
+          style={styles.thumbnailGradient}
+        />
+        <View style={styles.playIconContainer}>
+          <View style={styles.playIcon}>
+            <Play color={colors.white} size={wp(16)} fill={colors.white} />
+          </View>
+        </View>
+        <View style={styles.durationBadge}>
+          <Clock color={colors.white} size={wp(10)} />
+          <Text style={styles.durationBadgeText}>
+            {item?.duration || 0}s
+          </Text>
+        </View>
+      </View>
       <View style={styles.cardContent}>
-        <Text style={styles.videoTitle}>{item?.title}</Text>
+        <Text style={styles.videoTitle} numberOfLines={1}>{item?.title}</Text>
         <Text style={styles.videoDesc} numberOfLines={2}>
           {item?.description || 'No description available'}
         </Text>
-        <Text style={styles.duration}>⏱ {item?.duration || 0} sec</Text>
       </View>
     </TouchableOpacity>
   );
 
   return (
     <View style={styles.container}>
-      <RNStatusBar barStyle="light-content" backgroundColor={colors.primary} />
       <AppHeaderWithBack title={data?.title || 'Videos'} />
 
       {loading ? (
@@ -87,33 +103,66 @@ const UserVideoList = () => {
         </View>
       )}
 
-      {/* Video Player Modal */}
+      {/* YouTube-style Video Player Modal */}
       <Modal
         visible={!!selectedVideo}
         animationType="slide"
-        transparent={true}
+        supportedOrientations={['portrait', 'landscape']}
         onRequestClose={() => setSelectedVideo(null)}
       >
-        <View style={styles.modalContainer}>
-          <View style={styles.videoContainer}>
-            <TouchableOpacity
-              style={styles.closeBtn}
-              onPress={() => setSelectedVideo(null)}
-            >
-              <X size={wp(28)} color={colors.white} />
-            </TouchableOpacity>
-
-            {selectedVideo && (
-              <Video
+        <SafeAreaView style={styles.modalContainer}>
+          <RNStatusBar hidden={!!selectedVideo} />
+          {selectedVideo && (
+            <View style={styles.playerSection}>
+              <YouTubePlayer
                 source={{ uri: selectedVideo.playback_url }}
-                style={styles.videoPlayer}
-                controls
-                resizeMode="contain"
-                paused={false}
+                title={selectedVideo.title}
+                onClose={() => setSelectedVideo(null)}
+                autoPlay
               />
-            )}
-          </View>
-        </View>
+            </View>
+          )}
+          {/* Video info below player */}
+          {selectedVideo && (
+            <View style={styles.videoInfoContainer}>
+              <Text style={styles.videoInfoTitle}>{selectedVideo.title}</Text>
+              <Text style={styles.videoInfoDesc}>
+                {selectedVideo.description || 'No description available'}
+              </Text>
+              {/* Up next section */}
+              {videoList.length > 1 && (
+                <View style={styles.upNextSection}>
+                  <Text style={styles.upNextTitle}>Up Next</Text>
+                  <FlatList
+                    data={videoList.filter(v => v.id !== selectedVideo.id)}
+                    keyExtractor={(item, index) => item?.id || index.toString()}
+                    renderItem={({ item }) => (
+                      <TouchableOpacity
+                        style={styles.upNextCard}
+                        onPress={() => setSelectedVideo(item)}
+                        activeOpacity={0.8}
+                      >
+                        <Image
+                          source={{ uri: item?.thumbnail_url }}
+                          style={styles.upNextThumb}
+                        />
+                        <View style={styles.upNextInfo}>
+                          <Text style={styles.upNextCardTitle} numberOfLines={2}>
+                            {item?.title}
+                          </Text>
+                          <Text style={styles.upNextDuration}>
+                            {item?.duration || 0}s
+                          </Text>
+                        </View>
+                      </TouchableOpacity>
+                    )}
+                    showsVerticalScrollIndicator={false}
+                  />
+                </View>
+              )}
+            </View>
+          )}
+        </SafeAreaView>
       </Modal>
     </View>
   );
@@ -140,13 +189,61 @@ const styles = StyleSheet.create({
     borderRadius: wp(12),
     marginBottom: hp(14),
     overflow: 'hidden',
-    elevation: 2,
+    elevation: 3,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  thumbnailWrapper: {
+    position: 'relative',
+    width: wp(130),
+    height: hp(90),
   },
   thumbnail: {
-    width: wp(120),
-    height: hp(90),
+    width: '100%',
+    height: '100%',
     borderTopLeftRadius: wp(12),
     borderBottomLeftRadius: wp(12),
+    backgroundColor: colors.lightGrey,
+  },
+  thumbnailGradient: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: hp(40),
+    borderBottomLeftRadius: wp(12),
+  },
+  playIconContainer: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  playIcon: {
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    width: wp(32),
+    height: wp(32),
+    borderRadius: wp(16),
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  durationBadge: {
+    position: 'absolute',
+    bottom: hp(4),
+    right: wp(4),
+    backgroundColor: 'rgba(0,0,0,0.8)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: wp(5),
+    paddingVertical: hp(2),
+    borderRadius: wp(4),
+  },
+  durationBadgeText: {
+    color: colors.white,
+    fontSize: fp(10),
+    fontWeight: '600',
+    marginLeft: wp(2),
   },
   cardContent: {
     flex: 1,
@@ -154,20 +251,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   videoTitle: {
-    fontSize: fp(16),
+    fontSize: fp(15),
     fontWeight: '600',
     color: colors.black,
     marginBottom: hp(4),
   },
   videoDesc: {
-    fontSize: fp(13),
-    color: '#555',
-    marginBottom: hp(6),
-  },
-  duration: {
     fontSize: fp(12),
-    color: colors.primary,
-    fontWeight: '500',
+    color: '#555',
+    lineHeight: fp(17),
   },
   emptyContainer: {
     flex: 1,
@@ -178,25 +270,70 @@ const styles = StyleSheet.create({
     fontSize: fp(16),
     color: '#888',
   },
+  // Modal styles
   modalContainer: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.95)',
+    backgroundColor: '#000',
+  },
+  playerSection: {
+    width: '100%',
+    backgroundColor: '#000',
+  },
+  videoInfoContainer: {
+    flex: 1,
+    backgroundColor: colors.white,
+    paddingHorizontal: wp(16),
+    paddingTop: hp(16),
+  },
+  videoInfoTitle: {
+    fontSize: fp(18),
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: hp(6),
+  },
+  videoInfoDesc: {
+    fontSize: fp(14),
+    color: colors.textSecondary,
+    lineHeight: fp(20),
+    marginBottom: hp(16),
+  },
+  upNextSection: {
+    flex: 1,
+  },
+  upNextTitle: {
+    fontSize: fp(16),
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: hp(12),
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    paddingTop: hp(12),
+  },
+  upNextCard: {
+    flexDirection: 'row',
+    marginBottom: hp(12),
+    borderRadius: wp(8),
+    overflow: 'hidden',
+  },
+  upNextThumb: {
+    width: wp(120),
+    height: hp(68),
+    borderRadius: wp(8),
+    backgroundColor: colors.lightGrey,
+  },
+  upNextInfo: {
+    flex: 1,
+    paddingLeft: wp(10),
     justifyContent: 'center',
-    alignItems: 'center',
   },
-  videoContainer: {
-    width: '100%',
-    height: '60%',
-    backgroundColor: 'black',
+  upNextCardTitle: {
+    fontSize: fp(14),
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: hp(4),
   },
-  videoPlayer: {
-    width: '100%',
-    height: '100%',
-  },
-  closeBtn: {
-    position: 'absolute',
-    top: hp(40),
-    right: wp(20),
-    zIndex: 10,
+  upNextDuration: {
+    fontSize: fp(12),
+    color: colors.textSecondary,
   },
 });

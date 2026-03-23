@@ -13,7 +13,6 @@ export const createWebinar = createAsyncThunk(
       return response;
     } catch (error) {
       const response = JSON.parse(error?.request?._response || '{}');
-      console.log('---response---', response);
       Toast.show({
         type: 'error',
         text1: response?.error?.message || 'Failed to create webinar',
@@ -35,7 +34,7 @@ export const getAllWebinar = createAsyncThunk(
       return response;
     } catch (error) {
       const response = JSON.parse(error?.request?._response || '{}');
-      console.log('----error----->',response)
+
       Toast.show({
         type: 'error',
         text1: response?.error?.message,
@@ -86,7 +85,7 @@ export const updateWebinar = createAsyncThunk(
       });
       return res.data?.data;
     } catch (e: any) {
-      console.log('------error-----', e.request);
+
       const msg = e?.response?.data?.message || 'Failed to update webinar';
       Toast.show({ type: 'error', text1: msg, position: 'bottom' });
       return rejectWithValue(msg);
@@ -100,8 +99,7 @@ export const createWebinarEnroll = createAsyncThunk(
   async (data: object) => {
     try {
       const url = `webinars/${data?.webinar_id}/enroll`;
-      // console.log(url)
-      // return
+
       const requestBody = data;
       const response = await instance.post(url, requestBody);
       return response;
@@ -128,7 +126,6 @@ export const createWebinarVerify = createAsyncThunk(
       return response;
     } catch (error) {
       const response = JSON.parse(error?.request?._response || '{}');
-      console.log('---response---', response);
       Toast.show({
         type: 'error',
         text1: response?.error?.message || 'Failed to buy',
@@ -150,7 +147,6 @@ export const getEnrolledWebinar = createAsyncThunk(
       return response;
     } catch (error) {
       const response = JSON.parse(error?.request?._response || '{}');
-      console.log('---response---', response);
       Toast.show({
         type: 'error',
         text1: response?.error?.message || 'Failed to buy',
@@ -166,10 +162,6 @@ export const WebinarSlice = createSlice({
   initialState: {},
   reducers: {},
   extraReducers: builder => {
-    // builder.addCase(verifyOtp.fulfilled, (state, actions) => {
-    //   state.user = actions?.payload?.data?.data?.user;
-    //   state.loading = false;
-    // })
   },
 });
 

@@ -96,7 +96,6 @@ const CreateCourse = () => {
       });
 
       const res: any = await dispatch(uploadShipDoc(formData)).unwrap();
-      console.log('----res----', res?.data?.url)
       const newUrl = res?.data?.url;
       onChange(newUrl);
 
@@ -227,7 +226,6 @@ const CreateCourse = () => {
     dispatch(updateCourse(payload))
       .unwrap()
       .then(res => {
-        console.log('-----res----->', res);
         reset();
         Toast.show({
           type: 'success',
@@ -236,7 +234,6 @@ const CreateCourse = () => {
         Nav.goBack();
       })
       .catch(err => {
-        console.log('------err------', err);
         Toast.show({
           type: 'error',
           text1: 'Failed to update course',

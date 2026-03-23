@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   Image,
 } from 'react-native';
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import colors from '../../../../../utils/colors';
 import { wp, hp, fp } from '../../../../../utils/responsive';
 import AppHeaderWithBack from '../../../../../components/AppHeaderWithBack';
@@ -14,14 +14,14 @@ import { useIsFocused, useRoute } from '@react-navigation/native';
 import { getCourseById } from '../../../../../store/CourseSlice';
 import { useDispatch } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
-import Video from 'react-native-video';
-import { Play, Clock, Pause, MoreVertical, Plus } from 'lucide-react-native';
+import YouTubePlayer from '../../../../../components/YouTubePlayer';
+import { Play, Clock, MoreVertical, Plus } from 'lucide-react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { createShimmerPlaceholder } from 'react-native-shimmer-placeholder';
 import { Menu, FAB } from 'react-native-paper';
 import Modal from 'react-native-modal';
 import CourseAddVideoModal from './CourseAddVideoModal';
-import { deleteVideo, updateVideo } from '../../../../../store/VideoSlice';
+import { deleteVideo } from '../../../../../store/VideoSlice';
 import DynamicModal from '../../../../../components/CommonModal';
 
 const ShimmerPlaceholder = createShimmerPlaceholder(LinearGradient);
@@ -34,7 +34,6 @@ const CourseVideoList = () => {
   const [playingVideoId, setPlayingVideoId] = useState<string | null>(null);
   const [menuVisible, setMenuVisible] = useState<string | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const videoRefs = useRef<{ [key: string]: any }>({});
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -45,30 +44,12 @@ const CourseVideoList = () => {
   const [isUpdate, setIsUpdate] = useState(false)
 
   const handleVideoPlay = (videoId: string) => {
-    if (playingVideoId && playingVideoId !== videoId) {
-      if (videoRefs.current[playingVideoId]) {
-        videoRefs.current[playingVideoId].seek(0);
-      }
-    }
-
     setPlayingVideoId(playingVideoId === videoId ? null : videoId);
   };
 
   useEffect(() => {
     getVideoById();
   }, [focus, refresh]);
-
-  const handleVideoEnd = () => {
-    setPlayingVideoId(null);
-  };
-
-  const handleVideoError = (error: any) => {
-    setPlayingVideoId(null);
-  };
-
-  const setVideoRef = (ref: any, videoId: string) => {
-    videoRefs.current[videoId] = ref;
-  };
 
   const handleMenuOpen = (videoId: string) => {
     setMenuVisible(videoId);
@@ -89,7 +70,6 @@ const CourseVideoList = () => {
         setLoading(false);
       })
       .catch(error => {
-        console.log('----error---', error);
         setLoading(false);
       });
   };
@@ -100,14 +80,12 @@ const CourseVideoList = () => {
     dispatch(deleteVideo(videoId))
       .unwrap()
       .then(response => {
-        console.log('---resonse---', response);
         setDeleteLoading(false);
         setMenuVisible(null);
         getVideoById();
         setShowModal(false);
       })
       .catch(error => {
-        console.log('----error---', error);
         setDeleteLoading(false);
       });
   };
@@ -143,18 +121,12 @@ const CourseVideoList = () => {
       <View style={styles.card}>
         <View style={styles.mediaContainer}>
           {isPlaying ? (
-            <Video
-              ref={ref => setVideoRef(ref, item.id)}
+            <YouTubePlayer
               source={{ uri: item.playback_url }}
+              title={item?.title}
+              showCloseButton={false}
+              autoPlay
               style={styles.videoPlayer}
-              resizeMode="contain"
-              controls={true}
-              onEnd={handleVideoEnd}
-              onError={handleVideoError}
-              paused={!isPlaying}
-              playWhenInactive={false}
-              playInBackground={false}
-              ignoreSilentSwitch="obey"
             />
           ) : (
             <TouchableOpacity
@@ -395,8 +367,7 @@ const styles = StyleSheet.create({
   },
   videoPlayer: {
     width: '100%',
-    height: hp(200),
-    backgroundColor: colors.black,
+    borderRadius: 0,
   },
   content: {
     padding: wp(16),

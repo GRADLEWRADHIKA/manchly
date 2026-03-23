@@ -5,7 +5,6 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  StatusBar as RNStatusBar,
   Image,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -57,8 +56,6 @@ const CreatorHome = () => {
 
   return (
     <View style={styles.container}>
-      <RNStatusBar barStyle="light-content" />
-
       <View
         style={[
           styles.mainHeader,

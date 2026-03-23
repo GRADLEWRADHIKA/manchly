@@ -1,5 +1,4 @@
 import {
-  Pressable,
   StyleSheet,
   Text,
   TextInput,
@@ -11,10 +10,6 @@ import {
 import React, { useState } from 'react';
 import colors from '../utils/colors';
 import { wp, hp, fp } from '../utils/responsive';
-// import EyeIcon from './EyeIcon';
-// import EyeHideIcon from './EyeHideIcon';
-//   import SearchIcon from './SearchIcon';
-//   import ShowPasswordIcon from '../clientScreens/ChangePassword/components/ShowPasswordIcon';
 
 interface props {
   isLeftIcon?: Boolean;
@@ -68,8 +63,6 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
       <View style={[styles.container, inputContainerStyle]}>
         {isLeftIcon && leftIcon}
 
-        {/* {searchIcon && <SearchIcon />} */}
-
         <TextInput
           underlineColorAndroid={'transparent'}
           style={[
@@ -83,23 +76,12 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
           multiline={multiline}
           onChangeText={onChange}
           onBlur={onBlur}
-          // selection={leftData === true ? {start:0, end:0} : {}}
           textAlignVertical="top"
           value={value}
           secureTextEntry={passwordFild ? !isPasswordVisible : false}
           editable={!disabled}
           placeholderTextColor={'grey'}
         />
-
-        {/* <Pressable onPress={disabled ? undefined : handleRightIconPress}>
-            {isRightIcon && rightIcon}
-          </Pressable> */}
-
-        {/* {sendTextIcon && <SendTextIcon />} */}
-
-        {/* {passwordFild === true && <Pressable onPress={() => setIsPasswordVisible(!isPasswordVisible)} style={{ position: 'absolute', right: 20 }}>
-          {isPasswordVisible ? <EyeIcon /> : <EyeHideIcon />}
-        </Pressable>} */}
 
       </View>
       {isError && <Text>{errorText}</Text>}

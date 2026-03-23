@@ -7,7 +7,6 @@ import {
   Platform,
   KeyboardAvoidingView,
   ScrollView,
-  StatusBar,
   ActivityIndicator,
   Image,
 } from 'react-native';
@@ -202,7 +201,6 @@ const CreateWebinarScreen = () => {
         setLoading(false);
       })
       .catch(error => {
-        console.log(error);
       })
       .finally(() => {
         setLoading(false);
@@ -258,8 +256,6 @@ const CreateWebinarScreen = () => {
         status: data?.status,
       },
     };
-    // console.log('--paypoad--', payload)
-    // return
     dispatch(updateWebinar(payload))
       .unwrap()
       .then(response => {
@@ -268,7 +264,6 @@ const CreateWebinarScreen = () => {
         setLoading(false);
       })
       .catch(error => {
-        console.log(error);
       })
       .finally(() => {
         setLoading(false);
@@ -277,7 +272,6 @@ const CreateWebinarScreen = () => {
 
   return (
     <View style={styles.safe}>
-      <StatusBar barStyle="light-content" backgroundColor="#fff" />
       <AppHeaderWithBack title="Create Webinar" />
 
       <View style={styles.container}>

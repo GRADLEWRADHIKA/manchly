@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  StatusBar as RNStatusBar,
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -73,8 +72,6 @@ const OTPScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <RNStatusBar barStyle="dark-content" backgroundColor="transparent" />
-
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={onBack}>
           <ArrowLeft size={24} color={colors.text} />

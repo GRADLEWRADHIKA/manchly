@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  StatusBar as RNStatusBar,
   ScrollView,
   ActivityIndicator,
   Platform,
@@ -98,7 +97,6 @@ const SignupScreen: React.FC = () => {
         setLoading(false);
       })
       .catch(error => {
-        console.log('error ------> ', error);
       })
       .finally(() => {
         setLoading(false);
@@ -107,12 +105,6 @@ const SignupScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <RNStatusBar
-        barStyle="dark-content"
-        backgroundColor="transparent"
-        translucent={false}
-      />
-
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContainer}

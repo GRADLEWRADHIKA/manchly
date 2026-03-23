@@ -25,11 +25,9 @@ class NotificationService {
   async getToken(): Promise<string | null> {
     try {
       const token = await messaging().getToken();
-      console.log('FCM Token:', token);
       await AsyncStorage.setItem(FCM_TOKEN_KEY, token);
       return token;
     } catch (error) {
-      console.log('Failed to get FCM token:', error);
       return null;
     }
   }
@@ -52,9 +50,7 @@ class NotificationService {
     try {
       await messaging().deleteToken();
       await AsyncStorage.removeItem(FCM_TOKEN_KEY);
-      console.log('FCM token removed');
     } catch (error) {
-      console.log('Failed to remove FCM token:', error);
     }
   }
 
@@ -106,7 +102,6 @@ class NotificationService {
    */
   onForegroundMessage() {
     return messaging().onMessage(async (remoteMessage) => {
-      console.log('Foreground message:', remoteMessage);
       await this.displayNotification(
         remoteMessage.notification?.title || 'Notification',
         remoteMessage.notification?.body || '',

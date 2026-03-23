@@ -114,8 +114,6 @@ const WebinarDetails = () => {
         text2: 'You have successfully enrolled in this webinar.',
       });
     } catch (error) {
-      console.log('----Payment Error: ---', error);
-
       Toast.show({
         type: 'error',
         text1: 'Unexpected Error ❌',

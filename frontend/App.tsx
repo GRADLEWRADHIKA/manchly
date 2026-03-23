@@ -13,7 +13,6 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { initializeChottuLink } from 'react-native-chottulink-sdk';
 import { Settings, AppEventsLogger } from 'react-native-fbsdk-next';
-import messaging from '@react-native-firebase/messaging';
 
 export default function App() {
   injectStore(store);
@@ -35,7 +34,7 @@ export default function App() {
                 <StatusBar
                   translucent={false}
                   backgroundColor="white"
-                  barStyle="dark-content"
+                  barStyle="light-content"
                 />
                 <Router />
                 <Toast />

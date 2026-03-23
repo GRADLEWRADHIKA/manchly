@@ -25,25 +25,25 @@ const settingsItems = [
     title: 'Lock Direct Message',
     subtitle: 'Make your direct message locked',
     icon: <Lock size={wp(22)} color={colors.black} />,
-    onPress: () => console.log('Lock Direct Message'),
+    onPress: () => {},
   },
   {
     title: 'FAQs',
     subtitle: 'Have a doubt about Manchly? Use our FAQ guide to solve them',
     icon: <HelpCircle size={wp(22)} color={colors.black} />,
-    onPress: () => console.log('FAQs'),
+    onPress: () => {},
   },
   {
     title: 'Upload your Invoice Details',
     subtitle: 'Sign and enter GST details.',
     icon: <FileText size={wp(22)} color={colors.black} />,
-    onPress: () => console.log('Upload Invoice Details'),
+    onPress: () => {},
   },
   {
     title: 'Need help?',
     subtitle: 'Get in touch with team Manchly',
     icon: <MessageCircleQuestion size={wp(22)} color={colors.black} />,
-    onPress: () => console.log('Need Help'),
+    onPress: () => {},
   }
 ];
 

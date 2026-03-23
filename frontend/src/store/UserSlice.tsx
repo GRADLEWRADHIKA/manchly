@@ -77,10 +77,10 @@ export const updateProfile = createAsyncThunk(
       const url = 'auth/profile';
       const requestBody = data;
       const response = await instance.put(url, requestBody);
-      console.log('--response--', response)
+
       return response;
     } catch (error) {
-      console.log('------error-----', error?.request);
+
       throw error;
     }
   },
@@ -146,7 +146,7 @@ export const verifyPAN = createAsyncThunk('verifyPAN', async (data: object) => {
     });
     return response.data;
   } catch (error: any) {
-    console.log('--error-->')
+
   }
 });
 

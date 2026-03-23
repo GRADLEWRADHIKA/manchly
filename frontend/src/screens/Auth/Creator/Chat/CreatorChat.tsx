@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   FlatList,
   Image,
-  StatusBar as RNStatusBar,
   ImageBackground,
 } from 'react-native';
 import { MessageCircle, UserIcon } from 'lucide-react-native';
@@ -58,7 +57,7 @@ const CreatorChat = () => {
   const renderItem = ({ item }: { item: ChatUser }) => (
     <TouchableOpacity
       style={styles.chatRow}
-      onPress={() => console.log('Open chat', item.name)}
+      onPress={() => {}}
     >
       {/* Avatar */}
       {item.avatar ? (
@@ -94,18 +93,10 @@ const CreatorChat = () => {
 
   return (
     <View style={styles.container}>
-      <RNStatusBar barStyle="light-content" />
       <AppHeader title="Chats" />
 
       <Text style={{ marginTop: hp(200), textAlign: 'center' }}>This feature is currently under development.</Text>
 
-      {/* <FlatList
-        data={chatUsers}
-        keyExtractor={item => item.id}
-        renderItem={renderItem}
-        contentContainerStyle={styles.listContent}
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
-      /> */}
     </View>
   );
 };

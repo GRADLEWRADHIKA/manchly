@@ -8,7 +8,7 @@ export const createPaymentOrder = createAsyncThunk(
   async (courseId: string, { rejectWithValue }) => {
     try {
       const res = await instance.post(`payments/create-order/${courseId}`);
-      console.log('createPaymentOrder', res.data);
+
       return res.data?.data;
     } catch (e: any) {
       const msg = e?.response?.data?.message || 'Failed to create payment order';

@@ -4,7 +4,6 @@ import {
   Text,
   View,
   Dimensions,
-  StatusBar as RNStatusBar,
 } from 'react-native';
 import colors from '../../utils/colors';
 import { wp, hp, fp } from '../../utils/responsive';
@@ -22,12 +21,6 @@ const NewLoginScreen = () => {
 
   return (
     <View style={styles.container}>
-      <RNStatusBar
-        barStyle="light-content"
-        backgroundColor="transparent"
-        translucent={false}
-      />
-
       <View style={styles.topSpace}></View>
 
       <View style={styles.mainHeader}>

@@ -9,7 +9,6 @@ import {
   Dimensions,
   ScrollView,
   TouchableOpacity,
-  StatusBar as RNStatusBar,
 } from 'react-native';
 import colors from '../../../../../utils/colors';
 import { wp, hp, fp } from '../../../../../utils/responsive';
@@ -31,8 +30,6 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import CustomTextInput from '../../../../../components/CustomInput';
 import UserIcon from '../../Home/component/UserIcon';
-import { getAllWebinar } from '../../../../../store/WebinarSlice';
-import WebinarCard from '../Webinar/WebinarCard';
 import LinearGradient from 'react-native-linear-gradient';
 import DashboardCard from '../../Home/component/DashboardCard';
 
@@ -52,10 +49,7 @@ const CreatorView: React.FC = () => {
   const [deleteLoader, setDeleteLoader] = useState(false);
   const { user } = useSelector((state: any) => state.userReducer);
   const insets = useSafeAreaInsets();
-  const [active, setActive] = useState('course');
   const [searchCourse, setSearchCourse] = useState('');
-  const [webinarData, setWebinarData] = useState([]);
-  const [refreshWebinar, setRefreshWebinar] = useState(false);
 
   const quickStats = [
     {
@@ -83,10 +77,6 @@ const CreatorView: React.FC = () => {
   useEffect(() => {
     getTheCourse(1, true);
   }, [focus]);
-
-  useEffect(() => {
-    funGetAllWebinar(1, 10);
-  }, [focus, refreshWebinar]);
 
   const getTheCourse = (pageNum: number, refresh = false) => {
     if (loading || loadingMore) return;
@@ -132,15 +122,6 @@ const CreatorView: React.FC = () => {
     );
   }, [searchCourse, data]);
 
-  // search webinar-----
-  const filteredWebinar = useMemo(() => {
-    if (!searchCourse.trim()) return webinarData;
-
-    return webinarData.filter(item =>
-      item?.title?.toLowerCase().includes(searchCourse.toLowerCase()),
-    );
-  }, [searchCourse, webinarData]);
-
   const renderFooter = () => {
     if (!loadingMore) return null;
     return (
@@ -160,25 +141,8 @@ const CreatorView: React.FC = () => {
     </View>
   );
 
-  // get all webinar ------------
-  const funGetAllWebinar = (pageNum: number, dataLimit: number) => {
-    const payload = {
-      page: pageNum,
-      limit: dataLimit,
-      upcoming: true,
-      title: '',
-    };
-    dispatch(getAllWebinar(payload))
-      .unwrap()
-      .then(response => {
-        setWebinarData(response?.data?.data?.webinars);
-      })
-      .finally(() => {});
-  };
-
   return (
     <View style={styles.container}>
-      <RNStatusBar barStyle="light-content" />
       <View
         style={[
           styles.mainHeader,
@@ -240,132 +204,64 @@ const CreatorView: React.FC = () => {
           <TouchableOpacity
             style={{ width: '10%' }}
             onPress={() => {
-              console.log('---filter---');
             }}
           >
             <SlidersHorizontal size={wp(30)} color={colors.primary} />
           </TouchableOpacity>
         </View>
 
-        <View
-          style={[
-            styles.listHeader,
-            { flexDirection: 'row', gap: wp(10), marginLeft: wp(20) },
-          ]}
-        >
-          {['course', 'webinar'].map(item => {
-            const isActive = active === item;
-
-            return (
-              <TouchableOpacity
-                key={item}
-                activeOpacity={0.8}
-                onPress={() => setActive(item)}
-                style={{
-                  paddingHorizontal: wp(18),
-                  paddingVertical: hp(8),
-                  borderRadius: wp(12),
-                  backgroundColor: isActive ? colors.primary : colors.white,
-                  borderWidth: isActive ? 0 : 1,
-                  borderColor: colors.borderColor,
-                  shadowColor: colors.primary,
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: isActive ? 0.15 : 0,
-                  shadowRadius: 4,
-                  elevation: isActive ? 5 : 0,
-                  transform: [{ scale: isActive ? 1.03 : 1 }],
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: fp(15),
-                    fontWeight: '600',
-                    color: isActive ? colors.white : colors.text,
-                  }}
-                >
-                  {item === 'course' ? 'Courses' : 'Webinar'}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
+        <View style={styles.listHeader}>
+          <Text style={styles.listTitle}>My Courses</Text>
+          <Text style={styles.courseCount}>{filteredCourses.length} courses</Text>
         </View>
 
-        {active === 'course' ? (
-          <>
-            {loading ? (
-              <View style={styles.loaderContainer}>
-                <ActivityIndicator size="large" color={colors.primary} />
-                <Text style={styles.loadingText}>Loading your courses...</Text>
-              </View>
-            ) : (
-              <View style={styles.horizontalListContainer}>
-                <FlatList
-                  data={filteredCourses}
-                  nestedScrollEnabled
-                  renderItem={({ item, index }) => (
-                    <CourseCard
-                      item={item}
-                      onEdit={() =>
-                        navigation.navigate('CreateCourse', {
-                          data: item,
-                          isUpdated: true,
-                        })
-                      }
-                      onDelete={() => {
-                        setShowModal(true);
-                        setCourseId(item?.id);
-                      }}
-                      onView={() =>
-                        navigation.navigate('CourseVideoList', { item })
-                      }
-                    />
-                  )}
-                  horizontal
-                  keyExtractor={item => item.id}
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.horizontalListContent}
-                  ListEmptyComponent={renderEmptyState}
-                  onEndReached={() => {
-                    if (hasMore && !loadingMore) getTheCourse(page + 1);
-                  }}
-                  onEndReachedThreshold={0.1}
-                  ListFooterComponent={renderFooter}
-                  snapToInterval={screenWidth - 40}
-                  snapToAlignment="center"
-                  decelerationRate="fast"
-                />
-              </View>
-            )}
-          </>
+        {loading ? (
+          <View style={styles.loaderContainer}>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={styles.loadingText}>Loading your courses...</Text>
+          </View>
         ) : (
-          <View style={{ marginTop: hp(10) }}>
+          <View style={styles.horizontalListContainer}>
             <FlatList
-              data={filteredWebinar}
-              horizontal
-              contentContainerStyle={{ paddingRight: wp(100) }}
-              showsHorizontalScrollIndicator={false}
-              keyExtractor={item => item.id}
-              renderItem={({ item }) => (
-                <WebinarCard
-                  data={item}
-                  setRefreshWebinar={setRefreshWebinar}
+              data={filteredCourses}
+              nestedScrollEnabled
+              renderItem={({ item, index }) => (
+                <CourseCard
+                  item={item}
+                  onEdit={() =>
+                    navigation.navigate('CreateCourse', {
+                      data: item,
+                      isUpdated: true,
+                    })
+                  }
+                  onDelete={() => {
+                    setShowModal(true);
+                    setCourseId(item?.id);
+                  }}
+                  onView={() =>
+                    navigation.navigate('CourseVideoList', { item })
+                  }
                 />
               )}
+              horizontal
+              keyExtractor={item => item.id}
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.horizontalListContent}
+              ListEmptyComponent={renderEmptyState}
+              onEndReached={() => {
+                if (hasMore && !loadingMore) getTheCourse(page + 1);
+              }}
+              onEndReachedThreshold={0.1}
+              ListFooterComponent={renderFooter}
+              snapToInterval={screenWidth - 40}
+              snapToAlignment="center"
+              decelerationRate="fast"
             />
           </View>
         )}
 
         <View style={styles.statsSection}>
           <Text style={styles.statsTitle}>Quick Stats</Text>
-          {/* <View style={styles.statsGrid}>
-            {quickStats?.map((stat, index) => (
-              <View key={index} style={styles.statCard}>
-                <View style={styles.statIcon}>{stat?.icon}</View>
-                <Text style={styles.statValue}>{stat?.value}</Text>
-                <Text style={styles.statLabel}>{stat?.label}</Text>
-              </View>
-            ))}
-          </View> */}
           <View style={styles.statsGrid}>
             {quickStats.map((stat, index) => (
               <DashboardCard
@@ -607,8 +503,9 @@ const styles = StyleSheet.create({
   },
   listHeader: {
     flexDirection: 'row',
-    justifyContent: 'flex-start',
+    justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: hp(10),
+    paddingHorizontal: wp(20),
   },
 });

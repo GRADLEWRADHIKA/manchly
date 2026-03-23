@@ -6,7 +6,6 @@ import {
   StyleSheet,
   Image,
   Dimensions,
-  StatusBar as RNStatusBar,
   TouchableOpacity,
   ActivityIndicator,
   FlatList,
@@ -111,7 +110,6 @@ const UserHome = () => {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.white }}>
-      <RNStatusBar barStyle="light-content" />
       <View style={[styles.mainHeader, { paddingTop: insets.top + hp(10) }]}>
         <View style={styles.mainHead}>
           <View style={{ flexDirection: 'row', gap: wp(5), alignItems: 'center' }}>

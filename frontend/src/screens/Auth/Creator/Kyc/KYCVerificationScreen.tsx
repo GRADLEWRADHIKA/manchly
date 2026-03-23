@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  StatusBar as RNStatusBar,
   Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -26,8 +25,6 @@ const KYCVerificationScreen: React.FC = () => {
   const dispatch = useDispatch<any>();
   const { user } = useSelector((state: any) => state.userReducer
   );
-
-  console.log('--v--', user)
 
   const [loading, setLoading] = useState(false)
 
@@ -51,11 +48,9 @@ const KYCVerificationScreen: React.FC = () => {
       user_name: data?.full_name,
       user_dob: data?.dob
     };
-    console.log('--payload--', payload)
     dispatch(verifyPAN(payload))
       .unwrap()
       .then(response => {
-        console.log('--resonse--', response)
         reset();
         Toast.show({
           type: 'success',
@@ -65,7 +60,6 @@ const KYCVerificationScreen: React.FC = () => {
         setLoading(false);
       })
       .catch(error => {
-        console.log('error ------> ', error);
       })
       .finally(() => {
         setLoading(false);
@@ -74,7 +68,6 @@ const KYCVerificationScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <RNStatusBar barStyle="light-content" />
       <AppHeaderWithBack title="KYC Verification" />
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>

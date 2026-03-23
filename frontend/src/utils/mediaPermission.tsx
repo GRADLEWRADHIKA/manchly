@@ -24,7 +24,6 @@ export const requestMediaPermission = async (): Promise<boolean> => {
       return granted === PermissionsAndroid.RESULTS.GRANTED;
     }
   } catch (e) {
-    console.log('Permission error:', e);
     return false;
   }
 };

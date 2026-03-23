@@ -12,7 +12,7 @@ export const uploadShipDoc = createAsyncThunk(
       const response = await uploadInstance.post(url, requestBody);
       return response?.data;
     } catch (error: any) {
-      console.log("---------failed uploadShipDoc error------>", error);
+
     }
   }
 );

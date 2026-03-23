@@ -45,8 +45,6 @@ const VerifyLogin: React.FC<VerifyLoginProps> = ({
   const [otpData, setOtpData] = useState('');
   const [loginValue, setLoginValue] = useState('');
 
-  console.log('---otpData--', otpData)
-
   const {
     control,
     handleSubmit,

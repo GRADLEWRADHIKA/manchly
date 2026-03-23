@@ -6,7 +6,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   Image,
-  StatusBar as RNStatusBar,
   Linking,
 } from 'react-native';
 import colors from '../../../../utils/colors';
@@ -17,6 +16,7 @@ import {
   LogOut,
   Headset,
   Megaphone,
+  WalletMinimal,
 } from 'lucide-react-native';
 import LogoutModal from '../../Profile/Components/LogoutModal';
 import { useNavigation } from '@react-navigation/native';
@@ -39,8 +39,6 @@ const CreatorSetting: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <RNStatusBar barStyle="light-content" backgroundColor={colors.primary} />
-
       <View style={[styles.mainHeader, { paddingTop: insets.top + hp(10) }]} />
 
       <View style={styles.header}>
@@ -155,6 +153,22 @@ const CreatorSetting: React.FC = () => {
                 <User2 size={wp(20)} color={colors.text} />
               </View>
               <Text style={styles.rowText}>My Profile</Text>
+            </View>
+            {RightChevron}
+          </TouchableOpacity>
+        </View>
+
+         <View style={styles.section}>
+          <TouchableOpacity
+            style={styles.row}
+            activeOpacity={0.7}
+            onPress={() => Nav.navigate('WalletCreator')}
+          >
+            <View style={styles.rowLeft}>
+              <View style={styles.rowIcon}>
+                <WalletMinimal size={wp(20)} color={colors.text} />
+              </View>
+              <Text style={styles.rowText}>Wallet</Text>
             </View>
             {RightChevron}
           </TouchableOpacity>

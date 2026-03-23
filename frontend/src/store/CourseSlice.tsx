@@ -12,7 +12,7 @@ export const fetchCourses = createAsyncThunk(
       const response = await instance.get(url, requestBody);
       return response;
     } catch (error) {
-      console.log('---error---', JSON.parse(error?.request?._response));
+
       throw error;
     }
   },
@@ -40,7 +40,7 @@ export const createCourse = createAsyncThunk(
       });
       return res.data?.data;
     } catch (e: any) {
-      console.log('-----e------',JSON.stringify(e))
+
       const msg = e?.response?.data?.message || 'Failed to create course';
       Toast.show({ type: 'error', text1: msg, position: 'bottom' });
       return rejectWithValue(msg);
@@ -61,7 +61,7 @@ export const updateCourse = createAsyncThunk(
       });
       return res.data?.data;
     } catch (e: any) {
-      console.log('------error-----', e.request);
+
       const msg = e?.response?.data?.message || 'Failed to update course';
       Toast.show({ type: 'error', text1: msg, position: 'bottom' });
       return rejectWithValue(msg);

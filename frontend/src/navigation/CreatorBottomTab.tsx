@@ -16,11 +16,13 @@ import {
   House,
   UserPen,
   WalletMinimal,
+  Presentation,
 } from 'lucide-react-native';
 import CreatorHome from '../screens/Auth/Creator/Home/CreatorHome';
 import CreatorChat from '../screens/Auth/Creator/Chat/CreatorChat';
 import CreatorView from '../screens/Auth/Creator/Products/Course/CreatorView';
 import CreatorSetting from '../screens/Auth/Creator/Settings/CreatorSetting';
+import CreatorWebinar from '../screens/Auth/Creator/Webinar/CreatorWebinar';
 
 const Tab = createBottomTabNavigator();
 
@@ -44,10 +46,10 @@ const tabs = [
     Icon: MessageCircle,
   },
   {
-    name: 'WalletCreator',
-    component: WalletCreator,
-    label: 'Wallet',
-    Icon: WalletMinimal,
+    name: 'CreatorWebinar',
+    component: CreatorWebinar,
+    label: 'Webinar',
+    Icon: Presentation,
   },
   {
     name: 'CreatorSetting',

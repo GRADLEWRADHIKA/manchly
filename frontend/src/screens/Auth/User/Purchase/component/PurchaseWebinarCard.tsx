@@ -69,7 +69,6 @@ const PurchaseWebinarCard = ({ item }) => {
                 }
               });
             } else {
-              console.log('Meeting ID or password missing');
             }
           }}
         >

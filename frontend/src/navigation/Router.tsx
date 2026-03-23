@@ -94,7 +94,6 @@ const Router = () => {
       await NotificationService.createChannel();
       const fcmToken = await NotificationService.getToken();
       // TODO: Send fcmToken to your backend to associate with user
-      console.log('FCM Token:', fcmToken);
     };
 
     setupNotifications();
@@ -105,7 +104,6 @@ const Router = () => {
     // Background notification tap handler
     const unsubOpened = NotificationService.onNotificationOpenedApp(
       (remoteMessage) => {
-        console.log('Notification opened:', remoteMessage);
         // TODO: Navigate based on remoteMessage.data
       },
     );
@@ -113,14 +111,12 @@ const Router = () => {
     // Check if app was opened from a killed state notification
     NotificationService.getInitialNotification().then((remoteMessage) => {
       if (remoteMessage) {
-        console.log('App opened from notification:', remoteMessage);
         // TODO: Navigate based on remoteMessage.data
       }
     });
 
     // Token refresh listener
     const unsubTokenRefresh = NotificationService.onTokenRefresh((newToken) => {
-      console.log('FCM Token refreshed:', newToken);
       // TODO: Send new token to backend
     });
 

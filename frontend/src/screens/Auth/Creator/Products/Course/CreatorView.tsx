@@ -23,7 +23,6 @@ import {
   BellDot,
   BookOpen,
   Search,
-  SlidersHorizontal,
   TrendingUp,
   Users,
 } from 'lucide-react-native';
@@ -36,7 +35,7 @@ import DashboardCard from '../../Home/component/DashboardCard';
 const { width: screenWidth } = Dimensions.get('window');
 
 const CreatorView: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -134,9 +133,14 @@ const CreatorView: React.FC = () => {
 
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
+      <View style={styles.emptyIcon}>
+        <BookOpen size={wp(30)} color={colors.muted} />
+      </View>
       <Text style={styles.emptyTitle}>No courses found</Text>
       <Text style={styles.emptySubtitle}>
-        Try searching with a different name
+        {searchCourse
+          ? 'Try a different search term'
+          : 'Create your first course to get started'}
       </Text>
     </View>
   );
@@ -187,27 +191,16 @@ const CreatorView: React.FC = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <View style={{ width: '90%' }}>
-            <View style={styles.searchHeader}>
-              <Search width={wp(20)} height={hp(20)} color={colors.textSecondary} />
-              <CustomTextInput
-                inputContainerStyle={[styles.nameFields]}
-                inputStyle={{ fontSize: fp(16), color: colors.black }}
-                placeholderTextColor={colors.borderColor}
-                placeholder="Search course by name"
-                onChange={text => setSearchCourse(text)}
-                value={searchCourse}
-              />
-            </View>
-          </View>
-          <TouchableOpacity
-            style={{ width: '10%' }}
-            onPress={() => {
-            }}
-          >
-            <SlidersHorizontal size={wp(30)} color={colors.primary} />
-          </TouchableOpacity>
+        <View style={styles.searchContainer}>
+          <Search size={wp(18)} color={colors.textSecondary} />
+          <CustomTextInput
+            inputContainerStyle={styles.searchInput}
+            inputStyle={{ fontSize: fp(14), color: colors.black }}
+            placeholderTextColor={colors.borderColor}
+            placeholder="Search courses..."
+            onChange={setSearchCourse as any}
+            value={searchCourse}
+          />
         </View>
 
         <View style={styles.listHeader}>
@@ -225,7 +218,7 @@ const CreatorView: React.FC = () => {
             <FlatList
               data={filteredCourses}
               nestedScrollEnabled
-              renderItem={({ item, index }) => (
+              renderItem={({ item }) => (
                 <CourseCard
                   item={item}
                   onEdit={() =>
@@ -275,14 +268,15 @@ const CreatorView: React.FC = () => {
         </View>
 
         <View style={styles.withdrawCard}>
-          <View style={styles.withdrawLeft}>
-            <View style={{ marginLeft: wp(12) }}>
-              <Text style={styles.withdrawLabel}>Withdrawable Balance</Text>
-              <Text style={styles.withdrawAmount}>₹ *****</Text>
-            </View>
+          <View>
+            <Text style={styles.withdrawLabel}>Withdrawable Balance</Text>
+            <Text style={styles.withdrawAmount}>₹ *****</Text>
           </View>
-
-          <TouchableOpacity style={styles.withdrawBtn} activeOpacity={0.8}>
+          <TouchableOpacity
+            style={styles.withdrawBtn}
+            activeOpacity={0.8}
+            onPress={() => navigation.navigate('WalletCreator')}
+          >
             <Text style={styles.withdrawBtnText}>Withdraw</Text>
           </TouchableOpacity>
         </View>
@@ -303,192 +297,18 @@ const CreatorView: React.FC = () => {
 export default CreatorView;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.white },
+  container: {
+    flex: 1,
+    backgroundColor: colors.surface,
+  },
   scrollContent: {
     flexGrow: 1,
     paddingBottom: hp(20),
   },
-  heroSection: {
-    backgroundColor: colors.white,
-    padding: wp(20),
-    borderBottomLeftRadius: wp(24),
-    borderBottomRightRadius: wp(24),
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  horizontalListContainer: {
-    minHeight: hp(300),
-  },
-  horizontalListContent: {
-    paddingVertical: hp(16),
-    paddingHorizontal: wp(8),
-  },
-  loaderContainer: {
-    height: hp(200),
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: wp(16),
-  },
-  footerLoader: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: wp(20),
-    gap: wp(12),
-    width: wp(200),
-  },
-  loadingText: { color: colors.textSecondary, fontSize: fp(14), fontWeight: '600' },
-  emptyState: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: hp(60),
-    paddingHorizontal: wp(40),
-    width: screenWidth - 32,
-  },
-  emptyTitle: {
-    fontSize: fp(18),
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: hp(8),
-    textAlign: 'center',
-  },
-  emptySubtitle: {
-    fontSize: fp(14),
-    color: colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: fp(20),
-  },
+
+  // Header
   mainHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     backgroundColor: colors.primary,
-  },
-  mainHead: {
-    flexDirection: 'row',
-    gap: wp(10),
-    alignItems: 'center',
-  },
-  avatar: {
-    width: wp(54),
-    height: hp(54),
-    borderRadius: wp(27),
-    backgroundColor: colors.primary,
-  },
-  firstPara: {
-    color: colors.primary,
-    fontSize: fp(14),
-    fontWeight: '400',
-  },
-  secPara: {
-    color: colors.primary,
-    fontSize: fp(16),
-    fontWeight: '600',
-  },
-  nameFields: {
-    height: hp(44),
-    width: '95%',
-    borderRadius: wp(20),
-  },
-  searchHeader: {
-    marginHorizontal: wp(16),
-    marginVertical: hp(10),
-    borderColor: colors.borderColor,
-    borderWidth: wp(1),
-    borderRadius: wp(20),
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: wp(15),
-    gap: wp(3),
-    backgroundColor: colors.white,
-    elevation: 3,
-  },
-  listTitle: {
-    fontSize: fp(20),
-    fontWeight: '700',
-    color: colors.text,
-  },
-  courseCount: {
-    fontSize: fp(14),
-    color: colors.textSecondary,
-    fontWeight: '600',
-  },
-  statsSection: {
-    padding: wp(16),
-  },
-  statsTitle: {
-    fontSize: fp(20),
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: hp(10),
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  statCard: {
-    width: '48%',
-    backgroundColor: colors.surface,
-    borderRadius: wp(20),
-    padding: wp(16),
-    alignItems: 'center',
-    marginBottom: hp(12),
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    elevation: 4,
-  },
-  statIcon: {
-    marginBottom: hp(8),
-  },
-  statValue: {
-    fontSize: fp(22),
-    fontWeight: '700',
-    color: colors.text,
-  },
-  statLabel: {
-    fontSize: fp(12),
-    color: colors.textSecondary,
-    textAlign: 'center',
-  },
-  withdrawCard: {
-    backgroundColor: colors.white,
-    borderRadius: wp(20),
-    padding: wp(12),
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginHorizontal: wp(16),
-    elevation: 5,
-  },
-  withdrawLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  withdrawLabel: {
-    color: colors.primary,
-    fontWeight: '700',
-  },
-  withdrawAmount: {
-    color: colors.primary,
-    marginTop: hp(2),
-    fontSize: fp(18),
-    fontWeight: '900',
-  },
-  withdrawBtn: {
-    backgroundColor: colors.primary,
-    paddingVertical: hp(8),
-    paddingHorizontal: wp(14),
-    borderRadius: wp(10),
-  },
-  withdrawBtnText: {
-    fontWeight: '800',
-    color: colors.white,
   },
   headerBg: {
     width: '100%',
@@ -501,11 +321,181 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: wp(16),
   },
+  mainHead: {
+    flexDirection: 'row',
+    gap: wp(10),
+    alignItems: 'center',
+  },
+  avatar: {
+    width: wp(48),
+    height: wp(48),
+    borderRadius: wp(24),
+    backgroundColor: colors.lightGrey,
+  },
+  secPara: {
+    color: colors.primary,
+    fontSize: fp(16),
+    fontWeight: '700',
+  },
+  firstPara: {
+    color: colors.textSecondary,
+    fontSize: fp(13),
+  },
+
+  // Search
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: wp(16),
+    marginTop: hp(14),
+    borderWidth: 1,
+    borderColor: colors.borderColor,
+    borderRadius: wp(14),
+    paddingHorizontal: wp(12),
+    backgroundColor: colors.white,
+    elevation: 2,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
+  },
+  searchInput: {
+    height: hp(44),
+    width: '92%',
+    borderRadius: wp(14),
+  },
+
+  // List header
   listHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: hp(10),
     paddingHorizontal: wp(20),
+    marginTop: hp(4),
+  },
+  listTitle: {
+    fontSize: fp(18),
+    fontWeight: '700',
+    color: colors.text,
+  },
+  courseCount: {
+    fontSize: fp(13),
+    color: colors.textSecondary,
+    fontWeight: '500',
+  },
+
+  // Course list
+  horizontalListContainer: {
+    minHeight: hp(300),
+  },
+  horizontalListContent: {
+    paddingVertical: hp(12),
+    paddingHorizontal: wp(8),
+  },
+  loaderContainer: {
+    height: hp(200),
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: wp(12),
+  },
+  footerLoader: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: wp(20),
+    gap: wp(12),
+    width: wp(200),
+  },
+  loadingText: {
+    color: colors.textSecondary,
+    fontSize: fp(14),
+    fontWeight: '500',
+  },
+
+  // Empty
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: hp(60),
+    paddingHorizontal: wp(40),
+    width: screenWidth - 32,
+  },
+  emptyIcon: {
+    width: wp(64),
+    height: wp(64),
+    borderRadius: wp(32),
+    backgroundColor: colors.lightGrey,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: hp(14),
+  },
+  emptyTitle: {
+    fontSize: fp(17),
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: hp(6),
+    textAlign: 'center',
+  },
+  emptySubtitle: {
+    fontSize: fp(13),
+    color: colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: fp(19),
+  },
+
+  // Stats
+  statsSection: {
+    padding: wp(16),
+  },
+  statsTitle: {
+    fontSize: fp(18),
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: hp(10),
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    rowGap: hp(10),
+  },
+
+  // Withdraw
+  withdrawCard: {
+    backgroundColor: colors.white,
+    borderRadius: wp(16),
+    padding: wp(16),
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginHorizontal: wp(16),
+    elevation: 3,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+  },
+  withdrawLabel: {
+    color: colors.textSecondary,
+    fontWeight: '600',
+    fontSize: fp(12),
+  },
+  withdrawAmount: {
+    color: colors.primary,
+    marginTop: hp(2),
+    fontSize: fp(18),
+    fontWeight: '900',
+  },
+  withdrawBtn: {
+    backgroundColor: colors.primary,
+    paddingVertical: hp(10),
+    paddingHorizontal: wp(18),
+    borderRadius: wp(10),
+  },
+  withdrawBtnText: {
+    fontWeight: '700',
+    color: colors.white,
+    fontSize: fp(13),
   },
 });

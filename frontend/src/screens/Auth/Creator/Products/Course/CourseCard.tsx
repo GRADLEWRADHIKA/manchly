@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import {
   View,
   Text,
@@ -10,13 +10,12 @@ import {
   Share,
 } from 'react-native';
 import {
-  Users,
-  Clock,
   Edit3,
   Trash2,
-  ChevronRight,
-  Link,
+  Share2,
   Info,
+  BarChart3,
+  BookOpen,
 } from 'lucide-react-native';
 import colors from '../../../../../utils/colors';
 import { wp, hp, fp } from '../../../../../utils/responsive';
@@ -35,7 +34,6 @@ interface Props {
 const CourseCard: React.FC<Props> = ({ item, onEdit, onDelete, onView }) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const navigation = useNavigation<any>();
-  const [sharing, setSharing] = useState(false);
 
   const handlePressIn = () => {
     Animated.spring(scaleAnim, {
@@ -53,25 +51,28 @@ const CourseCard: React.FC<Props> = ({ item, onEdit, onDelete, onView }) => {
     }).start();
   };
 
+  const handleShare = () => {
+    Share.share({
+      message: `https://manchly.chottu.link/course/${item?.id}`,
+    });
+  };
+
   return (
     <Animated.View
       style={[
-        styles.courseCard,
-        {
-          transform: [{ scale: scaleAnim }],
-          width: CARD_WIDTH,
-        },
+        styles.card,
+        { transform: [{ scale: scaleAnim }], width: CARD_WIDTH },
       ]}
     >
       <TouchableOpacity
-        activeOpacity={0.9}
+        activeOpacity={0.95}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         onPress={onView}
         style={styles.touchable}
       >
         {/* Thumbnail */}
-        <View style={styles.thumbnailContainer}>
+        <View style={styles.thumbnailWrap}>
           <Image
             source={{
               uri:
@@ -80,83 +81,82 @@ const CourseCard: React.FC<Props> = ({ item, onEdit, onDelete, onView }) => {
             }}
             style={styles.thumbnail}
           />
+          {/* Price badge */}
+          <View style={styles.priceBadge}>
+            <Text style={styles.priceText}>
+              {item.price ? `₹${item.price}` : 'Free'}
+            </Text>
+          </View>
+          {/* Level badge */}
+          {item.level && (
+            <View style={styles.levelBadge}>
+              <BarChart3 size={wp(10)} color={colors.white} />
+              <Text style={styles.levelText}>{item.level}</Text>
+            </View>
+          )}
         </View>
 
-        {/* Course Content */}
-        <View style={styles.courseContent}>
-          <View style={styles.titleRow}>
-            <Text style={styles.courseTitle} numberOfLines={2}>
-              {item?.title.toUpperCase()}
-            </Text>
-            <ChevronRight size={wp(16)} color={colors.textSecondary} />
-          </View>
-          <View>
-            <Text style={styles.courseCategory}>{item?.category}</Text>
+        {/* Content */}
+        <View style={styles.content}>
+          {/* Category */}
+          {item.category && (
+            <Text style={styles.category}>{item.category}</Text>
+          )}
 
+          {/* Title */}
+          <Text style={styles.title} numberOfLines={2}>
+            {item?.title}
+          </Text>
+
+          {/* Description */}
+          {item.description ? (
             <Text style={styles.description} numberOfLines={1}>
               {item.description}
             </Text>
-          </View>
+          ) : null}
 
-          {/* Meta Information */}
-          <View style={styles.metaContainer}>
-            <View style={styles.metaRow}>
-              <TouchableOpacity
-                style={styles.metaItem}
-                onPress={() => {
-                  navigation.navigate('CourseDetailsScreen', {
-                    courseId: item?.id,
-                  });
-                }}
-              >
-                <Info size={wp(14)} color={colors.primary} />
-                <Text style={styles.metaText}>Info</Text>
-              </TouchableOpacity>
-              <View style={styles.durationContainer}>
-                <Text style={styles.durationText}>
-                  {item.duration || '8h 30m'}
-                </Text>
-              </View>
-              <View style={styles.metaItem}>
-                <Clock size={wp(14)} color={colors.primary} />
-                <Text style={styles.metaText}>{item?.level || 'Beginner'}</Text>
-              </View>
+          {/* Meta row */}
+          <View style={styles.metaRow}>
+            <TouchableOpacity
+              style={styles.infoPill}
+              onPress={() =>
+                navigation.navigate('CourseDetailsScreen', { courseId: item?.id })
+              }
+              activeOpacity={0.7}
+            >
+              <Info size={wp(12)} color={colors.info} />
+              <Text style={styles.infoPillText}>Details</Text>
+            </TouchableOpacity>
+
+            <View style={styles.metaPill}>
+              <BookOpen size={wp(12)} color={colors.textSecondary} />
+              <Text style={styles.metaPillText}>
+                {item.videos?.length || 0} videos
+              </Text>
             </View>
           </View>
+        </View>
 
-          {/* Actions */}
-          <View style={styles.actionsRow}>
-            <TouchableOpacity style={styles.actionBtn} onPress={onEdit}>
-              <Edit3 size={wp(16)} color={colors.primary} />
-              <Text style={styles.editBtnText}>Edit</Text>
-            </TouchableOpacity>
+        {/* Actions */}
+        <View style={styles.actionsRow}>
+          <TouchableOpacity style={styles.actionBtn} onPress={onEdit} activeOpacity={0.7}>
+            <Edit3 size={wp(15)} color={colors.primary} />
+            <Text style={styles.actionText}>Edit</Text>
+          </TouchableOpacity>
 
-            <View style={styles.actionSeparator} />
+          <View style={styles.actionDivider} />
 
-            <TouchableOpacity
-              style={styles.actionBtn}
-              disabled={sharing}
-              onPress={async () => {
-                Share.share({
-                  message: `https://manchly.chottu.link/course/${item?.id}`,
-                });
-              }}
-            >
-              {sharing ? (
-                <ActivityIndicator size={wp(16)} color={colors.primary} />
-              ) : (
-                <Link size={wp(16)} color={colors.primary} />
-              )}
-              <Text style={styles.editBtnText}>Link</Text>
-            </TouchableOpacity>
+          <TouchableOpacity style={styles.actionBtn} onPress={handleShare} activeOpacity={0.7}>
+            <Share2 size={wp(15)} color={colors.primary} />
+            <Text style={styles.actionText}>Share</Text>
+          </TouchableOpacity>
 
-            <View style={styles.actionSeparator} />
+          <View style={styles.actionDivider} />
 
-            <TouchableOpacity style={styles.actionBtn} onPress={onDelete}>
-              <Trash2 size={wp(16)} color={colors.error} />
-              <Text style={styles.deleteBtnText}>Delete</Text>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity style={styles.actionBtn} onPress={onDelete} activeOpacity={0.7}>
+            <Trash2 size={wp(15)} color={colors.error} />
+            <Text style={[styles.actionText, { color: colors.error }]}>Delete</Text>
+          </TouchableOpacity>
         </View>
       </TouchableOpacity>
     </Animated.View>
@@ -166,116 +166,145 @@ const CourseCard: React.FC<Props> = ({ item, onEdit, onDelete, onView }) => {
 export default CourseCard;
 
 const styles = StyleSheet.create({
-  courseCard: {
+  card: {
     backgroundColor: colors.white,
-    borderRadius: wp(20),
+    borderRadius: wp(18),
     marginHorizontal: wp(8),
     marginBottom: hp(16),
-    padding: wp(16),
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 12,
+    overflow: 'hidden',
     elevation: 4,
-    borderWidth: wp(1),
-    borderColor: 'rgba(0,0,0,0.05)',
-    height: hp(380),
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
   },
   touchable: {
     flex: 1,
   },
-  thumbnailContainer: {
-    marginBottom: hp(12),
-    alignItems: 'center',
+
+  // Thumbnail
+  thumbnailWrap: {
+    position: 'relative',
   },
   thumbnail: {
     width: '100%',
-    height: hp(120),
-    borderRadius: wp(12),
-    backgroundColor: '#F3F4F6',
+    height: hp(160),
+    backgroundColor: colors.lightGrey,
   },
-  courseContent: {
-    flex: 1,
-    justifyContent: 'space-between',
+  priceBadge: {
+    position: 'absolute',
+    top: hp(10),
+    right: wp(10),
+    backgroundColor: colors.primary,
+    paddingHorizontal: wp(10),
+    paddingVertical: hp(4),
+    borderRadius: wp(8),
   },
-  titleRow: {
+  priceText: {
+    color: colors.white,
+    fontSize: fp(12),
+    fontWeight: '800',
+  },
+  levelBadge: {
+    position: 'absolute',
+    bottom: hp(10),
+    left: wp(10),
+    backgroundColor: 'rgba(0,0,0,0.6)',
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
+    gap: wp(4),
+    paddingHorizontal: wp(8),
+    paddingVertical: hp(3),
+    borderRadius: wp(6),
   },
-  courseTitle: {
+  levelText: {
+    color: colors.white,
+    fontSize: fp(10),
+    fontWeight: '700',
+  },
+
+  // Content
+  content: {
+    padding: wp(14),
+    flex: 1,
+  },
+  category: {
+    color: colors.info,
+    fontSize: fp(11),
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    marginBottom: hp(4),
+  },
+  title: {
     fontSize: fp(16),
     fontWeight: '700',
     color: colors.text,
-    marginRight: wp(8),
-    lineHeight: fp(20),
-  },
-  courseCategory: {
-    color: colors.primary,
-    fontSize: fp(12),
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    lineHeight: fp(21),
+    marginBottom: hp(4),
   },
   description: {
     color: colors.textSecondary,
     fontSize: fp(13),
+    lineHeight: fp(18),
+    marginBottom: hp(10),
   },
-  metaContainer: {
-    backgroundColor: colors.surface,
-    borderRadius: wp(12),
-    padding: wp(12),
-  },
+
+  // Meta
   metaRow: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    gap: wp(8),
   },
-  metaItem: {
+  infoPill: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: wp(4),
+    backgroundColor: '#EEF2FF',
+    paddingHorizontal: wp(10),
+    paddingVertical: hp(5),
+    borderRadius: wp(8),
   },
-  metaText: {
-    marginLeft: wp(6),
-    color: colors.text,
-    fontSize: fp(12),
+  infoPillText: {
+    color: colors.info,
+    fontSize: fp(11),
     fontWeight: '600',
   },
-  durationContainer: {
+  metaPill: {
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: wp(4),
+    backgroundColor: colors.surface,
+    paddingHorizontal: wp(10),
+    paddingVertical: hp(5),
+    borderRadius: wp(8),
   },
-  durationText: {
-    color: colors.text,
-    fontSize: fp(12),
+  metaPillText: {
+    color: colors.textSecondary,
+    fontSize: fp(11),
     fontWeight: '600',
   },
+
+  // Actions
   actionsRow: {
     flexDirection: 'row',
-    backgroundColor: colors.surface,
-    borderRadius: wp(12),
-    padding: wp(4),
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
   },
   actionBtn: {
     flex: 1,
     flexDirection: 'row',
-    paddingVertical: hp(10),
-    borderRadius: wp(8),
+    paddingVertical: hp(12),
     alignItems: 'center',
     justifyContent: 'center',
     gap: wp(6),
   },
-  editBtnText: {
+  actionText: {
     color: colors.primary,
-    fontSize: fp(14),
-    fontWeight: '700',
+    fontSize: fp(13),
+    fontWeight: '600',
   },
-  deleteBtnText: {
-    color: colors.error,
-    fontSize: fp(14),
-    fontWeight: '700',
-  },
-  actionSeparator: {
-    width: wp(1),
-    height: hp(20),
-    backgroundColor: '#E5E7EB',
-    marginVertical: hp(4),
+  actionDivider: {
+    width: 1,
+    backgroundColor: colors.border,
   },
 });

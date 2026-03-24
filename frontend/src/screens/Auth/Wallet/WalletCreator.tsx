@@ -7,7 +7,6 @@ import {
   ScrollView,
 } from 'react-native';
 import {
-  ArrowLeft,
   Wallet,
   TrendingUp,
   Users,
@@ -20,34 +19,16 @@ import {
 } from 'lucide-react-native';
 import colors from '../../../utils/colors';
 import { wp, hp, fp } from '../../../utils/responsive';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
+import AppHeaderWithBack from '../../../components/AppHeaderWithBack';
 
 const WalletCreator = () => {
-  const insets = useSafeAreaInsets();
   const navigation = useNavigation();
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={[styles.headerWrapper, { paddingTop: insets.top }]}>
-        <LinearGradient
-          colors={[colors.gradientStart, colors.gradientEnd]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.header}
-        >
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            style={styles.backBtn}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <ArrowLeft size={wp(22)} color={colors.primary} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>My Wallet</Text>
-        </LinearGradient>
-      </View>
+      <AppHeaderWithBack title="My Wallet" />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -173,29 +154,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.surface,
-  },
-  headerWrapper: {
-    backgroundColor: colors.primary,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: wp(16),
-    paddingVertical: hp(14),
-  },
-  backBtn: {
-    width: wp(36),
-    height: wp(36),
-    borderRadius: wp(18),
-    backgroundColor: 'rgba(0,0,0,0.06)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: wp(12),
-  },
-  headerTitle: {
-    fontSize: fp(20),
-    fontWeight: '700',
-    color: colors.primary,
   },
   scrollContent: {
     paddingBottom: hp(30),

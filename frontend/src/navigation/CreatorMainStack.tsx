@@ -15,6 +15,7 @@ import CourseVideoList from '../screens/Auth/Creator/Products/Course/CourseVideo
 import CreatorSettingsDetails from '../screens/Auth/Creator/Settings/CreatorSettingDetails';
 import KYCVerificationScreen from '../screens/Auth/Creator/Kyc/KYCVerificationScreen';
 import CourseDetailsScreen from '../screens/Auth/Creator/Products/Course/CourseDetailsScreen';
+import CreatorNotification from '../screens/Auth/Creator/Notification/CreatorNotification';
 
 const Stack = createNativeStackNavigator();
 
@@ -47,6 +48,10 @@ const CreatorMainStack = () => {
       <Stack.Screen
         name="CourseDetailsScreen"
         component={CourseDetailsScreen}
+      />
+       <Stack.Screen
+        name="CreatorNotification"
+        component={CreatorNotification}
       />
     </Stack.Navigator>
   );

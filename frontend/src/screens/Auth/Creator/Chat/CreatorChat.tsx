@@ -1,37 +1,54 @@
 import React from 'react';
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Image } from 'react-native';
 import {
   MessageCircle,
   Search,
   Send,
   Users,
   Sparkles,
+  UserCircle,
+  Bell,
 } from 'lucide-react-native';
 import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import LinearGradient from 'react-native-linear-gradient';
+import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 
 const CreatorChat = () => {
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation<any>();
+  const { user } = useSelector((state: any) => state.userReducer);
+
+  const displayName = user?.name
+    ? user.name.charAt(0).toUpperCase() + user.name.slice(1)
+    : 'Creator';
 
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={[styles.headerWrapper, { paddingTop: insets.top }]}>
-        <LinearGradient
-          colors={[colors.gradientStart, colors.gradientEnd]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.header}
-        >
-          <View style={styles.headerRow}>
-            <Text style={styles.headerTitle}>Chats</Text>
-            <TouchableOpacity style={styles.searchBtn}>
-              <Search size={wp(20)} color={colors.primary} />
-            </TouchableOpacity>
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            {user?.profile_image ? (
+              <Image source={{ uri: user.profile_image }} style={styles.avatar} />
+            ) : (
+              <View style={styles.avatarFallback}>
+                <UserCircle size={wp(28)} color={colors.white} />
+              </View>
+            )}
+            <View>
+              <Text style={styles.greetingSub}>Messages</Text>
+              <Text style={styles.headerTitle}>Chats</Text>
+            </View>
           </View>
-        </LinearGradient>
+          <TouchableOpacity
+            style={styles.bellBtn}
+            onPress={() => navigation.navigate('CreatorNotification')}
+          >
+            <Bell size={wp(20)} color={colors.white} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Coming Soon Content */}
@@ -108,29 +125,57 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
   },
   headerWrapper: {
-    backgroundColor: colors.primary,
+    backgroundColor: '#111111',
   },
   header: {
-    paddingHorizontal: wp(20),
-    paddingVertical: hp(14),
-  },
-  headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingHorizontal: wp(16),
+    paddingVertical: hp(14),
   },
-  headerTitle: {
-    fontSize: fp(22),
-    fontWeight: '800',
-    color: colors.primary,
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(12),
   },
-  searchBtn: {
-    width: wp(38),
-    height: wp(38),
-    borderRadius: wp(19),
-    backgroundColor: 'rgba(0,0,0,0.06)',
+  avatar: {
+    width: wp(46),
+    height: wp(46),
+    borderRadius: wp(23),
+    borderWidth: 2,
+    borderColor: '#2c2c2e',
+  },
+  avatarFallback: {
+    width: wp(46),
+    height: wp(46),
+    borderRadius: wp(23),
+    backgroundColor: '#1c1c1e',
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#2c2c2e',
+  },
+  greetingSub: {
+    fontSize: fp(12),
+    color: '#999999',
+    fontWeight: '500',
+  },
+  headerTitle: {
+    fontSize: fp(18),
+    fontWeight: '800',
+    color: colors.white,
+    marginTop: hp(1),
+  },
+  bellBtn: {
+    width: wp(40),
+    height: wp(40),
+    borderRadius: wp(20),
+    backgroundColor: '#1c1c1e',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#2c2c2e',
   },
 
   // Content

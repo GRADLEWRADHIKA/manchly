@@ -12,14 +12,15 @@ const AppHeaderWithBack = ({ title }) => {
   const navigation = useNavigation();
   const { user } = useSelector((state: any) => state.userReducer);
 
+  const isCreator = user?.user_type !== 'USER';
+
   return (
     <View
       style={[
         styles.container,
         {
           paddingTop: insets.top + hp(10),
-          backgroundColor:
-            user?.user_type === 'USER' ? colors.secPrimary : colors.primary,
+          backgroundColor: isCreator ? '#111111' : colors.secPrimary,
         },
       ]}
     >

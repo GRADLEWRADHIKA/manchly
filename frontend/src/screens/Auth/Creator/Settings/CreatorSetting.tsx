@@ -18,6 +18,7 @@ import {
   Megaphone,
   WalletMinimal,
   UserCircle,
+  Bell,
 } from 'lucide-react-native';
 import LogoutModal from '../../Profile/Components/LogoutModal';
 import { useNavigation } from '@react-navigation/native';
@@ -25,7 +26,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
 import { logout } from '../../../../store/UserSlice';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import LinearGradient from 'react-native-linear-gradient';
 import Toast from 'react-native-toast-message';
 
 const SUPPORT_PHONE = '6363790659';
@@ -71,13 +71,8 @@ const CreatorSetting: React.FC = () => {
   return (
     <View style={styles.container}>
       <View style={[styles.headerWrapper, { paddingTop: insets.top }]}>
-        <LinearGradient
-          colors={[colors.gradientStart, colors.gradientEnd]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.header}
-        >
-          <View style={styles.greetingWrap}>
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
             {user?.profile_image ? (
               <Image
                 source={{ uri: user.profile_image }}
@@ -85,7 +80,7 @@ const CreatorSetting: React.FC = () => {
               />
             ) : (
               <View style={styles.avatarFallback}>
-                <UserCircle size={wp(32)} color={colors.primary} />
+                <UserCircle size={wp(28)} color={colors.white} />
               </View>
             )}
             <View>
@@ -93,7 +88,13 @@ const CreatorSetting: React.FC = () => {
               <Text style={styles.greetingText}>{displayName}</Text>
             </View>
           </View>
-        </LinearGradient>
+          <TouchableOpacity
+            style={styles.bellBtn}
+            onPress={() => Nav.navigate('CreatorNotification')}
+          >
+            <Bell size={wp(20)} color={colors.white} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView
@@ -200,41 +201,57 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
   },
   headerWrapper: {
-    backgroundColor: colors.primary,
+    backgroundColor: '#111111',
   },
   header: {
-    paddingHorizontal: wp(20),
-    paddingVertical: hp(16),
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: wp(16),
+    paddingVertical: hp(14),
   },
-  greetingWrap: {
+  headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: wp(12),
   },
   avatar: {
-    width: wp(54),
-    height: wp(54),
-    borderRadius: wp(27),
-    backgroundColor: colors.lightGrey,
-    marginRight: wp(14),
+    width: wp(46),
+    height: wp(46),
+    borderRadius: wp(23),
+    borderWidth: 2,
+    borderColor: '#2c2c2e',
   },
   avatarFallback: {
-    width: wp(54),
-    height: wp(54),
-    borderRadius: wp(27),
-    backgroundColor: colors.lightGrey,
-    marginRight: wp(14),
+    width: wp(46),
+    height: wp(46),
+    borderRadius: wp(23),
+    backgroundColor: '#1c1c1e',
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#2c2c2e',
   },
   greetingLabel: {
-    color: colors.textSecondary,
-    fontSize: fp(14),
+    fontSize: fp(12),
+    color: '#999999',
     fontWeight: '500',
   },
   greetingText: {
-    color: colors.primary,
     fontSize: fp(18),
-    fontWeight: '600',
+    fontWeight: '800',
+    color: colors.white,
+    marginTop: hp(1),
+  },
+  bellBtn: {
+    width: wp(40),
+    height: wp(40),
+    borderRadius: wp(20),
+    backgroundColor: '#1c1c1e',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#2c2c2e',
   },
   body: {
     flex: 1,

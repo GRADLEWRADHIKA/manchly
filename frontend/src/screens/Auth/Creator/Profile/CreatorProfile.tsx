@@ -11,7 +11,16 @@ import {
 import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
 import AppHeaderWithBack from '../../../../components/AppHeaderWithBack';
-import { User2, Camera } from 'lucide-react-native';
+import {
+  User2,
+  Camera,
+  Mail,
+  Phone,
+  ShieldCheck,
+  ShieldX,
+  Pen,
+  Lock,
+} from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { Controller, useForm } from 'react-hook-form';
@@ -22,6 +31,7 @@ import Toast from 'react-native-toast-message';
 import { pick, types } from '@react-native-documents/picker';
 import { uploadShipDoc } from '../../../../store/Common';
 
+
 const CreatorProfile = () => {
   const navigation = useNavigation<any>();
   const { user } = useSelector((state: any) => state.userReducer);
@@ -30,6 +40,10 @@ const CreatorProfile = () => {
   const [imageAdd, setImageAdd] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+
+  const displayName = user?.name
+    ? user.name.charAt(0).toUpperCase() + user.name.slice(1)
+    : 'Creator';
 
   const {
     control,
@@ -132,116 +146,176 @@ const CreatorProfile = () => {
 
   return (
     <View style={styles.container}>
-      <AppHeaderWithBack title="Creator Profile" />
+      <AppHeaderWithBack title="My Profile" />
 
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* PROFILE IMAGE */}
-        <TouchableOpacity
-          style={styles.profileImageContainer}
-          onPress={uploading ? undefined : imagePicker}
-          disabled={uploading}
-        >
-          <View style={styles.imageWrapper}>
-            {uploading ? (
-              <ActivityIndicator color={colors.white} size="large" />
-            ) : user?.profile_image || imageAdd ? (
-              <Image
-                source={{ uri: imageAdd || user?.profile_image }}
-                style={styles.profileImage}
-              />
-            ) : (
-              <User2 size={wp(50)} color={colors.white} />
-            )}
-            <View style={styles.cameraIcon}>
-              <Camera size={wp(16)} color={colors.white} />
+        {/* Profile Card */}
+        <View style={styles.profileCard}>
+          <TouchableOpacity
+            style={styles.avatarWrap}
+            onPress={uploading ? undefined : imagePicker}
+            disabled={uploading}
+            activeOpacity={0.8}
+          >
+            <View style={styles.imageWrapper}>
+              {uploading ? (
+                <ActivityIndicator color={colors.white} size="large" />
+              ) : user?.profile_image || imageAdd ? (
+                <Image
+                  source={{ uri: imageAdd || user?.profile_image }}
+                  style={styles.profileImage}
+                />
+              ) : (
+                <User2 size={wp(44)} color={colors.white} />
+              )}
             </View>
-          </View>
-          <Text style={styles.uploadText}>Change Profile Picture</Text>
-        </TouchableOpacity>
+            <View style={styles.cameraIcon}>
+              <Camera size={wp(14)} color={colors.white} />
+            </View>
+          </TouchableOpacity>
 
-        {/* NAME */}
-        <Text style={styles.label}>Full Name</Text>
-        <Controller
-          name="name"
-          control={control}
-          rules={{ required: 'Name is required' }}
-          render={({ field: { onChange, value } }) => (
-            <CustomTextInput
-              placeholder="Enter Full Name"
-              value={value}
-              onChange={onChange}
-              inputContainerStyle={styles.input}
-            />
-          )}
-        />
+          <Text style={styles.profileName}>{displayName}</Text>
+          <Text style={styles.profileEmail}>{user?.email || ''}</Text>
 
-        {/* EMAIL */}
-        <Text style={styles.label}>Email</Text>
-        <Controller
-          name="email"
-          control={control}
-          render={({ field: { value } }) => (
-            <CustomTextInput
-              value={value}
-              disabled
-              inputContainerStyle={[styles.input, styles.disabledInput]}
-            />
-          )}
-        />
-
-        {/* PHONE */}
-        <Text style={styles.label}>Phone</Text>
-        <Controller
-          name="phone"
-          control={control}
-          render={({ field: { value } }) => (
-            <CustomTextInput
-              value={value}
-              disabled
-              inputContainerStyle={[styles.input, styles.disabledInput]}
-            />
-          )}
-        />
-
-        {/* KYC STATUS */}
-        <View style={styles.kycCard}>
-          <Text style={styles.kycLabel}>KYC Status</Text>
-          <Text
+          {/* KYC Badge */}
+          <View
             style={[
-              styles.kycStatus,
-              { color: user?.kyc_verified ? colors.success : colors.error },
+              styles.kycBadge,
+              {
+                backgroundColor: user?.kyc_verified ? colors.success + '15' : colors.error + '15',
+                borderColor: user?.kyc_verified ? colors.success + '40' : colors.error + '40',
+              },
             ]}
           >
-            {user?.kyc_verified ? 'Verified' : 'Not Verified'}
-          </Text>
+            {user?.kyc_verified ? (
+              <ShieldCheck size={wp(14)} color={colors.success} />
+            ) : (
+              <ShieldX size={wp(14)} color={colors.error} />
+            )}
+            <Text
+              style={[
+                styles.kycBadgeText,
+                { color: user?.kyc_verified ? colors.success : colors.error },
+              ]}
+            >
+              {user?.kyc_verified ? 'KYC Verified' : 'KYC Not Verified'}
+            </Text>
+          </View>
         </View>
 
-        {/* BUTTONS */}
+        {/* Form Section */}
+        <Text style={styles.sectionTitle}>Personal Information</Text>
+
+        <View style={styles.formCard}>
+          {/* NAME */}
+          <View style={styles.fieldRow}>
+            <View style={styles.fieldIcon}>
+              <Pen size={wp(16)} color={colors.info} />
+            </View>
+            <View style={styles.fieldContent}>
+              <Text style={styles.fieldLabel}>Full Name</Text>
+              <Controller
+                name="name"
+                control={control}
+                rules={{ required: 'Name is required' }}
+                render={({ field: { onChange, value } }) => (
+                  <CustomTextInput
+                    placeholder="Enter Full Name"
+                    value={value}
+                    onChange={onChange}
+                    inputContainerStyle={styles.input}
+                    inputStyle={styles.inputText}
+                  />
+                )}
+              />
+            </View>
+          </View>
+
+          <View style={styles.divider} />
+
+          {/* EMAIL */}
+          <View style={styles.fieldRow}>
+            <View style={styles.fieldIcon}>
+              <Mail size={wp(16)} color={colors.muted} />
+            </View>
+            <View style={styles.fieldContent}>
+              <View style={styles.fieldLabelRow}>
+                <Text style={styles.fieldLabel}>Email</Text>
+                <View style={styles.lockedBadge}>
+                  <Lock size={wp(10)} color={colors.muted} />
+                  <Text style={styles.lockedText}>Locked</Text>
+                </View>
+              </View>
+              <Controller
+                name="email"
+                control={control}
+                render={({ field: { value } }) => (
+                  <CustomTextInput
+                    value={value}
+                    disabled
+                    inputContainerStyle={[styles.input, styles.disabledInput]}
+                    inputStyle={styles.disabledText}
+                  />
+                )}
+              />
+            </View>
+          </View>
+
+          <View style={styles.divider} />
+
+          {/* PHONE */}
+          <View style={styles.fieldRow}>
+            <View style={styles.fieldIcon}>
+              <Phone size={wp(16)} color={colors.muted} />
+            </View>
+            <View style={styles.fieldContent}>
+              <View style={styles.fieldLabelRow}>
+                <Text style={styles.fieldLabel}>Phone</Text>
+                <View style={styles.lockedBadge}>
+                  <Lock size={wp(10)} color={colors.muted} />
+                  <Text style={styles.lockedText}>Locked</Text>
+                </View>
+              </View>
+              <Controller
+                name="phone"
+                control={control}
+                render={({ field: { value } }) => (
+                  <CustomTextInput
+                    value={value}
+                    disabled
+                    inputContainerStyle={[styles.input, styles.disabledInput]}
+                    inputStyle={styles.disabledText}
+                  />
+                )}
+              />
+            </View>
+          </View>
+        </View>
+
+        {/* Action Buttons */}
         <View style={styles.buttonContainer}>
           <TouchableOpacity
-            style={[styles.button, styles.backButton]}
+            style={styles.backButton}
             onPress={() => navigation.goBack()}
+            activeOpacity={0.7}
           >
-            <Text style={{ color: colors.black }}>Back</Text>
+            <Text style={styles.backButtonText}>Cancel</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[
-              styles.button,
-              styles.updateButton,
-              loading && { opacity: 0.6 },
-            ]}
+            style={[styles.updateButton, loading && { opacity: 0.6 }]}
             onPress={handleSubmit(onUpdate)}
             disabled={loading}
+            activeOpacity={0.8}
           >
             {loading ? (
               <ActivityIndicator color={colors.white} />
             ) : (
-              <Text style={styles.buttonText}>Update Profile</Text>
+              <Text style={styles.updateButtonText}>Save Changes</Text>
             )}
           </TouchableOpacity>
         </View>
@@ -255,113 +329,214 @@ export default CreatorProfile;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    padding: wp(20),
     paddingBottom: hp(40),
   },
-  profileImageContainer: {
+
+  // Profile Card
+  profileCard: {
     alignItems: 'center',
-    marginBottom: hp(25),
+    backgroundColor: colors.white,
+    marginHorizontal: wp(16),
+    marginTop: hp(20),
+    borderRadius: wp(20),
+    paddingVertical: hp(24),
+    paddingHorizontal: wp(20),
+    elevation: 3,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+  },
+  avatarWrap: {
+    position: 'relative',
+    marginBottom: hp(14),
   },
   imageWrapper: {
-    width: wp(110),
-    height: wp(110),
-    borderRadius: wp(55),
+    width: wp(100),
+    height: wp(100),
+    borderRadius: wp(50),
     backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: hp(8),
+    borderWidth: 3,
+    borderColor: colors.info,
   },
   profileImage: {
-    width: wp(110),
-    height: wp(110),
-    borderRadius: wp(55),
+    width: wp(100),
+    height: wp(100),
+    borderRadius: wp(50),
   },
   cameraIcon: {
     position: 'absolute',
-    bottom: 0,
-    right: 0,
-    width: wp(32),
-    height: wp(32),
-    borderRadius: wp(16),
-    backgroundColor: colors.primary,
+    bottom: hp(2),
+    right: wp(2),
+    width: wp(30),
+    height: wp(30),
+    borderRadius: wp(15),
+    backgroundColor: colors.info,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: wp(2),
+    borderWidth: 2,
     borderColor: colors.white,
   },
-  uploadText: {
-    fontSize: fp(14),
-    color: colors.primary,
-    fontWeight: '500',
-  },
-  label: {
-    marginTop: hp(10),
-    marginBottom: hp(6),
-    fontSize: fp(14),
-    fontWeight: '500',
+  profileName: {
+    fontSize: fp(20),
+    fontWeight: '800',
     color: colors.text,
   },
+  profileEmail: {
+    fontSize: fp(13),
+    color: colors.textSecondary,
+    marginTop: hp(2),
+  },
+  kycBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(6),
+    marginTop: hp(12),
+    paddingHorizontal: wp(12),
+    paddingVertical: hp(6),
+    borderRadius: wp(20),
+    borderWidth: 1,
+  },
+  kycBadgeText: {
+    fontSize: fp(12),
+    fontWeight: '700',
+  },
+
+  // Section
+  sectionTitle: {
+    fontSize: fp(16),
+    fontWeight: '700',
+    color: colors.text,
+    marginHorizontal: wp(20),
+    marginTop: hp(24),
+    marginBottom: hp(10),
+  },
+
+  // Form Card
+  formCard: {
+    backgroundColor: colors.white,
+    marginHorizontal: wp(16),
+    borderRadius: wp(16),
+    paddingVertical: hp(6),
+    elevation: 2,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+  },
+  fieldRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingHorizontal: wp(16),
+    paddingVertical: hp(12),
+  },
+  fieldIcon: {
+    width: wp(36),
+    height: wp(36),
+    borderRadius: wp(10),
+    backgroundColor: colors.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: wp(12),
+    marginTop: hp(2),
+  },
+  fieldContent: {
+    flex: 1,
+  },
+  fieldLabel: {
+    fontSize: fp(12),
+    fontWeight: '600',
+    color: colors.textSecondary,
+    marginBottom: hp(4),
+  },
+  fieldLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: hp(4),
+  },
+  lockedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(3),
+    backgroundColor: colors.surface,
+    paddingHorizontal: wp(8),
+    paddingVertical: hp(2),
+    borderRadius: wp(6),
+  },
+  lockedText: {
+    fontSize: fp(10),
+    color: colors.muted,
+    fontWeight: '500',
+  },
   input: {
-    height: hp(44),
-    borderWidth: wp(1),
+    height: hp(42),
+    borderWidth: 1,
     borderColor: colors.borderColor,
-    borderRadius: wp(8),
-    paddingHorizontal: wp(10),
+    borderRadius: wp(10),
+    paddingHorizontal: wp(12),
     justifyContent: 'center',
     backgroundColor: colors.white,
   },
-  bioInput: {
-    height: hp(100),
-    alignItems: 'flex-start',
-    paddingVertical: hp(10),
+  inputText: {
+    fontSize: fp(14),
+    color: colors.text,
   },
   disabledInput: {
     backgroundColor: colors.surface,
+    borderColor: colors.surface,
   },
-  kycCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: hp(16),
-    padding: wp(14),
-    borderRadius: wp(8),
+  disabledText: {
+    fontSize: fp(14),
+    color: colors.textSecondary,
+  },
+  divider: {
+    height: 1,
     backgroundColor: colors.surface,
+    marginHorizontal: wp(16),
   },
-  kycLabel: {
-    fontSize: fp(14),
-    fontWeight: '500',
-    color: colors.text,
-  },
-  kycStatus: {
-    fontSize: fp(14),
-    fontWeight: '700',
-  },
+
+  // Buttons
   buttonContainer: {
     flexDirection: 'row',
-    marginTop: hp(30),
-    justifyContent: 'space-between',
-  },
-  button: {
-    width: '48%',
-    height: hp(44),
-    borderRadius: wp(8),
-    alignItems: 'center',
-    justifyContent: 'center',
+    marginTop: hp(24),
+    marginHorizontal: wp(16),
+    gap: wp(12),
   },
   backButton: {
-    backgroundColor: colors.lightGrey,
+    flex: 1,
+    height: hp(48),
+    borderRadius: wp(12),
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  backButtonText: {
+    color: colors.text,
+    fontWeight: '600',
+    fontSize: fp(15),
   },
   updateButton: {
+    flex: 2,
+    height: hp(48),
+    borderRadius: wp(12),
+    alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: colors.primary,
   },
-  buttonText: {
+  updateButtonText: {
     color: colors.white,
-    fontWeight: '600',
+    fontWeight: '700',
+    fontSize: fp(15),
   },
 });

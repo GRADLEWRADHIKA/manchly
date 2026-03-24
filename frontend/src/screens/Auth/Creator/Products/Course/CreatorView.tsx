@@ -20,16 +20,15 @@ import DynamicModal from '../../../../../components/CommonModal';
 import CourseCard from './CourseCard';
 import {
   Award,
-  BellDot,
+  Bell,
   BookOpen,
   Search,
   TrendingUp,
   Users,
+  UserCircle,
 } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import CustomTextInput from '../../../../../components/CustomInput';
-import UserIcon from '../../Home/component/UserIcon';
-import LinearGradient from 'react-native-linear-gradient';
 import DashboardCard from '../../Home/component/DashboardCard';
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -147,44 +146,31 @@ const CreatorView: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <View
-        style={[
-          styles.mainHeader,
-          { paddingTop: insets.top + hp(10), backgroundColor: colors.primary },
-        ]}
-      >
-        <LinearGradient
-          colors={[colors.gradientStart, colors.gradientEnd]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.headerBg}
-        >
-          <View style={styles.headerContent}>
-            <View style={styles.mainHead}>
-              {user?.profile_image ? (
-                <Image
-                  source={{ uri: user?.profile_image }}
-                  style={styles.avatar}
-                />
-              ) : (
-                <UserIcon />
-              )}
-
-              <View>
-                <Text style={styles.secPara}>
-                  Hi,{' '}
-                  {user?.name
-                    ? user.name.charAt(0).toUpperCase() + user.name.slice(1)
-                    : 'User'}{' '}
-                  👋
-                </Text>
-                <Text style={styles.firstPara}>Welcome back</Text>
+      <View style={[styles.headerWrapper, { paddingTop: insets.top }]}>
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            {user?.profile_image ? (
+              <Image
+                source={{ uri: user?.profile_image }}
+                style={styles.avatar}
+              />
+            ) : (
+              <View style={styles.avatarFallback}>
+                <UserCircle size={wp(28)} color={colors.white} />
               </View>
+            )}
+            <View>
+              <Text style={styles.headerSub}>My Courses</Text>
+              <Text style={styles.headerTitle}>{data.length} course{data.length !== 1 ? 's' : ''}</Text>
             </View>
-
-            <BellDot width={wp(22)} height={hp(22)} color={colors.primary} />
           </View>
-        </LinearGradient>
+          <TouchableOpacity
+            style={styles.bellBtn}
+            onPress={() => navigation.navigate('CreatorNotification')}
+          >
+            <Bell size={wp(20)} color={colors.white} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView
@@ -307,39 +293,58 @@ const styles = StyleSheet.create({
   },
 
   // Header
-  mainHeader: {
-    backgroundColor: colors.primary,
+  headerWrapper: {
+    backgroundColor: '#111111',
   },
-  headerBg: {
-    width: '100%',
-    paddingTop: hp(10),
-    paddingBottom: hp(16),
-  },
-  headerContent: {
+  header: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: wp(16),
-  },
-  mainHead: {
-    flexDirection: 'row',
-    gap: wp(10),
     alignItems: 'center',
+    paddingHorizontal: wp(16),
+    paddingVertical: hp(14),
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(12),
   },
   avatar: {
-    width: wp(48),
-    height: wp(48),
-    borderRadius: wp(24),
-    backgroundColor: colors.lightGrey,
+    width: wp(46),
+    height: wp(46),
+    borderRadius: wp(23),
+    borderWidth: 2,
+    borderColor: '#2c2c2e',
   },
-  secPara: {
-    color: colors.primary,
-    fontSize: fp(16),
-    fontWeight: '700',
+  avatarFallback: {
+    width: wp(46),
+    height: wp(46),
+    borderRadius: wp(23),
+    backgroundColor: '#1c1c1e',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#2c2c2e',
   },
-  firstPara: {
-    color: colors.textSecondary,
-    fontSize: fp(13),
+  headerSub: {
+    fontSize: fp(12),
+    color: '#999999',
+    fontWeight: '500',
+  },
+  headerTitle: {
+    fontSize: fp(18),
+    fontWeight: '800',
+    color: colors.white,
+    marginTop: hp(1),
+  },
+  bellBtn: {
+    width: wp(40),
+    height: wp(40),
+    borderRadius: wp(20),
+    backgroundColor: '#1c1c1e',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#2c2c2e',
   },
 
   // Search

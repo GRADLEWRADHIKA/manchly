@@ -1,30 +1,25 @@
-import React from 'react';
-import {
-  View,
-  TouchableOpacity,
-  Text,
-  StyleSheet,
-  Platform,
-} from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, TouchableOpacity, StyleSheet, Animated } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import colors from '../utils/colors';
 import { wp, hp, fp } from '../utils/responsive';
-import WalletCreator from '../screens/Auth/Wallet/WalletCreator';
 import {
-  MessageCircle,
-  ShoppingCart,
   House,
   UserPen,
-  WalletMinimal,
   Presentation,
+  BookOpen,
+  Plus,
 } from 'lucide-react-native';
 import CreatorHome from '../screens/Auth/Creator/Home/CreatorHome';
-import CreatorChat from '../screens/Auth/Creator/Chat/CreatorChat';
 import CreatorView from '../screens/Auth/Creator/Products/Course/CreatorView';
 import CreatorSetting from '../screens/Auth/Creator/Settings/CreatorSetting';
 import CreatorWebinar from '../screens/Auth/Creator/Webinar/CreatorWebinar';
+import CreateProducts from '../screens/Auth/Creator/Products/Course/CreateProducts';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const Tab = createBottomTabNavigator();
+
+const TAB_ACCENT = colors.info;
 
 const tabs = [
   {
@@ -36,14 +31,15 @@ const tabs = [
   {
     name: 'ProductsScreen',
     component: CreatorView,
-    label: 'Products',
-    Icon: ShoppingCart,
+    label: 'Courses',
+    Icon: BookOpen,
   },
   {
-    name: 'CreatorChat',
-    component: CreatorChat,
-    label: 'Chats',
-    Icon: MessageCircle,
+    name: 'CreateProducts',
+    component: CreateProducts,
+    label: 'Create',
+    Icon: Plus,
+    isCenter: true,
   },
   {
     name: 'CreatorWebinar',
@@ -59,43 +55,206 @@ const tabs = [
   },
 ];
 
-const CustomTabBar = ({ state, descriptors, navigation }: any) => {
+const TabItem = ({ isFocused, icon: Icon, label, onPress }: any) => {
+  const accent = TAB_ACCENT;
+  const anim = useRef(new Animated.Value(isFocused ? 1 : 0)).current;
+  const bounce = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    if (isFocused) {
+      Animated.sequence([
+        Animated.spring(bounce, {
+          toValue: 0.85,
+          useNativeDriver: true,
+          friction: 3,
+          tension: 200,
+        }),
+        Animated.spring(bounce, {
+          toValue: 1,
+          useNativeDriver: true,
+          friction: 3,
+          tension: 100,
+        }),
+      ]).start();
+    }
+
+    Animated.spring(anim, {
+      toValue: isFocused ? 1 : 0,
+      useNativeDriver: true,
+      friction: 7,
+      tension: 100,
+    }).start();
+  }, [isFocused]);
+
+  const iconTranslateY = anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, -hp(3)],
+  });
+
+  const pillOpacity = anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 1],
+  });
+
+  const pillScaleX = anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.4, 1],
+  });
+
+  const pillScaleY = anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.6, 1],
+  });
+
+  const labelOpacity = anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.6, 1],
+  });
+
+  const glowOpacity = anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 0.25],
+  });
+
   return (
-    <View style={styles.tabContainer}>
-      {state.routes.map((route: any, index: number) => {
-        const isFocused = state.index === index;
-        const tabInfo = tabs.find(t => t.name === route.name);
-        const Icon = tabInfo?.Icon ?? MessageCircle;
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.6}
+      style={styles.tabItem}
+    >
+      <Animated.View
+        style={[
+          styles.glow,
+          {
+            backgroundColor: accent,
+            opacity: glowOpacity,
+            transform: [{ scaleX: pillScaleX }, { scaleY: pillScaleY }],
+          },
+        ]}
+      />
 
-        const onPress = () => {
-          if (!isFocused) navigation.navigate(route.name);
-        };
+      <Animated.View
+        style={[
+          styles.activePill,
+          {
+            opacity: pillOpacity,
+            transform: [{ scaleX: pillScaleX }, { scaleY: pillScaleY }],
+            borderColor: accent + '40',
+          },
+        ]}
+      />
 
-        return (
-          <TouchableOpacity
-            key={route.key}
-            onPress={onPress}
-            style={styles.tabItem}
-          >
-            <Icon
-              size={isFocused ? 26 : 20}
-              color={isFocused ? colors.white : colors.muted}
-              strokeWidth={isFocused ? 2.2 : 1.8}
+      <Animated.View
+        style={{
+          transform: [{ translateY: iconTranslateY }, { scale: bounce }],
+        }}
+      >
+        <Icon
+          size={wp(isFocused ? 23 : 21)}
+          color={isFocused ? accent : colors.muted}
+          strokeWidth={isFocused ? 2.4 : 1.5}
+        />
+      </Animated.View>
+
+      <Animated.Text
+        style={[
+          styles.tabLabel,
+          {
+            color: isFocused ? colors.white : colors.muted,
+            fontWeight: isFocused ? '700' : '400',
+            opacity: labelOpacity,
+            transform: [{ translateY: iconTranslateY }],
+          },
+        ]}
+        numberOfLines={1}
+      >
+        {label}
+      </Animated.Text>
+
+      <Animated.View
+        style={[
+          styles.activeLine,
+          {
+            backgroundColor: accent,
+            opacity: pillOpacity,
+            transform: [{ scaleX: pillScaleX }],
+          },
+        ]}
+      />
+    </TouchableOpacity>
+  );
+};
+
+const CenterButton = ({ onPress }: { onPress: () => void }) => {
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  const handlePress = () => {
+    Animated.sequence([
+      Animated.spring(scaleAnim, {
+        toValue: 0.85,
+        useNativeDriver: true,
+        friction: 3,
+        tension: 200,
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        useNativeDriver: true,
+        friction: 3,
+        tension: 100,
+      }),
+    ]).start();
+    onPress();
+  };
+
+  return (
+    <TouchableOpacity
+      onPress={handlePress}
+      activeOpacity={0.8}
+      style={styles.centerBtnWrap}
+    >
+      <Animated.View
+        style={[styles.centerBtn, { transform: [{ scale: scaleAnim }] }]}
+      >
+        <Plus size={wp(28)} color={colors.white} strokeWidth={2.5} />
+      </Animated.View>
+      <Animated.Text style={styles.centerLabel}></Animated.Text>
+    </TouchableOpacity>
+  );
+};
+
+const CustomTabBar = ({ state, navigation }: any) => {
+  const insets = useSafeAreaInsets();
+
+  return (
+    <View
+      style={[styles.tabBarOuter, { paddingBottom: insets.bottom || hp(6) }]}
+    >
+      <View style={styles.tabContainer}>
+        {state.routes.map((route: any, index: number) => {
+          const isFocused = state.index === index;
+          const tabInfo = tabs.find(t => t.name === route.name);
+
+          const onPress = () => {
+            if (!isFocused) navigation.navigate(route.name);
+          };
+
+          if (tabInfo?.isCenter) {
+            return <CenterButton key={route.key} onPress={onPress} />;
+          }
+
+          const Icon = tabInfo?.Icon ?? House;
+
+          return (
+            <TabItem
+              key={route.key}
+              isFocused={isFocused}
+              icon={Icon}
+              label={tabInfo?.label}
+              onPress={onPress}
             />
-            <Text
-              style={[
-                styles.tabLabel,
-                {
-                  color: isFocused ? colors.white : colors.muted,
-                  fontWeight: isFocused ? '700' : '400',
-                },
-              ]}
-            >
-              {tabInfo?.label}
-            </Text>
-          </TouchableOpacity>
-        );
-      })}
+          );
+        })}
+      </View>
     </View>
   );
 };
@@ -122,25 +281,84 @@ const CreatorBottomTab = () => {
 export default CreatorBottomTab;
 
 const styles = StyleSheet.create({
+  tabBarOuter: {
+    backgroundColor: colors.primary,
+    borderTopLeftRadius: wp(20),
+    borderTopRightRadius: wp(20),
+    shadowColor: colors.white,
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 12,
+  },
   tabContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    backgroundColor: colors.primary,
-    height: hp(78),
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.borderColor,
-    paddingBottom: Platform.select({ ios: hp(12), android: hp(10) }),
-    paddingTop: hp(10),
+    height: hp(60),
+    paddingTop: hp(6),
   },
   tabItem: {
     alignItems: 'center',
     justifyContent: 'center',
-    gap: wp(6),
     flex: 1,
+    position: 'relative',
+    height: '100%',
+  },
+  glow: {
+    position: 'absolute',
+    top: -hp(2),
+    width: wp(52),
+    height: wp(52),
+    borderRadius: wp(14),
+  },
+  activePill: {
+    position: 'absolute',
+    top: hp(0),
+    width: wp(50),
+    height: wp(42),
+    borderRadius: wp(16),
+    backgroundColor: colors.white + '10',
+    borderWidth: 1,
   },
   tabLabel: {
-    fontSize: fp(10),
-    fontWeight: '600',
+    fontSize: fp(9.5),
+    marginTop: hp(2),
+    letterSpacing: 0.2,
+  },
+  activeLine: {
+    position: 'absolute',
+    bottom: 0,
+    width: wp(20),
+    height: hp(3),
+    borderRadius: hp(1.5),
+  },
+
+  // Center button
+  centerBtnWrap: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1,
+    marginTop: -hp(20),
+  },
+  centerBtn: {
+    width: wp(52),
+    height: wp(52),
+    borderRadius: wp(16),
+    backgroundColor: colors.info,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: colors.info,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  centerLabel: {
+    fontSize: fp(9.5),
+    color: colors.muted,
+    marginTop: hp(2),
+    fontWeight: '500',
+    letterSpacing: 0.2,
   },
 });

@@ -17,8 +17,10 @@ import chatRouter from "./routes/chat";
 import groupsRouter from "./routes/groups";
 import kycRouter from "./routes/kyc";
 import adminRouter from "./routes/admin";
+import settlementsRouter from "./routes/settlements";
 import morgan from "morgan";
 import { webinarCleanupService } from "./utils/webinarCleanup";
+import { settlementCronService } from "./utils/settlementCron";
 import { initializeSocketIO } from "./utils/socketHandler";
 
 dotenv.config();
@@ -78,6 +80,7 @@ app.use("/webinars", webinarsRouter);
 app.use("/chat", chatRouter);
 app.use("/groups", groupsRouter);
 app.use("/kyc", kycRouter);
+app.use("/settlements", settlementsRouter);
 
 const listenPort = useHttps ? HTTPS_PORT : PORT;
 
@@ -90,4 +93,7 @@ server.listen(listenPort, () => {
   // Runs every hour to mark expired webinars as COMPLETED
   webinarCleanupService.startAutomaticCleanup("0 * * * *");
   console.log("🧹 Webinar cleanup service started");
+
+  // Start T+2 settlement CRON jobs
+  settlementCronService.startSettlementCron();
 });

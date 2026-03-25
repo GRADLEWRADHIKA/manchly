@@ -159,9 +159,12 @@ export class KYCController {
         {
           pan_details: panDetails,
           verification_id: uniqueRequestId,
+          verified: isVerified,
           user: updatedUser,
         },
-        "PAN verified successfully"
+        isVerified
+          ? "PAN verified successfully"
+          : "PAN verification failed - PAN is not valid"
       );
     } catch (error: any) {
       console.error("PAN verification error:", error);
@@ -288,10 +291,10 @@ export class KYCController {
         // Update user KYC status
         if (verified) {
           await prisma.$executeRaw`
-            UPDATE users 
-            SET pan_number = ${maskedPAN}, 
-                kyc_verified = true, 
-                kyc_status = 'VERIFIED', 
+            UPDATE users
+            SET pan_number = ${maskedPAN},
+                kyc_verified = true,
+                kyc_status = 'VERIFIED',
                 kyc_verified_at = NOW(),
                 kyc_verification_id = ${kycRecordId}
             WHERE id = ${userId}
@@ -299,12 +302,45 @@ export class KYCController {
         } else {
           // Verification failed/rejected - set kyc_verified to false
           await prisma.$executeRaw`
-            UPDATE users 
+            UPDATE users
             SET kyc_verified = false,
                 kyc_status = 'FAILED',
                 kyc_verification_id = ${kycRecordId}
             WHERE id = ${userId}
           `;
+        }
+
+        // Fetch updated user
+        let updatedUser = null;
+        try {
+          const userResult = await prisma.$queryRaw<Array<{
+            dob: string | null;
+            id: string;
+            email: string;
+            name: string | null;
+            phone: string | null;
+            profile_image: string | null;
+            pan_number: string | null;
+            kyc_verified: boolean;
+            kyc_status: string | null;
+            kyc_verified_at: Date | null;
+            kyc_verification_id: string | null;
+            user_type: string[];
+            created_at: Date;
+            updated_at: Date;
+            last_login: Date | null;
+          }>>`
+            SELECT
+              id, email, name, phone, profile_image,
+              pan_number, kyc_verified, kyc_status,
+              kyc_verified_at, kyc_verification_id, dob,
+              user_type, created_at, updated_at, last_login
+            FROM users
+            WHERE id = ${userId}
+          `;
+          updatedUser = userResult[0] || null;
+        } catch (userError) {
+          console.log("Error fetching user data:", userError);
         }
 
         return ApiResponseHandler.success(
@@ -323,6 +359,7 @@ export class KYCController {
             kyc_status: verified ? "VERIFIED" : "FAILED",
             verified_at: verified ? new Date() : null,
             kyc_record_id: kycRecordId,
+            user: updatedUser,
             failure_reason: verified
               ? null
               : !finalNameMatch
@@ -364,6 +401,7 @@ export class KYCController {
             },
             kyc_status: verified ? "VERIFIED" : "FAILED",
             verified_at: verified ? new Date() : null,
+            user: null,
             failure_reason: verified
               ? null
               : !finalNameMatch
@@ -552,16 +590,34 @@ export class KYCController {
         console.log("KYC verification table not found, skipping database save");
       }
 
+      // Update creator_bank_accounts.is_verified if the bank account matches
+      if (bankDetails.verified) {
+        try {
+          await prisma.creator_bank_accounts.updateMany({
+            where: {
+              user_id: userId!,
+              account_number: account_number,
+              ifsc_code: ifsc_code.toUpperCase(),
+            },
+            data: {
+              is_verified: true,
+            },
+          });
+        } catch (bankUpdateError) {
+          console.log("Could not update bank account verified status:", bankUpdateError);
+        }
+      }
+
       return ApiResponseHandler.success(
         res,
         {
           bank_verification: bankDetails,
           verification_id: uniqueRequestId,
-          account_number: account_number.replace(/(\d{4})\d+(\d{4})/, "$1****$2"), // Mask account number
+          account_number: account_number.replace(/(\d{4})\d+(\d{4})/, "$1****$2"),
           ifsc_code: ifsc_code.toUpperCase(),
         },
-        bankDetails.verified 
-          ? "Bank account verified successfully" 
+        bankDetails.verified
+          ? "Bank account verified successfully"
           : "Bank account verification failed"
       );
     } catch (error: any) {

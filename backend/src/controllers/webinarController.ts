@@ -5,6 +5,7 @@ import ZoomMeetingManager from "../utils/zoomManager";
 import EmailService from "../services/EmailService";
 import WhatsAppService from "../services/WhatsAppService";
 import { isCreator, isUser } from "../utils/userTypeHelper";
+import { SettlementService } from "../services/settlementService";
 import crypto from "crypto";
 import dotenv from "dotenv";
 
@@ -887,16 +888,30 @@ export class WebinarController {
         }
       });
 
+      // Credit creator's wallet
+      SettlementService.creditCreatorWallet({
+        creatorId: transaction.webinar.creator.id,
+        grossAmount: transaction.webinar.price,
+        transactionType: "WEBINAR",
+        transactionId: transaction.id,
+        webinarId: transaction.webinar_id,
+        itemTitle: transaction.webinar.title,
+      }).catch(err => console.error("Wallet credit error:", err));
+
       // Send notifications (don't wait for them)
       WebinarController.sendEnrollmentNotifications(transaction.user, transaction.webinar).catch(err => {
         console.error('Error sending enrollment notifications:', err);
       });
 
-      console.log(`🎉 New webinar enrollment! User ${userId} enrolled in "${transaction.webinar.title}"`);
+      console.log(`New webinar enrollment! User ${userId} enrolled in "${transaction.webinar.title}"`);
 
       ApiResponseHandler.success(res, {
         enrollment,
         transaction: updatedTransaction,
+        wallet_info: {
+          title: "Payment received",
+          message: "Money will be submitted to your account after T+2 settlement period"
+        },
         message: "Payment verified and enrollment created successfully"
       }, "Payment verified successfully", 201);
 

@@ -23,6 +23,7 @@ model users {
   kyc_status                String?                     @db.VarChar(20)
   kyc_verified_at           DateTime?
   kyc_verification_id       String?
+  fcm_token                 String?
   conversation_participants conversation_participants[]
   courses                   courses[]
   enrollments               enrollments[]
@@ -34,6 +35,9 @@ model users {
   webinar_enrollments       webinar_enrollments[]
   webinar_transactions      webinar_transactions[]
   webinars                  webinars[]
+  bank_account              creator_bank_accounts?
+  settlements               settlements[]
+  wallet_transactions       wallet_transactions[]
 
   @@map("users")
 }
@@ -369,4 +373,128 @@ enum KYCStatus {
   PENDING
   VERIFIED
   FAILED
+}
+
+enum SettlementStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  PARTIALLY_FAILED
+}
+
+enum PayoutStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REVERSED
+}
+
+model creator_bank_accounts {
+  id                String    @id @default(uuid())
+  user_id           String    @unique
+  account_number    String
+  ifsc_code         String    @db.VarChar(11)
+  beneficiary_name  String
+  bank_name         String?
+  account_type      String?   @default("savings") @db.VarChar(20)
+  is_verified       Boolean   @default(false)
+  razorpay_fund_account_id  String?   @unique
+  razorpay_contact_id       String?   @unique
+  created_at        DateTime  @default(now())
+  updated_at        DateTime  @updatedAt
+  user              users     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@map("creator_bank_accounts")
+}
+
+model settlements {
+  id                String           @id @default(uuid())
+  creator_id        String
+  total_gross_amount    Float
+  platform_fee          Float
+  gst_on_platform_fee   Float
+  tds_amount            Float        @default(0)
+  razorpay_fee          Float        @default(0)
+  net_amount            Float
+  status            SettlementStatus @default(PENDING)
+  settlement_date   DateTime
+  processed_at      DateTime?
+  razorpay_payout_id    String?      @unique
+  payout_status     PayoutStatus     @default(PENDING)
+  failure_reason    String?
+  retry_count       Int              @default(0)
+  payout_details    Json?
+  created_at        DateTime         @default(now())
+  updated_at        DateTime         @updatedAt
+  creator           users            @relation(fields: [creator_id], references: [id], onDelete: Cascade)
+  items             settlement_items[]
+
+  @@index([creator_id])
+  @@index([status])
+  @@index([settlement_date])
+  @@index([payout_status])
+  @@map("settlements")
+}
+
+model settlement_items {
+  id                String     @id @default(uuid())
+  settlement_id     String
+  transaction_type  String     @db.VarChar(20)
+  transaction_id    String
+  course_id         String?
+  webinar_id        String?
+  gross_amount      Float
+  platform_fee      Float
+  gst_on_platform_fee Float
+  tds_amount        Float      @default(0)
+  net_amount        Float
+  created_at        DateTime   @default(now())
+  settlement        settlements @relation(fields: [settlement_id], references: [id], onDelete: Cascade)
+
+  @@unique([transaction_type, transaction_id])
+  @@index([settlement_id])
+  @@index([transaction_id])
+  @@map("settlement_items")
+}
+
+enum WalletTxType {
+  CREDIT
+  DEBIT
+}
+
+enum WalletTxStatus {
+  PENDING_SETTLEMENT
+  SETTLED
+  FAILED
+}
+
+model wallet_transactions {
+  id                String          @id @default(uuid())
+  creator_id        String
+  type              WalletTxType
+  amount            Float
+  net_amount        Float
+  platform_fee      Float
+  gst_on_platform_fee Float
+  tds_amount        Float           @default(0)
+  status            WalletTxStatus  @default(PENDING_SETTLEMENT)
+  title             String
+  description       String?
+  transaction_type  String          @db.VarChar(20)
+  transaction_id    String
+  course_id         String?
+  webinar_id        String?
+  settlement_id     String?
+  settlement_eta    DateTime?
+  created_at        DateTime        @default(now())
+  updated_at        DateTime        @updatedAt
+  creator           users           @relation(fields: [creator_id], references: [id], onDelete: Cascade)
+
+  @@unique([transaction_type, transaction_id])
+  @@index([creator_id])
+  @@index([status])
+  @@map("wallet_transactions")
 }

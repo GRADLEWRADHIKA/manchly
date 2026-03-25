@@ -320,7 +320,7 @@ export class AuthController {
 
   // 4. Verify OTP and issue JWT
   static async verifyOTP(req: Request, res: Response) {
-    const { email, phone_number, code, purpose = "login",user_type } = req.body;
+    const { email, phone_number, code, purpose = "login",user_type, fcm_token } = req.body;
 
     if (!code) {
       return ApiResponseHandler.customError(res, "OTP code is required", 400, "MISSING_OTP_CODE");
@@ -388,10 +388,10 @@ export class AuthController {
         { expiresIn: "12h" }
       );
 
-      // Update user last login time
+      // Update user last login time and fcm token
       await prisma.users.update({
         where: { id: user.id },
-        data: { last_login: new Date() }
+        data: { last_login: new Date(), ...(fcm_token && { fcm_token }) }
       });
 
       ApiResponseHandler.success(res, {
@@ -403,7 +403,8 @@ export class AuthController {
           dob: (user as any).dob,
           kyc_verified: (user as any).kyc_verified,
           phone: user.phone,
-          user_type: user_type || (Array.isArray(user.user_type) ? user.user_type[0] : user.user_type)
+          user_type: user_type || (Array.isArray(user.user_type) ? user.user_type[0] : user.user_type),
+          fcm_token: fcm_token || user.fcm_token
         }
       }, "OTP verified successfully");
     } catch (err: any) {
@@ -496,7 +497,7 @@ export class AuthController {
 
   // 9. Update User Profile (Protected)
   static async updateProfile(req: any, res: Response) {
-    const { name, phone_number, user_type, profile_image,dob } = req.body;
+    const { name, phone_number, user_type, profile_image, dob, fcm_token } = req.body;
     const { user } = req;
 
     // Validate and process user_type if provided
@@ -542,7 +543,8 @@ export class AuthController {
         name,
         phone: phone_number,
         profile_image,
-        dob
+        dob,
+        fcm_token
       };
       
       if (userTypesArray !== undefined) {
@@ -580,7 +582,8 @@ export class AuthController {
           profile_image: true,
           user_type: true,
           created_at: true,
-          last_login: true
+          last_login: true,
+          fcm_token: true
         }
       });
 

@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import prisma from "../prismaClient";
 import { ApiResponseHandler } from "../utils/ApiResponseHandler";
 import { isUser, isCreator } from "../utils/userTypeHelper";
+import { SettlementService } from "../services/settlementService";
 import crypto from "crypto";
 import dotenv from "dotenv";
 
@@ -297,13 +298,25 @@ export class PaymentController {
         }
       });
 
-      // TODO: Send notification to creator
-      console.log(`🎉 New purchase! User ${userId} purchased course "${transaction.course.title}" for ₹${transaction.amount}`);
-      console.log(`Creator: ${transaction.course.creator.name} (${transaction.course.creator.email})`);
+      // Credit creator's wallet
+      SettlementService.creditCreatorWallet({
+        creatorId: transaction.course.creator.id,
+        grossAmount: transaction.course.price,
+        transactionType: "COURSE",
+        transactionId: transaction.id,
+        courseId: transaction.course_id,
+        itemTitle: transaction.course.title,
+      }).catch(err => console.error("Wallet credit error:", err));
+
+      console.log(`New purchase! User ${userId} purchased course "${transaction.course.title}" for ${transaction.amount}`);
 
       ApiResponseHandler.success(res, {
         enrollment,
         transaction: updatedTransaction,
+        wallet_info: {
+          title: "Payment received",
+          message: "Money will be submitted to your account after T+2 settlement period"
+        },
         message: "Payment verified and enrollment created successfully"
       }, "Payment verified successfully", 201);
 
@@ -435,16 +448,17 @@ export class PaymentController {
         });
       }
 
-      // Notify creator
-      console.log(`🎉 PAYMENT SUCCESS WEBHOOK`);
-      console.log(`Student: ${transaction.user.name} (${transaction.user.email})`);
-      console.log(`Course: ${transaction.course.title}`);
-      console.log(`Amount: ₹${transaction.amount}`);
-      console.log(`Creator: ${transaction.course.creator.name} (${transaction.course.creator.email})`);
-      console.log(`Transaction ID: ${transaction.id}`);
-      console.log(`Note: Money will be transferred manually to creator`);
+      // Credit creator's wallet
+      await SettlementService.creditCreatorWallet({
+        creatorId: transaction.course.creator.id,
+        grossAmount: transaction.course.price,
+        transactionType: "COURSE",
+        transactionId: transaction.id,
+        courseId: transaction.course_id,
+        itemTitle: transaction.course.title,
+      });
 
-      // TODO: Send email notification to creator
+      console.log(`PAYMENT SUCCESS WEBHOOK - Course: ${transaction.course.title}, Amount: ${transaction.amount}, Creator: ${transaction.course.creator.name}`);
 
     } catch (err) {
       console.error("Error handling payment success:", err);

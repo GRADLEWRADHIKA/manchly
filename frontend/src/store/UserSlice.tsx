@@ -137,16 +137,28 @@ export const checkAuthData = createAsyncThunk('checkAuthData', async (data: obje
 
 export const verifyPAN = createAsyncThunk('verifyPAN', async (data: object) => {
   try {
-    const url = 'kyc/verify-pan';
+    const url = 'kyc/verify';
     const response = await instance.post(url, data);
-    Toast.show({
-      type: 'success',
-      text1: 'PAN verified successfully',
-      position: 'bottom',
-    });
     return response.data;
   } catch (error: any) {
-
+    let errorMessage = 'PAN verification failed';
+    try {
+      if (error?.request?._response) {
+        const err = JSON.parse(error.request._response);
+        errorMessage = err?.message || err?.error?.message || errorMessage;
+      } else if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+    } catch (parseError) {}
+    Toast.show({
+      type: 'error',
+      text1: 'Verification Failed',
+      text2: errorMessage,
+      position: 'bottom',
+    });
+    throw error;
   }
 });
 
@@ -186,7 +198,9 @@ export const UserSlice = createSlice({
         state.loading = false;
       })
       .addCase(verifyPAN.fulfilled, (state, actions) => {
-        state.user = actions?.payload?.data?.user;
+        if (actions?.payload?.data?.user) {
+          state.user = actions.payload.data.user;
+        }
         state.loading = false;
       })
       .addCase(verifyOtp.rejected, state => {

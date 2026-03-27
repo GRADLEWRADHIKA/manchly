@@ -561,7 +561,8 @@ export class AuthController {
       ApiResponseHandler.success(res, {
         user: {
           ...userWithoutSensitive,
-          user_type: Array.isArray(userWithoutSensitive.user_type) ? userWithoutSensitive.user_type[0] : userWithoutSensitive.user_type
+          user_type: Array.isArray(userWithoutSensitive.user_type) ? userWithoutSensitive.user_type[0] : userWithoutSensitive.user_type,
+          is_profile_image: userWithoutSensitive.profile_image || null
         }
       }, "Profile updated successfully");
     } catch (err: any) {

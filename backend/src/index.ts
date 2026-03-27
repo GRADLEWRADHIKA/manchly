@@ -56,8 +56,9 @@ app.set('trust proxy', 1);
 
 app.use(cors());
 
-// Special handling for Razorpay webhook - needs raw body
+// Special handling for Razorpay webhooks - needs raw body for signature verification
 app.use("/payments/webhook", bodyParser.raw({ type: "application/json" }), paymentsRouter);
+app.use("/settlements/webhook/payout", bodyParser.raw({ type: "application/json" }), settlementsRouter);
 
 // Regular JSON parsing for other routes
 app.use(bodyParser.json({ limit: "10mb" }));

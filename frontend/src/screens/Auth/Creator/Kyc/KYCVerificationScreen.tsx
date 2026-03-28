@@ -51,15 +51,31 @@ const KYCVerificationScreen: React.FC = () => {
     dispatch(verifyPAN(payload))
       .unwrap()
       .then(response => {
-        reset();
-        Toast.show({
-          type: 'success',
-          text1: response?.message,
-          position: 'bottom',
-        });
-        setLoading(false);
+        const verified = response?.data?.verified;
+        if (verified) {
+          reset();
+          Toast.show({
+            type: 'success',
+            text1: response?.message || 'KYC verified successfully',
+            position: 'bottom',
+          });
+        } else {
+          const reason = response?.data?.failure_reason || 'PAN details do not match your information';
+          Toast.show({
+            type: 'error',
+            text1: 'Verification Failed',
+            text2: reason,
+            position: 'bottom',
+          });
+        }
       })
       .catch(error => {
+        Toast.show({
+          type: 'error',
+          text1: 'Verification Failed',
+          text2: 'Something went wrong. Please try again.',
+          position: 'bottom',
+        });
       })
       .finally(() => {
         setLoading(false);

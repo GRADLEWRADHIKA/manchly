@@ -2,12 +2,12 @@
 import React, { useEffect, useRef } from 'react';
 import {
   View,
-  TouchableOpacity,
+  Pressable,
   Text,
   StyleSheet,
-  Platform,
   Animated,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import colors from '../utils/colors';
 import { wp, hp, fp } from '../utils/responsive';
@@ -28,8 +28,7 @@ const Tab = createBottomTabNavigator();
 
 const ACTIVE_COLOR = colors.secPrimary;
 const INACTIVE_COLOR = '#94a3b8';
-const ACTIVE_BG = '#1E3A5F15';
-const ACCENT = colors.secPrimary;
+const ACTIVE_BG = '#1E3A5F12';
 
 const tabs = [
   { name: 'Home', component: UserHome, label: 'Home', Icon: House },
@@ -66,14 +65,19 @@ const TabItem = ({ isFocused, icon: Icon, label, onPress }: any) => {
     Animated.spring(anim, {
       toValue: isFocused ? 1 : 0,
       useNativeDriver: true,
-      friction: 6,
-      tension: 120,
+      friction: 8,
+      tension: 100,
     }).start();
   }, [isFocused]);
 
+  const iconTranslateY = anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, -2],
+  });
+
   const iconScale = anim.interpolate({
     inputRange: [0, 1],
-    outputRange: [1, 1.15],
+    outputRange: [1, 1.1],
   });
 
   const pillOpacity = anim.interpolate({
@@ -81,16 +85,27 @@ const TabItem = ({ isFocused, icon: Icon, label, onPress }: any) => {
     outputRange: [0, 1],
   });
 
-  const pillScale = anim.interpolate({
+  const pillScaleX = anim.interpolate({
     inputRange: [0, 1],
-    outputRange: [0.6, 1],
+    outputRange: [0.5, 1],
+  });
+
+  const pillScaleY = anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.8, 1],
   });
 
   return (
-    <TouchableOpacity
+    <Pressable
       onPress={onPress}
-      activeOpacity={0.7}
-      style={styles.tabItem}
+      style={({ pressed }) => [
+        styles.tabItem,
+        pressed && styles.tabItemPressed,
+      ]}
+      hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+      accessibilityRole="tab"
+      accessibilityState={{ selected: isFocused }}
+      accessibilityLabel={label}
     >
       {/* Active pill background */}
       <Animated.View
@@ -98,16 +113,20 @@ const TabItem = ({ isFocused, icon: Icon, label, onPress }: any) => {
           styles.activePill,
           {
             opacity: pillOpacity,
-            transform: [{ scale: pillScale }],
+            transform: [{ scaleX: pillScaleX }, { scaleY: pillScaleY }],
           },
         ]}
       />
 
-      <Animated.View style={{ transform: [{ scale: iconScale }] }}>
+      <Animated.View
+        style={{
+          transform: [{ scale: iconScale }, { translateY: iconTranslateY }],
+        }}
+      >
         <Icon
-          size={wp(22)}
+          size={wp(21)}
           color={isFocused ? ACTIVE_COLOR : INACTIVE_COLOR}
-          strokeWidth={isFocused ? 2.4 : 1.6}
+          strokeWidth={isFocused ? 2.2 : 1.6}
         />
       </Animated.View>
 
@@ -116,30 +135,29 @@ const TabItem = ({ isFocused, icon: Icon, label, onPress }: any) => {
           styles.tabLabel,
           {
             color: isFocused ? ACTIVE_COLOR : INACTIVE_COLOR,
-            fontWeight: isFocused ? '700' : '400',
+            fontWeight: isFocused ? '600' : '400',
+            opacity: isFocused ? 1 : 0.85,
           },
         ]}
         numberOfLines={1}
       >
         {label}
       </Text>
-
-      {/* Active dot indicator */}
-      {isFocused && (
-        <Animated.View
-          style={[
-            styles.activeDot,
-            { opacity: pillOpacity, transform: [{ scale: pillScale }] },
-          ]}
-        />
-      )}
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 
 const CustomTabBar = ({ state, navigation }: any) => {
+  const insets = useSafeAreaInsets();
+  const bottomPadding = Math.max(insets.bottom, hp(8));
+
   return (
-    <View style={styles.tabBarOuter}>
+    <View
+      style={[
+        styles.tabBarOuter,
+        { paddingBottom: bottomPadding },
+      ]}
+    >
       <View style={styles.tabContainer}>
         {state.routes.map((route: any, index: number) => {
           const isFocused = state.index === index;
@@ -147,7 +165,9 @@ const CustomTabBar = ({ state, navigation }: any) => {
           const Icon = tabInfo?.Icon ?? MessageCircle;
 
           const onPress = () => {
-            if (!isFocused) navigation.navigate(route.name);
+            if (!isFocused) {
+              navigation.navigate(route.name);
+            }
           };
 
           return (
@@ -189,48 +209,43 @@ export default UserBottomTab;
 const styles = StyleSheet.create({
   tabBarOuter: {
     backgroundColor: colors.white,
-    borderTopWidth: 1,
+    borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: '#e2e8f0',
     shadowColor: colors.black,
-    shadowOffset: { width: 0, height: -3 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 8,
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 12,
   },
   tabContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    height: hp(68),
-    paddingBottom: Platform.select({ ios: hp(10), android: hp(6) }),
     paddingTop: hp(8),
+    paddingHorizontal: wp(4),
   },
   tabItem: {
     alignItems: 'center',
     justifyContent: 'center',
     flex: 1,
     position: 'relative',
-    paddingVertical: hp(4),
+    paddingVertical: hp(6),
+    minHeight: hp(52),
+  },
+  tabItemPressed: {
+    opacity: 0.6,
   },
   activePill: {
     position: 'absolute',
-    top: 0,
-    width: wp(48),
-    height: wp(36),
-    borderRadius: wp(14),
+    top: hp(2),
+    width: wp(52),
+    height: hp(34),
+    borderRadius: wp(16),
     backgroundColor: ACTIVE_BG,
-    borderWidth: 1,
-    borderColor: '#1E3A5F20',
   },
   tabLabel: {
-    fontSize: fp(10),
-    marginTop: hp(3),
-  },
-  activeDot: {
-    width: wp(5),
-    height: wp(5),
-    borderRadius: wp(2.5),
-    backgroundColor: ACCENT,
-    marginTop: hp(3),
+    fontSize: fp(10.5),
+    marginTop: hp(2),
+    letterSpacing: 0.1,
   },
 });

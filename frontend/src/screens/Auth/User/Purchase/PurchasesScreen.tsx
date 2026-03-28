@@ -1,26 +1,266 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   StyleSheet,
   View,
   Text,
-  TouchableOpacity,
+  Pressable,
   ActivityIndicator,
   FlatList,
   RefreshControl,
+  Animated,
+  LayoutAnimation,
+  Platform,
+  UIManager,
 } from 'react-native';
-import { ShoppingBag } from 'lucide-react-native';
+import {
+  ShoppingBag,
+  GraduationCap,
+  Video,
+} from 'lucide-react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import AppHeader from '../../../../components/AppHeader';
 import colors from '../../../../utils/colors';
 import { getEnrolledCourses } from '../../../../store/EnrollmentSlice';
 import { getMyTransactions } from '../../../../store/PaymentSlice';
-import ButtonSection from '../Products/component/ButtonSection';
 import PurchaseCoursCard from './component/PurchaseCoursCard';
 import PurchaseWebinarCard from './component/PurchaseWebinarCard';
 import { getEnrolledWebinar } from '../../../../store/WebinarSlice';
 import { wp, hp, fp } from '../../../../utils/responsive';
 
+if (
+  Platform.OS === 'android' &&
+  UIManager.setLayoutAnimationEnabledExperimental
+) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
+const TAB_OPTIONS = [
+  { key: 'courses', label: 'Courses', Icon: GraduationCap },
+  { key: 'webinar', label: 'Webinars', Icon: Video },
+];
+
+/* ──────────────── Segmented Tab Control ──────────────── */
+const SegmentedTabs = ({
+  active,
+  setActive,
+  courseCount,
+  webinarCount,
+}: any) => {
+  const slideAnim = useRef(new Animated.Value(active === 'courses' ? 0 : 1))
+    .current;
+
+  useEffect(() => {
+    Animated.spring(slideAnim, {
+      toValue: active === 'courses' ? 0 : 1,
+      useNativeDriver: true,
+      friction: 10,
+      tension: 140,
+    }).start();
+  }, [active]);
+
+  const counts: Record<string, number> = {
+    courses: courseCount,
+    webinar: webinarCount,
+  };
+
+  const translateX = slideAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, wp(164)],
+  });
+
+  return (
+    <View style={tabStyles.wrapper}>
+      <View style={tabStyles.track}>
+        {/* Sliding indicator */}
+        <Animated.View
+          style={[tabStyles.indicator, { transform: [{ translateX }] }]}
+        />
+
+        {TAB_OPTIONS.map(tab => {
+          const isActive = active === tab.key;
+          const count = counts[tab.key] || 0;
+          return (
+            <Pressable
+              key={tab.key}
+              onPress={() => {
+                LayoutAnimation.configureNext(
+                  LayoutAnimation.Presets.easeInEaseOut,
+                );
+                setActive(tab.key);
+              }}
+              style={tabStyles.tab}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: isActive }}
+            >
+              <tab.Icon
+                size={wp(16)}
+                color={isActive ? colors.white : colors.textSecondary}
+                strokeWidth={isActive ? 2.2 : 1.6}
+              />
+              <Text
+                style={[tabStyles.label, isActive && tabStyles.labelActive]}
+              >
+                {tab.label}
+              </Text>
+              {count > 0 && (
+                <View
+                  style={[
+                    tabStyles.countBadge,
+                    isActive && tabStyles.countBadgeActive,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      tabStyles.countText,
+                      isActive && tabStyles.countTextActive,
+                    ]}
+                  >
+                    {count}
+                  </Text>
+                </View>
+              )}
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
+  );
+};
+
+const tabStyles = StyleSheet.create({
+  wrapper: {
+    paddingHorizontal: wp(16),
+    paddingTop: hp(14),
+    paddingBottom: hp(6),
+  },
+  track: {
+    flexDirection: 'row',
+    backgroundColor: '#f1f5f9',
+    borderRadius: wp(14),
+    padding: wp(4),
+    position: 'relative',
+  },
+  indicator: {
+    position: 'absolute',
+    top: wp(4),
+    left: wp(4),
+    width: wp(160),
+    height: '100%',
+    backgroundColor: colors.secPrimary,
+    borderRadius: wp(11),
+    shadowColor: colors.secPrimary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  tab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: hp(10),
+    gap: wp(6),
+    zIndex: 1,
+  },
+  label: {
+    fontSize: fp(13.5),
+    fontWeight: '500',
+    color: colors.textSecondary,
+  },
+  labelActive: {
+    color: colors.white,
+    fontWeight: '600',
+  },
+  countBadge: {
+    backgroundColor: '#e2e8f0',
+    borderRadius: wp(10),
+    paddingHorizontal: wp(7),
+    paddingVertical: hp(1),
+    minWidth: wp(22),
+    alignItems: 'center',
+  },
+  countBadgeActive: {
+    backgroundColor: 'rgba(255,255,255,0.25)',
+  },
+  countText: {
+    fontSize: fp(11),
+    fontWeight: '700',
+    color: colors.textSecondary,
+  },
+  countTextActive: {
+    color: colors.white,
+  },
+});
+
+/* ──────────────── Empty State ──────────────── */
+const EmptyState = ({ type }: { type: string }) => (
+  <View style={styles.emptyContainer}>
+    <View style={styles.emptyIconCircle}>
+      <ShoppingBag size={wp(32)} color={colors.secPrimary} strokeWidth={1.5} />
+    </View>
+    <Text style={styles.emptyText}>
+      No {type === 'courses' ? 'Courses' : 'Webinars'} Yet
+    </Text>
+    <Text style={styles.emptySubtext}>
+      {type === 'courses'
+        ? 'Courses you purchase will appear here'
+        : 'Webinars you enroll in will appear here'}
+    </Text>
+  </View>
+);
+
+/* ──────────────── Skeleton Loader ──────────────── */
+const SkeletonCard = () => {
+  const pulse = useRef(new Animated.Value(0.4)).current;
+
+  useEffect(() => {
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, {
+          toValue: 1,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulse, {
+          toValue: 0.4,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    animation.start();
+    return () => animation.stop();
+  }, []);
+
+  return (
+    <Animated.View style={[styles.skeletonCard, { opacity: pulse }]}>
+      <View style={styles.skeletonRow}>
+        <View style={styles.skeletonIcon} />
+        <View style={styles.skeletonTextGroup}>
+          <View style={styles.skeletonTitle} />
+          <View style={styles.skeletonSubtitle} />
+        </View>
+      </View>
+      <View style={styles.skeletonBar} />
+      <View style={styles.skeletonFooter}>
+        <View style={styles.skeletonBadge} />
+        <View style={styles.skeletonButton} />
+      </View>
+    </Animated.View>
+  );
+};
+
+const SkeletonList = () => (
+  <View style={styles.listContent}>
+    {[1, 2, 3].map(i => (
+      <SkeletonCard key={i} />
+    ))}
+  </View>
+);
+
+/* ──────────────── Main Screen ──────────────── */
 const PurchasesScreen = () => {
   const dispatch = useDispatch<any>();
   const navigation = useNavigation<any>();
@@ -44,10 +284,9 @@ const PurchasesScreen = () => {
   }, []);
 
   useEffect(() => {
-    funEnrolledAllWebinar(1, limit, true); // initial load
+    funEnrolledAllWebinar(1, limit, true);
   }, []);
 
-  // Fetch Webinars
   const funEnrolledAllWebinar = (
     pageNum: number,
     dataLimit: number,
@@ -70,90 +309,125 @@ const PurchasesScreen = () => {
           setWebinarData(prev => [...prev, ...newData]);
         }
 
-        // Check if more data exists
-        if (newData.length < dataLimit) {
-          setHasMore(false);
-        } else {
-          setHasMore(true);
-        }
-
+        setHasMore(newData.length >= dataLimit);
         setLoadingMore(false);
         setRefreshing(false);
       });
   };
 
-  // Load more when end reached
   const loadMoreWebinars = () => {
     if (loadingMore || !hasMore) return;
 
     setLoadingMore(true);
     const nextPage = page + 1;
     setPage(nextPage);
-
     funEnrolledAllWebinar(nextPage, limit);
   };
 
-  // Pull to refresh
-  const onRefresh = () => {
+  const onRefreshWebinars = useCallback(() => {
     setRefreshing(true);
     setPage(1);
     setHasMore(true);
     funEnrolledAllWebinar(1, limit, true);
-  };
+  }, []);
+
+  const onRefreshCourses = useCallback(() => {
+    setRefreshing(true);
+    loadData();
+    setTimeout(() => setRefreshing(false), 800);
+  }, []);
 
   const loadData = () => {
     dispatch(getEnrolledCourses({}));
     dispatch(getMyTransactions({ status: 'SUCCESS' }));
   };
 
+  const courseData = enrolledCourses?.enrollments || [];
+  const showCourseLoading = enrolledLoading && courseData.length === 0;
+
   return (
     <View style={styles.container}>
       <AppHeader title="My Purchases" />
 
-      <View style={{ marginTop: hp(10) }}>
-        <ButtonSection setActive={setActive} active={active} />
-      </View>
+      {/* Segmented Tabs */}
+      <SegmentedTabs
+        active={active}
+        setActive={setActive}
+        courseCount={courseData.length}
+        webinarCount={webinarData.length}
+      />
 
+      {/* Content */}
       {active === 'courses' ? (
-        <FlatList
-          data={enrolledCourses?.enrollments || []}
-          keyExtractor={item =>
-            item?.id?.toString() || Math.random().toString()
-          }
-          contentContainerStyle={{ padding: wp(16), paddingBottom: hp(120) }}
-          renderItem={({ item }) => {
-            const transaction = transactions?.find(
-              (t: any) =>
-                t?.course_id === item?.id || t?.enrollment_id === item?.id,
-            );
-
-            return (
-              <PurchaseCoursCard
-                item={item}
-                transaction={transaction}
-                onPress={() => navigation.navigate('UserVideoList', { item })}
+        showCourseLoading ? (
+          <SkeletonList />
+        ) : (
+          <FlatList
+            data={courseData}
+            keyExtractor={item =>
+              item?.id?.toString() || Math.random().toString()
+            }
+            contentContainerStyle={[
+              styles.listContent,
+              courseData.length === 0 && styles.listContentEmpty,
+            ]}
+            showsVerticalScrollIndicator={false}
+            ListEmptyComponent={<EmptyState type="courses" />}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefreshCourses}
+                colors={[colors.secPrimary]}
+                tintColor={colors.secPrimary}
               />
-            );
-          }}
-        />
+            }
+            renderItem={({ item }) => {
+              const transaction = transactions?.find(
+                (t: any) =>
+                  t?.course_id === item?.id || t?.enrollment_id === item?.id,
+              );
+
+              return (
+                <PurchaseCoursCard
+                  item={item}
+                  transaction={transaction}
+                  onPress={() =>
+                    navigation.navigate('UserVideoList', { item })
+                  }
+                />
+              );
+            }}
+          />
+        )
       ) : (
         <FlatList
           data={webinarData}
           keyExtractor={item => item?.id?.toString()}
+          contentContainerStyle={[
+            styles.listContent,
+            webinarData.length === 0 && styles.listContentEmpty,
+          ]}
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={<EmptyState type="webinar" />}
           renderItem={({ item }) => <PurchaseWebinarCard item={item} />}
           onEndReached={loadMoreWebinars}
           onEndReachedThreshold={0.4}
           ListFooterComponent={
             loadingMore ? (
               <ActivityIndicator
-                size="large"
-                color={colors.primary}
-                style={{ padding: wp(20) }}
+                size="small"
+                color={colors.secPrimary}
+                style={styles.footerLoader}
               />
             ) : null
           }
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefreshWebinars}
+              colors={[colors.secPrimary]}
+              tintColor={colors.secPrimary}
+            />
           }
         />
       )}
@@ -164,48 +438,114 @@ const PurchasesScreen = () => {
 export default PurchasesScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.white },
+  container: { flex: 1, backgroundColor: colors.surface },
+
+  listContent: {
+    padding: wp(16),
+    paddingBottom: hp(120),
+  },
+  listContentEmpty: {
+    flexGrow: 1,
+  },
 
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  loadingText: {
-    marginTop: hp(12),
-    fontSize: fp(14),
-    color: colors.textSecondary,
+
+  footerLoader: {
+    paddingVertical: hp(20),
   },
 
   emptyContainer: {
     flex: 1,
     alignItems: 'center',
-    marginTop: hp(80),
+    justifyContent: 'center',
     paddingHorizontal: wp(40),
   },
+  emptyIconCircle: {
+    width: wp(72),
+    height: wp(72),
+    borderRadius: wp(36),
+    backgroundColor: '#1E3A5F0A',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: hp(16),
+    borderWidth: 1,
+    borderColor: '#1E3A5F15',
+  },
   emptyText: {
-    fontSize: fp(18),
+    fontSize: fp(17),
     fontWeight: '600',
     color: colors.text,
-    marginTop: hp(16),
     textAlign: 'center',
   },
   emptySubtext: {
-    fontSize: fp(14),
+    fontSize: fp(13),
     color: colors.textSecondary,
-    marginTop: hp(8),
+    marginTop: hp(6),
     textAlign: 'center',
+    lineHeight: fp(19),
   },
-  browseBtn: {
-    backgroundColor: colors.primary,
-    paddingVertical: hp(12),
-    paddingHorizontal: wp(24),
-    borderRadius: wp(10),
-    marginTop: hp(20),
+
+  // Skeleton styles
+  skeletonCard: {
+    backgroundColor: colors.white,
+    borderRadius: wp(14),
+    padding: wp(16),
+    marginBottom: hp(12),
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#e8ecf0',
   },
-  browseText: {
-    color: colors.white,
-    fontWeight: '700',
-    fontSize: fp(15),
+  skeletonRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: hp(14),
+  },
+  skeletonIcon: {
+    width: wp(40),
+    height: wp(40),
+    borderRadius: wp(12),
+    backgroundColor: '#f1f5f9',
+  },
+  skeletonTextGroup: {
+    flex: 1,
+    marginLeft: wp(12),
+    gap: hp(6),
+  },
+  skeletonTitle: {
+    height: hp(14),
+    width: '75%',
+    borderRadius: wp(6),
+    backgroundColor: '#f1f5f9',
+  },
+  skeletonSubtitle: {
+    height: hp(10),
+    width: '50%',
+    borderRadius: wp(4),
+    backgroundColor: '#f1f5f9',
+  },
+  skeletonBar: {
+    height: hp(6),
+    borderRadius: wp(3),
+    backgroundColor: '#f1f5f9',
+    marginBottom: hp(14),
+  },
+  skeletonFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  skeletonBadge: {
+    width: wp(80),
+    height: hp(24),
+    borderRadius: wp(6),
+    backgroundColor: '#f1f5f9',
+  },
+  skeletonButton: {
+    width: wp(70),
+    height: hp(24),
+    borderRadius: wp(6),
+    backgroundColor: '#f1f5f9',
   },
 });

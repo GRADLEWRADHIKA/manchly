@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { ArrowLeft } from 'lucide-react-native';
@@ -13,30 +13,38 @@ const AppHeaderWithBack = ({ title }) => {
   const { user } = useSelector((state: any) => state.userReducer);
 
   const isCreator = user?.user_type !== 'USER';
+  const bgColor = isCreator ? '#111111' : colors.secPrimary;
 
   return (
     <View
       style={[
         styles.container,
         {
-          paddingTop: insets.top + hp(10),
-          backgroundColor: isCreator ? '#111111' : colors.secPrimary,
+          paddingTop: insets.top + hp(12),
+          backgroundColor: bgColor,
         },
       ]}
     >
       <View style={styles.mainHeader}>
-        <TouchableOpacity
-          style={styles.backButton}
+        <Pressable
+          style={({ pressed }) => [
+            styles.backButton,
+            pressed && styles.backButtonPressed,
+          ]}
           onPress={() => navigation.goBack()}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
         >
-          <ArrowLeft color={colors.white} size={wp(24)} />
-        </TouchableOpacity>
+          <ArrowLeft color={colors.white} size={wp(22)} strokeWidth={2.2} />
+        </Pressable>
 
-        <Text style={styles.title}>
+        <Text style={styles.title} numberOfLines={1}>
           {title ? title.charAt(0).toUpperCase() + title.slice(1) : ''}
         </Text>
       </View>
+
+      <View style={[styles.bottomEdge, { backgroundColor: bgColor }]} />
     </View>
   );
 };
@@ -45,25 +53,50 @@ export default AppHeaderWithBack;
 
 const styles = StyleSheet.create({
   container: {
-    // backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingBottom: hp(14),
+    paddingBottom: hp(18),
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 6,
+    zIndex: 10,
+  },
+  mainHeader: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: wp(50),
   },
   backButton: {
     position: 'absolute',
-    left: wp(16),
-    top: '50%',
-    transform: [{ translateY: -12 }],
+    left: wp(14),
+    width: wp(36),
+    height: wp(36),
+    borderRadius: wp(12),
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.12)',
+  },
+  backButtonPressed: {
+    backgroundColor: 'rgba(255,255,255,0.22)',
+    transform: [{ scale: 0.92 }],
   },
   title: {
     color: colors.white,
     fontSize: fp(18),
     fontWeight: '700',
+    letterSpacing: 0.2,
   },
-  mainHeader: {
-    width: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
+  bottomEdge: {
+    position: 'absolute',
+    bottom: -hp(8),
+    left: 0,
+    right: 0,
+    height: hp(16),
+    borderBottomLeftRadius: wp(18),
+    borderBottomRightRadius: wp(18),
   },
 });

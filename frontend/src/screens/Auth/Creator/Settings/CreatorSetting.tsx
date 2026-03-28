@@ -4,7 +4,7 @@ import {
   Text,
   ScrollView,
   StyleSheet,
-  TouchableOpacity,
+  Pressable,
   Image,
   Linking,
 } from 'react-native';
@@ -17,8 +17,8 @@ import {
   Headset,
   Megaphone,
   WalletMinimal,
-  UserCircle,
   Bell,
+  Settings,
 } from 'lucide-react-native';
 import LogoutModal from '../../Profile/Components/LogoutModal';
 import { useNavigation } from '@react-navigation/native';
@@ -57,6 +57,55 @@ const openWhatsApp = (message: string) => {
     });
 };
 
+/* ──────── Reusable Menu Row ──────── */
+const MenuRow = ({
+  icon: Icon,
+  iconColor = colors.text,
+  iconBg = '#f4f4f5',
+  label,
+  labelColor = colors.text,
+  subtitle,
+  onPress,
+  isLast = false,
+}: any) => (
+  <Pressable
+    style={({ pressed }) => [
+      styles.row,
+      !isLast && styles.rowBorder,
+      pressed && styles.rowPressed,
+    ]}
+    onPress={onPress}
+    accessibilityRole="button"
+  >
+    <View style={styles.rowLeft}>
+      <View style={[styles.rowIcon, { backgroundColor: iconBg }]}>
+        <Icon size={wp(18)} color={iconColor} strokeWidth={1.8} />
+      </View>
+      <View>
+        <Text style={[styles.rowText, { color: labelColor }]}>{label}</Text>
+        {subtitle && <Text style={styles.rowSubtext}>{subtitle}</Text>}
+      </View>
+    </View>
+    <ChevronRight size={wp(18)} color="#c8ccd0" />
+  </Pressable>
+);
+
+/* ──────── Quick Action Card ──────── */
+const QuickAction = ({ icon: Icon, label, color, onPress }: any) => (
+  <Pressable
+    style={({ pressed }) => [
+      styles.topCard,
+      pressed && styles.topCardPressed,
+    ]}
+    onPress={onPress}
+  >
+    <View style={[styles.topCardIcon, { backgroundColor: color + '12' }]}>
+      <Icon size={wp(20)} color={color} strokeWidth={1.8} />
+    </View>
+    <Text style={styles.topCardText}>{label}</Text>
+  </Pressable>
+);
+
 const CreatorSetting: React.FC = () => {
   const [logoutVisible, setLogoutVisible] = useState(false);
   const Nav = useNavigation<any>();
@@ -68,11 +117,24 @@ const CreatorSetting: React.FC = () => {
     ? user.name.charAt(0).toUpperCase() + user.name.slice(1)
     : 'Creator';
 
+  const initials = user?.name
+    ? user.name
+        .split(' ')
+        .map((n: string) => n[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2)
+    : 'C';
+
   return (
     <View style={styles.container}>
+      {/* ──────── Header ──────── */}
       <View style={[styles.headerWrapper, { paddingTop: insets.top }]}>
         <View style={styles.header}>
-          <View style={styles.headerLeft}>
+          <Pressable
+            style={styles.headerLeft}
+            onPress={() => Nav.navigate('CreatorProfile')}
+          >
             {user?.profile_image ? (
               <Image
                 source={{ uri: user.profile_image }}
@@ -80,105 +142,127 @@ const CreatorSetting: React.FC = () => {
               />
             ) : (
               <View style={styles.avatarFallback}>
-                <UserCircle size={wp(28)} color={colors.white} />
+                <Text style={styles.avatarInitials}>{initials}</Text>
               </View>
             )}
-            <View>
-              <Text style={styles.greetingLabel}>Hello,</Text>
-              <Text style={styles.greetingText}>{displayName}</Text>
+            <View style={styles.greetingWrap}>
+              <Text style={styles.greetingLabel}>Welcome back</Text>
+              <Text style={styles.greetingText} numberOfLines={1}>
+                {displayName}
+              </Text>
             </View>
-          </View>
-          <TouchableOpacity
-            style={styles.bellBtn}
+          </Pressable>
+
+          <Pressable
+            style={({ pressed }) => [
+              styles.bellBtn,
+              pressed && styles.bellBtnPressed,
+            ]}
             onPress={() => Nav.navigate('CreatorNotification')}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityRole="button"
+            accessibilityLabel="Notifications"
           >
-            <Bell size={wp(20)} color={colors.white} />
-          </TouchableOpacity>
+            <Bell size={wp(20)} color={colors.white} strokeWidth={1.8} />
+          </Pressable>
         </View>
+
+        {/* Curved bottom */}
+        <View style={styles.headerCurve} />
       </View>
 
       <ScrollView
         style={styles.body}
         contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
       >
+        {/* ──────── Quick Actions ──────── */}
         <View style={styles.topCardWrapper}>
-          <TouchableOpacity
-            style={styles.topCard}
-            activeOpacity={0.9}
-            onPress={() => openWhatsApp('Hello, I am a Creator, I need help.')}
-          >
-            <Headset size={wp(20)} color={colors.primary} />
-            <Text style={styles.topCardText}>Help & Support</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.topCard}
-            activeOpacity={0.9}
+          <QuickAction
+            icon={Headset}
+            label="Help & Support"
+            color="#3B82F6"
             onPress={() =>
-              openWhatsApp('Hello, I am a Creator, I need help for marketing.')
+              openWhatsApp('Hello, I am a Creator, I need help.')
             }
-          >
-            <Megaphone size={wp(20)} color={colors.primary} />
-            <Text style={styles.topCardText}>Marketing Contact</Text>
-          </TouchableOpacity>
+          />
+          <QuickAction
+            icon={Megaphone}
+            label="Marketing"
+            color="#8B5CF6"
+            onPress={() =>
+              openWhatsApp(
+                'Hello, I am a Creator, I need help for marketing.',
+              )
+            }
+          />
         </View>
 
+        {/* ──────── Wallet Card ──────── */}
         <View style={styles.withdrawCard}>
           <View style={styles.withdrawLeft}>
-            <WalletMinimal size={wp(22)} color={colors.primary} />
-            <View style={{ marginLeft: wp(12) }}>
+            <View style={styles.walletIconWrap}>
+              <WalletMinimal size={wp(20)} color={colors.white} strokeWidth={2} />
+            </View>
+            <View style={styles.withdrawInfo}>
               <Text style={styles.withdrawLabel}>Withdrawable Balance</Text>
               <Text style={styles.withdrawAmount}>₹ *****</Text>
             </View>
           </View>
-          <TouchableOpacity style={styles.withdrawBtn} activeOpacity={0.8}>
+          <Pressable
+            style={({ pressed }) => [
+              styles.withdrawBtn,
+              pressed && styles.withdrawBtnPressed,
+            ]}
+          >
             <Text style={styles.withdrawBtnText}>Withdraw</Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
 
+        {/* ──────── Account Section ──────── */}
+        <Text style={styles.sectionTitle}>Account</Text>
         <View style={styles.section}>
-          <TouchableOpacity
-            style={styles.row}
-            activeOpacity={0.7}
+          <MenuRow
+            icon={User2}
+            iconBg="#f0f4ff"
+            iconColor="#3B82F6"
+            label="My Profile"
+            subtitle="Manage your public profile"
             onPress={() => Nav.navigate('CreatorProfile')}
-          >
-            <View style={styles.rowLeft}>
-              <View style={styles.rowIcon}>
-                <User2 size={wp(20)} color={colors.text} />
-              </View>
-              <Text style={styles.rowText}>My Profile</Text>
-            </View>
-            <ChevronRight size={wp(18)} color={colors.textSecondary} />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.row}
-            activeOpacity={0.7}
+          />
+          <MenuRow
+            icon={WalletMinimal}
+            iconBg="#f0fdf4"
+            iconColor={colors.success}
+            label="Wallet"
+            subtitle="Earnings & transactions"
             onPress={() => Nav.navigate('WalletCreator')}
-          >
-            <View style={styles.rowLeft}>
-              <View style={styles.rowIcon}>
-                <WalletMinimal size={wp(20)} color={colors.text} />
-              </View>
-              <Text style={styles.rowText}>Wallet</Text>
-            </View>
-            <ChevronRight size={wp(18)} color={colors.textSecondary} />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.row, styles.rowLast]}
-            activeOpacity={0.7}
-            onPress={() => setLogoutVisible(true)}
-          >
-            <View style={styles.rowLeft}>
-              <View style={styles.rowIcon}>
-                <LogOut size={wp(20)} color={colors.error} />
-              </View>
-              <Text style={styles.logoutText}>Logout</Text>
-            </View>
-            <ChevronRight size={wp(18)} color={colors.textSecondary} />
-          </TouchableOpacity>
+          />
+          <MenuRow
+            icon={Settings}
+            iconBg="#f4f4f5"
+            iconColor={colors.textSecondary}
+            label="Settings"
+            subtitle="App preferences"
+            onPress={() => Nav.navigate('CreatorSettingDetails')}
+            isLast
+          />
         </View>
+
+        {/* ──────── Logout Section ──────── */}
+        <View style={styles.logoutSection}>
+          <MenuRow
+            icon={LogOut}
+            iconBg="#fef2f2"
+            iconColor={colors.error}
+            label="Logout"
+            labelColor={colors.error}
+            onPress={() => setLogoutVisible(true)}
+            isLast
+          />
+        </View>
+
+        <Text style={styles.versionText}>Version 1.0.0</Text>
       </ScrollView>
 
       <LogoutModal
@@ -198,88 +282,121 @@ export default CreatorSetting;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: '#f5f5f7',
   },
+
+  /* ──── Header ──── */
   headerWrapper: {
     backgroundColor: '#111111',
+    zIndex: 10,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: wp(16),
-    paddingVertical: hp(14),
+    paddingVertical: hp(4),
+  },
+  headerCurve: {
+    backgroundColor: '#111111',
+    height: hp(6),
+    borderBottomLeftRadius: wp(20),
+    borderBottomRightRadius: wp(20),
   },
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(12),
+    flex: 1,
   },
   avatar: {
-    width: wp(46),
-    height: wp(46),
-    borderRadius: wp(23),
-    borderWidth: 2,
-    borderColor: '#2c2c2e',
+    width: wp(34),
+    height: wp(34),
+    borderRadius: wp(11),
+    borderWidth: 1.5,
+    borderColor: '#2a2a2e',
   },
   avatarFallback: {
-    width: wp(46),
-    height: wp(46),
-    borderRadius: wp(23),
-    backgroundColor: '#1c1c1e',
+    width: wp(48),
+    height: wp(48),
+    borderRadius: wp(16),
+    backgroundColor: '#2a2a2e',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#2c2c2e',
+  },
+  avatarInitials: {
+    color: colors.white,
+    fontSize: fp(17),
+    fontWeight: '700',
+  },
+  greetingWrap: {
+    flex: 1,
   },
   greetingLabel: {
-    fontSize: fp(12),
-    color: '#999999',
+    fontSize: fp(11),
+    color: '#808088',
     fontWeight: '500',
   },
   greetingText: {
-    fontSize: fp(18),
-    fontWeight: '800',
+    fontSize: fp(15),
+    fontWeight: '700',
     color: colors.white,
-    marginTop: hp(1),
+    marginTop: 0,
   },
   bellBtn: {
-    width: wp(40),
-    height: wp(40),
-    borderRadius: wp(20),
-    backgroundColor: '#1c1c1e',
+    width: wp(32),
+    height: wp(32),
+    borderRadius: wp(10),
+    backgroundColor: 'rgba(255,255,255,0.1)',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#2c2c2e',
   },
+  bellBtnPressed: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    transform: [{ scale: 0.93 }],
+  },
+
+  /* ──── Body ──── */
   body: {
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: hp(24),
+    paddingBottom: hp(40),
   },
+
+  /* ──── Quick Actions ──── */
   topCardWrapper: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     paddingHorizontal: wp(16),
-    marginTop: hp(20),
-    marginBottom: hp(10),
+    marginTop: hp(18),
+    marginBottom: hp(14),
+    gap: wp(12),
   },
   topCard: {
-    width: '48%',
-    paddingVertical: hp(15),
-    paddingHorizontal: wp(10),
-    borderRadius: wp(12),
-    flexDirection: 'row',
+    flex: 1,
+    paddingVertical: hp(16),
+    paddingHorizontal: wp(14),
+    borderRadius: wp(14),
     alignItems: 'center',
-    gap: wp(8),
+    gap: hp(8),
     backgroundColor: colors.white,
-    elevation: 3,
     shadowColor: colors.black,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#eaecef',
+  },
+  topCardPressed: {
+    opacity: 0.88,
+    transform: [{ scale: 0.97 }],
+  },
+  topCardIcon: {
+    width: wp(42),
+    height: wp(42),
+    borderRadius: wp(13),
+    alignItems: 'center',
     justifyContent: 'center',
   },
   topCardText: {
@@ -287,78 +404,132 @@ const styles = StyleSheet.create({
     fontSize: fp(13),
     fontWeight: '600',
   },
+
+  /* ──── Wallet Card ──── */
   withdrawCard: {
-    marginTop: hp(8),
-    backgroundColor: colors.white,
-    borderRadius: wp(14),
-    padding: wp(14),
+    marginHorizontal: wp(16),
+    backgroundColor: '#111111',
+    borderRadius: wp(16),
+    padding: wp(16),
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginHorizontal: wp(16),
-    elevation: 3,
+    marginBottom: hp(22),
     shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    marginBottom: hp(20),
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    elevation: 5,
   },
   withdrawLeft: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
+  },
+  walletIconWrap: {
+    width: wp(40),
+    height: wp(40),
+    borderRadius: wp(12),
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  withdrawInfo: {
+    marginLeft: wp(12),
+    flex: 1,
   },
   withdrawLabel: {
-    color: colors.primary,
-    fontWeight: '700',
-    fontSize: fp(13),
+    color: '#808088',
+    fontWeight: '500',
+    fontSize: fp(12),
   },
   withdrawAmount: {
-    color: colors.primary,
+    color: colors.white,
     marginTop: hp(2),
-    fontSize: fp(18),
-    fontWeight: '900',
+    fontSize: fp(20),
+    fontWeight: '800',
+    letterSpacing: 0.5,
   },
   withdrawBtn: {
-    backgroundColor: colors.primary,
-    paddingVertical: hp(8),
-    paddingHorizontal: wp(16),
+    backgroundColor: colors.white,
+    paddingVertical: hp(9),
+    paddingHorizontal: wp(18),
     borderRadius: wp(10),
   },
+  withdrawBtnPressed: {
+    opacity: 0.85,
+    transform: [{ scale: 0.96 }],
+  },
   withdrawBtnText: {
-    fontWeight: '800',
-    color: colors.white,
+    fontWeight: '700',
+    color: '#111111',
     fontSize: fp(13),
+  },
+
+  /* ──── Sections ──── */
+  sectionTitle: {
+    fontSize: fp(13),
+    fontWeight: '600',
+    color: colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    marginHorizontal: wp(20),
+    marginBottom: hp(8),
   },
   section: {
     backgroundColor: colors.white,
     marginHorizontal: wp(16),
-    borderRadius: wp(14),
-    elevation: 2,
+    borderRadius: wp(16),
     shadowColor: colors.black,
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 3,
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#eaecef',
     overflow: 'hidden',
   },
+  logoutSection: {
+    backgroundColor: colors.white,
+    marginHorizontal: wp(16),
+    marginTop: hp(16),
+    borderRadius: wp(16),
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#eaecef',
+    overflow: 'hidden',
+  },
+
+  /* ──── Rows ──── */
   row: {
     paddingHorizontal: wp(16),
-    paddingVertical: hp(16),
+    paddingVertical: hp(14),
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
   },
-  rowLast: {
-    borderBottomWidth: 0,
+  rowBorder: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#f0f2f5',
+  },
+  rowPressed: {
+    backgroundColor: '#f8f9fa',
   },
   rowLeft: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
   },
   rowIcon: {
-    width: wp(28),
+    width: wp(36),
+    height: wp(36),
+    borderRadius: wp(10),
     alignItems: 'center',
+    justifyContent: 'center',
     marginRight: wp(12),
   },
   rowText: {
@@ -366,9 +537,17 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontWeight: '500',
   },
-  logoutText: {
-    fontSize: fp(15),
-    color: colors.error,
+  rowSubtext: {
+    fontSize: fp(12),
+    color: colors.textSecondary,
+    marginTop: hp(1),
+  },
+
+  versionText: {
+    textAlign: 'center',
+    fontSize: fp(12),
+    color: colors.muted,
+    marginTop: hp(24),
     fontWeight: '500',
   },
 });

@@ -1,103 +1,128 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   StyleSheet,
   Text,
   View,
-  TouchableOpacity,
-  FlatList,
-  Image,
+  Animated,
 } from 'react-native';
-import { MessageCircle } from 'lucide-react-native';
+import { MessageCircle, Sparkles, Construction } from 'lucide-react-native';
 import AppHeader from '../../../../components/AppHeader';
 import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
 
-type ChatUser = {
-  id: string;
-  name: string;
-  avatar?: string;
-  lastMessage: string;
-  time: string;
-  unread?: number;
+const GhostChatRow = ({ delay = 0 }: { delay?: number }) => {
+  const pulse = useRef(new Animated.Value(0.3)).current;
+
+  useEffect(() => {
+    const anim = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, {
+          toValue: 0.7,
+          duration: 900,
+          delay,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulse, {
+          toValue: 0.3,
+          duration: 900,
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    anim.start();
+    return () => anim.stop();
+  }, []);
+
+  return (
+    <Animated.View style={[styles.ghostRow, { opacity: pulse }]}>
+      <View style={styles.ghostAvatar} />
+      <View style={styles.ghostContent}>
+        <View style={styles.ghostName} />
+        <View style={styles.ghostMessage} />
+      </View>
+      <View style={styles.ghostTime} />
+    </Animated.View>
+  );
 };
 
-const chatUsers: ChatUser[] = [
-  {
-    id: 'u1',
-    name: 'John Doe',
-    avatar: 'https://i.pravatar.cc/150?img=3',
-    lastMessage: 'Hey! How are you?',
-    time: '2:18 PM',
-    unread: 2,
-  },
-  {
-    id: 'u2',
-    name: 'Sarah Smith',
-    avatar: 'https://i.pravatar.cc/150?img=5',
-    lastMessage: 'Meeting confirmed for 5 PM.',
-    time: '1:10 PM',
-  },
-  {
-    id: 'u3',
-    name: 'Michael Lee',
-    lastMessage: 'Awesome, let\u2019s do it.',
-    time: 'Yesterday',
-  },
-];
-
 const UserChat = () => {
-  const renderItem = ({ item }: { item: ChatUser }) => (
-    <TouchableOpacity
-      style={styles.chatRow}
-      onPress={() => {}}
-    >
-      {/* Avatar */}
-      {item.avatar ? (
-        <Image source={{ uri: item.avatar }} style={styles.avatar} />
-      ) : (
-        <View style={styles.avatarPlaceholder}>
-          <MessageCircle size={wp(20)} color={colors.white} />
-        </View>
-      )}
+  const scaleAnim = useRef(new Animated.Value(0.8)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
-      {/* User Info */}
-      <View style={styles.chatInfo}>
-        <View style={styles.chatHeader}>
-          <Text style={styles.name} numberOfLines={1}>
-            {item.name}
-          </Text>
-          <Text style={styles.time}>{item.time}</Text>
-        </View>
-
-        <View style={styles.chatFooter}>
-          <Text style={styles.lastMessage} numberOfLines={1}>
-            {item.lastMessage}
-          </Text>
-          {item.unread ? (
-            <View style={styles.unreadBadge}>
-              <Text style={styles.unreadText}>{item.unread}</Text>
-            </View>
-          ) : null}
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
+  useEffect(() => {
+    Animated.parallel([
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        friction: 8,
+        tension: 60,
+        useNativeDriver: true,
+      }),
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
 
   return (
     <View style={styles.container}>
       <AppHeader title="Chats" />
 
-      <Text style={{ marginTop: hp(200), textAlign: 'center' }}>
-        This feature is currently under development.
-      </Text>
+      <View style={styles.content}>
+        <View style={styles.ghostList}>
+          {[0, 150, 300, 450, 600].map((delay, i) => (
+            <GhostChatRow key={i} delay={delay} />
+          ))}
+        </View>
 
-      {/* <FlatList
-        data={chatUsers}
-        keyExtractor={(item) => item.id}
-        renderItem={renderItem}
-        contentContainerStyle={styles.listContent}
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
-      /> */}
+        <Animated.View
+          style={[
+            styles.comingSoonCard,
+            {
+              opacity: fadeAnim,
+              transform: [{ scale: scaleAnim }],
+            },
+          ]}
+        >
+          <View style={styles.iconCircle}>
+            <MessageCircle
+              size={wp(30)}
+              color={colors.secPrimary}
+              strokeWidth={1.8}
+            />
+            <View style={styles.sparkleWrap}>
+              <Sparkles size={wp(14)} color="#F59E0B" strokeWidth={2} />
+            </View>
+          </View>
+
+          <Text style={styles.comingSoonTitle}>Chats Coming Soon</Text>
+          <Text style={styles.comingSoonSubtitle}>
+            We're building a seamless messaging{'\n'}experience for you.
+            Stay tuned!
+          </Text>
+
+          <View style={styles.featureList}>
+            {['Direct messaging with creators', 'Course discussion groups', 'Real-time notifications'].map(
+              (feature, i) => (
+                <View key={i} style={styles.featureRow}>
+                  <View style={styles.featureDot} />
+                  <Text style={styles.featureText}>{feature}</Text>
+                </View>
+              ),
+            )}
+          </View>
+
+          <View style={styles.buildingBadge}>
+            <Construction
+              size={wp(14)}
+              color={colors.secPrimary}
+              strokeWidth={2}
+            />
+            <Text style={styles.buildingText}>Under Development</Text>
+          </View>
+        </Animated.View>
+      </View>
     </View>
   );
 };
@@ -107,80 +132,136 @@ export default UserChat;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
   },
-  listContent: {
-    paddingVertical: hp(8),
+  content: {
+    flex: 1,
+    position: 'relative',
   },
-  chatRow: {
+
+  ghostList: {
+    paddingTop: hp(12),
+  },
+  ghostRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: wp(16),
+    paddingHorizontal: wp(18),
     paddingVertical: hp(12),
   },
-  avatar: {
-    width: wp(48),
-    height: hp(48),
-    borderRadius: wp(24),
-    marginRight: wp(12),
+  ghostAvatar: {
+    width: wp(46),
+    height: wp(46),
+    borderRadius: wp(15),
+    backgroundColor: '#e8ecf0',
   },
-  avatarPlaceholder: {
-    width: wp(48),
-    height: hp(48),
-    borderRadius: wp(24),
-    marginRight: wp(12),
-    backgroundColor: colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  chatInfo: {
+  ghostContent: {
     flex: 1,
+    marginLeft: wp(12),
+    gap: hp(6),
+  },
+  ghostName: {
+    width: '55%',
+    height: hp(12),
+    borderRadius: wp(6),
+    backgroundColor: '#e8ecf0',
+  },
+  ghostMessage: {
+    width: '80%',
+    height: hp(10),
+    borderRadius: wp(5),
+    backgroundColor: '#f1f3f5',
+  },
+  ghostTime: {
+    width: wp(36),
+    height: hp(10),
+    borderRadius: wp(5),
+    backgroundColor: '#f1f3f5',
+    marginLeft: wp(8),
+  },
+
+  comingSoonCard: {
+    position: 'absolute',
+    top: hp(80),
+    left: wp(28),
+    right: wp(28),
+    backgroundColor: colors.white,
+    borderRadius: wp(20),
+    paddingVertical: hp(28),
+    paddingHorizontal: wp(24),
+    alignItems: 'center',
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#e8ecf0',
+  },
+  iconCircle: {
+    width: wp(64),
+    height: wp(64),
+    borderRadius: wp(22),
+    backgroundColor: '#1E3A5F0A',
+    alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: hp(16),
+    borderWidth: 1,
+    borderColor: '#1E3A5F12',
   },
-  chatHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: hp(4),
+  sparkleWrap: {
+    position: 'absolute',
+    top: -hp(2),
+    right: -wp(4),
   },
-  name: {
-    fontSize: fp(16),
-    fontWeight: '600',
-    flexShrink: 1,
+  comingSoonTitle: {
+    fontSize: fp(19),
+    fontWeight: '700',
     color: colors.text,
+    textAlign: 'center',
   },
-  time: {
-    fontSize: fp(12),
-    color: colors.textMuted,
+  comingSoonSubtitle: {
+    fontSize: fp(13),
+    color: colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: fp(19),
+    marginTop: hp(6),
   },
-  chatFooter: {
+  featureList: {
+    marginTop: hp(20),
+    alignSelf: 'stretch',
+    gap: hp(10),
+  },
+  featureRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    gap: wp(10),
   },
-  lastMessage: {
-    fontSize: fp(14),
-    color: colors.subtext,
-    flexShrink: 1,
-    flex: 1,
-    marginRight: wp(8),
+  featureDot: {
+    width: wp(6),
+    height: wp(6),
+    borderRadius: wp(3),
+    backgroundColor: colors.secPrimary,
   },
-  unreadBadge: {
-    backgroundColor: colors.primary,
-    borderRadius: wp(10),
-    minWidth: wp(20),
-    height: hp(20),
-    paddingHorizontal: wp(6),
-    justifyContent: 'center',
+  featureText: {
+    fontSize: fp(13),
+    color: colors.text,
+    fontWeight: '500',
+  },
+  buildingBadge: {
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: wp(6),
+    marginTop: hp(20),
+    paddingHorizontal: wp(14),
+    paddingVertical: hp(7),
+    borderRadius: wp(20),
+    backgroundColor: '#1E3A5F08',
+    borderWidth: 1,
+    borderColor: '#1E3A5F10',
   },
-  unreadText: {
-    color: colors.white,
+  buildingText: {
     fontSize: fp(12),
-    fontWeight: 'bold',
-  },
-  separator: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: '#EAEAEA',
-    marginLeft: wp(76), // indent so it doesn't cross avatar
+    fontWeight: '600',
+    color: colors.secPrimary,
   },
 });

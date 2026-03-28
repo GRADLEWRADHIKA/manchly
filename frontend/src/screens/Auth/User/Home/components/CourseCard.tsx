@@ -1,67 +1,61 @@
 import React from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
-import { Star, Users, Play, Clock, BookOpen } from 'lucide-react-native';
+import { View, Text, Image, Pressable, StyleSheet } from 'react-native';
+import { BookOpen, ChevronRight } from 'lucide-react-native';
 import colors from '../../../../../utils/colors';
 import { useNavigation } from '@react-navigation/native';
 import { wp, hp, fp } from '../../../../../utils/responsive';
 
 const CourseCard = ({ item }) => {
   const navigation = useNavigation<any>();
-  const image = '';
+  const progress = item?.progress || 0;
 
   return (
-    <View style={styles.card}>
-      <TouchableOpacity
-        style={styles.thumbnailContainer}
-        activeOpacity={0.9}
-        onPress={() => {
-          navigation.navigate('UserVideoList', { item: item });
-        }}
-      >
-        {image ? (
-          <Image
-            source={{ uri: image }}
-            style={styles.thumbnail}
-            resizeMode="cover"
-          />
-        ) : (
-          <View style={styles.placeholderThumbnail}>
-            <BookOpen size={wp(40)} color={colors.textSecondary} />
+    <Pressable
+      style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+      onPress={() => navigation.navigate('UserVideoList', { item })}
+    >
+      {/* Thumbnail */}
+      <View style={styles.thumbnailContainer}>
+        <View style={styles.placeholderThumbnail}>
+          <BookOpen size={wp(28)} color={colors.secPrimary} strokeWidth={1.4} />
+        </View>
+
+        {item?.course?.level && (
+          <View style={styles.levelBadge}>
+            <Text style={styles.levelText}>{item.course.level}</Text>
           </View>
         )}
-        <View style={styles.levelBadge}>
-          <Text style={styles.levelText}>{item?.course?.level}</Text>
-        </View>
-      </TouchableOpacity>
+      </View>
 
-      {/* Card Body */}
+      {/* Body */}
       <View style={styles.cardBody}>
-        <View style={styles.headerRow}>
-          <Text style={styles.title} numberOfLines={2}>
-            {item?.course?.title.toUpperCase()}
-          </Text>
-          <View style={styles.ratingContainer}>
-            <Star size={wp(14)} color="#FFD700" fill="#FFD700" />
-            <Text style={styles.ratingText}>4.5</Text>
+        <Text style={styles.title} numberOfLines={2}>
+          {item?.course?.title || 'Untitled'}
+        </Text>
+
+        {/* Progress */}
+        <View style={styles.progressWrap}>
+          <View style={styles.progressBar}>
+            <View
+              style={[
+                styles.progressFill,
+                { width: `${progress}%` },
+                progress === 100 && styles.progressComplete,
+              ]}
+            />
           </View>
+          <Text style={styles.progressText}>{progress}%</Text>
         </View>
 
-        <View style={styles.metaRow}>
-          <View style={styles.metaItem}>
-            <Users size={wp(14)} color={colors.textSecondary} />
-            <Text style={styles.metaText}>50+</Text>
-          </View>
-          <View style={styles.metaItem}>
-            <Play size={wp(14)} color={colors.textSecondary} />
-            <Text style={styles.metaText}>10+</Text>
-          </View>
-          <View style={styles.metaItem}>
-            <Clock size={wp(14)} color={colors.textSecondary} />
-            <Text style={styles.metaText}>30 Min</Text>
-          </View>
+        {/* Footer */}
+        <View style={styles.footerRow}>
+          <Text style={styles.continueText}>
+            {progress === 100 ? 'Review' : 'Continue'}
+          </Text>
+          <ChevronRight size={wp(14)} color={colors.secPrimary} />
         </View>
       </View>
-    </View>
+    </Pressable>
   );
 };
 
@@ -70,137 +64,94 @@ export default CourseCard;
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.white,
-    borderRadius: wp(16),
+    borderRadius: wp(14),
     overflow: 'hidden',
-    elevation: 3,
-    marginBottom: hp(16),
+    marginBottom: hp(12),
     shadowColor: colors.black,
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#eaecef',
+  },
+  cardPressed: {
+    opacity: 0.92,
+    transform: [{ scale: 0.97 }],
   },
   thumbnailContainer: {
     width: '100%',
-    height: hp(100),
-  },
-  thumbnail: {
-    width: '100%',
-    height: '100%',
+    height: hp(90),
+    position: 'relative',
   },
   placeholderThumbnail: {
     width: '100%',
     height: '100%',
-    backgroundColor: '#f4f4f4',
+    backgroundColor: '#1E3A5F08',
     justifyContent: 'center',
     alignItems: 'center',
   },
   levelBadge: {
     position: 'absolute',
-    bottom: hp(8),
+    top: hp(8),
     left: wp(8),
     backgroundColor: colors.secPrimary,
     paddingHorizontal: wp(8),
-    paddingVertical: hp(3),
-    borderRadius: wp(8),
+    paddingVertical: hp(2),
+    borderRadius: wp(6),
   },
   levelText: {
     color: colors.white,
-    fontSize: fp(11),
+    fontSize: fp(10),
     fontWeight: '600',
   },
   cardBody: {
-    padding: wp(12),
-  },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    padding: wp(10),
   },
   title: {
-    fontSize: fp(15),
+    fontSize: fp(13),
     fontWeight: '600',
     color: colors.text,
+    lineHeight: fp(18),
+    marginBottom: hp(8),
+  },
+  progressWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(6),
+    marginBottom: hp(8),
+  },
+  progressBar: {
     flex: 1,
-    marginRight: wp(6),
+    height: hp(4),
+    backgroundColor: '#f1f5f9',
+    borderRadius: wp(2),
+    overflow: 'hidden',
   },
-  ratingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  progressFill: {
+    height: '100%',
+    backgroundColor: colors.secPrimary,
+    borderRadius: wp(2),
   },
-  ratingText: {
-    marginLeft: wp(4),
-    fontSize: fp(12),
-    color: colors.textSecondary,
+  progressComplete: {
+    backgroundColor: colors.success,
   },
-  instructor: {
-    fontSize: fp(13),
-    color: colors.textSecondary,
-    marginTop: hp(4),
-  },
-  metaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: hp(6),
-    justifyContent: 'space-between',
-  },
-  metaItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(4),
-  },
-  metaText: {
-    fontSize: fp(12),
-    color: colors.textSecondary,
-  },
-  footerRow: {
-    marginTop: hp(6),
-  },
-  priceRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  oldPrice: {
-    textDecorationLine: 'line-through',
-    color: colors.textSecondary,
-    fontSize: fp(12),
-  },
-  discountText: {
-    fontSize: fp(12),
-    color: colors.secPrimary,
-  },
-  priceText: {
-    fontSize: fp(14),
+  progressText: {
+    fontSize: fp(10.5),
     fontWeight: '700',
     color: colors.secPrimary,
-    marginVertical: hp(4),
+    minWidth: wp(26),
+    textAlign: 'right',
   },
-  buttonGroup: {
+  footerRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: wp(8),
-    marginTop: hp(4),
-  },
-  button: {
-    flex: 1,
-    paddingVertical: hp(8),
-    borderRadius: wp(8),
     alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: wp(2),
   },
-  primaryButton: {
-    backgroundColor: colors.secPrimary,
-  },
-  primaryButtonText: {
-    color: colors.white,
+  continueText: {
+    fontSize: fp(12),
     fontWeight: '600',
-    fontSize: fp(13),
-  },
-  outlineButton: {
-    borderWidth: wp(1),
-    borderColor: colors.secPrimary,
-    backgroundColor: colors.white,
-  },
-  outlineButtonText: {
     color: colors.secPrimary,
-    fontWeight: '600',
-    fontSize: fp(13),
   },
 });

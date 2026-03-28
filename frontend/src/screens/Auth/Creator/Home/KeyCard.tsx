@@ -1,8 +1,8 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { UserCheck } from 'lucide-react-native';
-import { useNavigation } from '@react-navigation/native';
-import { wp, hp, fp } from '../../../../utils/responsive';
+import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
+import {ShieldCheck, ChevronRight, AlertCircle} from 'lucide-react-native';
+import {useNavigation} from '@react-navigation/native';
+import {wp, hp, fp} from '../../../../utils/responsive';
 import colors from '../../../../utils/colors';
 
 const KycCard = () => {
@@ -13,70 +13,121 @@ const KycCard = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.card}>
-        <View style={styles.iconContainer}>
-          <UserCheck size={wp(40)} color="#4caf50" />
+    <TouchableOpacity
+      activeOpacity={0.85}
+      onPress={handleVerifyKYC}
+      style={styles.card}>
+      {/* Status Badge */}
+      <View style={styles.badge}>
+        <AlertCircle size={wp(12)} color={colors.golden} />
+        <Text style={styles.badgeText}>Action Required</Text>
+      </View>
+
+      <View style={styles.row}>
+        {/* Icon */}
+        <View style={styles.iconWrap}>
+          <ShieldCheck size={wp(26)} color={colors.accent} />
         </View>
-        <View style={styles.textContainer}>
+
+        {/* Content */}
+        <View style={styles.content}>
           <Text style={styles.title}>Verify Your KYC</Text>
           <Text style={styles.description}>
-            Complete your KYC to unlock all features and secure your account.
+            Complete KYC to unlock payments & launch products.
           </Text>
         </View>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={handleVerifyKYC}
-        >
-          <Text style={styles.buttonText}>Verify Now</Text>
-        </TouchableOpacity>
+
+        {/* Arrow */}
+        <View style={styles.arrowWrap}>
+          <ChevronRight size={wp(20)} color={colors.textMuted} />
+        </View>
       </View>
-    </View>
+
+      {/* CTA Button */}
+      <TouchableOpacity
+        style={styles.button}
+        onPress={handleVerifyKYC}
+        activeOpacity={0.85}>
+        <Text style={styles.buttonText}>Verify Now</Text>
+        <ChevronRight size={wp(16)} color={colors.white} />
+      </TouchableOpacity>
+    </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    // margin: 16,
-  },
   card: {
     backgroundColor: colors.white,
-    borderRadius: wp(12),
-    padding: wp(20),
-    shadowColor: colors.black,
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 8,
-    elevation: 5,
-    alignItems: 'center',
+    borderRadius: wp(16),
+    padding: wp(16),
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+    shadowColor: colors.shadow,
+    shadowOpacity: 0.06,
+    shadowOffset: {width: 0, height: 3},
+    shadowRadius: 10,
+    elevation: 3,
   },
-  iconContainer: {
-    marginBottom: hp(16),
-  },
-  textContainer: {
+  badge: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: hp(20),
+    alignSelf: 'flex-start',
+    gap: wp(5),
+    backgroundColor: colors.lightGrey,
+    paddingHorizontal: wp(10),
+    paddingVertical: hp(4),
+    borderRadius: wp(20),
+    marginBottom: hp(12),
+  },
+  badgeText: {
+    fontSize: fp(11),
+    fontWeight: '700',
+    color: colors.golden,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: hp(14),
+  },
+  iconWrap: {
+    width: wp(48),
+    height: wp(48),
+    borderRadius: wp(14),
+    backgroundColor: colors.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: wp(12),
+  },
+  content: {
+    flex: 1,
   },
   title: {
-    fontSize: fp(18),
-    fontWeight: 'bold',
-    marginBottom: hp(8),
+    fontSize: fp(16),
+    fontWeight: '800',
+    color: colors.heading,
+    marginBottom: hp(3),
   },
   description: {
-    fontSize: fp(14),
-    color: colors.textTertiary,
-    textAlign: 'center',
+    fontSize: fp(12.5),
+    color: colors.textSecondary,
+    lineHeight: fp(17),
+  },
+  arrowWrap: {
+    marginLeft: wp(8),
   },
   button: {
-    backgroundColor: '#4caf50',
-    paddingVertical: hp(10),
-    paddingHorizontal: wp(30),
-    borderRadius: wp(8),
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: wp(6),
+    backgroundColor: colors.accent,
+    paddingVertical: hp(11),
+    borderRadius: wp(12),
   },
   buttonText: {
     color: colors.white,
-    fontWeight: 'bold',
-    fontSize: fp(16),
+    fontWeight: '700',
+    fontSize: fp(14),
   },
 });
 

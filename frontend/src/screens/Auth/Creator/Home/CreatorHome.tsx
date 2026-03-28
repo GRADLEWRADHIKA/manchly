@@ -9,27 +9,24 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
-  Play,
+  Bell,
+  ChevronRight,
+  Sparkles,
+  Lightbulb,
+  PenLine,
+  Rocket,
+  TrendingUp,
   BookOpen,
   Users,
   Award,
-  TrendingUp,
-  Bell,
-  UserCircle,
-  Sparkles,
-  ChevronRight,
 } from 'lucide-react-native';
 import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
 import KycCard from './KeyCard';
-
-const DARK = '#111111';
-const DARK_CARD = '#1c1c1e';
-const DARK_BORDER = '#2c2c2e';
-const DARK_MUTED = '#999999';
 import { useSelector } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
+import LinearGradient from 'react-native-linear-gradient';
 
 const CreatorHome = () => {
   const navigation = useNavigation<any>();
@@ -40,61 +37,33 @@ const CreatorHome = () => {
     ? user.name.charAt(0).toUpperCase() + user.name.slice(1)
     : 'Creator';
 
-  const quickStats = [
-    {
-      label: 'Active Courses',
-      value: '0',
-      icon: <BookOpen size={wp(20)} color="#60A5FA" />,
-      accent: '#60A5FA',
-    },
-    {
-      label: 'Students',
-      value: '0',
-      icon: <Users size={wp(20)} color="#F472B6" />,
-      accent: '#F472B6',
-    },
-    {
-      label: 'Completion',
-      value: '0%',
-      icon: <Award size={wp(20)} color="#34D399" />,
-      accent: '#34D399',
-    },
-    {
-      label: 'Revenue',
-      value: '₹0',
-      icon: <TrendingUp size={wp(20)} color="#FBBF24" />,
-      accent: '#FBBF24',
-    },
-  ];
-
-  const handleKycGuard = (screen: string) => {
-    if (user?.kyc_verified) {
-      navigation.navigate(screen);
-    } else {
-      Toast.show({
-        type: 'error',
-        text1: 'KYC Required',
-        text2: 'Please complete your KYC first',
-        position: 'top',
-      });
-    }
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    return 'Good evening';
   };
+
+  const initials = user?.name ? user.name.charAt(0).toUpperCase() : 'C';
 
   return (
     <View style={styles.container}>
-      {/* Dark Header */}
+      {/* Header */}
       <View style={[styles.headerWrapper, { paddingTop: insets.top }]}>
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             {user?.profile_image ? (
-              <Image source={{ uri: user.profile_image }} style={styles.avatar} />
+              <Image
+                source={{ uri: user.profile_image }}
+                style={styles.avatar}
+              />
             ) : (
               <View style={styles.avatarFallback}>
-                <UserCircle size={wp(28)} color={colors.white} />
+                <Text style={styles.avatarText}>{initials}</Text>
               </View>
             )}
             <View>
-              <Text style={styles.greetingSub}>Welcome back</Text>
+              <Text style={styles.greetingSub}>{getGreeting()}</Text>
               <Text style={styles.greeting}>{displayName}</Text>
             </View>
           </View>
@@ -103,6 +72,7 @@ const CreatorHome = () => {
             onPress={() => navigation.navigate('CreatorNotification')}
           >
             <Bell size={wp(20)} color={colors.white} />
+            <View style={styles.bellDot} />
           </TouchableOpacity>
         </View>
       </View>
@@ -111,65 +81,187 @@ const CreatorHome = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* KYC or Dashboard */}
-        {user?.kyc_verified ? (
-          <>
-            <Text style={styles.sectionTitle}>Dashboard</Text>
-            <View style={styles.statsGrid}>
-              {quickStats.map((stat, index) => (
-                <View key={index} style={styles.statCard}>
-                  <View style={[styles.statIconWrap, { backgroundColor: stat.accent + '15' }]}>
-                    {stat.icon}
-                  </View>
-                  <Text style={styles.statValue}>{stat.value}</Text>
-                  <Text style={styles.statLabel}>{stat.label}</Text>
+        {/* KYC Card */}
+        {/* {!user?.kyc_verified && (
+          <View style={styles.sectionPadding}>
+            <KycCard />
+          </View>
+        )} */}
+
+        {/* Total Revenue Card */}
+        <View style={styles.sectionPadding}>
+          <LinearGradient
+            colors={['#1A1A2E', '#16213E', '#0F3460']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.revenueCard}
+          >
+            <View style={styles.revenueHeader}>
+              <View>
+                <Text style={styles.revenueLabel}>TOTAL REVENUE</Text>
+                <Text style={styles.revenueAmount}>
+                  <Text style={styles.rupeeSymbol}>₹</Text>0
+                </Text>
+              </View>
+              <View style={styles.growingBadge}>
+                <TrendingUp size={wp(14)} color={colors.white} />
+                <Text style={styles.growingText}>Growing</Text>
+              </View>
+            </View>
+
+            <View style={styles.revenueDivider} />
+
+            <View style={styles.statsRow}>
+              <View style={styles.statItem}>
+                <View style={styles.statIconWrap}>
+                  <BookOpen size={wp(16)} color={colors.white} />
                 </View>
-              ))}
+                <Text style={styles.statValue}>0</Text>
+                <Text style={styles.statLabel}>Courses</Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statItem}>
+                <View style={styles.statIconWrap}>
+                  <Users size={wp(16)} color={colors.white} />
+                </View>
+                <Text style={styles.statValue}>0</Text>
+                <Text style={styles.statLabel}>Students</Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statItem}>
+                <View style={styles.statIconWrap}>
+                  <Award size={wp(16)} color={colors.white} />
+                </View>
+                <Text style={styles.statValue}>0%</Text>
+                <Text style={styles.statLabel}>Completion</Text>
+              </View>
             </View>
-          </>
-        ) : (
-          <KycCard />
-        )}
-
-        {/* Quick Actions */}
-        <Text style={styles.sectionTitle}>Quick Actions</Text>
-        <View style={styles.actionsRow}>
-          <TouchableOpacity
-            style={styles.actionCard}
-            activeOpacity={0.85}
-            onPress={() => handleKycGuard('CreateWebinar')}
-          >
-            <View style={[styles.actionIconWrap, { backgroundColor: '#FF4D4D20' }]}>
-              <Play size={wp(22)} color="#FF4D4D" fill="#FF4D4D" />
-            </View>
-            <View style={styles.actionTextWrap}>
-              <Text style={styles.actionTitle}>Go Live</Text>
-              <Text style={styles.actionDesc}>Start a webinar</Text>
-            </View>
-            <ChevronRight size={wp(18)} color={DARK_MUTED} />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.actionCard}
-            activeOpacity={0.85}
-            onPress={() => handleKycGuard('CreateCourse')}
-          >
-            <View style={[styles.actionIconWrap, { backgroundColor: '#8B5CF620' }]}>
-              <BookOpen size={wp(22)} color="#8B5CF6" />
-            </View>
-            <View style={styles.actionTextWrap}>
-              <Text style={styles.actionTitle}>New Course</Text>
-              <Text style={styles.actionDesc}>Create content</Text>
-            </View>
-            <ChevronRight size={wp(18)} color={DARK_MUTED} />
-          </TouchableOpacity>
+          </LinearGradient>
         </View>
 
-        <View style={styles.tipCard}>
-          <Sparkles size={wp(16)} color="#FBBF24" />
-          <Text style={styles.tipText}>
-            Tip: Creators who go live weekly get 3x more engagement!
-          </Text>
+        {/* Launch Your First Course Card */}
+        <View style={styles.sectionPadding}>
+          <LinearGradient
+            colors={['#1A1A2E', '#16213E', '#0F3460']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.courseCard}
+          >
+            {/* Header */}
+            <View style={styles.courseHeaderRow}>
+              <View style={{ flex: 1 }}>
+                <View style={styles.startBadge}>
+                  <Sparkles size={wp(12)} color={colors.secondary} />
+                  <Text style={styles.startBadgeText}>START CREATING</Text>
+                </View>
+                <Text style={styles.courseTitle}>
+                  Launch Your{'\n'}First Course
+                </Text>
+                <Text style={styles.courseSubtitle}>
+                  Turn expertise into income.{'\n'}Ready in under 10 mins.
+                </Text>
+              </View>
+              <Text style={styles.courseEmoji}>📚</Text>
+            </View>
+
+            {/* Horizontal Stepper with connected line */}
+            <View style={styles.stepperWrap}>
+              {/* Connecting line behind circles */}
+              <View style={styles.stepperLine} />
+
+              <View style={styles.stepsRow}>
+                <View style={styles.stepItem}>
+                  <View
+                    style={[
+                      styles.stepCircle,
+                      { backgroundColor: colors.secondary },
+                    ]}
+                  >
+                    <Lightbulb size={wp(16)} color={colors.white} />
+                  </View>
+                  <Text style={styles.stepTitle}>Pick Topic</Text>
+                </View>
+
+                <View style={styles.stepItem}>
+                  <View
+                    style={[
+                      styles.stepCircle,
+                      { backgroundColor: colors.info },
+                    ]}
+                  >
+                    <PenLine size={wp(16)} color={colors.white} />
+                  </View>
+                  <Text style={styles.stepTitle}>Add Content</Text>
+                </View>
+
+                <View style={styles.stepItem}>
+                  <View
+                    style={[
+                      styles.stepCircle,
+                      { backgroundColor: colors.accent },
+                    ]}
+                  >
+                    <Rocket size={wp(16)} color={colors.white} />
+                  </View>
+                  <Text style={styles.stepTitle}>Publish</Text>
+                </View>
+              </View>
+            </View>
+
+            {/* CTA Button */}
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => {
+                if (user?.kyc_verified) {
+                  navigation.navigate('CreateCourse');
+                } else {
+                  navigation.navigate('KYCVerificationScreen');
+                }
+              }}
+              style={styles.ctaButton}
+            >
+              <Text style={styles.ctaText}>Create Course Now</Text>
+              <ChevronRight size={wp(18)} color={colors.primary} />
+            </TouchableOpacity>
+          </LinearGradient>
+        </View>
+
+        {/* Go Live Card */}
+        <View style={styles.sectionPadding}>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={() => {
+              if (user?.kyc_verified) {
+                navigation.navigate('CreateWebinar');
+              } else {
+                navigation.navigate('KYCVerificationScreen');
+              }
+            }}
+          >
+            <LinearGradient
+              colors={['#1A1A2E', '#16213E', '#0F3460']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.liveCard}
+            >
+              <View style={styles.liveLeft}>
+                <View style={styles.liveIconWrap}>
+                  <Text style={{ fontSize: fp(24) }}>📡</Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <View style={styles.liveBadge}>
+                    <View style={styles.greenDot} />
+                    <Text style={styles.liveBadgeText}>GO LIVE</Text>
+                  </View>
+                  <Text style={styles.liveTitle}>Start a Live Session</Text>
+                  <Text style={styles.liveSubtitle}>
+                    Connect with your audience in real time
+                  </Text>
+                </View>
+              </View>
+              <ChevronRight size={wp(20)} color="rgba(255,255,255,0.5)" />
+            </LinearGradient>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </View>
@@ -181,11 +273,12 @@ export default CreatorHome;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.white,
   },
 
+  // Header
   headerWrapper: {
-    backgroundColor: DARK,
+    backgroundColor: colors.primary,
   },
   header: {
     flexDirection: 'row',
@@ -200,25 +293,28 @@ const styles = StyleSheet.create({
     gap: wp(12),
   },
   avatar: {
-    width: wp(46),
-    height: wp(46),
-    borderRadius: wp(23),
+    width: wp(48),
+    height: wp(48),
+    borderRadius: wp(24),
     borderWidth: 2,
-    borderColor: DARK_BORDER,
+    borderColor: colors.border,
   },
   avatarFallback: {
-    width: wp(46),
-    height: wp(46),
-    borderRadius: wp(23),
-    backgroundColor: DARK_CARD,
+    width: wp(48),
+    height: wp(48),
+    borderRadius: wp(24),
+    backgroundColor: colors.secondary,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: DARK_BORDER,
+  },
+  avatarText: {
+    fontSize: fp(20),
+    fontWeight: '700',
+    color: colors.white,
   },
   greetingSub: {
-    fontSize: fp(12),
-    color: DARK_MUTED,
+    fontSize: fp(13),
+    color: colors.muted,
     fontWeight: '500',
   },
   greeting: {
@@ -228,126 +324,275 @@ const styles = StyleSheet.create({
     marginTop: hp(1),
   },
   bellBtn: {
-    width: wp(40),
-    height: wp(40),
-    borderRadius: wp(20),
-    backgroundColor: DARK_CARD,
+    width: wp(44),
+    height: wp(44),
+    borderRadius: wp(22),
+    backgroundColor: 'rgba(255,255,255,0.1)',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: DARK_BORDER,
+    borderColor: 'rgba(255,255,255,0.15)',
+  },
+  bellDot: {
+    position: 'absolute',
+    top: wp(10),
+    right: wp(12),
+    width: wp(8),
+    height: wp(8),
+    borderRadius: wp(4),
+    backgroundColor: colors.error,
   },
 
   scrollContent: {
     paddingBottom: hp(30),
   },
-
-  // Section
-  sectionTitle: {
-    fontSize: fp(17),
-    fontWeight: '700',
-    color: colors.text,
-    marginHorizontal: wp(16),
-    marginTop: hp(20),
-    marginBottom: hp(12),
-  },
-
-  // Stats
-  statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+  sectionPadding: {
     paddingHorizontal: wp(16),
-    rowGap: hp(10),
+    marginTop: hp(14),
   },
-  statCard: {
-    width: '48%',
-    backgroundColor: colors.white,
-    borderRadius: wp(16),
-    padding: wp(14),
-    elevation: 2,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
+
+  // Revenue Card
+  revenueCard: {
+    borderRadius: wp(20),
+    padding: wp(20),
+    shadowColor: '#6C3CE1',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 14,
+    elevation: 6,
+  },
+  revenueHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: hp(6),
+  },
+  revenueLabel: {
+    fontSize: fp(12),
+    fontWeight: '700',
+    color: 'rgba(255,255,255,0.65)',
+    letterSpacing: 1,
+    marginBottom: hp(6),
+  },
+  growingBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(5),
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    paddingHorizontal: wp(12),
+    paddingVertical: hp(5),
+    borderRadius: wp(20),
+  },
+  growingText: {
+    fontSize: fp(12),
+    fontWeight: '700',
+    color: colors.white,
+  },
+  revenueAmount: {
+    fontSize: fp(40),
+    fontWeight: '800',
+    color: colors.white,
+  },
+  rupeeSymbol: {
+    fontSize: fp(22),
+    fontWeight: '400',
+    color: 'rgba(255,255,255,0.6)',
+  },
+  revenueDivider: {
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    marginVertical: hp(16),
+  },
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+  },
+  statItem: {
+    alignItems: 'center',
+    flex: 1,
   },
   statIconWrap: {
-    width: wp(40),
-    height: wp(40),
-    borderRadius: wp(12),
+    width: wp(32),
+    height: wp(32),
+    borderRadius: wp(16),
+    backgroundColor: 'rgba(255,255,255,0.15)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: hp(10),
+    marginBottom: hp(8),
   },
   statValue: {
-    fontSize: fp(22),
+    fontSize: fp(20),
     fontWeight: '800',
-    color: colors.text,
+    color: colors.white,
   },
   statLabel: {
-    fontSize: fp(12),
-    color: colors.textSecondary,
+    fontSize: fp(11),
+    color: 'rgba(255,255,255,0.6)',
+    marginTop: hp(3),
     fontWeight: '500',
-    marginTop: hp(2),
+  },
+  statDivider: {
+    width: 1,
+    height: hp(50),
+    backgroundColor: 'rgba(255,255,255,0.15)',
   },
 
-  // Quick Actions
-  actionsRow: {
-    paddingHorizontal: wp(16),
-    gap: hp(10),
+  // Course Card
+  courseCard: {
+    borderRadius: wp(20),
+    padding: wp(20),
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.2,
+    shadowRadius: 14,
+    elevation: 5,
   },
-  actionCard: {
+  courseHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: hp(22),
+  },
+  startBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.white,
-    borderRadius: wp(16),
-    padding: wp(14),
-    elevation: 2,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
+    alignSelf: 'flex-start',
+    gap: wp(5),
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: wp(20),
+    paddingHorizontal: wp(12),
+    paddingVertical: hp(5),
+    marginBottom: hp(12),
   },
-  actionIconWrap: {
-    width: wp(46),
-    height: wp(46),
-    borderRadius: wp(14),
+  startBadgeText: {
+    fontSize: fp(10),
+    fontWeight: '800',
+    color: colors.secondary,
+    letterSpacing: 1,
+  },
+  courseTitle: {
+    fontSize: fp(24),
+    fontWeight: '800',
+    color: colors.white,
+    lineHeight: fp(30),
+  },
+  courseSubtitle: {
+    fontSize: fp(13),
+    color: 'rgba(255,255,255,0.6)',
+    lineHeight: fp(19),
+    marginTop: hp(8),
+  },
+  courseEmoji: {
+    fontSize: fp(42),
+    marginLeft: wp(8),
+    marginTop: hp(10),
+  },
+
+  // Stepper
+  stepperWrap: {
+    position: 'relative',
+    marginBottom: hp(22),
+  },
+  stepperLine: {
+    position: 'absolute',
+    top: wp(18),
+    left: wp(18),
+    right: wp(18),
+    height: 2,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+  },
+  stepsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  stepItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  stepCircle: {
+    width: wp(36),
+    height: wp(36),
+    borderRadius: wp(18),
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: wp(14),
+    marginBottom: hp(8),
   },
-  actionTextWrap: {
-    flex: 1,
-  },
-  actionTitle: {
-    fontSize: fp(15),
-    fontWeight: '700',
-    color: colors.text,
-  },
-  actionDesc: {
+  stepTitle: {
     fontSize: fp(12),
-    color: colors.textSecondary,
-    marginTop: hp(2),
+    fontWeight: '700',
+    color: 'rgba(255,255,255,0.85)',
+    textAlign: 'center',
   },
 
-  // Tip
-  tipCard: {
-    marginHorizontal: wp(16),
-    marginTop: hp(20),
+  // CTA
+  ctaButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FEF9E7',
-    borderRadius: wp(12),
-    padding: wp(14),
-    gap: wp(10),
-    borderWidth: 1,
-    borderColor: '#FDE68A',
+    justifyContent: 'center',
+    gap: wp(6),
+    backgroundColor: colors.white,
+    borderRadius: wp(14),
+    paddingVertical: hp(14),
   },
-  tipText: {
+  ctaText: {
+    fontSize: fp(15),
+    fontWeight: '700',
+    color: colors.primary,
+  },
+
+  // Go Live Card
+  liveCard: {
+    borderRadius: wp(18),
+    padding: wp(18),
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#1A1A2E',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 4,
+  },
+  liveLeft: {
     flex: 1,
-    fontSize: fp(13),
-    color: colors.text,
-    lineHeight: fp(18),
-    fontWeight: '500',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(12),
+  },
+  liveIconWrap: {
+    width: wp(48),
+    height: wp(48),
+    borderRadius: wp(14),
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  liveBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(5),
+    marginBottom: hp(4),
+  },
+  greenDot: {
+    width: wp(7),
+    height: wp(7),
+    borderRadius: wp(4),
+    backgroundColor: colors.accent,
+  },
+  liveBadgeText: {
+    fontSize: fp(11),
+    fontWeight: '800',
+    color: colors.accent,
+    letterSpacing: 0.5,
+  },
+  liveTitle: {
+    fontSize: fp(15),
+    fontWeight: '700',
+    color: colors.white,
+    marginBottom: hp(2),
+  },
+  liveSubtitle: {
+    fontSize: fp(12),
+    color: 'rgba(255,255,255,0.55)',
   },
 });

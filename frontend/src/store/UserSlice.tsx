@@ -40,6 +40,7 @@ export const sendOtpEmail = createAsyncThunk(
       return response;
     } catch (error) {
       const response = JSON.parse(error?.request?._response || '{}');
+      console.log('---response---', response)
       Toast.show({
         type: 'error',
         text1: 'Error',

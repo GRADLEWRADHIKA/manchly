@@ -31,6 +31,7 @@ import LinearGradient from 'react-native-linear-gradient';
 const CreatorHome = () => {
   const navigation = useNavigation<any>();
   const { user } = useSelector((state: any) => state.userReducer);
+  console.log('--user--', user);
   const insets = useSafeAreaInsets();
 
   const displayName = user?.name
@@ -81,13 +82,6 @@ const CreatorHome = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* KYC Card */}
-        {/* {!user?.kyc_verified && (
-          <View style={styles.sectionPadding}>
-            <KycCard />
-          </View>
-        )} */}
-
         {/* Total Revenue Card */}
         <View style={styles.sectionPadding}>
           <LinearGradient
@@ -279,6 +273,8 @@ const styles = StyleSheet.create({
   // Header
   headerWrapper: {
     backgroundColor: colors.primary,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
   },
   header: {
     flexDirection: 'row',

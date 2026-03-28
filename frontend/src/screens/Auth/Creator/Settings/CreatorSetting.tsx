@@ -7,6 +7,7 @@ import {
   Pressable,
   Image,
   Linking,
+  TouchableOpacity,
 } from 'react-native';
 import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
@@ -19,6 +20,7 @@ import {
   WalletMinimal,
   Bell,
   Settings,
+  UserCircle,
 } from 'lucide-react-native';
 import LogoutModal from '../../Profile/Components/LogoutModal';
 import { useNavigation } from '@react-navigation/native';
@@ -93,10 +95,7 @@ const MenuRow = ({
 /* ──────── Quick Action Card ──────── */
 const QuickAction = ({ icon: Icon, label, color, onPress }: any) => (
   <Pressable
-    style={({ pressed }) => [
-      styles.topCard,
-      pressed && styles.topCardPressed,
-    ]}
+    style={({ pressed }) => [styles.topCard, pressed && styles.topCardPressed]}
     onPress={onPress}
   >
     <View style={[styles.topCardIcon, { backgroundColor: color + '12' }]}>
@@ -131,10 +130,7 @@ const CreatorSetting: React.FC = () => {
       {/* ──────── Header ──────── */}
       <View style={[styles.headerWrapper, { paddingTop: insets.top }]}>
         <View style={styles.header}>
-          <Pressable
-            style={styles.headerLeft}
-            onPress={() => Nav.navigate('CreatorProfile')}
-          >
+          <View style={styles.headerLeft}>
             {user?.profile_image ? (
               <Image
                 source={{ uri: user.profile_image }}
@@ -142,33 +138,21 @@ const CreatorSetting: React.FC = () => {
               />
             ) : (
               <View style={styles.avatarFallback}>
-                <Text style={styles.avatarInitials}>{initials}</Text>
+                <UserCircle size={wp(28)} color={colors.white} />
               </View>
             )}
-            <View style={styles.greetingWrap}>
-              <Text style={styles.greetingLabel}>Welcome back</Text>
-              <Text style={styles.greetingText} numberOfLines={1}>
-                {displayName}
-              </Text>
+            <View>
+              <Text style={styles.headerSubtitle}>Welcome Back</Text>
+              <Text style={styles.headerTitle}>{user.name}</Text>
             </View>
-          </Pressable>
-
-          <Pressable
-            style={({ pressed }) => [
-              styles.bellBtn,
-              pressed && styles.bellBtnPressed,
-            ]}
+          </View>
+          <TouchableOpacity
+            style={styles.bellBtn}
             onPress={() => Nav.navigate('CreatorNotification')}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            accessibilityRole="button"
-            accessibilityLabel="Notifications"
           >
-            <Bell size={wp(20)} color={colors.white} strokeWidth={1.8} />
-          </Pressable>
+            <Bell size={wp(20)} color={colors.white} />
+          </TouchableOpacity>
         </View>
-
-        {/* Curved bottom */}
-        <View style={styles.headerCurve} />
       </View>
 
       <ScrollView
@@ -182,18 +166,14 @@ const CreatorSetting: React.FC = () => {
             icon={Headset}
             label="Help & Support"
             color="#3B82F6"
-            onPress={() =>
-              openWhatsApp('Hello, I am a Creator, I need help.')
-            }
+            onPress={() => openWhatsApp('Hello, I am a Creator, I need help.')}
           />
           <QuickAction
             icon={Megaphone}
             label="Marketing"
             color="#8B5CF6"
             onPress={() =>
-              openWhatsApp(
-                'Hello, I am a Creator, I need help for marketing.',
-              )
+              openWhatsApp('Hello, I am a Creator, I need help for marketing.')
             }
           />
         </View>
@@ -202,7 +182,11 @@ const CreatorSetting: React.FC = () => {
         <View style={styles.withdrawCard}>
           <View style={styles.withdrawLeft}>
             <View style={styles.walletIconWrap}>
-              <WalletMinimal size={wp(20)} color={colors.white} strokeWidth={2} />
+              <WalletMinimal
+                size={wp(20)}
+                color={colors.white}
+                strokeWidth={2}
+              />
             </View>
             <View style={styles.withdrawInfo}>
               <Text style={styles.withdrawLabel}>Withdrawable Balance</Text>
@@ -285,17 +269,18 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f7',
   },
 
-  /* ──── Header ──── */
   headerWrapper: {
     backgroundColor: '#111111',
     zIndex: 10,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: wp(16),
-    paddingVertical: hp(4),
+    paddingVertical: hp(14),
   },
   headerCurve: {
     backgroundColor: '#111111',
@@ -549,5 +534,16 @@ const styles = StyleSheet.create({
     color: colors.muted,
     marginTop: hp(24),
     fontWeight: '500',
+  },
+  headerSubtitle: {
+     fontSize: fp(12),
+    color: '#999999',
+    fontWeight: '500',
+  },
+  headerTitle: {
+     fontSize: fp(18),
+    fontWeight: '800',
+    color: colors.white,
+    marginTop: hp(1),
   },
 });

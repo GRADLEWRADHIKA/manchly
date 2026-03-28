@@ -164,6 +164,8 @@ const styles = StyleSheet.create({
   },
   headerWrapper: {
     backgroundColor: '#111111',
+     borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20
   },
   header: {
     flexDirection: 'row',

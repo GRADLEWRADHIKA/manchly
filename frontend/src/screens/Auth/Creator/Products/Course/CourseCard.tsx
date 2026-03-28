@@ -13,17 +13,18 @@ import {
   Edit3,
   Trash2,
   Share2,
-  Info,
+  Eye,
   BarChart3,
   BookOpen,
+  Play,
+  IndianRupee,
 } from 'lucide-react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import colors from '../../../../../utils/colors';
 import { wp, hp, fp } from '../../../../../utils/responsive';
 import { useNavigation } from '@react-navigation/native';
 
 const { width: screenWidth } = Dimensions.get('window');
-const CARD_WIDTH = screenWidth - 60;
-
 interface Props {
   item: any;
   onEdit: () => void;
@@ -37,7 +38,7 @@ const CourseCard: React.FC<Props> = ({ item, onEdit, onDelete, onView }) => {
 
   const handlePressIn = () => {
     Animated.spring(scaleAnim, {
-      toValue: 0.97,
+      toValue: 0.96,
       useNativeDriver: true,
     }).start();
   };
@@ -57,108 +58,141 @@ const CourseCard: React.FC<Props> = ({ item, onEdit, onDelete, onView }) => {
     });
   };
 
+  const videoCount = item.videos?.length || 0;
+
   return (
     <Animated.View
       style={[
         styles.card,
-        { transform: [{ scale: scaleAnim }], width: CARD_WIDTH },
+        { transform: [{ scale: scaleAnim }],},
       ]}
     >
-      <TouchableOpacity
-        activeOpacity={0.95}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-        onPress={onView}
-        style={styles.touchable}
+      <LinearGradient
+        colors={['#1A1A2E', '#16213E', '#0F3460']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.gradient}
       >
-        {/* Thumbnail */}
-        <View style={styles.thumbnailWrap}>
-          <Image
-            source={{
-              uri:
-                item.thumbnail ||
-                'https://cdn-icons-png.flaticon.com/512/4149/4149650.png',
-            }}
-            style={styles.thumbnail}
-          />
-          {/* Price badge */}
-          <View style={styles.priceBadge}>
-            <Text style={styles.priceText}>
-              {item.price ? `₹${item.price}` : 'Free'}
-            </Text>
-          </View>
-          {/* Level badge */}
-          {item.level && (
-            <View style={styles.levelBadge}>
-              <BarChart3 size={wp(10)} color={colors.white} />
-              <Text style={styles.levelText}>{item.level}</Text>
+        <TouchableOpacity
+          activeOpacity={0.95}
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOut}
+          onPress={onView}
+          style={styles.touchable}
+        >
+          {/* Thumbnail with overlay */}
+          <View style={styles.thumbnailWrap}>
+            <Image
+              source={{
+                uri:
+                  item.thumbnail ||
+                  'https://cdn-icons-png.flaticon.com/512/4149/4149650.png',
+              }}
+              style={styles.thumbnail}
+            />
+            {/* Dark overlay on image */}
+            <View style={styles.thumbnailOverlay} />
+
+            {/* Play icon center */}
+            <View style={styles.playButton}>
+              <Play size={wp(14)} color={colors.white} fill={colors.white} />
             </View>
-          )}
-        </View>
 
-        {/* Content */}
-        <View style={styles.content}>
-          {/* Category */}
-          {item.category && (
-            <Text style={styles.category}>{item.category}</Text>
-          )}
-
-          {/* Title */}
-          <Text style={styles.title} numberOfLines={2}>
-            {item?.title}
-          </Text>
-
-          {/* Description */}
-          {item.description ? (
-            <Text style={styles.description} numberOfLines={1}>
-              {item.description}
-            </Text>
-          ) : null}
-
-          {/* Meta row */}
-          <View style={styles.metaRow}>
-            <TouchableOpacity
-              style={styles.infoPill}
-              onPress={() =>
-                navigation.navigate('CourseDetailsScreen', { courseId: item?.id })
-              }
-              activeOpacity={0.7}
+            {/* Price badge */}
+            <LinearGradient
+              colors={item.price ? ['#F97316', '#FB923C'] : ['#10B981', '#34D399']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.priceBadge}
             >
-              <Info size={wp(12)} color={colors.info} />
-              <Text style={styles.infoPillText}>Details</Text>
+              {item.price ? (
+                <IndianRupee size={wp(10)} color={colors.white} strokeWidth={3} />
+              ) : null}
+              <Text style={styles.priceText}>
+                {item.price ? `${item.price}` : 'Free'}
+              </Text>
+            </LinearGradient>
+
+            {/* Level badge */}
+            {item.level && (
+              <View style={styles.levelBadge}>
+                <BarChart3 size={wp(10)} color={'#60A5FA'} />
+                <Text style={styles.levelText}>{item.level}</Text>
+              </View>
+            )}
+          </View>
+
+          {/* Content */}
+          <View style={styles.content}>
+            {/* Category chip */}
+            {item.category && (
+              <View style={styles.categoryChip}>
+                <Text style={styles.categoryText}>{item.category}</Text>
+              </View>
+            )}
+
+            {/* Title */}
+            <Text style={styles.title} numberOfLines={2}>
+              {item?.title}
+            </Text>
+
+            {/* Description */}
+            {item.description ? (
+              <Text style={styles.description} numberOfLines={2}>
+                {item.description}
+              </Text>
+            ) : null}
+
+            {/* Stats row */}
+            <View style={styles.statsRow}>
+              <View style={styles.statItem}>
+                <BookOpen size={wp(13)} color={'#60A5FA'} />
+                <Text style={styles.statText}>
+                  {videoCount} {videoCount === 1 ? 'video' : 'videos'}
+                </Text>
+              </View>
+
+              <TouchableOpacity
+                style={styles.detailsBtn}
+                onPress={() =>
+                  navigation.navigate('CourseDetailsScreen', { courseId: item?.id })
+                }
+                activeOpacity={0.7}
+              >
+                <Eye size={wp(13)} color={colors.white} />
+                <Text style={styles.detailsBtnText}>View Details</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Separator line with glow */}
+          <View style={styles.separator} />
+
+          {/* Actions */}
+          <View style={styles.actionsRow}>
+            <TouchableOpacity style={styles.actionBtn} onPress={onEdit} activeOpacity={0.7}>
+              <View style={styles.actionIconWrap}>
+                <Edit3 size={wp(14)} color={'#60A5FA'} />
+              </View>
+              <Text style={[styles.actionText, { color: '#60A5FA' }]}>Edit</Text>
             </TouchableOpacity>
 
-            <View style={styles.metaPill}>
-              <BookOpen size={wp(12)} color={colors.textSecondary} />
-              <Text style={styles.metaPillText}>
-                {item.videos?.length || 0} videos
-              </Text>
-            </View>
+            <TouchableOpacity style={styles.actionBtn} onPress={handleShare} activeOpacity={0.7}>
+              <View style={[styles.actionIconWrap, { backgroundColor: 'rgba(16,185,129,0.15)' }]}>
+                <Share2 size={wp(14)} color={'#10B981'} />
+              </View>
+              <Text style={[styles.actionText, { color: '#10B981' }]}>Share</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.actionBtn} onPress={onDelete} activeOpacity={0.7}>
+              <View style={[styles.actionIconWrap, { backgroundColor: 'rgba(239,68,68,0.15)' }]}>
+                <Trash2 size={wp(14)} color={colors.error} />
+              </View>
+              <Text style={[styles.actionText, { color: colors.error }]}>Delete</Text>
+            </TouchableOpacity>
           </View>
-        </View>
-
-        {/* Actions */}
-        <View style={styles.actionsRow}>
-          <TouchableOpacity style={styles.actionBtn} onPress={onEdit} activeOpacity={0.7}>
-            <Edit3 size={wp(15)} color={colors.primary} />
-            <Text style={styles.actionText}>Edit</Text>
-          </TouchableOpacity>
-
-          <View style={styles.actionDivider} />
-
-          <TouchableOpacity style={styles.actionBtn} onPress={handleShare} activeOpacity={0.7}>
-            <Share2 size={wp(15)} color={colors.primary} />
-            <Text style={styles.actionText}>Share</Text>
-          </TouchableOpacity>
-
-          <View style={styles.actionDivider} />
-
-          <TouchableOpacity style={styles.actionBtn} onPress={onDelete} activeOpacity={0.7}>
-            <Trash2 size={wp(15)} color={colors.error} />
-            <Text style={[styles.actionText, { color: colors.error }]}>Delete</Text>
-          </TouchableOpacity>
-        </View>
-      </TouchableOpacity>
+        </TouchableOpacity>
+      </LinearGradient>
     </Animated.View>
   );
 };
@@ -167,16 +201,19 @@ export default CourseCard;
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.white,
-    borderRadius: wp(18),
+    borderRadius: wp(16),
     marginHorizontal: wp(8),
-    marginBottom: hp(16),
+    marginBottom: hp(14),
     overflow: 'hidden',
-    elevation: 4,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
+    elevation: 8,
+    shadowColor: '#0F3460',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 14,
+  },
+  gradient: {
+    flex: 1,
+    borderRadius: wp(16),
   },
   touchable: {
     flex: 1,
@@ -188,17 +225,39 @@ const styles = StyleSheet.create({
   },
   thumbnail: {
     width: '100%',
-    height: hp(160),
-    backgroundColor: colors.lightGrey,
+    height: hp(120),
+    backgroundColor: '#0D1B2A',
+  },
+  thumbnailOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(15,52,96,0.3)',
+  },
+  playButton: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    marginTop: -wp(16),
+    marginLeft: -wp(16),
+    width: wp(32),
+    height: wp(32),
+    borderRadius: wp(16),
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.4)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingLeft: wp(2),
   },
   priceBadge: {
     position: 'absolute',
-    top: hp(10),
-    right: wp(10),
-    backgroundColor: colors.primary,
-    paddingHorizontal: wp(10),
-    paddingVertical: hp(4),
-    borderRadius: wp(8),
+    top: hp(12),
+    right: wp(12),
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: wp(12),
+    paddingVertical: hp(5),
+    borderRadius: wp(20),
+    gap: wp(2),
   },
   priceText: {
     color: colors.white,
@@ -207,15 +266,17 @@ const styles = StyleSheet.create({
   },
   levelBadge: {
     position: 'absolute',
-    bottom: hp(10),
-    left: wp(10),
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    bottom: hp(12),
+    left: wp(12),
+    backgroundColor: 'rgba(26,26,46,0.85)',
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(4),
-    paddingHorizontal: wp(8),
-    paddingVertical: hp(3),
-    borderRadius: wp(6),
+    paddingHorizontal: wp(10),
+    paddingVertical: hp(4),
+    borderRadius: wp(12),
+    borderWidth: 1,
+    borderColor: 'rgba(96,165,250,0.3)',
   },
   levelText: {
     color: colors.white,
@@ -225,86 +286,107 @@ const styles = StyleSheet.create({
 
   // Content
   content: {
-    padding: wp(14),
+    padding: wp(12),
     flex: 1,
   },
-  category: {
-    color: colors.info,
-    fontSize: fp(11),
+  categoryChip: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(96,165,250,0.15)',
+    paddingHorizontal: wp(10),
+    paddingVertical: hp(3),
+    borderRadius: wp(12),
+    borderWidth: 1,
+    borderColor: 'rgba(96,165,250,0.25)',
+    marginBottom: hp(5),
+  },
+  categoryText: {
+    color: '#60A5FA',
+    fontSize: fp(9),
     fontWeight: '700',
     textTransform: 'uppercase',
-    letterSpacing: 0.8,
-    marginBottom: hp(4),
+    letterSpacing: 1,
   },
   title: {
-    fontSize: fp(16),
-    fontWeight: '700',
-    color: colors.text,
-    lineHeight: fp(21),
+    fontSize: fp(14),
+    fontWeight: '800',
+    color: colors.white,
+    lineHeight: fp(19),
     marginBottom: hp(4),
   },
   description: {
-    color: colors.textSecondary,
-    fontSize: fp(13),
-    lineHeight: fp(18),
-    marginBottom: hp(10),
+    color: '#94A3B8',
+    fontSize: fp(11),
+    lineHeight: fp(16),
+    marginBottom: hp(8),
   },
 
-  // Meta
-  metaRow: {
+  // Stats
+  statsRow: {
     flexDirection: 'row',
-    gap: wp(8),
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
-  infoPill: {
+  statItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(4),
-    backgroundColor: '#EEF2FF',
+    backgroundColor: 'rgba(255,255,255,0.06)',
     paddingHorizontal: wp(10),
-    paddingVertical: hp(5),
+    paddingVertical: hp(4),
     borderRadius: wp(8),
   },
-  infoPillText: {
-    color: colors.info,
-    fontSize: fp(11),
+  statText: {
+    color: '#94A3B8',
+    fontSize: fp(10),
     fontWeight: '600',
   },
-  metaPill: {
+  detailsBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(4),
-    backgroundColor: colors.surface,
+    backgroundColor: 'rgba(96,165,250,0.2)',
     paddingHorizontal: wp(10),
     paddingVertical: hp(5),
     borderRadius: wp(8),
+    borderWidth: 1,
+    borderColor: 'rgba(96,165,250,0.3)',
   },
-  metaPillText: {
-    color: colors.textSecondary,
-    fontSize: fp(11),
-    fontWeight: '600',
+  detailsBtnText: {
+    color: colors.white,
+    fontSize: fp(10),
+    fontWeight: '700',
+  },
+
+  // Separator
+  separator: {
+    height: 1,
+    marginHorizontal: wp(12),
+    backgroundColor: 'rgba(255,255,255,0.08)',
   },
 
   // Actions
   actionsRow: {
     flexDirection: 'row',
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
+    paddingVertical: hp(6),
+    paddingHorizontal: wp(6),
   },
   actionBtn: {
     flex: 1,
-    flexDirection: 'row',
-    paddingVertical: hp(12),
     alignItems: 'center',
     justifyContent: 'center',
-    gap: wp(6),
+    gap: wp(3),
+    paddingVertical: hp(3),
+  },
+  actionIconWrap: {
+    width: wp(28),
+    height: wp(28),
+    borderRadius: wp(14),
+    backgroundColor: 'rgba(96,165,250,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   actionText: {
-    color: colors.primary,
-    fontSize: fp(13),
+    fontSize: fp(10),
     fontWeight: '600',
-  },
-  actionDivider: {
-    width: 1,
-    backgroundColor: colors.border,
   },
 });

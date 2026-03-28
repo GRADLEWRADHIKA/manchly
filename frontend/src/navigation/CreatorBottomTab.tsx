@@ -334,7 +334,6 @@ const styles = StyleSheet.create({
     borderRadius: hp(1.5),
   },
 
-  // Center button
   centerBtnWrap: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -345,7 +344,7 @@ const styles = StyleSheet.create({
     width: wp(52),
     height: wp(52),
     borderRadius: wp(16),
-    backgroundColor: colors.info,
+    backgroundColor: '#124685',
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: colors.info,

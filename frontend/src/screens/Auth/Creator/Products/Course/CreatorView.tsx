@@ -200,12 +200,13 @@ const CreatorView: React.FC = () => {
             <Text style={styles.loadingText}>Loading your courses...</Text>
           </View>
         ) : (
-          <View style={styles.horizontalListContainer}>
-            <FlatList
-              data={filteredCourses}
-              nestedScrollEnabled
-              renderItem={({ item }) => (
+          <View style={styles.verticalListContainer}>
+            {filteredCourses.length === 0 ? (
+              renderEmptyState()
+            ) : (
+              filteredCourses.map(item => (
                 <CourseCard
+                  key={item.id}
                   item={item}
                   onEdit={() =>
                     navigation.navigate('CreateCourse', {
@@ -221,25 +222,13 @@ const CreatorView: React.FC = () => {
                     navigation.navigate('CourseVideoList', { item })
                   }
                 />
-              )}
-              horizontal
-              keyExtractor={item => item.id}
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.horizontalListContent}
-              ListEmptyComponent={renderEmptyState}
-              onEndReached={() => {
-                if (hasMore && !loadingMore) getTheCourse(page + 1);
-              }}
-              onEndReachedThreshold={0.1}
-              ListFooterComponent={renderFooter}
-              snapToInterval={screenWidth - 40}
-              snapToAlignment="center"
-              decelerationRate="fast"
-            />
+              ))
+            )}
+            {renderFooter()}
           </View>
         )}
 
-        <View style={styles.statsSection}>
+        {/* <View style={styles.statsSection}>
           <Text style={styles.statsTitle}>Quick Stats</Text>
           <View style={styles.statsGrid}>
             {quickStats.map((stat, index) => (
@@ -265,7 +254,7 @@ const CreatorView: React.FC = () => {
           >
             <Text style={styles.withdrawBtnText}>Withdraw</Text>
           </TouchableOpacity>
-        </View>
+        </View> */}
       </ScrollView>
 
       <DynamicModal
@@ -295,6 +284,8 @@ const styles = StyleSheet.create({
   // Header
   headerWrapper: {
     backgroundColor: '#111111',
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20
   },
   header: {
     flexDirection: 'row',
@@ -391,12 +382,9 @@ const styles = StyleSheet.create({
   },
 
   // Course list
-  horizontalListContainer: {
-    minHeight: hp(300),
-  },
-  horizontalListContent: {
-    paddingVertical: hp(12),
-    paddingHorizontal: wp(8),
+  verticalListContainer: {
+    paddingHorizontal: wp(12),
+    paddingTop: hp(4),
   },
   loaderContainer: {
     height: hp(200),
@@ -410,7 +398,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: wp(20),
     gap: wp(12),
-    width: wp(200),
   },
   loadingText: {
     color: colors.textSecondary,
@@ -424,7 +411,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: hp(60),
     paddingHorizontal: wp(40),
-    width: screenWidth - 32,
   },
   emptyIcon: {
     width: wp(64),

@@ -123,6 +123,19 @@ export const verifyBankAccount = async (
 };
 
 
+export const resetKYC = async () => {
+  try {
+    const response = await instance.post('kyc/reset');
+    return response.data;
+  } catch (error: any) {
+    const errorMessage =
+      error?.response?.data?.message ||
+      error?.message ||
+      'Failed to reset KYC';
+    throw new Error(errorMessage);
+  }
+};
+
 export const getKYCStatus = async () => {
   try {
     const response = await instance.get('kyc/status');

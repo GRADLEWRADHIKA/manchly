@@ -31,7 +31,6 @@ import LinearGradient from 'react-native-linear-gradient';
 const CreatorHome = () => {
   const navigation = useNavigation<any>();
   const { user } = useSelector((state: any) => state.userReducer);
-  console.log('--user--', user);
   const insets = useSafeAreaInsets();
 
   const displayName = user?.name

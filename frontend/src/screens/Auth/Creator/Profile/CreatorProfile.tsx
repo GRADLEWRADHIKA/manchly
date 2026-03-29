@@ -7,6 +7,8 @@ import {
   Image,
   ActivityIndicator,
   ScrollView,
+  Modal,
+  Platform,
 } from 'react-native';
 import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
@@ -20,6 +22,8 @@ import {
   ShieldX,
   Pen,
   Lock,
+  Calendar,
+  AlertTriangle,
 } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -30,6 +34,9 @@ import { ThunkDispatch } from '@reduxjs/toolkit';
 import Toast from 'react-native-toast-message';
 import { pick, types } from '@react-native-documents/picker';
 import { uploadShipDoc } from '../../../../store/Common';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { resetKYC } from '../../../../services/KYCService';
+import LinearGradient from 'react-native-linear-gradient';
 
 
 const CreatorProfile = () => {
@@ -40,6 +47,9 @@ const CreatorProfile = () => {
   const [imageAdd, setImageAdd] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showKycWarningModal, setShowKycWarningModal] = useState(false);
+  const [pendingFormData, setPendingFormData] = useState<any>(null);
 
   const displayName = user?.name
     ? user.name.charAt(0).toUpperCase() + user.name.slice(1)
@@ -49,13 +59,32 @@ const CreatorProfile = () => {
     control,
     handleSubmit,
     reset,
+    setValue,
+    watch,
   } = useForm({
     defaultValues: {
       email: user?.email || '',
       phone: user?.phone || '',
       name: user?.name || '',
+      dob: user?.dob || '',
     },
   });
+
+  const formatDisplayDate = (dateStr: string) => {
+    if (!dateStr) return '';
+    const parts = dateStr.split('-');
+    if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    return dateStr;
+  };
+
+  const parseDateString = (dateStr: string): Date => {
+    if (!dateStr) return new Date(2000, 0, 1);
+    const parts = dateStr.split('-');
+    if (parts.length === 3) {
+      return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+    }
+    return new Date(2000, 0, 1);
+  };
 
   const imagePicker = async () => {
     try {
@@ -116,12 +145,43 @@ const CreatorProfile = () => {
       return;
     }
 
+    const nameChanged = data?.name?.trim() !== (user?.name || '').trim();
+    const dobChanged = data?.dob !== (user?.dob || '');
+
+    if ((nameChanged || dobChanged) && user?.kyc_verified) {
+      setPendingFormData(data);
+      setShowKycWarningModal(true);
+      return;
+    }
+
+    await saveProfile(data);
+  };
+
+  const saveProfile = async (data: any) => {
     setLoading(true);
     try {
-      const payload = {
+      const nameChanged = data?.name?.trim() !== (user?.name || '').trim();
+      const dobChanged = data?.dob !== (user?.dob || '');
+
+      // Reset KYC if name or dob changed and user was verified
+      if ((nameChanged || dobChanged) && user?.kyc_verified) {
+        try {
+          await resetKYC();
+        } catch (e) {
+          // Continue with profile update even if KYC reset fails
+          console.log('KYC reset error:', e);
+        }
+      }
+
+      const payload: any = {
         name: data?.name,
         profile_image: imageAdd || user?.profile_image,
+        user_type: user?.user_type,
       };
+
+      if (data?.dob) {
+        payload.dob = data.dob;
+      }
 
       await dispatch(updateProfile(payload)).unwrap();
 
@@ -154,7 +214,12 @@ const CreatorProfile = () => {
         showsVerticalScrollIndicator={false}
       >
         {/* Profile Card */}
-        <View style={styles.profileCard}>
+        <LinearGradient
+          colors={['#1A1A2E', '#16213E', '#0F3460']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.profileCard}
+        >
           <TouchableOpacity
             style={styles.avatarWrap}
             onPress={uploading ? undefined : imagePicker}
@@ -205,7 +270,7 @@ const CreatorProfile = () => {
               {user?.kyc_verified ? 'KYC Verified' : 'KYC Not Verified'}
             </Text>
           </View>
-        </View>
+        </LinearGradient>
 
         {/* Form Section */}
         <Text style={styles.sectionTitle}>Personal Information</Text>
@@ -230,6 +295,57 @@ const CreatorProfile = () => {
                     inputContainerStyle={styles.input}
                     inputStyle={styles.inputText}
                   />
+                )}
+              />
+            </View>
+          </View>
+
+          <View style={styles.divider} />
+
+          {/* DOB */}
+          <View style={styles.fieldRow}>
+            <View style={styles.fieldIcon}>
+              <Calendar size={wp(16)} color={colors.info} />
+            </View>
+            <View style={styles.fieldContent}>
+              <Text style={styles.fieldLabel}>Date of Birth</Text>
+              <Controller
+                name="dob"
+                control={control}
+                render={({ field: { value } }) => (
+                  <>
+                    <TouchableOpacity
+                      style={styles.input}
+                      onPress={() => setShowDatePicker(true)}
+                      activeOpacity={0.7}
+                    >
+                      <Text
+                        style={[
+                          styles.inputText,
+                          !value && { color: colors.muted },
+                        ]}
+                      >
+                        {value ? formatDisplayDate(value) : 'Select Date of Birth'}
+                      </Text>
+                    </TouchableOpacity>
+                    {showDatePicker && (
+                      <DateTimePicker
+                        value={parseDateString(value)}
+                        mode="date"
+                        display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                        maximumDate={new Date()}
+                        onChange={(event: any, selectedDate?: Date) => {
+                          setShowDatePicker(Platform.OS === 'ios');
+                          if (selectedDate) {
+                            const year = selectedDate.getFullYear();
+                            const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+                            const day = String(selectedDate.getDate()).padStart(2, '0');
+                            setValue('dob', `${year}-${month}-${day}`);
+                          }
+                        }}
+                      />
+                    )}
+                  </>
                 )}
               />
             </View>
@@ -320,6 +436,51 @@ const CreatorProfile = () => {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* KYC Warning Modal */}
+      <Modal
+        visible={showKycWarningModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowKycWarningModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalIconWrap}>
+              <AlertTriangle size={wp(32)} color={colors.secondary} />
+            </View>
+            <Text style={styles.modalTitle}>KYC Will Be Reset</Text>
+            <Text style={styles.modalMessage}>
+              Changing your name or date of birth will reset your KYC verification. You will need to complete KYC verification again.
+            </Text>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={styles.modalCancelBtn}
+                onPress={() => {
+                  setShowKycWarningModal(false);
+                  setPendingFormData(null);
+                }}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.modalConfirmBtn}
+                onPress={() => {
+                  setShowKycWarningModal(false);
+                  if (pendingFormData) {
+                    saveProfile(pendingFormData);
+                    setPendingFormData(null);
+                  }
+                }}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.modalConfirmText}>Continue</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -341,17 +502,17 @@ const styles = StyleSheet.create({
   // Profile Card
   profileCard: {
     alignItems: 'center',
-    backgroundColor: colors.white,
     marginHorizontal: wp(16),
     marginTop: hp(20),
     borderRadius: wp(20),
     paddingVertical: hp(24),
     paddingHorizontal: wp(20),
     elevation: 3,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
+    shadowColor: '#0F3460',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    overflow: 'hidden',
   },
   avatarWrap: {
     position: 'relative',
@@ -365,7 +526,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 3,
-    borderColor: colors.info,
+    borderColor: 'rgba(96,165,250,0.5)',
   },
   profileImage: {
     width: wp(100),
@@ -388,11 +549,11 @@ const styles = StyleSheet.create({
   profileName: {
     fontSize: fp(20),
     fontWeight: '800',
-    color: colors.text,
+    color: colors.white,
   },
   profileEmail: {
     fontSize: fp(13),
-    color: colors.textSecondary,
+    color: 'rgba(255,255,255,0.6)',
     marginTop: hp(2),
   },
   kycBadge: {
@@ -538,5 +699,77 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontWeight: '700',
     fontSize: fp(15),
+  },
+
+  // Modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: wp(24),
+  },
+  modalContainer: {
+    backgroundColor: colors.white,
+    borderRadius: wp(20),
+    paddingVertical: hp(28),
+    paddingHorizontal: wp(24),
+    width: '100%',
+    alignItems: 'center',
+  },
+  modalIconWrap: {
+    width: wp(60),
+    height: wp(60),
+    borderRadius: wp(30),
+    backgroundColor: colors.secondary + '15',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: hp(16),
+  },
+  modalTitle: {
+    fontSize: fp(18),
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: hp(8),
+  },
+  modalMessage: {
+    fontSize: fp(14),
+    color: colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: fp(20),
+    marginBottom: hp(24),
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: wp(12),
+    width: '100%',
+  },
+  modalCancelBtn: {
+    flex: 1,
+    height: hp(44),
+    borderRadius: wp(12),
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  modalCancelText: {
+    color: colors.text,
+    fontWeight: '600',
+    fontSize: fp(14),
+  },
+  modalConfirmBtn: {
+    flex: 1,
+    height: hp(44),
+    borderRadius: wp(12),
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.error,
+  },
+  modalConfirmText: {
+    color: colors.white,
+    fontWeight: '700',
+    fontSize: fp(14),
   },
 });

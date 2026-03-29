@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,8 @@ import {
   Image,
   Linking,
   TouchableOpacity,
+  Modal,
+  ActivityIndicator,
 } from 'react-native';
 import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
@@ -21,14 +23,21 @@ import {
   Bell,
   Settings,
   UserCircle,
+  Landmark,
+  Clock,
+  AlertTriangle,
+  CheckCircle2,
+  Info,
 } from 'lucide-react-native';
 import LogoutModal from '../../Profile/Components/LogoutModal';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
 import { logout } from '../../../../store/UserSlice';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
+import { instance } from '../../../../utils/AxiosInstance';
+import LinearGradient from 'react-native-linear-gradient';
 
 const SUPPORT_PHONE = '6363790659';
 
@@ -59,7 +68,6 @@ const openWhatsApp = (message: string) => {
     });
 };
 
-/* ──────── Reusable Menu Row ──────── */
 const MenuRow = ({
   icon: Icon,
   iconColor = colors.text,
@@ -92,7 +100,6 @@ const MenuRow = ({
   </Pressable>
 );
 
-/* ──────── Quick Action Card ──────── */
 const QuickAction = ({ icon: Icon, label, color, onPress }: any) => (
   <Pressable
     style={({ pressed }) => [styles.topCard, pressed && styles.topCardPressed]}
@@ -107,23 +114,99 @@ const QuickAction = ({ icon: Icon, label, color, onPress }: any) => (
 
 const CreatorSetting: React.FC = () => {
   const [logoutVisible, setLogoutVisible] = useState(false);
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  const [walletData, setWalletData] = useState<any>(null);
+  const [walletLoading, setWalletLoading] = useState(true);
+  const [bankAccount, setBankAccount] = useState<any>(null);
   const Nav = useNavigation<any>();
   const { user } = useSelector((state: any) => state.userReducer);
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
   const insets = useSafeAreaInsets();
 
-  const displayName = user?.name
-    ? user.name.charAt(0).toUpperCase() + user.name.slice(1)
-    : 'Creator';
+  const fetchWallet = async () => {
+    try {
+      setWalletLoading(true);
+      const [walletRes, bankRes] = await Promise.all([
+        instance.get('settlements/wallet').catch((e: any) => {
+          console.log('Wallet API error:', e?.response?.status, e?.response?.data);
+          return null;
+        }),
+        instance.get('settlements/bank-account').catch((e: any) => {
+          console.log('Bank API error:', e?.response?.status);
+          return null;
+        }),
+      ]);
+      setWalletData(walletRes?.data?.data?.wallet || null);
+      setBankAccount(bankRes?.data?.data?.bankAccount || null);
+    } catch (error) {
+      console.log('Error fetching wallet:', error);
+    } finally {
+      setWalletLoading(false);
+    }
+  };
 
-  const initials = user?.name
-    ? user.name
-        .split(' ')
-        .map((n: string) => n[0])
-        .join('')
-        .toUpperCase()
-        .slice(0, 2)
-    : 'C';
+  useFocusEffect(
+    useCallback(() => {
+      fetchWallet();
+    }, []),
+  );
+
+  const withdrawableBalance = walletData?.pending_settlement || 0;
+
+  const formatAmount = (amount: number) => {
+    return amount.toLocaleString('en-IN', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    });
+  };
+
+  const getT2Date = () => {
+    const eta = new Date();
+    let businessDays = 0;
+    while (businessDays < 2) {
+      eta.setDate(eta.getDate() + 1);
+      const day = eta.getDay();
+      if (day !== 0 && day !== 6) businessDays++;
+    }
+    return eta.toLocaleDateString('en-IN', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    });
+  };
+
+  const handleWithdraw = () => {
+    if (!bankAccount) {
+      Toast.show({
+        type: 'error',
+        text1: 'No Bank Account',
+        text2: 'Please add and verify your bank account first',
+        position: 'bottom',
+      });
+      Nav.navigate('BankDetails');
+      return;
+    }
+    if (!bankAccount.is_verified) {
+      Toast.show({
+        type: 'error',
+        text1: 'Bank Not Verified',
+        text2: 'Please verify your bank account first',
+        position: 'bottom',
+      });
+      Nav.navigate('BankDetails');
+      return;
+    }
+    if (withdrawableBalance <= 0) {
+      Toast.show({
+        type: 'info',
+        text1: 'No Balance',
+        text2: 'You have no withdrawable balance at the moment',
+        position: 'bottom',
+      });
+      return;
+    }
+    setShowWithdrawModal(true);
+  };
 
   return (
     <View style={styles.container}>
@@ -179,7 +262,12 @@ const CreatorSetting: React.FC = () => {
         </View>
 
         {/* ──────── Wallet Card ──────── */}
-        <View style={styles.withdrawCard}>
+        <LinearGradient
+          colors={['#1A1A2E', '#16213E', '#0F3460']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.withdrawCard}
+        >
           <View style={styles.withdrawLeft}>
             <View style={styles.walletIconWrap}>
               <WalletMinimal
@@ -190,7 +278,11 @@ const CreatorSetting: React.FC = () => {
             </View>
             <View style={styles.withdrawInfo}>
               <Text style={styles.withdrawLabel}>Withdrawable Balance</Text>
-              <Text style={styles.withdrawAmount}>₹ *****</Text>
+              <Text style={styles.withdrawAmount}>
+                {walletLoading
+                  ? '₹ ...'
+                  : `₹ ${formatAmount(withdrawableBalance)}`}
+              </Text>
             </View>
           </View>
           <Pressable
@@ -198,10 +290,11 @@ const CreatorSetting: React.FC = () => {
               styles.withdrawBtn,
               pressed && styles.withdrawBtnPressed,
             ]}
+            onPress={handleWithdraw}
           >
             <Text style={styles.withdrawBtnText}>Withdraw</Text>
           </Pressable>
-        </View>
+        </LinearGradient>
 
         {/* ──────── Account Section ──────── */}
         <Text style={styles.sectionTitle}>Account</Text>
@@ -223,12 +316,12 @@ const CreatorSetting: React.FC = () => {
             onPress={() => Nav.navigate('WalletCreator')}
           />
           <MenuRow
-            icon={Settings}
+            icon={Landmark}
             iconBg="#f4f4f5"
             iconColor={colors.textSecondary}
-            label="Settings"
-            subtitle="App preferences"
-            onPress={() => Nav.navigate('CreatorSettingDetails')}
+            label="Bank Details"
+            subtitle="Manage your bank information"
+            onPress={() => Nav.navigate('BankDetails')}
             isLast
           />
         </View>
@@ -248,6 +341,87 @@ const CreatorSetting: React.FC = () => {
 
         <Text style={styles.versionText}>Version 1.0.0</Text>
       </ScrollView>
+
+      {/* ──────── Withdraw Modal ──────── */}
+      <Modal
+        visible={showWithdrawModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowWithdrawModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalIconWrap}>
+              <WalletMinimal size={wp(28)} color={colors.primary} />
+            </View>
+            <Text style={styles.modalTitle}>Withdraw Funds</Text>
+
+            {/* Amount */}
+            <View style={styles.modalAmountCard}>
+              <Text style={styles.modalAmountLabel}>Amount to be settled</Text>
+              <Text style={styles.modalAmountValue}>
+                ₹ {formatAmount(withdrawableBalance)}
+              </Text>
+            </View>
+
+            {/* T+2 Info */}
+            <View style={styles.modalInfoRow}>
+              <Clock size={wp(16)} color={colors.info} />
+              <Text style={styles.modalInfoText}>
+                Your money will be credited to your bank account by{' '}
+                <Text style={{ fontWeight: '700' }}>{getT2Date()}</Text> (T+2
+                settlement period).
+              </Text>
+            </View>
+
+            {/* Bank Info */}
+            {bankAccount && (
+              <View style={styles.modalBankRow}>
+                <Landmark size={wp(16)} color={colors.textSecondary} />
+                <Text style={styles.modalBankText}>
+                  Crediting to: {bankAccount.account_number} ({bankAccount.ifsc_code})
+                </Text>
+              </View>
+            )}
+
+            {/* Note */}
+            <View style={styles.modalNoteRow}>
+              <Info size={wp(14)} color={colors.secondary} />
+              <Text style={styles.modalNoteText}>
+                Settlements are processed automatically. Your earnings will be
+                transferred after the T+2 settlement period.
+              </Text>
+            </View>
+
+            {/* Buttons */}
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={styles.modalCancelBtn}
+                onPress={() => setShowWithdrawModal(false)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.modalCancelText}>Close</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.modalConfirmBtn}
+                onPress={() => {
+                  setShowWithdrawModal(false);
+                  Toast.show({
+                    type: 'success',
+                    text1: 'Settlement Scheduled',
+                    text2: `₹${formatAmount(withdrawableBalance)} will be credited by ${getT2Date()}`,
+                    position: 'bottom',
+                  });
+                }}
+                activeOpacity={0.8}
+              >
+                <CheckCircle2 size={wp(16)} color={colors.white} />
+                <Text style={styles.modalConfirmText}>Got It</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       <LogoutModal
         visible={logoutVisible}
@@ -393,8 +567,8 @@ const styles = StyleSheet.create({
   /* ──── Wallet Card ──── */
   withdrawCard: {
     marginHorizontal: wp(16),
-    backgroundColor: '#111111',
     borderRadius: wp(16),
+    overflow: 'hidden',
     padding: wp(16),
     flexDirection: 'row',
     alignItems: 'center',
@@ -545,5 +719,139 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: colors.white,
     marginTop: hp(1),
+  },
+
+  /* ──── Withdraw Modal ──── */
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: wp(20),
+  },
+  modalContainer: {
+    backgroundColor: colors.white,
+    borderRadius: wp(20),
+    paddingVertical: hp(24),
+    paddingHorizontal: wp(20),
+    width: '100%',
+    alignItems: 'center',
+  },
+  modalIconWrap: {
+    width: wp(56),
+    height: wp(56),
+    borderRadius: wp(28),
+    backgroundColor: '#f0f0f0',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: hp(12),
+  },
+  modalTitle: {
+    fontSize: fp(18),
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: hp(16),
+  },
+  modalAmountCard: {
+    backgroundColor: '#f8f9fa',
+    borderRadius: wp(14),
+    paddingVertical: hp(16),
+    paddingHorizontal: wp(20),
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: hp(16),
+  },
+  modalAmountLabel: {
+    fontSize: fp(12),
+    color: colors.textSecondary,
+    fontWeight: '500',
+    marginBottom: hp(4),
+  },
+  modalAmountValue: {
+    fontSize: fp(28),
+    fontWeight: '900',
+    color: colors.text,
+  },
+  modalInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: wp(10),
+    backgroundColor: colors.info + '10',
+    padding: wp(12),
+    borderRadius: wp(12),
+    width: '100%',
+    marginBottom: hp(10),
+  },
+  modalInfoText: {
+    flex: 1,
+    fontSize: fp(12),
+    color: colors.info,
+    lineHeight: fp(17),
+    fontWeight: '500',
+  },
+  modalBankRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(8),
+    backgroundColor: '#f8f9fa',
+    padding: wp(12),
+    borderRadius: wp(10),
+    width: '100%',
+    marginBottom: hp(10),
+  },
+  modalBankText: {
+    flex: 1,
+    fontSize: fp(12),
+    color: colors.textSecondary,
+    fontWeight: '500',
+  },
+  modalNoteRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: wp(8),
+    padding: wp(12),
+    width: '100%',
+    marginBottom: hp(16),
+  },
+  modalNoteText: {
+    flex: 1,
+    fontSize: fp(11),
+    color: colors.textSecondary,
+    lineHeight: fp(16),
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: wp(10),
+    width: '100%',
+  },
+  modalCancelBtn: {
+    flex: 1,
+    height: hp(46),
+    borderRadius: wp(12),
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f4f4f5',
+    borderWidth: 1,
+    borderColor: '#eaecef',
+  },
+  modalCancelText: {
+    color: colors.text,
+    fontWeight: '600',
+    fontSize: fp(14),
+  },
+  modalConfirmBtn: {
+    flex: 1,
+    height: hp(46),
+    borderRadius: wp(12),
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.primary,
+    gap: wp(6),
+  },
+  modalConfirmText: {
+    color: colors.white,
+    fontWeight: '700',
+    fontSize: fp(14),
   },
 });

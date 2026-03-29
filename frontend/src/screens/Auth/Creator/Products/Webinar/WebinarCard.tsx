@@ -4,13 +4,12 @@ import {
   View,
   Image,
   TouchableOpacity,
-  Linking,
-  Modal,
-  Pressable,
   Animated,
+  Linking,
   LayoutAnimation,
   UIManager,
   Platform,
+  Share,
 } from 'react-native';
 import React, { useRef, useState } from 'react';
 
@@ -18,17 +17,19 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 import moment from 'moment-timezone';
+import LinearGradient from 'react-native-linear-gradient';
 import colors from '../../../../../utils/colors';
 import { wp, hp, fp } from '../../../../../utils/responsive';
 import {
-  EllipsisVertical,
   Calendar,
   IndianRupee,
-  Users,
   Video,
   KeyRound,
   Copy,
   ChevronDown,
+  Edit3,
+  Trash2,
+  Share2,
 } from 'lucide-react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import Toast from 'react-native-toast-message';
@@ -66,13 +67,29 @@ const WebinarCard: React.FC<WebinarCardProps> = ({
   data,
   setRefreshWebinar,
 }) => {
-  const [menuVisible, setMenuVisible] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [deleteLoader, setDeleteLoader] = useState(false);
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
-  const [webinarId, setWebinarId] = useState<string>('');
   const [showZoomDetails, setShowZoomDetails] = useState(false);
   const zoomAnim = useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const Nav = useNavigation<any>();
+
+  const handlePressIn = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 0.96,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      friction: 3,
+      tension: 40,
+      useNativeDriver: true,
+    }).start();
+  };
 
   const toggleZoomDetails = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -90,22 +107,6 @@ const WebinarCard: React.FC<WebinarCardProps> = ({
     inputRange: [0, 1],
     outputRange: ['0deg', '180deg'],
   });
-  const [menuPos, setMenuPos] = useState({ top: 0, right: 0 });
-  const menuBtnRef = useRef<View>(null);
-  const Nav = useNavigation<any>();
-
-  const handleMenuToggle = () => {
-    if (!menuVisible) {
-      menuBtnRef.current?.measureInWindow((x, y, width, height) => {
-        setMenuPos({ top: y + height + hp(4), right: wp(16) });
-        setMenuVisible(true);
-      });
-    } else {
-      setMenuVisible(false);
-    }
-  };
-  const handleMenuClose = () => setMenuVisible(false);
-  const handleCancel = () => setShowModal(false);
 
   const copyToClipboard = (text: string, label: string) => {
     Clipboard.setString(text);
@@ -119,7 +120,7 @@ const WebinarCard: React.FC<WebinarCardProps> = ({
 
   const handleDelete = () => {
     setDeleteLoader(true);
-    dispatch(deleteWebinar(webinarId as any))
+    dispatch(deleteWebinar(data.id as any))
       .unwrap()
       .then(() => {
         setRefreshWebinar?.(true);
@@ -129,218 +130,267 @@ const WebinarCard: React.FC<WebinarCardProps> = ({
       .catch(() => setDeleteLoader(false));
   };
 
-  const isUpcoming = moment(data.scheduled_at).isAfter(moment());
+  const handleShare = () => {
+    Share.share({
+      message: `https://manchly.chottu.link/webinar/${data?.id}`,
+    });
+  };
+
+  const handleJoinZoom = () => {
+    const meetingId = data?.zoom_meeting_id;
+    const password = data?.zoom_password;
+
+    if (meetingId && password) {
+      const zoomURL = `zoomus://zoom.us/join?confno=${meetingId}&pwd=${password}`;
+      Linking.openURL(zoomURL).catch(() => {
+        if (data?.zoom_join_url) {
+          Linking.openURL(data.zoom_join_url);
+        }
+      });
+    }
+  };
+
   const scheduledDate = moment(data.scheduled_at);
+  const isUpcoming = moment(data.scheduled_at).isAfter(moment());
 
   return (
     <>
-      <View style={styles.card}>
-        <TouchableOpacity
-          style={styles.thumbnailWrap}
-          activeOpacity={0.9}
-          onPress={() => {
-            const meetingId = data?.zoom_meeting_id;
-            const password = data?.zoom_password;
-
-            if (meetingId && password) {
-              const zoomURL = `zoomus://zoom.us/join?confno=${meetingId}&pwd=${password}`;
-              Linking.openURL(zoomURL).catch(() => {
-                if (data?.zoom_join_url) {
-                  Linking.openURL(data.zoom_join_url);
-                }
-              });
-            }
-          }}
+      <Animated.View
+        style={[styles.card, { transform: [{ scale: scaleAnim }] }]}
+      >
+        <LinearGradient
+          colors={['#1A1A2E', '#16213E', '#0F3460']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.gradient}
         >
-          <Image
-            source={{
-              uri:
-                data.thumbnail_url ||
-                'https://via.placeholder.com/300x200.png?text=Webinar',
-            }}
-            style={styles.thumbnail}
-          />
-
-          <View style={styles.thumbnailOverlay} />
-
-          <View
-            style={[
-              styles.statusBadge,
-              {
-                backgroundColor: isUpcoming
-                  ? colors.success + 'DD'
-                  : colors.textSecondary + 'DD',
-              },
-            ]}
-          >
-            <Video size={wp(10)} color={colors.white} />
-            <Text style={styles.statusText}>
-              {isUpcoming ? 'Upcoming' : 'Past'}
-            </Text>
-          </View>
-
-          <View style={styles.priceBadge}>
-            <IndianRupee size={wp(12)} color={colors.white} />
-            <Text style={styles.priceText}>{data.price}</Text>
-          </View>
-        </TouchableOpacity>
-
-        {/* Menu */}
-        <View style={styles.menuWrap} ref={menuBtnRef}>
           <TouchableOpacity
-            onPress={handleMenuToggle}
-            style={styles.menuButton}
+            activeOpacity={0.95}
+            onPressIn={handlePressIn}
+            onPressOut={handlePressOut}
+            onPress={handleJoinZoom}
+            style={styles.touchable}
           >
-            <EllipsisVertical color={colors.white} size={wp(18)} />
-          </TouchableOpacity>
-        </View>
+            {/* Thumbnail */}
+            <View style={styles.thumbnailWrap}>
+              <Image
+                source={{
+                  uri:
+                    data.thumbnail_url ||
+                    'https://via.placeholder.com/300x200.png?text=Webinar',
+                }}
+                style={styles.thumbnail}
+              />
+              <View style={styles.thumbnailOverlay} />
 
-        {menuVisible && (
-          <Modal
-            transparent
-            animationType="fade"
-            visible={menuVisible}
-            onRequestClose={handleMenuClose}
-          >
-            <Pressable style={styles.menuOverlay} onPress={handleMenuClose}>
-              <View style={[styles.menuDropdown, { top: menuPos.top, right: menuPos.right }]}>
-                <TouchableOpacity
-                  style={styles.menuItem}
-                  onPress={() => {
-                    handleMenuClose();
-                    Nav.navigate('CreateWebinar', { data: data });
-                  }}
-                >
-                  <Text style={styles.menuItemText}>Edit</Text>
-                </TouchableOpacity>
-                <View style={styles.menuDivider} />
-                <TouchableOpacity
-                  style={styles.menuItem}
-                  onPress={() => {
-                    handleMenuClose();
-                    setShowModal(true);
-                    setWebinarId(data?.id);
-                  }}
-                >
-                  <Text style={styles.deleteText}>Delete</Text>
-                </TouchableOpacity>
+              {/* Price badge */}
+              <LinearGradient
+                colors={
+                  data.price
+                    ? ['#F97316', '#FB923C']
+                    : ['#10B981', '#34D399']
+                }
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.priceBadge}
+              >
+                {data.price ? (
+                  <IndianRupee
+                    size={wp(10)}
+                    color={colors.white}
+                    strokeWidth={3}
+                  />
+                ) : null}
+                <Text style={styles.priceText}>
+                  {data.price ? `${data.price}` : 'Free'}
+                </Text>
+              </LinearGradient>
+
+              {/* Status badge */}
+              <View
+                style={[
+                  styles.statusBadge,
+                  {
+                    backgroundColor: isUpcoming
+                      ? 'rgba(16,185,129,0.85)'
+                      : 'rgba(26,26,46,0.85)',
+                    borderColor: isUpcoming
+                      ? 'rgba(16,185,129,0.3)'
+                      : 'rgba(255,255,255,0.15)',
+                  },
+                ]}
+              >
+                <Video size={wp(10)} color={colors.white} />
+                <Text style={styles.statusText}>
+                  {isUpcoming ? 'Upcoming' : 'Past'}
+                </Text>
               </View>
-            </Pressable>
-          </Modal>
-        )}
-
-        <View style={styles.content}>
-          <Text numberOfLines={2} style={styles.title}>
-            {data?.title}
-          </Text>
-
-          {data?.tags && data.tags.length > 0 && (
-            <View style={styles.tagContainer}>
-              {data.tags.slice(0, 2).map((tag, index) => (
-                <View key={index} style={styles.tagPill}>
-                  <Text style={styles.tagText}>#{tag}</Text>
-                </View>
-              ))}
             </View>
-          )}
 
-          <View style={styles.divider} />
-
-          <View style={styles.footer}>
-            <View style={styles.creatorRow}>
-              {(data?.creator?.profile_image || data?.profile_image) ? (
-                <Image
-                  source={{
-                    uri: data?.creator?.profile_image || data?.profile_image,
-                  }}
-                  style={styles.creatorImg}
-                />
-              ) : (
-                <View style={styles.creatorImgFallback}>
-                  <Users size={wp(12)} color={colors.muted} />
+            {/* Content */}
+            <View style={styles.content}>
+              {/* Tags */}
+              {data?.tags && data.tags.length > 0 && (
+                <View style={styles.tagContainer}>
+                  {data.tags.slice(0, 2).map((tag, index) => (
+                    <View key={index} style={styles.tagPill}>
+                      <Text style={styles.tagText}>#{tag}</Text>
+                    </View>
+                  ))}
                 </View>
               )}
-              <Text style={styles.creatorName} numberOfLines={1}>
-                {data?.creator?.name || data?.name || 'Creator'}
-              </Text>
-            </View>
 
-            <View style={styles.dateRow}>
-              <Calendar size={wp(12)} color={colors.textSecondary} />
-              <Text style={styles.dateText}>
-                {scheduledDate.format('DD MMM, YY')}
+              {/* Title */}
+              <Text numberOfLines={2} style={styles.title}>
+                {data?.title}
               </Text>
-            </View>
-          </View>
 
-          {data?.zoom_meeting_id && (
-            <>
-              <TouchableOpacity
-                style={styles.zoomToggle}
-                onPress={toggleZoomDetails}
-                activeOpacity={0.7}
-              >
-                <View style={styles.zoomToggleLeft}>
-                  <KeyRound size={wp(14)} color={colors.info} />
-                  <Text style={styles.zoomToggleText}>Zoom Details</Text>
+              {/* Stats row */}
+              <View style={styles.statsRow}>
+                <View style={styles.statItem}>
+                  <Calendar size={wp(13)} color={'#60A5FA'} />
+                  <Text style={styles.statText}>
+                    {scheduledDate.format('DD MMM, YY • h:mm A')}
+                  </Text>
                 </View>
-                <Animated.View style={{ transform: [{ rotate: zoomRotate }] }}>
-                  <ChevronDown size={wp(16)} color={colors.textSecondary} />
-                </Animated.View>
-              </TouchableOpacity>
+              </View>
 
-              {showZoomDetails && (
-                <View style={styles.zoomDetails}>
-                  <View style={styles.zoomRow}>
-                    <View style={styles.zoomInfo}>
-                      <Text style={styles.zoomLabel}>Meeting ID</Text>
-                      <Text style={styles.zoomValue}>{data.zoom_meeting_id}</Text>
-                    </View>
-                  </View>
-
-                  {data?.zoom_password && (
-                    <View style={styles.zoomRow}>
-                      <View style={styles.zoomInfo}>
-                        <Text style={styles.zoomLabel}>Password</Text>
-                        <Text style={styles.zoomValue}>{data.zoom_password}</Text>
-                      </View>
-                    </View>
-                  )}
-
+              {/* Zoom Details Toggle */}
+              {data?.zoom_meeting_id && (
+                <>
                   <TouchableOpacity
-                    style={styles.copyBothBtn}
+                    style={styles.zoomToggle}
+                    onPress={toggleZoomDetails}
                     activeOpacity={0.7}
-                    onPress={() => {
-                      const text = `Meeting ID: ${data.zoom_meeting_id}\nPassword: ${data.zoom_password || ''}`;
-                      copyToClipboard(text, 'Meeting ID & Password');
-                    }}
                   >
-                    <Copy size={wp(14)} color={colors.info} />
-                    <Text style={styles.copyBothText}>Copy ID & Password</Text>
+                    <View style={styles.zoomToggleLeft}>
+                      <KeyRound size={wp(14)} color={'#60A5FA'} />
+                      <Text style={styles.zoomToggleText}>Zoom Details</Text>
+                    </View>
+                    <Animated.View
+                      style={{ transform: [{ rotate: zoomRotate }] }}
+                    >
+                      <ChevronDown size={wp(16)} color={'#60A5FA'} />
+                    </Animated.View>
                   </TouchableOpacity>
 
-                  {data?.zoom_start_url && (
-                    <TouchableOpacity
-                      style={styles.startMeetingBtn}
-                      activeOpacity={0.8}
-                      onPress={() => Linking.openURL(data.zoom_start_url!)}
-                    >
-                      <Video size={wp(16)} color={colors.white} />
-                      <Text style={styles.startMeetingText}>Start Meeting</Text>
-                    </TouchableOpacity>
+                  {showZoomDetails && (
+                    <View style={styles.zoomDetails}>
+                      <View style={styles.zoomRow}>
+                        <View style={styles.zoomInfo}>
+                          <Text style={styles.zoomLabel}>Meeting ID</Text>
+                          <Text style={styles.zoomValue}>
+                            {data.zoom_meeting_id}
+                          </Text>
+                        </View>
+                      </View>
+
+                      {data?.zoom_password && (
+                        <View style={styles.zoomRow}>
+                          <View style={styles.zoomInfo}>
+                            <Text style={styles.zoomLabel}>Password</Text>
+                            <Text style={styles.zoomValue}>
+                              {data.zoom_password}
+                            </Text>
+                          </View>
+                        </View>
+                      )}
+
+                      <TouchableOpacity
+                        style={styles.copyBothBtn}
+                        activeOpacity={0.7}
+                        onPress={() => {
+                          const text = `Meeting ID: ${data.zoom_meeting_id}\nPassword: ${data.zoom_password || ''}`;
+                          copyToClipboard(text, 'Meeting ID & Password');
+                        }}
+                      >
+                        <Copy size={wp(14)} color={'#60A5FA'} />
+                        <Text style={styles.copyBothText}>
+                          Copy ID & Password
+                        </Text>
+                      </TouchableOpacity>
+
+                      {data?.zoom_start_url && (
+                        <TouchableOpacity
+                          style={styles.startMeetingBtn}
+                          activeOpacity={0.8}
+                          onPress={() => Linking.openURL(data.zoom_start_url!)}
+                        >
+                          <Video size={wp(14)} color={colors.white} />
+                          <Text style={styles.startMeetingText}>
+                            Start Meeting
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
                   )}
-                </View>
+                </>
               )}
-            </>
-          )}
-        </View>
-      </View>
+            </View>
+
+            {/* Separator */}
+            <View style={styles.separator} />
+
+            {/* Actions */}
+            <View style={styles.actionsRow}>
+              <TouchableOpacity
+                style={styles.actionBtn}
+                onPress={() => Nav.navigate('CreateWebinar', { data: data })}
+                activeOpacity={0.7}
+              >
+                <View style={styles.actionIconWrap}>
+                  <Edit3 size={wp(14)} color={'#60A5FA'} />
+                </View>
+                <Text style={[styles.actionText, { color: '#60A5FA' }]}>
+                  Edit
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.actionBtn}
+                onPress={handleShare}
+                activeOpacity={0.7}
+              >
+                <View
+                  style={[
+                    styles.actionIconWrap,
+                    { backgroundColor: 'rgba(16,185,129,0.15)' },
+                  ]}
+                >
+                  <Share2 size={wp(14)} color={'#10B981'} />
+                </View>
+                <Text style={[styles.actionText, { color: '#10B981' }]}>
+                  Share
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.actionBtn}
+                onPress={() => setShowModal(true)}
+                activeOpacity={0.7}
+              >
+                <View
+                  style={[
+                    styles.actionIconWrap,
+                    { backgroundColor: 'rgba(239,68,68,0.15)' },
+                  ]}
+                >
+                  <Trash2 size={wp(14)} color={colors.error} />
+                </View>
+                <Text style={[styles.actionText, { color: colors.error }]}>
+                  Delete
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </LinearGradient>
+      </Animated.View>
 
       <DynamicModal
         visible={showModal}
         heading="Delete Webinar"
         message="Are you sure you want to delete this webinar?"
-        onCancel={handleCancel}
+        onCancel={() => setShowModal(false)}
         onDelete={handleDelete}
         loading={deleteLoader}
       />
@@ -352,189 +402,121 @@ export default WebinarCard;
 
 const styles = StyleSheet.create({
   card: {
-    width: '100%',
-    backgroundColor: colors.white,
     borderRadius: wp(16),
+    marginBottom: hp(14),
     overflow: 'hidden',
-    elevation: 4,
-    shadowColor: colors.black,
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-    marginBottom: hp(12),
+    elevation: 8,
+    shadowColor: '#0F3460',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 14,
+  },
+  gradient: {
+    flex: 1,
+    borderRadius: wp(16),
+  },
+  touchable: {
+    flex: 1,
   },
 
+  // Thumbnail
   thumbnailWrap: {
     position: 'relative',
   },
   thumbnail: {
     width: '100%',
     height: hp(160),
-    backgroundColor: colors.placeholder,
+    backgroundColor: '#0D1B2A',
   },
   thumbnailOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.15)',
+    backgroundColor: 'rgba(15,52,96,0.3)',
+  },
+  priceBadge: {
+    position: 'absolute',
+    top: hp(12),
+    right: wp(12),
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: wp(12),
+    paddingVertical: hp(5),
+    borderRadius: wp(20),
+    gap: wp(2),
+  },
+  priceText: {
+    color: colors.white,
+    fontSize: fp(12),
+    fontWeight: '800',
   },
   statusBadge: {
     position: 'absolute',
-    top: wp(10),
-    left: wp(10),
+    bottom: hp(12),
+    left: wp(12),
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(4),
-    paddingHorizontal: wp(8),
+    paddingHorizontal: wp(10),
     paddingVertical: hp(4),
-    borderRadius: wp(8),
+    borderRadius: wp(12),
+    borderWidth: 1,
   },
   statusText: {
     color: colors.white,
     fontSize: fp(10),
     fontWeight: '700',
   },
-  priceBadge: {
-    position: 'absolute',
-    bottom: wp(10),
-    left: wp(10),
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.primary + 'CC',
-    paddingHorizontal: wp(10),
-    paddingVertical: hp(5),
-    borderRadius: wp(10),
-    gap: wp(2),
-  },
-  priceText: {
-    color: colors.white,
-    fontSize: fp(14),
-    fontWeight: '800',
-  },
-  menuWrap: {
-    position: 'absolute',
-    top: wp(8),
-    right: wp(8),
-  },
-  menuButton: {
-    width: wp(32),
-    height: wp(32),
-    borderRadius: wp(16),
-    backgroundColor: 'rgba(0,0,0,0.35)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  menuOverlay: {
-    flex: 1,
-  },
-  menuDropdown: {
-    position: 'absolute',
-    backgroundColor: colors.white,
-    borderRadius: wp(12),
-    paddingVertical: hp(4),
-    width: wp(140),
-    elevation: 10,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 12,
-  },
-  menuItem: {
-    paddingVertical: hp(12),
-    paddingHorizontal: wp(18),
-  },
-  menuItemText: {
-    fontSize: fp(14),
-    fontWeight: '600',
-    color: colors.text,
-  },
-  menuDivider: {
-    height: 1,
-    backgroundColor: colors.surface,
-  },
-  deleteText: {
-    fontSize: fp(14),
-    fontWeight: '600',
-    color: colors.error,
-  },
 
   // Content
   content: {
-    padding: wp(14),
+    padding: wp(12),
+    flex: 1,
   },
-  title: {
-    fontSize: fp(15),
-    fontWeight: '700',
-    color: colors.text,
-    lineHeight: fp(21),
-  },
-
-  // Tags
   tagContainer: {
     flexDirection: 'row',
-    marginTop: hp(6),
+    marginBottom: hp(5),
     gap: wp(6),
   },
   tagPill: {
-    backgroundColor: colors.info + '12',
+    backgroundColor: 'rgba(96,165,250,0.15)',
     paddingHorizontal: wp(10),
     paddingVertical: hp(3),
-    borderRadius: wp(20),
+    borderRadius: wp(12),
     borderWidth: 1,
-    borderColor: colors.info + '25',
+    borderColor: 'rgba(96,165,250,0.25)',
   },
   tagText: {
-    fontSize: fp(11),
-    color: colors.info,
-    fontWeight: '600',
+    fontSize: fp(9),
+    color: '#60A5FA',
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  title: {
+    fontSize: fp(14),
+    fontWeight: '800',
+    color: colors.white,
+    lineHeight: fp(19),
+    marginBottom: hp(8),
   },
 
-  // Divider
-  divider: {
-    height: 1,
-    backgroundColor: colors.surface,
-    marginVertical: hp(8),
-  },
-
-  // Footer
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  creatorRow: {
+  // Stats
+  statsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
   },
-  creatorImg: {
-    width: wp(24),
-    height: wp(24),
-    borderRadius: wp(12),
-    backgroundColor: colors.placeholder,
-  },
-  creatorImgFallback: {
-    width: wp(24),
-    height: wp(24),
-    borderRadius: wp(12),
-    backgroundColor: colors.surface,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  creatorName: {
-    marginLeft: wp(6),
-    fontSize: fp(12),
-    color: colors.textSecondary,
-    fontWeight: '500',
-    flex: 1,
-  },
-  dateRow: {
+  statItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(4),
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    paddingHorizontal: wp(10),
+    paddingVertical: hp(4),
+    borderRadius: wp(8),
   },
-  dateText: {
-    fontSize: fp(11),
-    color: colors.textSecondary,
-    fontWeight: '500',
+  statText: {
+    color: '#94A3B8',
+    fontSize: fp(10),
+    fontWeight: '600',
   },
 
   // Zoom Details
@@ -545,10 +527,10 @@ const styles = StyleSheet.create({
     marginTop: hp(8),
     paddingVertical: hp(8),
     paddingHorizontal: wp(10),
-    backgroundColor: colors.info + '0A',
+    backgroundColor: 'rgba(96,165,250,0.08)',
     borderRadius: wp(10),
     borderWidth: 1,
-    borderColor: colors.info + '20',
+    borderColor: 'rgba(96,165,250,0.2)',
   },
   zoomToggleLeft: {
     flexDirection: 'row',
@@ -558,11 +540,11 @@ const styles = StyleSheet.create({
   zoomToggleText: {
     fontSize: fp(12),
     fontWeight: '600',
-    color: colors.info,
+    color: '#60A5FA',
   },
   zoomDetails: {
     marginTop: hp(8),
-    backgroundColor: colors.surface,
+    backgroundColor: 'rgba(255,255,255,0.06)',
     borderRadius: wp(10),
     padding: wp(10),
     gap: hp(8),
@@ -577,12 +559,12 @@ const styles = StyleSheet.create({
   },
   zoomLabel: {
     fontSize: fp(10),
-    color: colors.textSecondary,
+    color: '#94A3B8',
     fontWeight: '500',
   },
   zoomValue: {
     fontSize: fp(13),
-    color: colors.text,
+    color: colors.white,
     fontWeight: '700',
     marginTop: hp(1),
   },
@@ -593,28 +575,63 @@ const styles = StyleSheet.create({
     gap: wp(6),
     paddingVertical: hp(8),
     borderRadius: wp(8),
-    backgroundColor: colors.info + '15',
+    backgroundColor: 'rgba(96,165,250,0.15)',
     borderWidth: 1,
-    borderColor: colors.info + '25',
+    borderColor: 'rgba(96,165,250,0.25)',
   },
   copyBothText: {
     fontSize: fp(12),
     fontWeight: '600',
-    color: colors.info,
+    color: '#60A5FA',
   },
   startMeetingBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: wp(6),
-    backgroundColor: colors.primary,
+    backgroundColor: 'rgba(96,165,250,0.2)',
     paddingVertical: hp(9),
     borderRadius: wp(10),
     marginTop: hp(2),
+    borderWidth: 1,
+    borderColor: 'rgba(96,165,250,0.3)',
   },
   startMeetingText: {
     color: colors.white,
     fontSize: fp(13),
     fontWeight: '700',
+  },
+
+  // Separator
+  separator: {
+    height: 1,
+    marginHorizontal: wp(12),
+    backgroundColor: 'rgba(255,255,255,0.08)',
+  },
+
+  // Actions
+  actionsRow: {
+    flexDirection: 'row',
+    paddingVertical: hp(6),
+    paddingHorizontal: wp(6),
+  },
+  actionBtn: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: wp(3),
+    paddingVertical: hp(3),
+  },
+  actionIconWrap: {
+    width: wp(28),
+    height: wp(28),
+    borderRadius: wp(14),
+    backgroundColor: 'rgba(96,165,250,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  actionText: {
+    fontSize: fp(10),
+    fontWeight: '600',
   },
 });

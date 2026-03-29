@@ -6,7 +6,7 @@ import UserView from './UserView';
 const PurchasesScreen: React.FC = () => {
   return (
     <View style={{ flex: 1 }}>
-      <AppHeader title="Manchly" />
+      {/* <AppHeader title="Manchly" /> */}
       <UserView />
     </View>
   );

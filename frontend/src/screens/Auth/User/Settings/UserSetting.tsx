@@ -4,21 +4,20 @@ import {
   Text,
   ScrollView,
   StyleSheet,
-  TouchableOpacity,
+  Pressable,
   Image,
   Linking,
+  TouchableOpacity,
 } from 'react-native';
 import colors from '../../../../utils/colors';
+import { wp, hp, fp } from '../../../../utils/responsive';
 import {
   User2,
-  Settings as SettingsIcon,
-  List as ListIcon,
-  Wallet as WalletIcon,
   ChevronRight,
   LogOut,
   Headset,
-  Megaphone,
-  GraduationCap,
+  Bell,
+  UserCircle,
   Notebook,
 } from 'lucide-react-native';
 import LogoutModal from '../../Profile/Components/LogoutModal';
@@ -28,135 +27,171 @@ import { ThunkDispatch } from '@reduxjs/toolkit';
 import { logout } from '../../../../store/UserSlice';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
-import { wp, hp, fp } from '../../../../utils/responsive';
+
+const SUPPORT_PHONE = '6363790659';
+
+const openWhatsApp = (message: string) => {
+  const url = `whatsapp://send?phone=91${SUPPORT_PHONE}&text=${encodeURIComponent(
+    message,
+  )}`;
+  Linking.canOpenURL(url)
+    .then(supported => {
+      if (!supported) {
+        Toast.show({
+          type: 'error',
+          text1: 'WhatsApp not installed',
+          text2: 'Please install WhatsApp to contact support',
+          position: 'bottom',
+        });
+      } else {
+        return Linking.openURL(url);
+      }
+    })
+    .catch(err => {
+      Toast.show({
+        type: 'error',
+        text1: 'Something went wrong',
+        text2: err?.message || 'Unable to open WhatsApp',
+        position: 'bottom',
+      });
+    });
+};
+
+/* ──────── Reusable Menu Row ──────── */
+const MenuRow = ({
+  icon: Icon,
+  iconColor = colors.text,
+  iconBg = '#f4f4f5',
+  label,
+  labelColor = colors.text,
+  subtitle,
+  onPress,
+  isLast = false,
+}: any) => (
+  <Pressable
+    style={({ pressed }) => [
+      styles.row,
+      !isLast && styles.rowBorder,
+      pressed && styles.rowPressed,
+    ]}
+    onPress={onPress}
+    accessibilityRole="button"
+  >
+    <View style={styles.rowLeft}>
+      <View style={[styles.rowIcon, { backgroundColor: iconBg }]}>
+        <Icon size={wp(18)} color={iconColor} strokeWidth={1.8} />
+      </View>
+      <View>
+        <Text style={[styles.rowText, { color: labelColor }]}>{label}</Text>
+        {subtitle && <Text style={styles.rowSubtext}>{subtitle}</Text>}
+      </View>
+    </View>
+    <ChevronRight size={wp(18)} color="#c8ccd0" />
+  </Pressable>
+);
+
+/* ──────── Quick Action Card ──────── */
+const QuickAction = ({ icon: Icon, label, subtitle, color, onPress }: any) => (
+  <Pressable
+    style={({ pressed }) => [styles.topCard, pressed && styles.topCardPressed]}
+    onPress={onPress}
+  >
+    <View style={[styles.topCardIcon, { backgroundColor: color + '12' }]}>
+      <Icon size={wp(20)} color={color} strokeWidth={1.8} />
+    </View>
+    <Text style={styles.topCardText}>{label}</Text>
+    {subtitle && <Text style={styles.topCardSubtext}>{subtitle}</Text>}
+  </Pressable>
+);
 
 const UserSetting: React.FC = () => {
   const [logoutVisible, setLogoutVisible] = useState(false);
-  const Nav = useNavigation();
-  const { user, } = useSelector((state: any) => state.userReducer);
+  const Nav = useNavigation<any>();
+  const { user } = useSelector((state: any) => state.userReducer);
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
   const insets = useSafeAreaInsets();
 
-  const RightChevron = <ChevronRight size={wp(18)} color={colors.textSecondary} />;
-
   return (
     <View style={styles.container}>
-      <View style={[styles.mainHeader, { paddingTop: insets.top + hp(10) }]} />
-
-      <View
-        style={[
-          styles.header,
-          {
-            backgroundColor: colors.secPrimary,
-          },
-        ]}
-      >
-        <View style={styles.greetingWrap}>
-          <Image source={{ uri: user?.profile_image }} style={styles.avatar} />
-          <Text style={styles.greetingText}>
-            Hello,{' '}
-            {user?.name
-              ? user?.name?.charAt(0).toUpperCase() + user?.name?.slice(1)
-              : ''}
-          </Text>
+      {/* ──────── Header ──────── */}
+      <View style={[styles.headerWrapper, { paddingTop: insets.top }]}>
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            {user?.profile_image ? (
+              <Image
+                source={{ uri: user.profile_image }}
+                style={styles.avatar}
+              />
+            ) : (
+              <View style={styles.avatarFallback}>
+                <UserCircle size={wp(28)} color={colors.white} />
+              </View>
+            )}
+            <View>
+              <Text style={styles.headerSubtitle}>Welcome Back</Text>
+              <Text style={styles.headerTitle}>
+                {user?.name
+                  ? user.name.charAt(0).toUpperCase() + user.name.slice(1)
+                  : 'User'}
+              </Text>
+            </View>
+          </View>
+          <TouchableOpacity style={styles.bellBtn}>
+            <Bell size={wp(20)} color={colors.white} />
+          </TouchableOpacity>
         </View>
       </View>
 
       <ScrollView
         style={styles.body}
-        contentContainerStyle={{ paddingBottom: hp(24) }}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
       >
-        <View style={styles.section}>
-
-          <View style={styles.topCardWrapper}>
-            <View style={{ width: '48%' }}>
-              <TouchableOpacity style={styles.topCard} activeOpacity={0.9}
-                onPress={() => {
-                  const phoneNumber = '6363790659';
-                  const message = 'Hello, I am user,I need help.';
-                  const url = `whatsapp://send?phone=91${phoneNumber}&text=${encodeURIComponent(
-                    message,
-                  )}`;
-
-                  Linking.canOpenURL(url)
-                    .then(supported => {
-                      if (!supported) {
-                        Toast.show({
-                          type: 'error',
-                          text1: 'WhatsApp not installed',
-                          text2: 'Please install WhatsApp to contact support',
-                          position: 'bottom',
-                        });
-                      } else {
-                        return Linking.openURL(url);
-                      }
-                    })
-                    .catch(err => {
-                      Toast.show({
-                        type: 'error',
-                        text1: 'Something went wrong',
-                        text2: err?.message || 'Unable to open WhatsApp',
-                        position: 'bottom',
-                      });
-                    });
-                }} >
-                <Headset size={wp(20)} />
-                <Text style={styles.topCardText}>Help & Support</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity style={[styles.topCard, { marginTop: hp(10) }]} activeOpacity={0.9}>
-                <GraduationCap size={wp(25)} strokeWidth={1.5} />
-                <Text style={styles.topCardText}>My Learning</Text>
-              </TouchableOpacity>
-            </View>
-            <View style={styles.mainHeaderCard}>
-              <View style={{ alignItems: 'center', gap: wp(8) }}>
-                <Notebook size={wp(20)} />
-                <Text>About</Text>
-              </View>
-              <Text style={{ marginTop: hp(10), textAlign: 'center', fontSize: fp(12), color: colors.textSecondary }}>
-                Learn more about our app, features, and community.
-              </Text>
-            </View>
-          </View>
-
-          <TouchableOpacity
-            style={styles.row}
-            activeOpacity={0.7}
-            onPress={() => {
-              Nav.navigate('UserProfile');
-            }}
-          >
-            <View style={styles.rowLeft}>
-              <View style={styles.rowIcon}>
-                <User2 size={wp(20)} color={colors.text} />
-              </View>
-              <Text style={styles.rowText}>My Profile</Text>
-            </View>
-            {RightChevron}
-          </TouchableOpacity>
-
+        {/* ──────── Quick Actions ──────── */}
+        <View style={styles.topCardWrapper}>
+          <QuickAction
+            icon={Headset}
+            label="Help & Support"
+            color="#3B82F6"
+            onPress={() => openWhatsApp('Hello, I am a User, I need help.')}
+          />
+          <QuickAction
+            icon={Notebook}
+            label="About"
+            subtitle="Learn more about our app, features, and community."
+            color="#10B981"
+            onPress={() => {}}
+          />
         </View>
 
+        {/* ──────── Account Section ──────── */}
+        <Text style={styles.sectionTitle}>Account</Text>
         <View style={styles.section}>
-          <TouchableOpacity
-            style={styles.row}
-            activeOpacity={0.7}
+          <MenuRow
+            icon={User2}
+            iconBg="#f0f4ff"
+            iconColor="#3B82F6"
+            label="My Profile"
+            subtitle="Manage your profile"
+            onPress={() => Nav.navigate('UserProfile')}
+            isLast
+          />
+        </View>
+
+        {/* ──────── Logout Section ──────── */}
+        <View style={styles.logoutSection}>
+          <MenuRow
+            icon={LogOut}
+            iconBg="#fef2f2"
+            iconColor={colors.error}
+            label="Logout"
+            labelColor={colors.error}
             onPress={() => setLogoutVisible(true)}
-          >
-            <View style={styles.rowLeft}>
-              <View style={styles.rowIcon}>
-                <LogOut size={wp(20)} color={colors.error} />
-              </View>
-              <Text style={[styles.rowText, { color: colors.error }]}>
-                Logout
-              </Text>
-            </View>
-            {RightChevron}
-          </TouchableOpacity>
+            isLast
+          />
         </View>
 
-        {/* <Text style={styles.version}>{APP_VERSION}</Text> */}
+        <Text style={styles.versionText}>Version 1.0.0</Text>
       </ScrollView>
 
       <LogoutModal
@@ -174,142 +209,203 @@ const UserSetting: React.FC = () => {
 export default UserSetting;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.white },
+  container: {
+    flex: 1,
+    backgroundColor: '#f5f5f7',
+  },
+
+  headerWrapper: {
+    backgroundColor: colors.secPrimary,
+    zIndex: 10,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+  },
   header: {
-    paddingBottom: hp(18),
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: wp(16),
+    paddingVertical: hp(14),
   },
-  headerTitle: {
-    textAlign: 'center',
-    color: colors.white,
-    fontSize: fp(22),
-    fontWeight: '800',
-    letterSpacing: 1,
-    marginBottom: hp(16),
-  },
-  greetingWrap: {
+  headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: wp(12),
+    flex: 1,
   },
   avatar: {
-    width: wp(54),
-    height: hp(54),
-    borderRadius: wp(27),
-    backgroundColor: '#ffffff33',
-    marginRight: wp(12),
+    width: wp(34),
+    height: wp(34),
+    borderRadius: wp(11),
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.2)',
   },
-  greetingText: {
-    color: colors.white,
+  avatarFallback: {
+    width: wp(48),
+    height: wp(48),
+    borderRadius: wp(16),
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerSubtitle: {
+    fontSize: fp(12),
+    color: 'rgba(255,255,255,0.6)',
+    fontWeight: '500',
+  },
+  headerTitle: {
     fontSize: fp(18),
-    fontWeight: '700',
+    fontWeight: '800',
+    color: colors.white,
+    marginTop: hp(1),
+  },
+  bellBtn: {
+    width: wp(32),
+    height: wp(32),
+    borderRadius: wp(10),
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
-  body: { flex: 1, backgroundColor: colors.white },
+  /* ──── Body ──── */
+  body: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: hp(40),
+  },
 
-  sectionHeader: {
-    fontSize: fp(14),
-    color: colors.textSecondary,
+  /* ──── Quick Actions ──── */
+  topCardWrapper: {
+    flexDirection: 'row',
     paddingHorizontal: wp(16),
-    paddingTop: hp(20),
-    paddingBottom: hp(8),
+    marginTop: hp(18),
+    marginBottom: hp(14),
+    gap: wp(12),
+  },
+  topCard: {
+    flex: 1,
+    paddingVertical: hp(16),
+    paddingHorizontal: wp(14),
+    borderRadius: wp(14),
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: hp(8),
+    backgroundColor: colors.white,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#eaecef',
+  },
+  topCardPressed: {
+    opacity: 0.88,
+    transform: [{ scale: 0.97 }],
+  },
+  topCardIcon: {
+    width: wp(42),
+    height: wp(42),
+    borderRadius: wp(13),
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  topCardText: {
+    color: colors.text,
+    fontSize: fp(13),
+    fontWeight: '600',
+  },
+  topCardSubtext: {
+    color: colors.textSecondary,
+    fontSize: fp(11),
+    textAlign: 'center',
+    lineHeight: fp(15),
   },
 
+  /* ──── Sections ──── */
+  sectionTitle: {
+    fontSize: fp(13),
+    fontWeight: '600',
+    color: colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    marginHorizontal: wp(20),
+    marginBottom: hp(8),
+  },
   section: {
     backgroundColor: colors.white,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
+    marginHorizontal: wp(16),
+    borderRadius: wp(16),
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#eaecef',
+    overflow: 'hidden',
+  },
+  logoutSection: {
+    backgroundColor: colors.white,
+    marginHorizontal: wp(16),
+    marginTop: hp(16),
+    borderRadius: wp(16),
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#eaecef',
+    overflow: 'hidden',
   },
 
+  /* ──── Rows ──── */
   row: {
     paddingHorizontal: wp(16),
-    paddingVertical: hp(16),
+    paddingVertical: hp(14),
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: colors.white,
+  },
+  rowBorder: {
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
+    borderBottomColor: '#f0f2f5',
+  },
+  rowPressed: {
+    backgroundColor: '#f8f9fa',
   },
   rowLeft: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
   },
   rowIcon: {
-    width: wp(28),
+    width: wp(36),
+    height: wp(36),
+    borderRadius: wp(10),
     alignItems: 'center',
+    justifyContent: 'center',
     marginRight: wp(12),
   },
   rowText: {
-    fontSize: fp(16),
+    fontSize: fp(15),
     color: colors.text,
+    fontWeight: '500',
   },
-  rowTextContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(8),
-  },
-  kycStatusText: {
+  rowSubtext: {
     fontSize: fp(12),
-    color: 'green',
-    fontWeight: '600',
-  },
-
-  badge: {
-    paddingHorizontal: wp(10),
-    paddingVertical: hp(4),
-    backgroundColor: '#ff2d55',
-    borderRadius: wp(999),
-  },
-  badgeText: {
-    color: colors.white,
-    fontSize: fp(11),
-    fontWeight: '700',
-  },
-
-  version: {
-    paddingHorizontal: wp(16),
-    paddingTop: hp(18),
-    fontSize: fp(13),
     color: colors.textSecondary,
-  },
-  topCardWrapper: {
-    justifyContent: 'space-between',
-    paddingHorizontal: wp(16),
-    marginTop: hp(20),
-    marginBottom: hp(10),
-    flexDirection: 'row',
+    marginTop: hp(1),
   },
 
-  topCard: {
-    borderColor: colors.border,
-    paddingVertical: hp(20),
-    paddingHorizontal: wp(10),
-    borderRadius: wp(8),
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(8),
-    backgroundColor: colors.white,
-    elevation: 5,
-    justifyContent: 'center'
+  versionText: {
+    textAlign: 'center',
+    fontSize: fp(12),
+    color: colors.muted,
+    marginTop: hp(24),
+    fontWeight: '500',
   },
-
-  topCardText: {
-    color: colors.text,
-    fontSize: fp(16),
-  },
-
-  mainHeader: {
-    backgroundColor: colors.secPrimary,
-  },
-  mainHeaderCard: {
-    width: '48%',
-    borderColor: colors.border,
-    borderRadius: wp(8),
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: hp(20),
-    elevation: 5,
-    backgroundColor: colors.white,
-  }
 });

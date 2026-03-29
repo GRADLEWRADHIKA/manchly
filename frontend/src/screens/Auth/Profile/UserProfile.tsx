@@ -18,7 +18,6 @@ import {
   Phone,
   Pen,
   Lock,
-  CalendarDays,
 } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -29,7 +28,6 @@ import { ThunkDispatch } from '@reduxjs/toolkit';
 import Toast from 'react-native-toast-message';
 import { pick, types } from '@react-native-documents/picker';
 import { uploadShipDoc } from '../../../store/Common';
-import DateTimePicker from 'react-native-modal-datetime-picker';
 
 const UserProfile = () => {
   const navigation = useNavigation<any>();
@@ -39,8 +37,6 @@ const UserProfile = () => {
   const [imageAdd, setImageAdd] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [showDobPicker, setShowDobPicker] = useState(false);
-
   const displayName = user?.name
     ? user.name.charAt(0).toUpperCase() + user.name.slice(1)
     : 'User';
@@ -54,7 +50,6 @@ const UserProfile = () => {
       email: user?.email || '',
       phone: user?.phone || '',
       name: user?.name || '',
-      dob: user?.dob || '',
     },
   });
 
@@ -125,8 +120,8 @@ const UserProfile = () => {
     try {
       const payload = {
         name: data?.name,
-        dob: data?.dob,
         profile_image: imageAdd || user?.profile_image,
+        user_type: user?.user_type,
       };
 
       await dispatch(updateProfile(payload)).unwrap();
@@ -150,7 +145,6 @@ const UserProfile = () => {
     }
   };
 
-  /* ================= UI ================= */
 
   return (
     <View style={styles.container}>
@@ -212,55 +206,6 @@ const UserProfile = () => {
                     inputContainerStyle={styles.input}
                     inputStyle={styles.inputText}
                   />
-                )}
-              />
-            </View>
-          </View>
-
-          <View style={styles.divider} />
-
-          {/* DOB */}
-          <View style={styles.fieldRow}>
-            <View style={[styles.fieldIcon, { backgroundColor: '#FFF7ED' }]}>
-              <CalendarDays
-                size={wp(16)}
-                color="#F59E0B"
-                strokeWidth={1.8}
-              />
-            </View>
-            <View style={styles.fieldContent}>
-              <Text style={styles.fieldLabel}>Date of Birth</Text>
-              <Controller
-                name="dob"
-                control={control}
-                render={({ field: { value, onChange } }) => (
-                  <>
-                    <Pressable
-                      style={styles.input}
-                      onPress={() => setShowDobPicker(true)}
-                    >
-                      <Text
-                        style={[
-                          styles.inputText,
-                          !value && styles.placeholderText,
-                        ]}
-                      >
-                        {value || 'Select Date of Birth'}
-                      </Text>
-                    </Pressable>
-
-                    <DateTimePicker
-                      isVisible={showDobPicker}
-                      mode="date"
-                      maximumDate={new Date()}
-                      onConfirm={date => {
-                        setShowDobPicker(false);
-                        const formatted = date.toISOString().split('T')[0];
-                        onChange(formatted);
-                      }}
-                      onCancel={() => setShowDobPicker(false)}
-                    />
-                  </>
                 )}
               />
             </View>

@@ -403,6 +403,7 @@ export class AuthController {
           dob: (user as any).dob,
           kyc_verified: (user as any).kyc_verified,
           phone: user.phone,
+          profile_image: user.profile_image,
           user_type: user_type || (Array.isArray(user.user_type) ? user.user_type[0] : user.user_type),
           fcm_token: fcm_token || user.fcm_token
         }
@@ -561,7 +562,7 @@ export class AuthController {
       ApiResponseHandler.success(res, {
         user: {
           ...userWithoutSensitive,
-          user_type: Array.isArray(userWithoutSensitive.user_type) ? userWithoutSensitive.user_type[0] : userWithoutSensitive.user_type,
+          user_type: user_type || (Array.isArray(userWithoutSensitive.user_type) ? userWithoutSensitive.user_type[0] : userWithoutSensitive.user_type),
           is_profile_image: userWithoutSensitive.profile_image || null
         }
       }, "Profile updated successfully");

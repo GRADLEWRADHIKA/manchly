@@ -149,7 +149,13 @@ export class KYCController {
           FROM users
           WHERE id = ${userId}
         `;
-        updatedUser = userResult[0] || null;
+        const rawUser = userResult[0] || null;
+        if (rawUser) {
+          updatedUser = {
+            ...rawUser,
+            user_type: Array.isArray(rawUser.user_type) ? rawUser.user_type[0] : rawUser.user_type,
+          };
+        }
       } catch (userError) {
         console.log("Error fetching user data:", userError);
       }
@@ -247,6 +253,8 @@ export class KYCController {
       );
 
       const digioData = digioResponse.data;
+      console.log("Digio KYC Raw Response:", JSON.stringify(digioData, null, 2));
+      console.log("Digio match fields - name_as_per_pan_match:", JSON.stringify(digioData.name_as_per_pan_match), "date_of_birth_match:", JSON.stringify(digioData.date_of_birth_match));
 
       // Extract PAN details
       const panDetails = {
@@ -260,24 +268,32 @@ export class KYCController {
       };
 
       // Check matches from Digio response
-      const nameMatch = digioData.name_as_per_pan_match === "MATCHED";
-      const dobMatch = digioData.date_of_birth_match === "MATCHED";
+      // Digio returns boolean true/false or string "MATCHED"/"NOT_MATCHED"
+      const nameMatch = digioData.name_as_per_pan_match === true || digioData.name_as_per_pan_match === "MATCHED";
+      const dobMatch = digioData.date_of_birth_match === true || digioData.date_of_birth_match === "MATCHED";
 
-      // Manual name comparison as fallback
+      // Check if fields are truly missing (undefined/null), not just false
+      const nameFieldPresent = digioData.name_as_per_pan_match !== undefined && digioData.name_as_per_pan_match !== null;
+      const dobFieldPresent = digioData.date_of_birth_match !== undefined && digioData.date_of_birth_match !== null;
+
+      // Manual name comparison as fallback only when Digio doesn't return the field
       const normalizeName = (name: string) =>
         name.toUpperCase().trim().replace(/\s+/g, " ");
 
       const panName = normalizeName(panDetails.name);
       const userName = normalizeName(user_name);
-
       const manualNameMatch = panName === userName;
-      const finalNameMatch =
-        nameMatch ||
-        (digioData.name_as_per_pan_match === undefined && manualNameMatch);
-      const finalDobMatch =
-        dobMatch || digioData.date_of_birth_match === undefined;
 
-      const verified = finalNameMatch && finalDobMatch;
+      // Name: trust Digio if field is present, otherwise fallback to manual comparison
+      const finalNameMatch = nameFieldPresent
+        ? nameMatch
+        : (manualNameMatch || !panDetails.name);
+
+      // DOB: trust Digio if field is present, otherwise skip check
+      const finalDobMatch = dobFieldPresent ? dobMatch : true;
+
+      const isStatusValid = digioData.status === "valid" || digioData.status === "VALID";
+      const verified = isStatusValid && finalNameMatch && finalDobMatch;
 
       // Save KYC verification record
       try {
@@ -338,7 +354,13 @@ export class KYCController {
             FROM users
             WHERE id = ${userId}
           `;
-          updatedUser = userResult[0] || null;
+          const rawUser = userResult[0] || null;
+          if (rawUser) {
+            updatedUser = {
+              ...rawUser,
+              user_type: Array.isArray(rawUser.user_type) ? rawUser.user_type[0] : rawUser.user_type,
+            };
+          }
         } catch (userError) {
           console.log("Error fetching user data:", userError);
         }
@@ -360,8 +382,14 @@ export class KYCController {
             verified_at: verified ? new Date() : null,
             kyc_record_id: kycRecordId,
             user: updatedUser,
+            digio_raw_match: {
+              name_as_per_pan_match: panDetails.name_as_per_pan_match,
+              date_of_birth_match: panDetails.date_of_birth_match,
+            },
             failure_reason: verified
               ? null
+              : !finalNameMatch && !finalDobMatch
+              ? "Name and date of birth mismatch"
               : !finalNameMatch
               ? "Name mismatch"
               : !finalDobMatch
@@ -636,6 +664,52 @@ export class KYCController {
         error?.response?.status || 500,
         "BANK_VERIFICATION_FAILED"
       );
+    }
+  }
+
+  static async resetKYC(req: JWTRequest, res: Response) {
+    try {
+      const userId = req.user?.userId;
+
+      if (!userId) {
+        return ApiResponseHandler.customError(res, "Unauthorized", 401, "UNAUTHORIZED");
+      }
+
+      // Delete KYC verification records
+      await prisma.$executeRaw`DELETE FROM kyc_verifications WHERE user_id = ${userId}`;
+
+      // Reset user KYC fields
+      await prisma.$executeRaw`
+        UPDATE users SET
+          pan_number = NULL,
+          kyc_verified = false,
+          kyc_status = 'PENDING',
+          kyc_verified_at = NULL,
+          kyc_verification_id = NULL
+        WHERE id = ${userId}
+      `;
+
+      // Fetch updated user
+      const userResult = await prisma.$queryRaw<any[]>`
+        SELECT id, email, name, phone, profile_image, pan_number, kyc_verified,
+               kyc_status, kyc_verified_at, kyc_verification_id, dob,
+               user_type, created_at, updated_at, last_login
+        FROM users WHERE id = ${userId}
+      `;
+
+      const rawUser = userResult[0] || null;
+      let updatedUser = null;
+      if (rawUser) {
+        updatedUser = {
+          ...rawUser,
+          user_type: Array.isArray(rawUser.user_type) ? rawUser.user_type[0] : rawUser.user_type,
+        };
+      }
+
+      return ApiResponseHandler.success(res, { user: updatedUser }, "KYC reset successfully");
+    } catch (error: any) {
+      console.error("KYC reset error:", error);
+      return ApiResponseHandler.customError(res, "Failed to reset KYC", 500, "KYC_RESET_FAILED");
     }
   }
 }

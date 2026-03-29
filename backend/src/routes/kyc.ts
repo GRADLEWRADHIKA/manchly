@@ -34,5 +34,12 @@ router.get("/status", jwtAuth, KYCController.getKYCStatus);
  */
 router.post("/verify-bank", jwtAuth, KYCController.verifyBankAccount);
 
+/**
+ * @route   POST /api/kyc/reset
+ * @desc    Reset user's KYC verification status
+ * @access  Protected
+ */
+router.post("/reset", jwtAuth, KYCController.resetKYC);
+
 export default router;
 

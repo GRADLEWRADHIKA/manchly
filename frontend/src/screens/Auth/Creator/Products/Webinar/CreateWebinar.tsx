@@ -415,14 +415,14 @@ const CreateWebinarScreen = () => {
                     onPress={showTimePicker}
                   >
                     <Text style={{ fontSize: fp(14), color: colors.primary }}>
-                      {value ? value : 'Select start time (24h)'}
+                      {value ? value : 'Select start time '}
                     </Text>
                   </TouchableOpacity>
 
                   <DateTimePickerModal
                     isVisible={isTimePickerVisible}
                     mode="time"
-                    is24Hour={true}
+                    is24Hour={false}
                     onConfirm={date => {
                       const formattedTime = moment(date).format('HH:mm'); // ✅ 24-hour format
                       onChange(formattedTime);

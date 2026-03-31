@@ -6,6 +6,7 @@ import coursesReducer from './CourseSlice'
 import videosReducer from './VideoSlice'
 import enrollmentsReducer from './EnrollmentSlice'
 import paymentReducer from './PaymentSlice'
+import webinarReducer from './WebinarSlice'
 
 const rootReducer = combineReducers({
   userReducer,
@@ -13,6 +14,7 @@ const rootReducer = combineReducers({
   videosReducer,
   enrollmentsReducer,
   paymentReducer,
+  webinarReducer,
 });
 const persistConfig = {
   key: 'root',

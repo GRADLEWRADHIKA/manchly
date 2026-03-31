@@ -84,10 +84,10 @@ const VerifyLogin: React.FC<VerifyLoginProps> = ({
             dispatch(sendOtpSms(payload))
               .unwrap()
               .then(res => {
-                Toast.show({
-                  type: 'success',
-                  text1: `Login OTP is ${res?.data?.data?.otp}`,
-                });
+                // Toast.show({
+                //   type: 'success',
+                //   text1: `Login OTP is ${res?.data?.data?.otp}`,
+                // });
                 setOtpData(res?.data?.data?.otp);
                 setOtpSuccess(true);
                 reset();
@@ -97,10 +97,10 @@ const VerifyLogin: React.FC<VerifyLoginProps> = ({
             dispatch(sendOtpEmail(payload))
               .unwrap()
               .then(res => {
-                Toast.show({
-                  type: 'success',
-                  text1: `Login OTP is ${res?.data?.data?.otp}`,
-                });
+                // Toast.show({
+                //   type: 'success',
+                //   text1: `Login OTP is ${res?.data?.data?.otp}`,
+                // });
                 setOtpData(res?.data?.data?.otp);
                 setOtpSuccess(true);
                 reset();

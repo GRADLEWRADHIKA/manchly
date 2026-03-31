@@ -93,12 +93,26 @@ export const deleteCourse = createAsyncThunk(
   },
 );
 
+// Get Creator Course Stats
+export const getCreatorCourseStats = createAsyncThunk(
+  'courses/creatorStats',
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await instance.get('courses/stats/creator');
+      return res.data?.data;
+    } catch (e: any) {
+      return rejectWithValue(e?.response?.data?.message || 'Failed to fetch stats');
+    }
+  },
+);
+
 const slice = createSlice({
   name: 'courses',
   initialState: {
     list: [] as any[],
     current: null as any,
     loading: false,
+    creatorStats: null as any,
   },
   reducers: {},
   extraReducers: builder => {
@@ -144,6 +158,9 @@ const slice = createSlice({
         // state.list = state.list.filter(c => (c.id || c._id) !== id);
         // if (state.current && (state.current.id || state.current._id) === id)
         //   state.current = null;
+      })
+      .addCase(getCreatorCourseStats.fulfilled, (state, { payload }) => {
+        state.creatorStats = payload ?? null;
       });
   },
 });

@@ -10,6 +10,7 @@ import {
   Dimensions,
   ActivityIndicator,
   Platform,
+  Modal,
 } from 'react-native';
 import Video, { OnProgressData, OnLoadData } from 'react-native-video';
 import {
@@ -23,6 +24,7 @@ import {
   VolumeX,
   X,
 } from 'lucide-react-native';
+import Orientation from 'react-native-orientation-locker';
 import { wp, hp, fp } from '../utils/responsive';
 import colors from '../utils/colors';
 
@@ -220,22 +222,27 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({
   };
 
   const toggleFullscreen = () => {
+    if (isFullscreen) {
+      Orientation.lockToPortrait();
+    } else {
+      Orientation.lockToLandscape();
+    }
     setIsFullscreen(!isFullscreen);
   };
+
+  useEffect(() => {
+    return () => {
+      Orientation.lockToPortrait();
+    };
+  }, []);
 
   const toggleMute = () => {
     setIsMuted(!isMuted);
     showControls();
   };
 
-  const containerStyle = isFullscreen
-    ? styles.fullscreenContainer
-    : [styles.container, style];
-
-  return (
-    <View style={containerStyle}>
-      {isFullscreen && <StatusBar hidden />}
-
+  const renderPlayerContent = () => (
+    <>
       {/* Video */}
       <Video
         ref={videoRef}
@@ -292,7 +299,7 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({
           {/* Top bar */}
           <View style={styles.topBar}>
             <View style={styles.topBarLeft}>
-              {showCloseButton && onClose && (
+              {showCloseButton && onClose && !isFullscreen && (
                 <TouchableOpacity
                   onPress={onClose}
                   style={styles.topButton}
@@ -393,7 +400,30 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({
           </View>
         </Animated.View>
       )}
-    </View>
+    </>
+  );
+
+  return (
+    <>
+      {!isFullscreen && (
+        <View style={[styles.container, style]}>
+          {renderPlayerContent()}
+        </View>
+      )}
+
+      <Modal
+        visible={isFullscreen}
+        animationType="fade"
+        supportedOrientations={['landscape-left', 'landscape-right']}
+        statusBarTranslucent
+        onRequestClose={toggleFullscreen}
+      >
+        <StatusBar hidden />
+        <View style={styles.fullscreenContainer}>
+          {renderPlayerContent()}
+        </View>
+      </Modal>
+    </>
   );
 };
 

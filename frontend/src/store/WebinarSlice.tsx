@@ -157,11 +157,29 @@ export const getEnrolledWebinar = createAsyncThunk(
   },
 );
 
+// Get Creator Webinar Stats
+export const getCreatorWebinarStats = createAsyncThunk(
+  'webinar/creatorStats',
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await instance.get('webinars/stats/creator');
+      return res.data?.data;
+    } catch (e: any) {
+      return rejectWithValue(e?.response?.data?.message || 'Failed to fetch webinar stats');
+    }
+  },
+);
+
 export const WebinarSlice = createSlice({
   name: 'webinar',
-  initialState: {},
+  initialState: {
+    creatorWebinarStats: null as any,
+  },
   reducers: {},
   extraReducers: builder => {
+    builder.addCase(getCreatorWebinarStats.fulfilled, (state, { payload }) => {
+      state.creatorWebinarStats = payload ?? null;
+    });
   },
 });
 

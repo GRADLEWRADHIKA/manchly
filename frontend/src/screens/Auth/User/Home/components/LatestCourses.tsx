@@ -14,11 +14,13 @@ import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { fetchCourses } from '../../../../../store/CourseSlice';
 import colors from '../../../../../utils/colors';
 import { wp, hp, fp } from '../../../../../utils/responsive';
+import { getEnrolledCourses } from '../../../../../store/EnrollmentSlice';
 
 const LatestCourseItem = ({ item, onPress }: any) => (
   <Pressable
     style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
-    onPress={onPress}>
+    onPress={onPress}
+  >
     {item?.thumbnail_url ? (
       <Image source={{ uri: item.thumbnail_url }} style={styles.thumb} />
     ) : (
@@ -45,45 +47,22 @@ const LatestCourseItem = ({ item, onPress }: any) => (
 const LatestCourses = () => {
   const dispatch = useDispatch<any>();
   const navigation = useNavigation<any>();
-  const focus = useIsFocused();
-
-  const { list: allCourses, loading } = useSelector(
+  const { list: allCourses } = useSelector(
     (state: any) => state.coursesReducer,
   );
+  const browseCourses = allCourses?.data?.courses || [];
+  const focus = useIsFocused();
 
   useEffect(() => {
-    if (focus) {
-      dispatch(fetchCourses({}));
-    }
+    dispatch(fetchCourses({}));
+    dispatch(getEnrolledCourses({}));
   }, [focus]);
-
-  const coursesList = Array.isArray(allCourses) ? allCourses : [];
-  const unboughtCourses = coursesList
-    .filter(
-      (course: any) =>
-        !course.enrollments || course.enrollments.length === 0,
-    )
-    .slice(0, 5);
-
-  if (loading) {
-    return (
-      <ActivityIndicator
-        size="small"
-        color={colors.secPrimary}
-        style={styles.loader}
-      />
-    );
-  }
-
-  if (unboughtCourses.length === 0) {
-    return null;
-  }
 
   return (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>Latest Courses</Text>
       <FlatList
-        data={unboughtCourses}
+        data={browseCourses}
         horizontal
         showsHorizontalScrollIndicator={false}
         keyExtractor={(item: any) => item?.id || item?._id}
@@ -91,9 +70,7 @@ const LatestCourses = () => {
         renderItem={({ item }) => (
           <LatestCourseItem
             item={item}
-            onPress={() =>
-              navigation.navigate('UserCourseDetails', { item })
-            }
+            onPress={() => navigation.navigate('UserCourseDetails', { item })}
           />
         )}
       />
@@ -131,6 +108,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 8,
     elevation: 3,
+    marginBottom: 5,
   },
   cardPressed: {
     opacity: 0.92,

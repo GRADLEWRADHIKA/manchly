@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { View, ScrollView, StyleSheet } from 'react-native';
+import { View, ScrollView, StyleSheet, Text } from 'react-native';
 import { hp } from '../../../../utils/responsive';
 import HomeHeader from './components/HomeHeader';
 import HeroCarousel from './components/HeroCarousel';
@@ -13,7 +13,8 @@ const UserHome = () => {
       <ScrollView
         style={styles.container}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}>
+        contentContainerStyle={styles.scrollContent}
+      >
         <HeroCarousel />
         <LatestCourses />
         <LatestWebinars />

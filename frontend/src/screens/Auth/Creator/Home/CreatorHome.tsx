@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -23,17 +23,28 @@ import {
 import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
 import KycCard from './KeyCard';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import LinearGradient from 'react-native-linear-gradient';
+import { getCreatorSales } from '../../../../store/PaymentSlice';
+import { getCreatorCourseStats } from '../../../../store/CourseSlice';
+import { getCreatorWebinarStats } from '../../../../store/WebinarSlice';
 
 const CreatorHome = () => {
   const navigation = useNavigation<any>();
+  const dispatch = useDispatch<any>();
   const { user } = useSelector((state: any) => state.userReducer);
+  const { totalRevenue } = useSelector((state: any) => state.paymentReducer);
+  const { creatorStats } = useSelector((state: any) => state.coursesReducer);
+  const { creatorWebinarStats } = useSelector((state: any) => state.webinarReducer);
   const insets = useSafeAreaInsets();
 
-  // console.log('---user---', user?.profile_image)
+  useEffect(() => {
+    dispatch(getCreatorSales({}));
+    dispatch(getCreatorCourseStats());
+    dispatch(getCreatorWebinarStats());
+  }, []);
 
   const displayName = user?.name
     ? user.name.charAt(0).toUpperCase() + user.name.slice(1)
@@ -95,7 +106,8 @@ const CreatorHome = () => {
               <View>
                 <Text style={styles.revenueLabel}>TOTAL REVENUE</Text>
                 <Text style={styles.revenueAmount}>
-                  <Text style={styles.rupeeSymbol}>₹</Text>0
+                  <Text style={styles.rupeeSymbol}>₹</Text>
+                  {totalRevenue?.toLocaleString('en-IN') ?? '0'}
                 </Text>
               </View>
               <View style={styles.growingBadge}>
@@ -111,7 +123,7 @@ const CreatorHome = () => {
                 <View style={styles.statIconWrap}>
                   <BookOpen size={wp(16)} color={colors.white} />
                 </View>
-                <Text style={styles.statValue}>0</Text>
+                <Text style={styles.statValue}>{creatorStats?.total_courses ?? 0}</Text>
                 <Text style={styles.statLabel}>Courses</Text>
               </View>
               <View style={styles.statDivider} />
@@ -119,7 +131,7 @@ const CreatorHome = () => {
                 <View style={styles.statIconWrap}>
                   <Users size={wp(16)} color={colors.white} />
                 </View>
-                <Text style={styles.statValue}>0</Text>
+                <Text style={styles.statValue}>{creatorStats?.total_enrollments ?? 0}</Text>
                 <Text style={styles.statLabel}>Students</Text>
               </View>
               <View style={styles.statDivider} />
@@ -127,8 +139,8 @@ const CreatorHome = () => {
                 <View style={styles.statIconWrap}>
                   <Award size={wp(16)} color={colors.white} />
                 </View>
-                <Text style={styles.statValue}>0%</Text>
-                <Text style={styles.statLabel}>Completion</Text>
+                <Text style={styles.statValue}>{creatorWebinarStats?.total_webinars ?? 0}</Text>
+                <Text style={styles.statLabel}>Webinars</Text>
               </View>
             </View>
           </LinearGradient>

@@ -18,10 +18,12 @@ import moment from 'moment-timezone';
 
 const LatestWebinarItem = ({ item, onPress }: any) => {
   const scheduledDate = moment(item?.scheduled_at);
+  
   return (
     <Pressable
       style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
-      onPress={onPress}>
+      onPress={onPress}
+    >
       {item?.thumbnail_url ? (
         <Image source={{ uri: item.thumbnail_url }} style={styles.thumb} />
       ) : (
@@ -57,13 +59,12 @@ const LatestWebinars = () => {
   useEffect(() => {
     if (focus) {
       setLoading(true);
-      dispatch(getAllWebinar({ page: 1, limit: 10, upcoming: true, title: '' }))
+      dispatch(getAllWebinar({ page: 1, limit: 5, upcoming: true, title: '' }))
         .unwrap()
         .then((response: any) => {
           const all = response?.data?.data?.webinars || [];
-          const unbought = all
-            .filter((w: any) => !w.is_enrolled)
-            .slice(0, 5);
+          // console.log('---all---', all)
+          const unbought = all.filter((w: any) => !w.is_enrolled).slice(0, 5);
           setWebinars(unbought);
         })
         .finally(() => setLoading(false));
@@ -136,6 +137,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 8,
     elevation: 3,
+    marginBottom: 5,
   },
   cardPressed: {
     opacity: 0.92,

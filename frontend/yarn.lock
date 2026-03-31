@@ -6478,6 +6478,11 @@ react-native-modal@^14.0.0-rc.1:
   dependencies:
     react-native-animatable "1.4.0"
 
+react-native-orientation-locker@^1.7.0:
+  version "1.7.0"
+  resolved "https://registry.npmjs.org/react-native-orientation-locker/-/react-native-orientation-locker-1.7.0.tgz"
+  integrity sha512-2PhG4UyRJktb3KCTISStuu8/q+Q3q3oPesGg9DhdY0b6Cu/ZzxkCvkbJte2TPWRYkS0JpClimvqVaonulGvDrA==
+
 react-native-otp-entry@^1.8.5:
   version "1.8.5"
   resolved "https://registry.npmjs.org/react-native-otp-entry/-/react-native-otp-entry-1.8.5.tgz"
@@ -6557,6 +6562,11 @@ react-native-splash-screen@^3.3.0:
     css-tree "^1.1.3"
     warn-once "0.1.1"
 
+react-native-timer-picker@^2.6.2:
+  version "2.6.2"
+  resolved "https://registry.npmjs.org/react-native-timer-picker/-/react-native-timer-picker-2.6.2.tgz"
+  integrity sha512-dvASmm+7liejMa8gGUyl9NTYgvbXudn8zLTumpIygLq3ikf5sO5JWT3U1sKnSR0ZUBAEc4b40gBrFT5pudjscw==
+
 react-native-toast-message@^2.3.3:
   version "2.3.3"
   resolved "https://registry.npmjs.org/react-native-toast-message/-/react-native-toast-message-2.3.3.tgz"
@@ -6584,7 +6594,7 @@ react-native-worklets@^0.7.1, react-native-worklets@>=0.7.0:
     convert-source-map "2.0.0"
     semver "7.7.3"
 
-react-native@*, "react-native@^0.0.0-0 || >=0.65 <1.0", "react-native@>= 0.61.5", react-native@>=0.35, react-native@>=0.42.0, react-native@>=0.48.4, react-native@>=0.57.0, react-native@>=0.59, "react-native@>=0.60.0-rc.0 <1.0.x", react-native@>=0.63.3, react-native@>=0.65.0, react-native@>=0.66.0, react-native@>=0.70.0, react-native@>=0.70.3, react-native@0.81.4:
+react-native@*, "react-native@^0.0.0-0 || >=0.65 <1.0", "react-native@>= 0.61.5", react-native@>=0.35, react-native@>=0.42.0, react-native@>=0.48.4, react-native@>=0.57.0, react-native@>=0.59, "react-native@>=0.60.0-rc.0 <1.0.x", react-native@>=0.63.2, react-native@>=0.63.3, react-native@>=0.65.0, react-native@>=0.66.0, react-native@>=0.70.0, react-native@>=0.70.3, react-native@>=0.72.0, react-native@0.81.4:
   version "0.81.4"
   resolved "https://registry.npmjs.org/react-native/-/react-native-0.81.4.tgz"
   integrity sha512-bt5bz3A/+Cv46KcjV0VQa+fo7MKxs17RCcpzjftINlen4ZDUl0I6Ut+brQ2FToa5oD0IB0xvQHfmsg2EDqsZdQ==
@@ -6645,7 +6655,7 @@ react-test-renderer@19.1.0:
     react-is "^19.1.0"
     scheduler "^0.26.0"
 
-react@*, "react@^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0", "react@^16.8.0 || ^17 || ^18 || ^19", "react@^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0", "react@^16.9.0 || ^17.0.0 || ^18 || ^19", "react@^18.0 || ^19", react@^19.1.0, "react@>= 16.9.0", "react@>= 18.2.0", react@>=16.3.0, react@>=16.8, react@>=16.8.0, react@>=16.8.1, react@>=17.0.0, react@>=18.0.0, react@19.1.0:
+react@*, "react@^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0", "react@^16.8.0 || ^17 || ^18 || ^19", "react@^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0", "react@^16.9.0 || ^17.0.0 || ^18 || ^19", "react@^18.0 || ^19", react@^19.1.0, "react@>= 16.9.0", "react@>= 18.2.0", react@>=16.13.1, react@>=16.3.0, react@>=16.8, react@>=16.8.0, react@>=16.8.1, react@>=17.0.0, react@>=18.0.0, react@>=18.2.0, react@19.1.0:
   version "19.1.0"
   resolved "https://registry.npmjs.org/react/-/react-19.1.0.tgz"
   integrity sha512-FS+XFBNvn3GTAWq26joslQgWNoFu08F4kl0J4CgdNKADkdSGXQyTCnKteIAJy96Br6YbpEU1LSzV5dYtjMkMDg==

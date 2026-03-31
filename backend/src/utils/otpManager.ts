@@ -340,7 +340,7 @@ class OTPManager {
     console.log("Email Transporter configured:", !!this.emailTransporter);
 
     const mailOptions = {
-      from: process.env.EMAIL_FROM || 'manchly2025@gmail.com',
+      from: process.env.EMAIL_FROM || 'noreply@manchly.com',
       to: email,
       subject: 'Your OTP Code',
       html: this.generateEmailTemplate(otp),

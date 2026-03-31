@@ -53,18 +53,14 @@ export class UploadController {
         return ApiResponseHandler.customError(res, error.message, 500, "UPLOAD_FAILED");
       }
 
-      // create signed URL valid 24 hours
-      const { data: urlData, error: urlErr } = await supabaseAdmin.storage
+      // get permanent public URL (set bucket to public in Supabase Dashboard)
+      const { data: urlData } = supabaseAdmin.storage
         .from(BUCKET)
-        .createSignedUrl(randomName, 60 * 60 * 24);
-      
-      if (urlErr) {
-        return ApiResponseHandler.customError(res, urlErr.message, 500, "URL_GENERATION_FAILED");
-      }
+        .getPublicUrl(randomName);
 
       ApiResponseHandler.success(res, {
         file: data,
-        url: urlData.signedUrl
+        url: urlData.publicUrl
       }, "File uploaded successfully");
     } catch (err: any) {
       ApiResponseHandler.unexpectedError(res, err, 500);

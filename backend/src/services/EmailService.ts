@@ -40,8 +40,8 @@ export class EmailService {
   constructor(config?: EmailConfig) {
     // Default configuration from environment variables
     const emailConfig = config || {
-      host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-      port: parseInt(process.env.EMAIL_PORT || '587'),
+      host: process.env.EMAIL_HOST || 'smtp.hostinger.com',
+      port: parseInt(process.env.EMAIL_PORT || '465'),
       secure: process.env.EMAIL_SECURE === 'true',
       auth: {
         user: process.env.EMAIL_USER || '',
@@ -50,7 +50,7 @@ export class EmailService {
     };
 
     this.transporter = nodemailer.createTransport(emailConfig);
-    this.defaultFrom = process.env.EMAIL_FROM || 'noreply@machly.com';
+    this.defaultFrom = process.env.EMAIL_FROM || 'noreply@manchly.com';
   }
 
   /**

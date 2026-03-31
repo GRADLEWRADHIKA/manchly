@@ -44,7 +44,7 @@ const CourseAddVideoModal = ({ onClose, setRefresh, videoData, isUpdate }) => {
     defaultValues: {
       title: videoData?.title || '',
       description: videoData?.description || '',
-      is_free: videoData?.is_free ?? false,
+      is_free: false,
       order: String(videoData?.order ?? ''),
       thumbnail_url: videoData?.thumbnail_url || '',
     },
@@ -58,7 +58,7 @@ const CourseAddVideoModal = ({ onClose, setRefresh, videoData, isUpdate }) => {
       body: {
         title: data?.title,
         description: data?.description,
-        is_free: data?.is_free,
+        is_free: false,
         order: data?.order,
         thumbnail_url: data?.thumbnail_url,
       },
@@ -193,7 +193,7 @@ const CourseAddVideoModal = ({ onClose, setRefresh, videoData, isUpdate }) => {
           body: {
             title: data.title,
             description: data.description,
-            is_free: data.is_free,
+            is_free: false,
             order: data.order,
             thumbnail_url: data?.thumbnail_url,
           },
@@ -415,7 +415,7 @@ const CourseAddVideoModal = ({ onClose, setRefresh, videoData, isUpdate }) => {
         />
 
         {/* Free / Paid Dropdown */}
-        <Text style={styles.label}>Is this Video Free?</Text>
+        {/* <Text style={styles.label}>Is this Video Free?</Text>
         <Controller
           control={control}
           name="is_free"
@@ -437,7 +437,7 @@ const CourseAddVideoModal = ({ onClose, setRefresh, videoData, isUpdate }) => {
               onChange={item => onChange(item.value)}
             />
           )}
-        />
+        /> */}
       </ScrollView>
 
       {/* Footer */}

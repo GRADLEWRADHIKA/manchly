@@ -33,6 +33,8 @@ const CreatorHome = () => {
   const { user } = useSelector((state: any) => state.userReducer);
   const insets = useSafeAreaInsets();
 
+  // console.log('---user---', user?.profile_image)
+
   const displayName = user?.name
     ? user.name.charAt(0).toUpperCase() + user.name.slice(1)
     : 'Creator';

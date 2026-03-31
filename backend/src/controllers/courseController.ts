@@ -4,6 +4,7 @@ import { ApiResponseHandler } from "../utils/ApiResponseHandler";
 import MuxManager from "../utils/MuxManager";
 import { UserType } from "@prisma/client";
 import { isCreator, isUser } from "../utils/userTypeHelper";
+import { notificationService } from "../services/NotificationService";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -837,7 +838,17 @@ export class CourseController {
         }
       });
 
-      ApiResponseHandler.success(res, { 
+      // Send course purchase notification
+      notificationService.sendCoursePurchaseNotification({
+        customerName: user.name || 'there',
+        customerEmail: user.email,
+        customerPhone: user.phone || undefined,
+        courseName: course.title,
+        courseAccessLink: `${process.env.APP_URL || 'https://manchly.com'}/courses/${courseId}`,
+        hostName: enrollment.course.creator?.name || 'Manchly',
+      }).catch(err => console.error('Free course notification error:', err));
+
+      ApiResponseHandler.success(res, {
         enrollment,
         transaction,
         message: "Successfully enrolled in free course"

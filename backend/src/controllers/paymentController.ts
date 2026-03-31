@@ -3,6 +3,7 @@ import prisma from "../prismaClient";
 import { ApiResponseHandler } from "../utils/ApiResponseHandler";
 import { isUser, isCreator } from "../utils/userTypeHelper";
 import { SettlementService } from "../services/settlementService";
+import { notificationService } from "../services/NotificationService";
 import crypto from "crypto";
 import dotenv from "dotenv";
 
@@ -109,6 +110,16 @@ export class PaymentController {
             transaction_id: transaction.id
           }
         });
+
+        // Send course purchase notification for free course
+        notificationService.sendCoursePurchaseNotification({
+          customerName: user.name || 'there',
+          customerEmail: user.email,
+          customerPhone: user.phone || undefined,
+          courseName: course.title,
+          courseAccessLink: `${process.env.APP_URL || 'https://manchly.com'}/courses/${courseId}`,
+          hostName: course.creator?.name || 'Manchly',
+        }).catch(err => console.error('Free course notification error:', err));
 
         return ApiResponseHandler.success(res, {
           enrollment,
@@ -307,6 +318,22 @@ export class PaymentController {
         courseId: transaction.course_id,
         itemTitle: transaction.course.title,
       }).catch(err => console.error("Wallet credit error:", err));
+
+      // Send course purchase notification (Email + WhatsApp)
+      const buyer = await prisma.users.findUnique({
+        where: { id: userId },
+        select: { name: true, email: true, phone: true }
+      });
+      if (buyer) {
+        notificationService.sendCoursePurchaseNotification({
+          customerName: buyer.name || 'there',
+          customerEmail: buyer.email,
+          customerPhone: buyer.phone || undefined,
+          courseName: transaction.course.title,
+          courseAccessLink: `${process.env.APP_URL || 'https://manchly.com'}/courses/${transaction.course_id}`,
+          hostName: transaction.course.creator.name || 'Manchly',
+        }).catch(err => console.error('Course purchase notification error:', err));
+      }
 
       console.log(`New purchase! User ${userId} purchased course "${transaction.course.title}" for ${transaction.amount}`);
 

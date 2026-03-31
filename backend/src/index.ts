@@ -21,6 +21,7 @@ import settlementsRouter from "./routes/settlements";
 import morgan from "morgan";
 import { webinarCleanupService } from "./utils/webinarCleanup";
 import { settlementCronService } from "./utils/settlementCron";
+import { webinarNotificationCronService } from "./utils/webinarNotificationCron";
 import { initializeSocketIO } from "./utils/socketHandler";
 
 dotenv.config();
@@ -97,4 +98,8 @@ server.listen(listenPort, () => {
 
   // Start T+2 settlement CRON jobs
   settlementCronService.startSettlementCron();
+
+  // Start webinar notification cron jobs (24hr, 6hr, 30min, live reminders)
+  webinarNotificationCronService.startAll();
+  console.log("🔔 Webinar notification service started");
 });

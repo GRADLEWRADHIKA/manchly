@@ -2,10 +2,9 @@ import { Request, Response } from "express";
 import prisma from "../prismaClient";
 import { ApiResponseHandler } from "../utils/ApiResponseHandler";
 import ZoomMeetingManager from "../utils/zoomManager";
-import EmailService from "../services/EmailService";
-import WhatsAppService from "../services/WhatsAppService";
 import { isCreator, isUser } from "../utils/userTypeHelper";
 import { SettlementService } from "../services/settlementService";
+import { notificationService } from "../services/NotificationService";
 import crypto from "crypto";
 import dotenv from "dotenv";
 
@@ -26,9 +25,6 @@ const zoomManager = new ZoomMeetingManager({
   oauthClientId: process.env.ZOOM_OAUTH_CLIENT_ID,
   oauthClientSecret: process.env.ZOOM_OAUTH_CLIENT_SECRET
 });
-
-const emailService = new EmailService();
-const whatsAppService = new WhatsAppService();
 
 /** Validates time string in "HH:MM" or "HH:MM:SS" format (e.g. "15:00", "09:30"). Returns trimmed string or null if invalid. */
 function parseTimeString(value: unknown): string | null {
@@ -1049,43 +1045,42 @@ export class WebinarController {
   // ============ HELPER METHODS ============
 
   /**
-   * Send enrollment notifications (Email & WhatsApp)
+   * Send enrollment notifications (Email & WhatsApp) using new templates
    */
   private static async sendEnrollmentNotifications(user: any, webinar: any): Promise<void> {
     try {
-      const emailData = {
-        userName: user.name || 'User',
-        userEmail: user.email,
-        webinarTitle: webinar.title,
-        webinarDescription: webinar.description,
-        scheduledAt: webinar.scheduled_at,
-        duration: webinar.duration,
-        zoomJoinUrl: webinar.zoom_join_url || '',
-        zoomPassword: webinar.zoom_password,
-        timezone: webinar.timezone
-      };
+      const scheduledDate = new Date(webinar.scheduled_at);
+      const tz = webinar.timezone || 'Asia/Kolkata';
 
-      // Send email
-      await emailService.sendWebinarEnrollmentEmail(emailData);
-      console.log('✅ Enrollment email sent');
+      const dateStr = scheduledDate.toLocaleDateString('en-IN', {
+        year: 'numeric', month: 'long', day: 'numeric', timeZone: tz,
+      });
+      const dayStr = scheduledDate.toLocaleDateString('en-IN', {
+        weekday: 'long', timeZone: tz,
+      });
+      const timeStr = scheduledDate.toLocaleTimeString('en-IN', {
+        hour: '2-digit', minute: '2-digit', hour12: true, timeZone: tz, timeZoneName: 'short',
+      });
 
-      // Send WhatsApp if phone number exists
-      if (user.phone) {
-        const whatsappData = {
-          userName: user.name || 'User',
-          userPhone: user.phone,
-          webinarTitle: webinar.title,
-          scheduledAt: webinar.scheduled_at,
-          zoomJoinUrl: webinar.zoom_join_url || '',
-          zoomPassword: webinar.zoom_password
-        };
+      // Get creator name
+      const creator = webinar.creator || {};
 
-        await whatsAppService.sendWebinarEnrollmentMessage(whatsappData);
-        console.log('✅ Enrollment WhatsApp message sent');
-      }
+      await notificationService.sendWebinarPurchaseNotification({
+        joineeName: user.name || 'there',
+        joineeEmail: user.email,
+        joineePhone: user.phone || undefined,
+        webinarName: webinar.title,
+        date: dateStr,
+        day: dayStr,
+        time: timeStr,
+        webinarLink: webinar.zoom_join_url || '',
+        password: webinar.zoom_password || '',
+        hostName: creator.name || 'Manchly',
+      });
+
+      console.log('✅ Webinar enrollment notifications sent');
     } catch (error) {
       console.error('Error sending enrollment notifications:', error);
-      // Don't throw error, just log it
     }
   }
 }

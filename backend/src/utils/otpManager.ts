@@ -3,6 +3,7 @@ import nodemailer from 'nodemailer';
 import { SNSClient, PublishCommand } from '@aws-sdk/client-sns';
 import Redis from 'ioredis';
 import { RateLimiterRedis, RateLimiterMemory, IRateLimiterOptions } from 'rate-limiter-flexible';
+import { fast2smsService } from '../services/Fast2SMSService';
 
 interface OTPConfig {
   length?: number;
@@ -312,11 +313,11 @@ class OTPManager {
     // Send OTP via appropriate channel
     try {
       if (channel === 'email') {
-        // await this.sendEmailOTP(identifier, otp); // Commented out for testing
-        console.log(`📧 OTP for ${identifier}: ${otp}`);
+        await this.sendEmailOTP(identifier, otp);
+        console.log(`📧 OTP sent to ${identifier}: ${otp}`);
       } else {
-        // await this.sendSMSOTP(identifier, otp); // Commented out for testing
-        console.log(`📱 OTP for ${identifier}: ${otp}`);
+        await this.sendSMSOTPViaFast2SMS(identifier, otp);
+        console.log(`📱 OTP sent to ${identifier}: ${otp}`);
       }
     } catch (error) {
       await this.deleteFromRedis(identifier);
@@ -350,7 +351,19 @@ class OTPManager {
   }
 
   /**
-   * Send OTP via SMS using AWS SNS
+   * Send OTP via SMS using Fast2SMS API
+   */
+  private async sendSMSOTPViaFast2SMS(phoneNumber: string, otp: string): Promise<void> {
+    if (!fast2smsService.isConfigured()) {
+      throw new Error('Fast2SMS is not configured. Set FAST2SMS_API_KEY in environment variables.');
+    }
+
+    const ttlMinutes = Math.floor(this.defaultConfig.ttl / 60);
+    await fast2smsService.sendOTP(phoneNumber, otp, ttlMinutes);
+  }
+
+  /**
+   * Send OTP via SMS using AWS SNS (legacy fallback)
    */
   private async sendSMSOTP(phoneNumber: string, otp: string): Promise<void> {
     if (!this.snsClient) {

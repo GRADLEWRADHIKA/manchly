@@ -40,13 +40,14 @@ const redisConfig = process.env.REDIS_URL ? {
 } : undefined;
 
 // Initialize OTP Manager
+// SMS enabled if Fast2SMS API key OR AWS credentials exist
 const otpManager = new OTPManager(
   {
     length: 6,
     ttl: 180, // 3 minutes
     maxAttempts: 3,
     emailEnabled: true,
-    smsEnabled: !!process.env.AWS_ACCESS_KEY_ID // Enable SMS if AWS credentials exist
+    smsEnabled: !!(process.env.FAST2SMS_API_KEY || process.env.AWS_ACCESS_KEY_ID)
   },
   emailConfig,
   smsConfig,

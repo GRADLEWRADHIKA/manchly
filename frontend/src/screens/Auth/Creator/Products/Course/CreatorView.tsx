@@ -81,7 +81,7 @@ const CreatorView: React.FC = () => {
 
     refresh ? setLoading(true) : setLoadingMore(true);
 
-    const payload = { page: pageNum, limit: 10 };
+    const payload = { page: pageNum, limit: 10, my_courses: true };
 
     dispatch(fetchCourses(payload))
       .unwrap()

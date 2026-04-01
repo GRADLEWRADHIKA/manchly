@@ -5,32 +5,65 @@ import {
   Image,
   Pressable,
   Linking,
+  TouchableOpacity,
 } from 'react-native';
-import React from 'react';
+import React, { useState } from 'react';
+import Clipboard from '@react-native-clipboard/clipboard';
+import Toast from 'react-native-toast-message';
 import colors from '../../../../../utils/colors';
-import { Calendar, Clock, User, Video, Radio } from 'lucide-react-native';
+import { Calendar, Clock, User, Video, Radio, Copy, Eye, EyeOff } from 'lucide-react-native';
 import moment from 'moment-timezone';
 import { wp, hp, fp } from '../../../../../utils/responsive';
 
 const PurchaseWebinarCard = ({ item }) => {
   const webinar = item?.webinar;
 
+  const [showCredentials, setShowCredentials] = useState(false);
   const scheduledDate = moment(webinar?.scheduled_at);
   const isUpcoming = scheduledDate.isAfter(moment());
   const isToday = scheduledDate.isSame(moment(), 'day');
 
+  const handleCopyCredentials = () => {
+    const meetingId = webinar?.zoom_meeting_id;
+    const password = webinar?.zoom_password;
+    if (meetingId && password) {
+      Clipboard.setString(`Meeting ID: ${meetingId}\nPassword: ${password}`);
+      Toast.show({
+        type: 'success',
+        text1: 'Copied!',
+        text2: 'Meeting ID & Password copied to clipboard',
+        position: 'bottom',
+      });
+    }
+  };
+
   const handleJoin = () => {
     const meetingId = webinar?.zoom_meeting_id;
     const password = webinar?.zoom_password;
+    const joinUrl = webinar?.zoom_join_url;
 
-    if (meetingId && password) {
-      const zoomURL = `zoomus://zoom.us/join?confno=${meetingId}&pwd=${password}`;
-      Linking.openURL(zoomURL).catch(() => {
-        if (webinar?.zoom_join_url) {
-          Linking.openURL(webinar.zoom_join_url);
+    if (!meetingId) return;
+
+    // Deep link directly into the Zoom app with meeting ID + password
+    const zoomAppUrl = `zoomus://zoom.us/join?confno=${meetingId}${password ? `&pwd=${password}` : ''}`;
+
+    Linking.canOpenURL(zoomAppUrl)
+      .then(supported => {
+        if (supported) {
+          // Zoom app is installed — open directly with credentials
+          return Linking.openURL(zoomAppUrl);
+        }
+        // Zoom app not installed — open the web join URL (has pwd token embedded)
+        if (joinUrl) {
+          return Linking.openURL(joinUrl);
+        }
+      })
+      .catch(() => {
+        // Fallback to web join URL
+        if (joinUrl) {
+          Linking.openURL(joinUrl);
         }
       });
-    }
   };
 
   return (
@@ -117,6 +150,44 @@ const PurchaseWebinarCard = ({ item }) => {
             </View>
           </View>
         </View>
+
+        {/* Meeting Credentials */}
+        {webinar?.zoom_meeting_id && webinar?.zoom_password && (
+          <View style={styles.credentialsBox}>
+            <View style={styles.credentialsRow}>
+              <View style={styles.credentialItem}>
+                <Text style={styles.credentialLabel}>Meeting ID</Text>
+                <Text style={styles.credentialValue}>
+                  {showCredentials ? webinar.zoom_meeting_id : '••••••••••'}
+                </Text>
+              </View>
+              <View style={styles.credentialItem}>
+                <Text style={styles.credentialLabel}>Password</Text>
+                <Text style={styles.credentialValue}>
+                  {showCredentials ? webinar.zoom_password : '••••••••'}
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={styles.eyeBtn}
+                onPress={() => setShowCredentials(prev => !prev)}
+                activeOpacity={0.7}
+              >
+                {showCredentials ? (
+                  <EyeOff size={wp(18)} color={colors.textSecondary} />
+                ) : (
+                  <Eye size={wp(18)} color={colors.textSecondary} />
+                )}
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.copyBtn}
+                onPress={handleCopyCredentials}
+                activeOpacity={0.7}
+              >
+                <Copy size={wp(16)} color={colors.secPrimary} />
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
 
         {/* Footer */}
         <View style={styles.footerRow}>
@@ -279,6 +350,55 @@ const styles = StyleSheet.create({
   metaText: {
     fontSize: fp(12.5),
     color: colors.textSecondary,
+  },
+
+  credentialsBox: {
+    marginTop: hp(12),
+    backgroundColor: '#f8fafc',
+    borderRadius: wp(10),
+    padding: wp(12),
+    borderWidth: 1,
+    borderColor: '#e8ecf0',
+  },
+  credentialsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(12),
+  },
+  credentialItem: {
+    flex: 1,
+    gap: hp(2),
+  },
+  credentialLabel: {
+    fontSize: fp(10.5),
+    color: colors.textSecondary,
+    fontWeight: '500',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  credentialValue: {
+    fontSize: fp(13),
+    color: colors.text,
+    fontWeight: '700',
+  },
+  eyeBtn: {
+    padding: wp(8),
+  },
+  copyBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(4),
+    backgroundColor: colors.white,
+    paddingHorizontal: wp(12),
+    paddingVertical: hp(8),
+    borderRadius: wp(8),
+    borderWidth: 1,
+    borderColor: colors.secPrimary,
+  },
+  copyText: {
+    fontSize: fp(12),
+    color: colors.secPrimary,
+    fontWeight: '600',
   },
 
   footerRow: {

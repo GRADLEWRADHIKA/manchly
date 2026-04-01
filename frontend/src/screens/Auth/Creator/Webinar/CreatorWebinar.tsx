@@ -43,7 +43,7 @@ const CreatorWebinar = () => {
 
   const fetchWebinars = () => {
     setLoading(true);
-    const payload = { page: 1, limit: 50, upcoming: true, title: '' };
+    const payload = { page: 1, limit: 50, upcoming: true, title: '', my_webinars: true };
     dispatch(getAllWebinar(payload))
       .unwrap()
       .then(response => {

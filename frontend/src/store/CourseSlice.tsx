@@ -8,8 +8,7 @@ export const fetchCourses = createAsyncThunk(
   async (data: object) => {
     try {
       const url = 'courses';
-      const requestBody = data;
-      const response = await instance.get(url, requestBody);
+      const response = await instance.get(url, { params: data });
       return response;
     } catch (error) {
 

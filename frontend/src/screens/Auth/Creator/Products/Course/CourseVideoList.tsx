@@ -62,10 +62,12 @@ const CourseVideoList = () => {
 
   // get course by id ----------
   const getVideoById = () => {
+    // console.log('---courseId--', courseId)
     setLoading(true);
     dispatch(getCourseById(courseId))
       .unwrap()
       .then(response => {
+        console.log('--response--', JSON.stringify(response))
         setVideoList(response?.course?.videos || []);
         setLoading(false);
       })

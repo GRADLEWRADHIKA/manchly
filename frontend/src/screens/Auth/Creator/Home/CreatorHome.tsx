@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,7 @@ import {
   StyleSheet,
   Image,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import {
   Bell,
   ChevronRight,
@@ -30,6 +30,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import { getCreatorSales } from '../../../../store/PaymentSlice';
 import { getCreatorCourseStats } from '../../../../store/CourseSlice';
 import { getCreatorWebinarStats } from '../../../../store/WebinarSlice';
+import { instance } from '../../../../utils/AxiosInstance';
 
 const CreatorHome = () => {
   const navigation = useNavigation<any>();
@@ -37,8 +38,45 @@ const CreatorHome = () => {
   const { user } = useSelector((state: any) => state.userReducer);
   const { totalRevenue } = useSelector((state: any) => state.paymentReducer);
   const { creatorStats } = useSelector((state: any) => state.coursesReducer);
-  const { creatorWebinarStats } = useSelector((state: any) => state.webinarReducer);
+  const { creatorWebinarStats } = useSelector(
+    (state: any) => state.webinarReducer,
+  );
   const insets = useSafeAreaInsets();
+  const [bankAccount, setBankAccount] = useState<any>(null);
+  const [walletLoading, setWalletLoading] = useState(true);
+  const [walletData, setWalletData] = useState<any>(null);
+
+  const fetchWallet = async () => {
+    try {
+      setWalletLoading(true);
+      const [walletRes, bankRes] = await Promise.all([
+        instance.get('settlements/wallet').catch((e: any) => {
+          console.log(
+            'Wallet API error:',
+            e?.response?.status,
+            e?.response?.data,
+          );
+          return null;
+        }),
+        instance.get('settlements/bank-account').catch((e: any) => {
+          console.log('Bank API error:', e?.response?.status);
+          return null;
+        }),
+      ]);
+      setWalletData(walletRes?.data?.data?.wallet || null);
+      setBankAccount(bankRes?.data?.data?.bankAccount || null);
+    } catch (error) {
+      console.log('Error fetching wallet:', error);
+    } finally {
+      setWalletLoading(false);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchWallet();
+    }, []),
+  );
 
   useEffect(() => {
     dispatch(getCreatorSales({}));
@@ -58,6 +96,15 @@ const CreatorHome = () => {
   };
 
   const initials = user?.name ? user.name.charAt(0).toUpperCase() : 'C';
+
+  const withdrawableBalance = walletData?.pending_settlement || 0;
+
+  const formatAmount = (amount: number) => {
+    return amount.toLocaleString('en-IN', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    });
+  };
 
   return (
     <View style={styles.container}>
@@ -107,7 +154,9 @@ const CreatorHome = () => {
                 <Text style={styles.revenueLabel}>TOTAL REVENUE</Text>
                 <Text style={styles.revenueAmount}>
                   <Text style={styles.rupeeSymbol}>₹</Text>
-                  {totalRevenue?.toLocaleString('en-IN') ?? '0'}
+                  {walletLoading
+                    ? '...'
+                    : `${formatAmount(withdrawableBalance)}`}
                 </Text>
               </View>
               <View style={styles.growingBadge}>
@@ -123,15 +172,19 @@ const CreatorHome = () => {
                 <View style={styles.statIconWrap}>
                   <BookOpen size={wp(16)} color={colors.white} />
                 </View>
-                <Text style={styles.statValue}>{creatorStats?.total_courses ?? 0}</Text>
-                <Text style={styles.statLabel}>Courses</Text>
+                <Text style={styles.statValue}>
+                  {creatorStats?.statistics?.courses_sold ?? 0}
+                </Text>
+                <Text style={styles.statLabel}>Courses Sold</Text>
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
                 <View style={styles.statIconWrap}>
                   <Users size={wp(16)} color={colors.white} />
                 </View>
-                <Text style={styles.statValue}>{creatorStats?.total_enrollments ?? 0}</Text>
+                <Text style={styles.statValue}>
+                  {creatorStats?.statistics?.total_enrollments ?? 0}
+                </Text>
                 <Text style={styles.statLabel}>Students</Text>
               </View>
               <View style={styles.statDivider} />
@@ -139,8 +192,10 @@ const CreatorHome = () => {
                 <View style={styles.statIconWrap}>
                   <Award size={wp(16)} color={colors.white} />
                 </View>
-                <Text style={styles.statValue}>{creatorWebinarStats?.total_webinars ?? 0}</Text>
-                <Text style={styles.statLabel}>Webinars</Text>
+                <Text style={styles.statValue}>
+                  {creatorWebinarStats?.statistics?.webinars_sold ?? 0}
+                </Text>
+                <Text style={styles.statLabel}>Webinars Sold</Text>
               </View>
             </View>
           </LinearGradient>

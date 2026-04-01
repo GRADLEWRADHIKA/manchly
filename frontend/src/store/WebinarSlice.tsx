@@ -28,9 +28,8 @@ export const getAllWebinar = createAsyncThunk(
   'getAllWebinar',
   async (data: object) => {
     try {
-      const url = `webinars?page=${data?.page}&limit=${data?.limit}&upcoming=true`;
-      const requestBody = data;
-      const response = await instance.get(url, requestBody);
+      const url = 'webinars';
+      const response = await instance.get(url, { params: data });
       return response;
     } catch (error) {
       const response = JSON.parse(error?.request?._response || '{}');
@@ -138,7 +137,7 @@ export const createWebinarVerify = createAsyncThunk(
 
 // get Enrolled Webinar -----
 export const getEnrolledWebinar = createAsyncThunk(
-  'createWebinarVerify',
+  'getEnrolledWebinar',
   async (data: object) => {
     try {
       const url = `webinars/enrolled/me?page=${data?.page}&limit=${data?.limit}&upcoming=${data?.upcoming}`;

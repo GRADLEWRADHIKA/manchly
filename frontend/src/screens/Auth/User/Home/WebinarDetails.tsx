@@ -185,15 +185,21 @@ const WebinarDetails = () => {
       </ScrollView>
 
       <View style={styles.bottomBar}>
-        <TouchableOpacity style={styles.buyButton} onPress={onVerifyWebinar}>
-          <Text style={styles.buyText}>
-            {loading ? (
-              <ActivityIndicator color={colors.white} size={'small'} />
-            ) : (
-              'Buy Now'
-            )}
-          </Text>
-        </TouchableOpacity>
+        {data?.is_enrolled ? (
+          <View style={[styles.buyButton, { backgroundColor: colors.success }]}>
+            <Text style={styles.buyText}>Already Enrolled</Text>
+          </View>
+        ) : (
+          <TouchableOpacity style={styles.buyButton} onPress={onVerifyWebinar}>
+            <Text style={styles.buyText}>
+              {loading ? (
+                <ActivityIndicator color={colors.white} size={'small'} />
+              ) : (
+                'Buy Now'
+              )}
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );

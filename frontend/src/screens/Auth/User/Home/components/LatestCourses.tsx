@@ -70,7 +70,9 @@ const LatestCourses = () => {
         renderItem={({ item }) => (
           <LatestCourseItem
             item={item}
-            onPress={() => navigation.navigate('UserCourseDetails', { item })}
+            onPress={() =>
+              navigation.navigate('CourseDetailsScreen', { courseId: item?.id })
+            }
           />
         )}
       />

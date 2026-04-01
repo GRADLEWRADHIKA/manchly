@@ -200,6 +200,7 @@ const CourseAddVideoModal = ({ onClose, setRefresh, videoData, isUpdate }) => {
         }),
       ).unwrap();
 
+      console.log('--createVideoUpload response--', JSON.stringify(res));
       const uploadUrl = res?.upload_url;
       const videoId = res?.video?.id;
       if (!uploadUrl || !videoId)
@@ -238,6 +239,7 @@ const CourseAddVideoModal = ({ onClose, setRefresh, videoData, isUpdate }) => {
           });
           reset();
           setSelectedVideo(null);
+          setRefresh(prev => !prev);
           setTimeout(onClose, 1000);
         } else {
           Toast.show({
@@ -260,7 +262,6 @@ const CourseAddVideoModal = ({ onClose, setRefresh, videoData, isUpdate }) => {
       };
 
       xhr.send(fileBlob);
-      setRefresh(true);
     } catch (error: any) {
       console.error('Upload error:', error);
       Toast.show({

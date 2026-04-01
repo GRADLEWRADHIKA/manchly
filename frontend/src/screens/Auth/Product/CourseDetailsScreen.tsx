@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useIsFocused, useNavigation, useRoute } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { Users, Play, CheckCircle } from 'lucide-react-native';
 import RazorpayCheckout from 'react-native-razorpay';
@@ -25,6 +25,7 @@ const CourseDetailsScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const dispatch = useDispatch<any>();
+  const focus = useIsFocused()
 
   const courseId = route.params?.courseId;
 
@@ -50,7 +51,7 @@ const CourseDetailsScreen: React.FC = () => {
       dispatch(getCourseById(courseId));
       dispatch(getEnrolledCourses({}));
     }
-  }, [courseId]);
+  }, [courseId, focus]);
 
   const isEnrolled = enrolledCourses?.enrollments?.some(
     (enrollment: any) => enrollment.course_id === courseId

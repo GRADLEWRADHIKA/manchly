@@ -94,37 +94,38 @@ export class CourseController {
   static async getAllCourses(req: any, res: Response) {
     console.log("req.user" , req.user );
     const userId = req.user.userId;
-    const { 
-      page = 1, 
-      limit = 10, 
-      category, 
-      level, 
+    const {
+      page = 1,
+      limit = 10,
+      category,
+      level,
       status,
-      search 
+      search,
+      my_courses
     } = req.query;
 
     try {
       const user = await prisma.users.findUnique({ where: { id: userId } });
-      
+
       if (!user) {
         return ApiResponseHandler.customError(res, "User not found", 404, "USER_NOT_FOUND");
       }
 
       const skip = (Number(page) - 1) * Number(limit);
-      
+
       // Build where clause based on user type
       const whereClause: any = {};
 
-      if (isCreator(user.user_type)) {
-        // Creators see only their courses
+      if (isCreator(user.user_type) && my_courses === "true") {
+        // Creators viewing their own courses (creator dashboard)
         whereClause.creator_id = userId;
-        
+
         // Apply status filter if provided
         if (status) {
           whereClause.status = status;
         }
       } else {
-        // Regular users see only published courses
+        // All users (including creators browsing) see only published courses
         whereClause.status = "PUBLISHED";
       }
 
@@ -1011,7 +1012,7 @@ export class CourseController {
         return ApiResponseHandler.customError(res, "Only creators can view statistics", 403, "FORBIDDEN");
       }
 
-      const [totalCourses, publishedCourses, totalEnrollments, totalVideos] = await Promise.all([
+      const [totalCourses, publishedCourses, totalEnrollments, totalVideos, coursesSold] = await Promise.all([
         prisma.courses.count({ where: { creator_id: userId } }),
         prisma.courses.count({ where: { creator_id: userId, status: "PUBLISHED" } }),
         prisma.enrollments.count({
@@ -1025,6 +1026,14 @@ export class CourseController {
           where: {
             course: {
               creator_id: userId
+            }
+          }
+        }),
+        prisma.courses.count({
+          where: {
+            creator_id: userId,
+            enrollments: {
+              some: {}
             }
           }
         })
@@ -1047,6 +1056,7 @@ export class CourseController {
           draft_courses: totalCourses - publishedCourses,
           total_enrollments: totalEnrollments,
           total_videos: totalVideos,
+          courses_sold: coursesSold,
           courses_with_enrollments: courseEnrollments.map(c => ({
             course_id: c.id,
             course_title: c.title,

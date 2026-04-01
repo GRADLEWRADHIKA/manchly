@@ -218,7 +218,8 @@ export class WebinarController {
       category,
       status,
       search,
-      upcoming = "true"
+      upcoming = "true",
+      my_webinars
     } = req.query;
 
     try {
@@ -233,8 +234,8 @@ export class WebinarController {
       // Build where clause based on user type
       const whereClause: any = {};
 
-      if (isCreator(user.user_type)) {
-        // Creators see only their webinars
+      if (isCreator(user.user_type) && my_webinars === "true") {
+        // Creators viewing their own webinars (creator dashboard)
         whereClause.creator_id = userId;
 
         // Apply status filter if provided
@@ -242,7 +243,7 @@ export class WebinarController {
           whereClause.status = status;
         }
       } else {
-        // Regular users see only published webinars
+        // All users (including creators browsing) see only published webinars
         whereClause.status = "PUBLISHED";
       }
 
@@ -990,7 +991,7 @@ export class WebinarController {
         return ApiResponseHandler.customError(res, "Only creators can view statistics", 403, "FORBIDDEN");
       }
 
-      const [totalWebinars, publishedWebinars, upcomingWebinars, totalEnrollments] = await Promise.all([
+      const [totalWebinars, publishedWebinars, upcomingWebinars, totalEnrollments, webinarsSold] = await Promise.all([
         prisma.webinars.count({ where: { creator_id: userId } }),
         prisma.webinars.count({ where: { creator_id: userId, status: "PUBLISHED" } }),
         prisma.webinars.count({
@@ -1004,6 +1005,14 @@ export class WebinarController {
           where: {
             webinar: {
               creator_id: userId
+            }
+          }
+        }),
+        prisma.webinars.count({
+          where: {
+            creator_id: userId,
+            enrollments: {
+              some: {}
             }
           }
         })
@@ -1026,6 +1035,7 @@ export class WebinarController {
           upcoming_webinars: upcomingWebinars,
           draft_webinars: totalWebinars - publishedWebinars,
           total_enrollments: totalEnrollments,
+          webinars_sold: webinarsSold,
           webinars_with_enrollments: webinarEnrollments.map(w => ({
             webinar_id: w.id,
             webinar_title: w.title,

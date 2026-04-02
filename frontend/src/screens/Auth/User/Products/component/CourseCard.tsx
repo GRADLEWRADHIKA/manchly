@@ -24,7 +24,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
     item.creator?.name || item.instructor?.name || 'Unknown Instructor';
   const studentsCount = item.enrollments?.length || item.students_count || 0;
   const videosCount = item.videos?.length || item.lessons_count || 0;
-  const duration = item.duration || '8h 30m';
+  const duration = item.duration || '';
   const level = item.level || 'Beginner';
 
   const thumbnailUrl =

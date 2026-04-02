@@ -53,7 +53,7 @@ const HomeHeader = () => {
           </View>
         </Pressable>
         <View style={styles.headerActions}>
-          <Pressable
+          {/* <Pressable
             style={({ pressed }) => [
               styles.iconBtn,
               pressed && styles.iconBtnPressed,
@@ -61,13 +61,13 @@ const HomeHeader = () => {
             onPress={() => navigation.navigate('UserNotification')}
             accessibilityLabel="Notifications">
             <Bell size={wp(18)} color={colors.white} strokeWidth={2} />
-          </Pressable>
+          </Pressable> */}
           <Pressable
             style={({ pressed }) => [
               styles.iconBtn,
               pressed && styles.iconBtnPressed,
             ]}
-            onPress={() => navigation.navigate('UserCourseSearch')}
+            onPress={() => navigation.navigate('ProductsScreen')}
             accessibilityLabel="Search courses">
             <Search size={wp(18)} color={colors.white} strokeWidth={2} />
           </Pressable>

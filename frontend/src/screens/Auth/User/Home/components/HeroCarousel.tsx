@@ -2,11 +2,9 @@ import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
-  ScrollView,
+  FlatList,
   StyleSheet,
   Dimensions,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import colors from '../../../../../utils/colors';
@@ -63,76 +61,105 @@ const DotIndicator = ({ count, activeIndex }: any) => (
   </View>
 );
 
+const getItemLayout = (_: any, index: number) => ({
+  length: HERO_SNAP_WIDTH,
+  offset: HERO_SNAP_WIDTH * index,
+  index,
+});
+
 /* ──── Hero Carousel ──── */
 const HeroCarousel = () => {
   const [activeDotIndex, setActiveDotIndex] = useState(0);
   const heroCurrentIndex = useRef(INITIAL_INDEX);
-  const heroScrollRef = useRef<ScrollView>(null);
+  const heroListRef = useRef<FlatList>(null);
   const heroTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const isUserScrolling = useRef(false);
 
-  const onHeroLayout = useCallback(() => {
-    heroScrollRef.current?.scrollTo({
-      x: INITIAL_INDEX * HERO_SNAP_WIDTH,
-      animated: false,
-    });
-  }, []);
-
-  useEffect(() => {
+  const startTimer = useCallback(() => {
+    if (heroTimerRef.current) clearInterval(heroTimerRef.current);
     heroTimerRef.current = setInterval(() => {
-      heroCurrentIndex.current += 1;
-      setActiveDotIndex(heroCurrentIndex.current % heroSlides.length);
-      heroScrollRef.current?.scrollTo({
-        x: heroCurrentIndex.current * HERO_SNAP_WIDTH,
+      if (isUserScrolling.current) return;
+      const nextIndex = heroCurrentIndex.current + 1;
+      if (nextIndex >= loopedSlides.length) {
+        // Reset to middle without animation, then continue
+        heroCurrentIndex.current = INITIAL_INDEX;
+        heroListRef.current?.scrollToIndex({
+          index: INITIAL_INDEX,
+          animated: false,
+        });
+        setActiveDotIndex(INITIAL_INDEX % heroSlides.length);
+        return;
+      }
+      heroCurrentIndex.current = nextIndex;
+      setActiveDotIndex(nextIndex % heroSlides.length);
+      heroListRef.current?.scrollToIndex({
+        index: nextIndex,
         animated: true,
       });
     }, 3000);
+  }, []);
+
+  useEffect(() => {
+    startTimer();
     return () => {
       if (heroTimerRef.current) clearInterval(heroTimerRef.current);
     };
+  }, [startTimer]);
+
+  const onScrollBeginDrag = useCallback(() => {
+    isUserScrolling.current = true;
   }, []);
 
-  const onHeroScrollEnd = useCallback(
-    (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+  const onMomentumScrollEnd = useCallback(
+    (e: any) => {
       const index = Math.round(
         e.nativeEvent.contentOffset.x / HERO_SNAP_WIDTH,
       );
       heroCurrentIndex.current = index;
       setActiveDotIndex(index % heroSlides.length);
+      isUserScrolling.current = false;
+      startTimer();
     },
-    [],
+    [startTimer],
   );
+
+  const renderItem = useCallback(({ item }: { item: typeof loopedSlides[0] }) => (
+    <LinearGradient
+      colors={['#3D1515', '#7A2020', '#B54040']}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.heroCard}>
+      <View style={styles.heroBadge}>
+        <Text style={styles.heroBadgeText}>{item.badge}</Text>
+      </View>
+      <Text style={styles.heroTitle}>{item.title}</Text>
+      <Text style={styles.heroSub}>{item.subtitle}</Text>
+    </LinearGradient>
+  ), []);
 
   return (
     <View style={styles.heroSection}>
-      <ScrollView
-        ref={heroScrollRef}
+      <FlatList
+        ref={heroListRef}
+        data={loopedSlides}
+        keyExtractor={item => item.key}
+        renderItem={renderItem}
         horizontal
         showsHorizontalScrollIndicator={false}
         snapToInterval={HERO_SNAP_WIDTH}
         snapToAlignment="start"
         decelerationRate="fast"
         scrollEventThrottle={16}
-        onLayout={onHeroLayout}
-        onMomentumScrollEnd={onHeroScrollEnd}
-        contentContainerStyle={styles.heroListContent}>
-        {loopedSlides.map((item, index) => (
-          <LinearGradient
-            key={item.key}
-            colors={['#3D1515', '#7A2020', '#B54040']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={[
-              styles.heroCard,
-              index < loopedSlides.length - 1 && { marginRight: HERO_CARD_GAP },
-            ]}>
-            <View style={styles.heroBadge}>
-              <Text style={styles.heroBadgeText}>{item.badge}</Text>
-            </View>
-            <Text style={styles.heroTitle}>{item.title}</Text>
-            <Text style={styles.heroSub}>{item.subtitle}</Text>
-          </LinearGradient>
-        ))}
-      </ScrollView>
+        getItemLayout={getItemLayout}
+        initialScrollIndex={INITIAL_INDEX}
+        onScrollBeginDrag={onScrollBeginDrag}
+        onMomentumScrollEnd={onMomentumScrollEnd}
+        contentContainerStyle={styles.heroListContent}
+        ItemSeparatorComponent={() => <View style={{ width: HERO_CARD_GAP }} />}
+        windowSize={3}
+        maxToRenderPerBatch={5}
+        initialNumToRender={5}
+      />
       <DotIndicator count={heroSlides.length} activeIndex={activeDotIndex} />
     </View>
   );

@@ -35,19 +35,19 @@ const tabs = [
   {
     name: 'ProductsScreen',
     component: ProductsScreen,
-    label: 'Products',
+    label: 'Explore',
     Icon: ShoppingCart,
   },
-  {
-    name: 'UserChat',
-    component: UserChat,
-    label: 'Chats',
-    Icon: MessageCircle,
-  },
+  // {
+  //   name: 'UserChat',
+  //   component: UserChat,
+  //   label: 'Chats',
+  //   Icon: MessageCircle,
+  // },
   {
     name: 'PurchasesScreen',
     component: PurchasesScreen,
-    label: 'Purchases',
+    label: 'My Learning',
     Icon: ShoppingBag,
   },
   {

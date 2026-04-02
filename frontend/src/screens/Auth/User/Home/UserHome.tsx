@@ -7,6 +7,7 @@ import LatestCourses from './components/LatestCourses';
 import LatestWebinars from './components/LatestWebinars';
 
 const UserHome = () => {
+  
   return (
     <View style={styles.root}>
       <HomeHeader />

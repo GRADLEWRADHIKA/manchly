@@ -7,7 +7,7 @@ import Router from './src/navigation/Router';
 import { PaperProvider } from 'react-native-paper';
 import { PersistGate } from 'redux-persist/integration/react';
 import { store, persistor } from './src/store/Store';
-import SplashScreen from 'react-native-splash-screen';
+
 import { injectStore } from './src/utils/AxiosInstance';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -19,7 +19,6 @@ export default function App() {
   const isDarkMode = useColorScheme() === 'dark';
 
   useEffect(() => {
-    SplashScreen.hide();
     initializeChottuLink('c_app_Xn5WbBZdEmObUbFRf8D91YiM3ZLD2CO6');
     Settings.initializeSDK();
     AppEventsLogger.logEvent('fb_mobile_activate_app');

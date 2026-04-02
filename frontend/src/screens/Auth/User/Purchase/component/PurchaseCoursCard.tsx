@@ -40,7 +40,7 @@ const AnimatedProgressBar = ({ progress, isComplete }: any) => {
 };
 
 const PurchaseCoursCard = ({ item, transaction, onPress }) => {
-  const courseTitle = item.title || item.course_title || 'Untitled Course';
+  const courseTitle = item?.course?.title || 'Untitled Course';
   const enrolledDate = item.enrolled_at || item.created_at;
   const progress = item.progress || 0;
   const isComplete = progress === 100;

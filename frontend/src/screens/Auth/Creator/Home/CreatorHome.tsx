@@ -217,7 +217,11 @@ const CreatorHome = () => {
                   <Text style={styles.startBadgeText}>START CREATING</Text>
                 </View>
                 <Text style={styles.courseTitle}>
-                  Launch Your{'\n'}First Course
+                  Launch Your{'\n'}
+                  {creatorStats?.statistics?.courses_sold
+                    ? 'Next'
+                    : 'First'}{' '}
+                  Course 
                 </Text>
                 <Text style={styles.courseSubtitle}>
                   Turn expertise into income.{'\n'}Ready in under 10 mins.

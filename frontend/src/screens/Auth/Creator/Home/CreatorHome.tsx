@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,11 @@ import {
   StyleSheet,
   Image,
 } from 'react-native';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import {
+  useFocusEffect,
+  useIsFocused,
+  useNavigation,
+} from '@react-navigation/native';
 import {
   Bell,
   ChevronRight,
@@ -19,7 +23,12 @@ import {
   BookOpen,
   Users,
   Award,
+  Check,
+  Circle,
+  Star,
+  HelpCircle,
 } from 'lucide-react-native';
+import Svg, { Circle as SvgCircle } from 'react-native-svg';
 import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
 import KycCard from './KeyCard';
@@ -28,8 +37,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import LinearGradient from 'react-native-linear-gradient';
 import { getCreatorSales } from '../../../../store/PaymentSlice';
-import { getCreatorCourseStats } from '../../../../store/CourseSlice';
-import { getCreatorWebinarStats } from '../../../../store/WebinarSlice';
+import {
+  fetchCourses,
+  getCreatorCourseStats,
+} from '../../../../store/CourseSlice';
+import {
+  getAllWebinar,
+  getCreatorWebinarStats,
+} from '../../../../store/WebinarSlice';
 import { instance } from '../../../../utils/AxiosInstance';
 
 const CreatorHome = () => {
@@ -45,6 +60,47 @@ const CreatorHome = () => {
   const [bankAccount, setBankAccount] = useState<any>(null);
   const [walletLoading, setWalletLoading] = useState(true);
   const [walletData, setWalletData] = useState<any>(null);
+  const focus = useIsFocused();
+  const [courses, setCourses] = useState<any[]>([]);
+  const [webiniarData, setWebinarData] = useState<any[]>([]);
+
+  useEffect(() => {
+    getTheCourse();
+    fetchWebinars();
+  }, [focus]);
+
+  const getTheCourse = () => {
+    const payload = {
+      page: 1,
+      limit: 10,
+      my_courses: true,
+    };
+
+    dispatch(fetchCourses(payload))
+      .unwrap()
+      .then(response => {
+        const newData = response?.data?.data?.courses || [];
+        setCourses(newData);
+        console.log(courses.length);
+      })
+      .finally(() => {});
+  };
+
+  const fetchWebinars = () => {
+    const payload = {
+      page: 1,
+      limit: 50,
+      upcoming: true,
+      title: '',
+      my_webinars: true,
+    };
+    dispatch(getAllWebinar(payload))
+      .unwrap()
+      .then(response => {
+        setWebinarData(response?.data?.data?.webinars || []);
+      })
+      .finally(() => setLoading(false));
+  };
 
   const fetchWallet = async () => {
     try {
@@ -98,6 +154,39 @@ const CreatorHome = () => {
   const initials = user?.name ? user.name.charAt(0).toUpperCase() : 'C';
 
   const withdrawableBalance = walletData?.pending_settlement || 0;
+
+  const milestones = useMemo(
+    () => [
+      { label: 'Create your account', pts: 10, completed: true },
+      { label: 'Complete your profile', pts: 2, completed: true },
+      {
+        label: 'Publish your first course',
+        pts: 30,
+        completed: courses.length > 0,
+      },
+      {
+        label: 'Go Live once',
+        pts: 20,
+        completed: webiniarData.length > 0,
+      },
+      {
+        label: 'Get your first student',
+        pts: 40,
+        completed: !!creatorStats?.statistics?.total_enrollments,
+      },
+    ],
+    [creatorStats, creatorWebinarStats],
+  );
+
+  const totalPts = milestones.reduce((sum, m) => sum + m.pts, 0);
+  const earnedPts = milestones.reduce(
+    (sum, m) => sum + (m.completed ? m.pts : 0),
+    0,
+  );
+  const progressPercent = Math.round((earnedPts / totalPts) * 100);
+  const circumference = 2 * Math.PI * wp(28);
+  const progressOffset = circumference * (1 - progressPercent / 100);
+  const allCompleted = milestones.every(m => m.completed);
 
   const formatAmount = (amount: number) => {
     return amount.toLocaleString('en-IN', {
@@ -221,7 +310,7 @@ const CreatorHome = () => {
                   {creatorStats?.statistics?.courses_sold
                     ? 'Next'
                     : 'First'}{' '}
-                  Course 
+                  Course
                 </Text>
                 <Text style={styles.courseSubtitle}>
                   Turn expertise into income.{'\n'}Ready in under 10 mins.
@@ -328,6 +417,161 @@ const CreatorHome = () => {
               <ChevronRight size={wp(20)} color="rgba(255,255,255,0.5)" />
             </LinearGradient>
           </TouchableOpacity>
+        </View>
+
+        {/* Creator Score */}
+        <View style={styles.sectionPadding}>
+          <View style={styles.scoreHeader}>
+            <Text style={styles.scoreHeaderTitle}>Creator Score</Text>
+            <TouchableOpacity>
+              <Text style={styles.scoreHeaderLink}>What's this?</Text>
+            </TouchableOpacity>
+          </View>
+
+          {allCompleted ? (
+            <LinearGradient
+              colors={['#1A1A2E', '#16213E', '#0F3460']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.scoreCard}
+            >
+              {/* Trophy */}
+              <View style={styles.trophyWrap}>
+                <Text style={styles.trophyEmoji}>🏆</Text>
+              </View>
+
+              {/* Title */}
+              <Text style={styles.proTitle}>You're a Manchly Pro!</Text>
+
+              {/* Description */}
+              <Text style={styles.proDescription}>
+                All starter tasks done. You've earned{' '}
+                <Text style={styles.proPointsHighlight}>{earnedPts} pts</Text>{' '}
+                and{'\n'}unlocked the{' '}
+                <Text style={styles.proBadgeHighlight}>Rising Star </Text>
+                <Star
+                  size={wp(14)}
+                  color={colors.golden}
+                  fill={colors.golden}
+                />{' '}
+                badge.
+              </Text>
+
+              {/* Task Icons Row */}
+              <View style={styles.taskIconsRow}>
+                {['🎓', '📡', '💰', '👥', '✅'].map((emoji, index) => (
+                  <View key={index} style={styles.taskIconBox}>
+                    <Text style={styles.taskIconEmoji}>{emoji}</Text>
+                  </View>
+                ))}
+              </View>
+
+              {/* Keep Growing CTA */}
+              <TouchableOpacity
+                activeOpacity={0.85}
+                onPress={() => navigation.navigate('CreateProducts')}
+                style={styles.keepGrowingBtn}
+              >
+                <Text style={styles.keepGrowingText}>
+                  🚀 Keep Growing on Manchly →
+                </Text>
+              </TouchableOpacity>
+            </LinearGradient>
+          ) : (
+            <LinearGradient
+              colors={['#1A1A2E', '#16213E', '#0F3460']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.scoreCard}
+            >
+              {/* Score and Progress Ring */}
+              <View style={styles.scoreTopRow}>
+                <View>
+                  <Text style={styles.scoreLabel}>YOUR SCORE</Text>
+                  <Text style={styles.scoreValue}>{earnedPts}</Text>
+                </View>
+                <View style={styles.progressRingWrap}>
+                  <Svg width={wp(70)} height={wp(70)}>
+                    <SvgCircle
+                      cx={wp(35)}
+                      cy={wp(35)}
+                      r={wp(28)}
+                      stroke="rgba(255,255,255,0.15)"
+                      strokeWidth={wp(5)}
+                      fill="none"
+                    />
+                    <SvgCircle
+                      cx={wp(35)}
+                      cy={wp(35)}
+                      r={wp(28)}
+                      stroke="#9B59B6"
+                      strokeWidth={wp(5)}
+                      fill="none"
+                      strokeDasharray={`${circumference}`}
+                      strokeDashoffset={`${progressOffset}`}
+                      strokeLinecap="round"
+                      rotation="-90"
+                      origin={`${wp(35)}, ${wp(35)}`}
+                    />
+                  </Svg>
+                  <View style={styles.progressRingText}>
+                    <Text style={styles.progressPercent}>
+                      {progressPercent}%
+                    </Text>
+                    <Text style={styles.progressDone}>done</Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* Next Level */}
+              <View style={styles.nextLevelRow}>
+                <Text style={styles.nextLevelText}>Next: </Text>
+                <Text style={styles.nextLevelName}>Rising Star </Text>
+                <Star
+                  size={wp(16)}
+                  color={colors.golden}
+                  fill={colors.golden}
+                />
+              </View>
+
+              {/* Milestones */}
+              <View style={styles.milestonesWrap}>
+                {milestones.map((milestone, index) => (
+                  <View key={index} style={styles.milestoneItem}>
+                    <View
+                      style={[
+                        styles.milestoneCheck,
+                        milestone.completed && styles.milestoneCompleted,
+                      ]}
+                    >
+                      {milestone.completed ? (
+                        <Check
+                          size={wp(14)}
+                          color={colors.white}
+                          strokeWidth={3}
+                        />
+                      ) : (
+                        <Circle size={wp(14)} color="rgba(255,255,255,0.3)" />
+                      )}
+                    </View>
+                    <Text
+                      style={[
+                        styles.milestoneText,
+                        milestone.completed && styles.milestoneTextCompleted,
+                      ]}
+                    >
+                      {milestone.label}
+                    </Text>
+                    <View style={styles.milestonePts}>
+                      <Text style={styles.milestonePtsText}>
+                        +{milestone.pts} pts
+                      </Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            </LinearGradient>
+          )}
         </View>
       </ScrollView>
     </View>
@@ -662,5 +906,200 @@ const styles = StyleSheet.create({
   liveSubtitle: {
     fontSize: fp(12),
     color: 'rgba(255,255,255,0.55)',
+  },
+
+  // Creator Score
+  scoreHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: hp(12),
+  },
+  scoreHeaderTitle: {
+    fontSize: fp(20),
+    fontWeight: '800',
+    color: colors.primary,
+  },
+  scoreHeaderLink: {
+    fontSize: fp(14),
+    fontWeight: '600',
+    color: '#9B59B6',
+  },
+  scoreCard: {
+    borderRadius: wp(20),
+    padding: wp(20),
+    shadowColor: '#1A1A2E',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 14,
+    elevation: 6,
+  },
+  scoreTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: hp(8),
+  },
+  scoreLabel: {
+    fontSize: fp(12),
+    fontWeight: '700',
+    color: 'rgba(255,255,255,0.65)',
+    letterSpacing: 1,
+    marginBottom: hp(4),
+  },
+  scoreValue: {
+    fontSize: fp(48),
+    fontWeight: '800',
+    color: '#9B59B6',
+  },
+  progressRingWrap: {
+    width: wp(70),
+    height: wp(70),
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  progressRingText: {
+    position: 'absolute',
+    alignItems: 'center',
+  },
+  progressPercent: {
+    fontSize: fp(14),
+    fontWeight: '700',
+    color: colors.white,
+  },
+  progressDone: {
+    fontSize: fp(10),
+    color: 'rgba(255,255,255,0.6)',
+    fontWeight: '500',
+  },
+  nextLevelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: hp(16),
+  },
+  nextLevelText: {
+    fontSize: fp(15),
+    color: colors.white,
+    fontWeight: '500',
+  },
+  nextLevelName: {
+    fontSize: fp(15),
+    fontWeight: '800',
+    color: colors.secondary,
+  },
+  milestonesWrap: {
+    gap: hp(10),
+  },
+  milestoneItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: wp(14),
+    paddingVertical: hp(14),
+    paddingHorizontal: wp(14),
+  },
+  milestoneCheck: {
+    width: wp(28),
+    height: wp(28),
+    borderRadius: wp(14),
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: wp(12),
+  },
+  milestoneCompleted: {
+    backgroundColor: colors.accent,
+  },
+  milestoneText: {
+    flex: 1,
+    fontSize: fp(14),
+    fontWeight: '600',
+    color: colors.white,
+  },
+  milestoneTextCompleted: {
+    textDecorationLine: 'line-through',
+    color: 'rgba(255,255,255,0.5)',
+  },
+  milestonePts: {
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    borderRadius: wp(12),
+    paddingHorizontal: wp(10),
+    paddingVertical: hp(4),
+  },
+  milestonePtsText: {
+    fontSize: fp(12),
+    fontWeight: '700',
+    color: colors.golden,
+  },
+
+  // Manchly Pro Card (all completed)
+  radialGlow: {
+    position: 'absolute',
+    top: '20%',
+    left: '15%',
+    right: '15%',
+    bottom: '30%',
+    borderRadius: wp(100),
+    backgroundColor: 'rgba(34, 139, 34, 0.15)',
+  },
+  trophyWrap: {
+    alignItems: 'center',
+    marginBottom: hp(16),
+    marginTop: hp(8),
+  },
+  trophyEmoji: {
+    fontSize: fp(64),
+  },
+  proTitle: {
+    fontSize: fp(26),
+    fontWeight: '800',
+    color: colors.white,
+    textAlign: 'center',
+    marginBottom: hp(12),
+  },
+  proDescription: {
+    fontSize: fp(15),
+    color: 'rgba(255,255,255,0.7)',
+    textAlign: 'center',
+    lineHeight: fp(22),
+    marginBottom: hp(20),
+  },
+  proPointsHighlight: {
+    fontWeight: '800',
+    color: colors.golden,
+  },
+  proBadgeHighlight: {
+    fontWeight: '800',
+    color: colors.secondary,
+  },
+  taskIconsRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: wp(12),
+    marginBottom: hp(22),
+  },
+  taskIconBox: {
+    width: wp(52),
+    height: wp(52),
+    borderRadius: wp(14),
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  taskIconEmoji: {
+    fontSize: fp(24),
+  },
+  keepGrowingBtn: {
+    backgroundColor: '#2ECC71',
+    borderRadius: wp(16),
+    paddingVertical: hp(16),
+    alignItems: 'center',
+  },
+  keepGrowingText: {
+    fontSize: fp(16),
+    fontWeight: '700',
+    color: colors.primary,
   },
 });

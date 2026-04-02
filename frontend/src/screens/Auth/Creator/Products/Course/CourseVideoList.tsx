@@ -5,6 +5,10 @@ import {
   FlatList,
   TouchableOpacity,
   Image,
+  ActivityIndicator,
+  Modal,
+  SafeAreaView,
+  StatusBar as RNStatusBar,
 } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import colors from '../../../../../utils/colors';
@@ -15,11 +19,11 @@ import { getCourseById } from '../../../../../store/CourseSlice';
 import { useDispatch } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
 import YouTubePlayer from '../../../../../components/YouTubePlayer';
-import { Play, Clock, MoreVertical, Plus } from 'lucide-react-native';
+import { Play, Clock, Plus, MoreVertical } from 'lucide-react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { createShimmerPlaceholder } from 'react-native-shimmer-placeholder';
 import { Menu, FAB } from 'react-native-paper';
-import Modal from 'react-native-modal';
+import ModalBottom from 'react-native-modal';
 import CourseAddVideoModal from './CourseAddVideoModal';
 import { deleteVideo } from '../../../../../store/VideoSlice';
 import DynamicModal from '../../../../../components/CommonModal';
@@ -31,7 +35,7 @@ const CourseVideoList = () => {
   const courseId = route?.params?.item?.id;
   const [videoList, setVideoList] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [playingVideoId, setPlayingVideoId] = useState<string | null>(null);
+  const [selectedVideo, setSelectedVideo] = useState<any>(null);
   const [menuVisible, setMenuVisible] = useState<string | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
@@ -41,33 +45,17 @@ const CourseVideoList = () => {
   const [videoData, setVideoData] = useState([]);
   const focus = useIsFocused();
   const [refresh, setRefresh] = useState(false);
-  const [isUpdate, setIsUpdate] = useState(false)
-
-  const handleVideoPlay = (videoId: string) => {
-    setPlayingVideoId(playingVideoId === videoId ? null : videoId);
-  };
+  const [isUpdate, setIsUpdate] = useState(false);
 
   useEffect(() => {
     getVideoById();
   }, [focus, refresh]);
 
-  const handleMenuOpen = (videoId: string) => {
-    setMenuVisible(videoId);
-  };
-
-  const handleMenuClose = () => {
-    setMenuVisible(null);
-    setShowModal(false);
-  };
-
-  // get course by id ----------
   const getVideoById = () => {
-    // console.log('---courseId--', courseId)
     setLoading(true);
     dispatch(getCourseById(courseId))
       .unwrap()
       .then(response => {
-        console.log('--response--', JSON.stringify(response))
         setVideoList(response?.course?.videos || []);
         setLoading(false);
       })
@@ -76,7 +64,6 @@ const CourseVideoList = () => {
       });
   };
 
-  // delete course video -----------
   const handleDelete = () => {
     setDeleteLoading(true);
     dispatch(deleteVideo(videoId))
@@ -90,6 +77,11 @@ const CourseVideoList = () => {
       .catch(error => {
         setDeleteLoading(false);
       });
+  };
+
+  const handleMenuClose = () => {
+    setMenuVisible(null);
+    setShowModal(false);
   };
 
   const toggleModal = () => {
@@ -116,60 +108,42 @@ const CourseVideoList = () => {
   );
 
   const renderVideoCard = ({ item }: any) => {
-    const isPlaying = playingVideoId === item.id;
     const isMenuVisible = menuVisible === item.id;
 
     return (
-      <View style={styles.card}>
-        <View style={styles.mediaContainer}>
-          {isPlaying ? (
-            <YouTubePlayer
-              source={{ uri: item.playback_url }}
-              title={item?.title}
-              showCloseButton={false}
-              autoPlay
-              style={styles.videoPlayer}
-            />
-          ) : (
-            <TouchableOpacity
-              style={styles.thumbnailContainer}
-              onPress={() => handleVideoPlay(item.id)}
-              activeOpacity={0.8}
-            >
-              <Image
-                source={{
-                  uri:
-                    item?.thumbnail_url ||
-                    'https://cdn-icons-png.flaticon.com/512/4149/4149650.png',
-                }}
-                style={styles.thumbnail}
-                defaultSource={
-                  item?.thumbnail_url ||
-                  'https://cdn-icons-png.flaticon.com/512/4149/4149650.png'
-                }
-              />
-              <LinearGradient
-                colors={['transparent', 'rgba(0,0,0,0.5)']}
-                style={styles.thumbnailGradient}
-              />
-              <View style={styles.playButtonContainer}>
-                <View style={styles.playButton}>
-                  <Play color={colors.white} size={wp(20)} fill={colors.white} />
-                </View>
-              </View>
-              <View style={styles.durationBadge}>
-                <Clock color={colors.white} size={wp(12)} />
-                <Text style={styles.durationBadgeText}>
-                  {item?.duration || 0}m
-                </Text>
-              </View>
-            </TouchableOpacity>
-          )}
+      <TouchableOpacity
+        style={styles.card}
+        activeOpacity={0.9}
+        onPress={() => setSelectedVideo(item)}
+      >
+        <View style={styles.thumbnailWrapper}>
+          <Image
+            source={{
+              uri:
+                item?.thumbnail_url ||
+                'https://cdn-icons-png.flaticon.com/512/4149/4149650.png',
+            }}
+            style={styles.thumbnail}
+          />
+          <LinearGradient
+            colors={['transparent', 'rgba(0,0,0,0.5)']}
+            style={styles.thumbnailGradient}
+          />
+          <View style={styles.playIconContainer}>
+            <View style={styles.playIcon}>
+              <Play color={colors.white} size={wp(16)} fill={colors.white} />
+            </View>
+          </View>
+          <View style={styles.durationBadge}>
+            <Clock color={colors.white} size={wp(10)} />
+            <Text style={styles.durationBadgeText}>
+              {item?.duration || 0}m
+            </Text>
+          </View>
         </View>
-
-        <View style={styles.content}>
+        <View style={styles.cardContent}>
           <View style={styles.titleRow}>
-            <Text style={styles.title} numberOfLines={2}>
+            <Text style={styles.videoTitle} numberOfLines={1}>
               {item?.title || 'Untitled Video'}
             </Text>
             <Menu
@@ -177,10 +151,13 @@ const CourseVideoList = () => {
               onDismiss={handleMenuClose}
               anchor={
                 <TouchableOpacity
-                  onPress={() => handleMenuOpen(item.id)}
+                  onPress={e => {
+                    e.stopPropagation?.();
+                    setMenuVisible(item.id);
+                  }}
                   style={styles.menuButton}
                 >
-                  <MoreVertical color={colors.textSecondary} size={wp(20)} />
+                  <MoreVertical color={colors.textSecondary} size={wp(18)} />
                 </TouchableOpacity>
               }
               contentStyle={styles.menuContent}
@@ -190,7 +167,7 @@ const CourseVideoList = () => {
                   setIsModalVisible(true);
                   setVideoData(item);
                   setMenuVisible(null);
-                  setIsUpdate(true)
+                  setIsUpdate(true);
                 }}
                 title="Edit"
                 style={styles.menuItem}
@@ -207,13 +184,11 @@ const CourseVideoList = () => {
               />
             </Menu>
           </View>
-          <View style={styles.metaInfo}>
-            <Text style={styles.duration}>
-              {item.description || 'Uncategorized'}
-            </Text>
-          </View>
+          <Text style={styles.videoDesc} numberOfLines={2}>
+            {item?.description || 'No description available'}
+          </Text>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 
@@ -249,6 +224,75 @@ const CourseVideoList = () => {
         </View>
       )}
 
+      {/* YouTube-style Video Player Modal */}
+      <Modal
+        visible={!!selectedVideo}
+        animationType="slide"
+        supportedOrientations={['portrait', 'landscape']}
+        onRequestClose={() => setSelectedVideo(null)}
+      >
+        <SafeAreaView style={styles.modalContainer}>
+          <RNStatusBar hidden={!!selectedVideo} />
+          {selectedVideo && (
+            <View style={styles.playerSection}>
+              <YouTubePlayer
+                source={{ uri: selectedVideo.playback_url }}
+                title={selectedVideo.title}
+                onClose={() => setSelectedVideo(null)}
+                autoPlay
+              />
+            </View>
+          )}
+          {selectedVideo && (
+            <View style={styles.videoInfoContainer}>
+              <Text style={styles.videoInfoTitle}>{selectedVideo.title}</Text>
+              <Text style={styles.videoInfoDesc}>
+                {selectedVideo.description || 'No description available'}
+              </Text>
+              {videoList.length > 1 && (
+                <View style={styles.upNextSection}>
+                  <Text style={styles.upNextTitle}>Up Next</Text>
+                  <FlatList
+                    data={videoList.filter(v => v.id !== selectedVideo.id)}
+                    keyExtractor={(item, index) =>
+                      item?.id || index.toString()
+                    }
+                    renderItem={({ item }) => (
+                      <TouchableOpacity
+                        style={styles.upNextCard}
+                        onPress={() => setSelectedVideo(item)}
+                        activeOpacity={0.8}
+                      >
+                        <Image
+                          source={{
+                            uri:
+                              item?.thumbnail_url ||
+                              'https://cdn-icons-png.flaticon.com/512/4149/4149650.png',
+                          }}
+                          style={styles.upNextThumb}
+                        />
+                        <View style={styles.upNextInfo}>
+                          <Text
+                            style={styles.upNextCardTitle}
+                            numberOfLines={2}
+                          >
+                            {item?.title}
+                          </Text>
+                          <Text style={styles.upNextDuration}>
+                            {item?.duration || 0}m
+                          </Text>
+                        </View>
+                      </TouchableOpacity>
+                    )}
+                    showsVerticalScrollIndicator={false}
+                  />
+                </View>
+              )}
+            </View>
+          )}
+        </SafeAreaView>
+      </Modal>
+
       <View style={{ marginRight: wp(10), marginBottom: hp(10) }}>
         <FAB
           icon={({ size, color }) => <Plus size={size} color={color} />}
@@ -258,12 +302,12 @@ const CourseVideoList = () => {
         />
       </View>
 
-      <Modal
+      <ModalBottom
         isVisible={isModalVisible}
         onBackdropPress={toggleModal}
         onSwipeComplete={toggleModal}
         swipeDirection={['down']}
-        style={styles.modal}
+        style={styles.bottomModal}
       >
         <CourseAddVideoModal
           onClose={toggleModal}
@@ -271,12 +315,12 @@ const CourseVideoList = () => {
           setRefresh={setRefresh}
           isUpdate={isUpdate}
         />
-      </Modal>
+      </ModalBottom>
 
       <DynamicModal
         visible={showModal}
-        heading="Delete Course"
-        message="Are you sure you want to delete this course? This action cannot be undone and all course data will be lost."
+        heading="Delete Video"
+        message="Are you sure you want to delete this video? This action cannot be undone."
         onCancel={handleMenuClose}
         onDelete={handleDelete}
         loading={deleteLoading}
@@ -293,35 +337,32 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   listContainer: {
-    paddingVertical: hp(8),
+    padding: wp(16),
     paddingBottom: hp(20),
   },
+  // Video card - horizontal layout like user page
   card: {
+    flexDirection: 'row',
     backgroundColor: colors.white,
-    borderRadius: wp(16),
-    marginHorizontal: wp(16),
-    marginVertical: hp(6),
-    shadowColor: colors.black,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    borderRadius: wp(12),
+    marginBottom: hp(14),
     overflow: 'hidden',
-    borderWidth: wp(1),
-    borderColor: colors.border,
+    elevation: 3,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
-  mediaContainer: {
+  thumbnailWrapper: {
     position: 'relative',
-  },
-  thumbnailContainer: {
-    position: 'relative',
+    width: wp(130),
+    height: hp(90),
   },
   thumbnail: {
     width: '100%',
-    height: hp(200),
+    height: '100%',
+    borderTopLeftRadius: wp(12),
+    borderBottomLeftRadius: wp(12),
     backgroundColor: colors.lightGrey,
   },
   thumbnailGradient: {
@@ -329,64 +370,61 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: hp(60),
+    height: hp(40),
+    borderBottomLeftRadius: wp(12),
   },
-  playButtonContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+  playIconContainer: {
+    ...StyleSheet.absoluteFillObject,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  playButton: {
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    width: wp(50),
-    height: hp(50),
-    borderRadius: wp(25),
+  playIcon: {
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    width: wp(32),
+    height: wp(32),
+    borderRadius: wp(16),
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: wp(2),
-    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   durationBadge: {
     position: 'absolute',
-    bottom: hp(12),
-    right: wp(12),
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    bottom: hp(4),
+    right: wp(4),
+    backgroundColor: 'rgba(0,0,0,0.8)',
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: wp(8),
-    paddingVertical: hp(4),
-    borderRadius: wp(12),
+    paddingHorizontal: wp(5),
+    paddingVertical: hp(2),
+    borderRadius: wp(4),
   },
   durationBadgeText: {
     color: colors.white,
-    fontSize: fp(12),
+    fontSize: fp(10),
     fontWeight: '600',
-    marginLeft: wp(4),
+    marginLeft: wp(2),
   },
-  videoPlayer: {
-    width: '100%',
-    borderRadius: 0,
-  },
-  content: {
-    padding: wp(16),
+  cardContent: {
+    flex: 1,
+    padding: wp(10),
+    justifyContent: 'center',
   },
   titleRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: hp(6),
+    alignItems: 'center',
   },
-  title: {
-    fontSize: fp(16),
-    fontWeight: '700',
-    color: colors.text,
-    lineHeight: fp(22),
+  videoTitle: {
+    fontSize: fp(15),
+    fontWeight: '600',
+    color: colors.black,
     flex: 1,
-    marginRight: wp(8),
+    marginRight: wp(4),
+  },
+  videoDesc: {
+    fontSize: fp(12),
+    color: colors.textSecondary,
+    lineHeight: fp(17),
+    marginTop: hp(4),
   },
   menuButton: {
     padding: wp(4),
@@ -406,30 +444,73 @@ const styles = StyleSheet.create({
   deleteText: {
     color: colors.error,
   },
-  metaInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  // YouTube-style modal
+  modalContainer: {
+    flex: 1,
+    backgroundColor: colors.black,
   },
-  duration: {
-    fontSize: fp(13),
+  playerSection: {
+    width: '100%',
+    backgroundColor: colors.black,
+  },
+  videoInfoContainer: {
+    flex: 1,
+    backgroundColor: colors.white,
+    paddingHorizontal: wp(16),
+    paddingTop: hp(16),
+  },
+  videoInfoTitle: {
+    fontSize: fp(18),
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: hp(6),
+  },
+  videoInfoDesc: {
+    fontSize: fp(14),
     color: colors.textSecondary,
-    fontWeight: '500',
+    lineHeight: fp(20),
+    marginBottom: hp(16),
   },
-  pauseButton: {
+  upNextSection: {
+    flex: 1,
+  },
+  upNextTitle: {
+    fontSize: fp(16),
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: hp(12),
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    paddingTop: hp(12),
+  },
+  upNextCard: {
     flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.lightGrey,
-    paddingHorizontal: wp(12),
-    paddingVertical: hp(6),
+    marginBottom: hp(12),
     borderRadius: wp(8),
-    alignSelf: 'flex-start',
+    overflow: 'hidden',
   },
-  pauseButtonText: {
-    color: colors.primary,
-    fontSize: fp(12),
+  upNextThumb: {
+    width: wp(120),
+    height: hp(68),
+    borderRadius: wp(8),
+    backgroundColor: colors.lightGrey,
+  },
+  upNextInfo: {
+    flex: 1,
+    paddingLeft: wp(10),
+    justifyContent: 'center',
+  },
+  upNextCardTitle: {
+    fontSize: fp(14),
     fontWeight: '600',
-    marginLeft: wp(4),
+    color: colors.text,
+    marginBottom: hp(4),
   },
+  upNextDuration: {
+    fontSize: fp(12),
+    color: colors.textSecondary,
+  },
+  // Empty state
   noDataContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -460,43 +541,41 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: fp(20),
   },
-  // Shimmer Styles
+  // Shimmer
   shimmerCard: {
+    flexDirection: 'row',
     backgroundColor: colors.white,
-    borderRadius: wp(16),
+    borderRadius: wp(12),
     marginHorizontal: wp(16),
     marginVertical: hp(6),
-    shadowColor: colors.black,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
     overflow: 'hidden',
-    borderWidth: wp(1),
-    borderColor: colors.border,
+    elevation: 3,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   shimmerThumbnail: {
-    width: '100%',
-    height: hp(200),
+    width: wp(130),
+    height: hp(90),
   },
   shimmerContent: {
-    padding: wp(16),
+    flex: 1,
+    padding: wp(10),
+    justifyContent: 'center',
   },
   shimmerTitle: {
     width: '80%',
-    height: hp(18),
+    height: hp(16),
     borderRadius: wp(4),
     marginBottom: hp(8),
   },
   shimmerDuration: {
     width: '40%',
-    height: hp(14),
+    height: hp(12),
     borderRadius: wp(4),
   },
-  // FAB Styles
+  // FAB
   fab: {
     position: 'absolute',
     margin: wp(16),
@@ -505,8 +584,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     borderRadius: wp(50),
   },
-  // Modal Styles
-  modal: {
+  // Bottom modal
+  bottomModal: {
     justifyContent: 'flex-end',
     margin: 0,
   },

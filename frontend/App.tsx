@@ -1,6 +1,6 @@
 import 'react-native-gesture-handler';
 import React, { useEffect } from 'react';
-import { StatusBar, useColorScheme } from 'react-native';
+import { StatusBar, useColorScheme, View } from 'react-native';
 import { Provider } from 'react-redux';
 import Toast from 'react-native-toast-message';
 import Router from './src/navigation/Router';
@@ -17,6 +17,8 @@ import { Settings, AppEventsLogger } from 'react-native-fbsdk-next';
 export default function App() {
   injectStore(store);
   const isDarkMode = useColorScheme() === 'dark';
+
+  console.log('--isDarkMode--', isDarkMode)
 
   useEffect(() => {
     initializeChottuLink('c_app_Xn5WbBZdEmObUbFRf8D91YiM3ZLD2CO6');

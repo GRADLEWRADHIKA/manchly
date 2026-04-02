@@ -21,8 +21,8 @@ const LatestCourseItem = ({ item, onPress }: any) => (
     style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
     onPress={onPress}
   >
-    {item?.thumbnail_url ? (
-      <Image source={{ uri: item.thumbnail_url }} style={styles.thumb} />
+    {item?.thumbnail ? (
+      <Image source={{ uri: item?.thumbnail }} style={styles.thumb} />
     ) : (
       <View style={[styles.thumb, styles.thumbPlaceholder]}>
         <BookOpen size={wp(22)} color={colors.secPrimary} strokeWidth={1.5} />

@@ -60,9 +60,9 @@ const CREATOR_TIPS = [
   {
     icon: <CalendarDays size={wp(22)} color={colors.secondary} />,
     iconBg: colors.lightGrey,
-    title: 'Host a workshop first',
+    title: 'Host a Webinar first',
     description:
-      'Not ready for a full course? Start with a live workshop on Manchly — faster to launch and builds trust.',
+      'Not ready for a full course? Start with a live Webinar on Manchly — faster to launch and builds trust.',
   },
   {
     icon: <Share2 size={wp(22)} color={colors.success} />,
@@ -143,48 +143,7 @@ const CreateProducts = () => {
         {/* Cards Row */}
         <View style={styles.cardsRow}>
           {/* Webinar Card */}
-          <TouchableOpacity
-            activeOpacity={0.8}
-            style={styles.card}
-            onPress={() => {
-              if (user?.kyc_verified) {
-                navigation.navigate('CreateWebinar');
-              } else {
-                navigation.navigate('KYCVerificationScreen');
-              }
-            }}
-          >
-            <View
-              style={[styles.cardInner, { backgroundColor: colors.lightGrey }]}
-            >
-              <View
-                style={[
-                  styles.iconCircle,
-                  { backgroundColor: colors.placeholder },
-                ]}
-              >
-                <Video size={wp(24)} color={colors.secondary} />
-              </View>
-              <Text style={[styles.cardTitle, { color: colors.secondary }]}>
-                Webinar
-              </Text>
-              <Text style={styles.cardDesc}>
-                Host live sessions & workshops
-              </Text>
-              <View
-                style={[
-                  styles.cardButton,
-                  { backgroundColor: colors.secondary },
-                ]}
-              >
-                <Text style={styles.cardButtonText}>Create</Text>
-                <ArrowRight size={wp(14)} color={colors.white} />
-              </View>
-            </View>
-          </TouchableOpacity>
-
-          {/* Course Card */}
-          <TouchableOpacity
+           <TouchableOpacity
             activeOpacity={0.8}
             style={styles.card}
             onPress={() => {
@@ -218,6 +177,47 @@ const CreateProducts = () => {
               </View>
             </View>
           </TouchableOpacity>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            style={styles.card}
+            onPress={() => {
+              if (user?.kyc_verified) {
+                navigation.navigate('CreateWebinar');
+              } else {
+                navigation.navigate('KYCVerificationScreen');
+              }
+            }}
+          >
+            <View
+              style={[styles.cardInner, { backgroundColor: colors.lightGrey }]}
+            >
+              <View
+                style={[
+                  styles.iconCircle,
+                  { backgroundColor: colors.placeholder },
+                ]}
+              >
+                <Video size={wp(24)} color={colors.secondary} />
+              </View>
+              <Text style={[styles.cardTitle, { color: colors.secondary }]}>
+                Webinar
+              </Text>
+              <Text style={styles.cardDesc}>
+                Host live sessions & Webinars
+              </Text>
+              <View
+                style={[
+                  styles.cardButton,
+                  { backgroundColor: colors.secondary },
+                ]}
+              >
+                <Text style={styles.cardButtonText}>Create</Text>
+                <ArrowRight size={wp(14)} color={colors.white} />
+              </View>
+            </View>
+          </TouchableOpacity>
+
+          {/* Course Card */}
         </View>
 
         {/* Creator Tips */}
@@ -225,8 +225,8 @@ const CreateProducts = () => {
           <View style={styles.tipsSectionHeader}>
             <Text style={styles.tipsSectionTitle}>Creator Tips</Text>
             <TouchableOpacity style={styles.viewAllBtn}>
-              <Text style={styles.viewAllText}>View all</Text>
-              <ArrowRight size={wp(14)} color={colors.info} />
+              {/* <Text style={styles.viewAllText}>View all</Text> */}
+              {/* <ArrowRight size={wp(14)} color={colors.info} /> */}
             </TouchableOpacity>
           </View>
 

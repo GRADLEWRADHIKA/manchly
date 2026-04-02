@@ -165,11 +165,13 @@ const Router = () => {
     <SafeAreaProvider>
       <NavigationContainer ref={navigationRef} linking={linking}>
         {token ? (
-          user?.user_type.includes('USER')  ? (
-            <UserMainStack />
-          ) : (
-            <CreatorMainStack />
-          )
+          user ? (
+            user.user_type.includes('USER') ? (
+              <UserMainStack />
+            ) : (
+              <CreatorMainStack />
+            )
+          ) : null
         ) : (
           <AuthStack />
         )}

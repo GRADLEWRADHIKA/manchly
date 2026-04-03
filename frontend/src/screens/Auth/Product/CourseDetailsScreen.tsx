@@ -37,8 +37,8 @@ const CourseDetailsScreen: React.FC = () => {
   );
   const { loading } = useSelector((state: any) => state.paymentReducer);
   const { user } = useSelector((state: any) => state.userReducer);
-
   const [purchasing, setPurchasing] = useState(false);
+  const [courseLoading, setCourseLoading] = useState(true);
 
   const price = Number(course?.price || 0);
   const gst = (price * 18) / 100;
@@ -48,8 +48,14 @@ const CourseDetailsScreen: React.FC = () => {
 
   useEffect(() => {
     if (courseId) {
-      dispatch(getCourseById(courseId));
-      dispatch(getEnrolledCourses({}));
+      setCourseLoading(true);
+      Promise.all([
+        dispatch(getCourseById(courseId))
+          .unwrap()
+          .then((res: any) => console.log('---success---', res))
+          .catch((err: any) => console.log('---error---', err)),
+        dispatch(getEnrolledCourses({})),
+      ]).finally(() => setCourseLoading(false));
     }
   }, [courseId, focus]);
 
@@ -143,8 +149,7 @@ const CourseDetailsScreen: React.FC = () => {
     }
   };
 
-  /** ---------------- LOADING ---------------- */
-  if (!course) {
+  if (courseLoading || !course) {
     return (
       <View style={styles.container}>
         <AppHeaderWithBack title="Course Details" />

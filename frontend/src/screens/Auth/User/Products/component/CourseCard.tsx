@@ -110,12 +110,12 @@ const CourseCard: React.FC<CourseCardProps> = ({
               </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
+            {/* <TouchableOpacity
               style={[styles.button, styles.outlineButton]}
               onPress={() => handleCoursePress(courseId)}
             >
               <Text style={styles.outlineButtonText}>Preview</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
         </View>
       </View>

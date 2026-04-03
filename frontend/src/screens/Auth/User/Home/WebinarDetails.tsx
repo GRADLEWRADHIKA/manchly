@@ -11,7 +11,15 @@ import React, { useState } from 'react';
 import { useRoute } from '@react-navigation/native';
 import colors from '../../../../utils/colors';
 import AppHeaderWithBack from '../../../../components/AppHeaderWithBack';
-import { Calendar, Clock, User, Tag, ImageOff } from 'lucide-react-native';
+import {
+  Calendar,
+  Clock,
+  User,
+  Users,
+  Tag,
+  ImageOff,
+  Video,
+} from 'lucide-react-native';
 import {
   createWebinarEnroll,
   createWebinarVerify,
@@ -28,8 +36,13 @@ const WebinarDetails = () => {
   const hasThumbnail = !!data?.thumbnail_url;
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
   const [loading, setLoading] = useState(false);
-  const { user } = useSelector((state: any) => state.userReducer);
-  const { token } = useSelector((state: any) => state.userReducer);
+  const { user, token } = useSelector((state: any) => state.userReducer);
+
+  const price = Number(data?.price || 0);
+  const gst = (price * 18) / 100;
+  const platformFee = (gst * 5) / 100;
+  const total = price + gst + platformFee;
+  const amountInPaise = Math.round(total * 100);
 
   const onVerifyWebinar = async () => {
     setLoading(true);
@@ -161,11 +174,27 @@ const WebinarDetails = () => {
 
         <View style={styles.row}>
           <Clock size={wp(18)} color={colors.textSecondary} />
-          <Text style={styles.detailText}>{data?.duration} mins</Text>
+          <Text style={styles.detailText}>
+            {new Date(data?.scheduled_at).toLocaleTimeString([], {
+              hour: '2-digit',
+              minute: '2-digit',
+            })}{' '}
+            ({data?.duration} mins)
+          </Text>
+        </View>
+
+        <View style={styles.row}>
+          <Video size={wp(18)} color={colors.textSecondary} />
+          <Text style={styles.detailText}>Zoom Meeting</Text>
+        </View>
+
+        <View style={styles.row}>
+          <Users size={wp(18)} color={colors.textSecondary} />
+          <Text style={styles.detailText}>Max Participants: {data?.max_participants}</Text>
         </View>
 
         <View style={styles.tagContainer}>
-          {data?.tags?.map((tag, index) => (
+          {data?.tags?.map((tag: string, index: number) => (
             <View key={index} style={styles.tag}>
               <Tag size={wp(14)} color={colors.white} />
               <Text style={styles.tagText}>{tag}</Text>
@@ -173,15 +202,27 @@ const WebinarDetails = () => {
           ))}
         </View>
 
-        <View style={styles.priceBox}>
-          <Text style={styles.price}>₹ {data?.price}</Text>
-          <Text style={styles.participants}>
-            Max Participants: {data?.max_participants}
-          </Text>
-        </View>
-
-        <Text style={styles.sectionTitle}>About Webinar</Text>
+        <Text style={[styles.sectionTitle, { marginTop: hp(20) }]}>
+          About Webinar
+        </Text>
         <Text style={styles.description}>{data?.description}</Text>
+
+        <View style={styles.priceBox}>
+          <Text style={[styles.sectionTitle, {paddingHorizontal: 0}]}>Payment Details</Text>
+
+          <PriceRow label="Webinar Fee" value={`₹${price}`} />
+          <PriceRow label="GST (18%)" value={`₹${gst.toFixed(2)}`} />
+          <PriceRow
+            label="Platform Fee (5%)"
+            value={`₹${platformFee.toFixed(2)}`}
+          />
+
+          <View style={styles.totalRow}>
+            <Text style={styles.totalLabel}>Total</Text>
+            <Text style={styles.totalValue}>₹{total.toFixed(2)}</Text>
+          </View>
+
+        </View>
       </ScrollView>
 
       <View style={styles.bottomBar}>
@@ -190,14 +231,18 @@ const WebinarDetails = () => {
             <Text style={styles.buyText}>Already Enrolled</Text>
           </View>
         ) : (
-          <TouchableOpacity style={styles.buyButton} onPress={onVerifyWebinar}>
-            <Text style={styles.buyText}>
-              {loading ? (
-                <ActivityIndicator color={colors.white} size={'small'} />
-              ) : (
-                'Buy Now'
-              )}
-            </Text>
+          <TouchableOpacity
+            style={styles.buyButton}
+            onPress={onVerifyWebinar}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color={colors.white} size={'small'} />
+            ) : (
+              <Text style={styles.buyText}>
+                Purchase for ₹{total.toFixed(2)}
+              </Text>
+            )}
           </TouchableOpacity>
         )}
       </View>
@@ -206,6 +251,13 @@ const WebinarDetails = () => {
 };
 
 export default WebinarDetails;
+
+const PriceRow = ({ label, value }: { label: string; value: string }) => (
+  <View style={styles.priceRow}>
+    <Text style={styles.priceLabel}>{label}</Text>
+    <Text style={styles.priceValue}>{value}</Text>
+  </View>
+);
 
 const styles = StyleSheet.create({
   container: {
@@ -266,6 +318,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(15),
     gap: wp(8),
   },
+
   tag: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -275,30 +328,55 @@ const styles = StyleSheet.create({
     borderRadius: wp(20),
     gap: wp(4),
   },
+
   tagText: {
     color: colors.white,
     fontSize: fp(12),
   },
 
   priceBox: {
-    marginTop: hp(20),
-    paddingHorizontal: wp(15),
+    backgroundColor: colors.surface,
+    padding: wp(16),
+    borderRadius: wp(12),
+    marginHorizontal: wp(15),
   },
-  price: {
-    fontSize: fp(26),
+  priceRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginVertical: hp(6),
+  },
+  priceLabel: {
+    color: colors.textSecondary,
+  },
+  priceValue: {
+    fontWeight: '600',
+  },
+  totalRow: {
+    borderTopWidth: wp(1),
+    borderColor: colors.border,
+    marginTop: hp(10),
+    paddingTop: hp(10),
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  totalLabel: {
+    fontSize: fp(16),
     fontWeight: '700',
+  },
+  totalValue: {
+    fontSize: fp(18),
+    fontWeight: '800',
     color: colors.primary,
   },
   participants: {
     fontSize: fp(14),
     color: colors.textSecondary,
-    marginTop: hp(4),
+    marginTop: hp(10),
   },
 
   sectionTitle: {
     fontSize: fp(18),
     fontWeight: '600',
-    marginTop: hp(25),
     paddingHorizontal: wp(15),
     color: colors.text,
   },

@@ -307,11 +307,23 @@ export class CourseController {
             }
           },
           videos: {
+            select: {
+              id: true,
+              title: true,
+              duration: true,
+              status: true,
+              is_free: true,
+              order: true,
+              thumbnail_url: true,
+              playback_url: true,
+              mux_asset_id: true,
+              mux_upload_id: true
+            },
             orderBy: { order: 'asc' }
           },
           enrollments: isUser(user.user_type) ? {
             where: { user_id: userId }
-          } : true
+          } : false
         }
       });
 
@@ -320,7 +332,8 @@ export class CourseController {
       }
 
       // Check access permissions
-      if (isCreator(user.user_type) && course.creator_id !== userId) {
+      console.log('getCourseById debug:', { userId, user_type: user.user_type, isCreator: isCreator(user.user_type), isUser: isUser(user.user_type), course_status: course.status, creator_id: course.creator_id });
+      if (isCreator(user.user_type) && !isUser(user.user_type) && course.creator_id !== userId) {
         return ApiResponseHandler.customError(res, "You don't have access to this course", 403, "FORBIDDEN");
       }
 
@@ -328,9 +341,13 @@ export class CourseController {
         return ApiResponseHandler.customError(res, "Course not available", 403, "COURSE_NOT_AVAILABLE");
       }
 
-      const isEnrolled = isUser(user.user_type) && 
-                         course.enrollments && 
+      const isEnrolled = isUser(user.user_type) &&
+                         course.enrollments &&
                          course.enrollments.length > 0;
+
+      const totalStudents = await prisma.enrollments.count({
+        where: { course_id: courseId }
+      });
 
       // Filter videos based on enrollment status
       let videosToShow = course.videos;
@@ -339,10 +356,15 @@ export class CourseController {
         videosToShow = course.videos.filter(v => v.is_free);
       }
 
+      console.log('Course found:', course.id, 'Videos count:', course.videos.length, 'Videos to show:', videosToShow.length);
+
       ApiResponseHandler.success(res, {
         course: {
           ...course,
           videos: videosToShow,
+          total_videos: course.videos.length,
+          total_duration: course.videos.reduce((sum, v) => sum + (v.duration || 0), 0),
+          total_students: totalStudents,
           is_enrolled: isEnrolled,
           enrollment_info: isEnrolled ? course.enrollments[0] : null
         }

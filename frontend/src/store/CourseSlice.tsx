@@ -23,7 +23,6 @@ export const getCourseById = createAsyncThunk(
   async (id: string, { rejectWithValue }) => {
     try {
       const res = await instance.get(`courses/${id}`);
-      console.log('getCourseById API response:', JSON.stringify(res.data, null, 2));
       return res.data?.data;
     } catch (error: any) {
       console.log('getCourseById API error:', error?.response?.status, error?.response?.data || error?.message);

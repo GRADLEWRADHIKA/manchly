@@ -32,6 +32,7 @@ const CourseDetailsScreen: React.FC = () => {
   const { current: course } = useSelector(
     (state: any) => state.coursesReducer
   );
+
   const { list: enrolledCourses } = useSelector(
     (state: any) => state.enrollmentsReducer
   );
@@ -196,14 +197,14 @@ const CourseDetailsScreen: React.FC = () => {
             <View style={styles.statItem}>
               <Users size={18} color={colors.textSecondary} />
               <Text style={styles.statText}>
-                {course.enrollments?.length || 0} students
+                {course.total_students || 0} students
               </Text>
             </View>
 
             <View style={styles.statItem}>
               <Play size={18} color={colors.textSecondary} />
               <Text style={styles.statText}>
-                {course.videos?.length || 0} videos
+                {course.total_videos || course.videos?.length || 0} videos
               </Text>
             </View>
           </View>

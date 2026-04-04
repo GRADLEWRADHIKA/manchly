@@ -56,6 +56,7 @@ const CourseVideoList = () => {
     dispatch(getCourseById(courseId))
       .unwrap()
       .then(response => {
+        console.log('--res--', response )
         setVideoList(response?.course?.videos || []);
         setLoading(false);
       })

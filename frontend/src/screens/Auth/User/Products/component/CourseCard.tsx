@@ -24,7 +24,10 @@ const CourseCard: React.FC<CourseCardProps> = ({
     item.creator?.name || item.instructor?.name || 'Unknown Instructor';
   const studentsCount = item.enrollments?.length || item.students_count || 0;
   const videosCount = item.videos?.length || item.lessons_count || 0;
-  const duration = item.duration || '';
+  const totalSeconds = item.videos?.reduce((sum: number, v: any) => sum + (v.duration || 0), 0) || 0;
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const duration = hours > 0 ? `${hours}h ${minutes}min` : `${minutes}min`;
   const level = item.level || 'Beginner';
 
   const thumbnailUrl =

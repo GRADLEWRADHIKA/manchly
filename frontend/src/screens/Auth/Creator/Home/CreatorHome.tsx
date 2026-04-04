@@ -421,12 +421,6 @@ const CreatorHome = () => {
 
         {/* Creator Score */}
         <View style={styles.sectionPadding}>
-          <View style={styles.scoreHeader}>
-            <Text style={styles.scoreHeaderTitle}>Creator Score</Text>
-            <TouchableOpacity>
-              <Text style={styles.scoreHeaderLink}>What's this?</Text>
-            </TouchableOpacity>
-          </View>
 
           {allCompleted ? (
             <LinearGradient
@@ -487,7 +481,7 @@ const CreatorHome = () => {
               {/* Score and Progress Ring */}
               <View style={styles.scoreTopRow}>
                 <View>
-                  <Text style={styles.scoreLabel}>YOUR SCORE</Text>
+                  <Text style={styles.scoreLabel}>CREATOR SCORE</Text>
                   <Text style={styles.scoreValue}>{earnedPts}</Text>
                 </View>
                 <View style={styles.progressRingWrap}>
@@ -941,7 +935,7 @@ const styles = StyleSheet.create({
     marginBottom: hp(8),
   },
   scoreLabel: {
-    fontSize: fp(12),
+    fontSize: fp(16),
     fontWeight: '700',
     color: 'rgba(255,255,255,0.65)',
     letterSpacing: 1,

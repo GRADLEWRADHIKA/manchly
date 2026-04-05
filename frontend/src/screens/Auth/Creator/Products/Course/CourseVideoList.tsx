@@ -30,6 +30,20 @@ import DynamicModal from '../../../../../components/CommonModal';
 
 const ShimmerPlaceholder = createShimmerPlaceholder(LinearGradient);
 
+const formatDuration = (durationInSeconds: number) => {
+  const totalSeconds = Math.max(0, Math.floor(Number(durationInSeconds) || 0));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  const parts = [];
+
+  if (hours > 0) parts.push(`${hours}h`);
+  if (minutes > 0) parts.push(`${minutes}m`);
+  if (seconds > 0 || parts.length === 0) parts.push(`${seconds}s`);
+
+  return parts.join(' ');
+};
+
 const CourseVideoList = () => {
   const route = useRoute();
   const courseId = route?.params?.item?.id;
@@ -56,7 +70,6 @@ const CourseVideoList = () => {
     dispatch(getCourseById(courseId))
       .unwrap()
       .then(response => {
-        console.log('--res--', response )
         setVideoList(response?.course?.videos || []);
         setLoading(false);
       })
@@ -111,6 +124,8 @@ const CourseVideoList = () => {
   const renderVideoCard = ({ item }: any) => {
     const isMenuVisible = menuVisible === item.id;
 
+    console.log('---item---', item)
+
     return (
       <TouchableOpacity
         style={styles.card}
@@ -138,7 +153,7 @@ const CourseVideoList = () => {
           <View style={styles.durationBadge}>
             <Clock color={colors.white} size={wp(10)} />
             <Text style={styles.durationBadgeText}>
-              {item?.duration || 0}m
+              {formatDuration(item?.duration)}
             </Text>
           </View>
         </View>
@@ -280,7 +295,7 @@ const CourseVideoList = () => {
                             {item?.title}
                           </Text>
                           <Text style={styles.upNextDuration}>
-                            {item?.duration || 0}m
+                            {formatDuration(item?.duration)}
                           </Text>
                         </View>
                       </TouchableOpacity>
@@ -315,6 +330,7 @@ const CourseVideoList = () => {
           videoData={videoData}
           setRefresh={setRefresh}
           isUpdate={isUpdate}
+          setIsModalVisible={setIsModalVisible}
         />
       </ModalBottom>
 

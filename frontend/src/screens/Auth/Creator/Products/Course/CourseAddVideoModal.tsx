@@ -24,7 +24,14 @@ import {
   updateVideo,
 } from '../../../../../store/VideoSlice';
 import { uploadShipDoc } from '../../../../../store/Common';
-const CourseAddVideoModal = ({ onClose, setRefresh, videoData, isUpdate }) => {
+
+const CourseAddVideoModal = ({
+  onClose,
+  setRefresh,
+  videoData,
+  isUpdate,
+  setIsModalVisible,
+}) => {
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
   const [loading, setLoading] = useState(false); // main submit
   const [videoUploading, setVideoUploading] = useState(false);
@@ -74,9 +81,11 @@ const CourseAddVideoModal = ({ onClose, setRefresh, videoData, isUpdate }) => {
           position: 'bottom',
         });
         onClose();
+        setIsModalVisible(false);
       })
       .catch(err => {
         console.error('Update Error:', err);
+        setIsModalVisible(false);
         Toast.show({
           type: 'error',
           text1: 'Update failed',
@@ -200,7 +209,6 @@ const CourseAddVideoModal = ({ onClose, setRefresh, videoData, isUpdate }) => {
         }),
       ).unwrap();
 
-      console.log('--createVideoUpload response--', JSON.stringify(res));
       const uploadUrl = res?.upload_url;
       const videoId = res?.video?.id;
       if (!uploadUrl || !videoId)
@@ -242,6 +250,7 @@ const CourseAddVideoModal = ({ onClose, setRefresh, videoData, isUpdate }) => {
           setRefresh(prev => !prev);
           setTimeout(onClose, 1000);
         } else {
+          setIsModalVisible(false);
           Toast.show({
             type: 'error',
             text1: 'Upload failed',
@@ -253,6 +262,7 @@ const CourseAddVideoModal = ({ onClose, setRefresh, videoData, isUpdate }) => {
       };
 
       xhr.onerror = () => {
+        setIsModalVisible(false);
         setVideoUploading(false);
         Toast.show({
           type: 'error',
@@ -263,6 +273,7 @@ const CourseAddVideoModal = ({ onClose, setRefresh, videoData, isUpdate }) => {
 
       xhr.send(fileBlob);
     } catch (error: any) {
+      setIsModalVisible(false);
       console.error('Upload error:', error);
       Toast.show({
         type: 'error',
@@ -272,6 +283,7 @@ const CourseAddVideoModal = ({ onClose, setRefresh, videoData, isUpdate }) => {
       });
       setVideoUploading(false);
     } finally {
+      setIsModalVisible(false);
       setLoading(false);
     }
   };
@@ -517,7 +529,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(10),
     backgroundColor: colors.white,
   },
-  uploadText: { marginLeft: wp(10), fontSize: fp(16), color: colors.textSecondary },
+  uploadText: {
+    marginLeft: wp(10),
+    fontSize: fp(16),
+    color: colors.textSecondary,
+  },
   progressContainer: {
     flexDirection: 'row',
     alignItems: 'center',

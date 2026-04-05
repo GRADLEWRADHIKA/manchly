@@ -24,7 +24,6 @@ import colors from '../../../../../utils/colors';
 import { wp, hp, fp } from '../../../../../utils/responsive';
 import { useNavigation } from '@react-navigation/native';
 
-const { width: screenWidth } = Dimensions.get('window');
 interface Props {
   item: any;
   onEdit: () => void;
@@ -61,14 +60,9 @@ const CourseCard: React.FC<Props> = ({ item, onEdit, onDelete, onView }) => {
   const videoCount = item.videos?.length || 0;
 
   return (
-    <Animated.View
-      style={[
-        styles.card,
-        { transform: [{ scale: scaleAnim }],},
-      ]}
-    >
+    <Animated.View style={[styles.card, { transform: [{ scale: scaleAnim }] }]}>
       <LinearGradient
-        colors={['#1A1A2E', '#16213E', '#0F3460']}
+        colors={['#2A2A4A', '#22335A', '#1A4A7A']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.gradient}
@@ -100,13 +94,19 @@ const CourseCard: React.FC<Props> = ({ item, onEdit, onDelete, onView }) => {
 
             {/* Price badge */}
             <LinearGradient
-              colors={item.price ? ['#F97316', '#FB923C'] : ['#10B981', '#34D399']}
+              colors={
+                item.price ? ['#F97316', '#FB923C'] : ['#10B981', '#34D399']
+              }
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={styles.priceBadge}
             >
               {item.price ? (
-                <IndianRupee size={wp(10)} color={colors.white} strokeWidth={3} />
+                <IndianRupee
+                  size={wp(10)}
+                  color={colors.white}
+                  strokeWidth={3}
+                />
               ) : null}
               <Text style={styles.priceText}>
                 {item.price ? `${item.price}` : 'Free'}
@@ -155,7 +155,9 @@ const CourseCard: React.FC<Props> = ({ item, onEdit, onDelete, onView }) => {
               <TouchableOpacity
                 style={styles.detailsBtn}
                 onPress={() =>
-                  navigation.navigate('CourseDetailsScreen', { courseId: item?.id })
+                  navigation.navigate('CourseDetailsScreen', {
+                    courseId: item?.id,
+                  })
                 }
                 activeOpacity={0.7}
               >
@@ -170,25 +172,53 @@ const CourseCard: React.FC<Props> = ({ item, onEdit, onDelete, onView }) => {
 
           {/* Actions */}
           <View style={styles.actionsRow}>
-            <TouchableOpacity style={styles.actionBtn} onPress={onEdit} activeOpacity={0.7}>
+            <TouchableOpacity
+              style={styles.actionBtn}
+              onPress={onEdit}
+              activeOpacity={0.7}
+            >
               <View style={styles.actionIconWrap}>
                 <Edit3 size={wp(14)} color={'#60A5FA'} />
               </View>
-              <Text style={[styles.actionText, { color: '#60A5FA' }]}>Edit</Text>
+              <Text style={[styles.actionText, { color: '#60A5FA' }]}>
+                Edit
+              </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.actionBtn} onPress={handleShare} activeOpacity={0.7}>
-              <View style={[styles.actionIconWrap, { backgroundColor: 'rgba(16,185,129,0.15)' }]}>
+            <TouchableOpacity
+              style={styles.actionBtn}
+              onPress={handleShare}
+              activeOpacity={0.7}
+            >
+              <View
+                style={[
+                  styles.actionIconWrap,
+                  { backgroundColor: 'rgba(16,185,129,0.15)' },
+                ]}
+              >
                 <Share2 size={wp(14)} color={'#10B981'} />
               </View>
-              <Text style={[styles.actionText, { color: '#10B981' }]}>Share</Text>
+              <Text style={[styles.actionText, { color: '#10B981' }]}>
+                Share
+              </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.actionBtn} onPress={onDelete} activeOpacity={0.7}>
-              <View style={[styles.actionIconWrap, { backgroundColor: 'rgba(239,68,68,0.15)' }]}>
+            <TouchableOpacity
+              style={styles.actionBtn}
+              onPress={onDelete}
+              activeOpacity={0.7}
+            >
+              <View
+                style={[
+                  styles.actionIconWrap,
+                  { backgroundColor: 'rgba(239,68,68,0.15)' },
+                ]}
+              >
                 <Trash2 size={wp(14)} color={colors.error} />
               </View>
-              <Text style={[styles.actionText, { color: colors.error }]}>Delete</Text>
+              <Text style={[styles.actionText, { color: colors.error }]}>
+                Delete
+              </Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
@@ -219,7 +249,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
-  // Thumbnail
   thumbnailWrap: {
     position: 'relative',
   },
@@ -284,7 +313,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 
-  // Content
   content: {
     padding: wp(12),
     flex: 1,
@@ -314,13 +342,12 @@ const styles = StyleSheet.create({
     marginBottom: hp(4),
   },
   description: {
-    color: '#94A3B8',
+    color: colors.white,
     fontSize: fp(11),
     lineHeight: fp(16),
     marginBottom: hp(8),
   },
 
-  // Stats
   statsRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -357,14 +384,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 
-  // Separator
   separator: {
     height: 1,
     marginHorizontal: wp(12),
     backgroundColor: 'rgba(255,255,255,0.08)',
   },
 
-  // Actions
   actionsRow: {
     flexDirection: 'row',
     paddingVertical: hp(6),

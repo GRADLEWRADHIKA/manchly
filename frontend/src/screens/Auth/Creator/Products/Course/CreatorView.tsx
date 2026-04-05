@@ -2,11 +2,9 @@ import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
-  FlatList,
   ActivityIndicator,
   StyleSheet,
   Image,
-  Dimensions,
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
@@ -18,20 +16,9 @@ import { ThunkDispatch } from '@reduxjs/toolkit';
 import { deleteCourse, fetchCourses } from '../../../../../store/CourseSlice';
 import DynamicModal from '../../../../../components/CommonModal';
 import CourseCard from './CourseCard';
-import {
-  Award,
-  Bell,
-  BookOpen,
-  Search,
-  TrendingUp,
-  Users,
-  UserCircle,
-} from 'lucide-react-native';
+import { Bell, BookOpen, Search, UserCircle } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import CustomTextInput from '../../../../../components/CustomInput';
-import DashboardCard from '../../Home/component/DashboardCard';
-
-const { width: screenWidth } = Dimensions.get('window');
 
 const CreatorView: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -48,29 +35,6 @@ const CreatorView: React.FC = () => {
   const { user } = useSelector((state: any) => state.userReducer);
   const insets = useSafeAreaInsets();
   const [searchCourse, setSearchCourse] = useState('');
-
-  const quickStats = [
-    {
-      label: 'Active Courses',
-      value: '0',
-      icon: <BookOpen size={wp(24)} color={colors.primary} />,
-    },
-    {
-      label: 'Students',
-      value: '0',
-      icon: <Users size={wp(24)} color={colors.secondary} />,
-    },
-    {
-      label: 'Completion Rate',
-      value: '0',
-      icon: <Award size={wp(24)} color={colors.accent} />,
-    },
-    {
-      label: 'Revenue',
-      value: '0',
-      icon: <TrendingUp size={wp(24)} color={colors.golden} />,
-    },
-  ];
 
   useEffect(() => {
     getTheCourse(1, true);
@@ -161,7 +125,9 @@ const CreatorView: React.FC = () => {
             )}
             <View>
               <Text style={styles.headerSub}>My Courses</Text>
-              <Text style={styles.headerTitle}>{data.length} course{data.length !== 1 ? 's' : ''}</Text>
+              <Text style={styles.headerTitle}>
+                {data.length} course{data.length !== 1 ? 's' : ''}
+              </Text>
             </View>
           </View>
           <TouchableOpacity
@@ -191,7 +157,9 @@ const CreatorView: React.FC = () => {
 
         <View style={styles.listHeader}>
           <Text style={styles.listTitle}>My Courses</Text>
-          <Text style={styles.courseCount}>{filteredCourses.length} courses</Text>
+          <Text style={styles.courseCount}>
+            {filteredCourses.length} courses
+          </Text>
         </View>
 
         {loading ? (
@@ -201,60 +169,30 @@ const CreatorView: React.FC = () => {
           </View>
         ) : (
           <View style={styles.verticalListContainer}>
-            {filteredCourses.length === 0 ? (
-              renderEmptyState()
-            ) : (
-              filteredCourses.map(item => (
-                <CourseCard
-                  key={item.id}
-                  item={item}
-                  onEdit={() =>
-                    navigation.navigate('CreateCourse', {
-                      data: item,
-                      isUpdated: true,
-                    })
-                  }
-                  onDelete={() => {
-                    setShowModal(true);
-                    setCourseId(item?.id);
-                  }}
-                  onView={() =>
-                    navigation.navigate('CourseVideoList', { item })
-                  }
-                />
-              ))
-            )}
+            {filteredCourses.length === 0
+              ? renderEmptyState()
+              : filteredCourses.map(item => (
+                  <CourseCard
+                    key={item.id}
+                    item={item}
+                    onEdit={() =>
+                      navigation.navigate('CreateCourse', {
+                        data: item,
+                        isUpdated: true,
+                      })
+                    }
+                    onDelete={() => {
+                      setShowModal(true);
+                      setCourseId(item?.id);
+                    }}
+                    onView={() =>
+                      navigation.navigate('CourseVideoList', { item })
+                    }
+                  />
+                ))}
             {renderFooter()}
           </View>
         )}
-
-        {/* <View style={styles.statsSection}>
-          <Text style={styles.statsTitle}>Quick Stats</Text>
-          <View style={styles.statsGrid}>
-            {quickStats.map((stat, index) => (
-              <DashboardCard
-                key={index}
-                icon={stat.icon}
-                value={stat.value}
-                label={stat.label}
-              />
-            ))}
-          </View>
-        </View>
-
-        <View style={styles.withdrawCard}>
-          <View>
-            <Text style={styles.withdrawLabel}>Withdrawable Balance</Text>
-            <Text style={styles.withdrawAmount}>₹ *****</Text>
-          </View>
-          <TouchableOpacity
-            style={styles.withdrawBtn}
-            activeOpacity={0.8}
-            onPress={() => navigation.navigate('WalletCreator')}
-          >
-            <Text style={styles.withdrawBtnText}>Withdraw</Text>
-          </TouchableOpacity>
-        </View> */}
       </ScrollView>
 
       <DynamicModal
@@ -285,7 +223,7 @@ const styles = StyleSheet.create({
   headerWrapper: {
     backgroundColor: '#111111',
     borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20
+    borderBottomRightRadius: 20,
   },
   header: {
     flexDirection: 'row',

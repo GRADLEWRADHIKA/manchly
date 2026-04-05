@@ -351,7 +351,7 @@ export class CourseController {
 
       // Filter videos based on enrollment status
       let videosToShow = course.videos;
-      if (isUser(user.user_type) && !isEnrolled) {
+      if (isUser(user.user_type) && !isEnrolled && course.creator_id !== userId) {
         // Show only free videos to non-enrolled users
         videosToShow = course.videos.filter(v => v.is_free);
       }

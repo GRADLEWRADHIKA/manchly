@@ -77,7 +77,10 @@ const CreateCourse = () => {
     }
   };
 
-  const pickImageUpload = async (file: any, onChange: (val: string) => void) => {
+  const pickImageUpload = async (
+    file: any,
+    onChange: (val: string) => void,
+  ) => {
     setUploading(true);
     try {
       const formData = new FormData();
@@ -88,7 +91,11 @@ const CreateCourse = () => {
       });
       const res: any = await dispatch(uploadShipDoc(formData)).unwrap();
       onChange(res?.data?.url);
-      Toast.show({ type: 'success', text1: 'Image uploaded!', position: 'bottom' });
+      Toast.show({
+        type: 'success',
+        text1: 'Image uploaded!',
+        position: 'bottom',
+      });
     } catch {
       Toast.show({ type: 'error', text1: 'Upload Failed', position: 'bottom' });
     } finally {
@@ -96,24 +103,7 @@ const CreateCourse = () => {
     }
   };
 
-  const validateDescription = (description: string) => {
-    if (!description) {
-      Toast.show({ type: 'error', text1: 'Please write a short description' });
-      return false;
-    }
-    if (description.length < 5) {
-      Toast.show({ type: 'error', text1: 'Description must be at least 5 characters' });
-      return false;
-    }
-    if (description.length > 20) {
-      Toast.show({ type: 'error', text1: 'Description cannot exceed 20 characters' });
-      return false;
-    }
-    return true;
-  };
-
   const onCreateCourse = (data: any) => {
-    if (!validateDescription(data?.description?.trim())) return;
     setLoading(true);
     dispatch(
       createCourse({
@@ -132,12 +122,13 @@ const CreateCourse = () => {
         Toast.show({ type: 'success', text1: 'Course created!' });
         Nav.goBack();
       })
-      .catch(() => Toast.show({ type: 'error', text1: 'Failed to create course' }))
+      .catch(() =>
+        Toast.show({ type: 'error', text1: 'Failed to create course' }),
+      )
       .finally(() => setLoading(false));
   };
 
   const onCourseUpdate = (data: any) => {
-    if (!validateDescription(data?.description?.trim())) return;
     setLoading(true);
     dispatch(
       updateCourse({
@@ -159,7 +150,9 @@ const CreateCourse = () => {
         Toast.show({ type: 'success', text1: 'Course updated!' });
         Nav.goBack();
       })
-      .catch(() => Toast.show({ type: 'error', text1: 'Failed to update course' }))
+      .catch(() =>
+        Toast.show({ type: 'error', text1: 'Failed to update course' }),
+      )
       .finally(() => setLoading(false));
   };
 
@@ -167,10 +160,7 @@ const CreateCourse = () => {
     const isSelected = item.value === selectedValue;
     return (
       <View
-        style={[
-          styles.dropdownItem,
-          isSelected && styles.dropdownItemSelected,
-        ]}
+        style={[styles.dropdownItem, isSelected && styles.dropdownItemSelected]}
       >
         <Text
           style={[
@@ -186,7 +176,9 @@ const CreateCourse = () => {
 
   return (
     <View style={styles.root}>
-      <AppHeaderWithBack title={isUpdated ? 'Update Course' : 'Create Course'} />
+      <AppHeaderWithBack
+        title={isUpdated ? 'Update Course' : 'Create Course'}
+      />
 
       <KeyboardAvoidingView
         style={styles.flex}
@@ -349,13 +341,15 @@ const CreateCourse = () => {
           <Controller
             name="description"
             control={control}
-            render={({ field: { onChange, onBlur, value } }) => (
+            rules={{
+              required: true,
+              minLength: 5,
+              maxLength: 200,
+            }}
+            render={({ field: { onChange, onBlur, value }, fieldState: { error } }) => (
               <CustomTextInput
-                inputContainerStyle={[
-                  styles.input,
-                  errors.description && styles.errorBorder,
-                ]}
-                placeholder="Write a headline (5-20 characters)"
+                inputContainerStyle={[styles.input, error && styles.errorBorder]}
+                placeholder="Write a headline"
                 value={value}
                 onChange={onChange}
                 onBlur={onBlur}
@@ -441,6 +435,7 @@ const styles = StyleSheet.create({
     borderColor: colors.borderColor,
   },
   errorBorder: {
+    borderWidth: 1.5,
     borderColor: colors.error,
   },
 

@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRoute } from '@react-navigation/native';
 import colors from '../../../../utils/colors';
 import AppHeaderWithBack from '../../../../components/AppHeaderWithBack';
@@ -22,6 +22,7 @@ import {
 } from 'lucide-react-native';
 import {
   createWebinarEnroll,
+  getWebinarById,
   createWebinarVerify,
 } from '../../../../store/WebinarSlice';
 import { useDispatch, useSelector } from 'react-redux';
@@ -31,12 +32,22 @@ import Toast from 'react-native-toast-message';
 import { wp, hp, fp } from '../../../../utils/responsive';
 
 const WebinarDetails = () => {
-  const { params } = useRoute();
-  const data = params?.data;
-  const hasThumbnail = !!data?.thumbnail_url;
+  const { params } = useRoute<any>();
+  const webinarId = params?.webinarId || params?.id || params?.data?.id;
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
   const [loading, setLoading] = useState(false);
   const { user, token } = useSelector((state: any) => state.userReducer);
+  const webinarFromStore = useSelector(
+    (state: any) => state.webinarReducer?.current,
+  );
+  const data = params?.data || webinarFromStore;
+  const hasThumbnail = !!data?.thumbnail_url;
+
+  useEffect(() => {
+    if (!params?.data && webinarId) {
+      dispatch(getWebinarById(webinarId));
+    }
+  }, [dispatch, params?.data, webinarId]);
 
   const price = Number(data?.price || 0);
   const gst = (price * 18) / 100;
@@ -136,6 +147,17 @@ const WebinarDetails = () => {
       setLoading(false);
     }
   };
+
+  if (!data) {
+    return (
+      <View style={styles.container}>
+        <AppHeaderWithBack title="Webinar Details" />
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -263,6 +285,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.white,
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
   thumbnailWrapper: {

@@ -124,8 +124,6 @@ const CourseVideoList = () => {
   const renderVideoCard = ({ item }: any) => {
     const isMenuVisible = menuVisible === item.id;
 
-    console.log('---item---', item)
-
     return (
       <TouchableOpacity
         style={styles.card}

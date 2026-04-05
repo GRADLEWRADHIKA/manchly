@@ -44,6 +44,19 @@ export const getAllWebinar = createAsyncThunk(
   },
 );
 
+export const getWebinarById = createAsyncThunk(
+  'getWebinarById',
+  async (id: string, { rejectWithValue }) => {
+    try {
+      const res = await instance.get(`webinars/${id}`);
+      return res.data?.data;
+    } catch (e: any) {
+      const msg = e?.response?.data?.message || 'Failed to fetch webinar';
+      return rejectWithValue(msg);
+    }
+  },
+);
+
 // delete your course ---------
 export const deleteWebinar = createAsyncThunk(
   'deleteWebinar',
@@ -173,12 +186,17 @@ export const WebinarSlice = createSlice({
   name: 'webinar',
   initialState: {
     creatorWebinarStats: null as any,
+    current: null as any,
   },
   reducers: {},
   extraReducers: builder => {
-    builder.addCase(getCreatorWebinarStats.fulfilled, (state, { payload }) => {
-      state.creatorWebinarStats = payload ?? null;
-    });
+    builder
+      .addCase(getCreatorWebinarStats.fulfilled, (state, { payload }) => {
+        state.creatorWebinarStats = payload ?? null;
+      })
+      .addCase(getWebinarById.fulfilled, (state, { payload }) => {
+        state.current = payload?.webinar ?? payload ?? null;
+      });
   },
 });
 

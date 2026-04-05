@@ -18,8 +18,6 @@ export default function App() {
   injectStore(store);
   const isDarkMode = useColorScheme() === 'dark';
 
-  console.log('--isDarkMode--', isDarkMode)
-
   useEffect(() => {
     initializeChottuLink('c_app_Xn5WbBZdEmObUbFRf8D91YiM3ZLD2CO6');
     Settings.initializeSDK();

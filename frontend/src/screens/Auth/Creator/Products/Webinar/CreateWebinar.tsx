@@ -136,11 +136,7 @@ const CreateWebinarScreen = () => {
     }
   };
 
-  const {
-    control,
-    handleSubmit,
-    reset,
-  } = useForm({
+  const { control, handleSubmit, reset } = useForm({
     defaultValues: {
       title: updatedata?.title,
       description: updatedata?.description,
@@ -158,34 +154,6 @@ const CreateWebinarScreen = () => {
   });
 
   const onSubmit = (data: any) => {
-    const description = data?.description?.trim();
-
-    // REQUIRED
-    if (!description) {
-      Toast.show({
-        type: 'error',
-        text1: 'Please write a short description',
-      });
-      return;
-    }
-
-    // MIN LENGTH
-    if (description.length < 5) {
-      Toast.show({
-        type: 'error',
-        text1: 'Description must be at least 5 characters long',
-      });
-      return;
-    }
-
-    // MAX LENGTH
-    if (description.length > 20) {
-      Toast.show({
-        type: 'error',
-        text1: 'Description cannot exceed 20 characters',
-      });
-      return;
-    }
     setLoading(true);
     const payload = {
       title: data?.title,
@@ -216,34 +184,6 @@ const CreateWebinarScreen = () => {
 
   // calling the update the webinar
   const onUpdateSubmit = (data: any) => {
-    const description = data?.description?.trim();
-
-    // REQUIRED
-    if (!description) {
-      Toast.show({
-        type: 'error',
-        text1: 'Please write a short description',
-      });
-      return;
-    }
-
-    // MIN LENGTH
-    if (description.length < 5) {
-      Toast.show({
-        type: 'error',
-        text1: 'Description must be at least 5 characters long',
-      });
-      return;
-    }
-
-    // MAX LENGTH
-    if (description.length > 20) {
-      Toast.show({
-        type: 'error',
-        text1: 'Description cannot exceed 20 characters',
-      });
-      return;
-    }
     setLoading(true);
     const payload = {
       webinar_id: updatedata?.id,
@@ -277,7 +217,9 @@ const CreateWebinarScreen = () => {
 
   return (
     <View style={styles.safe}>
-      <AppHeaderWithBack title={updatedata ? 'Update Webinar' : 'Create Webinar'} />
+      <AppHeaderWithBack
+        title={updatedata ? 'Update Webinar' : 'Create Webinar'}
+      />
 
       <View style={styles.container}>
         <KeyboardAvoidingView
@@ -454,7 +396,9 @@ const CreateWebinarScreen = () => {
                     {uploading ? (
                       <ActivityIndicator color={colors.primary} />
                     ) : (
-                      <Text style={{ fontSize: fp(13.5), color: colors.primary }}>
+                      <Text
+                        style={{ fontSize: fp(13.5), color: colors.primary }}
+                      >
                         {value ? 'Change Thumbnail' : 'Choose Thumbnail'}
                       </Text>
                     )}
@@ -710,7 +654,9 @@ const CreateWebinarScreen = () => {
               name="description"
               control={control}
               rules={{
-                required: false,
+                required: true,
+                minLength: 5,
+                maxLength: 200,
               }}
               render={({
                 field: { onChange, onBlur, value },
@@ -728,7 +674,7 @@ const CreateWebinarScreen = () => {
                     color: colors.black,
                   }}
                   placeholderTextColor={colors.borderColor}
-                  placeholder="Write a headline (between 5–20 characters)"
+                  placeholder="Write a headline"
                   onChange={onChange}
                   onBlur={onBlur}
                   value={value}

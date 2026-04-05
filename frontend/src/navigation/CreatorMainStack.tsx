@@ -17,6 +17,7 @@ import KYCVerificationScreen from '../screens/Auth/Creator/Kyc/KYCVerificationSc
 import CourseDetailsScreen from '../screens/Auth/Creator/Products/Course/CourseDetailsScreen';
 import CreatorNotification from '../screens/Auth/Creator/Notification/CreatorNotification';
 import BankDetails from '../screens/Auth/Creator/BankDetails/BankDetails';
+import CreatorWebinarDetails from '../screens/Auth/Creator/Products/Webinar/CreatorWebinarDetails';
 
 const Stack = createNativeStackNavigator();
 
@@ -55,6 +56,10 @@ const CreatorMainStack = () => {
         component={CreatorNotification}
       />
       <Stack.Screen name="BankDetails" component={BankDetails} />
+      <Stack.Screen
+        name="WebinarDetails"
+        component={CreatorWebinarDetails}
+      />
     </Stack.Navigator>
   );
 };

@@ -30,6 +30,7 @@ import {
   Edit3,
   Trash2,
   Share2,
+  Eye,
 } from 'lucide-react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import Toast from 'react-native-toast-message';
@@ -333,6 +334,24 @@ const WebinarCard: React.FC<WebinarCardProps> = ({
 
             {/* Actions */}
             <View style={styles.actionsRow}>
+              <TouchableOpacity
+                style={styles.actionBtn}
+                onPress={() => Nav.navigate('WebinarDetails', { data })}
+                activeOpacity={0.7}
+              >
+                <View
+                  style={[
+                    styles.actionIconWrap,
+                    { backgroundColor: 'rgba(242, 255, 0, 0.16)' },
+                  ]}
+                >
+                  <Eye size={wp(14)} color={'#ebfc00'} />
+                </View>
+                <Text style={[styles.actionText, { color: '#ebfc00' }]}>
+                  Details
+                </Text>
+              </TouchableOpacity>
+
               <TouchableOpacity
                 style={styles.actionBtn}
                 onPress={() => Nav.navigate('CreateWebinar', { data: data })}

@@ -1,4 +1,5 @@
 import {
+  StyleProp,
   StyleSheet,
   Text,
   TextInput,
@@ -16,8 +17,8 @@ interface props {
   leftIcon?: React.ReactNode;
   isRightIcon?: Boolean;
   rightIcon?: React.ReactNode;
-  inputContainerStyle?: ViewStyle[] | ViewStyle;
-  inputStyle?: ViewStyle | TextStyle;
+  inputContainerStyle?: StyleProp<ViewStyle>;
+  inputStyle?: StyleProp<TextStyle>;
   isError?: Boolean;
   errorText?: String;
   multiline?: boolean;

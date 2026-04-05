@@ -20,9 +20,13 @@ const PREFIXES = ['https://manchly.chottu.link', 'http://manchly.chottu.link'];
 const resolveUrl = async (url: string | null): Promise<string | null> => {
   if (!url) return null;
   try {
-    if (/\/course\/[^/?#]+/.test(url)) return url;
+    if (/\/(course|webinar)\/[^/?#]+/.test(url)) return url;
 
-    if (url.includes('manchly.chottu.link') && !url.includes('/course/')) {
+    if (
+      url.includes('manchly.chottu.link') &&
+      !url.includes('/course/') &&
+      !url.includes('/webinar/')
+    ) {
       const result = await getAppLinkDataFromUrl(url);
       if (result?.link) return result.link;
     }
@@ -37,6 +41,7 @@ const linking = {
   config: {
     screens: {
       CourseDetailsScreen: 'course/:courseId',
+      WebinarDetails: 'webinar/:webinarId',
     },
   },
   async getInitialURL(): Promise<string | null> {
@@ -54,27 +59,37 @@ const linking = {
   },
 };
 
-// Extract courseId from a chottulink URL
-const extractCourseId = (url: string): string | null => {
+const extractDeepLinkParams = (
+  url: string,
+): { screen: 'CourseDetailsScreen' | 'WebinarDetails'; id: string } | null => {
   try {
-    const match = url.match(/\/course\/([^/?#]+)/);
-    return match ? match[1] : null;
+    const courseMatch = url.match(/\/course\/([^/?#]+)/);
+    if (courseMatch) {
+      return { screen: 'CourseDetailsScreen', id: courseMatch[1] };
+    }
+
+    const webinarMatch = url.match(/\/webinar\/([^/?#]+)/);
+    if (webinarMatch) {
+      return { screen: 'WebinarDetails', id: webinarMatch[1] };
+    }
+
+    return null;
   } catch {
     return null;
   }
 };
 
 // Resolve ChottuLink short URL to get the destination URL
-const resolveChottuLink = async (url: string): Promise<string | null> => {
+const resolveChottuLink = async (
+  url: string,
+): Promise<{ screen: 'CourseDetailsScreen' | 'WebinarDetails'; id: string } | null> => {
   try {
-    // If URL already has /course/ path, extract directly
-    const directId = extractCourseId(url);
-    if (directId) return directId;
+    const directParams = extractDeepLinkParams(url);
+    if (directParams) return directParams;
 
-    // Otherwise resolve the short link via SDK
     const result = await getAppLinkDataFromUrl(url);
     if (result?.link) {
-      return extractCourseId(result.link);
+      return extractDeepLinkParams(result.link);
     }
     return null;
   } catch {
@@ -85,7 +100,10 @@ const resolveChottuLink = async (url: string): Promise<string | null> => {
 const Router = () => {
   const { token } = useSelector((state: any) => state.userReducer);
   const { user } = useSelector((state: any) => state.userReducer);
-  const pendingCourseId = useRef<string | null>(null);
+  const pendingDeepLink = useRef<{
+    screen: 'CourseDetailsScreen' | 'WebinarDetails';
+    id: string;
+  } | null>(null);
 
   // Setup FCM notifications
   useEffect(() => {
@@ -131,9 +149,9 @@ const Router = () => {
   useEffect(() => {
     const handleDeepLink = async (url: string | null) => {
       if (!url) return;
-      const courseId = await resolveChottuLink(url);
-      if (courseId && !token) {
-        pendingCourseId.current = courseId;
+      const destination = await resolveChottuLink(url);
+      if (destination && !token) {
+        pendingDeepLink.current = destination;
       }
     };
 
@@ -150,13 +168,22 @@ const Router = () => {
 
   // After login, navigate to the pending deep link destination
   useEffect(() => {
-    if (token && pendingCourseId.current) {
-      const courseId = pendingCourseId.current;
-      pendingCourseId.current = null;
+    if (token && pendingDeepLink.current) {
+      const destination = pendingDeepLink.current;
+      pendingDeepLink.current = null;
 
-      // Small delay to let navigation mount
       setTimeout(() => {
-        navigationRef.current?.navigate('CourseDetailsScreen', { courseId });
+        if (destination.screen === 'CourseDetailsScreen') {
+          navigationRef.current?.navigate('CourseDetailsScreen', {
+            courseId: destination.id,
+          });
+          return;
+        }
+
+        navigationRef.current?.navigate('WebinarDetails', {
+          webinarId: destination.id,
+          id: destination.id,
+        });
       }, 500);
     }
   }, [token]);

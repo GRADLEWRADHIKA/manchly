@@ -10,6 +10,34 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET!,
 });
 
+/**
+ * Direct Razorpay API call helper for endpoints not available in the SDK
+ * (contacts, payouts are missing from razorpay SDK v2.9.x)
+ */
+async function razorpayApi(endpoint: string, body: any) {
+  const auth = Buffer.from(
+    `${process.env.RAZORPAY_KEY_ID}:${process.env.RAZORPAY_KEY_SECRET}`
+  ).toString("base64");
+
+  const response = await fetch(`https://api.razorpay.com/v1${endpoint}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Basic ${auth}`,
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(
+      (error as any)?.error?.description || `Razorpay API error: ${response.status}`
+    );
+  }
+
+  return response.json();
+}
+
 // Settlement configuration
 const PLATFORM_FEE_PERCENT = 10; // 10% platform commission
 const GST_ON_PLATFORM_FEE_PERCENT = 18; // 18% GST on platform fee
@@ -313,14 +341,14 @@ export class SettlementService {
     // Create Razorpay Contact if not exists
     let contactId = bankAccount.razorpay_contact_id;
     if (!contactId) {
-      const contact = await razorpay.contacts?.create({
+      const contact = await razorpayApi("/contacts", {
         name: bankAccount.beneficiary_name,
         email: bankAccount.user.email,
         contact: bankAccount.user.phone,
         type: "vendor",
         notes: { user_id: userId },
       });
-      contactId = contact?.id;
+      contactId = contact.id;
 
       if (contactId) {
         await prisma.creator_bank_accounts.update({
@@ -333,7 +361,7 @@ export class SettlementService {
     // Create Razorpay Fund Account if not exists
     let fundAccountId = bankAccount.razorpay_fund_account_id;
     if (!fundAccountId && contactId) {
-      const fundAccount = await razorpay.fundAccount?.create({
+      const fundAccount = await razorpay.fundAccount.create({
         contact_id: contactId,
         account_type: "bank_account",
         bank_account: {
@@ -423,8 +451,8 @@ export class SettlementService {
     try {
       const amountInPaise = Math.round(settlement.net_amount * 100);
 
-      const payout = await razorpay.payouts?.create({
-        account_number: process.env.RAZORPAY_ACCOUNT_NUMBER, // Your RazorpayX account number
+      const payout = await razorpayApi("/payouts", {
+        account_number: process.env.RAZORPAY_ACCOUNT_NUMBER,
         fund_account_id: fundAccountId,
         amount: amountInPaise,
         currency: "INR",

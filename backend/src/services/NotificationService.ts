@@ -1,5 +1,5 @@
 import EmailService from './EmailService';
-import { fast2smsService } from './Fast2SMSService';
+import { fast2smsService, WHATSAPP_TEMPLATES } from './Fast2SMSService';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -61,8 +61,21 @@ export class NotificationService {
       }).catch(err => console.error('Webinar purchase email error:', err))
     );
 
-    // WhatsApp - disabled until webinar registration template is approved on Fast2SMS
-    // TODO: Wire up once template is created with message_id
+    // WhatsApp
+    if (data.joineePhone && fast2smsService.isWhatsAppConfigured()) {
+      promises.push(
+        fast2smsService.sendWhatsAppWebinarRegistration(
+          data.joineePhone,
+          data.joineeName,
+          data.webinarName,
+          data.date,
+          data.day,
+          data.time,
+          data.webinarLink,
+          data.password
+        ).catch(err => console.error('Webinar registration WhatsApp error:', err))
+      );
+    }
 
     await Promise.allSettled(promises);
   }
@@ -92,8 +105,21 @@ export class NotificationService {
       }).catch(err => console.error('24hr email error:', err))
     );
 
-    // WhatsApp - disabled until 24hr reminder template is approved on Fast2SMS
-    // TODO: Wire up once template is created with message_id
+    // WhatsApp
+    if (data.joineePhone && fast2smsService.isWhatsAppConfigured()) {
+      promises.push(
+        fast2smsService.sendWhatsAppWebinarReminder(
+          data.joineePhone,
+          WHATSAPP_TEMPLATES.WEBINAR_24HRS.messageId,
+          data.joineeName,
+          data.date,
+          data.day,
+          data.time,
+          data.webinarLink,
+          data.password
+        ).catch(err => console.error('24hr WhatsApp error:', err))
+      );
+    }
 
     await Promise.allSettled(promises);
   }
@@ -123,8 +149,21 @@ export class NotificationService {
       }).catch(err => console.error('6hr email error:', err))
     );
 
-    // WhatsApp - disabled until 6hr reminder template is approved on Fast2SMS
-    // TODO: Wire up once template is created with message_id
+    // WhatsApp
+    if (data.joineePhone && fast2smsService.isWhatsAppConfigured()) {
+      promises.push(
+        fast2smsService.sendWhatsAppWebinarReminder(
+          data.joineePhone,
+          WHATSAPP_TEMPLATES.WEBINAR_6HRS.messageId,
+          data.joineeName,
+          data.date,
+          data.day,
+          data.time,
+          data.webinarLink,
+          data.password
+        ).catch(err => console.error('6hr WhatsApp error:', err))
+      );
+    }
 
     await Promise.allSettled(promises);
   }
@@ -154,8 +193,21 @@ export class NotificationService {
       }).catch(err => console.error('30min email error:', err))
     );
 
-    // WhatsApp - disabled until 30min reminder template is approved on Fast2SMS
-    // TODO: Wire up once template is created with message_id
+    // WhatsApp
+    if (data.joineePhone && fast2smsService.isWhatsAppConfigured()) {
+      promises.push(
+        fast2smsService.sendWhatsAppWebinarReminder(
+          data.joineePhone,
+          WHATSAPP_TEMPLATES.WEBINAR_30MIN.messageId,
+          data.joineeName,
+          data.date,
+          data.day,
+          data.time,
+          data.webinarLink,
+          data.password
+        ).catch(err => console.error('30min WhatsApp error:', err))
+      );
+    }
 
     await Promise.allSettled(promises);
   }
@@ -185,8 +237,21 @@ export class NotificationService {
       }).catch(err => console.error('Live email error:', err))
     );
 
-    // WhatsApp - disabled until webinar live template is approved on Fast2SMS
-    // TODO: Wire up once template is created with message_id
+    // WhatsApp
+    if (data.joineePhone && fast2smsService.isWhatsAppConfigured()) {
+      promises.push(
+        fast2smsService.sendWhatsAppWebinarReminder(
+          data.joineePhone,
+          WHATSAPP_TEMPLATES.WEBINAR_LIVE.messageId,
+          data.joineeName,
+          data.date,
+          data.day,
+          data.time,
+          data.webinarLink,
+          data.password
+        ).catch(err => console.error('Live WhatsApp error:', err))
+      );
+    }
 
     await Promise.allSettled(promises);
   }
@@ -214,12 +279,14 @@ export class NotificationService {
       }).catch(err => console.error('Course purchase email error:', err))
     );
 
-    // WhatsApp - send payment completed template
+    // WhatsApp - send course purchase confirmation
     if (data.customerPhone && fast2smsService.isWhatsAppConfigured()) {
       promises.push(
-        fast2smsService.sendWhatsAppPaymentCompleted(
+        fast2smsService.sendWhatsAppCoursePurchase(
           data.customerPhone,
-          data.courseName
+          data.customerName,
+          data.courseName,
+          data.courseAccessLink
         ).catch(err => console.error('Course purchase WhatsApp error:', err))
       );
     }

@@ -163,6 +163,7 @@ export class CourseController {
               select: {
                 id: true,
                 title: true,
+                description: true,
                 duration: true,
                 status: true,
                 is_free: true,
@@ -310,6 +311,7 @@ export class CourseController {
             select: {
               id: true,
               title: true,
+              description: true,
               duration: true,
               status: true,
               is_free: true,
@@ -1091,4 +1093,3 @@ export class CourseController {
     }
   }
 }
-

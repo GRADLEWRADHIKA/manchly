@@ -42,9 +42,8 @@ export class SettlementController {
           bank_name: bank_name || null,
           account_type: account_type || "savings",
           is_verified: false,
-          // Reset Razorpay IDs since account details changed
-          razorpay_fund_account_id: null,
-          razorpay_contact_id: null,
+          // Reset Cashfree beneficiary ID since account details changed
+          cashfree_beneficiary_id: null,
         },
         create: {
           user_id: userId,
@@ -91,7 +90,7 @@ export class SettlementController {
   }
 
   /**
-   * Creator: Get wallet overview with pending T+2 entries
+   * Creator: Get wallet overview with pending T+1 entries
    */
   static async getWallet(req: any, res: Response) {
     const userId = req.user.userId;
@@ -137,14 +136,14 @@ export class SettlementController {
           total_net_earnings: totalAgg._sum.net_amount || 0,
           pending_settlement: pendingAgg._sum.net_amount || 0,
           settled_amount: settledAgg._sum.net_amount || 0,
-          settlement_info: "Money will be submitted to your bank account after T+2 settlement period",
+          settlement_info: "Money will be submitted to your bank account after T+1 settlement period",
         },
         transactions: walletTxns.map((tx) => ({
           ...tx,
           title: tx.title,
           status_label:
             tx.status === "PENDING_SETTLEMENT"
-              ? "Money will be submitted in T+2 settlement"
+              ? "Money will be submitted in T+1 settlement"
               : tx.status === "SETTLED"
               ? "Settled to bank account"
               : "Failed",
@@ -332,7 +331,7 @@ export class SettlementController {
           total: totalDeductions.totalDeductions,
         },
         estimated_net: totalDeductions.netAmount,
-        settlement_delay: "T+2 business days",
+        settlement_delay: "T+1 business days",
         items,
       }, "Earnings breakdown retrieved");
     } catch (err: any) {
@@ -459,7 +458,7 @@ export class SettlementController {
           status: "PENDING",
           payout_status: "PENDING",
           failure_reason: null,
-          razorpay_payout_id: null,
+          cashfree_transfer_id: null,
         },
       });
 
@@ -472,34 +471,70 @@ export class SettlementController {
   }
 
   /**
-   * Razorpay Payout Webhook Handler
+   * Cashfree Payout Webhook Handler
    */
   static async handlePayoutWebhook(req: Request, res: Response) {
-    const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
-    const signature = req.headers["x-razorpay-signature"] as string;
+    const webhookSecret = process.env.CASHFREE_WEBHOOK_SECRET;
+    const signature = req.headers["x-webhook-signature"] as string;
+    const timestamp = req.headers["x-webhook-timestamp"] as string;
+    const rawBody = (req as any).rawBody;
+
+    console.log("Payout webhook received:", {
+      hasSignature: !!signature,
+      hasTimestamp: !!timestamp,
+      hasSecret: !!webhookSecret,
+      hasRawBody: !!rawBody,
+      headers: Object.keys(req.headers).filter(h => h.startsWith("x-")),
+      bodyType: typeof req.body,
+    });
 
     try {
-      const crypto = require("crypto");
-      const generatedSignature = crypto
-        .createHmac("sha256", webhookSecret!)
-        .update(JSON.stringify(req.body))
-        .digest("hex");
-
-      if (generatedSignature !== signature) {
-        return res.status(400).json({ error: "Invalid webhook signature" });
+      // If no signature headers, Cashfree might be doing a URL verification ping
+      if (!signature || !timestamp) {
+        console.log("Payout webhook: No signature headers — accepting as verification ping");
+        return res.status(200).json({ status: "ok" });
       }
 
-      const event = req.body.event;
-      const payload = req.body.payload;
+      if (!webhookSecret) {
+        console.error("CASHFREE_WEBHOOK_SECRET not configured");
+        return res.status(200).json({ status: "ok" });
+      }
 
-      if (event.startsWith("payout.")) {
-        await SettlementService.handlePayoutWebhook(event, payload);
+      if (!rawBody) {
+        console.error("Payout webhook: rawBody not available");
+        return res.status(200).json({ status: "ok" });
+      }
+
+      // Verify signature
+      const crypto = require("crypto");
+      const signedPayload = timestamp + rawBody;
+      const expectedSignature = crypto
+        .createHmac("sha256", webhookSecret)
+        .update(signedPayload)
+        .digest("base64");
+
+      if (expectedSignature !== signature) {
+        console.error("Payout webhook signature mismatch:", {
+          expected: expectedSignature,
+          received: signature,
+        });
+        return res.status(200).json({ status: "ok" });
+      }
+
+      const body = typeof req.body === "object" ? req.body : JSON.parse(rawBody);
+      const eventType = body.type;
+      const data = body.data;
+
+      console.log(`Payout webhook event: ${eventType}`);
+
+      if (eventType?.startsWith("TRANSFER_")) {
+        await SettlementService.handlePayoutWebhook(eventType, data);
       }
 
       res.status(200).json({ status: "ok" });
     } catch (err: any) {
       console.error("Payout webhook error:", err);
-      res.status(500).json({ error: "Webhook processing failed" });
+      res.status(200).json({ status: "ok" });
     }
   }
 }

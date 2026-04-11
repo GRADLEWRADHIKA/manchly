@@ -1,48 +1,14 @@
 import prisma from "../prismaClient";
+import { CashfreePayout } from "./cashfreeService";
 import dotenv from "dotenv";
 
 dotenv.config();
-
-const Razorpay = require("razorpay");
-
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID!,
-  key_secret: process.env.RAZORPAY_KEY_SECRET!,
-});
-
-/**
- * Direct Razorpay API call helper for endpoints not available in the SDK
- * (contacts, payouts are missing from razorpay SDK v2.9.x)
- */
-async function razorpayApi(endpoint: string, body: any) {
-  const auth = Buffer.from(
-    `${process.env.RAZORPAY_KEY_ID}:${process.env.RAZORPAY_KEY_SECRET}`
-  ).toString("base64");
-
-  const response = await fetch(`https://api.razorpay.com/v1${endpoint}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Basic ${auth}`,
-    },
-    body: JSON.stringify(body),
-  });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    throw new Error(
-      (error as any)?.error?.description || `Razorpay API error: ${response.status}`
-    );
-  }
-
-  return response.json();
-}
 
 // Settlement configuration
 const PLATFORM_FEE_PERCENT = 10; // 10% platform commission
 const GST_ON_PLATFORM_FEE_PERCENT = 18; // 18% GST on platform fee
 const TDS_PERCENT = 1; // 1% TDS (u/s 194O for e-commerce)
-const SETTLEMENT_DELAY_DAYS = 2; // T+2
+const SETTLEMENT_DELAY_DAYS = 1; // T+1
 
 export class SettlementService {
   /**
@@ -66,7 +32,7 @@ export class SettlementService {
   }
 
   /**
-   * Calculate T+2 settlement ETA from now (skipping weekends)
+   * Calculate T+1 settlement ETA from now (skipping weekends)
    */
   static getSettlementETA(): Date {
     const eta = new Date();
@@ -109,7 +75,7 @@ export class SettlementService {
           tds_amount: deductions.tdsAmount,
           status: "PENDING_SETTLEMENT",
           title: `Payment received - ${params.itemTitle}`,
-          description: `Money will be settled to your bank account by ${settlementEta.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })} (T+2 settlement)`,
+          description: `Money will be settled to your bank account by ${settlementEta.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })} (T+1 settlement)`,
           transaction_type: params.transactionType,
           transaction_id: params.transactionId,
           course_id: params.courseId || null,
@@ -129,8 +95,8 @@ export class SettlementService {
   }
 
   /**
-   * Get the cutoff date for T+2 settlement
-   * Returns the date that is T+2 business days ago
+   * Get the cutoff date for T+1 settlement
+   * Returns the date that is T+1 business days ago
    */
   static getSettlementCutoffDate(): Date {
     const now = new Date();
@@ -168,11 +134,11 @@ export class SettlementService {
     const settledCourseIds = settledCourseItems.map((i) => i.transaction_id);
     const settledWebinarIds = settledWebinarItems.map((i) => i.transaction_id);
 
-    // Fetch unsettled course transactions
+    // Fetch unsettled course transactions (both RAZORPAY and CASHFREE)
     const courseTransactions = await prisma.transactions.findMany({
       where: {
         status: "SUCCESS",
-        payment_method: "RAZORPAY",
+        payment_method: { in: ["CASHFREE", "RAZORPAY"] },
         completed_at: { lte: cutoffDate },
         id: { notIn: settledCourseIds.length > 0 ? settledCourseIds : undefined },
       },
@@ -188,11 +154,11 @@ export class SettlementService {
       },
     });
 
-    // Fetch unsettled webinar transactions
+    // Fetch unsettled webinar transactions (both RAZORPAY and CASHFREE)
     const webinarTransactions = await prisma.webinar_transactions.findMany({
       where: {
         status: "SUCCESS",
-        payment_method: "RAZORPAY",
+        payment_method: { in: ["CASHFREE", "RAZORPAY"] },
         completed_at: { lte: cutoffDate },
         id: { notIn: settledWebinarIds.length > 0 ? settledWebinarIds : undefined },
       },
@@ -322,7 +288,7 @@ export class SettlementService {
   }
 
   /**
-   * Register creator as Razorpay Contact and create Fund Account
+   * Register creator as Cashfree Beneficiary for payouts
    */
   static async registerCreatorForPayout(userId: string) {
     const bankAccount = await prisma.creator_bank_accounts.findUnique({
@@ -338,53 +304,31 @@ export class SettlementService {
       throw new Error("Bank account is not verified. Please complete bank verification via KYC.");
     }
 
-    // Create Razorpay Contact if not exists
-    let contactId = bankAccount.razorpay_contact_id;
-    if (!contactId) {
-      const contact = await razorpayApi("/contacts", {
-        name: bankAccount.beneficiary_name,
-        email: bankAccount.user.email,
-        contact: bankAccount.user.phone,
-        type: "vendor",
-        notes: { user_id: userId },
-      });
-      contactId = contact.id;
+    // Create Cashfree Beneficiary if not exists
+    let beneficiaryId = bankAccount.cashfree_beneficiary_id;
+    if (!beneficiaryId) {
+      beneficiaryId = `ben_${userId.replace(/-/g, "").substring(0, 20)}`;
 
-      if (contactId) {
-        await prisma.creator_bank_accounts.update({
-          where: { user_id: userId },
-          data: { razorpay_contact_id: contactId },
-        });
-      }
+      await CashfreePayout.PayoutCreateBeneficiary({
+        beneficiary_id: beneficiaryId,
+        beneficiary_name: bankAccount.beneficiary_name,
+        beneficiary_phone: bankAccount.user.phone || undefined,
+        beneficiary_email: bankAccount.user.email,
+        beneficiary_account_number: bankAccount.account_number,
+        beneficiary_ifsc: bankAccount.ifsc_code,
+      } as any);
+
+      await prisma.creator_bank_accounts.update({
+        where: { user_id: userId },
+        data: { cashfree_beneficiary_id: beneficiaryId },
+      });
     }
 
-    // Create Razorpay Fund Account if not exists
-    let fundAccountId = bankAccount.razorpay_fund_account_id;
-    if (!fundAccountId && contactId) {
-      const fundAccount = await razorpay.fundAccount.create({
-        contact_id: contactId,
-        account_type: "bank_account",
-        bank_account: {
-          name: bankAccount.beneficiary_name,
-          ifsc: bankAccount.ifsc_code,
-          account_number: bankAccount.account_number,
-        },
-      });
-      fundAccountId = fundAccount?.id;
-
-      if (fundAccountId) {
-        await prisma.creator_bank_accounts.update({
-          where: { user_id: userId },
-          data: { razorpay_fund_account_id: fundAccountId },
-        });
-      }
-    }
-
-    return { contactId, fundAccountId };
+    return { beneficiaryId };
   }
 
   /**
-   * Process payout for a single settlement via RazorpayX
+   * Process payout for a single settlement via Cashfree Payouts
    */
   static async processPayout(settlementId: string) {
     const settlement = await prisma.settlements.findUnique({
@@ -413,33 +357,33 @@ export class SettlementService {
       throw new Error("Creator has no bank account. Settlement marked as FAILED.");
     }
 
-    // Ensure Razorpay fund account exists
-    let fundAccountId = bankAccount.razorpay_fund_account_id;
-    if (!fundAccountId) {
+    // Ensure Cashfree beneficiary exists
+    let beneficiaryId = bankAccount.cashfree_beneficiary_id;
+    if (!beneficiaryId) {
       try {
         const result = await this.registerCreatorForPayout(settlement.creator_id);
-        fundAccountId = result.fundAccountId;
+        beneficiaryId = result.beneficiaryId;
       } catch (err: any) {
         await prisma.settlements.update({
           where: { id: settlementId },
           data: {
             status: "FAILED",
-            failure_reason: `Fund account setup failed: ${err.message}`,
+            failure_reason: `Beneficiary setup failed: ${err.message}`,
           },
         });
         throw err;
       }
     }
 
-    if (!fundAccountId) {
+    if (!beneficiaryId) {
       await prisma.settlements.update({
         where: { id: settlementId },
         data: {
           status: "FAILED",
-          failure_reason: "Could not create Razorpay fund account",
+          failure_reason: "Could not create Cashfree beneficiary",
         },
       });
-      throw new Error("Could not create Razorpay fund account");
+      throw new Error("Could not create Cashfree beneficiary");
     }
 
     // Update status to PROCESSING
@@ -449,36 +393,31 @@ export class SettlementService {
     });
 
     try {
-      const amountInPaise = Math.round(settlement.net_amount * 100);
+      const transferId = `payout_${settlementId.substring(0, 20)}_${Date.now()}`;
 
-      const payout = await razorpayApi("/payouts", {
-        account_number: process.env.RAZORPAY_ACCOUNT_NUMBER,
-        fund_account_id: fundAccountId,
-        amount: amountInPaise,
-        currency: "INR",
-        mode: "IMPS",
-        purpose: "payout",
-        queue_if_low_balance: true,
-        reference_id: settlementId,
-        narration: `Manchly Settlement ${settlementId.substring(0, 8)}`,
-        notes: {
-          settlement_id: settlementId,
-          creator_id: settlement.creator_id,
-        },
-      });
+      const transfer = await CashfreePayout.PayoutInitiateTransfer({
+        transfer_id: transferId,
+        transfer_amount: settlement.net_amount,
+        transfer_currency: "INR",
+        transfer_mode: "imps",
+        beneficiary_id: beneficiaryId,
+        remarks: `Manchly Settlement ${settlementId.substring(0, 8)}`,
+      } as any);
+
+      const transferData = (transfer as any)?.data;
 
       await prisma.settlements.update({
         where: { id: settlementId },
         data: {
-          razorpay_payout_id: payout?.id,
+          cashfree_transfer_id: transferId,
           payout_status: "PROCESSING",
-          payout_details: payout,
+          payout_details: transferData || null,
           processed_at: new Date(),
         },
       });
 
-      console.log(`Payout initiated for settlement ${settlementId}: ${payout?.id}`);
-      return payout;
+      console.log(`Payout initiated for settlement ${settlementId}: ${transferId}`);
+      return transferData;
     } catch (err: any) {
       await prisma.settlements.update({
         where: { id: settlementId },
@@ -534,19 +473,19 @@ export class SettlementService {
   }
 
   /**
-   * Handle Razorpay payout webhook to update settlement status
+   * Handle Cashfree payout webhook to update settlement status
    */
-  static async handlePayoutWebhook(event: string, payload: any) {
-    const payoutId = payload?.payout?.entity?.id;
-    if (!payoutId) return;
+  static async handlePayoutWebhook(event: string, data: any) {
+    const transferId = data?.transfer?.transfer_id;
+    if (!transferId) return;
 
     const settlement = await prisma.settlements.findUnique({
-      where: { razorpay_payout_id: payoutId },
+      where: { cashfree_transfer_id: transferId },
       include: { items: true },
     });
 
     if (!settlement) {
-      console.error(`Settlement not found for payout ${payoutId}`);
+      console.error(`Settlement not found for transfer ${transferId}`);
       return;
     }
 
@@ -567,42 +506,42 @@ export class SettlementService {
     };
 
     switch (event) {
-      case "payout.processed":
+      case "TRANSFER_SUCCESS":
         await prisma.settlements.update({
           where: { id: settlement.id },
           data: {
             status: "COMPLETED",
             payout_status: "COMPLETED",
             processed_at: new Date(),
-            payout_details: payload.payout.entity,
+            payout_details: data,
           },
         });
         await updateWalletStatus("SETTLED");
         console.log(`Settlement ${settlement.id} completed successfully`);
         break;
 
-      case "payout.reversed":
+      case "TRANSFER_REVERSED":
         await prisma.settlements.update({
           where: { id: settlement.id },
           data: {
             status: "FAILED",
             payout_status: "REVERSED",
-            failure_reason: payload.payout.entity?.failure_reason || "Payout reversed",
-            payout_details: payload.payout.entity,
+            failure_reason: data?.transfer?.status_description || "Payout reversed",
+            payout_details: data,
           },
         });
         await updateWalletStatus("FAILED");
         console.log(`Settlement ${settlement.id} payout reversed`);
         break;
 
-      case "payout.failed":
+      case "TRANSFER_FAILED":
         await prisma.settlements.update({
           where: { id: settlement.id },
           data: {
             status: "FAILED",
             payout_status: "FAILED",
-            failure_reason: payload.payout.entity?.failure_reason || "Payout failed",
-            payout_details: payload.payout.entity,
+            failure_reason: data?.transfer?.status_description || "Payout failed",
+            payout_details: data,
           },
         });
         await updateWalletStatus("FAILED");

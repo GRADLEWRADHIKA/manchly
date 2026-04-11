@@ -6,7 +6,7 @@ export class SettlementCronService {
   private payoutJob: any | null = null;
 
   /**
-   * Start the T+2 settlement CRON jobs
+   * Start the T+1 settlement CRON jobs
    *
    * Job 1: Create settlement records from matured transactions (daily at 6 AM IST)
    * Job 2: Process payouts for pending settlements (daily at 7 AM IST)
@@ -19,7 +19,7 @@ export class SettlementCronService {
 
     // Job 1: Create settlements daily at 6:00 AM IST (00:30 UTC)
     this.settlementJob = cron.schedule("30 0 * * *", async () => {
-      console.log("Running T+2 settlement creation job...");
+      console.log("Running T+1 settlement creation job...");
       try {
         const result = await SettlementService.processSettlements();
         console.log(`Settlement job completed: ${result.settlementsCreated} settlements created`);
@@ -39,7 +39,7 @@ export class SettlementCronService {
       }
     });
 
-    console.log("Settlement CRON jobs started (T+2 at 6 AM IST, Payouts at 7 AM IST)");
+    console.log("Settlement CRON jobs started (T+1 at 6 AM IST, Payouts at 7 AM IST)");
   }
 
   stopSettlementCron(): void {

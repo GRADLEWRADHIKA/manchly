@@ -5,18 +5,11 @@ import ZoomMeetingManager from "../utils/zoomManager";
 import { isCreator, isUser } from "../utils/userTypeHelper";
 import { SettlementService } from "../services/settlementService";
 import { notificationService } from "../services/NotificationService";
+import { cashfreePG } from "../services/cashfreeService";
 import crypto from "crypto";
 import dotenv from "dotenv";
 
 dotenv.config();
-
-const Razorpay = require('razorpay');
-
-// Initialize services
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID!,
-  key_secret: process.env.RAZORPAY_KEY_SECRET!
-});
 
 const zoomManager = new ZoomMeetingManager({
   apiKey: process.env.ZOOM_API_KEY || '',
@@ -702,20 +695,33 @@ export class WebinarController {
         }, "Enrollment successful", 201);
       }
 
-      // Create Razorpay order for paid webinars
-      const amountInPaise = Math.round(webinar.price * 100);
+      // Create Cashfree order for paid webinars
+      const orderId = `webinar_${webinarId}_${Date.now()}`;
 
-      const razorpayOrder = await razorpay.orders.create({
-        amount: amountInPaise,
-        currency: "INR",
-        receipt: `webinar_${Date.now()}`,
-        notes: {
+      const orderRequest = {
+        order_id: orderId,
+        order_amount: webinar.price,
+        order_currency: "INR",
+        customer_details: {
+          customer_id: userId,
+          customer_phone: user.phone || "9999999999",
+          customer_name: user.name || undefined,
+          customer_email: user.email,
+        },
+        order_meta: {
+          return_url: `${process.env.APP_URL || 'https://manchly.com'}/payment/return?order_id={order_id}`,
+          notify_url: `${process.env.APP_URL || 'https://server.manchly.com'}/payments/webhook`,
+        },
+        order_note: `Webinar: ${webinar.title}`,
+        order_tags: {
           user_id: userId,
           webinar_id: webinarId,
-          webinar_title: webinar.title,
-          user_email: user.email
-        }
-      });
+          type: "webinar",
+        },
+      };
+
+      const cashfreeOrder = await cashfreePG.PGCreateOrder(orderRequest);
+      const orderData = cashfreeOrder.data;
 
       // Create transaction record in database
       const transaction = await prisma.webinar_transactions.create({
@@ -725,11 +731,11 @@ export class WebinarController {
           amount: webinar.price,
           currency: "INR",
           status: "PENDING",
-          payment_method: "RAZORPAY",
-          razorpay_order_id: razorpayOrder.id,
-          payment_details: {
-            razorpay_order: razorpayOrder
-          }
+          payment_method: "CASHFREE",
+          cashfree_order_id: orderId,
+          payment_details: JSON.parse(JSON.stringify({
+            cashfree_order: orderData
+          }))
         },
         include: {
           webinar: {
@@ -747,12 +753,13 @@ export class WebinarController {
       // Return order details for frontend
       ApiResponseHandler.success(res, {
         transaction,
-        razorpay_order: {
-          id: razorpayOrder.id,
-          amount: razorpayOrder.amount,
-          currency: razorpayOrder.currency
+        cashfree_order: {
+          order_id: orderData.order_id,
+          payment_session_id: orderData.payment_session_id,
+          order_status: orderData.order_status,
         },
-        razorpay_key_id: process.env.RAZORPAY_KEY_ID,
+        cashfree_pg_app_id: process.env.CASHFREE_PG_APP_ID,
+        cashfree_env: process.env.CASHFREE_PG_ENV || "SANDBOX",
         user_details: {
           name: user.name,
           email: user.email,
@@ -765,10 +772,10 @@ export class WebinarController {
           thumbnail: webinar.thumbnail,
           scheduled_at: webinar.scheduled_at
         }
-      }, "Razorpay order created successfully", 201);
+      }, "Cashfree order created successfully", 201);
 
     } catch (err: any) {
-      console.error("Error creating Razorpay order:", err);
+      console.error("Error creating Cashfree order:", err);
       ApiResponseHandler.unexpectedError(res, err, 500);
     }
   }
@@ -777,21 +784,17 @@ export class WebinarController {
    * Verify payment and create webinar enrollment
    */
   static async verifyWebinarPayment(req: any, res: Response) {
-    const {
-      razorpay_order_id,
-      razorpay_payment_id,
-      razorpay_signature
-    } = req.body;
+    const { order_id } = req.body;
     const userId = req.user.userId;
 
-    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
-      return ApiResponseHandler.customError(res, "Missing payment verification details", 400, "MISSING_PAYMENT_DETAILS");
+    if (!order_id) {
+      return ApiResponseHandler.customError(res, "Missing order_id", 400, "MISSING_ORDER_ID");
     }
 
     try {
       // Find transaction
       const transaction = await prisma.webinar_transactions.findUnique({
-        where: { razorpay_order_id },
+        where: { cashfree_order_id: order_id },
         include: {
           webinar: {
             include: {
@@ -827,39 +830,45 @@ export class WebinarController {
         return ApiResponseHandler.customError(res, "Payment already verified", 400, "ALREADY_VERIFIED");
       }
 
-      // Verify signature
-      const generatedSignature = crypto
-        .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET!)
-        .update(`${razorpay_order_id}|${razorpay_payment_id}`)
-        .digest('hex');
+      // Verify order status with Cashfree server-to-server
+      const orderResponse = await cashfreePG.PGFetchOrder(order_id);
+      const orderData = orderResponse.data;
 
-      if (generatedSignature !== razorpay_signature) {
-        // Update transaction as failed
-        await prisma.webinar_transactions.update({
-          where: { id: transaction.id },
-          data: {
-            status: "FAILED",
-            failure_reason: "Invalid signature"
-          }
-        });
-
-        return ApiResponseHandler.customError(res, "Invalid payment signature", 400, "INVALID_SIGNATURE");
+      if (orderData.order_status !== "PAID") {
+        if (orderData.order_status === "EXPIRED") {
+          await prisma.webinar_transactions.update({
+            where: { id: transaction.id },
+            data: {
+              status: "FAILED",
+              failure_reason: "Order expired"
+            }
+          });
+        }
+        return ApiResponseHandler.customError(res, `Payment not completed. Status: ${orderData.order_status}`, 400, "PAYMENT_NOT_COMPLETED");
       }
 
-      // Fetch payment details from Razorpay
-      const payment = await razorpay.payments.fetch(razorpay_payment_id);
+      // Get payment details
+      let paymentInfo = null;
+      try {
+        const paymentsResponse = await cashfreePG.PGOrderFetchPayments(order_id);
+        paymentInfo = paymentsResponse.data;
+      } catch (e) {
+        console.error("Error fetching payment details:", e);
+      }
+
+      const cfPaymentId = paymentInfo?.[0]?.cf_payment_id?.toString() || null;
 
       // Update transaction
       const updatedTransaction = await prisma.webinar_transactions.update({
         where: { id: transaction.id },
         data: {
           status: "SUCCESS",
-          razorpay_payment_id,
-          razorpay_signature,
+          cf_payment_id: cfPaymentId,
           completed_at: new Date(),
-          payment_details: {
-            payment_info: payment
-          }
+          payment_details: JSON.parse(JSON.stringify({
+            order_info: orderData,
+            payment_info: paymentInfo
+          }))
         }
       });
 
@@ -907,7 +916,7 @@ export class WebinarController {
         transaction: updatedTransaction,
         wallet_info: {
           title: "Payment received",
-          message: "Money will be submitted to your account after T+2 settlement period"
+          message: "Money will be submitted to your account after T+1 settlement period"
         },
         message: "Payment verified and enrollment created successfully"
       }, "Payment verified successfully", 201);

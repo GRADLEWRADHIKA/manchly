@@ -100,10 +100,9 @@ model transactions {
   amount              Float
   currency            String            @default("INR")
   status              TransactionStatus @default(PENDING)
-  payment_method      PaymentMethod     @default(RAZORPAY)
-  razorpay_order_id   String?           @unique
-  razorpay_payment_id String?           @unique
-  razorpay_signature  String?
+  payment_method      PaymentMethod     @default(CASHFREE)
+  cashfree_order_id   String?           @unique
+  cf_payment_id       String?           @unique
   payment_details     Json?
   failure_reason      String?
   created_at          DateTime          @default(now())
@@ -115,8 +114,8 @@ model transactions {
   @@index([user_id])
   @@index([course_id])
   @@index([status])
-  @@index([razorpay_order_id])
-  @@index([razorpay_payment_id])
+  @@index([cashfree_order_id])
+  @@index([cf_payment_id])
   @@map("transactions")
 }
 
@@ -179,10 +178,9 @@ model webinar_transactions {
   amount              Float
   currency            String            @default("INR")
   status              TransactionStatus @default(PENDING)
-  payment_method      PaymentMethod     @default(RAZORPAY)
-  razorpay_order_id   String?           @unique
-  razorpay_payment_id String?           @unique
-  razorpay_signature  String?
+  payment_method      PaymentMethod     @default(CASHFREE)
+  cashfree_order_id   String?           @unique
+  cf_payment_id       String?           @unique
   payment_details     Json?
   failure_reason      String?
   created_at          DateTime          @default(now())
@@ -194,8 +192,8 @@ model webinar_transactions {
   @@index([user_id])
   @@index([webinar_id])
   @@index([status])
-  @@index([razorpay_order_id])
-  @@index([razorpay_payment_id])
+  @@index([cashfree_order_id])
+  @@index([cf_payment_id])
   @@map("webinar_transactions")
 }
 
@@ -358,6 +356,7 @@ enum TransactionStatus {
 
 enum PaymentMethod {
   RAZORPAY
+  CASHFREE
   MANUAL
   FREE
 }
@@ -392,45 +391,43 @@ enum PayoutStatus {
 }
 
 model creator_bank_accounts {
-  id                String    @id @default(uuid())
-  user_id           String    @unique
-  account_number    String
-  ifsc_code         String    @db.VarChar(11)
-  beneficiary_name  String
-  bank_name         String?
-  account_type      String?   @default("savings") @db.VarChar(20)
-  is_verified       Boolean   @default(false)
-  razorpay_fund_account_id  String?   @unique
-  razorpay_contact_id       String?   @unique
-  created_at        DateTime  @default(now())
-  updated_at        DateTime  @updatedAt
-  user              users     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  id                       String    @id @default(uuid())
+  user_id                  String    @unique
+  account_number           String
+  ifsc_code                String    @db.VarChar(11)
+  beneficiary_name         String
+  bank_name                String?
+  account_type             String?   @default("savings") @db.VarChar(20)
+  is_verified              Boolean   @default(false)
+  cashfree_beneficiary_id  String?   @unique
+  created_at               DateTime  @default(now())
+  updated_at               DateTime  @updatedAt
+  user                     users     @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@index([user_id])
   @@map("creator_bank_accounts")
 }
 
 model settlements {
-  id                String           @id @default(uuid())
-  creator_id        String
-  total_gross_amount    Float
-  platform_fee          Float
-  gst_on_platform_fee   Float
-  tds_amount            Float        @default(0)
-  razorpay_fee          Float        @default(0)
-  net_amount            Float
-  status            SettlementStatus @default(PENDING)
-  settlement_date   DateTime
-  processed_at      DateTime?
-  razorpay_payout_id    String?      @unique
-  payout_status     PayoutStatus     @default(PENDING)
-  failure_reason    String?
-  retry_count       Int              @default(0)
-  payout_details    Json?
-  created_at        DateTime         @default(now())
-  updated_at        DateTime         @updatedAt
-  creator           users            @relation(fields: [creator_id], references: [id], onDelete: Cascade)
-  items             settlement_items[]
+  id                     String           @id @default(uuid())
+  creator_id             String
+  total_gross_amount     Float
+  platform_fee           Float
+  gst_on_platform_fee    Float
+  tds_amount             Float            @default(0)
+  net_amount             Float
+  status                 SettlementStatus @default(PENDING)
+  settlement_date        DateTime
+  processed_at           DateTime?
+  cashfree_transfer_id   String?          @unique
+  payout_status          PayoutStatus     @default(PENDING)
+  failure_reason         String?
+  retry_count            Int              @default(0)
+  payout_details         Json?
+  created_at             DateTime         @default(now())
+  updated_at             DateTime         @updatedAt
+  creator                users            @relation(fields: [creator_id], references: [id], onDelete: Cascade)
+  items                  settlement_items[]
 
   @@index([creator_id])
   @@index([status])

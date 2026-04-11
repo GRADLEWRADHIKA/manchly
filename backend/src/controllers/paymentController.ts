@@ -4,23 +4,16 @@ import { ApiResponseHandler } from "../utils/ApiResponseHandler";
 import { isUser, isCreator } from "../utils/userTypeHelper";
 import { SettlementService } from "../services/settlementService";
 import { notificationService } from "../services/NotificationService";
+import { cashfreePG } from "../services/cashfreeService";
 import crypto from "crypto";
 import dotenv from "dotenv";
 
 dotenv.config();
 
-const Razorpay = require('razorpay');
-
-// Initialize Razorpay
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID!,
-  key_secret: process.env.RAZORPAY_KEY_SECRET!
-});
-
 export class PaymentController {
-  
+
   /**
-   * Create Razorpay order for course enrollment
+   * Create Cashfree order for course enrollment
    */
   static async createOrder(req: any, res: Response) {
     const { courseId } = req.params;
@@ -29,7 +22,7 @@ export class PaymentController {
     try {
       // Get user details
       const user = await prisma.users.findUnique({ where: { id: userId } });
-      
+
       if (!user) {
         return ApiResponseHandler.customError(res, "User not found", 404, "USER_NOT_FOUND");
       }
@@ -74,19 +67,6 @@ export class PaymentController {
         return ApiResponseHandler.customError(res, "Already enrolled in this course", 400, "ALREADY_ENROLLED");
       }
 
-      // Check if there's a pending transaction
-      const pendingTransaction = await prisma.transactions.findFirst({
-        where: {
-          user_id: userId,
-          course_id: courseId,
-          status: "PENDING"
-        }
-      });
-
-      // if (pendingTransaction) {
-      //   return ApiResponseHandler.customError(res, "You already have a pending payment for this course", 400, "PENDING_PAYMENT_EXISTS");
-      // }
-
       // Handle free courses
       if (course.price === 0) {
         // Create transaction record
@@ -128,26 +108,39 @@ export class PaymentController {
         }, "Enrollment successful", 201);
       }
 
-      // Create Razorpay order for paid courses
+      // Create Cashfree order for paid courses
       // Calculate price with 18% GST and 5% platform fee on GST
       const gstAmount = course.price * 0.18; // 18% GST
       const platformFee = gstAmount * 0.05; // 5% platform fee on GST amount
       const finalAmount = course.price + gstAmount + platformFee; // Base price + GST + Platform fee
       const finalAmountRounded = parseFloat(finalAmount.toFixed(2)); // Fix to 2 decimal places
-      
-      const amountInPaise = Math.round(finalAmountRounded * 100); // Convert to paise
-      
-      const razorpayOrder = await razorpay.orders.create({
-        amount: amountInPaise,
-        currency: "INR",
-        receipt: `receipt_${Date.now()}`,
-        notes: {
+
+      const orderId = `course_${courseId}_${Date.now()}`;
+
+      const orderRequest = {
+        order_id: orderId,
+        order_amount: finalAmountRounded,
+        order_currency: "INR",
+        customer_details: {
+          customer_id: userId,
+          customer_phone: user.phone || "9999999999",
+          customer_name: user.name || undefined,
+          customer_email: user.email,
+        },
+        order_meta: {
+          return_url: `${process.env.APP_URL || 'https://manchly.com'}/payment/return?order_id={order_id}`,
+          notify_url: `${process.env.APP_URL || 'https://server.manchly.com'}/payments/webhook`,
+        },
+        order_note: `Course: ${course.title}`,
+        order_tags: {
           user_id: userId,
           course_id: courseId,
-          course_title: course.title,
-          user_email: user.email
-        }
-      });
+          type: "course",
+        },
+      };
+
+      const cashfreeOrder = await cashfreePG.PGCreateOrder(orderRequest);
+      const orderData = cashfreeOrder.data;
 
       // Create transaction record in database
       const transaction = await prisma.transactions.create({
@@ -157,11 +150,11 @@ export class PaymentController {
           amount: finalAmountRounded,
           currency: "INR",
           status: "PENDING",
-          payment_method: "RAZORPAY",
-          razorpay_order_id: razorpayOrder.id,
-          payment_details: {
-            razorpay_order: razorpayOrder
-          }
+          payment_method: "CASHFREE",
+          cashfree_order_id: orderId,
+          payment_details: JSON.parse(JSON.stringify({
+            cashfree_order: orderData
+          }))
         },
         include: {
           course: {
@@ -178,12 +171,13 @@ export class PaymentController {
       // Return order details for frontend
       ApiResponseHandler.success(res, {
         transaction,
-        razorpay_order: {
-          id: razorpayOrder.id,
-          amount: razorpayOrder.amount,
-          currency: razorpayOrder.currency
+        cashfree_order: {
+          order_id: orderData.order_id,
+          payment_session_id: orderData.payment_session_id,
+          order_status: orderData.order_status,
         },
-        razorpay_key_id: process.env.RAZORPAY_KEY_ID,
+        cashfree_pg_app_id: process.env.CASHFREE_PG_APP_ID,
+        cashfree_env: process.env.CASHFREE_PG_ENV || "SANDBOX",
         user_details: {
           name: user.name,
           email: user.email,
@@ -196,33 +190,29 @@ export class PaymentController {
           original_price: course.price,
           thumbnail: course.thumbnail
         }
-      }, "Razorpay order created successfully", 201);
+      }, "Cashfree order created successfully", 201);
 
     } catch (err: any) {
-      console.error("Error creating Razorpay order:", err);
+      console.error("Error creating Cashfree order:", err);
       ApiResponseHandler.unexpectedError(res, err, 500);
     }
   }
 
   /**
-   * Verify payment and create enrollment
+   * Verify payment by checking order status with Cashfree
    */
   static async verifyPayment(req: any, res: Response) {
-    const { 
-      razorpay_order_id, 
-      razorpay_payment_id, 
-      razorpay_signature 
-    } = req.body;
+    const { order_id } = req.body;
     const userId = req.user.userId;
 
-    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
-      return ApiResponseHandler.customError(res, "Missing payment verification details", 400, "MISSING_PAYMENT_DETAILS");
+    if (!order_id) {
+      return ApiResponseHandler.customError(res, "Missing order_id", 400, "MISSING_ORDER_ID");
     }
 
     try {
       // Find transaction
       const transaction = await prisma.transactions.findUnique({
-        where: { razorpay_order_id },
+        where: { cashfree_order_id: order_id },
         include: {
           course: {
             include: {
@@ -250,39 +240,45 @@ export class PaymentController {
         return ApiResponseHandler.customError(res, "Payment already verified", 400, "ALREADY_VERIFIED");
       }
 
-      // Verify signature
-      const generatedSignature = crypto
-        .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET!)
-        .update(`${razorpay_order_id}|${razorpay_payment_id}`)
-        .digest('hex');
+      // Verify order status with Cashfree server-to-server
+      const orderResponse = await cashfreePG.PGFetchOrder(order_id);
+      const orderData = orderResponse.data;
 
-      if (generatedSignature !== razorpay_signature) {
-        // Update transaction as failed
-        await prisma.transactions.update({
-          where: { id: transaction.id },
-          data: {
-            status: "FAILED",
-            failure_reason: "Invalid signature"
-          }
-        });
-
-        return ApiResponseHandler.customError(res, "Invalid payment signature", 400, "INVALID_SIGNATURE");
+      if (orderData.order_status !== "PAID") {
+        if (orderData.order_status === "EXPIRED") {
+          await prisma.transactions.update({
+            where: { id: transaction.id },
+            data: {
+              status: "FAILED",
+              failure_reason: "Order expired"
+            }
+          });
+        }
+        return ApiResponseHandler.customError(res, `Payment not completed. Status: ${orderData.order_status}`, 400, "PAYMENT_NOT_COMPLETED");
       }
 
-      // Fetch payment details from Razorpay
-      const payment = await razorpay.payments.fetch(razorpay_payment_id);
+      // Get payment details
+      let paymentInfo = null;
+      try {
+        const paymentsResponse = await cashfreePG.PGOrderFetchPayments(order_id);
+        paymentInfo = paymentsResponse.data;
+      } catch (e) {
+        console.error("Error fetching payment details:", e);
+      }
+
+      const cfPaymentId = paymentInfo?.[0]?.cf_payment_id?.toString() || null;
 
       // Update transaction
       const updatedTransaction = await prisma.transactions.update({
         where: { id: transaction.id },
         data: {
           status: "SUCCESS",
-          razorpay_payment_id,
-          razorpay_signature,
+          cf_payment_id: cfPaymentId,
           completed_at: new Date(),
-          payment_details: {
-            payment_info: payment
-          }
+          payment_details: JSON.parse(JSON.stringify({
+            order_info: orderData,
+            payment_info: paymentInfo
+          }))
         }
       });
 
@@ -342,7 +338,7 @@ export class PaymentController {
         transaction: updatedTransaction,
         wallet_info: {
           title: "Payment received",
-          message: "Money will be submitted to your account after T+2 settlement period"
+          message: "Money will be submitted to your account after T+1 settlement period"
         },
         message: "Payment verified and enrollment created successfully"
       }, "Payment verified successfully", 201);
@@ -354,61 +350,97 @@ export class PaymentController {
   }
 
   /**
-   * Razorpay Webhook Handler
+   * Cashfree Webhook Handler
    */
   static async handleWebhook(req: Request, res: Response) {
-    const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
-    const signature = req.headers['x-razorpay-signature'] as string;
+    const webhookSecret = process.env.CASHFREE_WEBHOOK_SECRET;
+    const signature = req.headers['x-webhook-signature'] as string;
+    const timestamp = req.headers['x-webhook-timestamp'] as string;
+    const rawBody = (req as any).rawBody;
+
+    console.log("Payment webhook received:", {
+      hasSignature: !!signature,
+      hasTimestamp: !!timestamp,
+      hasSecret: !!webhookSecret,
+      hasRawBody: !!rawBody,
+      headers: Object.keys(req.headers).filter(h => h.startsWith("x-")),
+    });
 
     try {
-      // Verify webhook signature
-      const generatedSignature = crypto
-        .createHmac('sha256', webhookSecret!)
-        .update(JSON.stringify(req.body))
-        .digest('hex');
-
-      if (generatedSignature !== signature) {
-        return ApiResponseHandler.customError(res, "Invalid webhook signature", 400, "INVALID_SIGNATURE");
+      // If no signature headers, Cashfree might be doing a URL verification ping
+      if (!signature || !timestamp) {
+        console.log("Payment webhook: No signature headers — accepting as verification ping");
+        return res.status(200).json({ status: "ok" });
       }
 
-      const event = req.body.event;
-      const payload = req.body.payload.payment.entity;
+      if (!webhookSecret) {
+        console.error("CASHFREE_WEBHOOK_SECRET not configured");
+        return res.status(200).json({ status: "ok" });
+      }
 
-      console.log(`📥 Razorpay Webhook: ${event}`, payload);
+      if (!rawBody) {
+        console.error("Payment webhook: rawBody not available");
+        return res.status(200).json({ status: "ok" });
+      }
 
-      // Handle different events
-      switch (event) {
-        case 'payment.authorized':
-        case 'payment.captured':
-          await PaymentController.handlePaymentSuccess(payload);
+      // Verify webhook signature using raw body
+      // Cashfree signature = HMAC-SHA256(timestamp + rawBody, secret) in base64
+      const signedPayload = timestamp + rawBody;
+      const expectedSignature = crypto
+        .createHmac('sha256', webhookSecret)
+        .update(signedPayload)
+        .digest('base64');
+
+      if (expectedSignature !== signature) {
+        console.error("Payment webhook signature mismatch:", {
+          expected: expectedSignature,
+          received: signature,
+        });
+        // Return 200 to prevent Cashfree from retrying endlessly
+        return res.status(200).json({ status: "ok" });
+      }
+
+      const body = typeof req.body === "object" ? req.body : JSON.parse(rawBody);
+      const eventType = body.type;
+      const data = body.data;
+
+      console.log(`Cashfree Webhook: ${eventType}`, data?.order?.order_id);
+
+      switch (eventType) {
+        case 'PAYMENT_SUCCESS_WEBHOOK':
+          await PaymentController.handlePaymentSuccess(data);
           break;
 
-        case 'payment.failed':
-          await PaymentController.handlePaymentFailed(payload);
+        case 'PAYMENT_FAILED_WEBHOOK':
+          await PaymentController.handlePaymentFailed(data);
+          break;
+
+        case 'PAYMENT_USER_DROPPED_WEBHOOK':
+          console.log(`User dropped payment for order: ${data?.order?.order_id}`);
           break;
 
         default:
-          console.log(`Unhandled webhook event: ${event}`);
+          console.log(`Unhandled webhook event: ${eventType}`);
       }
 
       res.status(200).json({ status: 'ok' });
 
     } catch (err: any) {
       console.error("Webhook error:", err);
-      res.status(500).json({ error: 'Webhook processing failed' });
+      res.status(200).json({ status: 'ok' });
     }
   }
 
   /**
    * Handle successful payment from webhook
    */
-  private static async handlePaymentSuccess(payload: any) {
+  private static async handlePaymentSuccess(data: any) {
     try {
-      const orderId = payload.order_id;
-      const paymentId = payload.id;
+      const orderId = data.order?.order_id;
+      const cfPaymentId = data.payment?.cf_payment_id?.toString();
 
       const transaction = await prisma.transactions.findUnique({
-        where: { razorpay_order_id: orderId },
+        where: { cashfree_order_id: orderId },
         include: {
           course: {
             include: {
@@ -446,10 +478,10 @@ export class PaymentController {
         where: { id: transaction.id },
         data: {
           status: "SUCCESS",
-          razorpay_payment_id: paymentId,
+          cf_payment_id: cfPaymentId,
           completed_at: new Date(),
           payment_details: {
-            webhook_payload: payload
+            webhook_payload: data
           }
         }
       });
@@ -495,12 +527,12 @@ export class PaymentController {
   /**
    * Handle failed payment from webhook
    */
-  private static async handlePaymentFailed(payload: any) {
+  private static async handlePaymentFailed(data: any) {
     try {
-      const orderId = payload.order_id;
+      const orderId = data.order?.order_id;
 
       const transaction = await prisma.transactions.findUnique({
-        where: { razorpay_order_id: orderId }
+        where: { cashfree_order_id: orderId }
       });
 
       if (!transaction) {
@@ -513,14 +545,14 @@ export class PaymentController {
         where: { id: transaction.id },
         data: {
           status: "FAILED",
-          failure_reason: payload.error_description || "Payment failed",
+          failure_reason: data.payment?.payment_message || "Payment failed",
           payment_details: {
-            webhook_payload: payload
+            webhook_payload: data
           }
         }
       });
 
-      console.log(`❌ Payment failed for transaction ${transaction.id}`);
+      console.log(`Payment failed for transaction ${transaction.id}`);
 
     } catch (err) {
       console.error("Error handling payment failure:", err);
@@ -536,7 +568,7 @@ export class PaymentController {
 
     try {
       const skip = (Number(page) - 1) * Number(limit);
-      
+
       const whereClause: any = { user_id: userId };
       if (status) {
         whereClause.status = status;
@@ -591,19 +623,19 @@ export class PaymentController {
 
     try {
       const user = await prisma.users.findUnique({ where: { id: userId } });
-      
+
       if (!user || !isCreator(user.user_type)) {
         return ApiResponseHandler.customError(res, "Only creators can view sales", 403, "FORBIDDEN");
       }
 
       const skip = (Number(page) - 1) * Number(limit);
-      
+
       const whereClause: any = {
         course: {
           creator_id: userId
         }
       };
-      
+
       if (status) {
         whereClause.status = status;
       }
@@ -664,4 +696,3 @@ export class PaymentController {
     }
   }
 }
-

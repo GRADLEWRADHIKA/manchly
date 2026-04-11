@@ -57,9 +57,16 @@ app.set('trust proxy', 1);
 
 app.use(cors());
 
-// Special handling for Razorpay webhooks - needs raw body for signature verification
-app.use("/payments/webhook", bodyParser.raw({ type: "application/json" }), paymentsRouter);
-app.use("/settlements/webhook/payout", bodyParser.raw({ type: "application/json" }), settlementsRouter);
+// Cashfree webhooks need raw body preserved for signature verification
+// Use body-parser's verify callback to capture the raw body without interfering with the stream
+const webhookJsonParser = bodyParser.json({
+  verify: (req: any, _res, buf) => {
+    req.rawBody = buf.toString('utf8');
+  }
+});
+
+app.use("/payments/webhook", webhookJsonParser, paymentsRouter);
+app.use("/settlements/webhook/payout", webhookJsonParser, settlementsRouter);
 
 // Regular JSON parsing for other routes
 app.use(bodyParser.json({ limit: "10mb" }));

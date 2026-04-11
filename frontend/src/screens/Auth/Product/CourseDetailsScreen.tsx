@@ -8,8 +8,14 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  Modal,
 } from 'react-native';
-import { useIsFocused, useNavigation, useRoute } from '@react-navigation/native';
+import WebView from 'react-native-webview';
+import {
+  useIsFocused,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { Users, Play, CheckCircle } from 'lucide-react-native';
 import { CFPaymentGatewayService } from 'react-native-cashfree-pg-sdk';
@@ -31,20 +37,19 @@ const CourseDetailsScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const dispatch = useDispatch<any>();
-  const focus = useIsFocused()
+  const focus = useIsFocused();
 
   const courseId = route.params?.courseId;
 
-  const { current: course } = useSelector(
-    (state: any) => state.coursesReducer
-  );
+  const { current: course } = useSelector((state: any) => state.coursesReducer);
 
   const { list: enrolledCourses } = useSelector(
-    (state: any) => state.enrollmentsReducer
+    (state: any) => state.enrollmentsReducer,
   );
   const { loading } = useSelector((state: any) => state.paymentReducer);
   const { user } = useSelector((state: any) => state.userReducer);
   const [purchasing, setPurchasing] = useState(false);
+  const [showRefundPolicy, setShowRefundPolicy] = useState(false);
   const [courseLoading, setCourseLoading] = useState(true);
 
   const price = Number(course?.price || 0);
@@ -67,7 +72,7 @@ const CourseDetailsScreen: React.FC = () => {
   }, [courseId, focus]);
 
   const isEnrolled = enrolledCourses?.enrollments?.some(
-    (enrollment: any) => enrollment.course_id === courseId
+    (enrollment: any) => enrollment.course_id === courseId,
   );
 
   // Store the pending order ID in a ref so the Cashfree callback can access it
@@ -85,22 +90,21 @@ const CourseDetailsScreen: React.FC = () => {
           await dispatch(verifyPayment({ order_id: orderId })).unwrap();
           await dispatch(getEnrolledCourses({}));
 
-          Alert.alert(
-            'Success',
-            'Course purchased successfully!',
-            [
-              {
-                text: 'View My Courses',
-                onPress: () =>
-                  navigation.navigate('UserBottomTab', {
-                    screen: 'PurchasesScreen',
-                  }),
-              },
-              { text: 'OK' },
-            ]
-          );
+          Alert.alert('Success', 'Course purchased successfully!', [
+            {
+              text: 'View My Courses',
+              onPress: () =>
+                navigation.navigate('UserBottomTab', {
+                  screen: 'PurchasesScreen',
+                }),
+            },
+            { text: 'OK' },
+          ]);
         } catch (err: any) {
-          Alert.alert('Verification Failed', err?.message || 'Unable to verify payment');
+          Alert.alert(
+            'Verification Failed',
+            err?.message || 'Unable to verify payment',
+          );
         } finally {
           setPurchasing(false);
         }
@@ -135,7 +139,7 @@ const CourseDetailsScreen: React.FC = () => {
 
       // Step 1: Create order on backend
       const orderResponse = await dispatch(
-        createPaymentOrder(courseId)
+        createPaymentOrder(courseId),
       ).unwrap();
 
       const { cashfree_order, cashfree_env } = orderResponse || {};
@@ -148,9 +152,10 @@ const CourseDetailsScreen: React.FC = () => {
       pendingOrderRef.current = cashfree_order.order_id;
 
       // Step 2: Open Cashfree checkout
-      const env = cashfree_env === 'PRODUCTION'
-        ? CFEnvironment.PRODUCTION
-        : CFEnvironment.SANDBOX;
+      const env =
+        cashfree_env === 'PRODUCTION'
+          ? CFEnvironment.PRODUCTION
+          : CFEnvironment.SANDBOX;
 
       const session = new CFSession(
         cashfree_order.payment_session_id,
@@ -167,12 +172,8 @@ const CourseDetailsScreen: React.FC = () => {
 
       const dropPayment = new CFDropCheckoutPayment(session, null, theme);
       CFPaymentGatewayService.doPayment(dropPayment);
-
     } catch (error: any) {
-      Alert.alert(
-        'Payment Failed',
-        error?.message || 'Something went wrong'
-      );
+      Alert.alert('Payment Failed', error?.message || 'Something went wrong');
       setPurchasing(false);
     }
   };
@@ -194,29 +195,20 @@ const CourseDetailsScreen: React.FC = () => {
 
       <ScrollView showsVerticalScrollIndicator={false}>
         {course.thumbnail && (
-          <Image
-            source={{ uri: course.thumbnail }}
-            style={styles.thumbnail}
-          />
+          <Image source={{ uri: course.thumbnail }} style={styles.thumbnail} />
         )}
 
         <View style={styles.content}>
           <Text style={styles.title}>{course.title}</Text>
 
           {course.creator?.name && (
-            <Text style={styles.instructor}>
-              by {course.creator.name}
-            </Text>
+            <Text style={styles.instructor}>by {course.creator.name}</Text>
           )}
 
           {course.description && (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>
-                About this course
-              </Text>
-              <Text style={styles.description}>
-                {course.description}
-              </Text>
+              <Text style={styles.sectionTitle}>About this course</Text>
+              <Text style={styles.description}>{course.description}</Text>
             </View>
           )}
 
@@ -249,11 +241,46 @@ const CourseDetailsScreen: React.FC = () => {
 
             <View style={styles.totalRow}>
               <Text style={styles.totalLabel}>Total</Text>
-              <Text style={styles.totalValue}>
-                ₹{total.toFixed(2)}
-              </Text>
+              <Text style={styles.totalValue}>₹{total.toFixed(2)}</Text>
             </View>
           </View>
+
+          <TouchableOpacity onPress={() => setShowRefundPolicy(true)}>
+            <Text style={styles.refundPolicyText}>No Refund Policy</Text>
+          </TouchableOpacity>
+
+          <Modal
+            visible={showRefundPolicy}
+            animationType="slide"
+            onRequestClose={() => setShowRefundPolicy(false)}
+          >
+            <View style={styles.webViewContainer}>
+              <View style={styles.webViewHeader}>
+                <Text style={styles.webViewTitle}>Refund Policy</Text>
+                <TouchableOpacity onPress={() => setShowRefundPolicy(false)}>
+                  <Text style={styles.webViewClose}>✕</Text>
+                </TouchableOpacity>
+              </View>
+              <WebView
+                source={{ uri: 'https://manchly.com/refund-policy/' }}
+                onShouldStartLoadWithRequest={request => {
+                  return request.url.startsWith(
+                    'https://manchly.com/refund-policy',
+                  );
+                }}
+                onNavigationStateChange={navState => {
+                  if (
+                    !navState.url.startsWith(
+                      'https://manchly.com/refund-policy',
+                    )
+                  ) {
+                    setShowRefundPolicy(false);
+                  }
+                }}
+                style={{ flex: 1 }}
+              />
+            </View>
+          </Modal>
         </View>
       </ScrollView>
 
@@ -262,16 +289,13 @@ const CourseDetailsScreen: React.FC = () => {
         {isEnrolled ? (
           <View style={styles.enrolledContainer}>
             <CheckCircle size={24} color={colors.primary} />
-            <Text style={styles.enrolledText}>
-              Already Enrolled
-            </Text>
+            <Text style={styles.enrolledText}>Already Enrolled</Text>
           </View>
         ) : (
           <TouchableOpacity
             style={[
               styles.purchaseButton,
-              (purchasing || loading) &&
-              styles.purchaseButtonDisabled,
+              (purchasing || loading) && styles.purchaseButtonDisabled,
             ]}
             onPress={handlePurchase}
             disabled={purchasing || loading}
@@ -358,4 +382,35 @@ const styles = StyleSheet.create({
     gap: wp(8),
   },
   enrolledText: { color: colors.primary, fontWeight: '700' },
+
+  refundPolicyText: {
+    color: colors.primary,
+    fontSize: fp(13),
+    textDecorationLine: 'underline',
+    marginTop: hp(8),
+    textAlign: 'center',
+  },
+  webViewContainer: {
+    flex: 1,
+    backgroundColor: colors.white,
+  },
+  webViewHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: wp(16),
+    paddingVertical: hp(12),
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  webViewTitle: {
+    fontSize: fp(16),
+    fontWeight: '700',
+    color: colors.black,
+  },
+  webViewClose: {
+    fontSize: fp(20),
+    color: colors.textSecondary,
+    padding: wp(4),
+  },
 });

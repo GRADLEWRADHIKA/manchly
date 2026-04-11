@@ -24,6 +24,8 @@ import { OtpInput } from 'react-native-otp-entry';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useFocusEffect } from '@react-navigation/native';
 import NotificationService from '../../../services/NotificationService';
+import TermsModal from '../../../components/TermsModal';
+import PrivacyModal from '../../../components/PrivacyModal';
 
 type VerifyLoginProps = {
   selectedType: string | null;
@@ -42,6 +44,8 @@ const VerifyLogin: React.FC<VerifyLoginProps> = ({
   const [loading, setLoading] = useState(false);
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
   const [otpSuccess, setOtpSuccess] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
   const [otpData, setOtpData] = useState('');
   const [loginValue, setLoginValue] = useState('');
 
@@ -261,9 +265,11 @@ const VerifyLogin: React.FC<VerifyLoginProps> = ({
 
       <Text style={styles.termsText}>
         By continuing, you agree to our{' '}
-        <Text style={styles.linkText}>Terms of Service</Text> and{' '}
-        <Text style={styles.linkText}>Privacy Policy</Text>
+        <Text style={styles.linkText} onPress={() => setShowTerms(true)}>Terms of Service</Text> and{' '}
+        <Text style={styles.linkText} onPress={() => setShowPrivacy(true)}>Privacy Policy</Text>
       </Text>
+      <TermsModal visible={showTerms} onClose={() => setShowTerms(false)} />
+      <PrivacyModal visible={showPrivacy} onClose={() => setShowPrivacy(false)} />
 
       <TouchableOpacity
         onPress={() => setActive(3)}

@@ -23,6 +23,8 @@ import { ThunkDispatch } from '@reduxjs/toolkit';
 import Toast from 'react-native-toast-message';
 import { checkAuthData, sendOtpEmail, sendOtpSms } from '../../store/UserSlice';
 import ChooseUserType from './ChooseUserType';
+import TermsModal from '../../components/TermsModal';
+import PrivacyModal from '../../components/PrivacyModal';
 
 const USER_TYPES = ['CREATOR', 'USER'] as const;
 type UserType = (typeof USER_TYPES)[number];
@@ -35,6 +37,8 @@ const LoginScreen: React.FC = () => {
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
   const [loading, setLoading] = useState(false);
   const [openUserModal, setOpenUserModal] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
 
   useEffect(() => {
     const idx = USER_TYPES.indexOf(userType);
@@ -310,14 +314,16 @@ const LoginScreen: React.FC = () => {
 
           <Text style={styles.termsText}>
             By continuing, you agree to our{' '}
-            <Text style={styles.linkText} onPress={() => {}}>
+            <Text style={styles.linkText} onPress={() => setShowTerms(true)}>
               Terms of Service
             </Text>{' '}
             and{' '}
-            <Text style={styles.linkText} onPress={() => {}}>
+            <Text style={styles.linkText} onPress={() => setShowPrivacy(true)}>
               Privacy Policy
             </Text>
           </Text>
+          <TermsModal visible={showTerms} onClose={() => setShowTerms(false)} />
+          <PrivacyModal visible={showPrivacy} onClose={() => setShowPrivacy(false)} />
         </View>
 
         <ChooseUserType

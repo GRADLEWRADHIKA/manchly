@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
+  Modal,
 } from 'react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import { useRoute } from '@react-navigation/native';
@@ -36,6 +37,7 @@ import {
 } from 'cashfree-pg-api-contract';
 import Toast from 'react-native-toast-message';
 import { wp, hp, fp } from '../../../../utils/responsive';
+import WebView from 'react-native-webview';
 
 const WebinarDetails = () => {
   const { params } = useRoute<any>();
@@ -48,6 +50,7 @@ const WebinarDetails = () => {
   );
   const data = params?.data || webinarFromStore;
   const hasThumbnail = !!data?.thumbnail_url;
+  const [showRefundPolicy, setShowRefundPolicy] = useState(false);
 
   useEffect(() => {
     if (!params?.data && webinarId) {
@@ -59,7 +62,6 @@ const WebinarDetails = () => {
   const gst = (price * 18) / 100;
   const platformFee = (gst * 5) / 100;
   const total = price + gst + platformFee;
-  const amountInPaise = Math.round(total * 100);
 
   // Store the pending order ID in a ref so the Cashfree callback can access it
   const pendingOrderRef = useRef<string | null>(null);
@@ -79,9 +81,7 @@ const WebinarDetails = () => {
         });
 
         try {
-          await dispatch(
-            createWebinarVerify({ order_id: orderId }),
-          ).unwrap();
+          await dispatch(createWebinarVerify({ order_id: orderId })).unwrap();
 
           Toast.show({
             type: 'success',
@@ -100,12 +100,16 @@ const WebinarDetails = () => {
       },
       onError: (error: any, orderIdFromSDK: string) => {
         pendingOrderRef.current = null;
-        const msg = error?.code === 'action_cancelled'
-          ? 'You cancelled the payment.'
-          : error?.message || 'Something went wrong.';
+        const msg =
+          error?.code === 'action_cancelled'
+            ? 'You cancelled the payment.'
+            : error?.message || 'Something went wrong.';
         Toast.show({
           type: 'error',
-          text1: error?.code === 'action_cancelled' ? 'Payment Cancelled' : 'Payment Failed',
+          text1:
+            error?.code === 'action_cancelled'
+              ? 'Payment Cancelled'
+              : 'Payment Failed',
           text2: msg,
         });
         setLoading(false);
@@ -124,7 +128,7 @@ const WebinarDetails = () => {
       // Step 1: CREATE ORDER
       let orderResponse;
       try {
-        const payload = { webinar_id: data?.id };
+        const payload = { webinar_id: data?.id, amount: total };
         orderResponse = await dispatch(createWebinarEnroll(payload)).unwrap();
       } catch (err) {
         setLoading(false);
@@ -149,9 +153,10 @@ const WebinarDetails = () => {
       pendingOrderRef.current = cashfree_order.order_id;
 
       // Step 2: Open Cashfree checkout
-      const env = cashfree_env === 'PRODUCTION'
-        ? CFEnvironment.PRODUCTION
-        : CFEnvironment.SANDBOX;
+      const env =
+        cashfree_env === 'PRODUCTION'
+          ? CFEnvironment.PRODUCTION
+          : CFEnvironment.SANDBOX;
 
       const session = new CFSession(
         cashfree_order.payment_session_id,
@@ -168,7 +173,6 @@ const WebinarDetails = () => {
 
       const dropPayment = new CFDropCheckoutPayment(session, null, theme);
       CFPaymentGatewayService.doPayment(dropPayment);
-
     } catch (error: any) {
       Toast.show({
         type: 'error',
@@ -243,7 +247,9 @@ const WebinarDetails = () => {
 
         <View style={styles.row}>
           <Users size={wp(18)} color={colors.textSecondary} />
-          <Text style={styles.detailText}>Max Participants: {data?.max_participants}</Text>
+          <Text style={styles.detailText}>
+            Max Participants: {data?.max_participants}
+          </Text>
         </View>
 
         <View style={styles.tagContainer}>
@@ -261,7 +267,9 @@ const WebinarDetails = () => {
         <Text style={styles.description}>{data?.description}</Text>
 
         <View style={styles.priceBox}>
-          <Text style={[styles.sectionTitle, {paddingHorizontal: 0}]}>Payment Details</Text>
+          <Text style={[styles.sectionTitle, { paddingHorizontal: 0 }]}>
+            Payment Details
+          </Text>
 
           <PriceRow label="Webinar Fee" value={`₹${price}`} />
           <PriceRow label="GST (18%)" value={`₹${gst.toFixed(2)}`} />
@@ -274,8 +282,42 @@ const WebinarDetails = () => {
             <Text style={styles.totalLabel}>Total</Text>
             <Text style={styles.totalValue}>₹{total.toFixed(2)}</Text>
           </View>
-
         </View>
+
+        <TouchableOpacity onPress={() => setShowRefundPolicy(true)}>
+          <Text style={styles.refundPolicyText}>No Refund Policy</Text>
+        </TouchableOpacity>
+
+        <Modal
+          visible={showRefundPolicy}
+          animationType="slide"
+          onRequestClose={() => setShowRefundPolicy(false)}
+        >
+          <View style={styles.webViewContainer}>
+            <View style={styles.webViewHeader}>
+              <Text style={styles.webViewTitle}>Refund Policy</Text>
+              <TouchableOpacity onPress={() => setShowRefundPolicy(false)}>
+                <Text style={styles.webViewClose}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <WebView
+              source={{ uri: 'https://manchly.com/refund-policy/' }}
+              onShouldStartLoadWithRequest={request => {
+                return request.url.startsWith(
+                  'https://manchly.com/refund-policy',
+                );
+              }}
+              onNavigationStateChange={navState => {
+                if (
+                  !navState.url.startsWith('https://manchly.com/refund-policy')
+                ) {
+                  setShowRefundPolicy(false);
+                }
+              }}
+              style={{ flex: 1 }}
+            />
+          </View>
+        </Modal>
       </ScrollView>
 
       <View style={styles.bottomBar}>
@@ -467,5 +509,35 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontWeight: '700',
     fontSize: fp(16),
+  },
+  refundPolicyText: {
+    color: colors.primary,
+    fontSize: fp(13),
+    textDecorationLine: 'underline',
+    marginTop: hp(8),
+    textAlign: 'center',
+  },
+  webViewContainer: {
+    flex: 1,
+    backgroundColor: colors.white,
+  },
+  webViewHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: wp(16),
+    paddingVertical: hp(12),
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  webViewTitle: {
+    fontSize: fp(16),
+    fontWeight: '700',
+    color: colors.black,
+  },
+  webViewClose: {
+    fontSize: fp(20),
+    color: colors.textSecondary,
+    padding: wp(4),
   },
 });

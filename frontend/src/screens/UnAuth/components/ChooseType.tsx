@@ -1,10 +1,15 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import React from 'react';
+import React, { useState } from 'react';
 import colors from '../../../utils/colors';
 import { wp, hp, fp } from '../../../utils/responsive';
 import { MoveRight } from 'lucide-react-native';
+import TermsModal from '../../../components/TermsModal';
+import PrivacyModal from '../../../components/PrivacyModal';
 
 const ChooseType = ({ setSelectedType, setActive }) => {
+  const [showTerms, setShowTerms] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Welcome</Text>
@@ -41,9 +46,23 @@ const ChooseType = ({ setSelectedType, setActive }) => {
 
       <Text style={styles.termsText}>
         By continuing, you agree to our{' '}
-        <Text style={styles.linkText}>Terms of Service</Text> and{' '}
-        <Text style={styles.linkText}>Privacy Policy</Text>
+        <Text
+          style={styles.linkText}
+          onPress={() => setShowTerms(true)}
+        >
+          Terms of Service
+        </Text>{' '}
+        and{' '}
+        <Text
+          style={styles.linkText}
+          onPress={() => setShowPrivacy(true)}
+        >
+          Privacy Policy
+        </Text>
       </Text>
+
+      <TermsModal visible={showTerms} onClose={() => setShowTerms(false)} />
+      <PrivacyModal visible={showPrivacy} onClose={() => setShowPrivacy(false)} />
     </View>
   );
 };

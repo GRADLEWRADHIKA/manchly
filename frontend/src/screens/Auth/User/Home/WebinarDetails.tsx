@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useRoute } from '@react-navigation/native';
 import colors from '../../../../utils/colors';
 import AppHeaderWithBack from '../../../../components/AppHeaderWithBack';
@@ -61,34 +61,17 @@ const WebinarDetails = () => {
   const total = price + gst + platformFee;
   const amountInPaise = Math.round(total * 100);
 
-  const onVerifyWebinar = async () => {
-    setLoading(true);
+  // Store the pending order ID in a ref so the Cashfree callback can access it
+  const pendingOrderRef = useRef<string | null>(null);
 
-    try {
-      // Step 1: CREATE ORDER
-      let orderResponse;
-      try {
-        const payload = { webinar_id: data?.id };
-        orderResponse = await dispatch(createWebinarEnroll(payload)).unwrap();
-      } catch (err) {
-        return;
-      }
+  // Register Cashfree callbacks once, clean up on unmount
+  useEffect(() => {
+    CFPaymentGatewayService.setCallback({
+      onVerify: async (orderIdFromSDK: string) => {
+        const orderId = pendingOrderRef.current;
+        if (!orderId) return;
+        pendingOrderRef.current = null;
 
-      const responseData = orderResponse?.data?.data;
-      const cashfree_order = responseData?.cashfree_order;
-      const cashfree_env = responseData?.cashfree_env;
-
-      if (!cashfree_order?.payment_session_id || !cashfree_order?.order_id) {
-        Toast.show({
-          type: 'error',
-          text1: 'Invalid payment order',
-          position: 'bottom',
-        });
-        return;
-      }
-
-      // Step 2: Set up Cashfree callbacks
-      const onPaymentVerify = async (orderIdFromSDK: string) => {
         Toast.show({
           type: 'info',
           text1: 'Verifying Payment...',
@@ -97,7 +80,7 @@ const WebinarDetails = () => {
 
         try {
           await dispatch(
-            createWebinarVerify({ order_id: cashfree_order.order_id }),
+            createWebinarVerify({ order_id: orderId }),
           ).unwrap();
 
           Toast.show({
@@ -114,23 +97,58 @@ const WebinarDetails = () => {
         } finally {
           setLoading(false);
         }
-      };
-
-      const onPaymentError = (error: any, orderIdFromSDK: string) => {
+      },
+      onError: (error: any, orderIdFromSDK: string) => {
+        pendingOrderRef.current = null;
+        const msg = error?.code === 'action_cancelled'
+          ? 'You cancelled the payment.'
+          : error?.message || 'Something went wrong.';
         Toast.show({
           type: 'error',
-          text1: 'Payment Cancelled',
-          text2: 'You cancelled the payment or something went wrong.',
+          text1: error?.code === 'action_cancelled' ? 'Payment Cancelled' : 'Payment Failed',
+          text2: msg,
         });
         setLoading(false);
-      };
+      },
+    });
 
-      CFPaymentGatewayService.setCallback({
-        onVerify: onPaymentVerify,
-        onError: onPaymentError,
-      });
+    return () => {
+      CFPaymentGatewayService.removeCallback();
+    };
+  }, []);
 
-      // Step 3: Open Cashfree checkout
+  const onVerifyWebinar = async () => {
+    setLoading(true);
+
+    try {
+      // Step 1: CREATE ORDER
+      let orderResponse;
+      try {
+        const payload = { webinar_id: data?.id };
+        orderResponse = await dispatch(createWebinarEnroll(payload)).unwrap();
+      } catch (err) {
+        setLoading(false);
+        return;
+      }
+
+      const responseData = orderResponse?.data?.data;
+      const cashfree_order = responseData?.cashfree_order;
+      const cashfree_env = responseData?.cashfree_env;
+
+      if (!cashfree_order?.payment_session_id || !cashfree_order?.order_id) {
+        Toast.show({
+          type: 'error',
+          text1: 'Invalid payment order',
+          position: 'bottom',
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Store order ID for callback
+      pendingOrderRef.current = cashfree_order.order_id;
+
+      // Step 2: Open Cashfree checkout
       const env = cashfree_env === 'PRODUCTION'
         ? CFEnvironment.PRODUCTION
         : CFEnvironment.SANDBOX;

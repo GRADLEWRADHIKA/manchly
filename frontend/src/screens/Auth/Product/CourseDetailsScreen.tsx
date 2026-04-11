@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -70,6 +70,58 @@ const CourseDetailsScreen: React.FC = () => {
     (enrollment: any) => enrollment.course_id === courseId
   );
 
+  // Store the pending order ID in a ref so the Cashfree callback can access it
+  const pendingOrderRef = useRef<string | null>(null);
+
+  // Register Cashfree callbacks once, clean up on unmount
+  useEffect(() => {
+    CFPaymentGatewayService.setCallback({
+      onVerify: async (orderIdFromSDK: string) => {
+        const orderId = pendingOrderRef.current;
+        if (!orderId) return;
+        pendingOrderRef.current = null;
+
+        try {
+          await dispatch(verifyPayment({ order_id: orderId })).unwrap();
+          await dispatch(getEnrolledCourses({}));
+
+          Alert.alert(
+            'Success',
+            'Course purchased successfully!',
+            [
+              {
+                text: 'View My Courses',
+                onPress: () =>
+                  navigation.navigate('UserBottomTab', {
+                    screen: 'PurchasesScreen',
+                  }),
+              },
+              { text: 'OK' },
+            ]
+          );
+        } catch (err: any) {
+          Alert.alert('Verification Failed', err?.message || 'Unable to verify payment');
+        } finally {
+          setPurchasing(false);
+        }
+      },
+      onError: (error: any, orderIdFromSDK: string) => {
+        pendingOrderRef.current = null;
+        const msg = error?.message || 'Something went wrong';
+        if (error?.code === 'action_cancelled') {
+          Alert.alert('Cancelled', 'Payment was cancelled');
+        } else {
+          Alert.alert('Payment Failed', msg);
+        }
+        setPurchasing(false);
+      },
+    });
+
+    return () => {
+      CFPaymentGatewayService.removeCallback();
+    };
+  }, []);
+
   const handlePurchase = async () => {
     if (!course) return;
 
@@ -92,50 +144,10 @@ const CourseDetailsScreen: React.FC = () => {
         throw new Error('Invalid payment order');
       }
 
-      // Step 2: Set up Cashfree payment callbacks
-      const onPaymentVerify = async (orderIdFromSDK: string) => {
-        try {
-          // Step 3: Verify payment on backend
-          await dispatch(
-            verifyPayment({ order_id: cashfree_order.order_id })
-          ).unwrap();
+      // Store order ID for callback
+      pendingOrderRef.current = cashfree_order.order_id;
 
-          // Step 4: Refresh enrollments
-          await dispatch(getEnrolledCourses({}));
-
-          Alert.alert(
-            'Success',
-            'Course purchased successfully!',
-            [
-              {
-                text: 'View My Courses',
-                onPress: () =>
-                  navigation.navigate('UserBottomTab', {
-                    screen: 'PurchasesScreen',
-                  }),
-              },
-              { text: 'OK' },
-            ]
-          );
-        } catch (err: any) {
-          Alert.alert('Verification Failed', err?.message || 'Unable to verify payment');
-        } finally {
-          setPurchasing(false);
-        }
-      };
-
-      const onPaymentError = (error: any, orderIdFromSDK: string) => {
-        Alert.alert('Payment Failed', error?.message || 'Something went wrong');
-        setPurchasing(false);
-      };
-
-      // Register callbacks
-      CFPaymentGatewayService.setCallback({
-        onVerify: onPaymentVerify,
-        onError: onPaymentError,
-      });
-
-      // Step 3: Open Cashfree checkout
+      // Step 2: Open Cashfree checkout
       const env = cashfree_env === 'PRODUCTION'
         ? CFEnvironment.PRODUCTION
         : CFEnvironment.SANDBOX;

@@ -386,7 +386,7 @@ export class AuthController {
           type: "access"
         },
         JWT_SECRET,
-        { expiresIn: "12h" }
+        { expiresIn: "365d" }
       );
 
       // Update user last login time and fcm token

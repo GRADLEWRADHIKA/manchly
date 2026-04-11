@@ -697,10 +697,11 @@ export class WebinarController {
 
       // Create Cashfree order for paid webinars
       const orderId = `webinar_${webinarId}_${Date.now()}`;
+      const orderAmount = parseFloat(Number(req.body.amount || webinar.price).toFixed(2));
 
       const orderRequest = {
         order_id: orderId,
-        order_amount: webinar.price,
+        order_amount: orderAmount,
         order_currency: "INR",
         customer_details: {
           customer_id: userId,
@@ -728,7 +729,7 @@ export class WebinarController {
         data: {
           user_id: userId,
           webinar_id: webinarId,
-          amount: webinar.price,
+          amount: orderAmount,
           currency: "INR",
           status: "PENDING",
           payment_method: "CASHFREE",

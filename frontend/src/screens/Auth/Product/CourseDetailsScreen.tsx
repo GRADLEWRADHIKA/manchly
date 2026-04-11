@@ -12,7 +12,13 @@ import {
 import { useIsFocused, useNavigation, useRoute } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { Users, Play, CheckCircle } from 'lucide-react-native';
-import RazorpayCheckout from 'react-native-razorpay';
+import { CFPaymentGatewayService } from 'react-native-cashfree-pg-sdk';
+import {
+  CFEnvironment,
+  CFSession,
+  CFDropCheckoutPayment,
+  CFThemeBuilder,
+} from 'cashfree-pg-api-contract';
 
 import colors from '../../../utils/colors';
 import { wp, hp, fp } from '../../../utils/responsive';
@@ -75,77 +81,86 @@ const CourseDetailsScreen: React.FC = () => {
     try {
       setPurchasing(true);
 
+      // Step 1: Create order on backend
       const orderResponse = await dispatch(
         createPaymentOrder(courseId)
       ).unwrap();
 
-      const { razorpay_order, razorpay_key_id, user_details } =
-        orderResponse || {};
+      const { cashfree_order, cashfree_env } = orderResponse || {};
 
-      if (!razorpay_order || !razorpay_key_id) {
+      if (!cashfree_order?.payment_session_id || !cashfree_order?.order_id) {
         throw new Error('Invalid payment order');
       }
 
-      /** 2️⃣ Razorpay options */
-      const options = {
-        description: course.title,
-        image: course.thumbnail || '',
-        currency: 'INR',
-        key: razorpay_key_id,
-        amount: amountInPaise,
-        name: 'Manchly',
-        order_id: razorpay_order.id,
-        prefill: {
-          email: user_details?.email || user?.email || '',
-          contact: user_details?.phone || user?.phone || '',
-          name:
-            user_details?.name ||
-            user?.name ||
-            user?.full_name ||
-            '',
-        },
-        theme: { color: colors.primary },
+      // Step 2: Set up Cashfree payment callbacks
+      const onPaymentVerify = async (orderIdFromSDK: string) => {
+        try {
+          // Step 3: Verify payment on backend
+          await dispatch(
+            verifyPayment({ order_id: cashfree_order.order_id })
+          ).unwrap();
+
+          // Step 4: Refresh enrollments
+          await dispatch(getEnrolledCourses({}));
+
+          Alert.alert(
+            'Success',
+            'Course purchased successfully!',
+            [
+              {
+                text: 'View My Courses',
+                onPress: () =>
+                  navigation.navigate('UserBottomTab', {
+                    screen: 'PurchasesScreen',
+                  }),
+              },
+              { text: 'OK' },
+            ]
+          );
+        } catch (err: any) {
+          Alert.alert('Verification Failed', err?.message || 'Unable to verify payment');
+        } finally {
+          setPurchasing(false);
+        }
       };
 
-      /** 3️⃣ Open Razorpay */
-      const paymentResult = await RazorpayCheckout.open(options);
+      const onPaymentError = (error: any, orderIdFromSDK: string) => {
+        Alert.alert('Payment Failed', error?.message || 'Something went wrong');
+        setPurchasing(false);
+      };
 
-      /** 4️⃣ Verify payment */
-      await dispatch(
-        verifyPayment({
-          razorpay_order_id: paymentResult.razorpay_order_id,
-          razorpay_payment_id: paymentResult.razorpay_payment_id,
-          razorpay_signature: paymentResult.razorpay_signature,
-        })
-      ).unwrap();
+      // Register callbacks
+      CFPaymentGatewayService.setCallback({
+        onVerify: onPaymentVerify,
+        onError: onPaymentError,
+      });
 
-      /** 5️⃣ Refresh enrollments */
-      await dispatch(getEnrolledCourses({}));
+      // Step 3: Open Cashfree checkout
+      const env = cashfree_env === 'PRODUCTION'
+        ? CFEnvironment.PRODUCTION
+        : CFEnvironment.SANDBOX;
 
-      Alert.alert(
-        'Success 🎉',
-        'Course purchased successfully!',
-        [
-          {
-            text: 'View My Courses',
-            onPress: () =>
-              navigation.navigate('UserBottomTab', {
-                screen: 'PurchasesScreen',
-              }),
-          },
-          { text: 'OK' },
-        ]
+      const session = new CFSession(
+        cashfree_order.payment_session_id,
+        cashfree_order.order_id,
+        env,
       );
+
+      const theme = new CFThemeBuilder()
+        .setNavigationBarBackgroundColor(colors.primary)
+        .setNavigationBarTextColor('#FFFFFF')
+        .setButtonBackgroundColor(colors.secPrimary)
+        .setButtonTextColor('#FFFFFF')
+        .build();
+
+      const dropPayment = new CFDropCheckoutPayment(session, null, theme);
+      CFPaymentGatewayService.doPayment(dropPayment);
+
     } catch (error: any) {
-      if (error?.code === 2) {
-        Alert.alert('Cancelled', 'Payment was cancelled');
-      } else {
-        Alert.alert(
-          'Payment Failed',
-          error?.message || 'Something went wrong'
-        );
-      }
-    } finally {
+      Alert.alert(
+        'Payment Failed',
+        error?.message || 'Something went wrong'
+      );
       setPurchasing(false);
     }
   };

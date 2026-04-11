@@ -23,9 +23,7 @@ export const verifyPayment = createAsyncThunk(
   'payment/verify',
   async (
     paymentData: {
-      razorpay_order_id: string;
-      razorpay_payment_id: string;
-      razorpay_signature: string;
+      order_id: string;
     },
     { rejectWithValue }
   ) => {

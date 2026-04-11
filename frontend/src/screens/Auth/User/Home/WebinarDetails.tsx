@@ -27,7 +27,13 @@ import {
 } from '../../../../store/WebinarSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
-import RazorpayCheckout from 'react-native-razorpay';
+import { CFPaymentGatewayService } from 'react-native-cashfree-pg-sdk';
+import {
+  CFEnvironment,
+  CFSession,
+  CFDropCheckoutPayment,
+  CFThemeBuilder,
+} from 'cashfree-pg-api-contract';
 import Toast from 'react-native-toast-message';
 import { wp, hp, fp } from '../../../../utils/responsive';
 
@@ -59,9 +65,7 @@ const WebinarDetails = () => {
     setLoading(true);
 
     try {
-      // ------------------------------
       // Step 1: CREATE ORDER
-      // ------------------------------
       let orderResponse;
       try {
         const payload = { webinar_id: data?.id };
@@ -70,80 +74,89 @@ const WebinarDetails = () => {
         return;
       }
 
-      const razorpay_order = orderResponse?.data?.data?.razorpay_order;
-      const razorpay_key_id = orderResponse?.data?.data?.razorpay_key_id;
-      const user_details = orderResponse?.data?.data?.user_details;
-      const webinar_details = orderResponse?.data?.data?.webinar_details;
+      const responseData = orderResponse?.data?.data;
+      const cashfree_order = responseData?.cashfree_order;
+      const cashfree_env = responseData?.cashfree_env;
 
-      // ------------------------------
-      // Step 2: OPEN RAZORPAY
-      // ------------------------------
-      let paymentResult;
-      try {
-        const options = {
-          description: webinar_details?.title,
-          image: webinar_details?.thumbnail,
-          currency: razorpay_order.currency || 'INR',
-          key: razorpay_key_id,
-          amount: razorpay_order.amount,
-          name: 'Manchly',
-          order_id: razorpay_order.id,
-          prefill: {
-            email: user_details?.email || user?.email || '',
-            contact: user_details?.phone || user?.phone || '',
-            name: user_details?.name || user?.name || user?.full_name || '',
-          },
-          theme: { color: colors.primary },
-        };
-
-        paymentResult = await RazorpayCheckout.open(options);
-      } catch (err) {
+      if (!cashfree_order?.payment_session_id || !cashfree_order?.order_id) {
         Toast.show({
           type: 'error',
-          text1: 'Payment Cancelled ❌',
-          text2: 'You cancelled the payment or something went wrong.',
-        });
-        return; // STOP here
-      }
-
-      Toast.show({
-        type: 'info',
-        text1: 'Verifying Payment...',
-        text2: 'Please wait a moment.',
-      });
-
-      // ------------------------------
-      // Step 3: VERIFY PAYMENT on Backend
-      // ------------------------------
-      try {
-        await dispatch(
-          createWebinarVerify({
-            razorpay_order_id: paymentResult.razorpay_order_id,
-            razorpay_payment_id: paymentResult.razorpay_payment_id,
-            razorpay_signature: paymentResult.razorpay_signature,
-          }),
-        ).unwrap();
-      } catch (err) {
-        Toast.show({
-          type: 'error',
-          text1: 'Verification Failed ❌',
-          text2: err?.message || 'Unable to verify your payment.',
+          text1: 'Invalid payment order',
+          position: 'bottom',
         });
         return;
       }
 
-      Toast.show({
-        type: 'success',
-        text1: 'Payment Successful 🎉',
-        text2: 'You have successfully enrolled in this webinar.',
+      // Step 2: Set up Cashfree callbacks
+      const onPaymentVerify = async (orderIdFromSDK: string) => {
+        Toast.show({
+          type: 'info',
+          text1: 'Verifying Payment...',
+          text2: 'Please wait a moment.',
+        });
+
+        try {
+          await dispatch(
+            createWebinarVerify({ order_id: cashfree_order.order_id }),
+          ).unwrap();
+
+          Toast.show({
+            type: 'success',
+            text1: 'Payment Successful',
+            text2: 'You have successfully enrolled in this webinar.',
+          });
+        } catch (err: any) {
+          Toast.show({
+            type: 'error',
+            text1: 'Verification Failed',
+            text2: err?.message || 'Unable to verify your payment.',
+          });
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      const onPaymentError = (error: any, orderIdFromSDK: string) => {
+        Toast.show({
+          type: 'error',
+          text1: 'Payment Cancelled',
+          text2: 'You cancelled the payment or something went wrong.',
+        });
+        setLoading(false);
+      };
+
+      CFPaymentGatewayService.setCallback({
+        onVerify: onPaymentVerify,
+        onError: onPaymentError,
       });
-    } catch (error) {
+
+      // Step 3: Open Cashfree checkout
+      const env = cashfree_env === 'PRODUCTION'
+        ? CFEnvironment.PRODUCTION
+        : CFEnvironment.SANDBOX;
+
+      const session = new CFSession(
+        cashfree_order.payment_session_id,
+        cashfree_order.order_id,
+        env,
+      );
+
+      const theme = new CFThemeBuilder()
+        .setNavigationBarBackgroundColor(colors.primary)
+        .setNavigationBarTextColor('#FFFFFF')
+        .setButtonBackgroundColor(colors.secPrimary)
+        .setButtonTextColor('#FFFFFF')
+        .build();
+
+      const dropPayment = new CFDropCheckoutPayment(session, null, theme);
+      CFPaymentGatewayService.doPayment(dropPayment);
+
+    } catch (error: any) {
       Toast.show({
         type: 'error',
-        text1: 'Unexpected Error ❌',
+        text1: 'Unexpected Error',
         text2: error?.message || 'Something went wrong.',
       });
-    } finally {
       setLoading(false);
     }
   };

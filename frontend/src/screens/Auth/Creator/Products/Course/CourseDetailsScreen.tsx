@@ -12,7 +12,6 @@ import {
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { Users, Play, CheckCircle } from 'lucide-react-native';
-import RazorpayCheckout from 'react-native-razorpay';
 
 import colors from '../../../../../utils/colors';
 import { wp, hp, fp } from '../../../../../utils/responsive';

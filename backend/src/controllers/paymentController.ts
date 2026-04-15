@@ -338,7 +338,7 @@ export class PaymentController {
         transaction: updatedTransaction,
         wallet_info: {
           title: "Payment received",
-          message: "Money will be submitted to your account after T+1 settlement period"
+          message: "Payment credited to creator's wallet. Creator can withdraw anytime."
         },
         message: "Payment verified and enrollment created successfully"
       }, "Payment verified successfully", 201);
@@ -353,7 +353,9 @@ export class PaymentController {
    * Cashfree Webhook Handler
    */
   static async handleWebhook(req: Request, res: Response) {
-    const webhookSecret = process.env.CASHFREE_WEBHOOK_SECRET;
+    // Cashfree PG signs webhooks with the Client Secret Key (same key used for API auth),
+    // not a separately-configured webhook secret.
+    const webhookSecret = process.env.CASHFREE_PG_SECRET_KEY;
     const signature = req.headers['x-webhook-signature'] as string;
     const timestamp = req.headers['x-webhook-timestamp'] as string;
     const rawBody = (req as any).rawBody;
@@ -374,7 +376,7 @@ export class PaymentController {
       }
 
       if (!webhookSecret) {
-        console.error("CASHFREE_WEBHOOK_SECRET not configured");
+        console.error("CASHFREE_PG_SECRET_KEY not configured");
         return res.status(200).json({ status: "ok" });
       }
 

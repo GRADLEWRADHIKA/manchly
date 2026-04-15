@@ -1,7 +1,23 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import MuxManager from "../utils/MuxManager";
 import { ApiResponseHandler } from "../utils/ApiResponseHandler";
 import dotenv from "dotenv";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
+import { randomUUID } from "crypto";
+import {
+  MAX_DURATION_SECONDS,
+  analyzeSource,
+  normalizeTo720p,
+} from "../utils/videoNormalizer";
+import {
+  acquireUserLock,
+  releaseUserLock,
+  createJob,
+  updateJob,
+  getJob,
+} from "../utils/uploadJobs";
 
 dotenv.config();
 
@@ -12,6 +28,170 @@ const muxManager = new MuxManager({
   webhookSecret: process.env.MUX_WEBHOOK_SECRET,
   timeout: 30000
 });
+
+// ============ NORMALIZED UPLOAD PIPELINE ============
+// Re-encodes user uploads to 720p H.264 via ffmpeg before handing to Mux,
+// which eliminates `video.asset.non_standard_input_detected` warnings.
+
+const NORMALIZE_UPLOAD_DIR =
+  process.env.NORMALIZE_UPLOAD_DIR || "/var/lib/manchly/uploads";
+const MAX_INPUT_BYTES = 4 * 1024 * 1024 * 1024; // 4 GB hard cap on raw input
+
+try {
+  fs.mkdirSync(NORMALIZE_UPLOAD_DIR, { recursive: true });
+} catch (err) {
+  console.warn(
+    `[mux] Could not ensure upload dir ${NORMALIZE_UPLOAD_DIR}:`,
+    (err as Error).message
+  );
+}
+
+const normalizeUploadStorage = multer.diskStorage({
+  destination: (_req, _file, cb) => cb(null, NORMALIZE_UPLOAD_DIR),
+  filename: (_req, file, cb) => {
+    const rawExt = path.extname(file.originalname).toLowerCase();
+    const safeExt = /^\.[a-z0-9]{1,8}$/.test(rawExt) ? rawExt : ".bin";
+    cb(null, `${randomUUID()}-input${safeExt}`);
+  },
+});
+
+const normalizeUploadMulter = multer({
+  storage: normalizeUploadStorage,
+  limits: { fileSize: MAX_INPUT_BYTES, files: 1 },
+  fileFilter: (_req, file, cb) => {
+    if (!file.mimetype || !file.mimetype.startsWith("video/")) {
+      return cb(new Error("Only video files are allowed"));
+    }
+    cb(null, true);
+  },
+});
+
+/**
+ * Express middleware that disables the per-request socket timeout.
+ * Needed because a 4 GB upload over a slow connection can exceed Node's
+ * default 5-minute `server.requestTimeout`.
+ */
+export function disableRequestTimeout(req: Request, _res: Response, next: NextFunction) {
+  req.setTimeout(0);
+  next();
+}
+
+/**
+ * Multer wrapper that translates multer errors into ApiResponseHandler errors
+ * instead of letting them hit Express's default handler.
+ */
+export function handleNormalizeMulter(req: Request, res: Response, next: NextFunction) {
+  normalizeUploadMulter.single("video")(req, res, (err: any) => {
+    if (!err) return next();
+    if (err.code === "LIMIT_FILE_SIZE") {
+      return ApiResponseHandler.customError(
+        res,
+        `File too large. Max size is ${MAX_INPUT_BYTES / (1024 * 1024 * 1024)} GB.`,
+        413,
+        "FILE_TOO_LARGE"
+      );
+    }
+    return ApiResponseHandler.customError(
+      res,
+      err.message || "Upload failed",
+      400,
+      "UPLOAD_ERROR"
+    );
+  });
+}
+
+async function pushFileToMux(filePath: string, contentType: string) {
+  const upload = await muxManager.createDirectUpload({
+    cors_origin: "*",
+    new_asset_settings: { playback_policy: ["public"] },
+  });
+
+  const { size } = await fs.promises.stat(filePath);
+  const stream = fs.createReadStream(filePath);
+  // Node's native fetch accepts a Readable body when `duplex: "half"` is set,
+  // but TS's DOM fetch types don't know about it yet, so we cast to any.
+  const putRes = await fetch(upload.url, {
+    method: "PUT",
+    body: stream,
+    duplex: "half",
+    headers: {
+      "Content-Type": contentType,
+      "Content-Length": String(size),
+    },
+  } as any);
+
+  if (!putRes.ok) {
+    const errBody = await putRes.text().catch(() => "");
+    throw new Error(`Mux PUT failed: ${putRes.status} ${errBody.slice(0, 500)}`);
+  }
+
+  return upload;
+}
+
+async function runNormalizeJob(
+  jobId: string,
+  userId: string,
+  inputPath: string,
+  inputContentType: string
+) {
+  const outputPath = inputPath.replace(/-input\.[^.]+$/, "-normalized.mp4");
+  const cleanup = async () => {
+    releaseUserLock(userId);
+    await fs.promises.unlink(inputPath).catch(() => {});
+    await fs.promises.unlink(outputPath).catch(() => {});
+  };
+
+  try {
+    updateJob(jobId, { status: "probing" });
+    const analysis = await analyzeSource(inputPath);
+
+    if (analysis.durationSeconds > MAX_DURATION_SECONDS) {
+      throw new Error(
+        `Video too long: ${Math.round(analysis.durationSeconds)}s exceeds ${MAX_DURATION_SECONDS}s (1 hour) limit`
+      );
+    }
+    updateJob(jobId, {
+      durationSeconds: analysis.durationSeconds,
+      reasons: analysis.reasons,
+    });
+
+    let fileToUpload = inputPath;
+    let contentType = inputContentType || "application/octet-stream";
+
+    if (analysis.needsReencode) {
+      console.log(
+        `[mux] Job ${jobId}: re-encoding (${analysis.reasons.length} issue(s)): ${analysis.reasons.join("; ")}`
+      );
+      updateJob(jobId, { status: "normalizing", progress: 0, reencoded: true });
+      await normalizeTo720p(inputPath, outputPath, analysis.durationSeconds, (p) => {
+        updateJob(jobId, { progress: Math.round(p.percent) });
+      });
+      fileToUpload = outputPath;
+      contentType = "video/mp4";
+    } else {
+      console.log(`[mux] Job ${jobId}: source is clean, skipping re-encode`);
+      updateJob(jobId, { reencoded: false });
+    }
+
+    updateJob(jobId, { status: "uploading", progress: 100 });
+    const upload = await pushFileToMux(fileToUpload, contentType);
+
+    updateJob(jobId, {
+      status: "done",
+      progress: 100,
+      muxUploadId: upload.id,
+      muxAssetId: (upload as any).asset_id,
+    });
+  } catch (err: any) {
+    console.error(`[mux] Normalize job ${jobId} failed:`, err);
+    updateJob(jobId, {
+      status: "failed",
+      error: err?.message ?? String(err),
+    });
+  } finally {
+    await cleanup();
+  }
+}
 
 export class MuxController {
   // ============ ASSET MANAGEMENT ============
@@ -305,6 +485,82 @@ export class MuxController {
     } catch (err: any) {
       ApiResponseHandler.unexpectedError(res, err, 500);
     }
+  }
+
+  // ============ NORMALIZED UPLOAD (FFMPEG) ============
+
+  /**
+   * Accept a video file upload, probe/normalize it to 720p H.264 via ffmpeg,
+   * then push the normalized file to Mux via direct upload.
+   *
+   * Returns 202 Accepted immediately with a jobId; processing runs in the
+   * background. Poll GET /mux/normalize/:jobId for status.
+   */
+  static async uploadAndNormalize(req: Request, res: Response) {
+    const userId = (req as any).user?.userId;
+    if (!userId) {
+      return ApiResponseHandler.customError(res, "Unauthorized", 401, "UNAUTHORIZED");
+    }
+
+    const file = (req as any).file as Express.Multer.File | undefined;
+    if (!file) {
+      return ApiResponseHandler.customError(res, "No file uploaded", 400, "NO_FILE");
+    }
+
+    if (!acquireUserLock(userId)) {
+      fs.promises.unlink(file.path).catch(() => {});
+      return ApiResponseHandler.customError(
+        res,
+        "You already have an upload in progress. Please wait for it to complete.",
+        429,
+        "UPLOAD_IN_PROGRESS"
+      );
+    }
+
+    const job = createJob(userId, file.originalname);
+
+    ApiResponseHandler.success(
+      res,
+      { job },
+      "Upload accepted, processing in background",
+      202
+    );
+
+    // Fire-and-forget. Errors are captured inside runNormalizeJob and written
+    // to the job record; we also catch here as a final safety net.
+    runNormalizeJob(job.id, userId, file.path, file.mimetype).catch((err) => {
+      console.error(`[mux] Unhandled error in runNormalizeJob(${job.id}):`, err);
+      updateJob(job.id, {
+        status: "failed",
+        error: err?.message ?? String(err),
+      });
+      releaseUserLock(userId);
+    });
+  }
+
+  /**
+   * Poll the status of a background normalize+upload job.
+   */
+  static async getNormalizeJob(req: Request, res: Response) {
+    const userId = (req as any).user?.userId;
+    if (!userId) {
+      return ApiResponseHandler.customError(res, "Unauthorized", 401, "UNAUTHORIZED");
+    }
+
+    const { jobId } = req.params;
+    if (!jobId) {
+      return ApiResponseHandler.customError(res, "Job ID is required", 400, "MISSING_JOB_ID");
+    }
+
+    const job = getJob(jobId);
+    if (!job) {
+      return ApiResponseHandler.customError(res, "Job not found", 404, "JOB_NOT_FOUND");
+    }
+    if (job.userId !== userId) {
+      return ApiResponseHandler.customError(res, "Forbidden", 403, "FORBIDDEN");
+    }
+
+    ApiResponseHandler.success(res, { job }, "Job status retrieved");
   }
 
   // ============ LIVE STREAM MANAGEMENT ============

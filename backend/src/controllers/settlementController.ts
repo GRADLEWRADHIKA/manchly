@@ -90,7 +90,7 @@ export class SettlementController {
   }
 
   /**
-   * Creator: Get wallet overview with pending T+1 entries
+   * Creator: Get wallet overview with available balance
    */
   static async getWallet(req: any, res: Response) {
     const userId = req.user.userId;
@@ -115,7 +115,7 @@ export class SettlementController {
       ]);
 
       // Calculate balances
-      const [pendingAgg, settledAgg, totalAgg] = await Promise.all([
+      const [availableAgg, settledAgg, totalAgg] = await Promise.all([
         prisma.wallet_transactions.aggregate({
           where: { creator_id: userId, status: "PENDING_SETTLEMENT" },
           _sum: { net_amount: true, amount: true },
@@ -134,18 +134,18 @@ export class SettlementController {
         wallet: {
           total_earnings: totalAgg._sum.amount || 0,
           total_net_earnings: totalAgg._sum.net_amount || 0,
-          pending_settlement: pendingAgg._sum.net_amount || 0,
-          settled_amount: settledAgg._sum.net_amount || 0,
-          settlement_info: "Money will be submitted to your bank account after T+1 settlement period",
+          available_balance: availableAgg._sum.net_amount || 0,
+          withdrawn_amount: settledAgg._sum.net_amount || 0,
+          settlement_info: "Request a withdrawal to instantly transfer funds to your bank account",
         },
         transactions: walletTxns.map((tx) => ({
           ...tx,
           title: tx.title,
           status_label:
             tx.status === "PENDING_SETTLEMENT"
-              ? "Money will be submitted in T+1 settlement"
+              ? "Available for withdrawal"
               : tx.status === "SETTLED"
-              ? "Settled to bank account"
+              ? "Withdrawn to bank account"
               : "Failed",
         })),
         pagination: {
@@ -157,6 +157,35 @@ export class SettlementController {
       }, "Wallet retrieved successfully");
     } catch (err: any) {
       ApiResponseHandler.unexpectedError(res, err, 500);
+    }
+  }
+
+  /**
+   * Creator: Request withdrawal — instant payout to bank account
+   */
+  static async requestWithdrawal(req: any, res: Response) {
+    const userId = req.user.userId;
+    const { amount } = req.body; // optional — if not provided, withdraw all
+
+    try {
+      const user = await prisma.users.findUnique({ where: { id: userId } });
+      if (!user || !isCreator(user.user_type)) {
+        return ApiResponseHandler.customError(res, "Only creators can request withdrawals", 403, "FORBIDDEN");
+      }
+
+      const result = await SettlementService.requestWithdrawal(userId, amount ? Number(amount) : undefined);
+
+      ApiResponseHandler.success(res, {
+        settlement_id: result.settlementId,
+        withdrawal_amount: result.amount,
+        transactions_included: result.transactionsCount,
+        payout_mode: "IMPS",
+        message: "Withdrawal initiated! Money will reach your bank account in ~15 minutes.",
+      }, "Withdrawal initiated successfully", 201);
+
+    } catch (err: any) {
+      console.error("Withdrawal error:", err.message);
+      ApiResponseHandler.customError(res, err.message, 400, "WITHDRAWAL_FAILED");
     }
   }
 
@@ -331,7 +360,7 @@ export class SettlementController {
           total: totalDeductions.totalDeductions,
         },
         estimated_net: totalDeductions.netAmount,
-        settlement_delay: "T+1 business days",
+        settlement_delay: "Instant (IMPS)",
         items,
       }, "Earnings breakdown retrieved");
     } catch (err: any) {
@@ -409,17 +438,12 @@ export class SettlementController {
         return ApiResponseHandler.customError(res, "Admin access required", 403, "FORBIDDEN");
       }
 
-      // Step 1: Create settlement records from unsettled transactions
-      const created = await SettlementService.processSettlements();
-
-      // Step 2: Process payouts for pending settlements
+      // Retry any pending/failed payouts
       const payouts = await SettlementService.processAllPendingPayouts();
 
       ApiResponseHandler.success(res, {
-        settlements_created: created.settlementsCreated,
-        transactions_processed: created.totalTransactions || 0,
         payouts,
-      }, "Settlement processing triggered");
+      }, "Payout processing triggered");
     } catch (err: any) {
       ApiResponseHandler.unexpectedError(res, err, 500);
     }

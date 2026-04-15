@@ -1,5 +1,9 @@
 import { Router } from "express";
-import { MuxController } from "../controllers/muxController";
+import {
+  MuxController,
+  disableRequestTimeout,
+  handleNormalizeMulter,
+} from "../controllers/muxController";
 import { jwtAuth } from "../middleware/jwtAuth";
 import { MuxValidation } from "../middleware/muxValidation";
 
@@ -7,6 +11,21 @@ const router = Router();
 
 // Apply JWT authentication to all Mux routes
 router.use(jwtAuth);
+
+// ============ NORMALIZED UPLOAD ROUTES ============
+// These must be declared BEFORE the generic /uploads/:uploadId routes so the
+// "normalize" path segment isn't swallowed by the :uploadId param.
+
+// Accept a raw video, re-encode to 720p via ffmpeg, push to Mux. Returns 202.
+router.post(
+  "/normalize",
+  disableRequestTimeout,
+  handleNormalizeMulter,
+  MuxController.uploadAndNormalize
+);
+
+// Poll the status of a normalize job
+router.get("/normalize/:jobId", MuxController.getNormalizeJob);
 
 // ============ ASSET ROUTES ============
 

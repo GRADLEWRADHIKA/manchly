@@ -8,7 +8,6 @@ dotenv.config();
 const PLATFORM_FEE_PERCENT = 10; // 10% platform commission
 const GST_ON_PLATFORM_FEE_PERCENT = 18; // 18% GST on platform fee
 const TDS_PERCENT = 1; // 1% TDS (u/s 194O for e-commerce)
-const SETTLEMENT_DELAY_DAYS = 1; // T+1
 
 export class SettlementService {
   /**
@@ -32,24 +31,8 @@ export class SettlementService {
   }
 
   /**
-   * Calculate T+1 settlement ETA from now (skipping weekends)
-   */
-  static getSettlementETA(): Date {
-    const eta = new Date();
-    let businessDays = 0;
-    while (businessDays < SETTLEMENT_DELAY_DAYS) {
-      eta.setDate(eta.getDate() + 1);
-      const day = eta.getDay();
-      if (day !== 0 && day !== 6) {
-        businessDays++;
-      }
-    }
-    eta.setHours(7, 0, 0, 0); // 7 AM IST payout time
-    return eta;
-  }
-
-  /**
-   * Credit creator's wallet after a successful payment
+   * Credit creator's wallet after a successful payment.
+   * Money stays in wallet until creator requests withdrawal.
    */
   static async creditCreatorWallet(params: {
     creatorId: string;
@@ -61,7 +44,6 @@ export class SettlementService {
     itemTitle: string;
   }) {
     const deductions = this.calculateDeductions(params.grossAmount);
-    const settlementEta = this.getSettlementETA();
 
     try {
       await prisma.wallet_transactions.create({
@@ -75,17 +57,16 @@ export class SettlementService {
           tds_amount: deductions.tdsAmount,
           status: "PENDING_SETTLEMENT",
           title: `Payment received - ${params.itemTitle}`,
-          description: `Money will be settled to your bank account by ${settlementEta.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })} (T+1 settlement)`,
+          description: `Available for withdrawal`,
           transaction_type: params.transactionType,
           transaction_id: params.transactionId,
           course_id: params.courseId || null,
           webinar_id: params.webinarId || null,
-          settlement_eta: settlementEta,
+          settlement_eta: null,
         },
       });
       console.log(`Wallet credited for creator ${params.creatorId}: +${deductions.netAmount} (gross: ${deductions.grossAmount})`);
     } catch (err: any) {
-      // Ignore duplicate - wallet already credited for this transaction
       if (err.code === "P2002") {
         console.log(`Wallet already credited for ${params.transactionType} ${params.transactionId}`);
         return;
@@ -95,196 +76,128 @@ export class SettlementService {
   }
 
   /**
-   * Get the cutoff date for T+1 settlement
-   * Returns the date that is T+1 business days ago
+   * Get creator's available wallet balance (net amount available for withdrawal)
    */
-  static getSettlementCutoffDate(): Date {
-    const now = new Date();
-    let businessDays = 0;
-    const cutoff = new Date(now);
-
-    while (businessDays < SETTLEMENT_DELAY_DAYS) {
-      cutoff.setDate(cutoff.getDate() - 1);
-      const day = cutoff.getDay();
-      // Skip weekends (0 = Sunday, 6 = Saturday)
-      if (day !== 0 && day !== 6) {
-        businessDays++;
-      }
-    }
-
-    // Set to end of that day
-    cutoff.setHours(23, 59, 59, 999);
-    return cutoff;
+  static async getAvailableBalance(creatorId: string): Promise<number> {
+    const result = await prisma.wallet_transactions.aggregate({
+      where: {
+        creator_id: creatorId,
+        status: "PENDING_SETTLEMENT",
+      },
+      _sum: { net_amount: true },
+    });
+    return result._sum.net_amount || 0;
   }
 
   /**
-   * Find all unsettled SUCCESS transactions completed on or before cutoff date
+   * Creator requests withdrawal — instantly pay out to their bank account
    */
-  static async getUnsettledTransactions(cutoffDate: Date) {
-    // Get already settled transaction IDs to exclude them
-    const settledCourseItems = await prisma.settlement_items.findMany({
-      where: { transaction_type: "COURSE" },
-      select: { transaction_id: true },
-    });
-    const settledWebinarItems = await prisma.settlement_items.findMany({
-      where: { transaction_type: "WEBINAR" },
-      select: { transaction_id: true },
+  static async requestWithdrawal(creatorId: string, amount?: number) {
+    // Get available balance
+    const availableBalance = await this.getAvailableBalance(creatorId);
+
+    if (availableBalance <= 0) {
+      throw new Error("No funds available for withdrawal");
+    }
+
+    // If no amount specified, withdraw everything
+    const withdrawAmount = amount ? Math.min(amount, availableBalance) : availableBalance;
+
+    if (withdrawAmount <= 0) {
+      throw new Error("Invalid withdrawal amount");
+    }
+
+    // Check creator has a verified bank account
+    const bankAccount = await prisma.creator_bank_accounts.findUnique({
+      where: { user_id: creatorId },
     });
 
-    const settledCourseIds = settledCourseItems.map((i) => i.transaction_id);
-    const settledWebinarIds = settledWebinarItems.map((i) => i.transaction_id);
+    if (!bankAccount) {
+      throw new Error("Please add your bank account details first");
+    }
 
-    // Fetch unsettled course transactions (both RAZORPAY and CASHFREE)
-    const courseTransactions = await prisma.transactions.findMany({
+    if (!bankAccount.is_verified) {
+      throw new Error("Your bank account is not verified yet. Please complete KYC first.");
+    }
+
+    // Get all unsettled wallet transactions for this creator
+    const unsettledWalletTxns = await prisma.wallet_transactions.findMany({
       where: {
-        status: "SUCCESS",
-        payment_method: { in: ["CASHFREE", "RAZORPAY"] },
-        completed_at: { lte: cutoffDate },
-        id: { notIn: settledCourseIds.length > 0 ? settledCourseIds : undefined },
+        creator_id: creatorId,
+        status: "PENDING_SETTLEMENT",
+        settlement_id: null,
       },
-      include: {
-        course: {
-          select: {
-            id: true,
-            title: true,
-            creator_id: true,
-            price: true,
-          },
+      orderBy: { created_at: "asc" },
+    });
+
+    // Collect transactions up to the withdrawal amount
+    let runningTotal = 0;
+    const txnsToSettle: typeof unsettledWalletTxns = [];
+    for (const wt of unsettledWalletTxns) {
+      if (runningTotal >= withdrawAmount) break;
+      txnsToSettle.push(wt);
+      runningTotal += wt.net_amount;
+    }
+
+    if (txnsToSettle.length === 0) {
+      throw new Error("No transactions available for withdrawal");
+    }
+
+    // Calculate totals
+    let totalGross = 0;
+    let totalPlatformFee = 0;
+    let totalGst = 0;
+    let totalTds = 0;
+    let totalNet = 0;
+
+    const itemsData = txnsToSettle.map((wt) => {
+      totalGross += wt.amount;
+      totalPlatformFee += wt.platform_fee;
+      totalGst += wt.gst_on_platform_fee;
+      totalTds += wt.tds_amount;
+      totalNet += wt.net_amount;
+
+      return {
+        transaction_type: wt.transaction_type,
+        transaction_id: wt.transaction_id,
+        course_id: wt.course_id || null,
+        webinar_id: wt.webinar_id || null,
+        gross_amount: wt.amount,
+        platform_fee: wt.platform_fee,
+        gst_on_platform_fee: wt.gst_on_platform_fee,
+        tds_amount: wt.tds_amount,
+        net_amount: wt.net_amount,
+      };
+    });
+
+    // Create settlement record
+    const settlement = await prisma.settlements.create({
+      data: {
+        creator_id: creatorId,
+        total_gross_amount: parseFloat(totalGross.toFixed(2)),
+        platform_fee: parseFloat(totalPlatformFee.toFixed(2)),
+        gst_on_platform_fee: parseFloat(totalGst.toFixed(2)),
+        tds_amount: parseFloat(totalTds.toFixed(2)),
+        net_amount: parseFloat(totalNet.toFixed(2)),
+        status: "PENDING",
+        settlement_date: new Date(),
+        payout_status: "PENDING",
+        items: {
+          create: itemsData,
         },
       },
     });
 
-    // Fetch unsettled webinar transactions (both RAZORPAY and CASHFREE)
-    const webinarTransactions = await prisma.webinar_transactions.findMany({
-      where: {
-        status: "SUCCESS",
-        payment_method: { in: ["CASHFREE", "RAZORPAY"] },
-        completed_at: { lte: cutoffDate },
-        id: { notIn: settledWebinarIds.length > 0 ? settledWebinarIds : undefined },
-      },
-      include: {
-        webinar: {
-          select: {
-            id: true,
-            title: true,
-            creator_id: true,
-            price: true,
-          },
-        },
-      },
-    });
+    console.log(`Withdrawal settlement created: ${settlement.id}, net: ${totalNet.toFixed(2)}`);
 
-    return { courseTransactions, webinarTransactions };
-  }
+    // Trigger instant payout
+    await this.processPayout(settlement.id);
 
-  /**
-   * Group transactions by creator and create settlement records
-   */
-  static async processSettlements() {
-    const cutoffDate = this.getSettlementCutoffDate();
-    console.log(`Processing settlements for transactions completed on or before: ${cutoffDate.toISOString()}`);
-
-    const { courseTransactions, webinarTransactions } = await this.getUnsettledTransactions(cutoffDate);
-
-    if (courseTransactions.length === 0 && webinarTransactions.length === 0) {
-      console.log("No unsettled transactions found.");
-      return { settlementsCreated: 0 };
-    }
-
-    // Group by creator
-    const creatorMap = new Map<
-      string,
-      Array<{
-        type: "COURSE" | "WEBINAR";
-        transactionId: string;
-        courseId?: string;
-        webinarId?: string;
-        amount: number;
-      }>
-    >();
-
-    for (const tx of courseTransactions) {
-      const creatorId = tx.course.creator_id;
-      if (!creatorMap.has(creatorId)) creatorMap.set(creatorId, []);
-      creatorMap.get(creatorId)!.push({
-        type: "COURSE",
-        transactionId: tx.id,
-        courseId: tx.course.id,
-        amount: tx.course.price, // Use base price (before GST charged to user)
-      });
-    }
-
-    for (const tx of webinarTransactions) {
-      const creatorId = tx.webinar.creator_id;
-      if (!creatorMap.has(creatorId)) creatorMap.set(creatorId, []);
-      creatorMap.get(creatorId)!.push({
-        type: "WEBINAR",
-        transactionId: tx.id,
-        webinarId: tx.webinar.id,
-        amount: tx.webinar.price, // Use base price
-      });
-    }
-
-    let settlementsCreated = 0;
-
-    for (const [creatorId, transactions] of creatorMap) {
-      try {
-        // Calculate totals for this creator
-        let totalGross = 0;
-        let totalPlatformFee = 0;
-        let totalGst = 0;
-        let totalTds = 0;
-        let totalNet = 0;
-
-        const itemsData = transactions.map((tx) => {
-          const deductions = this.calculateDeductions(tx.amount);
-          totalGross += deductions.grossAmount;
-          totalPlatformFee += deductions.platformFee;
-          totalGst += deductions.gstOnPlatformFee;
-          totalTds += deductions.tdsAmount;
-          totalNet += deductions.netAmount;
-
-          return {
-            transaction_type: tx.type,
-            transaction_id: tx.transactionId,
-            course_id: tx.courseId || null,
-            webinar_id: tx.webinarId || null,
-            gross_amount: deductions.grossAmount,
-            platform_fee: deductions.platformFee,
-            gst_on_platform_fee: deductions.gstOnPlatformFee,
-            tds_amount: deductions.tdsAmount,
-            net_amount: deductions.netAmount,
-          };
-        });
-
-        // Create settlement with items in a transaction
-        await prisma.settlements.create({
-          data: {
-            creator_id: creatorId,
-            total_gross_amount: parseFloat(totalGross.toFixed(2)),
-            platform_fee: parseFloat(totalPlatformFee.toFixed(2)),
-            gst_on_platform_fee: parseFloat(totalGst.toFixed(2)),
-            tds_amount: parseFloat(totalTds.toFixed(2)),
-            net_amount: parseFloat(totalNet.toFixed(2)),
-            status: "PENDING",
-            settlement_date: new Date(),
-            payout_status: "PENDING",
-            items: {
-              create: itemsData,
-            },
-          },
-        });
-
-        settlementsCreated++;
-        console.log(
-          `Settlement created for creator ${creatorId}: ${transactions.length} transactions, net amount: ${totalNet.toFixed(2)}`
-        );
-      } catch (err) {
-        console.error(`Error creating settlement for creator ${creatorId}:`, err);
-      }
-    }
-
-    return { settlementsCreated, totalTransactions: courseTransactions.length + webinarTransactions.length };
+    return {
+      settlementId: settlement.id,
+      amount: parseFloat(totalNet.toFixed(2)),
+      transactionsCount: txnsToSettle.length,
+    };
   }
 
   /**
@@ -304,7 +217,6 @@ export class SettlementService {
       throw new Error("Bank account is not verified. Please complete bank verification via KYC.");
     }
 
-    // Create Cashfree Beneficiary if not exists
     let beneficiaryId = bankAccount.cashfree_beneficiary_id;
     if (!beneficiaryId) {
       beneficiaryId = `ben_${userId.replace(/-/g, "").substring(0, 20)}`;
@@ -433,7 +345,7 @@ export class SettlementService {
   }
 
   /**
-   * Process all pending settlements (called by CRON)
+   * Process all pending settlements — fallback for failed withdrawals (called by CRON)
    */
   static async processAllPendingPayouts() {
     const pendingSettlements = await prisma.settlements.findMany({
@@ -455,7 +367,6 @@ export class SettlementService {
 
     for (const settlement of pendingSettlements) {
       try {
-        // Skip if creator has no bank account
         if (!settlement.creator.bank_account) {
           console.log(`Skipping settlement ${settlement.id}: Creator has no bank account`);
           continue;
@@ -489,7 +400,6 @@ export class SettlementService {
       return;
     }
 
-    // Helper to update wallet entries for this settlement's items
     const updateWalletStatus = async (status: "SETTLED" | "FAILED") => {
       for (const item of settlement.items) {
         await prisma.wallet_transactions.updateMany({

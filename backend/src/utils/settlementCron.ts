@@ -2,56 +2,38 @@ import * as cron from "node-cron";
 import { SettlementService } from "../services/settlementService";
 
 export class SettlementCronService {
-  private settlementJob: any | null = null;
-  private payoutJob: any | null = null;
+  private payoutRetryJob: any | null = null;
 
   /**
-   * Start the T+1 settlement CRON jobs
-   *
-   * Job 1: Create settlement records from matured transactions (daily at 6 AM IST)
-   * Job 2: Process payouts for pending settlements (daily at 7 AM IST)
+   * Start cron job to retry any failed/pending payouts (daily at 7 AM IST)
+   * This is a safety net — normal withdrawals are instant and creator-initiated.
    */
   startSettlementCron(): void {
-    if (this.settlementJob) {
-      console.log("Settlement CRON already running");
+    if (this.payoutRetryJob) {
+      console.log("Payout retry CRON already running");
       return;
     }
 
-    // Job 1: Create settlements daily at 6:00 AM IST (00:30 UTC)
-    this.settlementJob = cron.schedule("30 0 * * *", async () => {
-      console.log("Running T+1 settlement creation job...");
-      try {
-        const result = await SettlementService.processSettlements();
-        console.log(`Settlement job completed: ${result.settlementsCreated} settlements created`);
-      } catch (err) {
-        console.error("Settlement creation job failed:", err);
-      }
-    });
-
-    // Job 2: Process payouts daily at 7:00 AM IST (01:30 UTC)
-    this.payoutJob = cron.schedule("30 1 * * *", async () => {
-      console.log("Running payout processing job...");
+    // Retry failed/pending payouts daily at 7:00 AM IST (01:30 UTC)
+    this.payoutRetryJob = cron.schedule("30 1 * * *", async () => {
+      console.log("Running payout retry job...");
       try {
         const result = await SettlementService.processAllPendingPayouts();
-        console.log(`Payout job completed: ${result.success} success, ${result.failed} failed out of ${result.total}`);
+        console.log(`Payout retry job completed: ${result.success} success, ${result.failed} failed out of ${result.total}`);
       } catch (err) {
-        console.error("Payout processing job failed:", err);
+        console.error("Payout retry job failed:", err);
       }
     });
 
-    console.log("Settlement CRON jobs started (T+1 at 6 AM IST, Payouts at 7 AM IST)");
+    console.log("Payout retry CRON started (daily at 7 AM IST)");
   }
 
   stopSettlementCron(): void {
-    if (this.settlementJob) {
-      this.settlementJob.stop();
-      this.settlementJob = null;
+    if (this.payoutRetryJob) {
+      this.payoutRetryJob.stop();
+      this.payoutRetryJob = null;
     }
-    if (this.payoutJob) {
-      this.payoutJob.stop();
-      this.payoutJob = null;
-    }
-    console.log("Settlement CRON jobs stopped");
+    console.log("Payout retry CRON stopped");
   }
 }
 

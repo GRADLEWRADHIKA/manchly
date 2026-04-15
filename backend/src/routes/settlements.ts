@@ -41,6 +41,13 @@ router.get("/my-settlements", jwtAuth, SettlementController.getCreatorSettlement
  */
 router.get("/earnings-breakdown", jwtAuth, SettlementController.getEarningsBreakdown);
 
+/**
+ * @route   POST /api/settlements/withdraw
+ * @desc    Request instant withdrawal to bank account
+ * @access  Protected (CREATOR)
+ */
+router.post("/withdraw", jwtAuth, SettlementController.requestWithdrawal);
+
 // ============ ADMIN ROUTES ============
 
 /**

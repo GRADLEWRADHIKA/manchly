@@ -16,17 +16,18 @@ import { wp, hp, fp } from '../../../../../utils/responsive';
 import AppHeaderWithBack from '../../../../../components/AppHeaderWithBack';
 import { useIsFocused, useRoute } from '@react-navigation/native';
 import { getCourseById } from '../../../../../store/CourseSlice';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
 import YouTubePlayer from '../../../../../components/YouTubePlayer';
-import { Play, Clock, Plus, MoreVertical } from 'lucide-react-native';
+import { Play, Clock, Plus, MoreVertical, Upload, CheckCircle, AlertCircle } from 'lucide-react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { createShimmerPlaceholder } from 'react-native-shimmer-placeholder';
 import { Menu, FAB } from 'react-native-paper';
 import ModalBottom from 'react-native-modal';
 import CourseAddVideoModal from './CourseAddVideoModal';
-import { deleteVideo } from '../../../../../store/VideoSlice';
+import { deleteVideo, ActiveUpload } from '../../../../../store/VideoSlice';
 import DynamicModal from '../../../../../components/CommonModal';
+import { RootState } from '../../../../../store/Store';
 
 const ShimmerPlaceholder = createShimmerPlaceholder(LinearGradient);
 
@@ -60,6 +61,10 @@ const CourseVideoList = () => {
   const focus = useIsFocused();
   const [refresh, setRefresh] = useState(false);
   const [isUpdate, setIsUpdate] = useState(false);
+
+  const activeUploads = useSelector(
+    (state: RootState) => state.videosReducer.activeUploads,
+  ).filter((u: ActiveUpload) => u.courseId === courseId);
 
   useEffect(() => {
     getVideoById();
@@ -100,6 +105,49 @@ const CourseVideoList = () => {
 
   const toggleModal = () => {
     setIsModalVisible(!isModalVisible);
+  };
+
+  const renderUploadCard = (item: ActiveUpload) => {
+    const isCompleted = item.status === 'completed';
+    const isFailed = item.status === 'failed';
+
+    return (
+      <View key={item.uploadId} style={styles.uploadCard}>
+        <View style={styles.uploadIconContainer}>
+          {isCompleted ? (
+            <CheckCircle color={colors.success} size={wp(24)} />
+          ) : isFailed ? (
+            <AlertCircle color={colors.error} size={wp(24)} />
+          ) : (
+            <Upload color={colors.info} size={wp(24)} />
+          )}
+        </View>
+        <View style={styles.uploadInfo}>
+          <Text style={styles.uploadTitle} numberOfLines={1}>
+            {item.videoTitle}
+          </Text>
+          <Text
+            style={[
+              styles.uploadStatus,
+              isCompleted && { color: colors.success },
+              isFailed && { color: colors.error },
+            ]}>
+            {isCompleted
+              ? 'Upload complete'
+              : isFailed
+              ? item.error || 'Upload failed'
+              : `Uploading... ${item.progress}%`}
+          </Text>
+          {item.status === 'uploading' && (
+            <View style={styles.progressBarBg}>
+              <View
+                style={[styles.progressBarFill, { width: `${item.progress}%` }]}
+              />
+            </View>
+          )}
+        </View>
+      </View>
+    );
   };
 
   const renderShimmerCard = () => (
@@ -209,6 +257,12 @@ const CourseVideoList = () => {
   return (
     <View style={styles.container}>
       <AppHeaderWithBack title="Course Videos" />
+
+      {activeUploads.length > 0 && (
+        <View style={styles.uploadsSection}>
+          {activeUploads.map(renderUploadCard)}
+        </View>
+      )}
 
       {loading ? (
         <FlatList
@@ -589,6 +643,58 @@ const styles = StyleSheet.create({
     width: '40%',
     height: hp(12),
     borderRadius: wp(4),
+  },
+  // Upload indicators
+  uploadsSection: {
+    paddingHorizontal: wp(16),
+    paddingTop: hp(10),
+  },
+  uploadCard: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    backgroundColor: colors.white,
+    borderRadius: wp(10),
+    padding: wp(12),
+    marginBottom: hp(8),
+    elevation: 2,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+  },
+  uploadIconContainer: {
+    width: wp(40),
+    height: wp(40),
+    borderRadius: wp(20),
+    backgroundColor: colors.surface,
+    justifyContent: 'center' as const,
+    alignItems: 'center' as const,
+    marginRight: wp(12),
+  },
+  uploadInfo: {
+    flex: 1,
+  },
+  uploadTitle: {
+    fontSize: fp(14),
+    fontWeight: '600' as const,
+    color: colors.text,
+    marginBottom: hp(2),
+  },
+  uploadStatus: {
+    fontSize: fp(12),
+    color: colors.info,
+    marginBottom: hp(4),
+  },
+  progressBarBg: {
+    height: hp(4),
+    backgroundColor: colors.lightGrey,
+    borderRadius: wp(2),
+    overflow: 'hidden' as const,
+  },
+  progressBarFill: {
+    height: '100%' as const,
+    backgroundColor: colors.info,
+    borderRadius: wp(2),
   },
   // FAB
   fab: {

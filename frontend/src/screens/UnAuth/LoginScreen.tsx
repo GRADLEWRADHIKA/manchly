@@ -25,6 +25,7 @@ import { checkAuthData, sendOtpEmail, sendOtpSms } from '../../store/UserSlice';
 import ChooseUserType from './ChooseUserType';
 import TermsModal from '../../components/TermsModal';
 import PrivacyModal from '../../components/PrivacyModal';
+import RefundPolicyModal from '../../components/RefundPolicyModal';
 
 const USER_TYPES = ['CREATOR', 'USER'] as const;
 type UserType = (typeof USER_TYPES)[number];
@@ -39,6 +40,7 @@ const LoginScreen: React.FC = () => {
   const [openUserModal, setOpenUserModal] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
+  const [showRefund, setShowRefund] = useState(false);
 
   useEffect(() => {
     const idx = USER_TYPES.indexOf(userType);
@@ -316,14 +318,19 @@ const LoginScreen: React.FC = () => {
             By continuing, you agree to our{' '}
             <Text style={styles.linkText} onPress={() => setShowTerms(true)}>
               Terms of Service
-            </Text>{' '}
-            and{' '}
+            </Text>
+            ,{' '}
             <Text style={styles.linkText} onPress={() => setShowPrivacy(true)}>
               Privacy Policy
+            </Text>
+            {' & '}
+            <Text style={styles.linkText} onPress={() => setShowRefund(true)}>
+              Refund Policy
             </Text>
           </Text>
           <TermsModal visible={showTerms} onClose={() => setShowTerms(false)} />
           <PrivacyModal visible={showPrivacy} onClose={() => setShowPrivacy(false)} />
+          <RefundPolicyModal visible={showRefund} onClose={() => setShowRefund(false)} />
         </View>
 
         <ChooseUserType

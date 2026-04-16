@@ -18,7 +18,7 @@ const TermsOfServiceScreen = ({ navigation }: any) => {
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.company}>Agnivora Digital Pvt Ltd</Text>
         <Text style={styles.subInfo}>Platform: Manchly (App only, India)</Text>
-        <Text style={styles.subInfo}>Contact: support@manchly.com</Text>
+        <Text style={styles.subInfo}>Contact: help@manchly.com</Text>
 
         <Text style={styles.sectionTitle}>1. Acceptance of Terms</Text>
         <Text style={styles.body}>
@@ -47,17 +47,14 @@ const TermsOfServiceScreen = ({ navigation }: any) => {
         </Text>
 
         <Text style={styles.sectionTitle}>5. Payments & Refunds</Text>
-        <Text style={styles.body}>All payments are processed via Razorpay.</Text>
+        <Text style={styles.body}>All payments are processed via Cashfree.</Text>
         <Text style={styles.bodyBold}>Price Breakup at Checkout</Text>
         <Text style={styles.body}>
           Final payable amount = Course Price + 18% GST + 5% Platform Fee
         </Text>
         <Text style={styles.bodyBold}>Refund Policy</Text>
         <Text style={styles.body}>
-          Refunds are allowed only in case of:{'\n'}- Failed transactions{'\n'}- Duplicate payments{'\n'}- Or if explicitly approved by Agnivora Digital Pvt Ltd
-        </Text>
-        <Text style={styles.body}>
-          Refund requests must be sent to support@manchly.com within 7 days of transaction.
+          All sales are final due to the nature of digital delivery. Refunds are only considered for duplicate payments, technical issues preventing access, or system errors. Requests must be raised within 48 hours at help@manchly.com.
         </Text>
 
         <Text style={styles.sectionTitle}>6. Creator Payouts, Withdrawals & TDS</Text>

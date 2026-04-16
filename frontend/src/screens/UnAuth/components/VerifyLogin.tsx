@@ -26,6 +26,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import NotificationService from '../../../services/NotificationService';
 import TermsModal from '../../../components/TermsModal';
 import PrivacyModal from '../../../components/PrivacyModal';
+import RefundPolicyModal from '../../../components/RefundPolicyModal';
 
 type VerifyLoginProps = {
   selectedType: string | null;
@@ -46,6 +47,7 @@ const VerifyLogin: React.FC<VerifyLoginProps> = ({
   const [otpSuccess, setOtpSuccess] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
+  const [showRefund, setShowRefund] = useState(false);
   const [otpData, setOtpData] = useState('');
   const [loginValue, setLoginValue] = useState('');
 
@@ -265,11 +267,14 @@ const VerifyLogin: React.FC<VerifyLoginProps> = ({
 
       <Text style={styles.termsText}>
         By continuing, you agree to our{' '}
-        <Text style={styles.linkText} onPress={() => setShowTerms(true)}>Terms of Service</Text> and{' '}
+        <Text style={styles.linkText} onPress={() => setShowTerms(true)}>Terms of Service</Text>,{' '}
         <Text style={styles.linkText} onPress={() => setShowPrivacy(true)}>Privacy Policy</Text>
+        {' & '}
+        <Text style={styles.linkText} onPress={() => setShowRefund(true)}>Refund Policy</Text>
       </Text>
       <TermsModal visible={showTerms} onClose={() => setShowTerms(false)} />
       <PrivacyModal visible={showPrivacy} onClose={() => setShowPrivacy(false)} />
+      <RefundPolicyModal visible={showRefund} onClose={() => setShowRefund(false)} />
 
       <TouchableOpacity
         onPress={() => setActive(3)}

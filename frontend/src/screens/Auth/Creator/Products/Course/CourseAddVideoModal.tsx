@@ -22,8 +22,14 @@ import { ThunkDispatch } from '@reduxjs/toolkit';
 import {
   createVideoUpload,
   updateVideo,
+  addActiveUpload,
+  updateUploadProgress,
+  completeUpload,
+  failUpload,
+  removeUpload,
 } from '../../../../../store/VideoSlice';
 import { uploadShipDoc } from '../../../../../store/Common';
+import BackgroundUploadService from '../../../../../services/BackgroundUploadService';
 
 const CourseAddVideoModal = ({
   onClose,
@@ -34,9 +40,7 @@ const CourseAddVideoModal = ({
 }) => {
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
   const [loading, setLoading] = useState(false); // main submit
-  const [videoUploading, setVideoUploading] = useState(false);
   const [thumbnailUploading, setThumbnailUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
   const [selectedVideo, setSelectedVideo] = useState<any>(null);
   const route = useRoute();
   const { token } = useSelector((state: any) => state.userReducer);
@@ -183,8 +187,13 @@ const CourseAddVideoModal = ({
     }
   };
 
-  // 🔹 Submit and upload video
+  // 🔹 Submit and upload video in background
   const onSubmit = async (data: any) => {
+    console.log('=== onSubmit called ===');
+    console.log('selectedVideo:', JSON.stringify(selectedVideo, null, 2));
+    console.log('courseId:', courseId);
+    console.log('form data:', JSON.stringify(data, null, 2));
+
     if (!selectedVideo) {
       Toast.show({
         type: 'error',
@@ -196,6 +205,7 @@ const CourseAddVideoModal = ({
 
     try {
       setLoading(true);
+      console.log('=== Calling createVideoUpload API ===');
       const res = await dispatch(
         createVideoUpload({
           courseId: courseId,
@@ -209,79 +219,83 @@ const CourseAddVideoModal = ({
         }),
       ).unwrap();
 
+      console.log('=== createVideoUpload response ===', JSON.stringify(res, null, 2));
+
       const uploadUrl = res?.upload_url;
       const videoId = res?.video?.id;
+      console.log('uploadUrl:', uploadUrl);
+      console.log('videoId:', videoId);
+
       if (!uploadUrl || !videoId)
         throw new Error('Invalid upload URL or video ID');
 
-      setVideoUploading(true);
-      setUploadProgress(0);
+      console.log('=== Starting background upload ===');
+      console.log('fileUri:', selectedVideo.uri);
+      console.log('uploadUrl:', uploadUrl);
 
-      const fileBlob = await fetch(selectedVideo.uri).then(response => {
-        if (!response.ok) throw new Error('Failed to read video file');
-        return response.blob();
+      // Use a mutable ref so callbacks can access the uploadId after it resolves
+      let resolvedUploadId: string | null = null;
+
+      // Start background upload — modal closes immediately
+      const uploadId = await BackgroundUploadService.startUpload({
+        fileUri: selectedVideo.uri,
+        uploadUrl: uploadUrl,
+        videoTitle: data.title,
+        onProgress: (progress) => {
+          console.log('=== onProgress callback, uploadId:', resolvedUploadId, 'progress:', progress);
+          if (resolvedUploadId) {
+            dispatch(updateUploadProgress({ uploadId: resolvedUploadId, progress }));
+          }
+        },
+        onComplete: () => {
+          console.log('=== Background upload COMPLETE, uploadId:', resolvedUploadId);
+          if (resolvedUploadId) {
+            dispatch(completeUpload(resolvedUploadId));
+            setTimeout(() => dispatch(removeUpload(resolvedUploadId!)), 3000);
+          }
+          setRefresh((prev: any) => !prev);
+        },
+        onError: (error) => {
+          console.error('=== Background upload ERROR ===', error, 'uploadId:', resolvedUploadId);
+          if (resolvedUploadId) {
+            dispatch(failUpload({ uploadId: resolvedUploadId, error }));
+            setTimeout(() => dispatch(removeUpload(resolvedUploadId!)), 5000);
+          }
+        },
       });
 
-      const xhr = new XMLHttpRequest();
-      xhr.open('PUT', uploadUrl);
-      xhr.setRequestHeader('Content-Type', 'video/mp4');
-      xhr.timeout = 600000;
+      // Now set the resolved ID so callbacks can use it
+      resolvedUploadId = uploadId;
+      console.log('=== Background upload started, uploadId:', uploadId);
 
-      xhr.upload.addEventListener('progress', event => {
-        if (event.lengthComputable) {
-          const percent = Math.min(
-            100,
-            Math.round((event.loaded / event.total) * 100),
-          ); // ✅ Never exceeds 100
-          setUploadProgress(percent);
-        }
+      if (uploadId) {
+        dispatch(addActiveUpload({
+          uploadId,
+          videoTitle: data.title,
+          courseId,
+        }));
+      }
+
+      Toast.show({
+        type: 'info',
+        text1: 'Video uploading in background',
+        text2: 'You can continue using the app',
+        position: 'bottom',
       });
 
-      xhr.onload = () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          setUploadProgress(100);
-          Toast.show({
-            type: 'success',
-            text1: 'Video uploaded successfully',
-            position: 'bottom',
-          });
-          reset();
-          setSelectedVideo(null);
-          setRefresh(prev => !prev);
-          setTimeout(onClose, 1000);
-        } else {
-          setIsModalVisible(false);
-          Toast.show({
-            type: 'error',
-            text1: 'Upload failed',
-            text2: `Status ${xhr.status}`,
-            position: 'bottom',
-          });
-        }
-        setVideoUploading(false);
-      };
-
-      xhr.onerror = () => {
-        setIsModalVisible(false);
-        setVideoUploading(false);
-        Toast.show({
-          type: 'error',
-          text1: 'Network error during upload',
-          position: 'bottom',
-        });
-      };
-
-      xhr.send(fileBlob);
+      reset();
+      setSelectedVideo(null);
+      onClose();
     } catch (error: any) {
-      setIsModalVisible(false);
-      console.error('Upload error:', error);
+      console.error('=== Upload CATCH error ===', error);
+      console.error('Error message:', error?.message);
+      console.error('Error response:', JSON.stringify(error?.response?.data, null, 2));
       Toast.show({
         type: 'error',
         text1: 'Upload failed',
         text2: error.message || 'Something went wrong',
         position: 'bottom',
       });
-      setVideoUploading(false);
     } finally {
       setIsModalVisible(false);
       setLoading(false);
@@ -296,9 +310,8 @@ const CourseAddVideoModal = ({
           {isUpdate ? 'Update Video' : 'Add Course Video'}
         </Text>
         <TouchableOpacity
-          onPress={!videoUploading ? onClose : undefined}
-          style={[styles.closeButton, videoUploading && { opacity: 0.4 }]}
-          disabled={videoUploading}
+          onPress={onClose}
+          style={styles.closeButton}
         >
           <X color={colors.text} size={wp(22)} />
         </TouchableOpacity>
@@ -334,23 +347,13 @@ const CourseAddVideoModal = ({
             <Text style={styles.label}>Select Video</Text>
             <TouchableOpacity
               style={styles.uploadButton}
-              onPress={!videoUploading ? handleVideoSelect : undefined}
-              disabled={videoUploading}
+              onPress={handleVideoSelect}
             >
               <Video color={colors.primary} size={wp(22)} />
               <Text style={styles.uploadText}>
                 {selectedVideo?.name || 'Tap to select video'}
               </Text>
             </TouchableOpacity>
-
-            {videoUploading && (
-              <View style={styles.progressContainer}>
-                <ActivityIndicator size="small" color={colors.primary} />
-                <Text style={styles.progressText}>
-                  Uploading... {uploadProgress}%
-                </Text>
-              </View>
-            )}
           </>
         )}
 
@@ -457,8 +460,8 @@ const CourseAddVideoModal = ({
       <View style={styles.modalFooter}>
         <TouchableOpacity
           style={styles.cancelButton}
-          onPress={!videoUploading ? onClose : undefined}
-          disabled={loading || videoUploading}
+          onPress={onClose}
+          disabled={loading}
         >
           <Text style={styles.cancelButtonText}>Cancel</Text>
         </TouchableOpacity>
@@ -466,12 +469,12 @@ const CourseAddVideoModal = ({
         <TouchableOpacity
           style={[
             styles.saveButton,
-            (loading || videoUploading) && { opacity: 0.7 },
+            loading && { opacity: 0.7 },
           ]}
-          disabled={loading || videoUploading}
+          disabled={loading}
           onPress={handleSubmit(isUpdate ? onSubmitUpdate : onSubmit)}
         >
-          {loading || videoUploading ? (
+          {loading ? (
             <ActivityIndicator color={colors.white} size="small" />
           ) : (
             <Text style={styles.saveButtonText}>

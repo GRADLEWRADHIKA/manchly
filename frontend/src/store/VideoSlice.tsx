@@ -1,6 +1,15 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import Toast from 'react-native-toast-message';
 import { instance } from '../utils/AxiosInstance';
+
+export interface ActiveUpload {
+  uploadId: string;
+  videoTitle: string;
+  courseId: string;
+  progress: number;
+  status: 'uploading' | 'completed' | 'failed';
+  error?: string;
+}
 
 export const createVideoUpload = createAsyncThunk(
   'videos/createUpload',
@@ -51,8 +60,40 @@ const slice = createSlice({
     byCourse: {} as Record<string, any[]>,
     statusById: {} as Record<string, any>,
     creating: false,
+    activeUploads: [] as ActiveUpload[],
   },
-  reducers: {},
+  reducers: {
+    addActiveUpload(state, action: PayloadAction<Omit<ActiveUpload, 'progress' | 'status'>>) {
+      state.activeUploads.push({
+        ...action.payload,
+        progress: 0,
+        status: 'uploading',
+      });
+    },
+    updateUploadProgress(state, action: PayloadAction<{ uploadId: string; progress: number }>) {
+      const upload = state.activeUploads.find(u => u.uploadId === action.payload.uploadId);
+      if (upload) {
+        upload.progress = action.payload.progress;
+      }
+    },
+    completeUpload(state, action: PayloadAction<string>) {
+      const upload = state.activeUploads.find(u => u.uploadId === action.payload);
+      if (upload) {
+        upload.progress = 100;
+        upload.status = 'completed';
+      }
+    },
+    failUpload(state, action: PayloadAction<{ uploadId: string; error?: string }>) {
+      const upload = state.activeUploads.find(u => u.uploadId === action.payload.uploadId);
+      if (upload) {
+        upload.status = 'failed';
+        upload.error = action.payload.error;
+      }
+    },
+    removeUpload(state, action: PayloadAction<string>) {
+      state.activeUploads = state.activeUploads.filter(u => u.uploadId !== action.payload);
+    },
+  },
   extraReducers: builder => {
     builder
       .addCase(createVideoUpload.pending, state => {
@@ -83,5 +124,13 @@ const slice = createSlice({
       });
   },
 });
+
+export const {
+  addActiveUpload,
+  updateUploadProgress,
+  completeUpload,
+  failUpload,
+  removeUpload,
+} = slice.actions;
 
 export default slice.reducer;

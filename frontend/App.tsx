@@ -34,7 +34,7 @@ export default function App() {
                 <StatusBar
                   translucent={false}
                   backgroundColor={isDarkMode ? '#000' : '#fff'}
-                  barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+                  barStyle={isDarkMode ? 'light-content' : 'light-content'}
                 />
                 <Router />
                 <Toast />

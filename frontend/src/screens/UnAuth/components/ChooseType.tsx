@@ -5,10 +5,12 @@ import { wp, hp, fp } from '../../../utils/responsive';
 import { MoveRight } from 'lucide-react-native';
 import TermsModal from '../../../components/TermsModal';
 import PrivacyModal from '../../../components/PrivacyModal';
+import RefundPolicyModal from '../../../components/RefundPolicyModal';
 
 const ChooseType = ({ setSelectedType, setActive }) => {
   const [showTerms, setShowTerms] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
+  const [showRefund, setShowRefund] = useState(false);
 
   return (
     <View style={styles.container}>
@@ -51,18 +53,26 @@ const ChooseType = ({ setSelectedType, setActive }) => {
           onPress={() => setShowTerms(true)}
         >
           Terms of Service
-        </Text>{' '}
-        and{' '}
+        </Text>
+        ,{' '}
         <Text
           style={styles.linkText}
           onPress={() => setShowPrivacy(true)}
         >
           Privacy Policy
         </Text>
+        {' & '}
+        <Text
+          style={styles.linkText}
+          onPress={() => setShowRefund(true)}
+        >
+          Refund Policy
+        </Text>
       </Text>
 
       <TermsModal visible={showTerms} onClose={() => setShowTerms(false)} />
       <PrivacyModal visible={showPrivacy} onClose={() => setShowPrivacy(false)} />
+      <RefundPolicyModal visible={showRefund} onClose={() => setShowRefund(false)} />
     </View>
   );
 };

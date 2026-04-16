@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Modal,
 } from 'react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import { useRoute } from '@react-navigation/native';
@@ -37,7 +36,9 @@ import {
 } from 'cashfree-pg-api-contract';
 import Toast from 'react-native-toast-message';
 import { wp, hp, fp } from '../../../../utils/responsive';
-import WebView from 'react-native-webview';
+import TermsModal from '../../../../components/TermsModal';
+import PrivacyModal from '../../../../components/PrivacyModal';
+import RefundPolicyModal from '../../../../components/RefundPolicyModal';
 
 const WebinarDetails = () => {
   const { params } = useRoute<any>();
@@ -50,7 +51,9 @@ const WebinarDetails = () => {
   );
   const data = params?.data || webinarFromStore;
   const hasThumbnail = !!data?.thumbnail_url;
-  const [showRefundPolicy, setShowRefundPolicy] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
+  const [showRefund, setShowRefund] = useState(false);
 
   useEffect(() => {
     if (!params?.data && webinarId) {
@@ -284,41 +287,25 @@ const WebinarDetails = () => {
           </View>
         </View>
 
-        <TouchableOpacity onPress={() => setShowRefundPolicy(true)}>
-          <Text style={styles.refundPolicyText}>No Refund Policy</Text>
-        </TouchableOpacity>
-
-        <Modal
-          visible={showRefundPolicy}
-          animationType="slide"
-          onRequestClose={() => setShowRefundPolicy(false)}
-        >
-          <View style={styles.webViewContainer}>
-            <View style={styles.webViewHeader}>
-              <Text style={styles.webViewTitle}>Refund Policy</Text>
-              <TouchableOpacity onPress={() => setShowRefundPolicy(false)}>
-                <Text style={styles.webViewClose}>✕</Text>
-              </TouchableOpacity>
-            </View>
-            <WebView
-              source={{ uri: 'https://manchly.com/refund-policy/' }}
-              onShouldStartLoadWithRequest={request => {
-                return request.url.startsWith(
-                  'https://manchly.com/refund-policy',
-                );
-              }}
-              onNavigationStateChange={navState => {
-                if (
-                  !navState.url.startsWith('https://manchly.com/refund-policy')
-                ) {
-                  setShowRefundPolicy(false);
-                }
-              }}
-              style={{ flex: 1 }}
-            />
-          </View>
-        </Modal>
+        <Text style={styles.policyText}>
+          By purchasing, you agree to our{' '}
+          <Text style={styles.policyLink} onPress={() => setShowTerms(true)}>
+            Terms of Service
+          </Text>
+          ,{' '}
+          <Text style={styles.policyLink} onPress={() => setShowPrivacy(true)}>
+            Privacy Policy
+          </Text>
+          {' & '}
+          <Text style={styles.policyLink} onPress={() => setShowRefund(true)}>
+            Refund Policy
+          </Text>
+        </Text>
       </ScrollView>
+
+      <TermsModal visible={showTerms} onClose={() => setShowTerms(false)} />
+      <PrivacyModal visible={showPrivacy} onClose={() => setShowPrivacy(false)} />
+      <RefundPolicyModal visible={showRefund} onClose={() => setShowRefund(false)} />
 
       <View style={styles.bottomBar}>
         {data?.is_enrolled ? (
@@ -510,34 +497,16 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: fp(16),
   },
-  refundPolicyText: {
-    color: colors.primary,
-    fontSize: fp(13),
-    textDecorationLine: 'underline',
-    marginTop: hp(8),
-    textAlign: 'center',
-  },
-  webViewContainer: {
-    flex: 1,
-    backgroundColor: colors.white,
-  },
-  webViewHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: wp(16),
-    paddingVertical: hp(12),
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  webViewTitle: {
-    fontSize: fp(16),
-    fontWeight: '700',
-    color: colors.black,
-  },
-  webViewClose: {
-    fontSize: fp(20),
+  policyText: {
+    fontSize: fp(12),
     color: colors.textSecondary,
-    padding: wp(4),
+    textAlign: 'center',
+    lineHeight: fp(18),
+    marginTop: hp(12),
+    paddingHorizontal: wp(15),
+  },
+  policyLink: {
+    color: colors.primary,
+    fontWeight: '500',
   },
 });

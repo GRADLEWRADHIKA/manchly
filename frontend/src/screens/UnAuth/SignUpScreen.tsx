@@ -23,6 +23,7 @@ import { useDispatch } from 'react-redux';
 import Toast from 'react-native-toast-message';
 import TermsModal from '../../components/TermsModal';
 import PrivacyModal from '../../components/PrivacyModal';
+import RefundPolicyModal from '../../components/RefundPolicyModal';
 
 const USER_TYPES = [
   { label: 'Creator', value: 'CREATOR' },
@@ -35,6 +36,7 @@ const SignupScreen: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
+  const [showRefund, setShowRefund] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
   const route = useRoute();
@@ -324,11 +326,14 @@ const SignupScreen: React.FC = () => {
         {/* ===== Terms Section ===== */}
         <Text style={styles.termsText}>
           By creating an account, you agree to our{' '}
-          <Text style={styles.linkText} onPress={() => setShowTerms(true)}>Terms of Service</Text> and{' '}
-          <Text style={styles.linkText} onPress={() => setShowPrivacy(true)}>Privacy Policy</Text>.
+          <Text style={styles.linkText} onPress={() => setShowTerms(true)}>Terms of Service</Text>,{' '}
+          <Text style={styles.linkText} onPress={() => setShowPrivacy(true)}>Privacy Policy</Text>
+          {' & '}
+          <Text style={styles.linkText} onPress={() => setShowRefund(true)}>Refund Policy</Text>.
         </Text>
         <TermsModal visible={showTerms} onClose={() => setShowTerms(false)} />
         <PrivacyModal visible={showPrivacy} onClose={() => setShowPrivacy(false)} />
+        <RefundPolicyModal visible={showRefund} onClose={() => setShowRefund(false)} />
 
         {/* ===== Login Link ===== */}
         <View style={styles.loginTextContainer}>

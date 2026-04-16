@@ -22,7 +22,7 @@ const PrivacyModal: React.FC<Props> = ({ visible, onClose }) => {
         <ScrollView contentContainerStyle={styles.content}>
           <Text style={styles.company}>Agnivora Digital Pvt Ltd</Text>
           <Text style={styles.subInfo}>Platform: Manchly (App only, India)</Text>
-          <Text style={styles.subInfo}>Contact: support@manchly.com</Text>
+          <Text style={styles.subInfo}>Contact: help@manchly.com</Text>
 
           <Text style={styles.sectionTitle}>1. Introduction</Text>
           <Text style={styles.body}>
@@ -34,7 +34,7 @@ const PrivacyModal: React.FC<Props> = ({ visible, onClose }) => {
             <Text style={styles.bold}>Personal Information:</Text> Name, email, phone number, account credentials.
           </Text>
           <Text style={styles.body}>
-            <Text style={styles.bold}>Payment Information:</Text> Details processed securely via Razorpay (we do not store full card details).
+            <Text style={styles.bold}>Payment Information:</Text> Details processed securely via Cashfree (we do not store full card details).
           </Text>
           <Text style={styles.body}>
             <Text style={styles.bold}>Usage Data:</Text> Device info, app activity, analytics, cookies.
@@ -47,7 +47,7 @@ const PrivacyModal: React.FC<Props> = ({ visible, onClose }) => {
 
           <Text style={styles.sectionTitle}>4. Data Sharing</Text>
           <Text style={styles.body}>
-            We may share data with:{'\n'}- Payment processors (Razorpay) for transaction processing.{'\n'}- Analytics providers for performance insights.{'\n'}- Legal authorities if required by Indian law.
+            We may share data with:{'\n'}- Payment processors (Cashfree) for transaction processing.{'\n'}- Analytics providers for performance insights.{'\n'}- Legal authorities if required by Indian law.
           </Text>
           <Text style={styles.body}>
             We do not sell or rent your personal information to third parties.
@@ -65,7 +65,7 @@ const PrivacyModal: React.FC<Props> = ({ visible, onClose }) => {
 
           <Text style={styles.sectionTitle}>7. User Rights</Text>
           <Text style={styles.body}>
-            - Access, correct, or delete your personal data.{'\n'}- Withdraw consent for non-essential processing.{'\n'}- Report concerns via support@manchly.com.
+            - Access, correct, or delete your personal data.{'\n'}- Withdraw consent for non-essential processing.{'\n'}- Report concerns via help@manchly.com.
           </Text>
 
           <Text style={styles.sectionTitle}>8. Cookies and Tracking</Text>

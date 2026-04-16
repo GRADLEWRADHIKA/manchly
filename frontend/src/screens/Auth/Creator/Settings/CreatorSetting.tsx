@@ -28,6 +28,10 @@ import {
   AlertTriangle,
   CheckCircle2,
   Info,
+  FileText,
+  Shield,
+  ReceiptText,
+  MessageCircle,
 } from 'lucide-react-native';
 import LogoutModal from '../../Profile/Components/LogoutModal';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -38,6 +42,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import { instance } from '../../../../utils/AxiosInstance';
 import LinearGradient from 'react-native-linear-gradient';
+import TermsModal from '../../../../components/TermsModal';
+import PrivacyModal from '../../../../components/PrivacyModal';
+import RefundPolicyModal from '../../../../components/RefundPolicyModal';
+import ContactUsModal from '../../../../components/ContactUsModal';
+import { version as appVersion } from '../../../../../package.json';
 
 const SUPPORT_PHONE = '6363790659';
 
@@ -114,6 +123,10 @@ const QuickAction = ({ icon: Icon, label, color, onPress }: any) => (
 
 const CreatorSetting: React.FC = () => {
   const [logoutVisible, setLogoutVisible] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
+  const [showRefund, setShowRefund] = useState(false);
+  const [showContact, setShowContact] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [walletData, setWalletData] = useState<any>(null);
   const [walletLoading, setWalletLoading] = useState(true);
@@ -128,7 +141,11 @@ const CreatorSetting: React.FC = () => {
       setWalletLoading(true);
       const [walletRes, bankRes] = await Promise.all([
         instance.get('settlements/wallet').catch((e: any) => {
-          console.log('Wallet API error:', e?.response?.status, e?.response?.data);
+          console.log(
+            'Wallet API error:',
+            e?.response?.status,
+            e?.response?.data,
+          );
           return null;
         }),
         instance.get('settlements/bank-account').catch((e: any) => {
@@ -326,6 +343,41 @@ const CreatorSetting: React.FC = () => {
           />
         </View>
 
+        {/* ──────── Legal Section ──────── */}
+        <Text style={[styles.sectionTitle, { marginTop: hp(20) }]}>Legal</Text>
+        <View style={styles.section}>
+          <MenuRow
+            icon={FileText}
+            iconBg="#f0f4ff"
+            iconColor="#3B82F6"
+            label="Terms of Service"
+            onPress={() => setShowTerms(true)}
+          />
+          <MenuRow
+            icon={Shield}
+            iconBg="#f0fdf4"
+            iconColor="#10B981"
+            label="Privacy Policy"
+            onPress={() => setShowPrivacy(true)}
+          />
+          <MenuRow
+            icon={ReceiptText}
+            iconBg="#fef3c7"
+            iconColor="#F59E0B"
+            label="Refund Policy"
+            onPress={() => setShowRefund(true)}
+          />
+          <MenuRow
+            icon={MessageCircle}
+            iconBg="#fce7f3"
+            iconColor="#EC4899"
+            label="Contact Us"
+            subtitle="Email & phone support"
+            onPress={() => setShowContact(true)}
+            isLast
+          />
+        </View>
+
         {/* ──────── Logout Section ──────── */}
         <View style={styles.logoutSection}>
           <MenuRow
@@ -339,7 +391,7 @@ const CreatorSetting: React.FC = () => {
           />
         </View>
 
-        <Text style={styles.versionText}>Version 1.0.0</Text>
+        <Text style={styles.versionText}>Version {appVersion}</Text>
       </ScrollView>
 
       {/* ──────── Withdraw Modal ──────── */}
@@ -379,7 +431,8 @@ const CreatorSetting: React.FC = () => {
               <View style={styles.modalBankRow}>
                 <Landmark size={wp(16)} color={colors.textSecondary} />
                 <Text style={styles.modalBankText}>
-                  Crediting to: {bankAccount.account_number} ({bankAccount.ifsc_code})
+                  Crediting to: {bankAccount.account_number} (
+                  {bankAccount.ifsc_code})
                 </Text>
               </View>
             )}
@@ -409,7 +462,9 @@ const CreatorSetting: React.FC = () => {
                   Toast.show({
                     type: 'success',
                     text1: 'Settlement Scheduled',
-                    text2: `₹${formatAmount(withdrawableBalance)} will be credited by ${getT2Date()}`,
+                    text2: `₹${formatAmount(
+                      withdrawableBalance,
+                    )} will be credited by ${getT2Date()}`,
                     position: 'bottom',
                   });
                 }}
@@ -422,6 +477,20 @@ const CreatorSetting: React.FC = () => {
           </View>
         </View>
       </Modal>
+
+      <TermsModal visible={showTerms} onClose={() => setShowTerms(false)} />
+      <PrivacyModal
+        visible={showPrivacy}
+        onClose={() => setShowPrivacy(false)}
+      />
+      <RefundPolicyModal
+        visible={showRefund}
+        onClose={() => setShowRefund(false)}
+      />
+      <ContactUsModal
+        visible={showContact}
+        onClose={() => setShowContact(false)}
+      />
 
       <LogoutModal
         visible={logoutVisible}
@@ -710,12 +779,12 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   headerSubtitle: {
-     fontSize: fp(12),
+    fontSize: fp(12),
     color: '#999999',
     fontWeight: '500',
   },
   headerTitle: {
-     fontSize: fp(18),
+    fontSize: fp(18),
     fontWeight: '800',
     color: colors.white,
     marginTop: hp(1),

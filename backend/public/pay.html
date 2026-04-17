@@ -75,6 +75,15 @@
     <div class="card">
         <div class="icon-wrap" id="iconWrap"><i class="fas fa-lock"></i></div>
         <h1 id="title">Preparing secure checkout…</h1>
+        <div id="orderSummary" style="display:none; background:#FEFCE8; border:1px solid #FDE68A; border-radius:14px; padding:14px 18px; margin:16px 0; text-align:left;">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+                <div>
+                    <div style="font-size:0.72rem; color:#92400E; font-weight:700; text-transform:uppercase; letter-spacing:0.04em;">Total Payable</div>
+                    <div id="orderTitle" style="font-size:0.82rem; color:#374151; margin-top:2px;"></div>
+                </div>
+                <div id="orderAmount" style="font-size:1.4rem; font-weight:800; color:#111827; white-space:nowrap;"></div>
+            </div>
+        </div>
         <p id="message"><span class="spinner"></span> Please wait, do not close this window.</p>
         <div id="actions"></div>
     </div>
@@ -87,6 +96,16 @@
     const env       = (params.get('env') || 'production').toLowerCase() === 'sandbox' ? 'sandbox' : 'production';
     const token     = params.get('token');
     const returnTo  = params.get('return_to') || 'https://xtechmoneymatrix.com/';
+    const amount    = params.get('amount');
+    const currency  = params.get('currency') || 'INR';
+    const courseTitle = params.get('title') || 'Course Enrollment';
+
+    if (amount) {
+        const symbol = currency === 'INR' ? '₹' : currency + ' ';
+        document.getElementById('orderAmount').textContent = symbol + parseFloat(amount).toFixed(2);
+        document.getElementById('orderTitle').textContent = courseTitle;
+        document.getElementById('orderSummary').style.display = 'block';
+    }
 
     const titleEl   = document.getElementById('title');
     const msgEl     = document.getElementById('message');

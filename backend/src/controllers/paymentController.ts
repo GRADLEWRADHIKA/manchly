@@ -109,11 +109,19 @@ export class PaymentController {
       }
 
       // Create Cashfree order for paid courses
-      // Calculate price with 18% GST and 5% platform fee on GST
-      const gstAmount = course.price * 0.18; // 18% GST
-      const platformFee = gstAmount * 0.05; // 5% platform fee on GST amount
-      const finalAmount = course.price + gstAmount + platformFee; // Base price + GST + Platform fee
-      const finalAmountRounded = parseFloat(finalAmount.toFixed(2)); // Fix to 2 decimal places
+      // Some courses are billed at the listed price with no GST/platform fee added.
+      const NO_FEE_COURSE_IDS = new Set<string>([
+        '50c4b8ae-fc6e-47e5-97dc-4e33539a3e5e', // Xtech masterclass
+      ]);
+      let finalAmount: number;
+      if (NO_FEE_COURSE_IDS.has(courseId)) {
+        finalAmount = course.price;
+      } else {
+        const gstAmount = course.price * 0.18; // 18% GST
+        const platformFee = gstAmount * 0.05; // 5% platform fee on GST amount
+        finalAmount = course.price + gstAmount + platformFee;
+      }
+      const finalAmountRounded = parseFloat(finalAmount.toFixed(2));
 
       const orderId = `course_${courseId}_${Date.now()}`;
 

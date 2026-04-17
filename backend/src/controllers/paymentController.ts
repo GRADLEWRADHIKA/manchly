@@ -122,9 +122,9 @@ export class PaymentController {
         order_amount: finalAmountRounded,
         order_currency: "INR",
         customer_details: {
-          customer_id: userId,
-          customer_phone: user.phone || "9999999999",
-          customer_name: user.name || undefined,
+          customer_id: userId.slice(0, 50),
+          customer_phone: (user.phone || "9999999999").replace(/^\+?91/, "").replace(/\D/g, "").slice(-10) || "9999999999",
+          customer_name: (user.name || "User").slice(0, 100),
           customer_email: user.email,
         },
         order_meta: {
@@ -193,8 +193,11 @@ export class PaymentController {
       }, "Cashfree order created successfully", 201);
 
     } catch (err: any) {
-      console.error("Error creating Cashfree order:", err);
-      ApiResponseHandler.unexpectedError(res, err, 500);
+      // Log the full Cashfree error for debugging
+      const cfDetail = err?.response?.data || err?.data || err?.message || err;
+      console.error("Error creating Cashfree order:", JSON.stringify(cfDetail, null, 2));
+      const msg = typeof cfDetail === 'object' ? (cfDetail.message || cfDetail.type || JSON.stringify(cfDetail)) : String(cfDetail);
+      ApiResponseHandler.customError(res, msg, 500, "PAYMENT_ORDER_FAILED");
     }
   }
 

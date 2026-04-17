@@ -87,6 +87,103 @@ export class CourseController {
   }
 
   /**
+   * Public: list published courses for a creator (no auth required)
+   */
+  static async getPublicCourses(req: Request, res: Response) {
+    const { creator_id, page = 1, limit = 50, category, search } = req.query;
+
+    try {
+      const skip = (Number(page) - 1) * Number(limit);
+
+      const whereClause: any = { status: "PUBLISHED" };
+
+      if (creator_id) {
+        whereClause.creator_id = String(creator_id);
+      }
+
+      if (category) {
+        whereClause.category = String(category);
+      }
+
+      if (search) {
+        whereClause.OR = [
+          { title: { contains: String(search), mode: 'insensitive' } },
+          { description: { contains: String(search), mode: 'insensitive' } }
+        ];
+      }
+
+      const [courses, total] = await Promise.all([
+        prisma.courses.findMany({
+          where: whereClause,
+          skip,
+          take: Number(limit),
+          include: {
+            creator: {
+              select: {
+                id: true,
+                name: true,
+                profile_image: true
+              }
+            },
+            videos: {
+              where: { status: "READY" },
+              select: {
+                id: true,
+                title: true,
+                duration: true,
+                order: true,
+                is_free: true,
+                thumbnail_url: true
+              },
+              orderBy: { order: 'asc' }
+            },
+            _count: { select: { enrollments: true } }
+          },
+          orderBy: { created_at: 'desc' }
+        }),
+        prisma.courses.count({ where: whereClause })
+      ]);
+
+      const publicCourses = courses.map(c => ({
+        id: c.id,
+        title: c.title,
+        description: c.description,
+        thumbnail: c.thumbnail,
+        thumbnail_url: c.thumbnail_url,
+        price: c.price,
+        category: c.category,
+        tags: c.tags,
+        level: c.level,
+        language: c.language,
+        creator: c.creator,
+        total_videos: c.videos.length,
+        total_duration: c.videos.reduce((sum, v) => sum + (v.duration || 0), 0),
+        total_students: c._count.enrollments,
+        videos: c.videos.map(v => ({
+          id: v.id,
+          title: v.title,
+          duration: v.duration,
+          order: v.order,
+          is_free: v.is_free,
+          thumbnail_url: v.thumbnail_url
+        }))
+      }));
+
+      ApiResponseHandler.success(res, {
+        courses: publicCourses,
+        pagination: {
+          page: Number(page),
+          limit: Number(limit),
+          total,
+          total_pages: Math.ceil(total / Number(limit))
+        }
+      }, "Courses retrieved successfully");
+    } catch (err: any) {
+      ApiResponseHandler.unexpectedError(res, err, 500);
+    }
+  }
+
+  /**
    * Get all courses
    * - USER: Can see all published courses
    * - CREATOR: Can see their own courses (all statuses)

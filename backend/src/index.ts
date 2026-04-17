@@ -18,6 +18,7 @@ import groupsRouter from "./routes/groups";
 import kycRouter from "./routes/kyc";
 import adminRouter from "./routes/admin";
 import settlementsRouter from "./routes/settlements";
+import xtechRouter from "./routes/xtech";
 import morgan from "morgan";
 import { webinarCleanupService } from "./utils/webinarCleanup";
 import { settlementCronService } from "./utils/settlementCron";
@@ -90,6 +91,7 @@ app.use("/chat", chatRouter);
 app.use("/groups", groupsRouter);
 app.use("/kyc", kycRouter);
 app.use("/settlements", settlementsRouter);
+app.use("/auth/xtech", xtechRouter);
 
 const listenPort = useHttps ? HTTPS_PORT : PORT;
 

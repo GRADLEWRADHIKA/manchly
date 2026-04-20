@@ -114,10 +114,19 @@ export class XtechAuthController {
       let user = await prisma.users.findUnique({ where: { email } });
 
       if (user) {
-        // Existing user — update name/phone if provided
+        // Existing user — update name/phone and ensure USER role is present.
+        // A creator logging in through xtech should also be able to purchase
+        // courses; without this, payment calls return 403 FORBIDDEN.
+        const currentTypes: UserType[] = Array.isArray(user.user_type)
+          ? (user.user_type as UserType[])
+          : (user.user_type ? [user.user_type as UserType] : []);
+        const nextTypes = currentTypes.includes(UserType.USER)
+          ? currentTypes
+          : [...currentTypes, UserType.USER];
+
         user = await prisma.users.update({
           where: { email },
-          data: { name, phone },
+          data: { name, phone, user_type: nextTypes },
         });
       } else {
         // Check if phone is already taken by another email

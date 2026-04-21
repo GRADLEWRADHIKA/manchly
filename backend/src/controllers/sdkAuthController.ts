@@ -89,9 +89,13 @@ export class SdkAuthController {
     try {
       const user = await prisma.users.findUnique({ where: { email } });
 
+      // Normalize the stored phone the same way as the input so mixed formats
+      // (stored as "9161299402" vs "+919161299402" vs "919161299402") all match.
+      const storedPhoneNormalized = user?.phone ? normalizePhone(user.phone) : "";
+
       // Generic response if (a) user doesn't exist, (b) phone doesn't match, or (c) not a creator.
       // We do not reveal which of these is true.
-      if (!user || user.phone !== normalizedPhone || !isCreator(user.user_type as any)) {
+      if (!user || storedPhoneNormalized !== normalizedPhone || !isCreator(user.user_type as any)) {
         return ApiResponseHandler.customError(
           res,
           "No creator account matches those details. Sign up at manchly.com and publish a course first.",

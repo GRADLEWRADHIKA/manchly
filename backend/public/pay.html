@@ -112,13 +112,37 @@
     const iconEl    = document.getElementById('iconWrap');
     const actionsEl = document.getElementById('actions');
 
-    function setError(text) {
+    function appendParam(url, key, value) {
+        var sep = url.indexOf('?') > -1 ? '&' : '?';
+        return url + sep + key + '=' + encodeURIComponent(value);
+    }
+    function setError(text, opts) {
+        opts = opts || {};
         iconEl.style.background = '#FEE2E2';
         iconEl.style.color = '#991B1B';
         iconEl.innerHTML = '<i class="fas fa-triangle-exclamation"></i>';
-        titleEl.textContent = 'Payment could not complete';
+        titleEl.textContent = opts.title || 'Payment could not complete';
         msgEl.innerHTML = '<span class="err">' + text + '</span>';
-        actionsEl.innerHTML = '<a class="btn" href="' + returnTo + '?payment=failed">Back to Site</a>';
+        var status = opts.cancelled ? 'cancelled' : 'failed';
+        var backUrl = appendParam(returnTo, 'payment', status);
+        if (text) backUrl = appendParam(backUrl, 'reason', text);
+        var html = '';
+        if (opts.canRetry !== false) {
+            html += '<button class="btn" onclick="window.location.reload()" style="margin-right:8px;">Try Again</button>';
+        }
+        html += '<a class="btn" style="background:#E5E7EB; color:#111827;" href="' + backUrl + '">Back to Site</a>';
+        actionsEl.innerHTML = html;
+    }
+    function setInfo(text, title) {
+        iconEl.style.background = '#DBEAFE';
+        iconEl.style.color = '#1E40AF';
+        iconEl.innerHTML = '<i class="fas fa-circle-info"></i>';
+        titleEl.textContent = title || 'Payment cancelled';
+        msgEl.textContent = text;
+        var backUrl = appendParam(returnTo, 'payment', 'cancelled');
+        actionsEl.innerHTML =
+            '<button class="btn" onclick="window.location.reload()" style="margin-right:8px;">Try Again</button>' +
+            '<a class="btn" style="background:#E5E7EB; color:#111827;" href="' + backUrl + '">Back to Site</a>';
     }
     function setSuccess() {
         iconEl.style.background = '#D1FAE5';
@@ -127,9 +151,18 @@
         titleEl.textContent = 'Payment successful!';
         msgEl.textContent = 'Redirecting you back…';
     }
+    function isCancelled(err) {
+        if (!err) return false;
+        var s = JSON.stringify(err).toLowerCase();
+        return s.indexOf('cancel') > -1 || s.indexOf('user_dropped') > -1 || s.indexOf('aborted') > -1 || s.indexOf('closed') > -1;
+    }
 
     if (!sessionId || !orderId) {
-        setError('Missing payment session. Please try again from the site.');
+        setError('Missing payment session. Please return to the site and try again.', { canRetry: false });
+        return;
+    }
+    if (typeof Cashfree !== 'function') {
+        setError('Payment SDK failed to load. Please check your connection and try again.');
         return;
     }
 
@@ -140,28 +173,45 @@
             redirectTarget: '_modal'
         }).then(async function(result) {
             if (result && result.error) {
-                setError(result.error.message || 'Payment was cancelled.');
+                if (isCancelled(result.error)) {
+                    setInfo('You closed the checkout. You can try again or return to the site.');
+                } else {
+                    setError(result.error.message || 'The payment did not complete.');
+                }
                 return;
             }
             // Verify on backend (optional — webhook also handles enrollment)
             try {
                 const headers = { 'Content-Type': 'application/json' };
                 if (token) headers['Authorization'] = 'Bearer ' + token;
-                await fetch('/payments/verify', {
+                const vRes = await fetch('/payments/verify', {
                     method: 'POST',
                     headers,
                     body: JSON.stringify({ order_id: orderId })
                 });
-            } catch (e) { /* webhook will reconcile */ }
+                const vData = await vRes.json().catch(function(){return {};});
+                if (!vRes.ok) {
+                    var alreadyOk = (vData.code === 'ALREADY_VERIFIED') ||
+                                    (typeof vData.message === 'string' && vData.message.toLowerCase().indexOf('already verified') > -1);
+                    if (!alreadyOk) {
+                        // The webhook will still reconcile, but flag it so the user knows it's pending.
+                        console.warn('Verification returned non-OK; webhook will reconcile.', vData);
+                    }
+                }
+            } catch (e) { /* network blip — webhook will reconcile */ }
             setSuccess();
             setTimeout(function() {
-                window.location.href = returnTo + (returnTo.indexOf('?') > -1 ? '&' : '?') + 'payment=success&order_id=' + encodeURIComponent(orderId);
+                window.location.href = appendParam(appendParam(returnTo, 'payment', 'success'), 'order_id', orderId);
             }, 1400);
         }).catch(function(err) {
-            setError(err && err.message ? err.message : 'Checkout failed to open.');
+            if (isCancelled(err)) {
+                setInfo('Checkout was closed before completion.');
+            } else {
+                setError(err && err.message ? err.message : 'Checkout failed to open. Please try again.');
+            }
         });
     } catch (e) {
-        setError('Could not initialize checkout: ' + e.message);
+        setError('Could not initialize checkout: ' + (e.message || 'unknown error'));
     }
 })();
 </script>

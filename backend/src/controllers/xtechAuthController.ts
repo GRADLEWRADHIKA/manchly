@@ -62,15 +62,23 @@ function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && email.length <= 254;
 }
 
+function stripCountryCode(phone: string): string {
+  let s = phone.replace(/[\s\-()]/g, "");
+  // Only strip +91 / 91 / leading 0 when total length indicates it's really a prefix.
+  // Prevents false-stripping a domestic number that happens to start with "91".
+  if (s.startsWith("+91") && s.length === 13) s = s.slice(3);
+  else if (s.startsWith("91") && s.length === 12) s = s.slice(2);
+  else if (s.startsWith("0")  && s.length === 11) s = s.slice(1);
+  return s;
+}
+
 function isValidPhone(phone: string): boolean {
   // Accept +91XXXXXXXXXX or 10-digit starting with 6-9
-  const digits = phone.replace(/[\s\-()]/g, "").replace(/^\+?91/, "").replace(/^0/, "");
-  return /^[6-9]\d{9}$/.test(digits);
+  return /^[6-9]\d{9}$/.test(stripCountryCode(phone));
 }
 
 function normalizePhone(phone: string): string {
-  const digits = phone.replace(/[\s\-()]/g, "").replace(/^\+?91/, "").replace(/^0/, "");
-  return "+91" + digits;
+  return "+91" + stripCountryCode(phone);
 }
 
 function isValidName(name: string): boolean {

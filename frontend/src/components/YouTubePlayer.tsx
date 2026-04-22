@@ -116,6 +116,10 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({
   const onLoad = (data: OnLoadData) => {
     setDuration(data.duration);
     setIsBuffering(false);
+    // After fullscreen toggle, the <Video> unmounts/remounts — resume where we were.
+    if (currentTime > 0 && currentTime < data.duration) {
+      videoRef.current?.seek(currentTime);
+    }
   };
 
   const onProgress = (data: OnProgressData) => {

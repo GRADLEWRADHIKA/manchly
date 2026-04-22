@@ -144,7 +144,9 @@ const CreateWebinarScreen = () => {
       price: String(updatedata?.price ?? '') || '',
       category: updatedata?.category,
       tags: updatedata?.tags,
-      scheduled_at: updatedata?.scheduled_at,
+      scheduled_at: updatedata?.scheduled_at
+        ? moment(updatedata.scheduled_at).format('YYYY-MM-DD')
+        : '',
       start_time: updatedata?.start_time || '',
       duration: String(updatedata?.duration ?? '') || '',
       timezone: updatedata?.timezone,
@@ -166,7 +168,7 @@ const CreateWebinarScreen = () => {
       tags: data?.tags,
       scheduled_at: data?.scheduled_at,
       duration: Number(data?.duration),
-      timezone: 'Asia/Kolkata',
+      timezone: moment.tz.guess() || 'Asia/Kolkata',
       max_participants: Number(data?.max_participants),
       status: data?.status,
     };
@@ -198,7 +200,7 @@ const CreateWebinarScreen = () => {
         tags: data?.tags,
         scheduled_at: data?.scheduled_at,
         duration: Number(data?.duration),
-        timezone: data?.timezone,
+        timezone: data?.timezone || moment.tz.guess() || 'Asia/Kolkata',
         max_participants: Number(data?.max_participants),
         status: data?.status,
       },
@@ -328,7 +330,7 @@ const CreateWebinarScreen = () => {
                     isVisible={isDatePickerVisible}
                     mode="date"
                     onConfirm={date => {
-                      const formattedDate = date.toISOString().split('T')[0];
+                      const formattedDate = moment(date).format('YYYY-MM-DD');
                       onChange(formattedDate);
                       hideDatePicker();
                     }}
@@ -357,7 +359,9 @@ const CreateWebinarScreen = () => {
                     onPress={showTimePicker}
                   >
                     <Text style={{ fontSize: fp(14), color: colors.primary }}>
-                      {value ? value : 'Select start time '}
+                      {value
+                        ? moment(value, 'HH:mm').format('hh:mm A')
+                        : 'Select start time '}
                     </Text>
                   </TouchableOpacity>
 

@@ -23,6 +23,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import colors from '../../../../../utils/colors';
 import { wp, hp, fp } from '../../../../../utils/responsive';
 import { useNavigation } from '@react-navigation/native';
+import { createDynamicLink } from 'react-native-chottulink-sdk';
 
 interface Props {
   item: any;
@@ -51,10 +52,21 @@ const CourseCard: React.FC<Props> = ({ item, onEdit, onDelete, onView }) => {
     }).start();
   };
 
-  const handleShare = () => {
-    Share.share({
-      message: `https://manchly.chottu.link/course/${item?.id}`,
-    });
+  const handleShare = async () => {
+    try {
+      const result = await createDynamicLink({
+        destinationURL: `https://manchly.chottu.link/course/${item?.id}`,
+        domain: 'manchly.chottu.link',
+        socialTitle: item?.title || 'Course',
+        socialDescription: `Check out this course!`,
+        socialImageUrl: item?.thumbnail_url || '',
+      });
+      Share.share({ message: result.shortURL });
+    } catch {
+      Share.share({
+        message: `https://manchly.chottu.link/course/${item?.id}`,
+      });
+    }
   };
 
   const videoCount = item.videos?.length || 0;

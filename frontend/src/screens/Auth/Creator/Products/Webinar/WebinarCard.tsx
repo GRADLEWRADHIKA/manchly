@@ -34,6 +34,7 @@ import {
 } from 'lucide-react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import Toast from 'react-native-toast-message';
+import { createDynamicLink } from 'react-native-chottulink-sdk';
 import DynamicModal from '../../../../../components/CommonModal';
 import { useDispatch } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
@@ -131,10 +132,22 @@ const WebinarCard: React.FC<WebinarCardProps> = ({
       .catch(() => setDeleteLoader(false));
   };
 
-  const handleShare = () => {
-    Share.share({
-      message: `https://manchly.chottu.link/webinar/${data?.id}`,
-    });
+  const handleShare = async () => {
+    try {
+      const result = await createDynamicLink({
+        destinationURL: `https://manchly.chottu.link/webinar/${data?.id}`,
+        domain: 'manchly.chottu.link',
+        socialTitle: data?.title || 'Webinar',
+        socialDescription: `Check out this webinar!`,
+        socialImageUrl: data?.thumbnail_url || '',
+      });
+      Share.share({ message: result.shortURL });
+    } catch {
+      // Fallback to direct URL if link creation fails
+      Share.share({
+        message: `https://manchly.chottu.link/webinar/${data?.id}`,
+      });
+    }
   };
 
   const handleJoinZoom = () => {
@@ -251,7 +264,7 @@ const WebinarCard: React.FC<WebinarCardProps> = ({
                 <View style={styles.statItem}>
                   <Calendar size={wp(13)} color={'#60A5FA'} />
                   <Text style={styles.statText}>
-                    {scheduledDate.format('DD MMM, YY • h:mm A')}
+                    {scheduledDate.format('DD MMM, YYYY')}  {data?.start_time}
                   </Text>
                 </View>
               </View>

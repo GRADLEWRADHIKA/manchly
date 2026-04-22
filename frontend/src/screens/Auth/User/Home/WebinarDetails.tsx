@@ -63,7 +63,7 @@ const WebinarDetails = () => {
 
   const price = Number(data?.price || 0);
   const gst = (price * 18) / 100;
-  const platformFee = (gst * 5) / 100;
+  const platformFee = (price * 2) / 100;
   const total = price + gst + platformFee;
 
   // Store the pending order ID in a ref so the Cashfree callback can access it
@@ -277,7 +277,7 @@ const WebinarDetails = () => {
           <PriceRow label="Webinar Fee" value={`₹${price}`} />
           <PriceRow label="GST (18%)" value={`₹${gst.toFixed(2)}`} />
           <PriceRow
-            label="Platform Fee (5%)"
+            label="Platform Fee (2%)"
             value={`₹${platformFee.toFixed(2)}`}
           />
 

@@ -11,16 +11,29 @@ import UserMainStack from './UserMainStack';
 import CreatorMainStack from './CreatorMainStack';
 import { getAppLinkDataFromUrl } from 'react-native-chottulink-sdk';
 import NotificationService from '../services/NotificationService';
+import { store } from '../store/Store';
 
 export const navigationRef = createRef<NavigationContainerRef<any>>();
 
-const PREFIXES = ['https://manchly.chottu.link', 'http://manchly.chottu.link'];
+const PREFIXES = ['https://manchly.chottu.link', 'http://manchly.chottu.link', 'manchly://'];
+
+// Module-level flag so the static linking object can check auth state
+let isAuthenticated = false;
+
+// Rebuild a resolved URL so it uses our registered prefix
+const ensurePrefix = (url: string): string => {
+  const match = url.match(/\/(course|webinar)\/([^/?#]+)/);
+  if (match) {
+    return `https://manchly.chottu.link/${match[1]}/${match[2]}`;
+  }
+  return url;
+};
 
 // Resolve a ChottuLink short URL to the full destination URL
 const resolveUrl = async (url: string | null): Promise<string | null> => {
   if (!url) return null;
   try {
-    if (/\/(course|webinar)\/[^/?#]+/.test(url)) return url;
+    if (/\/(course|webinar)\/[^/?#]+/.test(url)) return ensurePrefix(url);
 
     if (
       url.includes('manchly.chottu.link') &&
@@ -28,35 +41,12 @@ const resolveUrl = async (url: string | null): Promise<string | null> => {
       !url.includes('/webinar/')
     ) {
       const result = await getAppLinkDataFromUrl(url);
-      if (result?.link) return result.link;
+      if (result?.link) return ensurePrefix(result.link);
     }
     return url;
   } catch {
     return url;
   }
-};
-
-const linking = {
-  prefixes: PREFIXES,
-  config: {
-    screens: {
-      CourseDetailsScreen: 'course/:courseId',
-      WebinarDetails: 'webinar/:webinarId',
-    },
-  },
-  async getInitialURL(): Promise<string | null> {
-    const url = await Linking.getInitialURL();
-    return resolveUrl(url);
-  },
-  subscribe(listener: (url: string) => void) {
-    const subscription = Linking.addEventListener('url', async ({ url }) => {
-      const resolved = await resolveUrl(url);
-      if (resolved) {
-        listener(resolved);
-      }
-    });
-    return () => subscription.remove();
-  },
 };
 
 const extractDeepLinkParams = (
@@ -97,6 +87,34 @@ const resolveChottuLink = async (
   }
 };
 
+const linking = {
+  prefixes: PREFIXES,
+  config: {
+    screens: {
+      CourseDetailsScreen: 'course/:courseId',
+      WebinarDetails: 'webinar/:webinarId',
+    },
+  },
+  async getInitialURL(): Promise<string | null> {
+    const url = await Linking.getInitialURL();
+    // Read token directly from store (PersistGate ensures rehydration before Router mounts)
+    const token = store.getState().userReducer?.token;
+    if (!token) return null;
+    return resolveUrl(url);
+  },
+  subscribe(listener: (url: string) => void) {
+    const subscription = Linking.addEventListener('url', async ({ url }) => {
+      // Only let React Navigation handle when authenticated
+      if (!isAuthenticated) return;
+      const resolved = await resolveUrl(url);
+      if (resolved) {
+        listener(resolved);
+      }
+    });
+    return () => subscription.remove();
+  },
+};
+
 const Router = () => {
   const { token } = useSelector((state: any) => state.userReducer);
   const { user } = useSelector((state: any) => state.userReducer);
@@ -104,6 +122,11 @@ const Router = () => {
     screen: 'CourseDetailsScreen' | 'WebinarDetails';
     id: string;
   } | null>(null);
+
+  // Keep module-level auth flag in sync
+  useEffect(() => {
+    isAuthenticated = !!token;
+  }, [token]);
 
   // Setup FCM notifications
   useEffect(() => {
@@ -150,7 +173,7 @@ const Router = () => {
     const handleDeepLink = async (url: string | null) => {
       if (!url) return;
       const destination = await resolveChottuLink(url);
-      if (destination && !token) {
+      if (destination) {
         pendingDeepLink.current = destination;
       }
     };
@@ -168,7 +191,7 @@ const Router = () => {
 
   // After login, navigate to the pending deep link destination
   useEffect(() => {
-    if (token && pendingDeepLink.current) {
+    if (token && user && pendingDeepLink.current) {
       const destination = pendingDeepLink.current;
       pendingDeepLink.current = null;
 
@@ -184,9 +207,9 @@ const Router = () => {
           webinarId: destination.id,
           id: destination.id,
         });
-      }, 500);
+      }, 800);
     }
-  }, [token]);
+  }, [token, user]);
 
   return (
     <SafeAreaProvider>

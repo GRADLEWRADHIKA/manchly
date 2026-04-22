@@ -78,7 +78,7 @@ const CourseAddVideoModal = ({
       .unwrap()
       .then(() => {
         reset();
-        setRefresh(true);
+        setRefresh((prev: boolean) => !prev);
         Toast.show({
           type: 'success',
           text1: 'Video updated successfully',

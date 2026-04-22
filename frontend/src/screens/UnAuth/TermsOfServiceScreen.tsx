@@ -50,7 +50,7 @@ const TermsOfServiceScreen = ({ navigation }: any) => {
         <Text style={styles.body}>All payments are processed via Cashfree.</Text>
         <Text style={styles.bodyBold}>Price Breakup at Checkout</Text>
         <Text style={styles.body}>
-          Final payable amount = Course Price + 18% GST + 5% Platform Fee
+          Final payable amount = Course Price + 18% GST + 2% Platform Fee
         </Text>
         <Text style={styles.bodyBold}>Refund Policy</Text>
         <Text style={styles.body}>

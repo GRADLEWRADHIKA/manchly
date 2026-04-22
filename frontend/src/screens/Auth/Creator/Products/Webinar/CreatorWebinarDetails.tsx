@@ -29,6 +29,7 @@ import {
 } from 'lucide-react-native';
 import { wp, hp, fp } from '../../../../../utils/responsive';
 import { getWebinarById } from '../../../../../store/WebinarSlice';
+import { createDynamicLink } from 'react-native-chottulink-sdk';
 
 const WebinarDetails = () => {
   const { params } = useRoute<any>();
@@ -42,7 +43,7 @@ const WebinarDetails = () => {
   const hasThumbnail = !!data?.thumbnail_url;
   const price = Number(data?.price || 0);
   const gst = (price * 18) / 100;
-  const platformFee = (gst * 5) / 100;
+  const platformFee = (price * 2) / 100;
   const total = price + gst + platformFee;
 
   useEffect(() => {
@@ -51,8 +52,24 @@ const WebinarDetails = () => {
     }
   }, [dispatch, params?.data, webinarId]);
 
-  const handleCopyLink = () => {
-    Clipboard.setString(webinarLink);
+  const getDynamicLink = async (): Promise<string> => {
+    try {
+      const result = await createDynamicLink({
+        destinationURL: webinarLink,
+        domain: 'manchly.chottu.link',
+        socialTitle: data?.title || 'Webinar',
+        socialDescription: 'Check out this webinar!',
+        socialImageUrl: data?.thumbnail_url || '',
+      });
+      return result.shortURL;
+    } catch {
+      return webinarLink;
+    }
+  };
+
+  const handleCopyLink = async () => {
+    const link = await getDynamicLink();
+    Clipboard.setString(link);
     Toast.show({
       type: 'success',
       text1: 'Webinar link copied',
@@ -60,10 +77,9 @@ const WebinarDetails = () => {
     });
   };
 
-  const handleShareLink = () => {
-    Share.share({
-      message: webinarLink,
-    });
+  const handleShareLink = async () => {
+    const link = await getDynamicLink();
+    Share.share({ message: link });
   };
 
   if (!data) {
@@ -177,7 +193,7 @@ const WebinarDetails = () => {
           <PriceRow label="Webinar Fee" value={`₹${price}`} />
           <PriceRow label="GST (18%)" value={`₹${gst.toFixed(2)}`} />
           <PriceRow
-            label="Platform Fee (5%)"
+            label="Platform Fee (2%)"
             value={`₹${platformFee.toFixed(2)}`}
           />
 

@@ -38,7 +38,7 @@ const CourseDetailsScreen: React.FC = () => {
 
   const price = Number(course?.price || 0);
   const gst = (price * 18) / 100;
-  const platformFee = (gst * 5) / 100;
+  const platformFee = (price * 2) / 100;
   const total = price + gst + platformFee;
   const amountInPaise = Math.round(total * 100);
 
@@ -120,7 +120,7 @@ const CourseDetailsScreen: React.FC = () => {
             <PriceRow label="Course Fee" value={`₹${price}`} />
             <PriceRow label="GST (18%)" value={`₹${gst.toFixed(2)}`} />
             <PriceRow
-              label="Platform Fee (5%)"
+              label="Platform Fee (2%)"
               value={`₹${platformFee.toFixed(2)}`}
             />
 

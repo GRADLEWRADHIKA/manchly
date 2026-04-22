@@ -30,6 +30,7 @@ import {
 import colors from '../../../utils/colors';
 import { wp, hp, fp } from '../../../utils/responsive';
 import AppHeaderWithBack from '../../../components/AppHeaderWithBack';
+import YouTubePlayer from '../../../components/YouTubePlayer';
 import { getCourseById } from '../../../store/CourseSlice';
 import { createPaymentOrder, verifyPayment } from '../../../store/PaymentSlice';
 import { getEnrolledCourses } from '../../../store/EnrollmentSlice';
@@ -57,7 +58,7 @@ const CourseDetailsScreen: React.FC = () => {
 
   const price = Number(course?.price || 0);
   const gst = (price * 18) / 100;
-  const platformFee = (gst * 5) / 100;
+  const platformFee = (price * 2) / 100;
   const total = price + gst + platformFee;
   const amountInPaise = Math.round(total * 100);
 
@@ -197,9 +198,29 @@ const CourseDetailsScreen: React.FC = () => {
       <AppHeaderWithBack title="Course Details" />
 
       <ScrollView showsVerticalScrollIndicator={false}>
-        {course.thumbnail && (
-          <Image source={{ uri: course.thumbnail }} style={styles.thumbnail} />
-        )}
+        {(() => {
+          const heroVideo = course.videos?.[0]?.playback_url
+            ? course.videos[0]
+            : course.preview_video?.playback_url
+            ? course.preview_video
+            : null;
+
+          if (heroVideo) {
+            return (
+              <YouTubePlayer
+                source={{ uri: heroVideo.playback_url }}
+                title={heroVideo.title}
+                autoPlay
+                showCloseButton={false}
+                style={styles.heroPlayer}
+              />
+            );
+          }
+          if (course.thumbnail) {
+            return <Image source={{ uri: course.thumbnail }} style={styles.thumbnail} />;
+          }
+          return null;
+        })()}
 
         <View style={styles.content}>
           <Text style={styles.title}>{course.title}</Text>
@@ -238,7 +259,7 @@ const CourseDetailsScreen: React.FC = () => {
             <PriceRow label="Course Fee" value={`₹${price}`} />
             <PriceRow label="GST (18%)" value={`₹${gst.toFixed(2)}`} />
             <PriceRow
-              label="Platform Fee (5%)"
+              label="Platform Fee (2%)"
               value={`₹${platformFee.toFixed(2)}`}
             />
 
@@ -312,6 +333,11 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.white },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   thumbnail: { width: '100%', height: hp(220) },
+  heroPlayer: {
+    width: '100%',
+    aspectRatio: 16 / 9,
+    borderRadius: 0,
+  },
   content: { padding: wp(16) },
   title: { fontSize: fp(24), fontWeight: '700', color: colors.text },
   instructor: { color: colors.textSecondary, marginBottom: hp(16) },

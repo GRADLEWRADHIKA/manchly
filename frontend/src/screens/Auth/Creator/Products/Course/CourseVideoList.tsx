@@ -232,6 +232,7 @@ const CourseVideoList = () => {
                   setIsUpdate(true);
                 }}
                 title="Edit"
+                titleStyle={styles.editText}
                 style={styles.menuItem}
               />
               <Menu.Item
@@ -261,6 +262,14 @@ const CourseVideoList = () => {
       {activeUploads.length > 0 && (
         <View style={styles.uploadsSection}>
           {activeUploads.map(renderUploadCard)}
+        </View>
+      )}
+
+      {!loading && (
+        <View style={styles.countRow}>
+          <Text style={styles.countText}>
+            Total Videos: {videoList.length}
+          </Text>
         </View>
       )}
 
@@ -409,6 +418,15 @@ const styles = StyleSheet.create({
     padding: wp(16),
     paddingBottom: hp(20),
   },
+  countRow: {
+    paddingHorizontal: wp(16),
+    paddingTop: hp(12),
+  },
+  countText: {
+    fontSize: fp(14),
+    fontWeight: '600',
+    color: colors.text,
+  },
   // Video card - horizontal layout like user page
   card: {
     flexDirection: 'row',
@@ -509,6 +527,9 @@ const styles = StyleSheet.create({
   },
   menuItem: {
     paddingVertical: hp(8),
+  },
+  editText: {
+    color: colors.text,
   },
   deleteText: {
     color: colors.error,

@@ -201,16 +201,14 @@
             } catch (e) { /* network blip — webhook will reconcile */ }
             setSuccess();
             setTimeout(function() {
-                // Route to the Manchly thank-you page so the conversion pixel fires
-                // on server.manchly.com. The thank-you page auto-forwards to the
-                // original return_to URL after a few seconds.
-                var thankUrl = '/thank-you.html' +
-                    '?order_id='  + encodeURIComponent(orderId) +
-                    '&return_to=' + encodeURIComponent(returnTo) +
-                    (amount   ? '&amount='   + encodeURIComponent(amount)   : '') +
-                    (currency ? '&currency=' + encodeURIComponent(currency) : '');
-                window.location.href = thankUrl;
-            }, 1200);
+                // Go straight back to the creator's own domain. The SDK on that
+                // page detects ?payment=success and renders its own thank-you UI.
+                var back = appendParam(appendParam(returnTo, 'payment', 'success'), 'order_id', orderId);
+                if (amount)   back = appendParam(back, 'amount', amount);
+                if (currency) back = appendParam(back, 'currency', currency);
+                if (courseTitle) back = appendParam(back, 'title', courseTitle);
+                window.location.href = back;
+            }, 1000);
         }).catch(function(err) {
             if (isCancelled(err)) {
                 setInfo('Checkout was closed before completion.');

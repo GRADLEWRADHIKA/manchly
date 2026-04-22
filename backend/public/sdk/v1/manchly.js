@@ -213,6 +213,31 @@
 .manchly-toast.manchly-show{opacity:1;transform:translateX(0);}
 .manchly-toast-ok{border-left:4px solid ${theme.success};}
 .manchly-toast-err{border-left:4px solid ${theme.danger};}
+
+/* Thank-you overlay (shown on creator domain after successful payment) */
+.manchly-thanks-overlay{position:fixed;inset:0;background:linear-gradient(135deg,#FEFCE8 0%,#F9FAFB 100%);
+  display:flex;align-items:center;justify-content:center;padding:20px;z-index:100001;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  animation:manchly-fade .3s ease-out;}
+@keyframes manchly-fade{from{opacity:0}to{opacity:1}}
+.manchly-thanks-card{background:#fff;border-radius:28px;box-shadow:0 25px 60px -15px rgba(0,0,0,.15);
+  padding:48px 40px;max-width:480px;width:100%;text-align:center;animation:manchly-slide .5s ease-out;}
+@keyframes manchly-slide{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+.manchly-thanks-icon{width:90px;height:90px;background:#D1FAE5;color:#065F46;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:2.4rem;margin:0 auto 24px;
+  animation:manchly-pop .6s cubic-bezier(0.34,1.56,0.64,1);}
+@keyframes manchly-pop{0%{transform:scale(0)}100%{transform:scale(1)}}
+.manchly-thanks-icon svg{width:44px;height:44px;stroke:#065F46;stroke-width:3;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+.manchly-thanks-card h1{font-size:1.8rem;font-weight:800;margin:0 0 10px;letter-spacing:-.02em;color:${theme.text};}
+.manchly-thanks-card p{color:${theme.muted};font-size:1rem;line-height:1.6;margin:0;}
+.manchly-thanks-order{background:#FEFCE8;border:1px solid #FDE68A;border-radius:16px;
+  padding:14px 20px;margin:22px 0;text-align:left;}
+.manchly-thanks-order .l{font-size:.72rem;font-weight:700;color:#92400E;text-transform:uppercase;letter-spacing:.05em;}
+.manchly-thanks-order .v{font-family:monospace;font-size:.82rem;color:${theme.text};margin-top:4px;word-break:break-all;}
+.manchly-thanks-btn{display:inline-block;background:${theme.charcoal};color:#fff;padding:14px 36px;
+  border-radius:60px;border:none;font-weight:700;cursor:pointer;font-family:inherit;font-size:.95rem;
+  margin-top:8px;transition:background .2s;text-decoration:none;}
+.manchly-thanks-btn:hover{background:${theme.accent};color:${theme.charcoal};}
 `;
     document.head.appendChild(s);
   }
@@ -702,24 +727,60 @@
      * cleans it up, and fires events. Call this on every page load (it's safe
      * to call unconditionally — it no-ops without the param).
      */
-    function handlePaymentReturn() {
+    function showThankYouOverlay({ orderId, title, amount, currency, onContinue }) {
+      const existing = document.getElementById('manchly-thanks');
+      if (existing) existing.remove();
+      const overlay = document.createElement('div');
+      overlay.id = 'manchly-thanks';
+      overlay.className = 'manchly-thanks-overlay';
+      const symbol = currency === 'INR' ? '₹' : (currency ? currency + ' ' : '');
+      const amountDisplay = amount ? symbol + parseFloat(amount).toFixed(2) : '';
+      overlay.innerHTML = `
+        <div class="manchly-thanks-card">
+          <div class="manchly-thanks-icon">
+            <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          </div>
+          <h1>🎉 Payment Successful!</h1>
+          <p>${title ? 'You are now enrolled in <strong>' + escapeHtml(title) + '</strong>.' : 'You are now enrolled.'}</p>
+          ${amountDisplay ? '<div class="manchly-thanks-order"><div class="l">Amount Paid</div><div class="v">' + amountDisplay + '</div></div>' : ''}
+          ${orderId ? '<div class="manchly-thanks-order"><div class="l">Order ID</div><div class="v">' + escapeHtml(orderId) + '</div></div>' : ''}
+          <button class="manchly-thanks-btn" id="manchly-thanks-continue">Continue</button>
+        </div>`;
+      document.body.appendChild(overlay);
+      document.getElementById('manchly-thanks-continue').onclick = () => {
+        overlay.remove();
+        if (typeof onContinue === 'function') onContinue();
+      };
+    }
+
+    function handlePaymentReturn(opts) {
+      opts = opts || {};
       const p = new URLSearchParams(window.location.search);
       const status = p.get('payment');
       if (!status) return null;
-      const orderId = p.get('order_id');
-      const reason = p.get('reason');
-      // Strip from URL
+      const orderId  = p.get('order_id');
+      const reason   = p.get('reason');
+      const amount   = p.get('amount');
+      const currency = p.get('currency') || 'INR';
+      const title    = p.get('title');
+      // Strip payment-related params from URL (keep others).
       const clean = window.location.pathname + (function () {
         const kept = new URLSearchParams();
-        p.forEach((v, k) => { if (!['payment', 'order_id', 'reason'].includes(k)) kept.append(k, v); });
+        p.forEach((v, k) => {
+          if (!['payment','order_id','reason','amount','currency','title'].includes(k)) kept.append(k, v);
+        });
         const s = kept.toString();
         return s ? '?' + s : '';
       })() + window.location.hash;
       history.replaceState({}, document.title, clean);
 
       if (status === 'success') {
-        bus.emit('payment:success', { orderId });
-        showToast('ok', 'Payment successful', 'You now have access to the course.');
+        bus.emit('payment:success', { orderId, amount, currency, title });
+        if (opts.showThankYou !== false) {
+          showThankYouOverlay({ orderId, title, amount, currency });
+        } else {
+          showToast('ok', 'Payment successful', 'You now have access to the course.');
+        }
       } else if (status === 'cancelled') {
         bus.emit('payment:cancelled', { orderId });
         showToast('error', 'Payment cancelled', 'You closed the checkout. You can try again anytime.');
@@ -727,14 +788,14 @@
         bus.emit('payment:failed', { orderId, reason });
         showToast('error', 'Payment failed', reason ? decodeURIComponent(reason) : 'Please try again or use a different method.');
       }
-      return { status, orderId, reason };
+      return { status, orderId, reason, amount, currency, title };
     }
 
     // Auto-handle return on init (next tick so listeners can bind first)
     setTimeout(handlePaymentReturn, 0);
 
     return {
-      version: '1.1.0',
+      version: '1.2.0',
       config: cfg,
       creator,
       auth,

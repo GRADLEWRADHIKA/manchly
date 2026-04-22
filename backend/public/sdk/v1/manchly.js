@@ -613,6 +613,89 @@
       },
     };
 
+    // ---- Enrollment cache ----
+    // Keeps a local Set of enrolled course IDs so buttons/cards can render
+    // synchronously without every component hitting the API.
+    let enrollmentSet = new Set();
+    let enrollmentsLoaded = false;
+
+    async function refreshEnrollments() {
+      if (!auth.isLoggedIn()) {
+        enrollmentSet = new Set();
+        enrollmentsLoaded = true;
+        bus.emit('enrollments:loaded', { courseIds: [] });
+        return [];
+      }
+      try {
+        const res = await http('/courses/enrolled/me?page=1&limit=100');
+        const items = (res && res.data && res.data.enrollments) || res.enrollments || [];
+        const ids = items.map(it => (it.course && it.course.id) || it.course_id || it.id).filter(Boolean);
+        enrollmentSet = new Set(ids);
+        enrollmentsLoaded = true;
+        bus.emit('enrollments:loaded', { courseIds: ids });
+        return ids;
+      } catch (_) {
+        enrollmentsLoaded = true;
+        return [];
+      }
+    }
+
+    function isEnrolledSync(courseId) { return enrollmentSet.has(courseId); }
+    function markEnrolled(courseId) {
+      if (!enrollmentSet.has(courseId)) {
+        enrollmentSet.add(courseId);
+        bus.emit('enrollment:added', { courseId });
+      }
+    }
+
+    // Auto-refresh on auth changes and successful payments.
+    bus.on('login', () => refreshEnrollments());
+    bus.on('logout', () => { enrollmentSet = new Set(); bus.emit('enrollments:loaded', { courseIds: [] }); });
+    bus.on('enrollment:existing', ({ courseId }) => markEnrolled(courseId));
+    bus.on('enrollment:success', (payload) => {
+      const id = payload && (payload.enrollment?.course_id || payload.course_id);
+      if (id) markEnrolled(id);
+    });
+
+    // Prime the cache once at startup (non-blocking).
+    if (auth.isLoggedIn()) refreshEnrollments();
+
+    /**
+     * mountButton(selectorOrEl, { courseId, enrolledLabel, notEnrolledLabel, onContinue })
+     * Renders a smart Enroll / Continue button that auto-switches state.
+     * Returns an unmount function.
+     */
+    function mountButton(target, options) {
+      const el = typeof target === 'string' ? document.querySelector(target) : target;
+      if (!el) { console.warn('[Manchly] mountButton: element not found', target); return () => {}; }
+      options = options || {};
+      if (!options.courseId) { console.warn('[Manchly] mountButton: courseId is required'); return () => {}; }
+
+      const enrolledLabel    = options.enrolledLabel    || 'Continue Watching';
+      const notEnrolledLabel = options.notEnrolledLabel || 'Enroll Now';
+      const onContinue       = options.onContinue;
+
+      function render() {
+        const enrolled = isEnrolledSync(options.courseId);
+        el.textContent = enrolled ? enrolledLabel : notEnrolledLabel;
+        el.dataset.manchlyState = enrolled ? 'enrolled' : 'not-enrolled';
+      }
+      el.onclick = () => {
+        if (isEnrolledSync(options.courseId)) {
+          if (typeof onContinue === 'function') onContinue(options.courseId);
+          else bus.emit('continue:requested', { courseId: options.courseId });
+        } else {
+          buy(options.courseId);
+        }
+      };
+      render();
+      const off1 = bus.on('enrollments:loaded', render);
+      const off2 = bus.on('enrollment:added',    render);
+      const off3 = bus.on('login',               render);
+      const off4 = bus.on('logout',              render);
+      return () => { off1(); off2(); off3(); off4(); };
+    }
+
     const courses = {
       async listByCreator(opts) {
         // If no creatorId is set and autoPrompt is on (default), show the onboarding modal.
@@ -637,12 +720,11 @@
       },
       async isEnrolled(courseId) {
         if (!auth.isLoggedIn()) return false;
-        try {
-          const res = await courses.myCourses();
-          const items = (res && res.data && res.data.enrollments) || res.enrollments || [];
-          return items.some(it => (it.course && it.course.id) === courseId || it.course_id === courseId || it.id === courseId);
-        } catch (_) { return false; }
+        if (!enrollmentsLoaded) await refreshEnrollments();
+        return enrollmentSet.has(courseId);
       },
+      isEnrolledSync,
+      refreshEnrollments,
     };
 
     const payments = {
@@ -795,13 +877,16 @@
     setTimeout(handlePaymentReturn, 0);
 
     return {
-      version: '1.2.0',
+      version: '1.3.0',
       config: cfg,
       creator,
       auth,
       courses,
       payments,
       buy,
+      mountButton,
+      isEnrolledSync,
+      refreshEnrollments,
       handlePaymentReturn,
       on: bus.on,
       off: bus.off,

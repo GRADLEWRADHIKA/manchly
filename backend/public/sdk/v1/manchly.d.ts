@@ -79,7 +79,15 @@ export type EventName =
   | 'login' | 'logout' | 'otp:sent'
   | 'creator:otp:sent' | 'creator:connected' | 'creator:disconnected'
   | 'payment:redirect' | 'payment:success' | 'payment:cancelled' | 'payment:failed' | 'payment:error'
-  | 'enrollment:success' | 'enrollment:existing';
+  | 'enrollment:success' | 'enrollment:existing' | 'enrollment:added' | 'enrollments:loaded'
+  | 'continue:requested';
+
+export interface MountButtonOptions {
+  courseId: string;
+  enrolledLabel?: string;
+  notEnrolledLabel?: string;
+  onContinue?: (courseId: string) => void;
+}
 
 export interface ManchlySDK {
   version: string;
@@ -109,6 +117,8 @@ export interface ManchlySDK {
     get(courseId: string): Promise<any>;
     myCourses(): Promise<any>;
     isEnrolled(courseId: string): Promise<boolean>;
+    isEnrolledSync(courseId: string): boolean;
+    refreshEnrollments(): Promise<string[]>;
   };
 
   payments: {
@@ -116,7 +126,13 @@ export interface ManchlySDK {
   };
 
   buy(courseId: string, opts?: { returnTo?: string; onLogin?: () => void }): Promise<BuyResult>;
-  handlePaymentReturn(): PaymentReturn | null;
+  /** Render a smart button on `target` that auto-switches between Enroll and Continue. Returns an unmount fn. */
+  mountButton(target: string | HTMLElement, options: MountButtonOptions): () => void;
+  /** Synchronous check — returns true if buyer is enrolled (uses local cache). */
+  isEnrolledSync(courseId: string): boolean;
+  /** Force-refresh the local enrollments cache from the server. */
+  refreshEnrollments(): Promise<string[]>;
+  handlePaymentReturn(opts?: { showThankYou?: boolean }): PaymentReturn | null;
 
   on<T = any>(event: EventName, handler: (payload: T) => void): () => void;
   off<T = any>(event: EventName, handler: (payload: T) => void): void;

@@ -128,6 +128,14 @@ export interface ManchlySDK {
   buy(courseId: string, opts?: { returnTo?: string; onLogin?: () => void }): Promise<BuyResult>;
   /** Render a smart button on `target` that auto-switches between Enroll and Continue. Returns an unmount fn. */
   mountButton(target: string | HTMLElement, options: MountButtonOptions): () => void;
+  /** Render a login-state widget (avatar + name + logout, or "Log in" button). */
+  mountAccount(target: string | HTMLElement, options?: { onLogin?: (payload: any) => void }): () => void;
+  /** Render the buyer's enrolled courses list. Clicking a course fires onCourseClick or 'continue:requested'. */
+  mountMyCourses(target: string | HTMLElement, options?: {
+    emptyMessage?: string;
+    loginPromptMessage?: string;
+    onCourseClick?: (courseId: string) => void;
+  }): () => void;
   /** Synchronous check — returns true if buyer is enrolled (uses local cache). */
   isEnrolledSync(courseId: string): boolean;
   /** Force-refresh the local enrollments cache from the server. */

@@ -214,6 +214,39 @@
 .manchly-toast-ok{border-left:4px solid ${theme.success};}
 .manchly-toast-err{border-left:4px solid ${theme.danger};}
 
+/* Account widget */
+.manchly-account{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:.88rem;color:${theme.text};}
+.manchly-account-avatar{width:32px;height:32px;border-radius:50%;background:${theme.accent};color:${theme.charcoal};
+  display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.82rem;flex-shrink:0;overflow:hidden;}
+.manchly-account-avatar img{width:100%;height:100%;object-fit:cover;}
+.manchly-account-info{display:flex;flex-direction:column;line-height:1.25;min-width:0;}
+.manchly-account-info .name{font-weight:700;color:${theme.text};}
+.manchly-account-info .email{font-size:.72rem;color:${theme.muted};}
+.manchly-account-btn{background:transparent;color:${theme.charcoal};border:1.5px solid ${theme.border};
+  padding:7px 14px;border-radius:40px;font-weight:700;font-size:.78rem;cursor:pointer;font-family:inherit;transition:all .15s;}
+.manchly-account-btn:hover{border-color:${theme.accent};color:${theme.accent};}
+.manchly-account-btn.primary{background:${theme.charcoal};color:white;border-color:${theme.charcoal};}
+.manchly-account-btn.primary:hover{background:${theme.accent};color:${theme.charcoal};border-color:${theme.accent};}
+.manchly-account-pill{display:inline-flex;align-items:center;gap:6px;background:#D1FAE5;color:#065F46;
+  padding:4px 10px;border-radius:30px;font-size:.7rem;font-weight:700;}
+.manchly-account-pill::before{content:'';width:6px;height:6px;border-radius:50%;background:#10B981;}
+
+/* My courses list */
+.manchly-mycourses{display:flex;flex-direction:column;gap:10px;}
+.manchly-mycourse{display:flex;align-items:center;gap:14px;padding:12px 14px;background:#fff;border:1px solid ${theme.border};
+  border-radius:14px;cursor:pointer;transition:all .15s;text-decoration:none;color:${theme.text};}
+.manchly-mycourse:hover{border-color:${theme.accent};transform:translateX(2px);box-shadow:0 8px 20px -8px rgba(0,0,0,.08);}
+.manchly-mycourse-thumb{width:56px;height:56px;border-radius:10px;background:linear-gradient(135deg,${theme.accent},${theme.accentDark});
+  display:flex;align-items:center;justify-content:center;color:white;font-size:1.2rem;flex-shrink:0;overflow:hidden;}
+.manchly-mycourse-thumb img{width:100%;height:100%;object-fit:cover;}
+.manchly-mycourse-body{flex:1;min-width:0;}
+.manchly-mycourse-body .t{font-weight:700;font-size:.92rem;color:${theme.text};margin:0 0 2px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.manchly-mycourse-body .s{font-size:.75rem;color:${theme.muted};}
+.manchly-mycourse-pill{background:#D1FAE5;color:#065F46;padding:3px 9px;border-radius:30px;font-size:.65rem;font-weight:800;flex-shrink:0;}
+.manchly-mycourses-empty{text-align:center;padding:28px 16px;color:${theme.muted};font-size:.88rem;
+  border:1.5px dashed ${theme.border};border-radius:14px;}
+
 /* Thank-you overlay (shown on creator domain after successful payment) */
 .manchly-thanks-overlay{position:fixed;inset:0;background:linear-gradient(135deg,#FEFCE8 0%,#F9FAFB 100%);
   display:flex;align-items:center;justify-content:center;padding:20px;z-index:100001;
@@ -696,6 +729,116 @@
       return () => { off1(); off2(); off3(); off4(); };
     }
 
+    /**
+     * mountAccount(el) — renders a login-state widget.
+     * When logged out: shows a "Log in" button.
+     * When logged in:  shows avatar + name/email + Logout button.
+     */
+    function mountAccount(target, options) {
+      const el = typeof target === 'string' ? document.querySelector(target) : target;
+      if (!el) { console.warn('[Manchly] mountAccount: element not found', target); return () => {}; }
+      options = options || {};
+      el.classList.add('manchly-account');
+
+      function initials(s) {
+        return String(s || '?').trim().split(/\s+/).map(w => w[0] || '').slice(0, 2).join('').toUpperCase() || '?';
+      }
+      function render() {
+        const u = auth.user();
+        if (!u) {
+          el.innerHTML = `<button class="manchly-account-btn primary" data-manchly="login">Log in</button>`;
+          el.querySelector('[data-manchly="login"]').onclick = () => {
+            auth.openLogin({ onLogin: (payload) => {
+              if (typeof options.onLogin === 'function') options.onLogin(payload);
+            }});
+          };
+          return;
+        }
+        const name = u.name || u.email || 'User';
+        const avatar = u.profile_image
+          ? `<img src="${escapeHtml(u.profile_image)}" alt="">`
+          : escapeHtml(initials(name));
+        el.innerHTML = `
+          <div class="manchly-account-avatar">${avatar}</div>
+          <div class="manchly-account-info">
+            <span class="name">${escapeHtml(name)}</span>
+            ${u.email && u.email !== name ? `<span class="email">${escapeHtml(u.email)}</span>` : ''}
+          </div>
+          <span class="manchly-account-pill">Logged in</span>
+          <button class="manchly-account-btn" data-manchly="logout">Log out</button>`;
+        el.querySelector('[data-manchly="logout"]').onclick = () => auth.logout();
+      }
+      render();
+      const off1 = bus.on('login',  render);
+      const off2 = bus.on('logout', render);
+      return () => { off1(); off2(); };
+    }
+
+    /**
+     * mountMyCourses(el, { emptyMessage, loginPromptMessage, onCourseClick })
+     * Renders the buyer's purchased/enrolled courses.
+     */
+    function mountMyCourses(target, options) {
+      const el = typeof target === 'string' ? document.querySelector(target) : target;
+      if (!el) { console.warn('[Manchly] mountMyCourses: element not found', target); return () => {}; }
+      options = options || {};
+      el.classList.add('manchly-mycourses');
+
+      async function render() {
+        if (!auth.isLoggedIn()) {
+          el.innerHTML = `<div class="manchly-mycourses-empty">
+            ${escapeHtml(options.loginPromptMessage || 'Log in to see your purchased courses.')}
+          </div>`;
+          return;
+        }
+        el.innerHTML = `<div class="manchly-mycourses-empty">Loading your courses…</div>`;
+        try {
+          const res = await http('/courses/enrolled/me?page=1&limit=100');
+          const items = (res && res.data && res.data.enrollments) || res.enrollments || [];
+          if (!items.length) {
+            el.innerHTML = `<div class="manchly-mycourses-empty">
+              ${escapeHtml(options.emptyMessage || "You haven't enrolled in any course yet.")}
+            </div>`;
+            return;
+          }
+          el.innerHTML = items.map(it => {
+            const c = it.course || it;
+            const id    = c.id || it.course_id;
+            const title = c.title || 'Untitled course';
+            const creatorName = (c.creator && c.creator.name) || '';
+            const thumb = c.thumbnail_url || c.thumbnail || '';
+            return `
+              <div class="manchly-mycourse" data-id="${escapeHtml(id || '')}">
+                <div class="manchly-mycourse-thumb">${thumb ? `<img src="${escapeHtml(thumb)}" alt="">` : '▶'}</div>
+                <div class="manchly-mycourse-body">
+                  <p class="t">${escapeHtml(title)}</p>
+                  <span class="s">${escapeHtml(creatorName)}</span>
+                </div>
+                <span class="manchly-mycourse-pill">Enrolled</span>
+              </div>`;
+          }).join('');
+          el.querySelectorAll('.manchly-mycourse').forEach(row => {
+            row.onclick = () => {
+              const id = row.dataset.id;
+              if (!id) return;
+              if (typeof options.onCourseClick === 'function') options.onCourseClick(id);
+              else bus.emit('continue:requested', { courseId: id });
+            };
+          });
+        } catch (err) {
+          el.innerHTML = `<div class="manchly-mycourses-empty" style="color:${cfg.theme.danger}">
+            ${escapeHtml(err.message || 'Failed to load your courses')}
+          </div>`;
+        }
+      }
+      render();
+      const off1 = bus.on('login',               render);
+      const off2 = bus.on('logout',              render);
+      const off3 = bus.on('enrollment:added',    render);
+      const off4 = bus.on('enrollments:loaded',  render);
+      return () => { off1(); off2(); off3(); off4(); };
+    }
+
     const courses = {
       async listByCreator(opts) {
         // If no creatorId is set and autoPrompt is on (default), show the onboarding modal.
@@ -877,7 +1020,7 @@
     setTimeout(handlePaymentReturn, 0);
 
     return {
-      version: '1.3.0',
+      version: '1.4.0',
       config: cfg,
       creator,
       auth,
@@ -885,6 +1028,8 @@
       payments,
       buy,
       mountButton,
+      mountAccount,
+      mountMyCourses,
       isEnrolledSync,
       refreshEnrollments,
       handlePaymentReturn,

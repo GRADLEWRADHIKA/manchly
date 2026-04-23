@@ -47,6 +47,7 @@ const authenticateToken = (req: any, res: any, next: any) => {
 
 router.get("/stats", authenticateToken, AdminController.getStats);
 router.get("/users", authenticateToken, AdminController.getUsers);
+router.delete("/users/:id", authenticateToken, AdminController.deleteUser);
 router.get("/courses", authenticateToken, AdminController.getCourses);
 router.get("/webinars", authenticateToken, AdminController.getWebinars);
 

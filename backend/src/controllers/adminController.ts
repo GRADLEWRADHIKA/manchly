@@ -231,4 +231,46 @@ export class AdminController {
       ApiResponseHandler.unexpectedError(res, err, 500);
     }
   }
+
+  /**
+   * DELETE /admin/users/:id
+   * Permanently remove a user and all cascade-related records (enrollments,
+   * transactions, courses they created, etc.). Admin-only. Self-delete is
+   * blocked to prevent accidentally locking yourself out of the dashboard.
+   */
+  static async deleteUser(req: any, res: Response) {
+    try {
+      const { id } = req.params;
+      if (!id) {
+        return ApiResponseHandler.customError(res, "User id is required", 400, "MISSING_ID");
+      }
+      if (req.user?.userId === id) {
+        return ApiResponseHandler.customError(
+          res,
+          "You cannot delete your own admin account from this panel.",
+          400,
+          "SELF_DELETE_BLOCKED"
+        );
+      }
+
+      const user = await prisma.users.findUnique({
+        where: { id },
+        select: { id: true, email: true, name: true, user_type: true },
+      });
+      if (!user) {
+        return ApiResponseHandler.customError(res, "User not found", 404, "USER_NOT_FOUND");
+      }
+
+      await prisma.users.delete({ where: { id } });
+
+      return ApiResponseHandler.success(
+        res,
+        { id: user.id, email: user.email, name: user.name },
+        "User deleted successfully"
+      );
+    } catch (err: any) {
+      console.error("deleteUser error:", err);
+      return ApiResponseHandler.unexpectedError(res, err, 500);
+    }
+  }
 }

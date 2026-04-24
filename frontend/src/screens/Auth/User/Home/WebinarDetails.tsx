@@ -35,6 +35,7 @@ import {
   CFThemeBuilder,
 } from 'cashfree-pg-api-contract';
 import Toast from 'react-native-toast-message';
+import NotificationService from '../../../../services/NotificationService';
 import { wp, hp, fp } from '../../../../utils/responsive';
 import TermsModal from '../../../../components/TermsModal';
 import PrivacyModal from '../../../../components/PrivacyModal';
@@ -85,6 +86,12 @@ const WebinarDetails = () => {
 
         try {
           await dispatch(createWebinarVerify({ order_id: orderId })).unwrap();
+
+          NotificationService.displayNotification(
+            'Webinar Booked Successfully',
+            `You have successfully enrolled in "${data?.title || 'the webinar'}". Check your purchases for meeting details.`,
+            { type: 'webinar_purchase', webinarId },
+          );
 
           Toast.show({
             type: 'success',

@@ -34,6 +34,7 @@ import YouTubePlayer from '../../../components/YouTubePlayer';
 import { getCourseById } from '../../../store/CourseSlice';
 import { createPaymentOrder, verifyPayment } from '../../../store/PaymentSlice';
 import { getEnrolledCourses } from '../../../store/EnrollmentSlice';
+import NotificationService from '../../../services/NotificationService';
 
 const CourseDetailsScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -93,6 +94,12 @@ const CourseDetailsScreen: React.FC = () => {
         try {
           await dispatch(verifyPayment({ order_id: orderId })).unwrap();
           await dispatch(getEnrolledCourses({}));
+
+          NotificationService.displayNotification(
+            'Course Purchased Successfully',
+            `You have successfully enrolled in "${course?.title || 'your course'}". Start learning now!`,
+            { type: 'course_purchase', courseId },
+          );
 
           Alert.alert('Success', 'Course purchased successfully!', [
             {

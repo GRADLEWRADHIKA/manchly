@@ -30,6 +30,13 @@ const UserVideoList = () => {
   const [selectedVideo, setSelectedVideo] = useState<any>(null);
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
 
+  const formatDuration = (seconds: number) => {
+    const s = Number(seconds) || 0;
+    const m = Math.floor(s / 60);
+    const r = Math.floor(s % 60);
+    return `${m}:${r.toString().padStart(2, '0')} min`;
+  };
+
   // Fetch videos for this course
   const getVideoById = (id: string) => {
     setLoading(true);
@@ -69,7 +76,7 @@ const UserVideoList = () => {
         <View style={styles.durationBadge}>
           <Clock color={colors.white} size={wp(10)} />
           <Text style={styles.durationBadgeText}>
-            {item?.duration || 0}s
+            {formatDuration(item?.duration)}
           </Text>
         </View>
       </View>
@@ -151,7 +158,7 @@ const UserVideoList = () => {
                             {item?.title}
                           </Text>
                           <Text style={styles.upNextDuration}>
-                            {item?.duration || 0}s
+                            {formatDuration(item?.duration)}
                           </Text>
                         </View>
                       </TouchableOpacity>

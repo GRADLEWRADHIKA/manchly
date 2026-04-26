@@ -2,24 +2,24 @@ import { Request, Response } from "express";
 import prisma from "../prismaClient";
 import { ApiResponseHandler } from "../utils/ApiResponseHandler";
 
-// The two courses Clickancy showcases on its landing page. Order here matches
-// the order they should appear on the site (lead course first).
-const CLICKANCY_COURSE_IDS: string[] = [
-  "9da05355-1ade-4e4b-8c10-5af58273339b", // YouTube Automation Blueprint (replicated to Harsh's account)
-  "f868da2d-9fbc-43c0-9b86-994d8029fcde", // Technical Analysis Course
-];
+// Creator whose published catalog drives the Clickancy landing page.
+const CLICKANCY_CREATOR_ID = "eaddf98c-346e-4e6f-a339-1a9e2f4c5437"; // Harsh Bardhan Raj
+
+// Lead course shown in the Hero / PromoVideo. Anything else is rendered as a
+// secondary card in the catalog grid.
+const CLICKANCY_LEAD_COURSE_ID = "9da05355-1ade-4e4b-8c10-5af58273339b"; // YouTube se Paise kaise earn kare?
 
 export class ClickancyController {
   /**
    * GET /clickancy/courses
-   * Public endpoint — returns the curated Clickancy course catalog (the
-   * replicated YouTube Automation Blueprint + the Technical Analysis Course).
+   * Public endpoint — returns every PUBLISHED course in Harsh's catalog.
+   * The lead course (Hero) is placed first; the rest follow newest-first.
    * Shape matches `getPublicCourses` so the existing frontend code works.
    */
   static async getCourses(_req: Request, res: Response) {
     try {
       const courses = await prisma.courses.findMany({
-        where: { id: { in: CLICKANCY_COURSE_IDS } },
+        where: { creator_id: CLICKANCY_CREATOR_ID, status: "PUBLISHED" },
         include: {
           creator: { select: { id: true, name: true, profile_image: true } },
           videos: {
@@ -36,14 +36,13 @@ export class ClickancyController {
           },
           _count: { select: { enrollments: true } },
         },
+        orderBy: { created_at: "desc" },
       });
 
-      // Preserve the order declared in CLICKANCY_COURSE_IDS regardless of how
-      // findMany returns them.
-      const byId = new Map(courses.map(c => [c.id, c]));
-      const ordered = CLICKANCY_COURSE_IDS
-        .map(id => byId.get(id))
-        .filter((c): c is NonNullable<typeof c> => !!c);
+      // Pin the lead course to the front; keep the rest in newest-first order.
+      const lead = courses.find(c => c.id === CLICKANCY_LEAD_COURSE_ID);
+      const rest = courses.filter(c => c.id !== CLICKANCY_LEAD_COURSE_ID);
+      const ordered = lead ? [lead, ...rest] : courses;
 
       const publicCourses = ordered.map(c => ({
         id: c.id,

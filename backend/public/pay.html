@@ -9,6 +9,25 @@
     <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        .b-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.82rem;
+            color: #4B5563;
+            padding: 4px 0;
+        }
+        .b-row.b-total {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #C7D2FE;
+            color: #111827;
+            font-size: 0.95rem;
+            font-weight: 800;
+        }
+        .b-row.b-total span:last-child {
+            font-size: 1.25rem;
+        }
         body {
             font-family: 'Inter', sans-serif;
             background: #F9FAFB;
@@ -75,13 +94,16 @@
     <div class="card">
         <div class="icon-wrap" id="iconWrap"><i class="fas fa-lock"></i></div>
         <h1 id="title">Preparing secure checkout…</h1>
-        <div id="orderSummary" style="display:none; background:#FEFCE8; border:1px solid #FDE68A; border-radius:14px; padding:14px 18px; margin:16px 0; text-align:left;">
-            <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
-                <div>
-                    <div style="font-size:0.72rem; color:#92400E; font-weight:700; text-transform:uppercase; letter-spacing:0.04em;">Total Payable</div>
-                    <div id="orderTitle" style="font-size:0.82rem; color:#374151; margin-top:2px;"></div>
-                </div>
-                <div id="orderAmount" style="font-size:1.4rem; font-weight:800; color:#111827; white-space:nowrap;"></div>
+        <div id="orderSummary" style="display:none; background:#EEF2FF; border:1px solid #C7D2FE; border-radius:14px; padding:14px 18px; margin:16px 0; text-align:left;">
+            <div id="orderTitle" style="font-size:0.85rem; color:#374151; font-weight:600; margin-bottom:10px;"></div>
+            <div id="breakdown" style="display:none; border-top:1px dashed #C7D2FE; padding-top:8px; margin-top:6px;">
+                <div class="b-row"><span>Course price</span><span id="b-base"></span></div>
+                <div class="b-row" id="b-gst-row"><span id="b-gst-label">GST</span><span id="b-gst"></span></div>
+                <div class="b-row" id="b-fee-row"><span id="b-fee-label">Platform fee</span><span id="b-fee"></span></div>
+            </div>
+            <div class="b-row b-total">
+                <span>Total payable</span>
+                <span id="orderAmount"></span>
             </div>
         </div>
         <p id="message"><span class="spinner"></span> Please wait, do not close this window.</p>
@@ -100,11 +122,38 @@
     const currency  = params.get('currency') || 'INR';
     const courseTitle = params.get('title') || 'Course Enrollment';
 
+    const symbol = currency === 'INR' ? '₹' : currency + ' ';
+    const fmt = (v) => symbol + parseFloat(v || 0).toFixed(2);
+    const basePrice  = params.get('base_price');
+    const gstAmount  = params.get('gst');
+    const gstPercent = params.get('gst_percent');
+    const feeAmount  = params.get('fee');
+    const feePercent = params.get('fee_percent');
+
     if (amount) {
-        const symbol = currency === 'INR' ? '₹' : currency + ' ';
-        document.getElementById('orderAmount').textContent = symbol + parseFloat(amount).toFixed(2);
-        document.getElementById('orderTitle').textContent = courseTitle;
+        document.getElementById('orderAmount').textContent = fmt(amount);
+        document.getElementById('orderTitle').textContent = courseTitle || 'Course Enrollment';
         document.getElementById('orderSummary').style.display = 'block';
+
+        // Show full bifurcation when the backend supplied it.
+        if (basePrice) {
+            document.getElementById('b-base').textContent = fmt(basePrice);
+            const showGst = gstAmount && parseFloat(gstAmount) > 0;
+            const showFee = feeAmount && parseFloat(feeAmount) > 0;
+            if (showGst) {
+                document.getElementById('b-gst-label').textContent = 'GST' + (gstPercent ? ' (' + gstPercent + '%)' : '');
+                document.getElementById('b-gst').textContent = fmt(gstAmount);
+            } else {
+                document.getElementById('b-gst-row').style.display = 'none';
+            }
+            if (showFee) {
+                document.getElementById('b-fee-label').textContent = 'Platform fee' + (feePercent ? ' (' + feePercent + '% of GST)' : '');
+                document.getElementById('b-fee').textContent = fmt(feeAmount);
+            } else {
+                document.getElementById('b-fee-row').style.display = 'none';
+            }
+            document.getElementById('breakdown').style.display = 'block';
+        }
     }
 
     const titleEl   = document.getElementById('title');

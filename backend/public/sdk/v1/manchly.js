@@ -918,17 +918,25 @@
         const amount = (payload.transaction && payload.transaction.amount) ||
                        (payload.course_details && payload.course_details.price) || '';
         const title = (payload.course_details && payload.course_details.title) || '';
+        const bd = payload.pricing_breakdown || {};
         if (!sessionId || !orderId) throw new ManchlyError({ kind: 'unknown', message: 'Could not start payment (missing session id)' });
 
         const returnTo = (opts.returnTo || (window.location.origin + window.location.pathname));
-        const url = cfg.checkoutPage +
-          '?session_id=' + encodeURIComponent(sessionId) +
-          '&order_id='   + encodeURIComponent(orderId) +
-          '&env='        + encodeURIComponent(env) +
-          '&amount='     + encodeURIComponent(String(amount)) +
-          '&title='      + encodeURIComponent(title) +
-          '&token='      + encodeURIComponent(auth.token() || '') +
-          '&return_to='  + encodeURIComponent(returnTo);
+        const params = new URLSearchParams({
+          session_id: sessionId,
+          order_id:   orderId,
+          env:        env,
+          amount:     String(amount),
+          title:      title,
+          token:      auth.token() || '',
+          return_to:  returnTo,
+        });
+        if (bd.base_price !== undefined)           params.set('base_price',  String(bd.base_price));
+        if (bd.gst_amount !== undefined)           params.set('gst',         String(bd.gst_amount));
+        if (bd.gst_percent !== undefined)          params.set('gst_percent', String(bd.gst_percent));
+        if (bd.platform_fee_amount !== undefined)  params.set('fee',         String(bd.platform_fee_amount));
+        if (bd.platform_fee_percent !== undefined) params.set('fee_percent', String(bd.platform_fee_percent));
+        var url = cfg.checkoutPage + '?' + params.toString();
 
         bus.emit('payment:redirect', { url, orderId });
         window.location.href = url;

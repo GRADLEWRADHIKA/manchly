@@ -113,15 +113,24 @@ export class PaymentController {
       const NO_FEE_COURSE_IDS = new Set<string>([
         '50c4b8ae-fc6e-47e5-97dc-4e33539a3e5e', // Xtech masterclass
       ]);
-      let finalAmount: number;
-      if (NO_FEE_COURSE_IDS.has(courseId)) {
-        finalAmount = course.price;
-      } else {
-        const gstAmount = course.price * 0.18; // 18% GST
-        const platformFee = gstAmount * 0.05; // 5% platform fee on GST amount
-        finalAmount = course.price + gstAmount + platformFee;
-      }
-      const finalAmountRounded = parseFloat(finalAmount.toFixed(2));
+      const GST_PERCENT = 18;
+      const PLATFORM_FEE_PERCENT = 5; // applied on GST amount, not base
+      const noFee = NO_FEE_COURSE_IDS.has(courseId);
+      const basePrice = course.price;
+      const gstAmount = noFee ? 0 : basePrice * (GST_PERCENT / 100);
+      const platformFee = noFee ? 0 : gstAmount * (PLATFORM_FEE_PERCENT / 100);
+      const finalAmount = basePrice + gstAmount + platformFee;
+      const round2 = (n: number) => parseFloat(n.toFixed(2));
+      const finalAmountRounded = round2(finalAmount);
+      const pricingBreakdown = {
+        base_price: round2(basePrice),
+        gst_percent: noFee ? 0 : GST_PERCENT,
+        gst_amount: round2(gstAmount),
+        platform_fee_percent: noFee ? 0 : PLATFORM_FEE_PERCENT,
+        platform_fee_amount: round2(platformFee),
+        total: finalAmountRounded,
+        currency: "INR",
+      };
 
       const orderId = `course_${courseId}_${Date.now()}`;
 
@@ -197,7 +206,8 @@ export class PaymentController {
           price: finalAmountRounded,
           original_price: course.price,
           thumbnail: course.thumbnail
-        }
+        },
+        pricing_breakdown: pricingBreakdown
       }, "Cashfree order created successfully", 201);
 
     } catch (err: any) {

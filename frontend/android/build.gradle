@@ -20,3 +20,14 @@ buildscript {
 }
 
 apply plugin: "com.facebook.react.rootproject"
+
+subprojects {
+    configurations.all {
+        resolutionStrategy.eachDependency { details ->
+            if (details.requested.group == 'net.gotev' &&
+                details.requested.name.startsWith('uploadservice')) {
+                details.useVersion '4.9.4'
+            }
+        }
+    }
+}

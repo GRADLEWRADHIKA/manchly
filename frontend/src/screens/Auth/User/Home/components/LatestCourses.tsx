@@ -16,33 +16,35 @@ import colors from '../../../../../utils/colors';
 import { wp, hp, fp } from '../../../../../utils/responsive';
 import { getEnrolledCourses } from '../../../../../store/EnrollmentSlice';
 
-const LatestCourseItem = ({ item, onPress }: any) => (
-  <Pressable
-    style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
-    onPress={onPress}
-  >
-    {item?.thumbnail ? (
-      <Image source={{ uri: item?.thumbnail }} style={styles.thumb} />
-    ) : (
-      <View style={[styles.thumb, styles.thumbPlaceholder]}>
-        <BookOpen size={wp(22)} color={colors.secPrimary} strokeWidth={1.5} />
-      </View>
-    )}
-    <View style={styles.info}>
-      <Text style={styles.title} numberOfLines={2}>
-        {item?.title}
-      </Text>
-      {item?.creator?.name && (
-        <Text style={styles.creator} numberOfLines={1}>
-          {item.creator.name}
-        </Text>
+const LatestCourseItem = ({ item, onPress }: any) => {
+  return (
+    <Pressable
+      style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+      onPress={onPress}
+    >
+      {item?.thumbnail ? (
+        <Image source={{ uri: item?.thumbnail }} style={styles.thumb} />
+      ) : (
+        <View style={[styles.thumb, styles.thumbPlaceholder]}>
+          <BookOpen size={wp(22)} color={colors.secPrimary} strokeWidth={1.5} />
+        </View>
       )}
-      <Text style={styles.price}>
-        {item?.price === 0 ? 'FREE' : `₹${item?.price}`}
-      </Text>
-    </View>
-  </Pressable>
-);
+      <View style={styles.info}>
+        <Text style={styles.title} numberOfLines={2}>
+          {item?.title}
+        </Text>
+        {item?.creator?.name && (
+          <Text style={styles.creator} numberOfLines={1}>
+            {item.creator.name}
+          </Text>
+        )}
+        <Text style={styles.price}>
+          {item?.price === 0 ? 'FREE' : `₹${item?.price}`}
+        </Text>
+      </View>
+    </Pressable>
+  );
+};
 
 const LatestCourses = () => {
   const dispatch = useDispatch<any>();
@@ -71,7 +73,10 @@ const LatestCourses = () => {
           <LatestCourseItem
             item={item}
             onPress={() =>
-              navigation.navigate('CourseDetailsScreen', { courseId: item?.id })
+              navigation.navigate('CourseDetailsScreen', {
+                courseId: item?.id,
+                videoList: item?.videos,
+              })
             }
           />
         )}

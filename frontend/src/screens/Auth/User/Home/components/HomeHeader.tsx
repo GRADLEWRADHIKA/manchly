@@ -1,8 +1,8 @@
 import React, { memo } from 'react';
-import { View, Text, StyleSheet, Image, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Image, Pressable, Linking } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import colors from '../../../../../utils/colors';
-import { Search, Bell } from 'lucide-react-native';
+import { Search, Bell, Instagram } from 'lucide-react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { wp, hp, fp } from '../../../../../utils/responsive';
@@ -48,20 +48,20 @@ const HomeHeader = () => {
           <View>
             <Text style={styles.greetingLabel}>{getGreeting()}</Text>
             <Text style={styles.greetingName} numberOfLines={1}>
-              {displayName}
+              {displayName?.split(' ')[0]}
             </Text>
           </View>
         </Pressable>
         <View style={styles.headerActions}>
-          {/* <Pressable
+          <Pressable
             style={({ pressed }) => [
               styles.iconBtn,
               pressed && styles.iconBtnPressed,
             ]}
-            onPress={() => navigation.navigate('UserNotification')}
-            accessibilityLabel="Notifications">
-            <Bell size={wp(18)} color={colors.white} strokeWidth={2} />
-          </Pressable> */}
+            onPress={() => Linking.openURL('https://www.instagram.com/manchly_app')}
+            accessibilityLabel="Instagram">
+            <Instagram size={wp(18)} color={colors.white} strokeWidth={2} />
+          </Pressable>
           <Pressable
             style={({ pressed }) => [
               styles.iconBtn,

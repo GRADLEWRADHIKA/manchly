@@ -43,6 +43,7 @@ const CourseDetailsScreen: React.FC = () => {
   const focus = useIsFocused();
 
   const courseId = route.params?.courseId;
+  const videoList = route.params?.videoList || [];
 
   const { current: course } = useSelector((state: any) => state.coursesReducer);
 
@@ -97,7 +98,9 @@ const CourseDetailsScreen: React.FC = () => {
 
           NotificationService.displayNotification(
             'Course Purchased Successfully',
-            `You have successfully enrolled in "${course?.title || 'your course'}". Start learning now!`,
+            `You have successfully enrolled in "${
+              course?.title || 'your course'
+            }". Start learning now!`,
             { type: 'course_purchase', courseId },
           );
 
@@ -200,34 +203,24 @@ const CourseDetailsScreen: React.FC = () => {
     );
   }
 
+  const showVideo = videoList[0]?.playback_url;
+
   return (
     <View style={styles.container}>
       <AppHeaderWithBack title="Course Details" />
 
       <ScrollView showsVerticalScrollIndicator={false}>
-        {(() => {
-          const heroVideo = course.videos?.[0]?.playback_url
-            ? course.videos[0]
-            : course.preview_video?.playback_url
-            ? course.preview_video
-            : null;
-
-          if (heroVideo) {
-            return (
-              <YouTubePlayer
-                source={{ uri: heroVideo.playback_url }}
-                title={heroVideo.title}
-                autoPlay
-                showCloseButton={false}
-                style={styles.heroPlayer}
-              />
-            );
-          }
-          if (course.thumbnail) {
-            return <Image source={{ uri: course.thumbnail }} style={styles.thumbnail} />;
-          }
-          return null;
-        })()}
+        {showVideo ? (
+          <YouTubePlayer
+            source={{ uri: showVideo }}
+            title={''}
+            autoPlay
+            showCloseButton={false}
+            style={styles.heroPlayer}
+          />
+        ) : (
+          <Image source={{ uri: course.thumbnail }} style={styles.thumbnail} />
+        )}
 
         <View style={styles.content}>
           <Text style={styles.title}>{course.title}</Text>
@@ -282,7 +275,10 @@ const CourseDetailsScreen: React.FC = () => {
               Terms of Service
             </Text>
             ,{' '}
-            <Text style={styles.policyLink} onPress={() => setShowPrivacy(true)}>
+            <Text
+              style={styles.policyLink}
+              onPress={() => setShowPrivacy(true)}
+            >
               Privacy Policy
             </Text>
             {' & '}
@@ -294,8 +290,14 @@ const CourseDetailsScreen: React.FC = () => {
       </ScrollView>
 
       <TermsModal visible={showTerms} onClose={() => setShowTerms(false)} />
-      <PrivacyModal visible={showPrivacy} onClose={() => setShowPrivacy(false)} />
-      <RefundPolicyModal visible={showRefund} onClose={() => setShowRefund(false)} />
+      <PrivacyModal
+        visible={showPrivacy}
+        onClose={() => setShowPrivacy(false)}
+      />
+      <RefundPolicyModal
+        visible={showRefund}
+        onClose={() => setShowRefund(false)}
+      />
 
       {/* BOTTOM BAR */}
       <View style={styles.bottomBar}>

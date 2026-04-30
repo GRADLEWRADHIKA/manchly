@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Image,
+  Linking,
 } from 'react-native';
 import {
   useFocusEffect,
@@ -27,6 +28,7 @@ import {
   Circle,
   Star,
   HelpCircle,
+  Instagram,
 } from 'lucide-react-native';
 import Svg, { Circle as SvgCircle } from 'react-native-svg';
 import colors from '../../../../utils/colors';
@@ -213,16 +215,26 @@ const CreatorHome = () => {
             )}
             <View>
               <Text style={styles.greetingSub}>{getGreeting()}</Text>
-              <Text style={styles.greeting}>{displayName}</Text>
+              <Text style={styles.greeting}>{displayName?.split(' ')[0]}</Text>
             </View>
           </View>
-          <TouchableOpacity
-            style={styles.bellBtn}
-            onPress={() => navigation.navigate('CreatorNotification')}
+          <View
+            style={{ flexDirection: 'row', alignItems: 'center', gap: wp(4) }}
           >
-            <Bell size={wp(20)} color={colors.white} />
-            <View style={styles.bellDot} />
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.bellBtn}
+              onPress={() => Linking.openURL('https://www.instagram.com/manchly_app')}
+            >
+              <Instagram size={wp(20)} color={colors.white} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.bellBtn}
+              onPress={() => navigation.navigate('CreatorNotification')}
+            >
+              <Bell size={wp(20)} color={colors.white} />
+              <View style={styles.bellDot} />
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 
@@ -421,7 +433,6 @@ const CreatorHome = () => {
 
         {/* Creator Score */}
         <View style={styles.sectionPadding}>
-
           {allCompleted ? (
             <LinearGradient
               colors={['#1A1A2E', '#16213E', '#0F3460']}

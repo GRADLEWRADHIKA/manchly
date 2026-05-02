@@ -3,251 +3,136 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   ScrollView,
-  Image,
-  Dimensions,
 } from 'react-native';
 import colors from '../../../../../utils/colors';
 import { wp, hp, fp } from '../../../../../utils/responsive';
 import {
-  Video,
-  GraduationCap,
-  UserCircle,
-  Bell,
-  ArrowRight,
-  ChevronRight,
-  Target,
-  Mic,
-  BadgeDollarSign,
-  CalendarDays,
-  Share2,
-  RefreshCcw,
-  BarChart3,
-  Handshake,
+  Sparkles,
+  BrainCircuit,
+  ImagePlus,
+  FileText,
 } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
+import LinearGradient from 'react-native-linear-gradient';
 
-const { width } = Dimensions.get('window');
-const CARD_GAP = wp(12);
 const HORIZONTAL_PAD = wp(16);
-const CARD_WIDTH = (width - HORIZONTAL_PAD * 2 - CARD_GAP) / 2;
-
-const CREATOR_TIPS = [
-  {
-    icon: <Target size={wp(22)} color={colors.error} />,
-    iconBg: colors.lightGrey,
-    title: 'Keep it focused',
-    description:
-      'Short, specific courses on Manchly sell better than broad ones. Pick one skill and go deep.',
-  },
-  {
-    icon: <Mic size={wp(22)} color={colors.textMuted} />,
-    iconBg: colors.surface,
-    title: 'Audio matters most',
-    description:
-      'Clear sound boosts course completion. Use a quiet room — your phone mic works fine to start.',
-  },
-  {
-    icon: <BadgeDollarSign size={wp(22)} color={colors.golden} />,
-    iconBg: colors.lightGrey,
-    title: 'Price with confidence',
-    description:
-      "Don't underprice your expertise. Manchly creators who charge fairly earn more and attract serious learners.",
-  },
-  {
-    icon: <CalendarDays size={wp(22)} color={colors.secondary} />,
-    iconBg: colors.lightGrey,
-    title: 'Host a Webinar first',
-    description:
-      'Not ready for a full course? Start with a live Webinar on Manchly — faster to launch and builds trust.',
-  },
-  {
-    icon: <Share2 size={wp(22)} color={colors.success} />,
-    iconBg: colors.surface,
-    title: 'Share your Manchly link',
-    description:
-      'Paste your creator profile link in your Instagram bio, WhatsApp status, and Reels. Your audience is already there.',
-  },
-  {
-    icon: <RefreshCcw size={wp(22)} color={colors.info} />,
-    iconBg: colors.surface,
-    title: 'Repurpose your content',
-    description:
-      'Turn one course module into 3 short reels. More content, same effort — and it drives traffic back to Manchly.',
-  },
-  {
-    icon: <BarChart3 size={wp(22)} color={colors.secPrimary} />,
-    iconBg: colors.surface,
-    title: 'Watch your dashboard',
-    description:
-      'Check your Manchly dashboard weekly. See where students drop off and improve just that one section.',
-  },
-  {
-    icon: <Handshake size={wp(22)} color={colors.golden} />,
-    iconBg: colors.lightGrey,
-    title: 'Payments are seamless',
-    description:
-      'Manchly handles all payments for you. No third-party gateways needed — money hits your account directly.',
-  },
-];
 
 const CreateProducts = () => {
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation<any>();
-  const { user } = useSelector((state: any) => state.userReducer);
-
-  const displayName = user?.name
-    ? user.name.charAt(0).toUpperCase() + user.name.slice(1)
-    : 'Creator';
 
   return (
     <View style={styles.container}>
       {/* Header */}
-      <View style={[styles.headerWrapper, { paddingTop: insets.top }]}>
+      <LinearGradient
+        colors={[colors.faaAiBg, colors.faaAiCard]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={[styles.headerWrapper, { paddingTop: insets.top }]}
+      >
         <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            {user?.profile_image ? (
-              <Image
-                source={{ uri: user.profile_image }}
-                style={styles.avatar}
-              />
-            ) : (
-              <View style={styles.avatarFallback}>
-                <UserCircle size={wp(28)} color={colors.white} />
-              </View>
-            )}
-            <View>
-              <Text style={styles.headerSub}>Hello, {displayName}</Text>
-              <Text style={styles.headerTitle}>Create Product</Text>
-            </View>
+          <View style={styles.headerLogoWrap}>
+            <BrainCircuit size={wp(22)} color={colors.faaAiPrimary} />
           </View>
-          <TouchableOpacity
-            style={styles.bellBtn}
-            onPress={() => navigation.navigate('CreatorNotification')}
-          >
-            <Bell size={wp(20)} color={colors.white} />
-          </TouchableOpacity>
+          <View>
+            <Text style={styles.headerTitle}>Faah-AI</Text>
+            <Text style={styles.headerSub}>Your AI Creator Assistant</Text>
+          </View>
         </View>
-      </View>
+        <View style={styles.headerAccentLine} />
+      </LinearGradient>
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Section Title */}
-        <Text style={styles.sectionTitle}>What would you like to create?</Text>
-
-        {/* Cards Row */}
-        <View style={styles.cardsRow}>
-          {/* Webinar Card */}
-           <TouchableOpacity
-            activeOpacity={0.8}
-            style={styles.card}
-            onPress={() => {
-              if (user?.kyc_verified) {
-                navigation.navigate('CreateCourse');
-              } else {
-                navigation.navigate('KYCVerificationScreen');
-              }
-            }}
+        {/* AI Coming Soon Banner */}
+        <View style={styles.aiBannerSection}>
+          <LinearGradient
+            colors={[colors.faaAiBg, colors.faaAiCard, '#0F3460']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.aiBanner}
           >
-            <View
-              style={[styles.cardInner, { backgroundColor: colors.surface }]}
-            >
-              <View
-                style={[
-                  styles.iconCircle,
-                  { backgroundColor: colors.borderLight },
-                ]}
-              >
-                <GraduationCap size={wp(24)} color={colors.accent} />
-              </View>
-              <Text style={[styles.cardTitle, { color: colors.accent }]}>
-                Course
-              </Text>
-              <Text style={styles.cardDesc}>Build video courses & modules</Text>
-              <View
-                style={[styles.cardButton, { backgroundColor: colors.accent }]}
-              >
-                <Text style={styles.cardButtonText}>Create</Text>
-                <ArrowRight size={wp(14)} color={colors.white} />
+            <View style={styles.aiBannerGlow} />
+
+            <View style={styles.aiBannerHeader}>
+              <View style={styles.aiComingSoonBadge}>
+                <Sparkles size={wp(12)} color={colors.faaAiPrimary} />
+                <Text style={styles.aiComingSoonText}>COMING SOON</Text>
               </View>
             </View>
-          </TouchableOpacity>
-          <TouchableOpacity
-            activeOpacity={0.8}
-            style={styles.card}
-            onPress={() => {
-              if (user?.kyc_verified) {
-                navigation.navigate('CreateWebinar');
-              } else {
-                navigation.navigate('KYCVerificationScreen');
-              }
-            }}
-          >
-            <View
-              style={[styles.cardInner, { backgroundColor: colors.lightGrey }]}
-            >
-              <View
-                style={[
-                  styles.iconCircle,
-                  { backgroundColor: colors.placeholder },
-                ]}
-              >
-                <Video size={wp(24)} color={colors.secondary} />
+
+            <View style={styles.aiBannerContent}>
+              <View style={styles.aiBotIconWrap}>
+                <BrainCircuit size={wp(40)} color={colors.faaAiPrimary} />
               </View>
-              <Text style={[styles.cardTitle, { color: colors.secondary }]}>
-                Webinar
+              <Text style={styles.aiBannerTitle}>
+                AI-Powered{'\n'}Creator
               </Text>
-              <Text style={styles.cardDesc}>
-                Host live sessions & Webinars
+              <Text style={styles.aiBannerSubtitle}>
+                We're building something incredible. Generate stunning thumbnails, course descriptions, and more — all powered by AI.
               </Text>
-              <View
-                style={[
-                  styles.cardButton,
-                  { backgroundColor: colors.secondary },
-                ]}
-              >
-                <Text style={styles.cardButtonText}>Create</Text>
-                <ArrowRight size={wp(14)} color={colors.white} />
+            </View>
+
+            <View style={styles.aiStatsRow}>
+              <View style={styles.aiStatItem}>
+                <Text style={styles.aiStatValue}>10x</Text>
+                <Text style={styles.aiStatLabel}>Faster</Text>
+              </View>
+              <View style={styles.aiStatDivider} />
+              <View style={styles.aiStatItem}>
+                <Text style={styles.aiStatValue}>AI</Text>
+                <Text style={styles.aiStatLabel}>Powered</Text>
+              </View>
+              <View style={styles.aiStatDivider} />
+              <View style={styles.aiStatItem}>
+                <Text style={styles.aiStatValue}>0</Text>
+                <Text style={styles.aiStatLabel}>Effort</Text>
               </View>
             </View>
-          </TouchableOpacity>
-
-          {/* Course Card */}
+          </LinearGradient>
         </View>
 
-        {/* Creator Tips */}
-        <View style={styles.tipsSection}>
-          <View style={styles.tipsSectionHeader}>
-            <Text style={styles.tipsSectionTitle}>Creator Tips</Text>
-            <TouchableOpacity style={styles.viewAllBtn}>
-              {/* <Text style={styles.viewAllText}>View all</Text> */}
-              {/* <ArrowRight size={wp(14)} color={colors.info} /> */}
-            </TouchableOpacity>
-          </View>
+        {/* AI Features */}
+        <Text style={styles.aiFeaturesTitle}>What Faa-AI will do for you</Text>
 
-          {CREATOR_TIPS.map((tip, index) => (
-            <View key={index} style={styles.tipCard}>
-              <View
-                style={[styles.tipIconWrap, { backgroundColor: tip.iconBg }]}
-              >
-                {tip.icon}
-              </View>
-              <View style={styles.tipContent}>
-                <Text style={styles.tipTitle}>{tip.title}</Text>
-                <Text style={styles.tipDesc}>{tip.description}</Text>
-              </View>
-              <ChevronRight
-                size={wp(18)}
-                color={colors.muted}
-                style={styles.tipChevron}
-              />
+        <View style={styles.aiFeatureCard}>
+          <LinearGradient
+            colors={[colors.faaAiBg, colors.faaAiCard]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.aiFeatureInner}
+          >
+            <View style={styles.aiFeatureIconWrap}>
+              <ImagePlus size={wp(22)} color={colors.faaAiPrimary} />
             </View>
-          ))}
+            <View style={styles.aiFeatureContent}>
+              <Text style={styles.aiFeatureLabel}>AI Thumbnail Generator</Text>
+              <Text style={styles.aiFeatureDesc}>
+                Create eye-catching thumbnails instantly. Just enter your topic and let AI design it.
+              </Text>
+            </View>
+          </LinearGradient>
+        </View>
+
+        <View style={styles.aiFeatureCard}>
+          <LinearGradient
+            colors={[colors.faaAiBg, '#1E3A5F']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.aiFeatureInner}
+          >
+            <View style={styles.aiFeatureIconWrap}>
+              <FileText size={wp(22)} color={colors.faaAiBlue} />
+            </View>
+            <View style={styles.aiFeatureContent}>
+              <Text style={styles.aiFeatureLabel}>AI Description Writer</Text>
+              <Text style={styles.aiFeatureDesc}>
+                Auto-generate compelling course descriptions that attract students and boost sales.
+              </Text>
+            </View>
+          </LinearGradient>
         </View>
       </ScrollView>
     </View>
@@ -259,193 +144,191 @@ export default CreateProducts;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.white,
   },
   headerWrapper: {
-    backgroundColor: colors.primary,
+    borderBottomLeftRadius: wp(20),
+    borderBottomRightRadius: wp(20),
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: wp(16),
-    paddingVertical: hp(14),
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    paddingVertical: hp(16),
     gap: wp(12),
   },
-  avatar: {
-    width: wp(46),
-    height: wp(46),
-    borderRadius: wp(23),
-    borderWidth: 2,
-    borderColor: colors.border,
-  },
-  avatarFallback: {
-    width: wp(46),
-    height: wp(46),
-    borderRadius: wp(23),
-    backgroundColor: colors.text,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: colors.border,
-  },
-  headerSub: {
-    fontSize: fp(12),
-    color: colors.textMuted,
-    fontWeight: '500',
-  },
-  headerTitle: {
-    fontSize: fp(18),
-    fontWeight: '800',
-    color: colors.white,
-    marginTop: hp(1),
-  },
-  bellBtn: {
-    width: wp(40),
-    height: wp(40),
-    borderRadius: wp(20),
-    backgroundColor: colors.text,
+  headerLogoWrap: {
+    width: wp(42),
+    height: wp(42),
+    borderRadius: wp(12),
+    backgroundColor: 'rgba(167, 139, 250, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: 'rgba(167, 139, 250, 0.25)',
+  },
+  headerTitle: {
+    fontSize: fp(20),
+    fontWeight: '800',
+    color: colors.white,
+  },
+  headerSub: {
+    fontSize: fp(11),
+    fontWeight: '500',
+    color: 'rgba(255,255,255,0.5)',
+    marginTop: hp(1),
+  },
+  headerAccentLine: {
+    height: 2,
+    marginHorizontal: wp(16),
+    marginBottom: hp(4),
+    borderRadius: 1,
+    backgroundColor: 'rgba(167, 139, 250, 0.3)',
   },
   scrollContent: {
     paddingHorizontal: HORIZONTAL_PAD,
-    paddingTop: hp(16),
-    paddingBottom: hp(32),
+    paddingTop: hp(20),
+    paddingBottom: hp(40),
   },
-
-  // Section
-  sectionTitle: {
-    fontSize: fp(16),
-    fontWeight: '700',
-    color: colors.heading,
-    marginBottom: hp(14),
-  },
-
-  // Cards Row
-  cardsRow: {
-    flexDirection: 'row',
-    gap: CARD_GAP,
-  },
-  card: {
-    width: CARD_WIDTH,
-    borderRadius: wp(20),
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
-    elevation: 3,
-  },
-  cardInner: {
-    borderRadius: wp(20),
-    paddingHorizontal: wp(14),
-    paddingTop: wp(18),
-    paddingBottom: wp(14),
-    alignItems: 'center',
-  },
-  iconCircle: {
-    width: wp(48),
-    height: wp(48),
+  aiBannerSection: {},
+  aiBanner: {
     borderRadius: wp(24),
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: hp(10),
+    padding: wp(24),
+    overflow: 'hidden',
   },
-  cardTitle: {
-    fontSize: fp(16),
-    fontWeight: '800',
-    marginBottom: hp(4),
+  aiBannerGlow: {
+    position: 'absolute',
+    top: -wp(40),
+    right: -wp(40),
+    width: wp(160),
+    height: wp(160),
+    borderRadius: wp(80),
+    backgroundColor: 'rgba(167, 139, 250, 0.08)',
   },
-  cardDesc: {
-    fontSize: fp(11.5),
-    color: colors.subtext,
-    textAlign: 'center',
-    lineHeight: fp(16),
-    marginBottom: hp(12),
+  aiBannerHeader: {
+    alignItems: 'flex-start',
+    marginBottom: hp(20),
   },
-  cardButton: {
+  aiComingSoonBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(6),
-    paddingHorizontal: wp(18),
-    paddingVertical: hp(9),
-    borderRadius: wp(22),
+    backgroundColor: 'rgba(167, 139, 250, 0.15)',
+    paddingHorizontal: wp(14),
+    paddingVertical: hp(6),
+    borderRadius: wp(20),
+    borderWidth: 1,
+    borderColor: 'rgba(167, 139, 250, 0.25)',
   },
-  cardButtonText: {
-    fontSize: fp(13),
-    fontWeight: '700',
+  aiComingSoonText: {
+    fontSize: fp(11),
+    fontWeight: '800',
+    color: colors.faaAiPrimary,
+    letterSpacing: 1.5,
+  },
+  aiBannerContent: {
+    alignItems: 'center',
+    marginBottom: hp(24),
+  },
+  aiBotIconWrap: {
+    width: wp(72),
+    height: wp(72),
+    borderRadius: wp(36),
+    backgroundColor: 'rgba(167, 139, 250, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: hp(16),
+    borderWidth: 1,
+    borderColor: 'rgba(167, 139, 250, 0.2)',
+  },
+  aiBannerTitle: {
+    fontSize: fp(28),
+    fontWeight: '800',
     color: colors.white,
+    textAlign: 'center',
+    lineHeight: fp(34),
+    marginBottom: hp(10),
+  },
+  aiBannerSubtitle: {
+    fontSize: fp(13),
+    color: 'rgba(255,255,255,0.55)',
+    textAlign: 'center',
+    lineHeight: fp(20),
+    paddingHorizontal: wp(8),
+  },
+  aiStatsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: wp(16),
+    paddingVertical: hp(16),
+  },
+  aiStatItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  aiStatValue: {
+    fontSize: fp(22),
+    fontWeight: '800',
+    color: colors.faaAiPrimary,
+  },
+  aiStatLabel: {
+    fontSize: fp(11),
+    color: 'rgba(255,255,255,0.5)',
+    fontWeight: '600',
+    marginTop: hp(2),
+  },
+  aiStatDivider: {
+    width: 1,
+    height: hp(32),
+    backgroundColor: 'rgba(255,255,255,0.1)',
   },
 
-  // Creator Tips
-  tipsSection: {
-    marginTop: hp(28),
-  },
-  tipsSectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  // AI Features
+  aiFeaturesTitle: {
+    fontSize: fp(16),
+    fontWeight: '700',
+    color: colors.heading,
+    marginTop: hp(24),
     marginBottom: hp(14),
   },
-  tipsSectionTitle: {
-    fontSize: fp(18),
-    fontWeight: '800',
-    color: colors.heading,
-  },
-  viewAllBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(4),
-  },
-  viewAllText: {
-    fontSize: fp(13),
-    fontWeight: '600',
-    color: colors.info,
-  },
-  tipCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.white,
-    borderRadius: wp(16),
-    padding: wp(14),
+  aiFeatureCard: {
     marginBottom: hp(10),
-    borderWidth: 1,
-    borderColor: colors.borderLight,
-    shadowColor: colors.shadow,
+    borderRadius: wp(16),
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
+    shadowOpacity: 0.2,
     shadowRadius: 8,
-    elevation: 2,
+    elevation: 3,
   },
-  tipIconWrap: {
+  aiFeatureInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: wp(16),
+    padding: wp(16),
+  },
+  aiFeatureIconWrap: {
     width: wp(48),
     height: wp(48),
     borderRadius: wp(14),
+    backgroundColor: 'rgba(255,255,255,0.08)',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: wp(14),
   },
-  tipContent: {
+  aiFeatureContent: {
     flex: 1,
   },
-  tipTitle: {
+  aiFeatureLabel: {
     fontSize: fp(14),
     fontWeight: '700',
-    color: colors.heading,
+    color: colors.white,
     marginBottom: hp(4),
   },
-  tipDesc: {
+  aiFeatureDesc: {
     fontSize: fp(12),
-    color: colors.textSecondary,
+    color: 'rgba(255,255,255,0.5)',
     lineHeight: fp(17),
-  },
-  tipChevron: {
-    marginLeft: wp(8),
   },
 });

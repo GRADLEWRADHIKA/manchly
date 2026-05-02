@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Image,
   Linking,
+  Dimensions,
 } from 'react-native';
 import {
   useFocusEffect,
@@ -48,6 +49,13 @@ import {
   getCreatorWebinarStats,
 } from '../../../../store/WebinarSlice';
 import { instance } from '../../../../utils/AxiosInstance';
+import Video from 'react-native-video';
+import { X, Play, Maximize2 } from 'lucide-react-native';
+import { clearJustLoggedIn } from '../../../../store/UserSlice';
+
+const INTRO_VIDEO_URL =
+  'https://stream.mux.com/aiFSECiPT501KG02eutUYBTKc8aPPOz27ikxTnTHaKJJ00.m3u8';
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const CreatorHome = () => {
   const navigation = useNavigation<any>();
@@ -62,9 +70,19 @@ const CreatorHome = () => {
   const [bankAccount, setBankAccount] = useState<any>(null);
   const [walletLoading, setWalletLoading] = useState(true);
   const [walletData, setWalletData] = useState<any>(null);
+  const { justLoggedIn } = useSelector((state: any) => state.userReducer);
   const focus = useIsFocused();
   const [courses, setCourses] = useState<any[]>([]);
   const [webiniarData, setWebinarData] = useState<any[]>([]);
+  const [showIntroVideo, setShowIntroVideo] = useState(false);
+  const [isFullScreen, setIsFullScreen] = useState(false);
+
+  useEffect(() => {
+    if (justLoggedIn) {
+      setShowIntroVideo(true);
+      dispatch(clearJustLoggedIn());
+    }
+  }, [justLoggedIn]);
 
   useEffect(() => {
     getTheCourse();
@@ -221,6 +239,12 @@ const CreatorHome = () => {
           <View
             style={{ flexDirection: 'row', alignItems: 'center', gap: wp(4) }}
           >
+            <TouchableOpacity
+              style={styles.bellBtn}
+              onPress={() => setShowIntroVideo(true)}
+            >
+              <Play size={wp(18)} color={colors.white} fill={colors.white} />
+            </TouchableOpacity>
             <TouchableOpacity
               style={styles.bellBtn}
               onPress={() => Linking.openURL('https://www.instagram.com/manchly_app')}
@@ -579,6 +603,47 @@ const CreatorHome = () => {
           )}
         </View>
       </ScrollView>
+
+      {showIntroVideo ? (
+        <View style={isFullScreen ? styles.fullScreenVideoContainer : styles.floatingVideoContainer}>
+          <View style={isFullScreen ? styles.expandedVideoWrap : styles.miniVideoWrap}>
+            <View style={styles.videoButtonsRow}>
+              <TouchableOpacity
+                style={styles.videoActionButton}
+                onPress={() => setIsFullScreen(!isFullScreen)}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Maximize2 size={wp(14)} color={colors.white} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.videoActionButton}
+                onPress={() => {
+                  setShowIntroVideo(false);
+                  setIsFullScreen(false);
+                }}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <X size={wp(16)} color={colors.white} />
+              </TouchableOpacity>
+            </View>
+            <Video
+              source={{ uri: INTRO_VIDEO_URL }}
+              style={styles.floatingVideo}
+              resizeMode={isFullScreen ? 'contain' : 'cover'}
+              paused={false}
+              controls={false}
+              muted={false}
+              playWhenInactive={false}
+              playInBackground={false}
+              ignoreSilentSwitch="obey"
+              onEnd={() => {
+                setShowIntroVideo(false);
+                setIsFullScreen(false);
+              }}
+            />
+          </View>
+        </View>
+      ) : null}
     </View>
   );
 };
@@ -1106,5 +1171,61 @@ const styles = StyleSheet.create({
     fontSize: fp(16),
     fontWeight: '700',
     color: colors.primary,
+  },
+
+  // Floating Intro Video
+  floatingVideoContainer: {
+    position: 'absolute',
+    bottom: hp(16),
+    right: wp(12),
+    width: SCREEN_WIDTH * 0.35,
+    aspectRatio: 9 / 16,
+    borderRadius: wp(12),
+    overflow: 'hidden',
+    backgroundColor: colors.black,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 10,
+  },
+  fullScreenVideoContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.85)',
+    zIndex: 100,
+  },
+  expandedVideoWrap: {
+    width: SCREEN_WIDTH * 0.75,
+    aspectRatio: 9 / 16,
+    borderRadius: wp(16),
+    overflow: 'hidden',
+    backgroundColor: colors.black,
+  },
+  miniVideoWrap: {
+    width: '100%',
+    height: '100%',
+  },
+  videoButtonsRow: {
+    position: 'absolute',
+    top: wp(8),
+    right: wp(8),
+    zIndex: 10,
+    flexDirection: 'row',
+    gap: wp(8),
+  },
+  videoActionButton: {
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderRadius: wp(14),
+    padding: wp(6),
+  },
+  floatingVideo: {
+    width: '100%',
+    height: '100%',
   },
 });

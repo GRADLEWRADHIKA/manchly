@@ -1,8 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { useSelector, useDispatch } from 'react-redux';
-import { clearJustLoggedIn } from '../store/UserSlice';
-import IntroVideoModal from '../components/IntroVideoModal';
 import Earnings from '../screens/Auth/Profile/Earnings';
 import UserProfile from '../screens/Auth/Profile/UserProfile';
 import CreatorProfile from '../screens/Auth/Creator/Profile/CreatorProfile';
@@ -25,20 +22,8 @@ import CreatorWebinarDetails from '../screens/Auth/Creator/Products/Webinar/Crea
 const Stack = createNativeStackNavigator();
 
 const CreatorMainStack = () => {
-  const dispatch = useDispatch();
-  const { justLoggedIn } = useSelector((state: any) => state.userReducer);
-  const [showIntroVideo, setShowIntroVideo] = useState(false);
-
-  useEffect(() => {
-    if (justLoggedIn) {
-      setShowIntroVideo(true);
-      dispatch(clearJustLoggedIn());
-    }
-  }, [justLoggedIn]);
-
   return (
-    <>
-      <Stack.Navigator
+    <Stack.Navigator
         initialRouteName="CreatorBottomTab"
         screenOptions={{ headerShown: false }}
       >
@@ -75,13 +60,7 @@ const CreatorMainStack = () => {
           name="WebinarDetails"
           component={CreatorWebinarDetails}
         />
-      </Stack.Navigator>
-
-      <IntroVideoModal
-        visible={showIntroVideo}
-        onClose={() => setShowIntroVideo(false)}
-      />
-    </>
+    </Stack.Navigator>
   );
 };
 

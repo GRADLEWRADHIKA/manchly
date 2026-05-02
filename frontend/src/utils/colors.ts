@@ -34,6 +34,10 @@ const colors = {
   splitBarBg: '#f1f5f9',
   divider: '#eaecef',
   handle: '#d4d4d8',
+  faaAiPrimary: '#A78BFA',
+  faaAiBg: '#0F0F1A',
+  faaAiCard: '#1A1040',
+  faaAiBlue: '#60A5FA',
 };
 
 export default colors;

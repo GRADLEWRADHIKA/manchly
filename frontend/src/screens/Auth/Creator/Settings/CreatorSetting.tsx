@@ -11,6 +11,10 @@ import {
   Modal,
   ActivityIndicator,
 } from 'react-native';
+import { Slider } from 'react-native-awesome-slider';
+import { useSharedValue } from 'react-native-reanimated';
+import { runOnJS } from 'react-native-worklets';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
 import {
@@ -32,6 +36,9 @@ import {
   Shield,
   ReceiptText,
   MessageCircle,
+  PiggyBank,
+  Instagram,
+  BadgeIndianRupee,
 } from 'lucide-react-native';
 import LogoutModal from '../../Profile/Components/LogoutModal';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -128,6 +135,8 @@ const CreatorSetting: React.FC = () => {
   const [showRefund, setShowRefund] = useState(false);
   const [showContact, setShowContact] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  const [showHissaModal, setShowHissaModal] = useState(false);
+  const [hissaSale, setHissaSale] = useState(1000);
   const [walletData, setWalletData] = useState<any>(null);
   const [walletLoading, setWalletLoading] = useState(true);
   const [bankAccount, setBankAccount] = useState<any>(null);
@@ -192,6 +201,24 @@ const CreatorSetting: React.FC = () => {
     });
   };
 
+  const CREATOR_PCT = 90;
+  const PLATFORM_PCT = 10;
+  const HISSA_MIN = 1000;
+  const HISSA_MAX = 100000;
+
+  const hissaCreatorAmount = Math.round((hissaSale * CREATOR_PCT) / 100);
+  const hissaPlatformAmount = Math.round((hissaSale * PLATFORM_PCT) / 100);
+
+  const progress = useSharedValue(1000);
+  const minSale = useSharedValue(HISSA_MIN);
+  const maxSale = useSharedValue(HISSA_MAX);
+
+  const syncFromSlider = useCallback((value: number) => {
+    const stepped = Math.round(value / 100) * 100;
+    const clamped = Math.max(HISSA_MIN, Math.min(HISSA_MAX, stepped));
+    setHissaSale(clamped);
+  }, []);
+
   const handleWithdraw = () => {
     if (!bankAccount) {
       Toast.show({
@@ -246,12 +273,24 @@ const CreatorSetting: React.FC = () => {
               <Text style={styles.headerTitle}>{user.name}</Text>
             </View>
           </View>
-          <TouchableOpacity
-            style={styles.bellBtn}
-            onPress={() => Nav.navigate('CreatorNotification')}
+          <View
+            style={{ flexDirection: 'row', alignItems: 'center', gap: wp(4) }}
           >
-            <Bell size={wp(20)} color={colors.white} />
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.bellBtn}
+              onPress={() =>
+                Linking.openURL('https://www.instagram.com/manchly_app')
+              }
+            >
+              <Instagram size={wp(20)} color={colors.white} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.bellBtn}
+              onPress={() => Nav.navigate('CreatorNotification')}
+            >
+              <Bell size={wp(20)} color={colors.white} />
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 
@@ -312,6 +351,32 @@ const CreatorSetting: React.FC = () => {
             <Text style={styles.withdrawBtnText}>Withdraw</Text>
           </Pressable>
         </LinearGradient>
+
+        {/* ──────── Aapki Kamaai ka Hissa ──────── */}
+        <Pressable
+          style={({ pressed }) => [
+            styles.hissaCard,
+            pressed && styles.hissaCardPressed,
+          ]}
+          onPress={() => setShowHissaModal(true)}
+        >
+          <View style={styles.hissaIconWrap}>
+            <BadgeIndianRupee size={wp(22)} color={colors.white} strokeWidth={2} />
+          </View>
+          <View style={styles.hissaInfo}>
+            <Text style={styles.hissaTitle}>Aapki Kamaai ka Hissa</Text>
+            <Text style={styles.hissaSubtitle}>
+              <Text style={styles.hissaCreator}>
+                {CREATOR_PCT}% aapka
+              </Text>
+              <Text style={styles.hissaDot}> · </Text>
+              <Text style={styles.hissaPlatform}>
+                {PLATFORM_PCT}% Manchly
+              </Text>
+            </Text>
+          </View>
+          <ChevronRight size={wp(18)} color="#c8ccd0" />
+        </Pressable>
 
         {/* ──────── Account Section ──────── */}
         <Text style={styles.sectionTitle}>Account</Text>
@@ -476,6 +541,129 @@ const CreatorSetting: React.FC = () => {
             </View>
           </View>
         </View>
+      </Modal>
+
+      {/* ──────── Hissa Bottom Sheet ──────── */}
+      <Modal
+        visible={showHissaModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowHissaModal(false)}
+      >
+        <GestureHandlerRootView style={styles.gestureRoot}>
+          <Pressable
+            style={styles.sheetOverlay}
+            onPress={() => setShowHissaModal(false)}
+          >
+            <Pressable style={styles.sheetContainer} onPress={() => {}}>
+            <View style={styles.sheetHandle} />
+
+            <Text style={styles.sheetTitle}>💰 Aapki Kamaai ka Hissa</Text>
+            <Text style={styles.sheetSubtitle}>
+              Har sale pe paisa aisa baanta hai
+            </Text>
+
+            {/* Split bar */}
+            <View style={styles.splitBar}>
+              <View
+                style={[
+                  styles.splitCreator,
+                  { flex: CREATOR_PCT },
+                ]}
+              />
+              <View
+                style={[
+                  styles.splitPlatform,
+                  { flex: PLATFORM_PCT },
+                ]}
+              />
+            </View>
+
+            <View style={styles.splitLegendRow}>
+              <View style={styles.splitLegendItem}>
+                <View style={styles.splitLegendRowTop}>
+                  <View
+                    style={[
+                      styles.splitDot,
+                      { backgroundColor: colors.creatorGreen },
+                    ]}
+                  />
+                  <Text style={styles.splitLegendLabel}>Aapka (Creator)</Text>
+                </View>
+                <Text
+                  style={[styles.splitLegendValue, { color: colors.creatorGreenDark }]}
+                >
+                  {CREATOR_PCT}%
+                </Text>
+              </View>
+              <View style={[styles.splitLegendItem, { alignItems: 'flex-end' }]}>
+                <View style={styles.splitLegendRowTop}>
+                  <Text style={styles.splitLegendLabel}>Manchly</Text>
+                  <View
+                    style={[
+                      styles.splitDot,
+                      { backgroundColor: colors.secondary },
+                    ]}
+                  />
+                </View>
+                <Text
+                  style={[styles.splitLegendValue, { color: colors.secondary }]}
+                >
+                  {PLATFORM_PCT}%
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.sheetDivider} />
+
+            <Text style={styles.calcLabel}>
+              🧮 Apna amount daalo, result dekho
+            </Text>
+
+            {/* Slidable price indicator — drag the thumb/bubble to change price */}
+            <View style={styles.sliderWrapper}>
+              <Slider
+                progress={progress}
+                minimumValue={minSale}
+                maximumValue={maxSale}
+                onValueChange={(v) => runOnJS(syncFromSlider)(v)}
+                onSlidingComplete={syncFromSlider}
+                bubble={(v) => `₹${Math.round(v).toLocaleString('en-IN')}`}
+                theme={{
+                  minimumTrackTintColor: colors.creatorGreen,
+                  maximumTrackTintColor: colors.trackDark,
+                  bubbleBackgroundColor: colors.creatorGreen,
+                  bubbleTextColor: colors.white,
+                }}
+                sliderHeight={hp(10)}
+                thumbWidth={wp(26)}
+                bubbleTranslateY={-hp(10)}
+                panHitSlop={{ top: 20, bottom: 20, left: 10, right: 10 }}
+                containerStyle={styles.sliderInner}
+              />
+            </View>
+
+            <Text style={styles.saleAmountText}>
+              ₹{hissaSale.toLocaleString('en-IN')} ki sale
+            </Text>
+
+            <View style={styles.resultRow}>
+              <View style={[styles.resultBox, styles.resultCreator]}>
+                <Text style={styles.resultLabel}>😋 Aapko milega</Text>
+                <Text style={[styles.resultValue, { color: colors.creatorGreenDark }]}>
+                  ₹{hissaCreatorAmount.toLocaleString('en-IN')}
+                </Text>
+              </View>
+              <View style={[styles.resultBox, styles.resultPlatform]}>
+                <Text style={styles.resultLabel}>🏢 Manchly ka</Text>
+                <Text style={[styles.resultValue, { color: colors.secondary }]}>
+                  ₹{hissaPlatformAmount.toLocaleString('en-IN')}
+                </Text>
+              </View>
+            </View>
+            </Pressable>
+          </Pressable>
+        </GestureHandlerRootView>
       </Modal>
 
       <TermsModal visible={showTerms} onClose={() => setShowTerms(false)} />
@@ -922,5 +1110,198 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontWeight: '700',
     fontSize: fp(14),
+  },
+
+  /* ──── Hissa Card ──── */
+  hissaCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.white,
+    marginHorizontal: wp(16),
+    marginBottom: hp(20),
+    paddingVertical: hp(14),
+    paddingHorizontal: wp(14),
+    borderRadius: wp(16),
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#eaecef',
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  hissaCardPressed: {
+    opacity: 0.9,
+    transform: [{ scale: 0.99 }],
+  },
+  hissaIconWrap: {
+    width: wp(44),
+    height: wp(44),
+    borderRadius: wp(12),
+    backgroundColor: '#22C55E',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: wp(12),
+    shadowColor: '#22C55E',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  hissaInfo: {
+    flex: 1,
+  },
+  hissaTitle: {
+    fontSize: fp(15),
+    fontWeight: '700',
+    color: colors.text,
+  },
+  hissaSubtitle: {
+    fontSize: fp(12),
+    marginTop: hp(2),
+  },
+  hissaCreator: {
+    color: colors.creatorGreenDark,
+    fontWeight: '700',
+  },
+  hissaDot: {
+    color: colors.muted,
+    fontWeight: '700',
+  },
+  hissaPlatform: {
+    color: colors.secondary,
+    fontWeight: '700',
+  },
+
+  /* ──── Hissa Bottom Sheet ──── */
+  gestureRoot: {
+    flex: 1,
+  },
+  sheetOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'flex-end',
+  },
+  sheetContainer: {
+    backgroundColor: colors.white,
+    borderTopLeftRadius: wp(24),
+    borderTopRightRadius: wp(24),
+    paddingHorizontal: wp(20),
+    paddingTop: hp(10),
+    paddingBottom: hp(28),
+  },
+  sheetHandle: {
+    width: wp(40),
+    height: hp(4),
+    borderRadius: wp(2),
+    backgroundColor: colors.handle,
+    alignSelf: 'center',
+    marginBottom: hp(16),
+  },
+  sheetTitle: {
+    fontSize: fp(18),
+    fontWeight: '800',
+    color: colors.text,
+  },
+  sheetSubtitle: {
+    fontSize: fp(13),
+    color: colors.textSecondary,
+    marginTop: hp(4),
+    marginBottom: hp(18),
+  },
+  splitBar: {
+    flexDirection: 'row',
+    height: hp(14),
+    borderRadius: wp(20),
+    overflow: 'hidden',
+    backgroundColor: colors.splitBarBg,
+  },
+  splitCreator: {
+    backgroundColor: colors.creatorGreen,
+  },
+  splitPlatform: {
+    backgroundColor: colors.secondary,
+  },
+  splitLegendRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: hp(12),
+  },
+  splitLegendItem: {
+    flex: 1,
+  },
+  splitLegendRowTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(6),
+  },
+  splitDot: {
+    width: wp(8),
+    height: wp(8),
+    borderRadius: wp(4),
+  },
+  splitLegendLabel: {
+    fontSize: fp(12),
+    color: colors.textSecondary,
+    fontWeight: '500',
+  },
+  splitLegendValue: {
+    fontSize: fp(22),
+    fontWeight: '900',
+    marginTop: hp(4),
+  },
+  sheetDivider: {
+    height: 1,
+    backgroundColor: colors.divider,
+    marginVertical: hp(18),
+  },
+  calcLabel: {
+    fontSize: fp(13),
+    color: colors.textSecondary,
+    fontWeight: '500',
+    marginBottom: hp(14),
+  },
+  sliderWrapper: {
+    marginTop: hp(24),
+    marginBottom: hp(8),
+    paddingHorizontal: wp(4),
+  },
+  sliderInner: {
+    borderRadius: hp(5),
+  },
+  saleAmountText: {
+    fontSize: fp(22),
+    fontWeight: '800',
+    color: colors.text,
+    textAlign: 'center',
+    marginVertical: hp(10),
+  },
+  resultRow: {
+    flexDirection: 'row',
+    gap: wp(12),
+    marginTop: hp(8),
+  },
+  resultBox: {
+    flex: 1,
+    paddingVertical: hp(14),
+    paddingHorizontal: wp(14),
+    borderRadius: wp(14),
+    alignItems: 'center',
+  },
+  resultCreator: {
+    backgroundColor: colors.creatorGreenLight,
+  },
+  resultPlatform: {
+    backgroundColor: colors.platformLight,
+  },
+  resultLabel: {
+    fontSize: fp(12),
+    color: colors.textSecondary,
+    fontWeight: '500',
+    marginBottom: hp(4),
+  },
+  resultValue: {
+    fontSize: fp(22),
+    fontWeight: '900',
   },
 });

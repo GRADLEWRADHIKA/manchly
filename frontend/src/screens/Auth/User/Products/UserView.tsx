@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   FlatList,
   RefreshControl,
+  Pressable,
+  Linking,
 } from 'react-native';
 import {
   Search,
@@ -13,6 +15,7 @@ import {
   Presentation,
   TrendingUp,
   X,
+  Instagram,
 } from 'lucide-react-native';
 import colors from '../../../../utils/colors';
 import { useSelector, useDispatch } from 'react-redux';
@@ -137,16 +140,27 @@ const UserView: React.FC = () => {
       <View
         style={[styles.hero, { paddingTop: insets.top + hp(16), backgroundColor: colors.secPrimary }]}
       >
-        <View style={styles.heroContent}>
-          <Text style={styles.heroGreeting}>Hey {displayName} 👋</Text>
-          <Text style={styles.heroHeading}>
-            {active === 'courses' ? 'Discover & Learn' : 'Join Live Webinars'}
-          </Text>
-          <Text style={styles.heroSubtext}>
-            {active === 'courses'
-              ? 'Explore courses from top creators'
-              : 'Attend live sessions with experts'}
-          </Text>
+        <View style={styles.heroTop}>
+          <View style={styles.heroContent}>
+            <Text style={styles.heroGreeting}>Hey {displayName} 👋</Text>
+            <Text style={styles.heroHeading}>
+              {active === 'courses' ? 'Discover & Learn' : 'Join Live Webinars'}
+            </Text>
+            <Text style={styles.heroSubtext}>
+              {active === 'courses'
+                ? 'Explore courses from top creators'
+                : 'Attend live sessions with experts'}
+            </Text>
+          </View>
+          <Pressable
+            style={({ pressed }) => [
+              styles.instaBtn,
+              pressed && styles.instaBtnPressed,
+            ]}
+            onPress={() => Linking.openURL('https://www.instagram.com/manchly_app')}
+            accessibilityLabel="Instagram">
+            <Instagram size={wp(18)} color={colors.white} strokeWidth={2} />
+          </Pressable>
         </View>
 
         {enrolledCount > 0 && (
@@ -278,8 +292,29 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: wp(24),
     borderBottomRightRadius: wp(24),
   },
+  heroTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
   heroContent: {
+    flex: 1,
     marginBottom: hp(8),
+  },
+  instaBtn: {
+    width: wp(40),
+    height: wp(40),
+    borderRadius: wp(14),
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+    marginTop: hp(4),
+  },
+  instaBtnPressed: {
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    transform: [{ scale: 0.93 }],
   },
   heroGreeting: {
     fontSize: fp(14),

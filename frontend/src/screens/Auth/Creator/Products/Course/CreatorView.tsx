@@ -7,6 +7,7 @@ import {
   Image,
   ScrollView,
   TouchableOpacity,
+  Linking,
 } from 'react-native';
 import colors from '../../../../../utils/colors';
 import { wp, hp, fp } from '../../../../../utils/responsive';
@@ -16,7 +17,7 @@ import { ThunkDispatch } from '@reduxjs/toolkit';
 import { deleteCourse, fetchCourses } from '../../../../../store/CourseSlice';
 import DynamicModal from '../../../../../components/CommonModal';
 import CourseCard from './CourseCard';
-import { Bell, BookOpen, Search, UserCircle } from 'lucide-react-native';
+import { Bell, BookOpen, Search, UserCircle, Instagram } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import CustomTextInput from '../../../../../components/CustomInput';
 
@@ -130,12 +131,24 @@ const CreatorView: React.FC = () => {
               </Text>
             </View>
           </View>
-          <TouchableOpacity
-            style={styles.bellBtn}
-            onPress={() => navigation.navigate('CreatorNotification')}
+          <View
+            style={{ flexDirection: 'row', alignItems: 'center', gap: wp(4) }}
           >
-            <Bell size={wp(20)} color={colors.white} />
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.bellBtn}
+              onPress={() =>
+                Linking.openURL('https://www.instagram.com/manchly_app')
+              }
+            >
+              <Instagram size={wp(20)} color={colors.white} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.bellBtn}
+              onPress={() => navigation.navigate('CreatorNotification')}
+            >
+              <Bell size={wp(20)} color={colors.white} />
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 

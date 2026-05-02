@@ -173,6 +173,7 @@ export const UserSlice = createSlice({
     isAuth: false,
     kycStatus: null as any,
     kycVerifying: false,
+    justLoggedIn: false,
   },
   reducers: {
     logout: state => {
@@ -180,8 +181,12 @@ export const UserSlice = createSlice({
       state.isAuth = false;
       state.token = '';
       state.kycStatus = null;
+      state.justLoggedIn = false;
       // Remove FCM token on logout
       NotificationService.removeToken();
+    },
+    clearJustLoggedIn: state => {
+      state.justLoggedIn = false;
     },
   },
   extraReducers: builder => {
@@ -193,6 +198,7 @@ export const UserSlice = createSlice({
         state.user = actions?.payload?.data?.data?.user;
         state.token = actions?.payload?.data?.data?.token;
         state.loading = false;
+        state.justLoggedIn = true;
       })
       .addCase(updateProfile.fulfilled, (state, actions) => {
         state.user = actions?.payload?.data?.data?.user;
@@ -210,6 +216,6 @@ export const UserSlice = createSlice({
   },
 });
 
-export const { logout } = UserSlice?.actions;
+export const { logout, clearJustLoggedIn } = UserSlice?.actions;
 
 export default UserSlice?.reducer;

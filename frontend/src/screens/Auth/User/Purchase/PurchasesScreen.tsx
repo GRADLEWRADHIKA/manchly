@@ -11,15 +11,17 @@ import {
   LayoutAnimation,
   Platform,
   UIManager,
+  Linking,
 } from 'react-native';
 import {
   ShoppingBag,
   GraduationCap,
   Video,
+  Instagram,
 } from 'lucide-react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import AppHeader from '../../../../components/AppHeader';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import colors from '../../../../utils/colors';
 import { getEnrolledCourses } from '../../../../store/EnrollmentSlice';
 import { getMyTransactions } from '../../../../store/PaymentSlice';
@@ -264,6 +266,7 @@ const SkeletonList = () => (
 const PurchasesScreen = () => {
   const dispatch = useDispatch<any>();
   const navigation = useNavigation<any>();
+  const insets = useSafeAreaInsets();
   const { list: enrolledCourses, loading: enrolledLoading } = useSelector(
     (state: any) => state.enrollmentsReducer,
   );
@@ -347,7 +350,23 @@ const PurchasesScreen = () => {
 
   return (
     <View style={styles.container}>
-      <AppHeader title="My Purchases" />
+      <View
+        style={[
+          styles.headerBar,
+          { paddingTop: insets.top + hp(4) },
+        ]}>
+        <Text style={styles.headerTitle}>My Purchases</Text>
+        <Pressable
+          style={({ pressed }) => [
+            styles.instaBtn,
+            pressed && styles.instaBtnPressed,
+          ]}
+          onPress={() => Linking.openURL('https://www.instagram.com/manchly_app')}
+          accessibilityLabel="Instagram">
+          <Instagram size={wp(18)} color={colors.white} strokeWidth={2} />
+        </Pressable>
+      </View>
+      <View style={styles.headerEdge} />
 
       {/* Segmented Tabs */}
       <SegmentedTabs
@@ -439,6 +458,43 @@ export default PurchasesScreen;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.surface },
+
+  headerBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: wp(20),
+    paddingBottom: hp(10),
+    backgroundColor: colors.secPrimary,
+    zIndex: 10,
+  },
+  headerTitle: {
+    color: colors.white,
+    fontSize: fp(20),
+    fontWeight: '700',
+    letterSpacing: 0.3,
+  },
+  headerEdge: {
+    backgroundColor: colors.secPrimary,
+    height: hp(16),
+    borderBottomLeftRadius: wp(18),
+    borderBottomRightRadius: wp(18),
+    zIndex: 10,
+  },
+  instaBtn: {
+    width: wp(40),
+    height: wp(40),
+    borderRadius: wp(14),
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+  },
+  instaBtnPressed: {
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    transform: [{ scale: 0.93 }],
+  },
 
   listContent: {
     padding: wp(16),

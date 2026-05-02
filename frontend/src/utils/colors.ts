@@ -26,6 +26,14 @@ const colors = {
   gradientEnd: '#dcdcdc',
   shadow: '#000000',
   placeholder: '#dddddd',
+  creatorGreen: '#22C55E',
+  creatorGreenDark: '#16A34A',
+  creatorGreenLight: '#DCFCE7',
+  platformLight: '#FEF3C7',
+  trackDark: '#1f2937',
+  splitBarBg: '#f1f5f9',
+  divider: '#eaecef',
+  handle: '#d4d4d8',
 };
 
 export default colors;

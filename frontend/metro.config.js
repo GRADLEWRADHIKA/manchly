@@ -10,6 +10,7 @@ const path = require('path');
 
 const config = {
   resolver: {
+    unstable_enablePackageExports: true,
     extraNodeModules: {
       invariant: path.resolve(__dirname, 'node_modules/invariant/invariant.js'),
     },

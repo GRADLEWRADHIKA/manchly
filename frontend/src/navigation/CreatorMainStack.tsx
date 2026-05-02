@@ -1,5 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { useSelector, useDispatch } from 'react-redux';
+import { clearJustLoggedIn } from '../store/UserSlice';
+import IntroVideoModal from '../components/IntroVideoModal';
 import Earnings from '../screens/Auth/Profile/Earnings';
 import UserProfile from '../screens/Auth/Profile/UserProfile';
 import CreatorProfile from '../screens/Auth/Creator/Profile/CreatorProfile';
@@ -22,45 +25,63 @@ import CreatorWebinarDetails from '../screens/Auth/Creator/Products/Webinar/Crea
 const Stack = createNativeStackNavigator();
 
 const CreatorMainStack = () => {
+  const dispatch = useDispatch();
+  const { justLoggedIn } = useSelector((state: any) => state.userReducer);
+  const [showIntroVideo, setShowIntroVideo] = useState(false);
+
+  useEffect(() => {
+    if (justLoggedIn) {
+      setShowIntroVideo(true);
+      dispatch(clearJustLoggedIn());
+    }
+  }, [justLoggedIn]);
+
   return (
-    <Stack.Navigator
-      initialRouteName="CreatorBottomTab"
-      screenOptions={{ headerShown: false }}
-    >
-      <Stack.Screen name="CreatorBottomTab" component={CreatorBottomTab} />
-      <Stack.Screen
-        name="CreatorSettingsDetails"
-        component={CreatorSettingsDetails}
+    <>
+      <Stack.Navigator
+        initialRouteName="CreatorBottomTab"
+        screenOptions={{ headerShown: false }}
+      >
+        <Stack.Screen name="CreatorBottomTab" component={CreatorBottomTab} />
+        <Stack.Screen
+          name="CreatorSettingsDetails"
+          component={CreatorSettingsDetails}
+        />
+        <Stack.Screen name="Earnings" component={Earnings} />
+        <Stack.Screen name="UserProfile" component={UserProfile} />
+        <Stack.Screen name="CreatorProfile" component={CreatorProfile} />
+        <Stack.Screen name="Dashboard" component={Dashboard} />
+        <Stack.Screen name="SuperThank" component={SuperThank} />
+        <Stack.Screen name="Wallet" component={Wallet} />
+        <Stack.Screen name="CreateProducts" component={CreateProducts} />
+        <Stack.Screen name="CreateWebinar" component={CreateWebinar} />
+        <Stack.Screen name="CreateCourse" component={CreateCourse} />
+        <Stack.Screen name="WalletCreator" component={WalletCreator} />
+        <Stack.Screen name="CourseVideoList" component={CourseVideoList} />
+        <Stack.Screen
+          name="KYCVerificationScreen"
+          component={KYCVerificationScreen}
+        />
+        <Stack.Screen
+          name="CourseDetailsScreen"
+          component={CourseDetailsScreen}
+        />
+        <Stack.Screen
+          name="CreatorNotification"
+          component={CreatorNotification}
+        />
+        <Stack.Screen name="BankDetails" component={BankDetails} />
+        <Stack.Screen
+          name="WebinarDetails"
+          component={CreatorWebinarDetails}
+        />
+      </Stack.Navigator>
+
+      <IntroVideoModal
+        visible={showIntroVideo}
+        onClose={() => setShowIntroVideo(false)}
       />
-      <Stack.Screen name="Earnings" component={Earnings} />
-      <Stack.Screen name="UserProfile" component={UserProfile} />
-      <Stack.Screen name="CreatorProfile" component={CreatorProfile} />
-      <Stack.Screen name="Dashboard" component={Dashboard} />
-      <Stack.Screen name="SuperThank" component={SuperThank} />
-      <Stack.Screen name="Wallet" component={Wallet} />
-      <Stack.Screen name="CreateProducts" component={CreateProducts} />
-      <Stack.Screen name="CreateWebinar" component={CreateWebinar} />
-      <Stack.Screen name="CreateCourse" component={CreateCourse} />
-      <Stack.Screen name="WalletCreator" component={WalletCreator} />
-      <Stack.Screen name="CourseVideoList" component={CourseVideoList} />
-      <Stack.Screen
-        name="KYCVerificationScreen"
-        component={KYCVerificationScreen}
-      />
-      <Stack.Screen
-        name="CourseDetailsScreen"
-        component={CourseDetailsScreen}
-      />
-      <Stack.Screen
-        name="CreatorNotification"
-        component={CreatorNotification}
-      />
-      <Stack.Screen name="BankDetails" component={BankDetails} />
-      <Stack.Screen
-        name="WebinarDetails"
-        component={CreatorWebinarDetails}
-      />
-    </Stack.Navigator>
+    </>
   );
 };
 

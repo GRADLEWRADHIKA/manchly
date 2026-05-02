@@ -23,6 +23,7 @@ import {
   Shield,
   ReceiptText,
   MessageCircle,
+  Instagram,
 } from 'lucide-react-native';
 import LogoutModal from '../../Profile/Components/LogoutModal';
 import { useNavigation } from '@react-navigation/native';
@@ -149,9 +150,20 @@ const UserSetting: React.FC = () => {
               </Text>
             </View>
           </View>
-          <TouchableOpacity style={styles.bellBtn}>
-            <Bell size={wp(20)} color={colors.white} />
-          </TouchableOpacity>
+          <View style={styles.headerActions}>
+            <Pressable
+              style={({ pressed }) => [
+                styles.bellBtn,
+                pressed && styles.bellBtnPressed,
+              ]}
+              onPress={() => Linking.openURL('https://www.instagram.com/manchly_app')}
+              accessibilityLabel="Instagram">
+              <Instagram size={wp(18)} color={colors.white} strokeWidth={2} />
+            </Pressable>
+            <TouchableOpacity style={styles.bellBtn}>
+              <Bell size={wp(20)} color={colors.white} />
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 
@@ -312,6 +324,10 @@ const styles = StyleSheet.create({
     color: colors.white,
     marginTop: hp(1),
   },
+  headerActions: {
+    flexDirection: 'row',
+    gap: wp(10),
+  },
   bellBtn: {
     width: wp(32),
     height: wp(32),
@@ -319,6 +335,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.1)',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  bellBtnPressed: {
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    transform: [{ scale: 0.93 }],
   },
 
   /* ──── Body ──── */

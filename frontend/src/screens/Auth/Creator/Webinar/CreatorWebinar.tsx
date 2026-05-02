@@ -7,6 +7,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   Image,
+  Linking,
 } from 'react-native';
 import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
@@ -15,7 +16,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
 import { getAllWebinar } from '../../../../store/WebinarSlice';
 import WebinarCard from '../Products/Webinar/WebinarCard';
-import { Plus, Search, Presentation, UserCircle, Bell } from 'lucide-react-native';
+import { Plus, Search, Presentation, UserCircle, Bell, Instagram } from 'lucide-react-native';
 import { FAB } from 'react-native-paper';
 import CustomTextInput from '../../../../components/CustomInput';
 import Toast from 'react-native-toast-message';
@@ -103,12 +104,24 @@ const CreatorWebinar = () => {
               </Text>
             </View>
           </View>
-          <TouchableOpacity
-            style={styles.bellBtn}
-            onPress={() => navigation.navigate('CreatorNotification')}
+          <View
+            style={{ flexDirection: 'row', alignItems: 'center', gap: wp(4) }}
           >
-            <Bell size={wp(20)} color={colors.white} />
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.bellBtn}
+              onPress={() =>
+                Linking.openURL('https://www.instagram.com/manchly_app')
+              }
+            >
+              <Instagram size={wp(20)} color={colors.white} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.bellBtn}
+              onPress={() => navigation.navigate('CreatorNotification')}
+            >
+              <Bell size={wp(20)} color={colors.white} />
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 

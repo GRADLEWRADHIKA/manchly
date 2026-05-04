@@ -24,6 +24,10 @@ model users {
   kyc_verified_at           DateTime?
   kyc_verification_id       String?
   fcm_token                 String?
+  instagram_link            String?
+  linkedin_link             String?
+  youtube_link              String?
+  facebook_link             String?
   conversation_participants conversation_participants[]
   courses                   courses[]
   enrollments               enrollments[]

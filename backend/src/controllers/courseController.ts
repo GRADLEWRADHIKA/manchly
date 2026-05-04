@@ -401,7 +401,12 @@ export class CourseController {
               id: true,
               name: true,
               email: true,
-              profile_image: true
+              profile_image: true,
+              kyc_verified: true,
+              instagram_link: true,
+              linkedin_link: true,
+              youtube_link: true,
+              facebook_link: true
             }
           },
           videos: {
@@ -532,7 +537,12 @@ export class CourseController {
               id: true,
               name: true,
               email: true,
-              profile_image: true
+              profile_image: true,
+              kyc_verified: true,
+              instagram_link: true,
+              linkedin_link: true,
+              youtube_link: true,
+              facebook_link: true
             }
           },
           videos: true

@@ -406,7 +406,11 @@ export class AuthController {
           phone: user.phone,
           profile_image: user.profile_image,
           user_type: user_type || (Array.isArray(user.user_type) ? user.user_type[0] : user.user_type),
-          fcm_token: fcm_token || user.fcm_token
+          fcm_token: fcm_token || user.fcm_token,
+          instagram_link: (user as any).instagram_link,
+          linkedin_link: (user as any).linkedin_link,
+          youtube_link: (user as any).youtube_link,
+          facebook_link: (user as any).facebook_link
         }
       }, "OTP verified successfully");
     } catch (err: any) {
@@ -499,7 +503,7 @@ export class AuthController {
 
   // 9. Update User Profile (Protected)
   static async updateProfile(req: any, res: Response) {
-    const { name, phone_number, user_type, profile_image, dob, fcm_token } = req.body;
+    const { name, phone_number, user_type, profile_image, dob, fcm_token, instagram_link, linkedin_link, youtube_link, facebook_link } = req.body;
     const { user } = req;
 
     // Validate and process user_type if provided
@@ -546,7 +550,11 @@ export class AuthController {
         phone: phone_number,
         profile_image,
         dob,
-        fcm_token
+        fcm_token,
+        instagram_link,
+        linkedin_link,
+        youtube_link,
+        facebook_link
       };
       
       if (userTypesArray !== undefined) {
@@ -586,7 +594,11 @@ export class AuthController {
           user_type: true,
           created_at: true,
           last_login: true,
-          fcm_token: true
+          fcm_token: true,
+          instagram_link: true,
+          linkedin_link: true,
+          youtube_link: true,
+          facebook_link: true
         }
       });
 

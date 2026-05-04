@@ -177,7 +177,7 @@ const CreatorSetting: React.FC = () => {
     }, []),
   );
 
-  const withdrawableBalance = walletData?.pending_settlement || 0;
+  const withdrawableBalance = walletData?.available_balance || 0;
 
   const formatAmount = (amount: number) => {
     return amount.toLocaleString('en-IN', {

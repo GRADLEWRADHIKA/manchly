@@ -1,0 +1,283 @@
+import React from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  Linking,
+  ScrollView,
+} from 'react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import {
+  User2,
+  ShieldCheck,
+  ShieldX,
+} from 'lucide-react-native';
+import Toast from 'react-native-toast-message';
+import colors from '../../../../utils/colors';
+import { wp, hp, fp } from '../../../../utils/responsive';
+import AppHeaderWithBack from '../../../../components/AppHeaderWithBack';
+import { InstagramIcon, LinkedinIcon, YoutubeIcon, FacebookIcon } from '../../../../components/SocialIcons';
+
+const CreatorPublicProfile = () => {
+  const navigation = useNavigation<any>();
+  const route = useRoute<any>();
+  const creator = route.params?.creator;
+
+  const displayName = creator?.name
+    ? creator.name.charAt(0).toUpperCase() + creator.name.slice(1)
+    : 'Creator';
+
+  const openLink = async (url: string) => {
+    let finalUrl = url.trim();
+    if (!/^https?:\/\//i.test(finalUrl)) {
+      finalUrl = 'https://' + finalUrl;
+    }
+
+    let appUrl: string | null = null;
+
+    if (/instagram\.com/i.test(finalUrl)) {
+      const username = finalUrl.match(/instagram\.com\/([^/?]+)/)?.[1];
+      if (username) appUrl = `instagram://user?username=${username}`;
+    } else if (/linkedin\.com/i.test(finalUrl)) {
+      appUrl = `linkedin://in/${finalUrl.split('/in/')[1] || ''}`;
+    } else if (/youtube\.com|youtu\.be/i.test(finalUrl)) {
+      const channelMatch = finalUrl.match(/youtube\.com\/(channel|c|@)\/?([\w-]+)/);
+      if (channelMatch) appUrl = `youtube://${channelMatch[0].replace('youtube.com/', '')}`;
+    } else if (/facebook\.com/i.test(finalUrl)) {
+      appUrl = `fb://facewebmodal/f?href=${encodeURIComponent(finalUrl)}`;
+    }
+
+    if (appUrl) {
+      const canOpen = await Linking.canOpenURL(appUrl);
+      if (canOpen) {
+        Linking.openURL(appUrl);
+        return;
+      }
+    }
+
+    Linking.openURL(finalUrl).catch(() => {
+      Toast.show({ type: 'error', text1: 'Could not open link', position: 'bottom' });
+    });
+  };
+
+  const hasSocialLinks =
+    creator?.instagram_link || creator?.linkedin_link || creator?.youtube_link || creator?.facebook_link;
+
+  return (
+    <View style={styles.container}>
+      <AppHeaderWithBack title="Creator Profile" />
+
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Profile Card */}
+        <View style={styles.profileCard}>
+          {/* Avatar */}
+          <View style={styles.avatarContainer}>
+            <View style={styles.imageWrapper}>
+              {creator?.profile_image ? (
+                <Image source={{ uri: creator.profile_image }} style={styles.profileImage} />
+              ) : (
+                <User2 size={wp(44)} color={colors.white} />
+              )}
+            </View>
+          </View>
+
+          {/* Name */}
+          <Text style={styles.profileName}>{displayName}</Text>
+
+          {/* KYC Badge */}
+          <View
+            style={[
+              styles.kycBadge,
+              creator?.kyc_verified ? styles.kycVerified : styles.kycNotVerified,
+            ]}
+          >
+            {creator?.kyc_verified ? (
+              <ShieldCheck size={wp(14)} color={colors.success} />
+            ) : (
+              <ShieldX size={wp(14)} color={colors.error} />
+            )}
+            <Text
+              style={[
+                styles.kycText,
+                { color: creator?.kyc_verified ? colors.success : colors.error },
+              ]}
+            >
+              {creator?.kyc_verified ? 'KYC Verified' : 'KYC Not Verified'}
+            </Text>
+          </View>
+
+          {/* Social Links */}
+          {hasSocialLinks && (
+            <>
+              <View style={styles.divider} />
+              <Text style={styles.connectTitle}>Connect</Text>
+              <View style={styles.socialGrid}>
+                {creator?.instagram_link ? (
+                  <TouchableOpacity
+                    style={styles.socialBtn}
+                    onPress={() => openLink(creator.instagram_link)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={[styles.socialIconWrap, { backgroundColor: '#E1306C15' }]}>
+                      <InstagramIcon size={wp(22)} color="#E1306C" />
+                    </View>
+                    <Text style={styles.socialLabel}>Instagram</Text>
+                  </TouchableOpacity>
+                ) : null}
+                {creator?.linkedin_link ? (
+                  <TouchableOpacity
+                    style={styles.socialBtn}
+                    onPress={() => openLink(creator.linkedin_link)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={[styles.socialIconWrap, { backgroundColor: '#0077B515' }]}>
+                      <LinkedinIcon size={wp(22)} color="#0077B5" />
+                    </View>
+                    <Text style={styles.socialLabel}>LinkedIn</Text>
+                  </TouchableOpacity>
+                ) : null}
+                {creator?.youtube_link ? (
+                  <TouchableOpacity
+                    style={styles.socialBtn}
+                    onPress={() => openLink(creator.youtube_link)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={[styles.socialIconWrap, { backgroundColor: '#FF000015' }]}>
+                      <YoutubeIcon size={wp(22)} color="#FF0000" />
+                    </View>
+                    <Text style={styles.socialLabel}>YouTube</Text>
+                  </TouchableOpacity>
+                ) : null}
+                {creator?.facebook_link ? (
+                  <TouchableOpacity
+                    style={styles.socialBtn}
+                    onPress={() => openLink(creator.facebook_link)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={[styles.socialIconWrap, { backgroundColor: '#1877F215' }]}>
+                      <FacebookIcon size={wp(22)} color="#1877F2" />
+                    </View>
+                    <Text style={styles.socialLabel}>Facebook</Text>
+                  </TouchableOpacity>
+                ) : null}
+              </View>
+            </>
+          )}
+        </View>
+      </ScrollView>
+    </View>
+  );
+};
+
+export default CreatorPublicProfile;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.surface,
+  },
+  scrollContent: {
+    paddingBottom: hp(40),
+  },
+  profileCard: {
+    backgroundColor: colors.white,
+    marginHorizontal: wp(16),
+    marginTop: hp(20),
+    borderRadius: wp(20),
+    paddingVertical: hp(30),
+    paddingHorizontal: wp(20),
+    alignItems: 'center',
+    elevation: 3,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+  },
+  avatarContainer: {
+    marginBottom: hp(16),
+  },
+  imageWrapper: {
+    width: wp(110),
+    height: wp(110),
+    borderRadius: wp(55),
+    backgroundColor: colors.secPrimary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 3,
+    borderColor: colors.secPrimary + '40',
+  },
+  profileImage: {
+    width: wp(110),
+    height: wp(110),
+    borderRadius: wp(55),
+  },
+  profileName: {
+    fontSize: fp(24),
+    fontWeight: '800',
+    color: colors.text,
+    marginBottom: hp(12),
+  },
+  kycBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(6),
+    paddingHorizontal: wp(14),
+    paddingVertical: hp(7),
+    borderRadius: wp(20),
+    borderWidth: 1,
+  },
+  kycVerified: {
+    backgroundColor: colors.success + '10',
+    borderColor: colors.success + '30',
+  },
+  kycNotVerified: {
+    backgroundColor: colors.error + '10',
+    borderColor: colors.error + '30',
+  },
+  kycText: {
+    fontSize: fp(12),
+    fontWeight: '700',
+  },
+  divider: {
+    width: '80%',
+    height: 1,
+    backgroundColor: colors.borderLight,
+    marginVertical: hp(20),
+  },
+  connectTitle: {
+    fontSize: fp(14),
+    fontWeight: '700',
+    color: colors.textSecondary,
+    marginBottom: hp(14),
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+  },
+  socialGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: wp(12),
+  },
+  socialBtn: {
+    alignItems: 'center',
+    gap: hp(8),
+    width: wp(80),
+  },
+  socialIconWrap: {
+    width: wp(52),
+    height: wp(52),
+    borderRadius: wp(16),
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  socialLabel: {
+    fontSize: fp(11),
+    color: colors.textSecondary,
+    fontWeight: '600',
+  },
+});

@@ -173,7 +173,8 @@ const CreatorHome = () => {
 
   const initials = user?.name ? user.name.charAt(0).toUpperCase() : 'C';
 
-  const withdrawableBalance = walletData?.pending_settlement || 0;
+  const withdrawableBalance = walletData?.available_balance || 0;
+  const totalRevenueAmount = walletData?.total_net_earnings || 0;
 
   const milestones = useMemo(
     () => [
@@ -281,7 +282,7 @@ const CreatorHome = () => {
                   <Text style={styles.rupeeSymbol}>₹</Text>
                   {walletLoading
                     ? '...'
-                    : `${formatAmount(withdrawableBalance)}`}
+                    : `${formatAmount(totalRevenueAmount)}`}
                 </Text>
               </View>
               <View style={styles.growingBadge}>

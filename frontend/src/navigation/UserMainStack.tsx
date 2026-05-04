@@ -16,6 +16,7 @@ import UserCourseSearch from '../screens/Auth/User/Search/UserCourseSearch';
 import UserVideoList from '../screens/Auth/User/Home/UserVideoList';
 import WebinarDetails from '../screens/Auth/User/Home/WebinarDetails';
 import KYCVerificationScreen from '../screens/Auth/Creator/Kyc/KYCVerificationScreen';
+import CreatorPublicProfile from '../screens/Auth/Creator/Profile/CreatorPublicProfile';
 
 const Stack = createNativeStackNavigator();
 
@@ -47,6 +48,7 @@ const UserMainStack = () => {
       <Stack.Screen name="UserVideoList" component={UserVideoList} />
       <Stack.Screen name="WebinarDetails" component={WebinarDetails} />
       <Stack.Screen name="KYCVerificationScreen" component={KYCVerificationScreen} />
+      <Stack.Screen name="CreatorPublicProfile" component={CreatorPublicProfile} />
     </Stack.Navigator>
   );
 };

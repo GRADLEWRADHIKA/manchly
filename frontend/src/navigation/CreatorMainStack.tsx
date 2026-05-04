@@ -18,6 +18,7 @@ import CourseDetailsScreen from '../screens/Auth/Creator/Products/Course/CourseD
 import CreatorNotification from '../screens/Auth/Creator/Notification/CreatorNotification';
 import BankDetails from '../screens/Auth/Creator/BankDetails/BankDetails';
 import CreatorWebinarDetails from '../screens/Auth/Creator/Products/Webinar/CreatorWebinarDetails';
+import CreatorPublicProfile from '../screens/Auth/Creator/Profile/CreatorPublicProfile';
 
 const Stack = createNativeStackNavigator();
 
@@ -56,6 +57,7 @@ const CreatorMainStack = () => {
           component={CreatorNotification}
         />
         <Stack.Screen name="BankDetails" component={BankDetails} />
+        <Stack.Screen name="CreatorPublicProfile" component={CreatorPublicProfile} />
         <Stack.Screen
           name="WebinarDetails"
           component={CreatorWebinarDetails}

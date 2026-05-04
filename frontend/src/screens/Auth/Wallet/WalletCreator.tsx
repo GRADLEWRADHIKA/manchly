@@ -87,8 +87,8 @@ const WalletCreator = () => {
     });
   };
 
-  const pendingBalance = walletData?.pending_settlement || 0;
-  const settledBalance = walletData?.settled_amount || 0;
+  const pendingBalance = walletData?.available_balance || 0;
+  const settledBalance = walletData?.withdrawn_amount || 0;
   const totalEarnings = walletData?.total_earnings || 0;
   const totalNetEarnings = walletData?.total_net_earnings || 0;
 

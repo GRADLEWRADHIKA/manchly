@@ -226,7 +226,14 @@ const CourseDetailsScreen: React.FC = () => {
           <Text style={styles.title}>{course.title}</Text>
 
           {course.creator?.name && (
-            <Text style={styles.instructor}>by {course.creator.name}</Text>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => navigation.navigate('CreatorPublicProfile', { creator: course.creator })}
+              style={styles.instructorRow}
+            >
+              <Text style={styles.instructor}>by </Text>
+              <Text style={styles.instructorName}>{course.creator.name}</Text>
+            </TouchableOpacity>
           )}
 
           {course.description && (
@@ -349,7 +356,9 @@ const styles = StyleSheet.create({
   },
   content: { padding: wp(16) },
   title: { fontSize: fp(24), fontWeight: '700', color: colors.text },
-  instructor: { color: colors.textSecondary, marginBottom: hp(16) },
+  instructorRow: { flexDirection: 'row', alignItems: 'center', marginBottom: hp(16) },
+  instructor: { color: colors.textSecondary, fontSize: fp(14) },
+  instructorName: { color: colors.info, fontSize: fp(14), fontWeight: '600', textDecorationLine: 'underline' },
   section: { marginVertical: hp(16) },
   sectionTitle: { fontSize: fp(18), fontWeight: '600', marginBottom: hp(10) },
   description: { fontSize: fp(15), lineHeight: fp(22) },

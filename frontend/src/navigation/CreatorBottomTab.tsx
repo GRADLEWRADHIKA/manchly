@@ -9,12 +9,14 @@ import {
   Presentation,
   BookOpen,
   Plus,
+  Sparkles,
 } from 'lucide-react-native';
 import CreatorHome from '../screens/Auth/Creator/Home/CreatorHome';
 import CreatorView from '../screens/Auth/Creator/Products/Course/CreatorView';
 import CreatorSetting from '../screens/Auth/Creator/Settings/CreatorSetting';
 import CreatorWebinar from '../screens/Auth/Creator/Webinar/CreatorWebinar';
 import CreateProducts from '../screens/Auth/Creator/Products/Course/CreateProducts';
+import ManageAstrologers from '../screens/Auth/Creator/Astrologer/ManageAstrologers';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const Tab = createBottomTabNavigator();
@@ -46,6 +48,12 @@ const tabs = [
     component: CreatorWebinar,
     label: 'Webinar',
     Icon: Presentation,
+  },
+  {
+    name: 'ManageAstrologers',
+    component: ManageAstrologers,
+    label: 'Astrologer',
+    Icon: Sparkles,
   },
   {
     name: 'CreatorSetting',

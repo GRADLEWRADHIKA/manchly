@@ -19,6 +19,8 @@ import CreatorNotification from '../screens/Auth/Creator/Notification/CreatorNot
 import BankDetails from '../screens/Auth/Creator/BankDetails/BankDetails';
 import CreatorWebinarDetails from '../screens/Auth/Creator/Products/Webinar/CreatorWebinarDetails';
 import CreatorPublicProfile from '../screens/Auth/Creator/Profile/CreatorPublicProfile';
+import ManageAstrologers from '../screens/Auth/Creator/Astrologer/ManageAstrologers';
+import CreateAstrologer from '../screens/Auth/Creator/Astrologer/CreateAstrologer';
 
 const Stack = createNativeStackNavigator();
 
@@ -62,6 +64,8 @@ const CreatorMainStack = () => {
           name="WebinarDetails"
           component={CreatorWebinarDetails}
         />
+        <Stack.Screen name="ManageAstrologers" component={ManageAstrologers} />
+        <Stack.Screen name="CreateAstrologer" component={CreateAstrologer} />
     </Stack.Navigator>
   );
 };

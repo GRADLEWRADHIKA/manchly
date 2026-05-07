@@ -17,6 +17,10 @@ import UserVideoList from '../screens/Auth/User/Home/UserVideoList';
 import WebinarDetails from '../screens/Auth/User/Home/WebinarDetails';
 import KYCVerificationScreen from '../screens/Auth/Creator/Kyc/KYCVerificationScreen';
 import CreatorPublicProfile from '../screens/Auth/Creator/Profile/CreatorPublicProfile';
+import AstrologerList from '../screens/Auth/User/Astrologer/AstrologerList';
+import AstrologerDetail from '../screens/Auth/User/Astrologer/AstrologerDetail';
+import BookingConfirmation from '../screens/Auth/User/Astrologer/BookingConfirmation';
+import MyBookings from '../screens/Auth/User/Astrologer/MyBookings';
 
 const Stack = createNativeStackNavigator();
 
@@ -49,6 +53,10 @@ const UserMainStack = () => {
       <Stack.Screen name="WebinarDetails" component={WebinarDetails} />
       <Stack.Screen name="KYCVerificationScreen" component={KYCVerificationScreen} />
       <Stack.Screen name="CreatorPublicProfile" component={CreatorPublicProfile} />
+      <Stack.Screen name="AstrologerList" component={AstrologerList} />
+      <Stack.Screen name="AstrologerDetail" component={AstrologerDetail} />
+      <Stack.Screen name="BookingConfirmation" component={BookingConfirmation} />
+      <Stack.Screen name="MyBookings" component={MyBookings} />
     </Stack.Navigator>
   );
 };

@@ -19,10 +19,12 @@ import {
   ShoppingBag,
   House,
   UserPen,
+  Stars,
 } from 'lucide-react-native';
 import UserHome from '../screens/Auth/User/Home/UserHome';
 import UserChat from '../screens/Auth/User/Chat/UserChat';
 import UserSetting from '../screens/Auth/User/Settings/UserSetting';
+import AstrologerList from '../screens/Auth/User/Astrologer/AstrologerList';
 
 const Tab = createBottomTabNavigator();
 
@@ -44,6 +46,12 @@ const tabs = [
   //   label: 'Chats',
   //   Icon: MessageCircle,
   // },
+  {
+    name: 'AstrologerList',
+    component: AstrologerList,
+    label: 'Astrologer',
+    Icon: Stars,
+  },
   {
     name: 'PurchasesScreen',
     component: PurchasesScreen,

@@ -77,7 +77,18 @@ const BookingConfirmation: React.FC = () => {
   };
 
   const handleConfirm = () => {
-    navigation.navigate('MyBookings');
+    // Generate a unique callID for this session
+    const callID = `astro_${astrologer.id}_${Date.now()}`;
+    // TODO: Replace with actual logged-in user data from Redux store
+    const userID = `user_${Date.now()}`;
+    const userName = 'User';
+
+    navigation.navigate('CallScreen', {
+      callID,
+      userID,
+      userName,
+      mode,
+    });
   };
 
   return (

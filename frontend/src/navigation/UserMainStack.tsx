@@ -21,6 +21,7 @@ import AstrologerList from '../screens/Auth/User/Astrologer/AstrologerList';
 import AstrologerDetail from '../screens/Auth/User/Astrologer/AstrologerDetail';
 import BookingConfirmation from '../screens/Auth/User/Astrologer/BookingConfirmation';
 import MyBookings from '../screens/Auth/User/Astrologer/MyBookings';
+import CallScreen from '../screens/Auth/User/Astrologer/CallScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -57,6 +58,7 @@ const UserMainStack = () => {
       <Stack.Screen name="AstrologerDetail" component={AstrologerDetail} />
       <Stack.Screen name="BookingConfirmation" component={BookingConfirmation} />
       <Stack.Screen name="MyBookings" component={MyBookings} />
+      <Stack.Screen name="CallScreen" component={CallScreen} />
     </Stack.Navigator>
   );
 };

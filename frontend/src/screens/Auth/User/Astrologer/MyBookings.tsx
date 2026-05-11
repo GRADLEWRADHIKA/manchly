@@ -193,7 +193,18 @@ const UpcomingCard = ({item}: {item: any}) => {
                   ? {backgroundColor: colors.success}
                   : {backgroundColor: colors.info},
               ]}
-              activeOpacity={0.8}>
+              activeOpacity={0.8}
+              onPress={() => {
+                const callID = `astro_${item.id}_booking`;
+                const userID = `user_${Date.now()}`;
+                const userName = 'User';
+                navigation.navigate('CallScreen', {
+                  callID,
+                  userID,
+                  userName,
+                  mode: item.mode,
+                });
+              }}>
               {item.mode === 'video' ? (
                 <Video size={wp(16)} color={colors.white} strokeWidth={2} />
               ) : (

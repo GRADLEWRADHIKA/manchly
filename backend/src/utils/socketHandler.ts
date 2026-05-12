@@ -172,6 +172,64 @@ export const initializeSocketIO = (httpServer: HTTPServer | HTTPSServer) => {
             }
         });
 
+        // ============ CALL / SESSION EVENTS ============
+
+        // Join personal room for receiving calls
+        socket.join(`user_${socket.userId}`);
+
+        // Expert calls a user (ring)
+        socket.on("call_user", async (data: {
+            receiverId: string;
+            callId: string;
+            sessionId: string;
+            mode: string;
+        }) => {
+            try {
+                // Get caller info
+                const caller = await prisma.users.findUnique({
+                    where: { id: socket.userId! },
+                    select: { id: true, name: true, profile_image: true },
+                });
+
+                // Send ring to the receiver
+                io.to(`user_${data.receiverId}`).emit("incoming_call", {
+                    callId: data.callId,
+                    sessionId: data.sessionId,
+                    mode: data.mode,
+                    caller,
+                });
+
+                console.log(`Call: ${socket.userId} -> ${data.receiverId} (${data.mode})`);
+            } catch (error) {
+                console.error("Error in call_user:", error);
+                socket.emit("error", { message: "Failed to initiate call" });
+            }
+        });
+
+        // User accepts the call
+        socket.on("call_accepted", (data: { callId: string; callerId: string }) => {
+            io.to(`user_${data.callerId}`).emit("call_accepted", {
+                callId: data.callId,
+                acceptedBy: socket.userId,
+            });
+        });
+
+        // User declines the call
+        socket.on("call_declined", (data: { callId: string; callerId: string }) => {
+            io.to(`user_${data.callerId}`).emit("call_declined", {
+                callId: data.callId,
+                declinedBy: socket.userId,
+            });
+        });
+
+        // Call ended
+        socket.on("call_ended", (data: { callId: string; otherUserId: string }) => {
+            io.to(`user_${data.otherUserId}`).emit("call_ended", {
+                callId: data.callId,
+                endedBy: socket.userId,
+            });
+        });
+
         // User online status
         socket.on("user_online", () => {
             socket.broadcast.emit("user_status", {

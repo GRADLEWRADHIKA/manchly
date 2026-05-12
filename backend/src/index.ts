@@ -21,6 +21,7 @@ import settlementsRouter from "./routes/settlements";
 import xtechRouter from "./routes/xtech";
 import sdkRouter from "./routes/sdk";
 import clickancyRouter from "./routes/clickancy";
+import sessionsRouter from "./routes/sessions";
 import morgan from "morgan";
 import { webinarCleanupService } from "./utils/webinarCleanup";
 import { settlementCronService } from "./utils/settlementCron";
@@ -96,6 +97,7 @@ app.use("/settlements", settlementsRouter);
 app.use("/auth/xtech", xtechRouter);
 app.use("/sdk", sdkRouter);
 app.use("/clickancy", clickancyRouter);
+app.use("/sessions", sessionsRouter);
 
 const listenPort = useHttps ? HTTPS_PORT : PORT;
 

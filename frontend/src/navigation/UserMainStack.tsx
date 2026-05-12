@@ -17,11 +17,10 @@ import UserVideoList from '../screens/Auth/User/Home/UserVideoList';
 import WebinarDetails from '../screens/Auth/User/Home/WebinarDetails';
 import KYCVerificationScreen from '../screens/Auth/Creator/Kyc/KYCVerificationScreen';
 import CreatorPublicProfile from '../screens/Auth/Creator/Profile/CreatorPublicProfile';
-import AstrologerList from '../screens/Auth/User/Astrologer/AstrologerList';
-import AstrologerDetail from '../screens/Auth/User/Astrologer/AstrologerDetail';
-import BookingConfirmation from '../screens/Auth/User/Astrologer/BookingConfirmation';
-import MyBookings from '../screens/Auth/User/Astrologer/MyBookings';
 import CallScreen from '../screens/Auth/User/Astrologer/CallScreen';
+import IncomingCallScreen from '../screens/Auth/Creator/Astrologer/IncomingCallScreen';
+import ExpertList from '../screens/Auth/User/Sessions/ExpertList';
+import ExpertDetail from '../screens/Auth/User/Sessions/ExpertDetail';
 
 const Stack = createNativeStackNavigator();
 
@@ -54,10 +53,9 @@ const UserMainStack = () => {
       <Stack.Screen name="WebinarDetails" component={WebinarDetails} />
       <Stack.Screen name="KYCVerificationScreen" component={KYCVerificationScreen} />
       <Stack.Screen name="CreatorPublicProfile" component={CreatorPublicProfile} />
-      <Stack.Screen name="AstrologerList" component={AstrologerList} />
-      <Stack.Screen name="AstrologerDetail" component={AstrologerDetail} />
-      <Stack.Screen name="BookingConfirmation" component={BookingConfirmation} />
-      <Stack.Screen name="MyBookings" component={MyBookings} />
+      <Stack.Screen name="ExpertList" component={ExpertList} />
+      <Stack.Screen name="ExpertDetail" component={ExpertDetail} />
+      <Stack.Screen name="IncomingCallScreen" component={IncomingCallScreen} />
       <Stack.Screen name="CallScreen" component={CallScreen} />
     </Stack.Navigator>
   );

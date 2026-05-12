@@ -22,7 +22,7 @@ import CustomTextInput from '../../../../components/CustomInput';
 import Toast from 'react-native-toast-message';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const CreatorWebinar = () => {
+const CreatorWebinar = ({embedded = false}: {embedded?: boolean}) => {
   const navigation = useNavigation<any>();
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
   const focus = useIsFocused();
@@ -84,46 +84,48 @@ const CreatorWebinar = () => {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.headerWrapper, { paddingTop: insets.top }]}>
-        <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            {user?.profile_image ? (
-              <Image
-                source={{ uri: user.profile_image }}
-                style={styles.avatar}
-              />
-            ) : (
-              <View style={styles.avatarFallback}>
-                <UserCircle size={wp(28)} color={colors.white} />
+      {!embedded && (
+        <View style={[styles.headerWrapper, { paddingTop: insets.top }]}>
+          <View style={styles.header}>
+            <View style={styles.headerLeft}>
+              {user?.profile_image ? (
+                <Image
+                  source={{ uri: user.profile_image }}
+                  style={styles.avatar}
+                />
+              ) : (
+                <View style={styles.avatarFallback}>
+                  <UserCircle size={wp(28)} color={colors.white} />
+                </View>
+              )}
+              <View>
+                <Text style={styles.headerSubtitle}>My Webinars</Text>
+                <Text style={styles.headerTitle}>
+                  {webinarData.length} webinar{webinarData.length !== 1 ? 's' : ''}
+                </Text>
               </View>
-            )}
-            <View>
-              <Text style={styles.headerSubtitle}>My Webinars</Text>
-              <Text style={styles.headerTitle}>
-                {webinarData.length} webinar{webinarData.length !== 1 ? 's' : ''}
-              </Text>
+            </View>
+            <View
+              style={{ flexDirection: 'row', alignItems: 'center', gap: wp(4) }}
+            >
+              <TouchableOpacity
+                style={styles.bellBtn}
+                onPress={() =>
+                  Linking.openURL('https://www.instagram.com/manchly_app')
+                }
+              >
+                <Instagram size={wp(20)} color={colors.white} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.bellBtn}
+                onPress={() => navigation.navigate('CreatorNotification')}
+              >
+                <Bell size={wp(20)} color={colors.white} />
+              </TouchableOpacity>
             </View>
           </View>
-          <View
-            style={{ flexDirection: 'row', alignItems: 'center', gap: wp(4) }}
-          >
-            <TouchableOpacity
-              style={styles.bellBtn}
-              onPress={() =>
-                Linking.openURL('https://www.instagram.com/manchly_app')
-              }
-            >
-              <Instagram size={wp(20)} color={colors.white} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.bellBtn}
-              onPress={() => navigation.navigate('CreatorNotification')}
-            >
-              <Bell size={wp(20)} color={colors.white} />
-            </TouchableOpacity>
-          </View>
         </View>
-      </View>
+      )}
 
       <View style={styles.searchContainer}>
         <Search size={wp(18)} color={colors.textSecondary} />

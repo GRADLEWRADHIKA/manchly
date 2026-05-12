@@ -19,8 +19,10 @@ import CreatorNotification from '../screens/Auth/Creator/Notification/CreatorNot
 import BankDetails from '../screens/Auth/Creator/BankDetails/BankDetails';
 import CreatorWebinarDetails from '../screens/Auth/Creator/Products/Webinar/CreatorWebinarDetails';
 import CreatorPublicProfile from '../screens/Auth/Creator/Profile/CreatorPublicProfile';
-import ManageAstrologers from '../screens/Auth/Creator/Astrologer/ManageAstrologers';
-import CreateAstrologer from '../screens/Auth/Creator/Astrologer/CreateAstrologer';
+import IncomingCallScreen from '../screens/Auth/Creator/Astrologer/IncomingCallScreen';
+import CallScreen from '../screens/Auth/User/Astrologer/CallScreen';
+import CreateSessionProduct from '../screens/Auth/Creator/Products/CreateSessionProduct';
+import ExpertRegistration from '../screens/Auth/Creator/Products/ExpertRegistration';
 
 const Stack = createNativeStackNavigator();
 
@@ -64,8 +66,10 @@ const CreatorMainStack = () => {
           name="WebinarDetails"
           component={CreatorWebinarDetails}
         />
-        <Stack.Screen name="ManageAstrologers" component={ManageAstrologers} />
-        <Stack.Screen name="CreateAstrologer" component={CreateAstrologer} />
+        <Stack.Screen name="CreateSessionProduct" component={CreateSessionProduct} />
+        <Stack.Screen name="ExpertRegistration" component={ExpertRegistration} />
+        <Stack.Screen name="IncomingCallScreen" component={IncomingCallScreen} />
+        <Stack.Screen name="CallScreen" component={CallScreen} />
     </Stack.Navigator>
   );
 };

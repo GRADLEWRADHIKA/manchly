@@ -14,17 +14,15 @@ import { wp, hp, fp } from '../utils/responsive';
 import ProductsScreen from '../screens/Auth/User/Products/ProductsScreen';
 import PurchasesScreen from '../screens/Auth/User/Purchase/PurchasesScreen';
 import {
-  MessageCircle,
+  PhoneCall,
   ShoppingCart,
   ShoppingBag,
   House,
   UserPen,
-  Stars,
 } from 'lucide-react-native';
 import UserHome from '../screens/Auth/User/Home/UserHome';
-import UserChat from '../screens/Auth/User/Chat/UserChat';
+import UserSessions from '../screens/Auth/User/Sessions/UserSessions';
 import UserSetting from '../screens/Auth/User/Settings/UserSetting';
-import AstrologerList from '../screens/Auth/User/Astrologer/AstrologerList';
 
 const Tab = createBottomTabNavigator();
 
@@ -40,17 +38,11 @@ const tabs = [
     label: 'Explore',
     Icon: ShoppingCart,
   },
-  // {
-  //   name: 'UserChat',
-  //   component: UserChat,
-  //   label: 'Chats',
-  //   Icon: MessageCircle,
-  // },
   {
-    name: 'AstrologerList',
-    component: AstrologerList,
-    label: 'Astrologer',
-    Icon: Stars,
+    name: 'UserSessions',
+    component: UserSessions,
+    label: 'Sessions',
+    Icon: PhoneCall,
   },
   {
     name: 'PurchasesScreen',

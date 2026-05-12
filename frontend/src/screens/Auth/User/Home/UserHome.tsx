@@ -1,13 +1,14 @@
 import React, { memo } from 'react';
-import { View, ScrollView, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { View, ScrollView, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { Stars } from 'lucide-react-native';
+import { PhoneCall, ChevronRight } from 'lucide-react-native';
 import { hp, wp, fp } from '../../../../utils/responsive';
 import colors from '../../../../utils/colors';
 import HomeHeader from './components/HomeHeader';
 import HeroCarousel from './components/HeroCarousel';
 import LatestCourses from './components/LatestCourses';
 import LatestWebinars from './components/LatestWebinars';
+import TopExperts from './components/TopExperts';
 
 const UserHome = () => {
   const navigation = useNavigation<any>();
@@ -22,24 +23,24 @@ const UserHome = () => {
       >
         <HeroCarousel />
 
-        {/* Astrologer Banner */}
+        {/* Session Experts Banner */}
         <TouchableOpacity
-          style={styles.astroBanner}
+          style={styles.expertBanner}
           activeOpacity={0.8}
-          onPress={() => navigation.navigate('AstrologerList')}
-        >
-          <View style={styles.astroBannerIcon}>
-            <Stars size={wp(28)} color={colors.white} strokeWidth={1.8} />
+          onPress={() => navigation.navigate('ExpertList')}>
+          <View style={styles.expertBannerIcon}>
+            <PhoneCall size={wp(24)} color={colors.white} strokeWidth={1.8} />
           </View>
-          <View style={styles.astroBannerContent}>
-            <Text style={styles.astroBannerTitle}>Talk to Astrologers</Text>
-            <Text style={styles.astroBannerSub}>
-              Get guidance from expert astrologers via call, video or chat
+          <View style={styles.expertBannerContent}>
+            <Text style={styles.expertBannerTitle}>Talk to Experts</Text>
+            <Text style={styles.expertBannerSub}>
+              Book 1:1 audio & video sessions with professionals
             </Text>
           </View>
-          <Text style={styles.astroBannerArrow}>›</Text>
+          <ChevronRight size={wp(20)} color={colors.white + '80'} strokeWidth={2} />
         </TouchableOpacity>
 
+        <TopExperts />
         <LatestCourses />
         <LatestWebinars />
       </ScrollView>
@@ -60,7 +61,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: hp(100),
   },
-  astroBanner: {
+  expertBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     marginHorizontal: wp(16),
@@ -70,7 +71,7 @@ const styles = StyleSheet.create({
     borderRadius: wp(14),
     padding: wp(14),
   },
-  astroBannerIcon: {
+  expertBannerIcon: {
     width: wp(48),
     height: wp(48),
     borderRadius: wp(24),
@@ -78,24 +79,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  astroBannerContent: {
+  expertBannerContent: {
     flex: 1,
     marginLeft: wp(12),
   },
-  astroBannerTitle: {
+  expertBannerTitle: {
     fontSize: fp(15),
     fontWeight: '700',
     color: colors.white,
   },
-  astroBannerSub: {
+  expertBannerSub: {
     fontSize: fp(11),
     color: 'rgba(255,255,255,0.8)',
     marginTop: hp(2),
-  },
-  astroBannerArrow: {
-    fontSize: fp(24),
-    color: colors.white,
-    fontWeight: '300',
-    marginLeft: wp(4),
   },
 });

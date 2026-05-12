@@ -8,22 +8,41 @@ import {
   Linking,
   ScrollView,
 } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute, useIsFocused } from '@react-navigation/native';
 import {
   User2,
   ShieldCheck,
   ShieldX,
+  Phone,
+  Video,
+  Clock,
+  IndianRupee,
 } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
+import { useSelector, useDispatch } from 'react-redux';
 import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
 import AppHeaderWithBack from '../../../../components/AppHeaderWithBack';
 import { InstagramIcon, LinkedinIcon, YoutubeIcon, FacebookIcon } from '../../../../components/SocialIcons';
+import { createSession, getCreatorSessionProducts, bookSession } from '../../../../store/SessionSlice';
 
 const CreatorPublicProfile = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
+  const dispatch = useDispatch<any>();
+  const isFocused = useIsFocused();
   const creator = route.params?.creator;
+  const { user } = useSelector((state: any) => state.userReducer);
+  const [sessionProducts, setSessionProducts] = React.useState<any[]>([]);
+
+  React.useEffect(() => {
+    const creatorId = creator?.id || creator?._id;
+    if (creatorId && isFocused) {
+      dispatch(getCreatorSessionProducts(creatorId))
+        .unwrap()
+        .then((res: any) => setSessionProducts(res?.data?.products || []));
+    }
+  }, [isFocused, creator]);
 
   const displayName = creator?.name
     ? creator.name.charAt(0).toUpperCase() + creator.name.slice(1)
@@ -88,6 +107,56 @@ const CreatorPublicProfile = () => {
 
           {/* Name */}
           <Text style={styles.profileName}>{displayName}</Text>
+
+          {/* Book Session Products (user can only book, expert calls) */}
+
+          {/* Bookable Session Products */}
+          {sessionProducts.length > 0 && (
+            <>
+              <View style={styles.divider} />
+              <Text style={styles.connectTitle}>Book a Session</Text>
+              <View style={{alignSelf: 'stretch', gap: hp(8)}}>
+                {sessionProducts.map((product: any) => {
+                  const isVideo = product.mode === 'VIDEO';
+                  return (
+                    <TouchableOpacity
+                      key={product.id}
+                      style={styles.productCard}
+                      activeOpacity={0.8}
+                      onPress={() => {
+                        dispatch(bookSession({product_id: product.id}))
+                          .unwrap()
+                          .then((res: any) => {
+                            const session = res?.data;
+                            navigation.navigate('CallScreen', {
+                              callID: session.call_id,
+                              userID: user?.id,
+                              userName: user?.name || 'User',
+                              mode: isVideo ? 'video' : 'call',
+                              sessionId: session.id,
+                            });
+                          });
+                      }}>
+                      <View style={[styles.productIcon, {backgroundColor: isVideo ? colors.success + '15' : colors.info + '15'}]}>
+                        {isVideo ? (
+                          <Video size={wp(20)} color={colors.success} strokeWidth={1.8} />
+                        ) : (
+                          <Phone size={wp(20)} color={colors.info} strokeWidth={1.8} />
+                        )}
+                      </View>
+                      <View style={{flex: 1}}>
+                        <Text style={styles.productName}>{product.title}</Text>
+                        <Text style={styles.productMeta}>
+                          {product.duration} min · {isVideo ? 'Video' : 'Audio'}
+                        </Text>
+                      </View>
+                      <Text style={styles.productPrice}>₹{product.price}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </>
+          )}
 
           {/* KYC Badge */}
           <View
@@ -221,6 +290,60 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: colors.text,
     marginBottom: hp(12),
+  },
+  sessionBtns: {
+    flexDirection: 'row',
+    gap: wp(12),
+    marginBottom: hp(16),
+  },
+  sessionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(8),
+    paddingHorizontal: wp(20),
+    paddingVertical: hp(12),
+    borderRadius: wp(12),
+    shadowOffset: {width: 0, height: 3},
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  sessionBtnText: {
+    fontSize: fp(14),
+    fontWeight: '700',
+    color: colors.white,
+  },
+  productCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderRadius: wp(12),
+    padding: wp(12),
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+  },
+  productIcon: {
+    width: wp(42),
+    height: wp(42),
+    borderRadius: wp(12),
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: wp(12),
+  },
+  productName: {
+    fontSize: fp(14),
+    fontWeight: '600',
+    color: colors.text,
+  },
+  productMeta: {
+    fontSize: fp(11),
+    color: colors.textSecondary,
+    marginTop: hp(2),
+  },
+  productPrice: {
+    fontSize: fp(16),
+    fontWeight: '800',
+    color: colors.info,
   },
   kycBadge: {
     flexDirection: 'row',

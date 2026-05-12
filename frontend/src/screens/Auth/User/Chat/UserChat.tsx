@@ -103,7 +103,7 @@ const UserChat = () => {
           </Text>
 
           <View style={styles.featureList}>
-            {['Direct messaging with creators', 'Course discussion groups', 'Real-time notifications'].map(
+            {['Direct messaging with creators', '1-on-1 Audio & Video calls', 'Real-time notifications'].map(
               (feature, i) => (
                 <View key={i} style={styles.featureRow}>
                   <View style={styles.featureDot} />

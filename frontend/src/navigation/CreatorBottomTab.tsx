@@ -6,17 +6,15 @@ import { wp, hp, fp } from '../utils/responsive';
 import {
   House,
   UserPen,
-  Presentation,
-  BookOpen,
+  ShoppingBag,
+  LayoutDashboard,
   Plus,
-  Sparkles,
 } from 'lucide-react-native';
 import CreatorHome from '../screens/Auth/Creator/Home/CreatorHome';
-import CreatorView from '../screens/Auth/Creator/Products/Course/CreatorView';
+import CreatorProducts from '../screens/Auth/Creator/Products/CreatorProducts';
 import CreatorSetting from '../screens/Auth/Creator/Settings/CreatorSetting';
-import CreatorWebinar from '../screens/Auth/Creator/Webinar/CreatorWebinar';
+import Dashboard from '../screens/Auth/Profile/Dashboard';
 import CreateProducts from '../screens/Auth/Creator/Products/Course/CreateProducts';
-import ManageAstrologers from '../screens/Auth/Creator/Astrologer/ManageAstrologers';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const Tab = createBottomTabNavigator();
@@ -32,9 +30,9 @@ const tabs = [
   },
   {
     name: 'ProductsScreen',
-    component: CreatorView,
-    label: 'Courses',
-    Icon: BookOpen,
+    component: CreatorProducts,
+    label: 'Products',
+    Icon: ShoppingBag,
   },
   {
     name: 'CreateProducts',
@@ -44,16 +42,10 @@ const tabs = [
     isCenter: true,
   },
   {
-    name: 'CreatorWebinar',
-    component: CreatorWebinar,
-    label: 'Webinar',
-    Icon: Presentation,
-  },
-  {
-    name: 'ManageAstrologers',
-    component: ManageAstrologers,
-    label: 'Astrologer',
-    Icon: Sparkles,
+    name: 'Dashboard',
+    component: Dashboard,
+    label: 'Dashboard',
+    Icon: LayoutDashboard,
   },
   {
     name: 'CreatorSetting',

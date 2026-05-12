@@ -12,6 +12,7 @@ import CreatorMainStack from './CreatorMainStack';
 import { getAppLinkDataFromUrl } from 'react-native-chottulink-sdk';
 import NotificationService from '../services/NotificationService';
 import { store } from '../store/Store';
+import CallListener, { setNavigationRef } from '../components/CallListener';
 
 export const navigationRef = createRef<NavigationContainerRef<any>>();
 
@@ -213,15 +214,23 @@ const Router = () => {
 
   return (
     <SafeAreaProvider>
-      <NavigationContainer ref={navigationRef} linking={linking}>
+      <NavigationContainer
+        ref={(ref) => {
+          (navigationRef as any).current = ref;
+          setNavigationRef(ref);
+        }}
+        linking={linking}>
         {token ? (
-          user ? (
-            user.user_type.includes('USER') ? (
-              <UserMainStack />
-            ) : (
-              <CreatorMainStack />
-            )
-          ) : null
+          <>
+            <CallListener />
+            {user ? (
+              user.user_type.includes('USER') ? (
+                <UserMainStack />
+              ) : (
+                <CreatorMainStack />
+              )
+            ) : null}
+          </>
         ) : (
           <AuthStack />
         )}

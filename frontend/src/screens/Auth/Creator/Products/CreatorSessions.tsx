@@ -150,9 +150,7 @@ const CreatorSessions: React.FC = () => {
         <View style={styles.statCard}>
           <TrendingUp size={wp(18)} color={colors.info} strokeWidth={1.8} />
           <Text style={styles.statValue}>
-            {stats.total_earnings >= 1000
-              ? `₹${(stats.total_earnings / 1000).toFixed(1)}k`
-              : `₹${stats.total_earnings}`}
+            ₹{Number(stats.total_earnings || 0).toFixed(2)}
           </Text>
           <Text style={styles.statLabel}>Earned</Text>
         </View>

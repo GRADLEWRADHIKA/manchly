@@ -77,7 +77,7 @@ const ExpertDetail: React.FC = () => {
             text2: 'The expert will call you shortly.',
             position: 'bottom',
           });
-          navigation.navigate('UserSessions');
+          navigation.navigate('UserBottomTab', { screen: 'UserSessions' });
         });
     }
   };

@@ -1,4 +1,4 @@
-import React, {useRef, useCallback, useEffect} from 'react';
+import React, {useRef, useCallback, useEffect, useMemo} from 'react';
 import {View, StyleSheet} from 'react-native';
 import {useRoute, useNavigation} from '@react-navigation/native';
 import {useDispatch, useSelector} from 'react-redux';
@@ -12,6 +12,10 @@ import {ZEGO_APP_ID, ZEGO_APP_SIGN} from '../../../../utils/zegoConfig';
 import {endSession} from '../../../../store/SessionSlice';
 import SocketService from '../../../../services/SocketService';
 
+// Sanitize IDs for Zego: only [a-zA-Z0-9_], max length
+const sanitizeId = (id: string, max: number) =>
+  String(id || '').replace(/[^a-zA-Z0-9_]/g, '').slice(0, max);
+
 const CallScreen: React.FC = () => {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
@@ -20,75 +24,75 @@ const CallScreen: React.FC = () => {
   const startTime = useRef(Date.now());
   const ended = useRef(false);
 
-  const {callID, userID, userName, mode, sessionId, otherUserId} =
+  const {callID: rawCallID, userID: rawUserID, userName, mode, sessionId, otherUserId} =
     route.params || {};
 
-  const isVideoCall = mode === 'video';
-  const config = isVideoCall
-    ? ONE_ON_ONE_VIDEO_CALL_CONFIG
-    : ONE_ON_ONE_VOICE_CALL_CONFIG;
+  const userID = useMemo(() => sanitizeId(rawUserID, 32), [rawUserID]);
+  const callID = useMemo(() => sanitizeId(rawCallID, 64), [rawCallID]);
+  const isVideoCall = mode === 'video' || mode === 'VIDEO';
+
+  console.log('[CallScreen] Mounted with params:', {callID, userID, userName, mode, isVideoCall, sessionId, otherUserId});
 
   // Listen for other side ending the call
   useEffect(() => {
     const handleRemoteEnd = (data: any) => {
-      if (data.callId === callID && !ended.current) {
+      console.log('[CallScreen] call_ended socket event received:', data);
+      if (data.endedBy === rawUserID) return;
+      if (data.callId === rawCallID && !ended.current) {
         ended.current = true;
-
-        // End session in DB
         if (sessionId) {
-          const durationMs = Date.now() - startTime.current;
-          const durationMin = Math.ceil(durationMs / 60000);
+          const durationMin = Math.ceil((Date.now() - startTime.current) / 60000);
           dispatch(endSession({sessionId, duration: durationMin}));
         }
-
-        Toast.show({
-          type: 'info',
-          text1: 'Call Ended',
-          text2: 'The other person disconnected.',
-          position: 'top',
-        });
-
+        Toast.show({type: 'info', text1: 'Call Ended', text2: 'The other person disconnected.', position: 'top'});
         navigation.goBack();
       }
     };
 
     SocketService.on('call_ended', handleRemoteEnd);
-    return () => {
-      SocketService.off('call_ended', handleRemoteEnd);
-    };
-  }, [callID, sessionId]);
+    return () => { SocketService.off('call_ended', handleRemoteEnd); };
+  }, [rawCallID, sessionId]);
 
   const handleCallEnd = useCallback(() => {
     if (ended.current) return;
     ended.current = true;
 
-    // End session in DB
     if (sessionId) {
-      const durationMs = Date.now() - startTime.current;
-      const durationMin = Math.ceil(durationMs / 60000);
+      const durationMin = Math.ceil((Date.now() - startTime.current) / 60000);
       dispatch(endSession({sessionId, duration: durationMin}));
     }
 
-    // Notify the other side via socket
-    const otherUser = otherUserId;
-    if (otherUser) {
+    if (otherUserId) {
       SocketService.emit('call_ended', {
-        callId: callID,
-        otherUserId: otherUser,
+        callId: rawCallID,
+        otherUserId,
+        endedBy: rawUserID,
       });
     }
 
     Toast.show({
       type: 'info',
       text1: 'Call Ended',
-      text2: `Session lasted ${Math.ceil(
-        (Date.now() - startTime.current) / 60000,
-      )} min`,
+      text2: `Session lasted ${Math.ceil((Date.now() - startTime.current) / 60000)} min`,
       position: 'top',
     });
-
     navigation.goBack();
-  }, [sessionId, dispatch, navigation, callID, otherUserId]);
+  }, [sessionId, dispatch, navigation, rawCallID, rawUserID, otherUserId]);
+
+  // Memoize config so Zego doesn't remount on every render
+  const zegoConfig = useMemo(() => ({
+    ...(isVideoCall ? ONE_ON_ONE_VIDEO_CALL_CONFIG : ONE_ON_ONE_VOICE_CALL_CONFIG),
+    onCallEnd: handleCallEnd,
+    hangUpConfirmInfo: {
+      title: 'End Call',
+      message: 'Are you sure you want to end the call?',
+      cancelButtonName: 'Cancel',
+      confirmButtonName: 'End',
+    },
+    durationConfig: {
+      isVisible: true,
+    },
+  }), [isVideoCall, handleCallEnd]);
 
   return (
     <View style={styles.container}>
@@ -98,13 +102,7 @@ const CallScreen: React.FC = () => {
         userID={userID}
         userName={userName}
         callID={callID}
-        config={{
-          ...config,
-          onCallEnd: handleCallEnd,
-          durationConfig: {
-            isVisible: true,
-          },
-        }}
+        config={zegoConfig}
       />
     </View>
   );

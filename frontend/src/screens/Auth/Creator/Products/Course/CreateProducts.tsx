@@ -35,7 +35,7 @@ const CreateProducts = () => {
             <BrainCircuit size={wp(22)} color={colors.faaAiPrimary} />
           </View>
           <View>
-            <Text style={styles.headerTitle}>Faah-AI</Text>
+            <Text style={styles.headerTitle}>Manchly-AI</Text>
             <Text style={styles.headerSub}>Your AI Creator Assistant</Text>
           </View>
         </View>

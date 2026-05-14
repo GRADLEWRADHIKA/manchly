@@ -30,9 +30,23 @@ const CallListener: React.FC = () => {
     listenerSet.current = true;
 
     const handleIncomingCall = (data: any) => {
+      console.log('[CallListener] incoming_call received:', data);
       const {callId, sessionId, mode, caller} = data;
 
+      // Ignore if we are the caller (server echoed it back to us)
+      if (caller?.id === user?.id) {
+        console.log('[CallListener] Ignoring own incoming_call echo');
+        return;
+      }
+
       if (navigationRef?.isReady()) {
+        // Don't navigate if already on CallScreen or IncomingCallScreen
+        const currentRoute = navigationRef.getCurrentRoute?.();
+        if (currentRoute?.name === 'CallScreen' || currentRoute?.name === 'IncomingCallScreen') {
+          console.log('[CallListener] Already on call screen, ignoring');
+          return;
+        }
+
         navigationRef.navigate('IncomingCallScreen', {
           callID: callId,
           sessionId,
@@ -44,7 +58,8 @@ const CallListener: React.FC = () => {
       }
     };
 
-    const handleCallDeclined = () => {
+    const handleCallDeclined = (data: any) => {
+      console.log('[CallListener] call_declined received:', data);
       Toast.show({
         type: 'error',
         text1: 'Call Declined',
@@ -53,7 +68,13 @@ const CallListener: React.FC = () => {
       });
     };
 
-    const handleCallEnded = () => {
+    const handleCallEnded = (data: any) => {
+      console.log('[CallListener] call_ended received:', data);
+      // Ignore if this is our own event echoed back
+      if (data.endedBy === user?.id) {
+        console.log('[CallListener] Ignoring own call_ended echo');
+        return;
+      }
       Toast.show({
         type: 'info',
         text1: 'Call Ended',

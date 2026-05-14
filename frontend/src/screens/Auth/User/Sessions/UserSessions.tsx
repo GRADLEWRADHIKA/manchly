@@ -126,9 +126,7 @@ const UserSessions: React.FC = () => {
         <View style={styles.statCard}>
           <IndianRupee size={wp(20)} color={colors.secPrimary} strokeWidth={1.8} />
           <Text style={styles.statValue}>
-            {stats.total_earnings >= 1000
-              ? `${(stats.total_earnings / 1000).toFixed(1)}k`
-              : stats.total_earnings}
+            ₹{Number(stats.total_earnings || 0).toFixed(2)}
           </Text>
           <Text style={styles.statLabel}>Spent</Text>
         </View>

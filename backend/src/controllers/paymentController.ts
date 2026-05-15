@@ -5,6 +5,7 @@ import { isUser, isCreator } from "../utils/userTypeHelper";
 import { SettlementService } from "../services/settlementService";
 import { notificationService } from "../services/NotificationService";
 import { cashfreePG } from "../services/cashfreeService";
+import { processTelegramPaymentSuccess, processTelegramPaymentFailed } from "./telegramController";
 import crypto from "crypto";
 import dotenv from "dotenv";
 
@@ -462,6 +463,11 @@ export class PaymentController {
       const orderId = data.order?.order_id;
       const cfPaymentId = data.payment?.cf_payment_id?.toString();
 
+      if (typeof orderId === "string" && orderId.startsWith("tg_")) {
+        await processTelegramPaymentSuccess(orderId, data);
+        return;
+      }
+
       const transaction = await prisma.transactions.findUnique({
         where: { cashfree_order_id: orderId },
         include: {
@@ -553,6 +559,11 @@ export class PaymentController {
   private static async handlePaymentFailed(data: any) {
     try {
       const orderId = data.order?.order_id;
+
+      if (typeof orderId === "string" && orderId.startsWith("tg_")) {
+        await processTelegramPaymentFailed(orderId, data);
+        return;
+      }
 
       const transaction = await prisma.transactions.findUnique({
         where: { cashfree_order_id: orderId }

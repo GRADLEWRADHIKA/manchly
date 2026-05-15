@@ -575,3 +575,42 @@ model session_products {
   @@index([creator_id])
   @@map("session_products")
 }
+
+model telegram_channels {
+  id                  String                    @id @default(uuid())
+  channel_id          String                    @unique
+  channel_title       String
+  creator_telegram_id String
+  creator_username    String?
+  price_inr           Float
+  description         String?
+  status              String                    @default("ACTIVE")
+  created_at          DateTime                  @default(now())
+  updated_at          DateTime                  @updatedAt
+  subscriptions       telegram_subscriptions[]
+
+  @@index([creator_telegram_id])
+  @@index([status])
+  @@map("telegram_channels")
+}
+
+model telegram_subscriptions {
+  id                 String            @id @default(uuid())
+  channel_id         String
+  buyer_telegram_id  String
+  buyer_username     String?
+  invite_link        String?
+  amount_inr         Float
+  payment_method     String            @default("MOCK")
+  payment_reference  String?
+  status             String            @default("ACTIVE")
+  expires_at         DateTime?
+  created_at         DateTime          @default(now())
+  updated_at         DateTime          @updatedAt
+  channel            telegram_channels @relation(fields: [channel_id], references: [id], onDelete: Cascade)
+
+  @@index([channel_id])
+  @@index([buyer_telegram_id])
+  @@index([status])
+  @@map("telegram_subscriptions")
+}

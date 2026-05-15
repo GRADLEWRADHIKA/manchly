@@ -22,6 +22,8 @@ import xtechRouter from "./routes/xtech";
 import sdkRouter from "./routes/sdk";
 import clickancyRouter from "./routes/clickancy";
 import sessionsRouter from "./routes/sessions";
+import telegramRouter from "./routes/telegram";
+import { initTelegramBot } from "./controllers/telegramController";
 import morgan from "morgan";
 import { webinarCleanupService } from "./utils/webinarCleanup";
 import { settlementCronService } from "./utils/settlementCron";
@@ -98,6 +100,7 @@ app.use("/auth/xtech", xtechRouter);
 app.use("/sdk", sdkRouter);
 app.use("/clickancy", clickancyRouter);
 app.use("/sessions", sessionsRouter);
+app.use("/telegram", telegramRouter);
 
 const listenPort = useHttps ? HTTPS_PORT : PORT;
 
@@ -117,4 +120,7 @@ server.listen(listenPort, () => {
   // Start webinar notification cron jobs (24hr, 6hr, 30min, live reminders)
   webinarNotificationCronService.startAll();
   console.log("🔔 Webinar notification service started");
+
+  // Initialize Telegram bot (polling in dev, webhook in prod)
+  initTelegramBot().catch((err) => console.error("Telegram bot init failed:", err));
 });

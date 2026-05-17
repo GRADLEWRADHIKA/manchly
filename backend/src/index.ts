@@ -62,6 +62,7 @@ const io = initializeSocketIO(server);
 app.set('trust proxy', 1);
 
 app.use(cors());
+app.use(morgan('dev'));
 
 // Cashfree webhooks need raw body preserved for signature verification
 // Use body-parser's verify callback to capture the raw body without interfering with the stream
@@ -84,7 +85,6 @@ app.use(express.static(publicDir));
 // API root
 app.get("/api", (_req, res) => res.json({ ok: true }));
 
-app.use(morgan('dev'));
 app.use("/auth", authRouter);
 app.use("/admin", adminRouter);
 app.use("/upload", uploadRouter);

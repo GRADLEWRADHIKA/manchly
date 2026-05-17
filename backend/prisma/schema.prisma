@@ -18,7 +18,7 @@ model users {
   profile_image             String?
   user_type                 UserType[]                  @default([USER])
   dob                       String?                     @db.VarChar(10)
-  pan_number                String?                     @unique @db.VarChar(20)
+  pan_number                String?                     @db.VarChar(20)
   kyc_verified              Boolean                     @default(false)
   kyc_status                String?                     @db.VarChar(20)
   kyc_verified_at           DateTime?
@@ -30,18 +30,17 @@ model users {
   facebook_link             String?
   conversation_participants conversation_participants[]
   courses                   courses[]
+  bank_account              creator_bank_accounts?
   enrollments               enrollments[]
   group_members             group_members[]
   created_groups            groups[]
   kyc_verifications         kyc_verifications[]
   messages                  messages[]
+  settlements               settlements[]
   transactions              transactions[]
   webinar_enrollments       webinar_enrollments[]
   webinar_transactions      webinar_transactions[]
   webinars                  webinars[]
-  bank_account              creator_bank_accounts?
-  settlements               settlements[]
-  wallet_transactions       wallet_transactions[]
 
   @@map("users")
 }
@@ -98,22 +97,22 @@ model videos {
 }
 
 model transactions {
-  id                  String            @id @default(uuid())
-  user_id             String
-  course_id           String
-  amount              Float
-  currency            String            @default("INR")
-  status              TransactionStatus @default(PENDING)
-  payment_method      PaymentMethod     @default(CASHFREE)
-  cashfree_order_id   String?           @unique
-  cf_payment_id       String?           @unique
-  payment_details     Json?
-  failure_reason      String?
-  created_at          DateTime          @default(now())
-  updated_at          DateTime          @updatedAt
-  completed_at        DateTime?
-  course              courses           @relation(fields: [course_id], references: [id], onDelete: Cascade)
-  user                users             @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  id                String            @id @default(uuid())
+  user_id           String
+  course_id         String
+  amount            Float
+  currency          String            @default("INR")
+  status            TransactionStatus @default(PENDING)
+  payment_method    PaymentMethod     @default(CASHFREE)
+  payment_details   Json?
+  failure_reason    String?
+  created_at        DateTime          @default(now())
+  updated_at        DateTime          @updatedAt
+  completed_at      DateTime?
+  cashfree_order_id String?           @unique
+  cf_payment_id     String?           @unique
+  course            courses           @relation(fields: [course_id], references: [id], onDelete: Cascade)
+  user              users             @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@index([user_id])
   @@index([course_id])
@@ -153,8 +152,6 @@ model webinars {
   category         String?
   tags             String[]               @default([])
   scheduled_at     DateTime
-  start_time       String?
-  end_time         String?
   duration         Int?
   timezone         String?                @default("UTC")
   zoom_meeting_id  String?                @unique
@@ -165,6 +162,8 @@ model webinars {
   created_at       DateTime               @default(now())
   updated_at       DateTime               @updatedAt
   published_at     DateTime?
+  start_time       String?
+  end_time         String?
   enrollments      webinar_enrollments[]
   transactions     webinar_transactions[]
   creator          users                  @relation(fields: [creator_id], references: [id], onDelete: Cascade)
@@ -176,28 +175,26 @@ model webinars {
 }
 
 model webinar_transactions {
-  id                  String            @id @default(uuid())
-  user_id             String
-  webinar_id          String
-  amount              Float
-  currency            String            @default("INR")
-  status              TransactionStatus @default(PENDING)
-  payment_method      PaymentMethod     @default(CASHFREE)
-  cashfree_order_id   String?           @unique
-  cf_payment_id       String?           @unique
-  payment_details     Json?
-  failure_reason      String?
-  created_at          DateTime          @default(now())
-  updated_at          DateTime          @updatedAt
-  completed_at        DateTime?
-  user                users             @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  webinar             webinars          @relation(fields: [webinar_id], references: [id], onDelete: Cascade)
+  id                String            @id @default(uuid())
+  user_id           String
+  webinar_id        String
+  amount            Float
+  currency          String            @default("INR")
+  status            TransactionStatus @default(PENDING)
+  payment_method    PaymentMethod     @default(CASHFREE)
+  payment_details   Json?
+  failure_reason    String?
+  created_at        DateTime          @default(now())
+  updated_at        DateTime          @updatedAt
+  completed_at      DateTime?
+  cashfree_order_id String?
+  cf_payment_id     String?
+  user              users             @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  webinar           webinars          @relation(fields: [webinar_id], references: [id], onDelete: Cascade)
 
   @@index([user_id])
   @@index([webinar_id])
   @@index([status])
-  @@index([cashfree_order_id])
-  @@index([cf_payment_id])
   @@map("webinar_transactions")
 }
 
@@ -320,6 +317,178 @@ model kyc_verifications {
   @@map("kyc_verifications")
 }
 
+model creator_bank_accounts {
+  id                      String   @id @default(uuid())
+  user_id                 String   @unique
+  account_number          String
+  ifsc_code               String   @db.VarChar(11)
+  beneficiary_name        String
+  bank_name               String?
+  account_type            String?  @default("savings") @db.VarChar(20)
+  is_verified             Boolean  @default(false)
+  created_at              DateTime @default(now())
+  updated_at              DateTime @updatedAt
+  cashfree_beneficiary_id String?  @unique
+  user                    users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@map("creator_bank_accounts")
+}
+
+model settlements {
+  id                   String             @id @default(uuid())
+  creator_id           String
+  total_gross_amount   Float
+  platform_fee         Float
+  gst_on_platform_fee  Float
+  tds_amount           Float              @default(0)
+  net_amount           Float
+  status               SettlementStatus   @default(PENDING)
+  settlement_date      DateTime
+  processed_at         DateTime?
+  payout_status        PayoutStatus       @default(PENDING)
+  failure_reason       String?
+  retry_count          Int                @default(0)
+  payout_details       Json?
+  created_at           DateTime           @default(now())
+  updated_at           DateTime           @updatedAt
+  cashfree_transfer_id String?            @unique
+  items                settlement_items[]
+  creator              users              @relation(fields: [creator_id], references: [id], onDelete: Cascade)
+
+  @@index([creator_id])
+  @@index([status])
+  @@index([settlement_date])
+  @@index([payout_status])
+  @@map("settlements")
+}
+
+model settlement_items {
+  id                  String      @id @default(uuid())
+  settlement_id       String
+  transaction_type    String      @db.VarChar(20)
+  transaction_id      String
+  course_id           String?
+  webinar_id          String?
+  gross_amount        Float
+  platform_fee        Float
+  gst_on_platform_fee Float
+  tds_amount          Float       @default(0)
+  net_amount          Float
+  created_at          DateTime    @default(now())
+  settlement          settlements @relation(fields: [settlement_id], references: [id], onDelete: Cascade)
+
+  @@unique([transaction_type, transaction_id])
+  @@index([settlement_id])
+  @@index([transaction_id])
+  @@map("settlement_items")
+}
+
+model wallet_transactions {
+  id                  String         @id @default(uuid())
+  creator_id          String
+  type                WalletTxType
+  amount              Float
+  net_amount          Float
+  platform_fee        Float
+  gst_on_platform_fee Float
+  tds_amount          Float          @default(0)
+  status              WalletTxStatus @default(PENDING_SETTLEMENT)
+  title               String
+  description         String?
+  transaction_type    String         @db.VarChar(20)
+  transaction_id      String
+  course_id           String?
+  webinar_id          String?
+  settlement_id       String?
+  settlement_eta      DateTime?
+  created_at          DateTime       @default(now())
+  updated_at          DateTime       @updatedAt
+
+  @@unique([transaction_type, transaction_id])
+  @@index([creator_id])
+  @@index([status])
+  @@map("wallet_transactions")
+}
+
+model sessions {
+  id           String        @id @default(uuid())
+  call_id      String        @unique
+  caller_id    String
+  receiver_id  String
+  mode         SessionMode
+  status       SessionStatus @default(PENDING)
+  duration     Int           @default(0)
+  amount       Float         @default(0)
+  rate_per_min Float         @default(0)
+  started_at   DateTime?
+  ended_at     DateTime?
+  created_at   DateTime      @default(now())
+  updated_at   DateTime      @updatedAt
+  scheduled_at DateTime?
+
+  @@index([caller_id])
+  @@index([receiver_id])
+  @@index([status])
+  @@index([scheduled_at])
+  @@map("sessions")
+}
+
+model session_experts {
+  id             String   @id @default(uuid())
+  user_id        String   @unique
+  profession     String
+  bio            String?
+  categories     String[] @default([])
+  experience     Int      @default(0)
+  audio_rate     Float    @default(0)
+  video_rate     Float    @default(0)
+  languages      String[] @default([])
+  is_active      Boolean  @default(true)
+  is_available   Boolean  @default(false)
+  total_sessions Int      @default(0)
+  total_minutes  Int      @default(0)
+  total_earnings Float    @default(0)
+  rating         Float    @default(0)
+  review_count   Int      @default(0)
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  @@index([is_active, is_available], map: "session_experts_active_avail_idx")
+  @@map("session_experts")
+}
+
+model session_products {
+  id          String      @id @default(uuid())
+  creator_id  String
+  title       String
+  description String?
+  duration    Int
+  price       Float
+  mode        SessionMode
+  is_active   Boolean     @default(true)
+  created_at  DateTime    @default(now())
+  updated_at  DateTime    @updatedAt
+
+  @@index([creator_id])
+  @@map("session_products")
+}
+
+model expert_availability {
+  id          String   @id @default(uuid())
+  expert_id   String
+  day_of_week Int
+  start_time  String
+  end_time    String
+  is_active   Boolean  @default(true)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@index([expert_id])
+  @@index([expert_id, day_of_week])
+  @@map("expert_availability")
+}
+
 enum UserType {
   USER
   CREATOR
@@ -360,9 +529,9 @@ enum TransactionStatus {
 
 enum PaymentMethod {
   RAZORPAY
-  CASHFREE
   MANUAL
   FREE
+  CASHFREE
 }
 
 enum WebinarStatus {
@@ -394,73 +563,6 @@ enum PayoutStatus {
   REVERSED
 }
 
-model creator_bank_accounts {
-  id                       String    @id @default(uuid())
-  user_id                  String    @unique
-  account_number           String
-  ifsc_code                String    @db.VarChar(11)
-  beneficiary_name         String
-  bank_name                String?
-  account_type             String?   @default("savings") @db.VarChar(20)
-  is_verified              Boolean   @default(false)
-  cashfree_beneficiary_id  String?   @unique
-  created_at               DateTime  @default(now())
-  updated_at               DateTime  @updatedAt
-  user                     users     @relation(fields: [user_id], references: [id], onDelete: Cascade)
-
-  @@index([user_id])
-  @@map("creator_bank_accounts")
-}
-
-model settlements {
-  id                     String           @id @default(uuid())
-  creator_id             String
-  total_gross_amount     Float
-  platform_fee           Float
-  gst_on_platform_fee    Float
-  tds_amount             Float            @default(0)
-  net_amount             Float
-  status                 SettlementStatus @default(PENDING)
-  settlement_date        DateTime
-  processed_at           DateTime?
-  cashfree_transfer_id   String?          @unique
-  payout_status          PayoutStatus     @default(PENDING)
-  failure_reason         String?
-  retry_count            Int              @default(0)
-  payout_details         Json?
-  created_at             DateTime         @default(now())
-  updated_at             DateTime         @updatedAt
-  creator                users            @relation(fields: [creator_id], references: [id], onDelete: Cascade)
-  items                  settlement_items[]
-
-  @@index([creator_id])
-  @@index([status])
-  @@index([settlement_date])
-  @@index([payout_status])
-  @@map("settlements")
-}
-
-model settlement_items {
-  id                String     @id @default(uuid())
-  settlement_id     String
-  transaction_type  String     @db.VarChar(20)
-  transaction_id    String
-  course_id         String?
-  webinar_id        String?
-  gross_amount      Float
-  platform_fee      Float
-  gst_on_platform_fee Float
-  tds_amount        Float      @default(0)
-  net_amount        Float
-  created_at        DateTime   @default(now())
-  settlement        settlements @relation(fields: [settlement_id], references: [id], onDelete: Cascade)
-
-  @@unique([transaction_type, transaction_id])
-  @@index([settlement_id])
-  @@index([transaction_id])
-  @@map("settlement_items")
-}
-
 enum WalletTxType {
   CREDIT
   DEBIT
@@ -471,36 +573,6 @@ enum WalletTxStatus {
   SETTLED
   FAILED
 }
-
-model wallet_transactions {
-  id                String          @id @default(uuid())
-  creator_id        String
-  type              WalletTxType
-  amount            Float
-  net_amount        Float
-  platform_fee      Float
-  gst_on_platform_fee Float
-  tds_amount        Float           @default(0)
-  status            WalletTxStatus  @default(PENDING_SETTLEMENT)
-  title             String
-  description       String?
-  transaction_type  String          @db.VarChar(20)
-  transaction_id    String
-  course_id         String?
-  webinar_id        String?
-  settlement_id     String?
-  settlement_eta    DateTime?
-  created_at        DateTime        @default(now())
-  updated_at        DateTime        @updatedAt
-  creator           users           @relation(fields: [creator_id], references: [id], onDelete: Cascade)
-
-  @@unique([transaction_type, transaction_id])
-  @@index([creator_id])
-  @@index([status])
-  @@map("wallet_transactions")
-}
-
-// ============ 1:1 CALL SESSIONS ============
 
 enum SessionStatus {
   PENDING

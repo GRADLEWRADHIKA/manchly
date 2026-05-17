@@ -230,6 +230,17 @@ export const initializeSocketIO = (httpServer: HTTPServer | HTTPSServer) => {
             });
         });
 
+        // Expert availability toggle
+        socket.on("expert_availability_changed", (data: { is_available: boolean; expert_id: string }) => {
+            // Broadcast to all connected users
+            socket.broadcast.emit("expert_availability_updated", {
+                expert_id: data.expert_id,
+                user_id: socket.userId,
+                is_available: data.is_available,
+            });
+            console.log(`Expert ${socket.userId} availability: ${data.is_available}`);
+        });
+
         // User online status
         socket.on("user_online", () => {
             socket.broadcast.emit("user_status", {

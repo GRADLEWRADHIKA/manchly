@@ -18,9 +18,19 @@ router.get("/expert/me", jwtAuth, SessionController.getMyExpertProfile);
 router.post("/expert/register", jwtAuth, SessionController.registerAsExpert);
 router.patch("/expert/update", jwtAuth, SessionController.updateExpertProfile);
 
+// Expert Availability (Creator)
+router.post("/availability", jwtAuth, SessionController.setAvailability);
+router.post("/availability/slot", jwtAuth, SessionController.addAvailabilitySlot);
+router.get("/availability/me", jwtAuth, SessionController.getMyAvailability);
+router.delete("/availability/:slot_id", jwtAuth, SessionController.removeAvailabilitySlot);
+
+// Expert Availability (Public - for booking flow)
+router.get("/availability/:expert_id", jwtAuth, SessionController.getExpertAvailability);
+
 // Expert Listing (Public)
 router.get("/experts", jwtAuth, SessionController.listExperts);
 router.get("/experts/:expert_id", jwtAuth, SessionController.getExpertDetail);
+router.get("/experts/:expert_id/booked-slots", jwtAuth, SessionController.getBookedSlots);
 
 // Session Products (Creator)
 router.post("/products", jwtAuth, SessionController.createProduct);
@@ -31,5 +41,6 @@ router.delete("/products/:product_id", jwtAuth, SessionController.deleteProduct)
 // Session Products (User)
 router.get("/products/creator/:creator_id", jwtAuth, SessionController.getCreatorProducts);
 router.post("/book", jwtAuth, SessionController.bookSession);
+router.post("/rate", jwtAuth, SessionController.rateSession);
 
 export default router;

@@ -95,6 +95,57 @@ export class SessionController {
     }
   }
 
+  // Rate a session expert after call
+  static async rateSession(req: JWTRequest, res: Response) {
+    try {
+      const userId = req.user!.userId;
+      const { session_id, rating, feedback } = req.body;
+
+      if (!session_id || !rating) {
+        return res.status(400).json({ error: "session_id and rating are required" });
+      }
+
+      if (rating < 1 || rating > 5) {
+        return res.status(400).json({ error: "Rating must be between 1 and 5" });
+      }
+
+      const session = await prisma.sessions.findUnique({ where: { id: session_id } });
+      if (!session) {
+        return res.status(404).json({ error: "Session not found" });
+      }
+
+      if (session.caller_id !== userId) {
+        return res.status(403).json({ error: "Only the caller can rate the session" });
+      }
+
+      // Update expert's rating (running average)
+      const expert = await prisma.session_experts.findUnique({ where: { user_id: session.receiver_id } });
+      if (expert) {
+        const newCount = expert.review_count + 1;
+        const newRating = ((expert.rating * expert.review_count) + rating) / newCount;
+
+        await prisma.session_experts.update({
+          where: { user_id: session.receiver_id },
+          data: {
+            rating: Math.round(newRating * 10) / 10,
+            review_count: newCount,
+          },
+        });
+      }
+
+      return res.json({
+        data: {
+          message: "Rating submitted successfully",
+          rating,
+          feedback: feedback || null,
+        },
+      });
+    } catch (err: any) {
+      console.error("rateSession error:", err);
+      return res.status(500).json({ error: "Failed to submit rating" });
+    }
+  }
+
   // Get my sessions (as caller or receiver) with user names
   static async getMySessions(req: JWTRequest, res: Response) {
     try {
@@ -297,7 +348,7 @@ export class SessionController {
       const pageNum = parseInt(page as string);
       const limitNum = parseInt(limit as string);
 
-      const where: any = { is_active: true };
+      const where: any = { is_active: true, is_available: true };
       if (category) {
         where.categories = { has: category as string };
       }
@@ -362,6 +413,57 @@ export class SessionController {
     } catch (err: any) {
       console.error("getExpertDetail error:", err);
       return res.status(500).json({ error: "Failed to fetch expert" });
+    }
+  }
+
+  // Public: get booked time slots for an expert on a specific date
+  static async getBookedSlots(req: JWTRequest, res: Response) {
+    try {
+      const { expert_id } = req.params;
+      const { date } = req.query; // YYYY-MM-DD
+
+      if (!date) {
+        return res.status(400).json({ error: "date query param is required (YYYY-MM-DD)" });
+      }
+
+      const expert = await prisma.session_experts.findUnique({ where: { id: expert_id } });
+      if (!expert) return res.status(404).json({ error: "Expert not found" });
+
+      const targetDate = new Date(date as string);
+      if (isNaN(targetDate.getTime())) {
+        return res.status(400).json({ error: "Invalid date format" });
+      }
+
+      const startOfDay = new Date(targetDate);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(targetDate);
+      endOfDay.setHours(23, 59, 59, 999);
+
+      const sessions = await prisma.sessions.findMany({
+        where: {
+          receiver_id: expert.user_id,
+          scheduled_at: { gte: startOfDay, lte: endOfDay },
+          status: { in: ["PENDING", "ACTIVE"] },
+        },
+        select: {
+          scheduled_at: true,
+          duration: true,
+          mode: true,
+          status: true,
+        },
+        orderBy: { scheduled_at: "asc" },
+      });
+
+      const bookedSlots = sessions.map((s) => ({
+        scheduled_at: s.scheduled_at,
+        duration: s.duration,
+        mode: s.mode,
+      }));
+
+      return res.json({ data: { booked_slots: bookedSlots } });
+    } catch (err: any) {
+      console.error("getBookedSlots error:", err);
+      return res.status(500).json({ error: "Failed to fetch booked slots" });
     }
   }
 
@@ -469,47 +571,323 @@ export class SessionController {
     }
   }
 
-  // User: book a session from a product
+  // ============ EXPERT AVAILABILITY ============
+
+  // Expert: set weekly availability slots
+  static async setAvailability(req: JWTRequest, res: Response) {
+    try {
+      const userId = req.user!.userId;
+      const { slots } = req.body;
+      // slots: [{ day_of_week: 1, start_time: "09:00", end_time: "12:00" }, ...]
+
+      if (!slots || !Array.isArray(slots) || slots.length === 0) {
+        return res.status(400).json({ error: "slots array is required" });
+      }
+
+      const expert = await prisma.session_experts.findUnique({ where: { user_id: userId } });
+      if (!expert) {
+        return res.status(404).json({ error: "Expert profile not found. Register as expert first." });
+      }
+
+      // Validate slots
+      for (const slot of slots) {
+        if (slot.day_of_week === undefined || !slot.start_time || !slot.end_time) {
+          return res.status(400).json({ error: "Each slot needs day_of_week, start_time, end_time" });
+        }
+        if (slot.day_of_week < 0 || slot.day_of_week > 6) {
+          return res.status(400).json({ error: "day_of_week must be 0-6 (Sun-Sat)" });
+        }
+        if (!/^\d{2}:\d{2}$/.test(slot.start_time) || !/^\d{2}:\d{2}$/.test(slot.end_time)) {
+          return res.status(400).json({ error: "Time must be in HH:MM format" });
+        }
+        if (slot.start_time >= slot.end_time) {
+          return res.status(400).json({ error: "start_time must be before end_time" });
+        }
+      }
+
+      // Delete existing slots and create new ones (replace strategy)
+      await prisma.expert_availability.deleteMany({ where: { expert_id: expert.id } });
+
+      const created = await prisma.expert_availability.createMany({
+        data: slots.map((s: any) => ({
+          expert_id: expert.id,
+          day_of_week: s.day_of_week,
+          start_time: s.start_time,
+          end_time: s.end_time,
+        })),
+      });
+
+      const availability = await prisma.expert_availability.findMany({
+        where: { expert_id: expert.id },
+        orderBy: [{ day_of_week: "asc" }, { start_time: "asc" }],
+      });
+
+      return res.status(201).json({ data: availability });
+    } catch (err: any) {
+      console.error("setAvailability error:", err);
+      return res.status(500).json({ error: "Failed to set availability" });
+    }
+  }
+
+  // Expert: add a single availability slot
+  static async addAvailabilitySlot(req: JWTRequest, res: Response) {
+    try {
+      const userId = req.user!.userId;
+      const { day_of_week, start_time, end_time } = req.body;
+
+      if (day_of_week === undefined || !start_time || !end_time) {
+        return res.status(400).json({ error: "day_of_week, start_time, end_time are required" });
+      }
+
+      const expert = await prisma.session_experts.findUnique({ where: { user_id: userId } });
+      if (!expert) {
+        return res.status(404).json({ error: "Expert profile not found" });
+      }
+
+      const slot = await prisma.expert_availability.create({
+        data: { expert_id: expert.id, day_of_week, start_time, end_time },
+      });
+
+      return res.status(201).json({ data: slot });
+    } catch (err: any) {
+      console.error("addAvailabilitySlot error:", err);
+      return res.status(500).json({ error: "Failed to add slot" });
+    }
+  }
+
+  // Expert: remove an availability slot
+  static async removeAvailabilitySlot(req: JWTRequest, res: Response) {
+    try {
+      const { slot_id } = req.params;
+      await prisma.expert_availability.delete({ where: { id: slot_id } });
+      return res.json({ message: "Slot removed" });
+    } catch (err: any) {
+      console.error("removeAvailabilitySlot error:", err);
+      return res.status(500).json({ error: "Failed to remove slot" });
+    }
+  }
+
+  // Expert: get my availability
+  static async getMyAvailability(req: JWTRequest, res: Response) {
+    try {
+      const userId = req.user!.userId;
+      const expert = await prisma.session_experts.findUnique({ where: { user_id: userId } });
+      if (!expert) {
+        return res.status(404).json({ error: "Expert profile not found" });
+      }
+
+      const availability = await prisma.expert_availability.findMany({
+        where: { expert_id: expert.id, is_active: true },
+        orderBy: [{ day_of_week: "asc" }, { start_time: "asc" }],
+      });
+
+      return res.json({ data: availability });
+    } catch (err: any) {
+      return res.status(500).json({ error: "Failed to fetch availability" });
+    }
+  }
+
+  // Public: get expert availability + booked slots for a specific date
+  static async getExpertAvailability(req: JWTRequest, res: Response) {
+    try {
+      const { expert_id } = req.params;
+      const { date } = req.query; // format: "2026-05-20"
+
+      const expert = await prisma.session_experts.findUnique({ where: { id: expert_id } });
+      if (!expert) {
+        return res.status(404).json({ error: "Expert not found" });
+      }
+
+      const user = await prisma.users.findUnique({
+        where: { id: expert.user_id },
+        select: userSelect,
+      });
+
+      // Get weekly availability schedule
+      const weeklySchedule = await prisma.expert_availability.findMany({
+        where: { expert_id: expert.id, is_active: true },
+        orderBy: [{ day_of_week: "asc" }, { start_time: "asc" }],
+      });
+
+      // If a specific date is provided, compute available slots
+      if (date) {
+        const targetDate = new Date(date as string);
+        if (isNaN(targetDate.getTime())) {
+          return res.status(400).json({ error: "Invalid date format. Use YYYY-MM-DD" });
+        }
+
+        const dayOfWeek = targetDate.getDay(); // 0=Sun, 6=Sat
+
+        // Get availability for that day
+        const daySlots = weeklySchedule.filter((s) => s.day_of_week === dayOfWeek);
+
+        if (daySlots.length === 0) {
+          return res.json({
+            data: {
+              expert: { ...expert, user },
+              date: date,
+              day_of_week: dayOfWeek,
+              day_name: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][dayOfWeek],
+              is_available_today: false,
+              available_slots: [],
+              booked_slots: [],
+              message: "Expert is not available on this day",
+            },
+          });
+        }
+
+        // Get booked sessions for that date (PENDING or ACTIVE)
+        const startOfDay = new Date(targetDate);
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date(targetDate);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        const bookedSessions = await prisma.sessions.findMany({
+          where: {
+            receiver_id: expert.user_id,
+            scheduled_at: { gte: startOfDay, lte: endOfDay },
+            status: { in: ["PENDING", "ACTIVE"] },
+          },
+          orderBy: { scheduled_at: "asc" },
+        });
+
+        // Build time slots (30-min intervals) from availability
+        const availableSlots: { start_time: string; end_time: string; is_booked: boolean; session_mode?: string }[] = [];
+
+        for (const daySlot of daySlots) {
+          const [startH, startM] = daySlot.start_time.split(":").map(Number);
+          const [endH, endM] = daySlot.end_time.split(":").map(Number);
+          const startMinutes = startH * 60 + startM;
+          const endMinutes = endH * 60 + endM;
+
+          // Generate 30-min slots
+          for (let m = startMinutes; m + 30 <= endMinutes; m += 30) {
+            const slotStart = `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
+            const slotEnd = `${String(Math.floor((m + 30) / 60)).padStart(2, "0")}:${String((m + 30) % 60).padStart(2, "0")}`;
+
+            // Check if this slot overlaps with any booked session
+            const slotStartDate = new Date(targetDate);
+            slotStartDate.setHours(Math.floor(m / 60), m % 60, 0, 0);
+            const slotEndDate = new Date(targetDate);
+            slotEndDate.setHours(Math.floor((m + 30) / 60), (m + 30) % 60, 0, 0);
+
+            const booked = bookedSessions.find((s) => {
+              if (!s.scheduled_at) return false;
+              const sessionStart = new Date(s.scheduled_at);
+              const sessionEnd = new Date(sessionStart.getTime() + s.duration * 60000);
+              return sessionStart < slotEndDate && sessionEnd > slotStartDate;
+            });
+
+            availableSlots.push({
+              start_time: slotStart,
+              end_time: slotEnd,
+              is_booked: !!booked,
+              session_mode: booked ? booked.mode : undefined,
+            });
+          }
+        }
+
+        return res.json({
+          data: {
+            expert: { ...expert, user },
+            date: date,
+            day_of_week: dayOfWeek,
+            day_name: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][dayOfWeek],
+            is_available_today: true,
+            available_slots: availableSlots,
+            booked_slots: bookedSessions.map((s) => ({
+              id: s.id,
+              scheduled_at: s.scheduled_at,
+              duration: s.duration,
+              mode: s.mode,
+              status: s.status,
+            })),
+          },
+        });
+      }
+
+      // No date provided: return full weekly schedule
+      const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+      const schedule = dayNames.map((name, i) => ({
+        day_of_week: i,
+        day_name: name,
+        slots: weeklySchedule.filter((s) => s.day_of_week === i).map((s) => ({
+          id: s.id,
+          start_time: s.start_time,
+          end_time: s.end_time,
+        })),
+        is_available: weeklySchedule.some((s) => s.day_of_week === i),
+      }));
+
+      return res.json({
+        data: {
+          expert: { ...expert, user },
+          weekly_schedule: schedule,
+        },
+      });
+    } catch (err: any) {
+      console.error("getExpertAvailability error:", err);
+      return res.status(500).json({ error: "Failed to fetch availability" });
+    }
+  }
+
+  // User: book a session directly with an expert
   static async bookSession(req: JWTRequest, res: Response) {
     try {
       const callerId = req.user!.userId;
-      const { product_id } = req.body;
+      const { expert_id, mode, duration, scheduled_at } = req.body;
+      // mode: "call" or "video", duration in minutes (default 30), scheduled_at: ISO date string
 
-      if (!product_id) {
-        return res.status(400).json({ error: "product_id is required" });
+      if (!expert_id) {
+        return res.status(400).json({ error: "expert_id is required" });
       }
 
-      const product = await prisma.session_products.findUnique({
-        where: { id: product_id },
-      });
-
-      if (!product || !product.is_active) {
-        return res.status(404).json({ error: "Session product not found or inactive" });
+      if (!scheduled_at) {
+        return res.status(400).json({ error: "scheduled_at (date & time) is required" });
       }
 
-      const ratePerMin = product.price / product.duration;
-      const callId = `session_${callerId}_${product.creator_id}_${Date.now()}`;
+      const scheduledDate = new Date(scheduled_at);
+      if (isNaN(scheduledDate.getTime())) {
+        return res.status(400).json({ error: "Invalid scheduled_at format" });
+      }
+
+      const expert = await prisma.session_experts.findUnique({ where: { id: expert_id } });
+      if (!expert || !expert.is_active) {
+        return res.status(404).json({ error: "Expert not found or inactive" });
+      }
+
+      if (callerId === expert.user_id) {
+        return res.status(400).json({ error: "You cannot book a session with yourself" });
+      }
+
+      const sessionMode = mode === "video" ? "VIDEO" : "CALL";
+      const ratePerMin = sessionMode === "VIDEO" ? expert.video_rate : expert.audio_rate;
+      const sessionDuration = duration || 30;
+      const amount = ratePerMin * sessionDuration;
+
+      const callId = `session_${callerId}_${expert.user_id}_${Date.now()}`;
 
       const session = await prisma.sessions.create({
         data: {
           call_id: callId,
           caller_id: callerId,
-          receiver_id: product.creator_id,
-          mode: product.mode,
+          receiver_id: expert.user_id,
+          mode: sessionMode,
           rate_per_min: ratePerMin,
-          amount: product.price,
-          duration: product.duration,
+          amount,
+          duration: sessionDuration,
+          scheduled_at: scheduledDate,
           status: "PENDING",
         },
       });
 
       const [caller, receiver] = await Promise.all([
         prisma.users.findUnique({ where: { id: callerId }, select: userSelect }),
-        prisma.users.findUnique({ where: { id: product.creator_id }, select: userSelect }),
+        prisma.users.findUnique({ where: { id: expert.user_id }, select: userSelect }),
       ]);
 
       return res.status(201).json({
-        data: { ...session, caller, receiver, product },
+        data: { ...session, caller, receiver, expert },
       });
     } catch (err: any) {
       console.error("bookSession error:", err);

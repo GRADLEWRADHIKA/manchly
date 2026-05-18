@@ -187,8 +187,8 @@ model webinar_transactions {
   created_at        DateTime          @default(now())
   updated_at        DateTime          @updatedAt
   completed_at      DateTime?
-  cashfree_order_id String?
-  cf_payment_id     String?
+  cashfree_order_id String?           @unique
+  cf_payment_id     String?           @unique
   user              users             @relation(fields: [user_id], references: [id], onDelete: Cascade)
   webinar           webinars          @relation(fields: [webinar_id], references: [id], onDelete: Cascade)
 

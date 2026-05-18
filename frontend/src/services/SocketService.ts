@@ -19,13 +19,24 @@ class SocketService {
 
     this.socket.on('connect', () => {
       console.log('Socket connected:', this.socket?.id);
+      // Re-attach all registered listeners on reconnect
+      this.listeners.forEach((callbacks, event) => {
+        callbacks.forEach(cb => {
+          this.socket?.off(event, cb as any);
+          this.socket?.on(event, cb as any);
+        });
+      });
     });
 
     this.socket.on('disconnect', (reason) => {
       console.log('Socket disconnected:', reason);
     });
 
-    // Re-emit all registered events
+    this.socket.onAny((event, ...args) => {
+      console.log('Socket event received:', event, JSON.stringify(args));
+    });
+
+    // Attach already registered listeners
     this.listeners.forEach((callbacks, event) => {
       callbacks.forEach(cb => {
         this.socket?.on(event, cb as any);
@@ -43,7 +54,12 @@ class SocketService {
       this.listeners.set(event, new Set());
     }
     this.listeners.get(event)!.add(callback);
-    this.socket?.on(event, callback as any);
+    if (this.socket) {
+      this.socket.on(event, callback as any);
+      console.log(`Socket listener registered: ${event} (connected: ${this.socket.connected})`);
+    } else {
+      console.log(`Socket listener queued: ${event} (socket not connected yet)`);
+    }
   }
 
   off(event: string, callback: Function) {

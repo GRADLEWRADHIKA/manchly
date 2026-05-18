@@ -21,7 +21,6 @@ import CreatorWebinarDetails from '../screens/Auth/Creator/Products/Webinar/Crea
 import CreatorPublicProfile from '../screens/Auth/Creator/Profile/CreatorPublicProfile';
 import IncomingCallScreen from '../screens/Auth/Creator/Astrologer/IncomingCallScreen';
 import CallScreen from '../screens/Auth/User/Astrologer/CallScreen';
-import CreateSessionProduct from '../screens/Auth/Creator/Products/CreateSessionProduct';
 import ExpertRegistration from '../screens/Auth/Creator/Products/ExpertRegistration';
 
 const Stack = createNativeStackNavigator();
@@ -66,7 +65,6 @@ const CreatorMainStack = () => {
           name="WebinarDetails"
           component={CreatorWebinarDetails}
         />
-        <Stack.Screen name="CreateSessionProduct" component={CreateSessionProduct} />
         <Stack.Screen name="ExpertRegistration" component={ExpertRegistration} />
         <Stack.Screen name="IncomingCallScreen" component={IncomingCallScreen} />
         <Stack.Screen name="CallScreen" component={CallScreen} />

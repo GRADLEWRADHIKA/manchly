@@ -21,6 +21,7 @@ import colors from '../../../../utils/colors';
 import {wp, hp, fp} from '../../../../utils/responsive';
 import AppHeaderWithBack from '../../../../components/AppHeaderWithBack';
 import {listExperts} from '../../../../store/SessionSlice';
+import SocketService from '../../../../services/SocketService';
 
 const CATEGORIES = ['All', 'Business Consulting', 'Career Guidance', 'Finance & Tax', 'Health & Wellness', 'Astrology', 'Technology', 'Life Coach'];
 
@@ -87,6 +88,25 @@ const ExpertList: React.FC = () => {
       fetchExperts();
     }
   }, [isFocused, selectedCat]);
+
+  // Listen for real-time availability changes
+  useEffect(() => {
+    const handler = () => {
+      // Refetch on any availability change
+      dispatch(
+        listExperts({
+          category: selectedCat === 'All' ? undefined : selectedCat,
+          page: 1,
+          limit: 30,
+        }),
+      );
+    };
+
+    SocketService.on('expert_availability_updated', handler);
+    return () => {
+      SocketService.off('expert_availability_updated', handler);
+    };
+  }, [selectedCat]);
 
   const fetchExperts = () => {
     setLoading(true);

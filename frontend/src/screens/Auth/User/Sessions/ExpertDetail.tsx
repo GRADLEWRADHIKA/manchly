@@ -1,4 +1,4 @@
-import React, {useState, useEffect, memo} from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -6,41 +6,90 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
-  Modal,
 } from 'react-native';
-import {useNavigation, useRoute} from '@react-navigation/native';
-import {useDispatch, useSelector} from 'react-redux';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { useDispatch, useSelector } from 'react-redux';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Star,
   Phone,
   Video,
   Clock,
-  IndianRupee,
   Globe,
-  Shield,
-  Wallet,
   User2,
+  Calendar,
 } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 import colors from '../../../../utils/colors';
-import {wp, hp, fp} from '../../../../utils/responsive';
+import { wp, hp, fp } from '../../../../utils/responsive';
 import AppHeaderWithBack from '../../../../components/AppHeaderWithBack';
-import {getExpertDetail, bookSession} from '../../../../store/SessionSlice';
+import { instance } from '../../../../utils/AxiosInstance';
+import { getExpertDetail, bookSession } from '../../../../store/SessionSlice';
+import SocketService from '../../../../services/SocketService';
+import BookingConfirmModal from './BookingConfirmModal';
 
 const ExpertDetail: React.FC = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const dispatch = useDispatch<any>();
   const insets = useSafeAreaInsets();
-  const {user} = useSelector((state: any) => state.userReducer);
 
   const expertParam = route.params?.expert;
   const [expert, setExpert] = useState<any>(expertParam);
-  const [products, setProducts] = useState<any[]>([]);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [selectedMode, setSelectedMode] = useState<'call' | 'video'>('call');
+  const [booking, setBooking] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(0);
+  const [selectedTime, setSelectedTime] = useState<{
+    label: string;
+    hour: number;
+    minute: number;
+  } | null>(null);
+  const [bookedSlots, setBookedSlots] = useState<Set<string>>(new Set());
+
+  const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const MONTH_NAMES = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
+
+  const next7Days = useMemo(() => {
+    const days = [];
+    const now = new Date();
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(now);
+      d.setDate(now.getDate() + i);
+      days.push({
+        date: d,
+        day: DAY_NAMES[d.getDay()],
+        num: d.getDate(),
+        month: MONTH_NAMES[d.getMonth()],
+        isToday: i === 0,
+      });
+    }
+    return days;
+  }, []);
+
+  const timeSlots = useMemo(() => {
+    const slots: { label: string; hour: number; minute: number }[] = [];
+    for (let h = 10; h < 18; h++) {
+      const displayH = h > 12 ? h - 12 : h;
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      slots.push({ label: `${displayH}:00 ${ampm}`, hour: h, minute: 0 });
+      slots.push({ label: `${displayH}:30 ${ampm}`, hour: h, minute: 30 });
+    }
+    return slots;
+  }, []);
 
   useEffect(() => {
     if (expertParam?.id) {
@@ -48,66 +97,146 @@ const ExpertDetail: React.FC = () => {
         .unwrap()
         .then((res: any) => {
           const data = res?.data;
-          if (data) {
-            setExpert(data);
-            setProducts(data.products || []);
-          }
-        });
+          if (data) setExpert({ ...expertParam, ...data });
+        })
+        .catch(() => {});
     }
   }, []);
 
-  const eu = expert?.user || expertParam?.user;
+  // Fetch booked slots when date changes
+  useEffect(() => {
+    if (!expert?.id) return;
+    const dateObj = next7Days[selectedDate]?.date;
+    if (!dateObj) return;
+    const dateStr = `${dateObj.getFullYear()}-${String(
+      dateObj.getMonth() + 1,
+    ).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
 
-  const handleBookProduct = (product: any) => {
-    setSelectedProduct(product);
-    setSelectedMode(product.mode === 'VIDEO' ? 'video' : 'call');
-    setShowConfirm(true);
-  };
+    instance
+      .get(`sessions/experts/${expert.id}/booked-slots?date=${dateStr}`)
+      .then((res: any) => {
+        const slots = res?.data?.data?.booked_slots || [];
+        const booked = new Set<string>();
+        slots.forEach((s: any) => {
+          if (!s.scheduled_at) return;
+          const st = new Date(s.scheduled_at);
+          const h = st.getHours();
+          const m = st.getMinutes();
+          const displayH = h > 12 ? h - 12 : h;
+          const ampm = h >= 12 ? 'PM' : 'AM';
+          booked.add(`${displayH}:${m === 0 ? '00' : '30'} ${ampm}`);
+        });
+        setBookedSlots(booked);
+      })
+      .catch(() => setBookedSlots(new Set()));
+  }, [selectedDate, expert?.id]);
+
+  // Listen for real-time availability changes
+  useEffect(() => {
+    const handler = (data: {expert_id: string; user_id: string; is_available: boolean}) => {
+      if (data.expert_id === expert?.id || data.user_id === expert?.user_id) {
+        setExpert((prev: any) => ({...prev, is_available: data.is_available}));
+      }
+    };
+    SocketService.on('expert_availability_updated', handler);
+    return () => { SocketService.off('expert_availability_updated', handler); };
+  }, [expert?.id, expert?.user_id]);
+
+  const eu = expert?.user || expertParam?.user;
+  const audioRate = expert?.audio_rate ?? expertParam?.audio_rate ?? 0;
+  const videoRate = expert?.video_rate ?? expertParam?.video_rate ?? audioRate;
 
   const handleConfirm = () => {
-    setShowConfirm(false);
+    if (!selectedTime) return;
+    const dateObj = new Date(next7Days[selectedDate].date.getTime());
+    dateObj.setHours(selectedTime.hour, selectedTime.minute, 0, 0);
+    console.log('Booking scheduled_at:', dateObj.toISOString());
 
-    if (selectedProduct) {
-      dispatch(bookSession({product_id: selectedProduct.id}))
-        .unwrap()
-        .then(() => {
-          Toast.show({
-            type: 'success',
-            text1: 'Session Booked!',
-            text2: 'The expert will call you shortly.',
-            position: 'bottom',
-          });
-          navigation.navigate('UserBottomTab', { screen: 'UserSessions' });
+    setBooking(true);
+    dispatch(
+      bookSession({
+        expert_id: expert.id,
+        mode: selectedMode,
+        duration: 30,
+        scheduled_at: dateObj.toISOString(),
+      }),
+    )
+      .unwrap()
+      .then(() => {
+        setShowConfirm(false);
+        Toast.show({
+          type: 'success',
+          text1: 'Session Booked!',
+          text2: 'The expert will connect with you shortly.',
+          position: 'bottom',
         });
-    }
+        navigation.navigate('UserBottomTab', { screen: 'UserSessions' });
+      })
+      .finally(() => setBooking(false));
   };
+
+  const rate = selectedMode === 'video' ? videoRate : audioRate;
 
   return (
     <View style={styles.container}>
       <AppHeaderWithBack title="Expert Profile" />
 
       <ScrollView
-        contentContainerStyle={[styles.scroll, {paddingBottom: insets.bottom + hp(100)}]}
-        showsVerticalScrollIndicator={false}>
+        contentContainerStyle={[
+          styles.scroll,
+          { paddingBottom: insets.bottom + hp(100) },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Profile Card */}
         <View style={styles.profileCard}>
           <View style={styles.profileTop}>
             <View style={styles.avatarWrap}>
               {eu?.profile_image ? (
-                <Image source={{uri: eu.profile_image}} style={styles.avatarImg} />
+                <Image
+                  source={{ uri: eu.profile_image }}
+                  style={styles.avatarImg}
+                />
               ) : (
                 <View style={styles.avatarPlaceholder}>
                   <User2 size={wp(28)} color={colors.secPrimary} />
                 </View>
               )}
-              <View style={[styles.onlineDot, {backgroundColor: expert?.is_available ? colors.success : colors.textMuted}]} />
+              <View
+                style={[
+                  styles.onlineDot,
+                  {
+                    backgroundColor: expert?.is_available
+                      ? colors.success
+                      : colors.textMuted,
+                  },
+                ]}
+              />
             </View>
             <View style={styles.profileInfo}>
               <Text style={styles.profileName}>{eu?.name || 'Expert'}</Text>
               <Text style={styles.profileProf}>{expert?.profession}</Text>
               <View style={styles.onlineRow}>
-                <View style={[styles.statusDot, {backgroundColor: expert?.is_available ? colors.success : colors.textMuted}]} />
-                <Text style={[styles.statusText, {color: expert?.is_available ? colors.success : colors.textMuted}]}>
+                <View
+                  style={[
+                    styles.statusDot,
+                    {
+                      backgroundColor: expert?.is_available
+                        ? colors.success
+                        : colors.textMuted,
+                    },
+                  ]}
+                />
+                <Text
+                  style={[
+                    styles.statusText,
+                    {
+                      color: expert?.is_available
+                        ? colors.success
+                        : colors.textMuted,
+                    },
+                  ]}
+                >
                   {expert?.is_available ? 'Online' : 'Offline'}
                 </Text>
               </View>
@@ -116,8 +245,15 @@ const ExpertDetail: React.FC = () => {
 
           <View style={styles.statsGrid}>
             <View style={styles.statBox}>
-              <Star size={wp(16)} color={colors.golden} fill={colors.golden} strokeWidth={1} />
-              <Text style={styles.statVal}>{(expert?.rating || 0).toFixed(1)}</Text>
+              <Star
+                size={wp(16)}
+                color={colors.golden}
+                fill={colors.golden}
+                strokeWidth={1}
+              />
+              <Text style={styles.statVal}>
+                {(expert?.rating || 0).toFixed(1)}
+              </Text>
               <Text style={styles.statLbl}>Rating</Text>
             </View>
             <View style={styles.statDiv} />
@@ -128,7 +264,11 @@ const ExpertDetail: React.FC = () => {
             </View>
             <View style={styles.statDiv} />
             <View style={styles.statBox}>
-              <Phone size={wp(16)} color={colors.secPrimary} strokeWidth={1.8} />
+              <Phone
+                size={wp(16)}
+                color={colors.secPrimary}
+                strokeWidth={1.8}
+              />
               <Text style={styles.statVal}>{expert?.total_sessions || 0}</Text>
               <Text style={styles.statLbl}>Sessions</Text>
             </View>
@@ -146,165 +286,448 @@ const ExpertDetail: React.FC = () => {
         {/* Languages */}
         {expert?.languages?.length > 0 && (
           <View style={styles.langRow}>
-            <Globe size={wp(14)} color={colors.textSecondary} strokeWidth={1.8} />
+            <Globe
+              size={wp(14)}
+              color={colors.textSecondary}
+              strokeWidth={1.8}
+            />
             <Text style={styles.langText}>{expert.languages.join(', ')}</Text>
           </View>
         )}
 
-        {/* Session Products (Bookable) */}
-        {products.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Book a Session</Text>
-            {products.map((p: any) => {
-              const isVideo = p.mode === 'VIDEO';
+        {/* Book a Session */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Book a Session</Text>
+          <View style={styles.modeToggle}>
+            <TouchableOpacity
+              style={[
+                styles.modeOption,
+                selectedMode === 'call' && styles.modeOptionActive,
+              ]}
+              activeOpacity={0.8}
+              onPress={() => setSelectedMode('call')}
+            >
+              <Phone
+                size={wp(20)}
+                color={selectedMode === 'call' ? colors.white : colors.info}
+                strokeWidth={1.8}
+              />
+              <Text
+                style={[
+                  styles.modeOptionTitle,
+                  selectedMode === 'call' && styles.modeOptionTitleActive,
+                ]}
+              >
+                Audio Call
+              </Text>
+              <Text
+                style={[
+                  styles.modeOptionPrice,
+                  selectedMode === 'call' && styles.modeOptionPriceActive,
+                ]}
+              >
+                ₹{audioRate}/min
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.modeOption,
+                selectedMode === 'video' && styles.modeOptionActiveVideo,
+              ]}
+              activeOpacity={0.8}
+              onPress={() => setSelectedMode('video')}
+            >
+              <Video
+                size={wp(20)}
+                color={selectedMode === 'video' ? colors.white : colors.success}
+                strokeWidth={1.8}
+              />
+              <Text
+                style={[
+                  styles.modeOptionTitle,
+                  selectedMode === 'video' && styles.modeOptionTitleActive,
+                ]}
+              >
+                Video Call
+              </Text>
+              <Text
+                style={[
+                  styles.modeOptionPrice,
+                  selectedMode === 'video' && styles.modeOptionPriceActive,
+                ]}
+              >
+                ₹{videoRate}/min
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Select Date */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeaderRow}>
+            <Calendar size={wp(16)} color={colors.text} strokeWidth={1.8} />
+            <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>
+              Select Date
+            </Text>
+          </View>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.dateRow}
+          >
+            {next7Days.map((d, i) => (
+              <TouchableOpacity
+                key={i}
+                style={[
+                  styles.dateCard,
+                  selectedDate === i && styles.dateCardActive,
+                ]}
+                activeOpacity={0.8}
+                onPress={() => {
+                  setSelectedDate(i);
+                  setSelectedTime(null);
+                }}
+              >
+                <Text
+                  style={[
+                    styles.dateDay,
+                    selectedDate === i && styles.dateDayActive,
+                  ]}
+                >
+                  {d.isToday ? 'Today' : d.day}
+                </Text>
+                <Text
+                  style={[
+                    styles.dateNum,
+                    selectedDate === i && styles.dateNumActive,
+                  ]}
+                >
+                  {d.num}
+                </Text>
+                <Text
+                  style={[
+                    styles.dateMonth,
+                    selectedDate === i && styles.dateMonthActive,
+                  ]}
+                >
+                  {d.month}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
+        {/* Select Time */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeaderRow}>
+            <Clock size={wp(16)} color={colors.text} strokeWidth={1.8} />
+            <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>
+              Select Time
+            </Text>
+          </View>
+          <View style={styles.timeGrid}>
+            {timeSlots.map(t => {
+              const isBooked = bookedSlots.has(t.label);
               return (
-                <TouchableOpacity key={p.id} style={styles.productCard} activeOpacity={0.8} onPress={() => handleBookProduct(p)}>
-                  <View style={[styles.productIcon, {backgroundColor: isVideo ? colors.success + '15' : colors.info + '15'}]}>
-                    {isVideo ? <Video size={wp(20)} color={colors.success} strokeWidth={1.8} /> : <Phone size={wp(20)} color={colors.info} strokeWidth={1.8} />}
-                  </View>
-                  <View style={{flex: 1}}>
-                    <Text style={styles.productName}>{p.title}</Text>
-                    <Text style={styles.productMeta}>{p.duration} min · {isVideo ? 'Video' : 'Audio'}</Text>
-                  </View>
-                  <Text style={styles.productPrice}>₹{p.price}</Text>
+                <TouchableOpacity
+                  key={t.label}
+                  style={[
+                    styles.timeSlot,
+                    selectedTime?.label === t.label && styles.timeSlotActive,
+                    isBooked && styles.timeSlotBooked,
+                  ]}
+                  activeOpacity={0.8}
+                  disabled={isBooked}
+                  onPress={() => setSelectedTime(t)}
+                >
+                  <Text
+                    style={[
+                      styles.timeText,
+                      selectedTime?.label === t.label && styles.timeTextActive,
+                      isBooked && styles.timeTextBooked,
+                    ]}
+                  >
+                    {t.label}
+                  </Text>
+                  {isBooked && <Text style={styles.bookedLabel}>Booked</Text>}
                 </TouchableOpacity>
               );
             })}
           </View>
+        </View>
+
+        {/* Categories */}
+        {expert?.categories?.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Expertise</Text>
+            <View style={styles.chipRow}>
+              {expert.categories.map((c: string) => (
+                <View key={c} style={styles.chip}>
+                  <Text style={styles.chipText}>{c}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
         )}
       </ScrollView>
 
-      {/* Bottom CTA — Book */}
-      {products.length > 0 && (
-        <View style={[styles.bottomBar, {paddingBottom: insets.bottom + hp(10)}]}>
-          <View>
-            <Text style={styles.bottomPrice}>From ₹{Math.min(...products.map((p: any) => p.price))}</Text>
-            <Text style={styles.bottomOnlineText}>
-              {products.length} session{products.length > 1 ? 's' : ''} available
-            </Text>
-          </View>
-          <TouchableOpacity
-            style={styles.bottomBtn}
-            activeOpacity={0.8}
-            onPress={() => handleBookProduct(products[0])}>
-            <Text style={styles.bottomBtnText}>Book Session</Text>
-          </TouchableOpacity>
+      {/* Bottom CTA */}
+      <View
+        style={[styles.bottomBar, { paddingBottom: insets.bottom + hp(10) }]}
+      >
+        <View>
+          <Text style={styles.bottomPrice}>₹{rate}/min</Text>
+          <Text style={styles.bottomSubText}>
+            {selectedTime
+              ? `${next7Days[selectedDate]?.day}, ${next7Days[selectedDate]?.num} ${next7Days[selectedDate]?.month} · ${selectedTime.label}`
+              : 'Select date & time'}
+          </Text>
         </View>
-      )}
-
-      {/* Confirm Modal */}
-      <Modal visible={showConfirm} transparent animationType="fade" onRequestClose={() => setShowConfirm(false)}>
-        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowConfirm(false)}>
-          <TouchableOpacity style={styles.modalContent} activeOpacity={1} onPress={() => {}}>
-            <Text style={styles.modalTitle}>{selectedProduct ? 'Confirm Booking' : 'Start Session'}</Text>
-            <View style={styles.modalInfoRow}>
-              <View style={styles.modalAvatar}>
-                <Text style={styles.modalAvatarText}>
-                  {(eu?.name || '?').split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
-                </Text>
-              </View>
-              <View style={{flex: 1}}>
-                <Text style={styles.modalName}>{eu?.name}</Text>
-                <Text style={styles.modalSub}>
-                  {selectedProduct ? selectedProduct.title : (selectedMode === 'video' ? 'Video Call' : 'Audio Call')}
-                </Text>
-              </View>
-            </View>
-            <View style={styles.modalDivider} />
-            <View style={styles.modalRow}>
-              <IndianRupee size={wp(16)} color={colors.info} strokeWidth={1.8} />
-              <Text style={styles.modalLabel}>{selectedProduct ? 'Price' : 'Rate'}</Text>
-              <Text style={styles.modalValue}>
-                {selectedProduct ? `₹${selectedProduct.price}` : `₹${selectedMode === 'video' ? expert?.video_rate : expert?.audio_rate}/min`}
-              </Text>
-            </View>
-            {selectedProduct && (
-              <View style={styles.modalRow}>
-                <Clock size={wp(16)} color={colors.info} strokeWidth={1.8} />
-                <Text style={styles.modalLabel}>Duration</Text>
-                <Text style={styles.modalValue}>{selectedProduct.duration} min</Text>
-              </View>
-            )}
-            <View style={styles.modalNote}>
-              <Shield size={wp(14)} color={colors.success} strokeWidth={1.8} />
-              <Text style={styles.modalNoteText}>Secure call. Session ends when either party disconnects.</Text>
-            </View>
-            <TouchableOpacity
-              style={[styles.modalBtn, {backgroundColor: selectedMode === 'video' ? colors.success : colors.info}]}
-              activeOpacity={0.8}
-              onPress={handleConfirm}>
-              {selectedMode === 'video' ? <Video size={wp(18)} color={colors.white} strokeWidth={2} /> : <Phone size={wp(18)} color={colors.white} strokeWidth={2} />}
-              <Text style={styles.modalBtnText}>Book & Pay</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.modalCancel} onPress={() => setShowConfirm(false)}>
-              <Text style={styles.modalCancelText}>Cancel</Text>
-            </TouchableOpacity>
-          </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.bottomBtn,
+            selectedMode === 'video' && styles.bottomBtnVideo,
+            !selectedTime && styles.bottomBtnDisabled,
+          ]}
+          activeOpacity={0.8}
+          disabled={!selectedTime}
+          onPress={() => setShowConfirm(true)}
+        >
+          {selectedMode === 'video' ? (
+            <Video size={wp(16)} color={colors.white} strokeWidth={2} />
+          ) : (
+            <Phone size={wp(16)} color={colors.white} strokeWidth={2} />
+          )}
+          <Text style={styles.bottomBtnText}>Book Now</Text>
         </TouchableOpacity>
-      </Modal>
+      </View>
+
+      <BookingConfirmModal
+        visible={showConfirm}
+        onClose={() => setShowConfirm(false)}
+        onConfirm={handleConfirm}
+        booking={booking}
+        expertName={eu?.name || 'Expert'}
+        mode={selectedMode}
+        rate={rate}
+        dateLabel={`${next7Days[selectedDate]?.day}, ${next7Days[selectedDate]?.num} ${next7Days[selectedDate]?.month}`}
+        timeLabel={selectedTime?.label || ''}
+      />
+      
     </View>
   );
 };
 
-export default memo(ExpertDetail);
+export default ExpertDetail;
 
 const styles = StyleSheet.create({
-  container: {flex: 1, backgroundColor: colors.surface},
-  scroll: {paddingTop: hp(14)},
-  profileCard: {backgroundColor: colors.white, marginHorizontal: wp(16), borderRadius: wp(16), padding: wp(16), borderWidth: 1, borderColor: colors.borderLight},
-  profileTop: {flexDirection: 'row', alignItems: 'center'},
-  avatarWrap: {position: 'relative'},
-  avatarImg: {width: wp(64), height: wp(64), borderRadius: wp(32)},
-  avatarPlaceholder: {width: wp(64), height: wp(64), borderRadius: wp(32), backgroundColor: colors.secPrimary + '18', alignItems: 'center', justifyContent: 'center'},
-  onlineDot: {position: 'absolute', bottom: wp(2), right: wp(2), width: wp(14), height: wp(14), borderRadius: wp(7), borderWidth: 2, borderColor: colors.white},
-  profileInfo: {marginLeft: wp(14), flex: 1},
-  profileName: {fontSize: fp(17), fontWeight: '700', color: colors.text},
-  profileProf: {fontSize: fp(12), color: colors.textSecondary, marginTop: hp(2)},
-  onlineRow: {flexDirection: 'row', alignItems: 'center', marginTop: hp(4), gap: wp(4)},
-  statusDot: {width: wp(7), height: wp(7), borderRadius: wp(4)},
-  statusText: {fontSize: fp(11), fontWeight: '600'},
-  statsGrid: {flexDirection: 'row', marginTop: hp(16), paddingTop: hp(14), borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.borderLight, justifyContent: 'space-around'},
-  statBox: {alignItems: 'center', gap: hp(3)},
-  statVal: {fontSize: fp(14), fontWeight: '700', color: colors.text},
-  statLbl: {fontSize: fp(10), color: colors.textMuted},
-  statDiv: {width: 1, backgroundColor: colors.borderLight},
-  section: {marginTop: hp(18), paddingHorizontal: wp(16)},
-  sectionTitle: {fontSize: fp(15), fontWeight: '700', color: colors.text, marginBottom: hp(10)},
-  aboutText: {fontSize: fp(13), color: colors.textSecondary, lineHeight: fp(20)},
-  langRow: {flexDirection: 'row', alignItems: 'center', gap: wp(6), marginTop: hp(10), paddingHorizontal: wp(16)},
-  langText: {fontSize: fp(12), color: colors.textSecondary},
-  callRow: {flexDirection: 'row', gap: wp(12)},
-  callBtn: {flex: 1, alignItems: 'center', paddingVertical: hp(18), borderRadius: wp(14), backgroundColor: colors.white, borderWidth: 1.5, gap: hp(6)},
-  callBtnTitle: {fontSize: fp(14), fontWeight: '700', color: colors.text},
-  callBtnPrice: {fontSize: fp(12), color: colors.textSecondary},
-  productCard: {flexDirection: 'row', alignItems: 'center', backgroundColor: colors.white, borderRadius: wp(12), padding: wp(12), marginBottom: hp(8), borderWidth: 1, borderColor: colors.borderLight},
-  productIcon: {width: wp(42), height: wp(42), borderRadius: wp(12), alignItems: 'center', justifyContent: 'center', marginRight: wp(12)},
-  productName: {fontSize: fp(14), fontWeight: '600', color: colors.text},
-  productMeta: {fontSize: fp(11), color: colors.textSecondary, marginTop: hp(2)},
-  productPrice: {fontSize: fp(16), fontWeight: '800', color: colors.info},
-  bottomBar: {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: colors.white, paddingHorizontal: wp(16), paddingTop: hp(12), borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.borderLight},
-  bottomPrice: {fontSize: fp(16), fontWeight: '700', color: colors.text},
-  bottomOnline: {flexDirection: 'row', alignItems: 'center', gap: wp(4), marginTop: hp(2)},
-  bottomDot: {width: wp(6), height: wp(6), borderRadius: wp(3), backgroundColor: colors.success},
-  bottomOnlineText: {fontSize: fp(11), color: colors.success, fontWeight: '500'},
-  bottomBtn: {backgroundColor: colors.secPrimary, borderRadius: wp(12), paddingHorizontal: wp(22), paddingVertical: hp(14), flexDirection: 'row', alignItems: 'center', gap: wp(8)},
-  bottomBtnText: {fontSize: fp(14), fontWeight: '700', color: colors.white},
-  modalOverlay: {flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end'},
-  modalContent: {backgroundColor: colors.white, borderTopLeftRadius: wp(20), borderTopRightRadius: wp(20), padding: wp(20), paddingBottom: hp(30)},
-  modalTitle: {fontSize: fp(18), fontWeight: '700', color: colors.text, textAlign: 'center', marginBottom: hp(16)},
-  modalInfoRow: {flexDirection: 'row', alignItems: 'center', gap: wp(12)},
-  modalAvatar: {width: wp(44), height: wp(44), borderRadius: wp(22), backgroundColor: colors.secPrimary + '18', alignItems: 'center', justifyContent: 'center'},
-  modalAvatarText: {fontSize: fp(14), fontWeight: '700', color: colors.secPrimary},
-  modalName: {fontSize: fp(15), fontWeight: '600', color: colors.text},
-  modalSub: {fontSize: fp(12), color: colors.textSecondary, marginTop: hp(2)},
-  modalDivider: {height: StyleSheet.hairlineWidth, backgroundColor: colors.borderLight, marginVertical: hp(16)},
-  modalRow: {flexDirection: 'row', alignItems: 'center', gap: wp(10), marginBottom: hp(12)},
-  modalLabel: {fontSize: fp(13), color: colors.textSecondary, flex: 1},
-  modalValue: {fontSize: fp(14), fontWeight: '600', color: colors.text},
-  modalNote: {flexDirection: 'row', alignItems: 'center', gap: wp(8), backgroundColor: colors.success + '10', borderRadius: wp(10), padding: wp(12), marginTop: hp(4), marginBottom: hp(20)},
-  modalNoteText: {fontSize: fp(11), color: colors.success, flex: 1},
-  modalBtn: {flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: wp(8), borderRadius: wp(14), paddingVertical: hp(16)},
-  modalBtnText: {fontSize: fp(16), fontWeight: '700', color: colors.white},
-  modalCancel: {alignItems: 'center', paddingVertical: hp(12), marginTop: hp(4)},
-  modalCancelText: {fontSize: fp(14), fontWeight: '500', color: colors.textMuted},
+  container: { flex: 1, backgroundColor: colors.surface },
+  scroll: { paddingTop: hp(14) },
+  profileCard: {
+    backgroundColor: colors.white,
+    marginHorizontal: wp(16),
+    borderRadius: wp(16),
+    padding: wp(16),
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+  },
+  profileTop: { flexDirection: 'row', alignItems: 'center' },
+  avatarWrap: { position: 'relative' },
+  avatarImg: { width: wp(64), height: wp(64), borderRadius: wp(32) },
+  avatarPlaceholder: {
+    width: wp(64),
+    height: wp(64),
+    borderRadius: wp(32),
+    backgroundColor: colors.secPrimary + '18',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  onlineDot: {
+    position: 'absolute',
+    bottom: wp(2),
+    right: wp(2),
+    width: wp(14),
+    height: wp(14),
+    borderRadius: wp(7),
+    borderWidth: 2,
+    borderColor: colors.white,
+  },
+  profileInfo: { marginLeft: wp(14), flex: 1 },
+  profileName: { fontSize: fp(17), fontWeight: '700', color: colors.text },
+  profileProf: {
+    fontSize: fp(12),
+    color: colors.textSecondary,
+    marginTop: hp(2),
+  },
+  onlineRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: hp(4),
+    gap: wp(4),
+  },
+  statusDot: { width: wp(7), height: wp(7), borderRadius: wp(4) },
+  statusText: { fontSize: fp(11), fontWeight: '600' },
+  statsGrid: {
+    flexDirection: 'row',
+    marginTop: hp(16),
+    paddingTop: hp(14),
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.borderLight,
+    justifyContent: 'space-around',
+  },
+  statBox: { alignItems: 'center', gap: hp(3) },
+  statVal: { fontSize: fp(14), fontWeight: '700', color: colors.text },
+  statLbl: { fontSize: fp(10), color: colors.textMuted },
+  statDiv: { width: 1, backgroundColor: colors.borderLight },
+  section: { marginTop: hp(18), paddingHorizontal: wp(16) },
+  sectionTitle: {
+    fontSize: fp(15),
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: hp(10),
+  },
+  aboutText: {
+    fontSize: fp(13),
+    color: colors.textSecondary,
+    lineHeight: fp(20),
+  },
+  langRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(6),
+    marginTop: hp(10),
+    paddingHorizontal: wp(16),
+  },
+  langText: { fontSize: fp(12), color: colors.textSecondary },
+  modeToggle: { flexDirection: 'row', gap: wp(12) },
+  modeOption: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: hp(18),
+    borderRadius: wp(14),
+    backgroundColor: colors.white,
+    borderWidth: 1.5,
+    borderColor: colors.borderLight,
+    gap: hp(6),
+  },
+  modeOptionActive: {
+    backgroundColor: colors.secPrimary,
+    borderColor: colors.secPrimary,
+  },
+  modeOptionActiveVideo: {
+    backgroundColor: colors.secPrimary,
+    borderColor: colors.secPrimary,
+  },
+  modeOptionTitle: { fontSize: fp(14), fontWeight: '700', color: colors.text },
+  modeOptionTitleActive: { color: colors.white },
+  modeOptionPrice: { fontSize: fp(12), color: colors.textSecondary },
+  modeOptionPriceActive: { color: 'rgba(255,255,255,0.8)' },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(6),
+    marginBottom: hp(10),
+  },
+  dateRow: { gap: wp(8), paddingRight: wp(8) },
+  dateCard: {
+    width: wp(68),
+    alignItems: 'center',
+    paddingVertical: hp(12),
+    borderRadius: wp(14),
+    backgroundColor: colors.white,
+    borderWidth: 1.5,
+    borderColor: colors.borderLight,
+  },
+  dateCardActive: {
+    backgroundColor: colors.secPrimary,
+    borderColor: colors.secPrimary,
+  },
+  dateDay: { fontSize: fp(11), fontWeight: '600', color: colors.textSecondary },
+  dateDayActive: { color: 'rgba(255,255,255,0.7)' },
+  dateNum: {
+    fontSize: fp(20),
+    fontWeight: '800',
+    color: colors.text,
+    marginVertical: hp(2),
+  },
+  dateNumActive: { color: colors.white },
+  dateMonth: { fontSize: fp(10), fontWeight: '500', color: colors.textMuted },
+  dateMonthActive: { color: 'rgba(255,255,255,0.7)' },
+  timeGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: wp(8),
+    justifyContent: 'space-between',
+  },
+  timeSlot: {
+    width: '23%',
+    alignItems: 'center',
+    paddingVertical: hp(12),
+    borderRadius: wp(12),
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+  },
+  timeSlotActive: {
+    backgroundColor: colors.secPrimary,
+    borderColor: colors.secPrimary,
+  },
+  timeSlotBooked: {
+    backgroundColor: '#f1f5f9',
+    borderColor: '#e2e8f0',
+    opacity: 0.7,
+  },
+  timeText: { fontSize: fp(11), fontWeight: '600', color: colors.text },
+  timeTextActive: { color: colors.white },
+  timeTextBooked: { color: colors.muted, textDecorationLine: 'line-through' },
+  bookedLabel: {
+    fontSize: fp(5),
+    color: colors.white,
+    fontWeight: '700',
+    backgroundColor: colors.error,
+    borderRadius: wp(4),
+    paddingHorizontal: wp(5),
+    paddingVertical: hp(1),
+    marginTop: hp(3),
+    position: 'absolute',
+    top: hp(1),
+    right: wp(4),
+  },
+  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: wp(8) },
+  chip: {
+    backgroundColor: colors.primary + '10',
+    borderRadius: wp(12),
+    paddingHorizontal: wp(12),
+    paddingVertical: hp(6),
+  },
+  chipText: { fontSize: fp(12), color: colors.text, fontWeight: '500' },
+  bottomBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.white,
+    paddingHorizontal: wp(16),
+    paddingTop: hp(12),
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.borderLight,
+  },
+  bottomPrice: { fontSize: fp(16), fontWeight: '700', color: colors.text },
+  bottomSubText: {
+    fontSize: fp(11),
+    color: colors.textSecondary,
+    marginTop: hp(2),
+  },
+  bottomBtn: {
+    backgroundColor: colors.secPrimary,
+    borderRadius: wp(12),
+    paddingHorizontal: wp(22),
+    paddingVertical: hp(14),
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(8),
+  },
+  bottomBtnVideo: { backgroundColor: colors.secPrimary },
+  bottomBtnDisabled: { opacity: 0.4 },
+  bottomBtnText: { fontSize: fp(14), fontWeight: '700', color: colors.white },
 });

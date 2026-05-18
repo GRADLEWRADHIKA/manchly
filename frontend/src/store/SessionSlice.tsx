@@ -189,9 +189,24 @@ export const getCreatorSessionProducts = createAsyncThunk(
 
 export const bookSession = createAsyncThunk(
   'session/book',
-  async (data: {product_id: string}) => {
+  async (data: {expert_id: string; mode: string; duration?: number; scheduled_at: string}) => {
     try {
       const response = await instance.post('sessions/book', data);
+      return response.data;
+    } catch (error: any) {
+      const msg = JSON.parse(error?.request?._response || '{}');
+      Toast.show({type: 'error', text1: 'Error', text2: msg?.error, position: 'bottom'});
+      throw error;
+    }
+  },
+);
+
+export const rateSession = createAsyncThunk(
+  'session/rate',
+  async (data: {session_id: string; rating: number; feedback?: string}) => {
+    try {
+      const response = await instance.post('sessions/rate', data);
+      Toast.show({type: 'success', text1: 'Thanks for your feedback!', position: 'bottom'});
       return response.data;
     } catch (error: any) {
       const msg = JSON.parse(error?.request?._response || '{}');

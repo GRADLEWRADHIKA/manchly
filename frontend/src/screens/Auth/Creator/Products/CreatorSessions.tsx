@@ -19,17 +19,17 @@ import {
 } from 'lucide-react-native';
 import {useDispatch, useSelector} from 'react-redux';
 import {useIsFocused, useNavigation} from '@react-navigation/native';
-import {Plus, Trash2, PhoneOutgoing} from 'lucide-react-native';
+import {PhoneOutgoing} from 'lucide-react-native';
 import SocketService from '../../../../services/SocketService';
 import colors from '../../../../utils/colors';
 import {wp, hp, fp} from '../../../../utils/responsive';
-import {getMySessions, getSessionStats, getMySessionProducts, deleteSessionProduct, getMyExpertProfile, updateExpertProfile} from '../../../../store/SessionSlice';
+import {getMySessions, getSessionStats, getMyExpertProfile, updateExpertProfile} from '../../../../store/SessionSlice';
 
 const CreatorSessions: React.FC = () => {
   const dispatch = useDispatch<any>();
   const navigation = useNavigation<any>();
   const isFocused = useIsFocused();
-  const {sessions, stats, loading, products, expertProfile} = useSelector(
+  const {sessions, stats, loading, expertProfile} = useSelector(
     (state: any) => state.sessionReducer,
   );
 
@@ -40,7 +40,6 @@ const CreatorSessions: React.FC = () => {
       dispatch(getMyExpertProfile());
       dispatch(getMySessions({role: 'receiver', page: 1, limit: 20}));
       dispatch(getSessionStats());
-      dispatch(getMySessionProducts());
     }
   }, [isFocused]);
 
@@ -52,6 +51,10 @@ const CreatorSessions: React.FC = () => {
     const newVal = !isAvailable;
     setIsAvailable(newVal);
     dispatch(updateExpertProfile({is_available: newVal}));
+    SocketService.emit('expert_availability_changed', {
+      is_available: newVal,
+      expert_id: expertProfile?.id,
+    });
   };
 
   const {user} = useSelector((state: any) => state.userReducer);
@@ -155,61 +158,6 @@ const CreatorSessions: React.FC = () => {
           <Text style={styles.statLabel}>Earned</Text>
         </View>
       </View>
-
-      {/* My Session Products */}
-      <View style={styles.sectionRow}>
-        <Text style={styles.sectionTitle}>My Session Products</Text>
-        <TouchableOpacity
-          style={styles.addBtn}
-          activeOpacity={0.7}
-          onPress={() => navigation.navigate('CreateSessionProduct')}>
-          <Plus size={wp(16)} color={colors.info} strokeWidth={2} />
-          <Text style={styles.addBtnText}>Create</Text>
-        </TouchableOpacity>
-      </View>
-
-      {products.length === 0 ? (
-        <TouchableOpacity
-          style={styles.createCta}
-          activeOpacity={0.8}
-          onPress={() => navigation.navigate('CreateSessionProduct')}>
-          <Plus size={wp(20)} color={colors.info} strokeWidth={1.8} />
-          <Text style={styles.createCtaText}>Create your first session product</Text>
-        </TouchableOpacity>
-      ) : (
-        products.map((product: any) => {
-          const isVideo = product.mode === 'VIDEO';
-          return (
-            <View key={product.id} style={styles.modeCard}>
-              <View
-                style={[
-                  styles.modeIconWrap,
-                  {backgroundColor: isVideo ? colors.success + '15' : colors.info + '15'},
-                ]}>
-                {isVideo ? (
-                  <Video size={wp(22)} color={colors.success} strokeWidth={1.8} />
-                ) : (
-                  <Phone size={wp(22)} color={colors.info} strokeWidth={1.8} />
-                )}
-              </View>
-              <View style={styles.modeInfo}>
-                <Text style={styles.modeName}>{product.title}</Text>
-                <View style={styles.modeRateRow}>
-                  <Text style={styles.modeRate}>
-                    {product.duration} min · ₹{product.price}
-                  </Text>
-                </View>
-              </View>
-              <TouchableOpacity
-                style={styles.deleteBtn}
-                activeOpacity={0.7}
-                onPress={() => dispatch(deleteSessionProduct(product.id))}>
-                <Trash2 size={wp(16)} color={colors.error} strokeWidth={1.8} />
-              </TouchableOpacity>
-            </View>
-          );
-        })
-      )}
 
       {/* Recent Sessions */}
       <Text style={[styles.sectionTitle, {marginTop: hp(20)}]}>

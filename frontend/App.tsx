@@ -13,6 +13,7 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { initializeChottuLink } from 'react-native-chottulink-sdk';
 import { Settings, AppEventsLogger } from 'react-native-fbsdk-next';
+import SplashScreen from 'react-native-splash-screen';
 
 export default function App() {
   injectStore(store);
@@ -22,19 +23,26 @@ export default function App() {
     initializeChottuLink('c_app_Xn5WbBZdEmObUbFRf8D91YiM3ZLD2CO6');
     Settings.initializeSDK();
     AppEventsLogger.logEvent('fb_mobile_activate_app');
+
+    // Hide native splash after 2.5 seconds
+    const timer = setTimeout(() => {
+      SplashScreen.hide();
+    }, 2500);
+
+    return () => clearTimeout(timer);
   }, []);
 
   return (
     <SafeAreaProvider>
-      <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#000000' }} edges={['bottom']}>
         <GestureHandlerRootView style={{ flex: 1 }}>
           <Provider store={store}>
             <PersistGate loading={null} persistor={persistor}>
               <PaperProvider>
                 <StatusBar
                   translucent={false}
-                  backgroundColor={isDarkMode ? '#000' : '#fff'}
-                  barStyle={isDarkMode ? 'light-content' : 'light-content'}
+                  backgroundColor="#000000"
+                  barStyle="light-content"
                 />
                 <Router />
                 <Toast />

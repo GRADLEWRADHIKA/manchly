@@ -21,6 +21,7 @@ import CallScreen from '../screens/Auth/User/Astrologer/CallScreen';
 import IncomingCallScreen from '../screens/Auth/Creator/Astrologer/IncomingCallScreen';
 import ExpertList from '../screens/Auth/User/Sessions/ExpertList';
 import ExpertDetail from '../screens/Auth/User/Sessions/ExpertDetail';
+import SessionRatingScreen from '../screens/Auth/User/Sessions/SessionRatingScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -57,6 +58,7 @@ const UserMainStack = () => {
       <Stack.Screen name="ExpertDetail" component={ExpertDetail} />
       <Stack.Screen name="IncomingCallScreen" component={IncomingCallScreen} />
       <Stack.Screen name="CallScreen" component={CallScreen} />
+      <Stack.Screen name="SessionRatingScreen" component={SessionRatingScreen} />
     </Stack.Navigator>
   );
 };

@@ -1,0 +1,196 @@
+import React from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Modal,
+} from 'react-native';
+import {
+  Phone,
+  Video,
+  Clock,
+  IndianRupee,
+  Shield,
+  Calendar,
+} from 'lucide-react-native';
+import colors from '../../../../utils/colors';
+import { wp, hp, fp } from '../../../../utils/responsive';
+
+interface BookingConfirmModalProps {
+  visible: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  booking: boolean;
+  expertName: string;
+  mode: 'call' | 'video';
+  rate: number;
+  dateLabel: string;
+  timeLabel: string;
+}
+
+const BookingConfirmModal = ({
+  visible,
+  onClose,
+  onConfirm,
+  booking,
+  expertName,
+  mode,
+  rate,
+  dateLabel,
+  timeLabel,
+}: BookingConfirmModalProps) => {
+  const initials = (expertName || '?')
+    .split(' ')
+    .map(n => n[0])
+    .join('')
+    .slice(0, 2);
+
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={onClose}>
+        <TouchableOpacity style={styles.content} activeOpacity={1} onPress={() => {}}>
+          <Text style={styles.title}>Confirm Booking</Text>
+
+          <View style={styles.infoRow}>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>{initials}</Text>
+            </View>
+            <View style={styles.infoText}>
+              <Text style={styles.name}>{expertName}</Text>
+              <Text style={styles.sub}>
+                {mode === 'video' ? 'Video Call' : 'Audio Call'}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.row}>
+            <IndianRupee size={wp(16)} color={colors.secPrimary} strokeWidth={1.8} />
+            <Text style={styles.label}>Rate</Text>
+            <Text style={styles.value}>₹{rate}/min</Text>
+          </View>
+
+          <View style={styles.row}>
+            <Calendar size={wp(16)} color={colors.secPrimary} strokeWidth={1.8} />
+            <Text style={styles.label}>Date & Time</Text>
+            <Text style={styles.value}>{dateLabel} · {timeLabel}</Text>
+          </View>
+
+          <View style={styles.row}>
+            <Clock size={wp(16)} color={colors.secPrimary} strokeWidth={1.8} />
+            <Text style={styles.label}>Duration</Text>
+            <Text style={styles.value}>30 min</Text>
+          </View>
+
+          <View style={styles.row}>
+            <IndianRupee size={wp(16)} color={colors.secPrimary} strokeWidth={1.8} />
+            <Text style={styles.label}>Total</Text>
+            <Text style={styles.totalValue}>₹{rate * 30}</Text>
+          </View>
+
+          <View style={styles.note}>
+            <Shield size={wp(14)} color={colors.success} strokeWidth={1.8} />
+            <Text style={styles.noteText}>
+              Secure session. Billed per minute of actual call.
+            </Text>
+          </View>
+
+          <TouchableOpacity
+            style={styles.confirmBtn}
+            activeOpacity={0.8}
+            onPress={onConfirm}
+            disabled={booking}>
+            {mode === 'video' ? (
+              <Video size={wp(18)} color={colors.white} strokeWidth={2} />
+            ) : (
+              <Phone size={wp(18)} color={colors.white} strokeWidth={2} />
+            )}
+            <Text style={styles.confirmBtnText}>
+              {booking ? 'Booking...' : 'Confirm & Book'}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.cancelBtn} onPress={onClose}>
+            <Text style={styles.cancelBtnText}>Cancel</Text>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </TouchableOpacity>
+    </Modal>
+  );
+};
+
+export default BookingConfirmModal;
+
+const styles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  content: {
+    backgroundColor: colors.white,
+    borderTopLeftRadius: wp(20),
+    borderTopRightRadius: wp(20),
+    padding: wp(20),
+    paddingBottom: hp(30),
+  },
+  title: {
+    fontSize: fp(18),
+    fontWeight: '700',
+    color: colors.text,
+    textAlign: 'center',
+    marginBottom: hp(16),
+  },
+  infoRow: { flexDirection: 'row', alignItems: 'center', gap: wp(12) },
+  avatar: {
+    width: wp(44),
+    height: wp(44),
+    borderRadius: wp(22),
+    backgroundColor: colors.secPrimary + '18',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarText: { fontSize: fp(14), fontWeight: '700', color: colors.secPrimary },
+  infoText: { flex: 1 },
+  name: { fontSize: fp(15), fontWeight: '600', color: colors.text },
+  sub: { fontSize: fp(12), color: colors.textSecondary, marginTop: hp(2) },
+  divider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: colors.borderLight,
+    marginVertical: hp(16),
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(10),
+    marginBottom: hp(12),
+  },
+  label: { fontSize: fp(13), color: colors.textSecondary, flex: 1 },
+  value: { fontSize: fp(14), fontWeight: '600', color: colors.text },
+  totalValue: { fontSize: fp(14), fontWeight: '800', color: colors.text },
+  note: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(8),
+    backgroundColor: colors.success + '10',
+    borderRadius: wp(10),
+    padding: wp(12),
+    marginTop: hp(4),
+    marginBottom: hp(20),
+  },
+  noteText: { fontSize: fp(11), color: colors.success, flex: 1 },
+  confirmBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: wp(8),
+    borderRadius: wp(14),
+    paddingVertical: hp(16),
+    backgroundColor: colors.secPrimary,
+  },
+  confirmBtnText: { fontSize: fp(16), fontWeight: '700', color: colors.white },
+  cancelBtn: { alignItems: 'center', paddingVertical: hp(12), marginTop: hp(4) },
+  cancelBtnText: { fontSize: fp(14), fontWeight: '500', color: colors.textMuted },
+});

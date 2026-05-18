@@ -33,6 +33,17 @@ const CallScreen: React.FC = () => {
 
   console.log('[CallScreen] Mounted with params:', {callID, userID, userName, mode, isVideoCall, sessionId, otherUserId});
 
+  const navigateToRating = useCallback((durationMin: number) => {
+    const { expertName: eName, expertImage: eImage } = route.params || {};
+    navigation.replace('SessionRatingScreen', {
+      sessionId,
+      expertName: eName || '',
+      expertImage: eImage || '',
+      mode,
+      duration: durationMin,
+    });
+  }, [navigation, sessionId, mode, route.params]);
+
   // Listen for other side ending the call
   useEffect(() => {
     const handleRemoteEnd = (data: any) => {
@@ -40,12 +51,11 @@ const CallScreen: React.FC = () => {
       if (data.endedBy === rawUserID) return;
       if (data.callId === rawCallID && !ended.current) {
         ended.current = true;
+        const durationMin = Math.ceil((Date.now() - startTime.current) / 60000);
         if (sessionId) {
-          const durationMin = Math.ceil((Date.now() - startTime.current) / 60000);
           dispatch(endSession({sessionId, duration: durationMin}));
         }
-        Toast.show({type: 'info', text1: 'Call Ended', text2: 'The other person disconnected.', position: 'top'});
-        navigation.goBack();
+        navigateToRating(durationMin);
       }
     };
 
@@ -57,8 +67,9 @@ const CallScreen: React.FC = () => {
     if (ended.current) return;
     ended.current = true;
 
+    const durationMin = Math.ceil((Date.now() - startTime.current) / 60000);
+
     if (sessionId) {
-      const durationMin = Math.ceil((Date.now() - startTime.current) / 60000);
       dispatch(endSession({sessionId, duration: durationMin}));
     }
 
@@ -70,14 +81,8 @@ const CallScreen: React.FC = () => {
       });
     }
 
-    Toast.show({
-      type: 'info',
-      text1: 'Call Ended',
-      text2: `Session lasted ${Math.ceil((Date.now() - startTime.current) / 60000)} min`,
-      position: 'top',
-    });
-    navigation.goBack();
-  }, [sessionId, dispatch, navigation, rawCallID, rawUserID, otherUserId]);
+    navigateToRating(durationMin);
+  }, [sessionId, dispatch, navigation, rawCallID, rawUserID, otherUserId, navigateToRating]);
 
   // Memoize config so Zego doesn't remount on every render
   const zegoConfig = useMemo(() => ({

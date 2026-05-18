@@ -24,12 +24,13 @@ const GOLDEN = colors.golden;
 const TABS = ['Course', 'Webinar', '1:1 Session'] as const;
 type Tab = (typeof TABS)[number];
 
-const fmt = (n: number) =>
-  n >= 100000
-    ? `₹${(n / 100000).toFixed(1)}L`
-    : n >= 1000
-    ? `₹${(n / 1000).toFixed(1)}k`
-    : `₹${n}`;
+const fmt = (n: number) => {
+  const val = Math.round(n * 100) / 100;
+  if (val >= 10000000) return `₹${(val / 10000000).toFixed(1)}Cr`;
+  if (val >= 100000) return `₹${(val / 100000).toFixed(1)}L`;
+  if (val >= 1000) return `₹${(val / 1000).toFixed(1)}k`;
+  return `₹${val}`;
+};
 
 const Dashboard = () => {
   const insets = useSafeAreaInsets();
@@ -84,7 +85,7 @@ const Dashboard = () => {
         <View style={styles.overviewCard}>
           <View style={styles.overviewCol}>
             <Text style={styles.overviewLabel}>ALL REVENUE</Text>
-            <Text style={styles.overviewValueBlue}>{totalRevenue}</Text>
+            <Text style={styles.overviewValueBlue} numberOfLines={1} adjustsFontSizeToFit>{totalRevenue}</Text>
           </View>
           <View style={styles.overviewDivider} />
           <View style={styles.overviewCol}>
@@ -140,7 +141,7 @@ const Dashboard = () => {
             </View>
             <View style={styles.statCard}>
               <Text style={styles.statLabel}>REVENUE</Text>
-              <Text style={styles.statValueBlue}>{data.revenue}</Text>
+              <Text style={styles.statValueBlue} numberOfLines={1} adjustsFontSizeToFit>{data.revenue}</Text>
             </View>
           </View>
 

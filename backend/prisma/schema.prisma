@@ -587,67 +587,6 @@ enum SessionMode {
   VIDEO
 }
 
-model sessions {
-  id           String        @id @default(uuid())
-  call_id      String        @unique
-  caller_id    String
-  receiver_id  String
-  mode         SessionMode
-  status       SessionStatus @default(PENDING)
-  duration     Int           @default(0)
-  amount       Float         @default(0)
-  rate_per_min Float         @default(0)
-  started_at   DateTime?
-  ended_at     DateTime?
-  created_at   DateTime      @default(now())
-  updated_at   DateTime      @updatedAt
-
-  @@index([caller_id])
-  @@index([receiver_id])
-  @@index([status])
-  @@map("sessions")
-}
-
-model session_experts {
-  id              String   @id @default(uuid())
-  user_id         String   @unique
-  profession      String
-  bio             String?
-  categories      String[] @default([])
-  experience      Int      @default(0)
-  audio_rate      Float    @default(0)
-  video_rate      Float    @default(0)
-  languages       String[] @default([])
-  is_active       Boolean  @default(true)
-  is_available    Boolean  @default(false)
-  total_sessions  Int      @default(0)
-  total_minutes   Int      @default(0)
-  total_earnings  Float    @default(0)
-  rating          Float    @default(0)
-  review_count    Int      @default(0)
-  created_at      DateTime @default(now())
-  updated_at      DateTime @updatedAt
-
-  @@index([is_active, is_available])
-  @@map("session_experts")
-}
-
-model session_products {
-  id           String   @id @default(uuid())
-  creator_id   String
-  title        String
-  description  String?
-  duration     Int
-  price        Float
-  mode         SessionMode
-  is_active    Boolean  @default(true)
-  created_at   DateTime @default(now())
-  updated_at   DateTime @updatedAt
-
-  @@index([creator_id])
-  @@map("session_products")
-}
-
 model telegram_channels {
   id                  String                    @id @default(uuid())
   channel_id          String                    @unique

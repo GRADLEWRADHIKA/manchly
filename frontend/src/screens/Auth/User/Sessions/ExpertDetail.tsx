@@ -12,7 +12,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Star,
-  Phone,
   Video,
   Clock,
   Globe,
@@ -37,7 +36,6 @@ const ExpertDetail: React.FC = () => {
   const expertParam = route.params?.expert;
   const [expert, setExpert] = useState<any>(expertParam);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [selectedMode, setSelectedMode] = useState<'call' | 'video'>('call');
   const [booking, setBooking] = useState(false);
   const [selectedDate, setSelectedDate] = useState(0);
   const [selectedTime, setSelectedTime] = useState<{
@@ -143,20 +141,32 @@ const ExpertDetail: React.FC = () => {
   }, [expert?.id, expert?.user_id]);
 
   const eu = expert?.user || expertParam?.user;
-  const audioRate = expert?.audio_rate ?? expertParam?.audio_rate ?? 0;
-  const videoRate = expert?.video_rate ?? expertParam?.video_rate ?? audioRate;
+  const videoRate = expert?.video_rate ?? expertParam?.video_rate ?? 0;
 
   const handleConfirm = () => {
     if (!selectedTime) return;
     const dateObj = new Date(next7Days[selectedDate].date.getTime());
     dateObj.setHours(selectedTime.hour, selectedTime.minute, 0, 0);
+
+    // Final check: prevent booking a past time
+    if (dateObj.getTime() <= Date.now()) {
+      Toast.show({
+        type: 'error',
+        text1: 'Invalid Time',
+        text2: 'You cannot book a session in the past. Please select an upcoming time.',
+        position: 'top',
+      });
+      setSelectedTime(null);
+      return;
+    }
+
     console.log('Booking scheduled_at:', dateObj.toISOString());
 
     setBooking(true);
     dispatch(
       bookSession({
         expert_id: expert.id,
-        mode: selectedMode,
+        mode: 'video',
         duration: 30,
         scheduled_at: dateObj.toISOString(),
       }),
@@ -175,7 +185,7 @@ const ExpertDetail: React.FC = () => {
       .finally(() => setBooking(false));
   };
 
-  const rate = selectedMode === 'video' ? videoRate : audioRate;
+  const rate = videoRate;
 
   return (
     <View style={styles.container}>
@@ -264,7 +274,7 @@ const ExpertDetail: React.FC = () => {
             </View>
             <View style={styles.statDiv} />
             <View style={styles.statBox}>
-              <Phone
+              <Video
                 size={wp(16)}
                 color={colors.secPrimary}
                 strokeWidth={1.8}
@@ -297,69 +307,16 @@ const ExpertDetail: React.FC = () => {
 
         {/* Book a Session */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Book a Session</Text>
-          <View style={styles.modeToggle}>
-            <TouchableOpacity
-              style={[
-                styles.modeOption,
-                selectedMode === 'call' && styles.modeOptionActive,
-              ]}
-              activeOpacity={0.8}
-              onPress={() => setSelectedMode('call')}
-            >
-              <Phone
-                size={wp(20)}
-                color={selectedMode === 'call' ? colors.white : colors.info}
-                strokeWidth={1.8}
-              />
-              <Text
-                style={[
-                  styles.modeOptionTitle,
-                  selectedMode === 'call' && styles.modeOptionTitleActive,
-                ]}
-              >
-                Audio Call
-              </Text>
-              <Text
-                style={[
-                  styles.modeOptionPrice,
-                  selectedMode === 'call' && styles.modeOptionPriceActive,
-                ]}
-              >
-                ₹{audioRate}/min
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.modeOption,
-                selectedMode === 'video' && styles.modeOptionActiveVideo,
-              ]}
-              activeOpacity={0.8}
-              onPress={() => setSelectedMode('video')}
-            >
-              <Video
-                size={wp(20)}
-                color={selectedMode === 'video' ? colors.white : colors.success}
-                strokeWidth={1.8}
-              />
-              <Text
-                style={[
-                  styles.modeOptionTitle,
-                  selectedMode === 'video' && styles.modeOptionTitleActive,
-                ]}
-              >
-                Video Call
-              </Text>
-              <Text
-                style={[
-                  styles.modeOptionPrice,
-                  selectedMode === 'video' && styles.modeOptionPriceActive,
-                ]}
-              >
-                ₹{videoRate}/min
-              </Text>
-            </TouchableOpacity>
+          <Text style={styles.sectionTitle}>Book a Video Session</Text>
+          <View style={styles.videoRateCard}>
+            <Video
+              size={wp(20)}
+              color={colors.white}
+              strokeWidth={1.8}
+            />
+            <Text style={styles.videoRateText}>
+              Video Call · ₹{videoRate}/min
+            </Text>
           </View>
         </View>
 
@@ -429,28 +386,33 @@ const ExpertDetail: React.FC = () => {
           <View style={styles.timeGrid}>
             {timeSlots.map(t => {
               const isBooked = bookedSlots.has(t.label);
+              const isToday = selectedDate === 0;
+              const now = new Date();
+              const isPast = isToday && (t.hour < now.getHours() || (t.hour === now.getHours() && t.minute <= now.getMinutes()));
+              const isDisabled = isBooked || isPast;
               return (
                 <TouchableOpacity
                   key={t.label}
                   style={[
                     styles.timeSlot,
                     selectedTime?.label === t.label && styles.timeSlotActive,
-                    isBooked && styles.timeSlotBooked,
+                    isDisabled && styles.timeSlotBooked,
                   ]}
                   activeOpacity={0.8}
-                  disabled={isBooked}
+                  disabled={isDisabled}
                   onPress={() => setSelectedTime(t)}
                 >
                   <Text
                     style={[
                       styles.timeText,
                       selectedTime?.label === t.label && styles.timeTextActive,
-                      isBooked && styles.timeTextBooked,
+                      isDisabled && styles.timeTextBooked,
                     ]}
                   >
                     {t.label}
                   </Text>
                   {isBooked && <Text style={styles.bookedLabel}>Booked</Text>}
+                  {isPast && !isBooked && <Text style={styles.bookedLabel}>Passed</Text>}
                 </TouchableOpacity>
               );
             })}
@@ -487,18 +449,13 @@ const ExpertDetail: React.FC = () => {
         <TouchableOpacity
           style={[
             styles.bottomBtn,
-            selectedMode === 'video' && styles.bottomBtnVideo,
             !selectedTime && styles.bottomBtnDisabled,
           ]}
           activeOpacity={0.8}
           disabled={!selectedTime}
           onPress={() => setShowConfirm(true)}
         >
-          {selectedMode === 'video' ? (
-            <Video size={wp(16)} color={colors.white} strokeWidth={2} />
-          ) : (
-            <Phone size={wp(16)} color={colors.white} strokeWidth={2} />
-          )}
+          <Video size={wp(16)} color={colors.white} strokeWidth={2} />
           <Text style={styles.bottomBtnText}>Book Now</Text>
         </TouchableOpacity>
       </View>
@@ -509,7 +466,6 @@ const ExpertDetail: React.FC = () => {
         onConfirm={handleConfirm}
         booking={booking}
         expertName={eu?.name || 'Expert'}
-        mode={selectedMode}
         rate={rate}
         dateLabel={`${next7Days[selectedDate]?.day}, ${next7Days[selectedDate]?.num} ${next7Days[selectedDate]?.month}`}
         timeLabel={selectedTime?.label || ''}
@@ -600,29 +556,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(16),
   },
   langText: { fontSize: fp(12), color: colors.textSecondary },
-  modeToggle: { flexDirection: 'row', gap: wp(12) },
-  modeOption: {
-    flex: 1,
+  videoRateCard: {
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: hp(18),
+    gap: wp(10),
+    backgroundColor: colors.secPrimary,
     borderRadius: wp(14),
-    backgroundColor: colors.white,
-    borderWidth: 1.5,
-    borderColor: colors.borderLight,
-    gap: hp(6),
+    paddingVertical: hp(14),
+    paddingHorizontal: wp(16),
   },
-  modeOptionActive: {
-    backgroundColor: colors.secPrimary,
-    borderColor: colors.secPrimary,
+  videoRateText: {
+    fontSize: fp(14),
+    fontWeight: '700',
+    color: colors.white,
   },
-  modeOptionActiveVideo: {
-    backgroundColor: colors.secPrimary,
-    borderColor: colors.secPrimary,
-  },
-  modeOptionTitle: { fontSize: fp(14), fontWeight: '700', color: colors.text },
-  modeOptionTitleActive: { color: colors.white },
-  modeOptionPrice: { fontSize: fp(12), color: colors.textSecondary },
-  modeOptionPriceActive: { color: 'rgba(255,255,255,0.8)' },
   sectionHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -727,7 +674,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: wp(8),
   },
-  bottomBtnVideo: { backgroundColor: colors.secPrimary },
   bottomBtnDisabled: { opacity: 0.4 },
   bottomBtnText: { fontSize: fp(14), fontWeight: '700', color: colors.white },
 });

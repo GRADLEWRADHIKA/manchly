@@ -12,7 +12,9 @@ import CreatorMainStack from './CreatorMainStack';
 import { getAppLinkDataFromUrl } from 'react-native-chottulink-sdk';
 import NotificationService from '../services/NotificationService';
 import { store } from '../store/Store';
+import { updateProfile } from '../store/UserSlice';
 import CallListener, { setNavigationRef } from '../components/CallListener';
+import { useDispatch } from 'react-redux';
 
 export const navigationRef = createRef<NavigationContainerRef<any>>();
 
@@ -116,13 +118,30 @@ const linking = {
   },
 };
 
+const navigateToIncomingCall = (data: any) => {
+  if (!navigationRef.current?.isReady()) return;
+  const currentRoute = navigationRef.current?.getCurrentRoute?.();
+  if (currentRoute?.name === 'CallScreen' || currentRoute?.name === 'IncomingCallScreen') return;
+
+  navigationRef.current?.navigate('IncomingCallScreen', {
+    callID: data.callId,
+    sessionId: data.sessionId,
+    mode: data.mode || 'video',
+    callerName: data.callerName || 'Expert',
+    callerImage: data.callerImage,
+    callerId: data.callerId,
+  });
+};
+
 const Router = () => {
   const { token } = useSelector((state: any) => state.userReducer);
   const { user } = useSelector((state: any) => state.userReducer);
+  const dispatch = useDispatch<any>();
   const pendingDeepLink = useRef<{
     screen: 'CourseDetailsScreen' | 'WebinarDetails';
     id: string;
   } | null>(null);
+  const pendingCallData = useRef<any>(null);
 
   // Keep module-level auth flag in sync
   useEffect(() => {
@@ -135,31 +154,38 @@ const Router = () => {
       await NotificationService.requestPermission();
       await NotificationService.createChannel();
       const fcmToken = await NotificationService.getToken();
-      // TODO: Send fcmToken to your backend to associate with user
+      if (fcmToken && token) {
+        dispatch(updateProfile({ fcm_token: fcmToken }));
+      }
     };
 
     setupNotifications();
 
-    // Foreground notification — displayed via notifee
+    // Foreground notification — displayed via notifee (calls are handled by socket)
     const unsubForeground = NotificationService.onForegroundMessage();
 
     // Background notification tap handler
     const unsubOpened = NotificationService.onNotificationOpenedApp(
       (remoteMessage) => {
-        // TODO: Navigate based on remoteMessage.data
+        if (NotificationService.isCallNotification(remoteMessage.data)) {
+          navigateToIncomingCall(remoteMessage.data);
+        }
       },
     );
 
     // Check if app was opened from a killed state notification
     NotificationService.getInitialNotification().then((remoteMessage) => {
-      if (remoteMessage) {
-        // TODO: Navigate based on remoteMessage.data
+      if (remoteMessage && NotificationService.isCallNotification(remoteMessage.data)) {
+        // Store for later — navigation may not be ready yet
+        pendingCallData.current = remoteMessage.data;
       }
     });
 
     // Token refresh listener
     const unsubTokenRefresh = NotificationService.onTokenRefresh((newToken) => {
-      // TODO: Send new token to backend
+      if (token) {
+        dispatch(updateProfile({ fcm_token: newToken }));
+      }
     });
 
     return () => {
@@ -167,7 +193,16 @@ const Router = () => {
       unsubOpened();
       unsubTokenRefresh();
     };
-  }, []);
+  }, [token]);
+
+  // Handle pending call data after navigation is ready
+  useEffect(() => {
+    if (token && user && pendingCallData.current) {
+      const data = pendingCallData.current;
+      pendingCallData.current = null;
+      setTimeout(() => navigateToIncomingCall(data), 1000);
+    }
+  }, [token, user]);
 
   // Handle deep link when user is not authenticated — save it for after login
   useEffect(() => {

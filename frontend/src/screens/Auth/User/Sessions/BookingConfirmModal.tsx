@@ -7,7 +7,6 @@ import {
   Modal,
 } from 'react-native';
 import {
-  Phone,
   Video,
   Clock,
   IndianRupee,
@@ -23,7 +22,6 @@ interface BookingConfirmModalProps {
   onConfirm: () => void;
   booking: boolean;
   expertName: string;
-  mode: 'call' | 'video';
   rate: number;
   dateLabel: string;
   timeLabel: string;
@@ -35,7 +33,6 @@ const BookingConfirmModal = ({
   onConfirm,
   booking,
   expertName,
-  mode,
   rate,
   dateLabel,
   timeLabel,
@@ -58,9 +55,7 @@ const BookingConfirmModal = ({
             </View>
             <View style={styles.infoText}>
               <Text style={styles.name}>{expertName}</Text>
-              <Text style={styles.sub}>
-                {mode === 'video' ? 'Video Call' : 'Audio Call'}
-              </Text>
+              <Text style={styles.sub}>Video Call</Text>
             </View>
           </View>
 
@@ -102,11 +97,7 @@ const BookingConfirmModal = ({
             activeOpacity={0.8}
             onPress={onConfirm}
             disabled={booking}>
-            {mode === 'video' ? (
-              <Video size={wp(18)} color={colors.white} strokeWidth={2} />
-            ) : (
-              <Phone size={wp(18)} color={colors.white} strokeWidth={2} />
-            )}
+            <Video size={wp(18)} color={colors.white} strokeWidth={2} />
             <Text style={styles.confirmBtnText}>
               {booking ? 'Booking...' : 'Confirm & Book'}
             </Text>

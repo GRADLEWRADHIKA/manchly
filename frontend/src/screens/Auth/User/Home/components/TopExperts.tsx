@@ -94,7 +94,7 @@ const TopExperts = () => {
           />
           <Text style={styles.ratingText}>{item.rating.toFixed(1)}</Text>
         </View>
-        <Text style={styles.price}>₹{item.audio_rate}/min</Text>
+        <Text style={styles.price}>₹{item.video_rate}/min</Text>
       </TouchableOpacity>
     );
   };

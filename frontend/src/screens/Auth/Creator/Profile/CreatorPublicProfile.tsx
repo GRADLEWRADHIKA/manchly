@@ -13,7 +13,6 @@ import {
   User2,
   ShieldCheck,
   ShieldX,
-  Phone,
   Video,
   Clock,
   IndianRupee,
@@ -116,9 +115,7 @@ const CreatorPublicProfile = () => {
               <View style={styles.divider} />
               <Text style={styles.connectTitle}>Book a Session</Text>
               <View style={{alignSelf: 'stretch', gap: hp(8)}}>
-                {sessionProducts.map((product: any) => {
-                  const isVideo = product.mode === 'VIDEO';
-                  return (
+                {sessionProducts.map((product: any) => (
                     <TouchableOpacity
                       key={product.id}
                       style={styles.productCard}
@@ -132,28 +129,23 @@ const CreatorPublicProfile = () => {
                               callID: session.call_id,
                               userID: user?.id,
                               userName: user?.name || 'User',
-                              mode: isVideo ? 'video' : 'call',
+                              mode: 'video',
                               sessionId: session.id,
                             });
                           });
                       }}>
-                      <View style={[styles.productIcon, {backgroundColor: isVideo ? colors.success + '15' : colors.info + '15'}]}>
-                        {isVideo ? (
-                          <Video size={wp(20)} color={colors.success} strokeWidth={1.8} />
-                        ) : (
-                          <Phone size={wp(20)} color={colors.info} strokeWidth={1.8} />
-                        )}
+                      <View style={[styles.productIcon, {backgroundColor: colors.success + '15'}]}>
+                        <Video size={wp(20)} color={colors.success} strokeWidth={1.8} />
                       </View>
                       <View style={{flex: 1}}>
                         <Text style={styles.productName}>{product.title}</Text>
                         <Text style={styles.productMeta}>
-                          {product.duration} min · {isVideo ? 'Video' : 'Audio'}
+                          {product.duration} min · Video
                         </Text>
                       </View>
                       <Text style={styles.productPrice}>₹{product.price}</Text>
                     </TouchableOpacity>
-                  );
-                })}
+                ))}
               </View>
             </>
           )}

@@ -14,7 +14,7 @@ import {useNavigation, useIsFocused} from '@react-navigation/native';
 import {useDispatch, useSelector} from 'react-redux';
 import {
   Star,
-  Phone,
+  Video,
   Search,
 } from 'lucide-react-native';
 import colors from '../../../../utils/colors';
@@ -62,7 +62,7 @@ const ExpertCard = ({item, onPress}: {item: any; onPress: () => void}) => {
 
         {/* Right side */}
         <View style={styles.cardRight}>
-          <Text style={styles.priceText}>₹{expert.audio_rate}/min</Text>
+          <Text style={styles.priceText}>₹{expert.video_rate}/min</Text>
           <View style={[styles.bookBtn, !expert.is_available && styles.bookBtnOffline]}>
             <Text style={[styles.bookBtnText, !expert.is_available && styles.bookBtnTextOffline]}>
               {expert.is_available ? 'Book' : 'Offline'}
@@ -178,7 +178,7 @@ const ExpertList: React.FC = () => {
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <View style={styles.emptyWrap}>
-              <Phone size={wp(40)} color={colors.textMuted} strokeWidth={1} />
+              <Video size={wp(40)} color={colors.textMuted} strokeWidth={1} />
               <Text style={styles.emptyTitle}>No experts found</Text>
               <Text style={styles.emptyText}>Check back later for available experts.</Text>
             </View>

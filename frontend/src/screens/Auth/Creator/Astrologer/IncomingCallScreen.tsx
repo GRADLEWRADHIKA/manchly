@@ -1,14 +1,17 @@
-import React, {useEffect, useRef, memo} from 'react';
+import React, {useEffect, useRef, useCallback, memo} from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   Animated,
+  Vibration,
+  Platform,
 } from 'react-native';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import {useSelector, useDispatch} from 'react-redux';
-import {Phone, PhoneOff, Video} from 'lucide-react-native';
+import {PhoneOff, Video} from 'lucide-react-native';
+import Sound from 'react-native-sound';
 import colors from '../../../../utils/colors';
 import {wp, hp, fp} from '../../../../utils/responsive';
 import {acceptSession} from '../../../../store/SessionSlice';
@@ -23,6 +26,45 @@ const IncomingCallScreen: React.FC = () => {
   const {callID, callerName, mode, sessionId, callerId} = route.params || {};
 
   const pulseAnim = useRef(new Animated.Value(1)).current;
+  const ringtoneRef = useRef<Sound | null>(null);
+  const vibrationInterval = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const stopRinging = useCallback(() => {
+    if (ringtoneRef.current) {
+      ringtoneRef.current.stop();
+      ringtoneRef.current.release();
+      ringtoneRef.current = null;
+    }
+    Vibration.cancel();
+    if (vibrationInterval.current) {
+      clearInterval(vibrationInterval.current);
+      vibrationInterval.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    // Play ringtone
+    Sound.setCategory('Playback');
+    const ringtone = new Sound('ringtone.mp3', Sound.MAIN_BUNDLE, error => {
+      if (error) {
+        console.log('[IncomingCall] Failed to load ringtone:', error);
+        return;
+      }
+      ringtone.setNumberOfLoops(-1); // loop indefinitely
+      ringtone.play();
+    });
+    ringtoneRef.current = ringtone;
+
+    // Vibrate in a pattern: vibrate 1s, pause 1s, repeat
+    const VIBRATION_PATTERN = Platform.OS === 'android'
+      ? [0, 1000, 1000]
+      : [1000, 1000];
+    Vibration.vibrate(VIBRATION_PATTERN, true);
+
+    return () => {
+      stopRinging();
+    };
+  }, [stopRinging]);
 
   useEffect(() => {
     const pulse = Animated.loop(
@@ -44,6 +86,7 @@ const IncomingCallScreen: React.FC = () => {
   }, [pulseAnim]);
 
   const handleAccept = () => {
+    stopRinging();
     if (sessionId) {
       dispatch(acceptSession(sessionId));
     }
@@ -64,6 +107,7 @@ const IncomingCallScreen: React.FC = () => {
   };
 
   const handleDecline = () => {
+    stopRinging();
     SocketService.emit('call_declined', {
       callId: callID,
       callerId: callerId,
@@ -71,14 +115,10 @@ const IncomingCallScreen: React.FC = () => {
     navigation.goBack();
   };
 
-  const isVideo = mode === 'video';
-
   return (
     <View style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.incomingLabel}>
-          Incoming {isVideo ? 'Video' : 'Audio'} Call
-        </Text>
+        <Text style={styles.incomingLabel}>Incoming Video Call</Text>
 
         <Animated.View
           style={[styles.avatarRing, {transform: [{scale: pulseAnim}]}]}>
@@ -96,9 +136,7 @@ const IncomingCallScreen: React.FC = () => {
         </View>
 
         <Text style={styles.callerName}>{callerName || 'User'}</Text>
-        <Text style={styles.callType}>
-          {isVideo ? 'Video Call' : 'Audio Call'}
-        </Text>
+        <Text style={styles.callType}>Video Call</Text>
       </View>
 
       <View style={styles.actions}>
@@ -110,19 +148,10 @@ const IncomingCallScreen: React.FC = () => {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[
-            styles.acceptBtn,
-            isVideo
-              ? {backgroundColor: colors.success}
-              : {backgroundColor: colors.info},
-          ]}
+          style={[styles.acceptBtn, {backgroundColor: colors.success}]}
           activeOpacity={0.8}
           onPress={handleAccept}>
-          {isVideo ? (
-            <Video size={wp(28)} color={colors.white} strokeWidth={2} />
-          ) : (
-            <Phone size={wp(28)} color={colors.white} strokeWidth={2} />
-          )}
+          <Video size={wp(28)} color={colors.white} strokeWidth={2} />
         </TouchableOpacity>
       </View>
     </View>

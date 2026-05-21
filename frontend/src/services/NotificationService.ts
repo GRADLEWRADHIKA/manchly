@@ -1,9 +1,10 @@
 import messaging from '@react-native-firebase/messaging';
-import notifee, { AndroidImportance } from '@notifee/react-native';
+import notifee, { AndroidImportance, AndroidCategory } from '@notifee/react-native';
 import { PermissionsAndroid, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const FCM_TOKEN_KEY = '@fcm_token';
+const CALL_CHANNEL_ID = 'incoming_calls';
 
 class NotificationService {
   /**
@@ -65,7 +66,7 @@ class NotificationService {
   }
 
   /**
-   * Create default notification channel for Android
+   * Create notification channels for Android
    */
   async createChannel() {
     await notifee.createChannel({
@@ -73,6 +74,14 @@ class NotificationService {
       name: 'Default Notifications',
       importance: AndroidImportance.HIGH,
       sound: 'default',
+      vibration: true,
+    });
+
+    await notifee.createChannel({
+      id: CALL_CHANNEL_ID,
+      name: 'Incoming Calls',
+      importance: AndroidImportance.HIGH,
+      sound: 'ringtone',
       vibration: true,
     });
   }
@@ -98,10 +107,47 @@ class NotificationService {
   }
 
   /**
-   * Handle foreground notifications — show via notifee
+   * Display a full-screen incoming call notification
+   */
+  async displayCallNotification(callerName: string, data: any) {
+    await notifee.displayNotification({
+      title: 'Incoming Video Call',
+      body: `${callerName} is calling you`,
+      data,
+      android: {
+        channelId: CALL_CHANNEL_ID,
+        importance: AndroidImportance.HIGH,
+        category: AndroidCategory.CALL,
+        smallIcon: 'ic_launcher',
+        sound: 'ringtone',
+        fullScreenAction: {
+          id: 'incoming_call',
+        },
+        pressAction: {
+          id: 'incoming_call',
+        },
+        ongoing: true,
+        autoCancel: false,
+      },
+    });
+  }
+
+  /**
+   * Check if a notification is an incoming call
+   */
+  isCallNotification(data: any): boolean {
+    return data?.type === 'incoming_call';
+  }
+
+  /**
+   * Handle foreground notifications — show via notifee (skip call type, handled by socket)
    */
   onForegroundMessage() {
     return messaging().onMessage(async (remoteMessage) => {
+      // Skip call notifications in foreground — socket handles those
+      if (this.isCallNotification(remoteMessage.data)) {
+        return;
+      }
       await this.displayNotification(
         remoteMessage.notification?.title || 'Notification',
         remoteMessage.notification?.body || '',

@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {useDispatch} from 'react-redux';
-import {Phone, Video, Clock, IndianRupee} from 'lucide-react-native';
+import {Video, Clock, IndianRupee} from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 import colors from '../../../../utils/colors';
 import {wp, hp, fp} from '../../../../utils/responsive';
@@ -25,7 +25,7 @@ const CreateSessionProduct: React.FC = () => {
   const [description, setDescription] = useState('');
   const [duration, setDuration] = useState('');
   const [price, setPrice] = useState('');
-  const [mode, setMode] = useState<'call' | 'video'>('video');
+  const mode = 'video';
   const [loading, setLoading] = useState(false);
 
   const handleCreate = () => {
@@ -84,42 +84,12 @@ const CreateSessionProduct: React.FC = () => {
         />
 
         {/* Mode */}
-        <Text style={styles.label}>Call Mode *</Text>
-        <View style={styles.modeRow}>
-          <TouchableOpacity
-            style={[styles.modeBtn, mode === 'call' && styles.modeBtnActive]}
-            onPress={() => setMode('call')}
-            activeOpacity={0.7}>
-            <Phone
-              size={wp(20)}
-              color={mode === 'call' ? colors.white : colors.info}
-              strokeWidth={1.8}
-            />
-            <Text
-              style={[
-                styles.modeBtnText,
-                mode === 'call' && styles.modeBtnTextActive,
-              ]}>
-              Audio Call
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.modeBtn, mode === 'video' && styles.modeBtnActiveGreen]}
-            onPress={() => setMode('video')}
-            activeOpacity={0.7}>
-            <Video
-              size={wp(20)}
-              color={mode === 'video' ? colors.white : colors.success}
-              strokeWidth={1.8}
-            />
-            <Text
-              style={[
-                styles.modeBtnText,
-                mode === 'video' && styles.modeBtnTextActive,
-              ]}>
-              Video Call
-            </Text>
-          </TouchableOpacity>
+        <Text style={styles.label}>Call Mode</Text>
+        <View style={[styles.modeBtn, styles.modeBtnActiveGreen]}>
+          <Video size={wp(20)} color={colors.white} strokeWidth={1.8} />
+          <Text style={[styles.modeBtnText, styles.modeBtnTextActive]}>
+            Video Call
+          </Text>
         </View>
 
         {/* Duration */}

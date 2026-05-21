@@ -11,7 +11,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
 import { useForm, Controller } from 'react-hook-form';
-import { Briefcase, Clock, Phone, Video } from 'lucide-react-native';
+import { Briefcase, Clock, Video } from 'lucide-react-native';
 import { MultiSelect } from 'react-native-element-dropdown';
 import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
@@ -48,7 +48,6 @@ type FormData = {
   profession: string;
   bio: string;
   experience: string;
-  audioRate: string;
   videoRate: string;
   categories: string[];
   languages: string[];
@@ -68,7 +67,6 @@ const ExpertRegistration: React.FC = () => {
       profession: '',
       bio: '',
       experience: '',
-      audioRate: '',
       videoRate: '',
       categories: [],
       languages: [],
@@ -83,8 +81,7 @@ const ExpertRegistration: React.FC = () => {
         bio: data.bio.trim() || undefined,
         categories: data.categories,
         experience: parseInt(data.experience, 10) || 0,
-        audio_rate: parseFloat(data.audioRate),
-        video_rate: parseFloat(data.videoRate) || parseFloat(data.audioRate),
+        video_rate: parseFloat(data.videoRate),
         languages: data.languages,
       }),
     )
@@ -104,7 +101,7 @@ const ExpertRegistration: React.FC = () => {
         <View style={styles.banner}>
           <Text style={styles.bannerTitle}>Offer 1:1 Sessions</Text>
           <Text style={styles.bannerSub}>
-            Register as a session expert to offer paid audio & video
+            Register as a session expert to offer paid video
             consultations to users.
           </Text>
         </View>
@@ -204,42 +201,20 @@ const ExpertRegistration: React.FC = () => {
           )}
         />
 
-        {/* Rates */}
-        <Text style={styles.label}>Audio Call Rate (₹/min) *</Text>
-        <Controller
-          control={control}
-          name="audioRate"
-          rules={{ required: 'Audio rate is required' }}
-          render={({ field: { onChange, value } }) => (
-            <View
-              style={[styles.inputRow, errors.audioRate && styles.inputError]}
-            >
-              <Phone size={wp(18)} color={colors.info} strokeWidth={1.5} />
-              <TextInput
-                style={styles.inputInner}
-                placeholder="e.g. 15"
-                placeholderTextColor={colors.textMuted}
-                value={value}
-                onChangeText={onChange}
-                keyboardType="numeric"
-              />
-            </View>
-          )}
-        />
-        {errors.audioRate && (
-          <Text style={styles.errorText}>{errors.audioRate.message}</Text>
-        )}
-
-        <Text style={styles.label}>Video Call Rate (₹/min)</Text>
+        {/* Rate */}
+        <Text style={styles.label}>Video Call Rate (₹/min) *</Text>
         <Controller
           control={control}
           name="videoRate"
+          rules={{ required: 'Video rate is required' }}
           render={({ field: { onChange, value } }) => (
-            <View style={styles.inputRow}>
+            <View
+              style={[styles.inputRow, errors.videoRate && styles.inputError]}
+            >
               <Video size={wp(18)} color={colors.success} strokeWidth={1.5} />
               <TextInput
                 style={styles.inputInner}
-                placeholder="e.g. 30 (defaults to audio rate)"
+                placeholder="e.g. 30"
                 placeholderTextColor={colors.textMuted}
                 value={value}
                 onChangeText={onChange}
@@ -248,6 +223,9 @@ const ExpertRegistration: React.FC = () => {
             </View>
           )}
         />
+        {errors.videoRate && (
+          <Text style={styles.errorText}>{errors.videoRate.message}</Text>
+        )}
 
         {/* Languages */}
         <Text style={styles.label}>Languages</Text>

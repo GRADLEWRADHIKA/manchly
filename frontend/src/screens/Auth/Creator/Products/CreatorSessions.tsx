@@ -8,7 +8,6 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import {
-  Phone,
   Video,
   IndianRupee,
   Clock,
@@ -65,7 +64,7 @@ const CreatorSessions: React.FC = () => {
       receiverId: session.caller_id,
       callId: session.call_id,
       sessionId: session.id,
-      mode: session.mode === 'VIDEO' ? 'video' : 'call',
+      mode: 'video',
     });
 
     // Navigate expert to call screen
@@ -73,7 +72,7 @@ const CreatorSessions: React.FC = () => {
       callID: session.call_id,
       userID: user?.id,
       userName: user?.name || 'Expert',
-      mode: session.mode === 'VIDEO' ? 'video' : 'call',
+      mode: 'video',
       sessionId: session.id,
       otherUserId: session.caller_id,
     });
@@ -89,7 +88,7 @@ const CreatorSessions: React.FC = () => {
           </View>
           <Text style={styles.regTitle}>Become a Session Expert</Text>
           <Text style={styles.regSub}>
-            Register to offer paid 1:1 audio & video sessions to users. Set your rates, manage availability, and earn.
+            Register to offer paid 1:1 video sessions to users. Set your rates, manage availability, and earn.
           </Text>
           <TouchableOpacity
             style={styles.regBtn}
@@ -193,11 +192,7 @@ const CreatorSessions: React.FC = () => {
                 <View>
                   <Text style={styles.sessionName}>{callerName}</Text>
                   <View style={styles.sessionMeta}>
-                    {session.mode === 'VIDEO' ? (
-                      <Video size={wp(12)} color={colors.success} strokeWidth={1.8} />
-                    ) : (
-                      <Phone size={wp(12)} color={colors.info} strokeWidth={1.8} />
-                    )}
+                    <Video size={wp(12)} color={colors.success} strokeWidth={1.8} />
                     <Text style={styles.sessionMetaText}>
                       {session.duration} min
                     </Text>

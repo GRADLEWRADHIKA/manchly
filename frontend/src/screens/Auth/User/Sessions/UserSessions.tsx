@@ -10,7 +10,6 @@ import {
 import {useNavigation, useIsFocused} from '@react-navigation/native';
 import {useDispatch, useSelector} from 'react-redux';
 import {
-  Phone,
   Video,
   Clock,
   PhoneCall,
@@ -54,7 +53,6 @@ const UserSessions: React.FC = () => {
 
   const renderSession = ({item}: {item: any}) => {
     const st = getStatusStyle(item.status);
-    const isVideo = item.mode === 'VIDEO';
 
     return (
       <View style={styles.card}>
@@ -62,20 +60,16 @@ const UserSessions: React.FC = () => {
           <View
             style={[
               styles.modeIcon,
-              {backgroundColor: isVideo ? colors.success + '12' : colors.info + '12'},
+              {backgroundColor: colors.success + '12'},
             ]}>
-            {isVideo ? (
-              <Video size={wp(18)} color={colors.success} strokeWidth={1.8} />
-            ) : (
-              <Phone size={wp(18)} color={colors.info} strokeWidth={1.8} />
-            )}
+            <Video size={wp(18)} color={colors.success} strokeWidth={1.8} />
           </View>
           <View style={styles.cardInfo}>
             <Text style={styles.cardName}>
-              {item.receiver?.name || (isVideo ? 'Video Call' : 'Audio Call')}
+              {item.receiver?.name || 'Video Call'}
             </Text>
             <Text style={styles.cardDate}>
-              {isVideo ? 'Video' : 'Audio'} · {new Date(item.created_at).toLocaleDateString('en-IN', {
+              Video · {new Date(item.created_at).toLocaleDateString('en-IN', {
                 day: 'numeric',
                 month: 'short',
                 hour: '2-digit',
@@ -161,7 +155,7 @@ const UserSessions: React.FC = () => {
       <PhoneMissed size={wp(40)} color={colors.textMuted} strokeWidth={1.2} />
       <Text style={styles.emptyTitle}>No sessions yet</Text>
       <Text style={styles.emptyText}>
-        Visit a creator's profile to start an audio or video call.
+        Visit a creator's profile to start a video session.
       </Text>
     </View>
   );

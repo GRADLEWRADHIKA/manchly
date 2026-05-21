@@ -4,6 +4,7 @@ import { Server as HTTPSServer } from "https";
 import jwt from "jsonwebtoken";
 import prisma from "../prismaClient";
 import { MessageType } from "@prisma/client";
+import { firebaseService } from "../services/FirebaseService";
 
 interface AuthenticatedSocket extends Socket {
     userId?: string;
@@ -191,13 +192,30 @@ export const initializeSocketIO = (httpServer: HTTPServer | HTTPSServer) => {
                     select: { id: true, name: true, profile_image: true },
                 });
 
-                // Send ring to the receiver
+                // Send ring to the receiver via socket (works when app is open)
                 io.to(`user_${data.receiverId}`).emit("incoming_call", {
                     callId: data.callId,
                     sessionId: data.sessionId,
                     mode: data.mode,
                     caller,
                 });
+
+                // Also send FCM push notification (works when app is killed/background)
+                const receiver = await prisma.users.findUnique({
+                    where: { id: data.receiverId },
+                    select: { fcm_token: true },
+                });
+
+                if (receiver?.fcm_token) {
+                    firebaseService.sendCallNotification(receiver.fcm_token, {
+                        callId: data.callId,
+                        sessionId: data.sessionId,
+                        mode: data.mode,
+                        callerName: caller?.name || "Expert",
+                        callerImage: caller?.profile_image || "",
+                        callerId: caller?.id || socket.userId!,
+                    });
+                }
 
                 console.log(`Call: ${socket.userId} -> ${data.receiverId} (${data.mode})`);
             } catch (error) {

@@ -1,6 +1,7 @@
 import React, {useEffect, useRef} from 'react';
 import {useSelector} from 'react-redux';
 import Toast from 'react-native-toast-message';
+import {CommonActions} from '@react-navigation/native';
 import SocketService from '../services/SocketService';
 
 let navigationRef: any = null;
@@ -75,12 +76,33 @@ const CallListener: React.FC = () => {
         console.log('[CallListener] Ignoring own call_ended echo');
         return;
       }
-      Toast.show({
-        type: 'info',
-        text1: 'Call Ended',
-        text2: 'The user disconnected the call.',
-        position: 'top',
-      });
+
+      // If user is on IncomingCallScreen or CallScreen, navigate them away
+      const currentRoute = navigationRef?.getCurrentRoute?.();
+      const routeName = currentRoute?.name;
+      console.log('[CallListener] Current route:', routeName);
+
+      if (routeName === 'IncomingCallScreen' || routeName === 'CallScreen') {
+        Toast.show({
+          type: 'info',
+          text1: 'Call Ended',
+          text2: 'The other user ended the call.',
+          position: 'top',
+        });
+        navigationRef?.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [{name: user?.user_type?.includes?.('USER') || user?.user_type === 'USER' ? 'UserBottomTab' : 'CreatorBottomTab'}],
+          }),
+        );
+      } else {
+        Toast.show({
+          type: 'info',
+          text1: 'Call Ended',
+          text2: 'The user disconnected the call.',
+          position: 'top',
+        });
+      }
     };
 
     SocketService.on('incoming_call', handleIncomingCall);

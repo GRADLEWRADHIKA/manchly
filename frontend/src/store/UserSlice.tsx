@@ -201,7 +201,10 @@ export const UserSlice = createSlice({
         state.justLoggedIn = true;
       })
       .addCase(updateProfile.fulfilled, (state, actions) => {
-        state.user = actions?.payload?.data?.data?.user;
+        const updatedUser = actions?.payload?.data?.data?.user;
+        // Always preserve the user_type from login — never let updateProfile overwrite it
+        const currentUserType = state.user?.user_type;
+        state.user = { ...updatedUser, user_type: currentUserType || updatedUser?.user_type };
         state.loading = false;
       })
       .addCase(verifyPAN.fulfilled, (state, actions) => {

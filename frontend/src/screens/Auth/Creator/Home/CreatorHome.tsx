@@ -25,6 +25,7 @@ import {
   BookOpen,
   Users,
   Award,
+  Phone,
   Check,
   Circle,
   Star,
@@ -48,6 +49,7 @@ import {
   getAllWebinar,
   getCreatorWebinarStats,
 } from '../../../../store/WebinarSlice';
+import { getSessionStats } from '../../../../store/SessionSlice';
 import { instance } from '../../../../utils/AxiosInstance';
 import Video from 'react-native-video';
 import { X, Play, Maximize2 } from 'lucide-react-native';
@@ -65,6 +67,9 @@ const CreatorHome = () => {
   const { creatorStats } = useSelector((state: any) => state.coursesReducer);
   const { creatorWebinarStats } = useSelector(
     (state: any) => state.webinarReducer,
+  );
+  const { stats: sessionStats } = useSelector(
+    (state: any) => state.sessionReducer,
   );
   const insets = useSafeAreaInsets();
   const [bankAccount, setBankAccount] = useState<any>(null);
@@ -158,6 +163,7 @@ const CreatorHome = () => {
     dispatch(getCreatorSales({}));
     dispatch(getCreatorCourseStats());
     dispatch(getCreatorWebinarStats());
+    dispatch(getSessionStats());
   }, []);
 
   const displayName = user?.name
@@ -296,17 +302,17 @@ const CreatorHome = () => {
             <View style={styles.statsRow}>
               <View style={styles.statItem}>
                 <View style={styles.statIconWrap}>
-                  <BookOpen size={wp(16)} color={colors.white} />
+                  <BookOpen size={wp(14)} color={colors.white} />
                 </View>
                 <Text style={styles.statValue}>
                   {creatorStats?.statistics?.courses_sold ?? 0}
                 </Text>
-                <Text style={styles.statLabel}>Courses Sold</Text>
+                <Text style={styles.statLabel}>Courses</Text>
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
                 <View style={styles.statIconWrap}>
-                  <Users size={wp(16)} color={colors.white} />
+                  <Users size={wp(14)} color={colors.white} />
                 </View>
                 <Text style={styles.statValue}>
                   {creatorStats?.statistics?.total_enrollments ?? 0}
@@ -316,12 +322,22 @@ const CreatorHome = () => {
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
                 <View style={styles.statIconWrap}>
-                  <Award size={wp(16)} color={colors.white} />
+                  <Award size={wp(14)} color={colors.white} />
                 </View>
                 <Text style={styles.statValue}>
                   {creatorWebinarStats?.statistics?.webinars_sold ?? 0}
                 </Text>
-                <Text style={styles.statLabel}>Webinars Sold</Text>
+                <Text style={styles.statLabel}>Webinars</Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statItem}>
+                <View style={styles.statIconWrap}>
+                  <Phone size={wp(14)} color={colors.white} />
+                </View>
+                <Text style={styles.statValue}>
+                  {sessionStats?.total_sessions ?? 0}
+                </Text>
+                <Text style={styles.statLabel}>Sessions</Text>
               </View>
             </View>
           </LinearGradient>
@@ -369,7 +385,7 @@ const CreatorHome = () => {
                       { backgroundColor: colors.secondary },
                     ]}
                   >
-                    <Lightbulb size={wp(16)} color={colors.white} />
+                    <Lightbulb size={wp(13)} color={colors.white} />
                   </View>
                   <Text style={styles.stepTitle}>Pick Topic</Text>
                 </View>
@@ -381,7 +397,7 @@ const CreatorHome = () => {
                       { backgroundColor: colors.info },
                     ]}
                   >
-                    <PenLine size={wp(16)} color={colors.white} />
+                    <PenLine size={wp(13)} color={colors.white} />
                   </View>
                   <Text style={styles.stepTitle}>Add Content</Text>
                 </View>
@@ -393,7 +409,7 @@ const CreatorHome = () => {
                       { backgroundColor: colors.accent },
                     ]}
                   >
-                    <Rocket size={wp(16)} color={colors.white} />
+                    <Rocket size={wp(13)} color={colors.white} />
                   </View>
                   <Text style={styles.stepTitle}>Publish</Text>
                 </View>
@@ -456,8 +472,8 @@ const CreatorHome = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Creator Score */}
-        <View style={styles.sectionPadding}>
+        {/* Creator Score — temporarily hidden */}
+        {/* <View style={styles.sectionPadding}>
           {allCompleted ? (
             <LinearGradient
               colors={['#1A1A2E', '#16213E', '#0F3460']}
@@ -465,15 +481,10 @@ const CreatorHome = () => {
               end={{ x: 1, y: 1 }}
               style={styles.scoreCard}
             >
-              {/* Trophy */}
               <View style={styles.trophyWrap}>
                 <Text style={styles.trophyEmoji}>🏆</Text>
               </View>
-
-              {/* Title */}
               <Text style={styles.proTitle}>You're a Manchly Pro!</Text>
-
-              {/* Description */}
               <Text style={styles.proDescription}>
                 All starter tasks done. You've earned{' '}
                 <Text style={styles.proPointsHighlight}>{earnedPts} pts</Text>{' '}
@@ -486,8 +497,6 @@ const CreatorHome = () => {
                 />{' '}
                 badge.
               </Text>
-
-              {/* Task Icons Row */}
               <View style={styles.taskIconsRow}>
                 {['🎓', '📡', '💰', '👥', '✅'].map((emoji, index) => (
                   <View key={index} style={styles.taskIconBox}>
@@ -495,8 +504,6 @@ const CreatorHome = () => {
                   </View>
                 ))}
               </View>
-
-              {/* Keep Growing CTA */}
               <TouchableOpacity
                 activeOpacity={0.85}
                 onPress={() => navigation.navigate('CreateProducts')}
@@ -514,7 +521,6 @@ const CreatorHome = () => {
               end={{ x: 1, y: 1 }}
               style={styles.scoreCard}
             >
-              {/* Score and Progress Ring */}
               <View style={styles.scoreTopRow}>
                 <View>
                   <Text style={styles.scoreLabel}>CREATOR SCORE</Text>
@@ -552,8 +558,6 @@ const CreatorHome = () => {
                   </View>
                 </View>
               </View>
-
-              {/* Next Level */}
               <View style={styles.nextLevelRow}>
                 <Text style={styles.nextLevelText}>Next: </Text>
                 <Text style={styles.nextLevelName}>Rising Star </Text>
@@ -563,8 +567,6 @@ const CreatorHome = () => {
                   fill={colors.golden}
                 />
               </View>
-
-              {/* Milestones */}
               <View style={styles.milestonesWrap}>
                 {milestones.map((milestone, index) => (
                   <View key={index} style={styles.milestoneItem}>
@@ -602,7 +604,7 @@ const CreatorHome = () => {
               </View>
             </LinearGradient>
           )}
-        </View>
+        </View> */}
       </ScrollView>
 
       {showIntroVideo ? (
@@ -736,55 +738,54 @@ const styles = StyleSheet.create({
 
   // Revenue Card
   revenueCard: {
-    borderRadius: wp(20),
-    padding: wp(20),
+    borderRadius: wp(16),
+    padding: wp(16),
     shadowColor: '#6C3CE1',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
-    shadowRadius: 14,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 5,
   },
   revenueHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: hp(6),
+    alignItems: 'center',
   },
   revenueLabel: {
-    fontSize: fp(12),
+    fontSize: fp(10),
     fontWeight: '700',
     color: 'rgba(255,255,255,0.65)',
     letterSpacing: 1,
-    marginBottom: hp(6),
+    marginBottom: hp(2),
   },
   growingBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: wp(5),
+    gap: wp(4),
     backgroundColor: 'rgba(255,255,255,0.15)',
-    paddingHorizontal: wp(12),
-    paddingVertical: hp(5),
+    paddingHorizontal: wp(10),
+    paddingVertical: hp(4),
     borderRadius: wp(20),
   },
   growingText: {
-    fontSize: fp(12),
+    fontSize: fp(10),
     fontWeight: '700',
     color: colors.white,
   },
   revenueAmount: {
-    fontSize: fp(40),
+    fontSize: fp(28),
     fontWeight: '800',
     color: colors.white,
   },
   rupeeSymbol: {
-    fontSize: fp(22),
+    fontSize: fp(18),
     fontWeight: '400',
     color: 'rgba(255,255,255,0.6)',
   },
   revenueDivider: {
     height: 1,
     backgroundColor: 'rgba(255,255,255,0.15)',
-    marginVertical: hp(16),
+    marginVertical: hp(10),
   },
   statsRow: {
     flexDirection: 'row',
@@ -796,90 +797,90 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   statIconWrap: {
-    width: wp(32),
-    height: wp(32),
-    borderRadius: wp(16),
+    width: wp(26),
+    height: wp(26),
+    borderRadius: wp(13),
     backgroundColor: 'rgba(255,255,255,0.15)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: hp(8),
+    marginBottom: hp(4),
   },
   statValue: {
-    fontSize: fp(20),
+    fontSize: fp(16),
     fontWeight: '800',
     color: colors.white,
   },
   statLabel: {
-    fontSize: fp(11),
+    fontSize: fp(10),
     color: 'rgba(255,255,255,0.6)',
-    marginTop: hp(3),
+    marginTop: hp(2),
     fontWeight: '500',
   },
   statDivider: {
     width: 1,
-    height: hp(50),
+    height: hp(40),
     backgroundColor: 'rgba(255,255,255,0.15)',
   },
 
   // Course Card
   courseCard: {
-    borderRadius: wp(20),
-    padding: wp(20),
+    borderRadius: wp(16),
+    padding: wp(14),
     shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 6 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
-    shadowRadius: 14,
-    elevation: 5,
+    shadowRadius: 10,
+    elevation: 4,
   },
   courseHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: hp(22),
+    marginBottom: hp(14),
   },
   startBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
-    gap: wp(5),
+    gap: wp(4),
     backgroundColor: 'rgba(255,255,255,0.1)',
     borderRadius: wp(20),
-    paddingHorizontal: wp(12),
-    paddingVertical: hp(5),
-    marginBottom: hp(12),
+    paddingHorizontal: wp(10),
+    paddingVertical: hp(3),
+    marginBottom: hp(8),
   },
   startBadgeText: {
-    fontSize: fp(10),
+    fontSize: fp(9),
     fontWeight: '800',
     color: colors.secondary,
     letterSpacing: 1,
   },
   courseTitle: {
-    fontSize: fp(24),
+    fontSize: fp(18),
     fontWeight: '800',
     color: colors.white,
-    lineHeight: fp(30),
+    lineHeight: fp(23),
   },
   courseSubtitle: {
-    fontSize: fp(13),
+    fontSize: fp(11),
     color: 'rgba(255,255,255,0.6)',
-    lineHeight: fp(19),
-    marginTop: hp(8),
+    lineHeight: fp(16),
+    marginTop: hp(4),
   },
   courseEmoji: {
-    fontSize: fp(42),
+    fontSize: fp(32),
     marginLeft: wp(8),
-    marginTop: hp(10),
+    marginTop: hp(6),
   },
 
   // Stepper
   stepperWrap: {
     position: 'relative',
-    marginBottom: hp(22),
+    marginBottom: hp(14),
   },
   stepperLine: {
     position: 'absolute',
-    top: wp(18),
+    top: wp(14),
     left: wp(18),
     right: wp(18),
     height: 2,
@@ -894,15 +895,15 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   stepCircle: {
-    width: wp(36),
-    height: wp(36),
-    borderRadius: wp(18),
+    width: wp(28),
+    height: wp(28),
+    borderRadius: wp(14),
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: hp(8),
+    marginBottom: hp(4),
   },
   stepTitle: {
-    fontSize: fp(12),
+    fontSize: fp(10),
     fontWeight: '700',
     color: 'rgba(255,255,255,0.85)',
     textAlign: 'center',
@@ -915,11 +916,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: wp(6),
     backgroundColor: colors.white,
-    borderRadius: wp(14),
-    paddingVertical: hp(14),
+    borderRadius: wp(12),
+    paddingVertical: hp(10),
   },
   ctaText: {
-    fontSize: fp(15),
+    fontSize: fp(13),
     fontWeight: '700',
     color: colors.primary,
   },

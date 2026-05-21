@@ -163,22 +163,14 @@ export class AuthController {
       });
 
       if (existingUser) {
-        // If email matches, update the user and merge user types
+        // If email matches, update the user with the selected type
         if (existingUser.email === email) {
-          // Ensure existingTypes is properly typed
-          const existingTypesArray: UserType[] = Array.isArray(existingUser.user_type) 
-            ? existingUser.user_type 
-            : existingUser.user_type ? [existingUser.user_type] : [];
-          
-          // Merge existing user types with new ones, remove duplicates
-          const mergedTypes: UserType[] = [...new Set([...existingTypesArray, ...userTypesArray])];
-          
           const user = await prisma.users.update({
             where: { email },
-            data: { 
-              phone, 
-              name, 
-              user_type: mergedTypes,
+            data: {
+              phone,
+              name,
+              user_type: userTypesArray,
               ...(dob && { dob })
             }
           });
@@ -510,35 +502,24 @@ export class AuthController {
     let userTypesArray: UserType[] | undefined = undefined;
     if (user_type) {
       try {
-        // Normalize the new user types
         const newTypes = AuthController.normalizeUserTypes(user_type);
-        
+
         if (newTypes.length === 0) {
           return ApiResponseHandler.customError(
-            res, 
-            "Invalid user type(s). Must be USER, CREATOR, or ADMIN", 
-            400, 
+            res,
+            "Invalid user type(s). Must be USER, CREATOR, or ADMIN",
+            400,
             "INVALID_USER_TYPE"
           );
         }
-        
-        // Get existing user to merge user types
-        const existingUser = await prisma.users.findUnique({ where: { id: user.userId } });
-        if (existingUser) {
-          const existingTypes: UserType[] = Array.isArray(existingUser.user_type) 
-            ? existingUser.user_type 
-            : existingUser.user_type ? [existingUser.user_type] : [];
-          // Merge and remove duplicates
-          userTypesArray = [...new Set([...existingTypes, ...newTypes])];
-        } else {
-          // If user doesn't exist (shouldn't happen), just use the provided types
-          userTypesArray = newTypes;
-        }
+
+        // Set to the requested type (no merging)
+        userTypesArray = newTypes;
       } catch (error) {
         return ApiResponseHandler.customError(
-          res, 
-          "Invalid user type(s). Must be USER, CREATOR, or ADMIN", 
-          400, 
+          res,
+          "Invalid user type(s). Must be USER, CREATOR, or ADMIN",
+          400,
           "INVALID_USER_TYPE"
         );
       }

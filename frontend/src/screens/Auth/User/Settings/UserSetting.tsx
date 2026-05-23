@@ -204,7 +204,7 @@ const UserSetting: React.FC = () => {
         </View>
 
         {/* ──────── Legal Section ──────── */}
-        <Text style={[styles.sectionTitle, { marginTop: hp(20) }]}>Legal</Text>
+        {/* <Text style={[styles.sectionTitle, { marginTop: hp(20) }]}>Legal</Text>
         <View style={styles.section}>
           <MenuRow
             icon={FileText}
@@ -236,7 +236,7 @@ const UserSetting: React.FC = () => {
             onPress={() => setShowContact(true)}
             isLast
           />
-        </View>
+        </View> */}
 
         {/* ──────── Logout Section ──────── */}
         <View style={styles.logoutSection}>

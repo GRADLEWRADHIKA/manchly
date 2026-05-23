@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -8,13 +8,7 @@ import {
   Image,
   Linking,
   TouchableOpacity,
-  Modal,
-  ActivityIndicator,
 } from 'react-native';
-import { Slider } from 'react-native-awesome-slider';
-import { useSharedValue } from 'react-native-reanimated';
-import { runOnJS } from 'react-native-worklets';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
 import {
@@ -25,18 +19,8 @@ import {
   Megaphone,
   WalletMinimal,
   Bell,
-  Settings,
   UserCircle,
   Landmark,
-  Clock,
-  AlertTriangle,
-  CheckCircle2,
-  Info,
-  FileText,
-  Shield,
-  ReceiptText,
-  MessageCircle,
-  PiggyBank,
   Instagram,
   BadgeIndianRupee,
 } from 'lucide-react-native';
@@ -54,6 +38,8 @@ import PrivacyModal from '../../../../components/PrivacyModal';
 import RefundPolicyModal from '../../../../components/RefundPolicyModal';
 import ContactUsModal from '../../../../components/ContactUsModal';
 import { version as appVersion } from '../../../../../package.json';
+import HissaModal from './HissaModal';
+import WithdrawModal from './WithdrawModal';
 
 const SUPPORT_PHONE = '6363790659';
 
@@ -136,7 +122,6 @@ const CreatorSetting: React.FC = () => {
   const [showContact, setShowContact] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [showHissaModal, setShowHissaModal] = useState(false);
-  const [hissaSale, setHissaSale] = useState(1000);
   const [walletData, setWalletData] = useState<any>(null);
   const [walletLoading, setWalletLoading] = useState(true);
   const [bankAccount, setBankAccount] = useState<any>(null);
@@ -144,6 +129,22 @@ const CreatorSetting: React.FC = () => {
   const { user } = useSelector((state: any) => state.userReducer);
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
   const insets = useSafeAreaInsets();
+
+  const profileFields = [
+    !!user?.name,
+    !!user?.dob,
+    !!user?.email,
+    !!user?.phone,
+    !!user?.profile_image,
+    !!user?.instagram_link,
+    !!user?.linkedin_link,
+    !!user?.youtube_link,
+    !!user?.facebook_link,
+    !!user?.kyc_verified,
+  ];
+  const profilePercent = Math.round(
+    (profileFields.filter(Boolean).length / profileFields.length) * 100,
+  );
 
   const fetchWallet = async () => {
     try {
@@ -186,38 +187,8 @@ const CreatorSetting: React.FC = () => {
     });
   };
 
-  const getT2Date = () => {
-    const eta = new Date();
-    let businessDays = 0;
-    while (businessDays < 2) {
-      eta.setDate(eta.getDate() + 1);
-      const day = eta.getDay();
-      if (day !== 0 && day !== 6) businessDays++;
-    }
-    return eta.toLocaleDateString('en-IN', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-    });
-  };
-
   const CREATOR_PCT = 90;
   const PLATFORM_PCT = 10;
-  const HISSA_MIN = 1000;
-  const HISSA_MAX = 100000;
-
-  const hissaCreatorAmount = Math.round((hissaSale * CREATOR_PCT) / 100);
-  const hissaPlatformAmount = Math.round((hissaSale * PLATFORM_PCT) / 100);
-
-  const progress = useSharedValue(1000);
-  const minSale = useSharedValue(HISSA_MIN);
-  const maxSale = useSharedValue(HISSA_MAX);
-
-  const syncFromSlider = useCallback((value: number) => {
-    const stepped = Math.round(value / 100) * 100;
-    const clamped = Math.max(HISSA_MIN, Math.min(HISSA_MAX, stepped));
-    setHissaSale(clamped);
-  }, []);
 
   const handleWithdraw = () => {
     if (!bankAccount) {
@@ -255,7 +226,12 @@ const CreatorSetting: React.FC = () => {
   return (
     <View style={styles.container}>
       {/* ──────── Header ──────── */}
-      <View style={[styles.headerWrapper, { paddingTop: insets.top }]}>
+      <LinearGradient
+        colors={['#1A1A2E', '#16213E', '#0F3460']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={[styles.headerWrapper, { paddingTop: insets.top }]}
+      >
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             {user?.profile_image ? (
@@ -292,7 +268,7 @@ const CreatorSetting: React.FC = () => {
             </TouchableOpacity>
           </View>
         </View>
-      </View>
+      </LinearGradient>
 
       <ScrollView
         style={styles.body}
@@ -386,7 +362,7 @@ const CreatorSetting: React.FC = () => {
             iconBg="#f0f4ff"
             iconColor="#3B82F6"
             label="My Profile"
-            subtitle="Manage your public profile"
+            subtitle={`Complete your profile · ${profilePercent}%`}
             onPress={() => Nav.navigate('CreatorProfile')}
           />
           <MenuRow
@@ -409,7 +385,7 @@ const CreatorSetting: React.FC = () => {
         </View>
 
         {/* ──────── Legal Section ──────── */}
-        <Text style={[styles.sectionTitle, { marginTop: hp(20) }]}>Legal</Text>
+        {/* <Text style={[styles.sectionTitle, { marginTop: hp(20) }]}>Legal</Text>
         <View style={styles.section}>
           <MenuRow
             icon={FileText}
@@ -441,7 +417,7 @@ const CreatorSetting: React.FC = () => {
             onPress={() => setShowContact(true)}
             isLast
           />
-        </View>
+        </View> */}
 
         {/* ──────── Logout Section ──────── */}
         <View style={styles.logoutSection}>
@@ -460,211 +436,18 @@ const CreatorSetting: React.FC = () => {
       </ScrollView>
 
       {/* ──────── Withdraw Modal ──────── */}
-      <Modal
+      <WithdrawModal
         visible={showWithdrawModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowWithdrawModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <View style={styles.modalIconWrap}>
-              <WalletMinimal size={wp(28)} color={colors.primary} />
-            </View>
-            <Text style={styles.modalTitle}>Withdraw Funds</Text>
-
-            {/* Amount */}
-            <View style={styles.modalAmountCard}>
-              <Text style={styles.modalAmountLabel}>Amount to be settled</Text>
-              <Text style={styles.modalAmountValue}>
-                ₹ {formatAmount(withdrawableBalance)}
-              </Text>
-            </View>
-
-            {/* T+2 Info */}
-            <View style={styles.modalInfoRow}>
-              <Clock size={wp(16)} color={colors.info} />
-              <Text style={styles.modalInfoText}>
-                Your money will be credited to your bank account by{' '}
-                <Text style={{ fontWeight: '700' }}>{getT2Date()}</Text> (T+2
-                settlement period).
-              </Text>
-            </View>
-
-            {/* Bank Info */}
-            {bankAccount && (
-              <View style={styles.modalBankRow}>
-                <Landmark size={wp(16)} color={colors.textSecondary} />
-                <Text style={styles.modalBankText}>
-                  Crediting to: {bankAccount.account_number} (
-                  {bankAccount.ifsc_code})
-                </Text>
-              </View>
-            )}
-
-            {/* Note */}
-            <View style={styles.modalNoteRow}>
-              <Info size={wp(14)} color={colors.secondary} />
-              <Text style={styles.modalNoteText}>
-                Settlements are processed automatically. Your earnings will be
-                transferred after the T+2 settlement period.
-              </Text>
-            </View>
-
-            {/* Buttons */}
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={styles.modalCancelBtn}
-                onPress={() => setShowWithdrawModal(false)}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.modalCancelText}>Close</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.modalConfirmBtn}
-                onPress={() => {
-                  setShowWithdrawModal(false);
-                  Toast.show({
-                    type: 'success',
-                    text1: 'Settlement Scheduled',
-                    text2: `₹${formatAmount(
-                      withdrawableBalance,
-                    )} will be credited by ${getT2Date()}`,
-                    position: 'bottom',
-                  });
-                }}
-                activeOpacity={0.8}
-              >
-                <CheckCircle2 size={wp(16)} color={colors.white} />
-                <Text style={styles.modalConfirmText}>Got It</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+        onClose={() => setShowWithdrawModal(false)}
+        withdrawableBalance={withdrawableBalance}
+        bankAccount={bankAccount}
+      />
 
       {/* ──────── Hissa Bottom Sheet ──────── */}
-      <Modal
+      <HissaModal
         visible={showHissaModal}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowHissaModal(false)}
-      >
-        <GestureHandlerRootView style={styles.gestureRoot}>
-          <Pressable
-            style={styles.sheetOverlay}
-            onPress={() => setShowHissaModal(false)}
-          >
-            <Pressable style={styles.sheetContainer} onPress={() => {}}>
-            <View style={styles.sheetHandle} />
-
-            <Text style={styles.sheetTitle}>💰 Aapki Kamaai ka Hissa</Text>
-            <Text style={styles.sheetSubtitle}>
-              Har sale pe paisa aisa baanta hai
-            </Text>
-
-            {/* Split bar */}
-            <View style={styles.splitBar}>
-              <View
-                style={[
-                  styles.splitCreator,
-                  { flex: CREATOR_PCT },
-                ]}
-              />
-              <View
-                style={[
-                  styles.splitPlatform,
-                  { flex: PLATFORM_PCT },
-                ]}
-              />
-            </View>
-
-            <View style={styles.splitLegendRow}>
-              <View style={styles.splitLegendItem}>
-                <View style={styles.splitLegendRowTop}>
-                  <View
-                    style={[
-                      styles.splitDot,
-                      { backgroundColor: colors.creatorGreen },
-                    ]}
-                  />
-                  <Text style={styles.splitLegendLabel}>Aapka (Creator)</Text>
-                </View>
-                <Text
-                  style={[styles.splitLegendValue, { color: colors.creatorGreenDark }]}
-                >
-                  {CREATOR_PCT}%
-                </Text>
-              </View>
-              <View style={[styles.splitLegendItem, { alignItems: 'flex-end' }]}>
-                <View style={styles.splitLegendRowTop}>
-                  <Text style={styles.splitLegendLabel}>Manchly</Text>
-                  <View
-                    style={[
-                      styles.splitDot,
-                      { backgroundColor: colors.secondary },
-                    ]}
-                  />
-                </View>
-                <Text
-                  style={[styles.splitLegendValue, { color: colors.secondary }]}
-                >
-                  {PLATFORM_PCT}%
-                </Text>
-              </View>
-            </View>
-
-            <View style={styles.sheetDivider} />
-
-            <Text style={styles.calcLabel}>
-              🧮 Apna amount daalo, result dekho
-            </Text>
-
-            {/* Slidable price indicator — drag the thumb/bubble to change price */}
-            <View style={styles.sliderWrapper}>
-              <Slider
-                progress={progress}
-                minimumValue={minSale}
-                maximumValue={maxSale}
-                onValueChange={(v) => runOnJS(syncFromSlider)(v)}
-                onSlidingComplete={syncFromSlider}
-                bubble={(v) => `₹${Math.round(v).toLocaleString('en-IN')}`}
-                theme={{
-                  minimumTrackTintColor: colors.creatorGreen,
-                  maximumTrackTintColor: colors.trackDark,
-                  bubbleBackgroundColor: colors.creatorGreen,
-                  bubbleTextColor: colors.white,
-                }}
-                sliderHeight={hp(10)}
-                thumbWidth={wp(26)}
-                bubbleTranslateY={-hp(10)}
-                panHitSlop={{ top: 20, bottom: 20, left: 10, right: 10 }}
-                containerStyle={styles.sliderInner}
-              />
-            </View>
-
-            <Text style={styles.saleAmountText}>
-              ₹{hissaSale.toLocaleString('en-IN')} ki sale
-            </Text>
-
-            <View style={styles.resultRow}>
-              <View style={[styles.resultBox, styles.resultCreator]}>
-                <Text style={styles.resultLabel}>😋 Aapko milega</Text>
-                <Text style={[styles.resultValue, { color: colors.creatorGreenDark }]}>
-                  ₹{hissaCreatorAmount.toLocaleString('en-IN')}
-                </Text>
-              </View>
-              <View style={[styles.resultBox, styles.resultPlatform]}>
-                <Text style={styles.resultLabel}>🏢 Manchly ka</Text>
-                <Text style={[styles.resultValue, { color: colors.secondary }]}>
-                  ₹{hissaPlatformAmount.toLocaleString('en-IN')}
-                </Text>
-              </View>
-            </View>
-            </Pressable>
-          </Pressable>
-        </GestureHandlerRootView>
-      </Modal>
+        onClose={() => setShowHissaModal(false)}
+      />
 
       <TermsModal visible={showTerms} onClose={() => setShowTerms(false)} />
       <PrivacyModal
@@ -701,7 +484,6 @@ const styles = StyleSheet.create({
   },
 
   headerWrapper: {
-    backgroundColor: '#111111',
     zIndex: 10,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
@@ -712,12 +494,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: wp(16),
     paddingVertical: hp(14),
-  },
-  headerCurve: {
-    backgroundColor: '#111111',
-    height: hp(6),
-    borderBottomLeftRadius: wp(20),
-    borderBottomRightRadius: wp(20),
   },
   headerLeft: {
     flexDirection: 'row',
@@ -740,25 +516,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  avatarInitials: {
-    color: colors.white,
-    fontSize: fp(17),
-    fontWeight: '700',
-  },
-  greetingWrap: {
-    flex: 1,
-  },
-  greetingLabel: {
-    fontSize: fp(11),
-    color: '#808088',
-    fontWeight: '500',
-  },
-  greetingText: {
-    fontSize: fp(15),
-    fontWeight: '700',
-    color: colors.white,
-    marginTop: 0,
-  },
   bellBtn: {
     width: wp(32),
     height: wp(32),
@@ -767,11 +524,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  bellBtnPressed: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    transform: [{ scale: 0.93 }],
-  },
-
   /* ──── Body ──── */
   body: {
     flex: 1,
@@ -803,10 +555,6 @@ const styles = StyleSheet.create({
     elevation: 2,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: '#eaecef',
-  },
-  topCardPressed: {
-    opacity: 0.88,
-    transform: [{ scale: 0.97 }],
   },
   topCardIcon: {
     width: wp(42),
@@ -978,140 +726,6 @@ const styles = StyleSheet.create({
     marginTop: hp(1),
   },
 
-  /* ──── Withdraw Modal ──── */
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: wp(20),
-  },
-  modalContainer: {
-    backgroundColor: colors.white,
-    borderRadius: wp(20),
-    paddingVertical: hp(24),
-    paddingHorizontal: wp(20),
-    width: '100%',
-    alignItems: 'center',
-  },
-  modalIconWrap: {
-    width: wp(56),
-    height: wp(56),
-    borderRadius: wp(28),
-    backgroundColor: '#f0f0f0',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: hp(12),
-  },
-  modalTitle: {
-    fontSize: fp(18),
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: hp(16),
-  },
-  modalAmountCard: {
-    backgroundColor: '#f8f9fa',
-    borderRadius: wp(14),
-    paddingVertical: hp(16),
-    paddingHorizontal: wp(20),
-    width: '100%',
-    alignItems: 'center',
-    marginBottom: hp(16),
-  },
-  modalAmountLabel: {
-    fontSize: fp(12),
-    color: colors.textSecondary,
-    fontWeight: '500',
-    marginBottom: hp(4),
-  },
-  modalAmountValue: {
-    fontSize: fp(28),
-    fontWeight: '900',
-    color: colors.text,
-  },
-  modalInfoRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: wp(10),
-    backgroundColor: colors.info + '10',
-    padding: wp(12),
-    borderRadius: wp(12),
-    width: '100%',
-    marginBottom: hp(10),
-  },
-  modalInfoText: {
-    flex: 1,
-    fontSize: fp(12),
-    color: colors.info,
-    lineHeight: fp(17),
-    fontWeight: '500',
-  },
-  modalBankRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(8),
-    backgroundColor: '#f8f9fa',
-    padding: wp(12),
-    borderRadius: wp(10),
-    width: '100%',
-    marginBottom: hp(10),
-  },
-  modalBankText: {
-    flex: 1,
-    fontSize: fp(12),
-    color: colors.textSecondary,
-    fontWeight: '500',
-  },
-  modalNoteRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: wp(8),
-    padding: wp(12),
-    width: '100%',
-    marginBottom: hp(16),
-  },
-  modalNoteText: {
-    flex: 1,
-    fontSize: fp(11),
-    color: colors.textSecondary,
-    lineHeight: fp(16),
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    gap: wp(10),
-    width: '100%',
-  },
-  modalCancelBtn: {
-    flex: 1,
-    height: hp(46),
-    borderRadius: wp(12),
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#f4f4f5',
-    borderWidth: 1,
-    borderColor: '#eaecef',
-  },
-  modalCancelText: {
-    color: colors.text,
-    fontWeight: '600',
-    fontSize: fp(14),
-  },
-  modalConfirmBtn: {
-    flex: 1,
-    height: hp(46),
-    borderRadius: wp(12),
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.primary,
-    gap: wp(6),
-  },
-  modalConfirmText: {
-    color: colors.white,
-    fontWeight: '700',
-    fontSize: fp(14),
-  },
-
   /* ──── Hissa Card ──── */
   hissaCard: {
     flexDirection: 'row',
@@ -1173,135 +787,4 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 
-  /* ──── Hissa Bottom Sheet ──── */
-  gestureRoot: {
-    flex: 1,
-  },
-  sheetOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-    justifyContent: 'flex-end',
-  },
-  sheetContainer: {
-    backgroundColor: colors.white,
-    borderTopLeftRadius: wp(24),
-    borderTopRightRadius: wp(24),
-    paddingHorizontal: wp(20),
-    paddingTop: hp(10),
-    paddingBottom: hp(28),
-  },
-  sheetHandle: {
-    width: wp(40),
-    height: hp(4),
-    borderRadius: wp(2),
-    backgroundColor: colors.handle,
-    alignSelf: 'center',
-    marginBottom: hp(16),
-  },
-  sheetTitle: {
-    fontSize: fp(18),
-    fontWeight: '800',
-    color: colors.text,
-  },
-  sheetSubtitle: {
-    fontSize: fp(13),
-    color: colors.textSecondary,
-    marginTop: hp(4),
-    marginBottom: hp(18),
-  },
-  splitBar: {
-    flexDirection: 'row',
-    height: hp(14),
-    borderRadius: wp(20),
-    overflow: 'hidden',
-    backgroundColor: colors.splitBarBg,
-  },
-  splitCreator: {
-    backgroundColor: colors.creatorGreen,
-  },
-  splitPlatform: {
-    backgroundColor: colors.secondary,
-  },
-  splitLegendRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: hp(12),
-  },
-  splitLegendItem: {
-    flex: 1,
-  },
-  splitLegendRowTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(6),
-  },
-  splitDot: {
-    width: wp(8),
-    height: wp(8),
-    borderRadius: wp(4),
-  },
-  splitLegendLabel: {
-    fontSize: fp(12),
-    color: colors.textSecondary,
-    fontWeight: '500',
-  },
-  splitLegendValue: {
-    fontSize: fp(22),
-    fontWeight: '900',
-    marginTop: hp(4),
-  },
-  sheetDivider: {
-    height: 1,
-    backgroundColor: colors.divider,
-    marginVertical: hp(18),
-  },
-  calcLabel: {
-    fontSize: fp(13),
-    color: colors.textSecondary,
-    fontWeight: '500',
-    marginBottom: hp(14),
-  },
-  sliderWrapper: {
-    marginTop: hp(24),
-    marginBottom: hp(8),
-    paddingHorizontal: wp(4),
-  },
-  sliderInner: {
-    borderRadius: hp(5),
-  },
-  saleAmountText: {
-    fontSize: fp(22),
-    fontWeight: '800',
-    color: colors.text,
-    textAlign: 'center',
-    marginVertical: hp(10),
-  },
-  resultRow: {
-    flexDirection: 'row',
-    gap: wp(12),
-    marginTop: hp(8),
-  },
-  resultBox: {
-    flex: 1,
-    paddingVertical: hp(14),
-    paddingHorizontal: wp(14),
-    borderRadius: wp(14),
-    alignItems: 'center',
-  },
-  resultCreator: {
-    backgroundColor: colors.creatorGreenLight,
-  },
-  resultPlatform: {
-    backgroundColor: colors.platformLight,
-  },
-  resultLabel: {
-    fontSize: fp(12),
-    color: colors.textSecondary,
-    fontWeight: '500',
-    marginBottom: hp(4),
-  },
-  resultValue: {
-    fontSize: fp(22),
-    fontWeight: '900',
-  },
 });

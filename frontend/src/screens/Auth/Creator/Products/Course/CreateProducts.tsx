@@ -25,7 +25,7 @@ const CreateProducts = () => {
     <View style={styles.container}>
       {/* Header */}
       <LinearGradient
-        colors={[colors.faaAiBg, colors.faaAiCard]}
+        colors={['#1A1A2E', '#16213E', '#0F3460']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={[styles.headerWrapper, { paddingTop: insets.top }]}
@@ -49,7 +49,7 @@ const CreateProducts = () => {
         {/* AI Coming Soon Banner */}
         <View style={styles.aiBannerSection}>
           <LinearGradient
-            colors={[colors.faaAiBg, colors.faaAiCard, '#0F3460']}
+            colors={['#1A1A2E', '#16213E', '#0F3460']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.aiBanner}
@@ -95,11 +95,11 @@ const CreateProducts = () => {
         </View>
 
         {/* AI Features */}
-        <Text style={styles.aiFeaturesTitle}>What Faa-AI will do for you</Text>
+        <Text style={styles.aiFeaturesTitle}>What Manchly-AI will do for you</Text>
 
         <View style={styles.aiFeatureCard}>
           <LinearGradient
-            colors={[colors.faaAiBg, colors.faaAiCard]}
+            colors={['#1A1A2E', '#16213E', '#0F3460']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={styles.aiFeatureInner}
@@ -118,7 +118,7 @@ const CreateProducts = () => {
 
         <View style={styles.aiFeatureCard}>
           <LinearGradient
-            colors={[colors.faaAiBg, '#1E3A5F']}
+            colors={['#1A1A2E', '#16213E', '#0F3460']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={styles.aiFeatureInner}

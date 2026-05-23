@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   Platform,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
 import { useForm, Controller } from 'react-hook-form';
 import { Briefcase, Clock, Video } from 'lucide-react-native';
@@ -16,7 +16,7 @@ import { MultiSelect } from 'react-native-element-dropdown';
 import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
 import AppHeaderWithBack from '../../../../components/AppHeaderWithBack';
-import { registerAsExpert } from '../../../../store/SessionSlice';
+import { registerAsExpert, updateExpertProfile } from '../../../../store/SessionSlice';
 
 const CATEGORIES = [
   'Business Consulting',
@@ -55,8 +55,12 @@ type FormData = {
 
 const ExpertRegistration: React.FC = () => {
   const navigation = useNavigation<any>();
+  const route = useRoute<any>();
   const dispatch = useDispatch<any>();
   const [loading, setLoading] = useState(false);
+
+  const editData = route.params?.expertProfile;
+  const isEditing = !!editData;
 
   const {
     control,
@@ -64,27 +68,29 @@ const ExpertRegistration: React.FC = () => {
     formState: { errors },
   } = useForm<FormData>({
     defaultValues: {
-      profession: '',
-      bio: '',
-      experience: '',
-      videoRate: '',
-      categories: [],
-      languages: [],
+      profession: editData?.profession || '',
+      bio: editData?.bio || '',
+      experience: editData?.experience?.toString() || '',
+      videoRate: editData?.video_rate?.toString() || '',
+      categories: editData?.categories || [],
+      languages: editData?.languages || [],
     },
   });
 
   const onSubmit = (data: FormData) => {
     setLoading(true);
-    dispatch(
-      registerAsExpert({
-        profession: data.profession.trim(),
-        bio: data.bio.trim() || undefined,
-        categories: data.categories,
-        experience: parseInt(data.experience, 10) || 0,
-        video_rate: parseFloat(data.videoRate),
-        languages: data.languages,
-      }),
-    )
+    const payload = {
+      profession: data.profession.trim(),
+      bio: data.bio.trim() || undefined,
+      categories: data.categories,
+      experience: parseInt(data.experience, 10) || 0,
+      video_rate: parseFloat(data.videoRate),
+      languages: data.languages,
+    };
+    const action = isEditing
+      ? updateExpertProfile(payload)
+      : registerAsExpert(payload);
+    dispatch(action)
       .unwrap()
       .then(() => navigation.goBack())
       .finally(() => setLoading(false));
@@ -92,7 +98,7 @@ const ExpertRegistration: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <AppHeaderWithBack title="Become a Session Expert" />
+      <AppHeaderWithBack title={isEditing ? 'Edit Session Profile' : 'Become a Session Expert'} />
       <ScrollView
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
@@ -143,15 +149,15 @@ const ExpertRegistration: React.FC = () => {
           render={({ field: { onChange, value } }) => (
             <MultiSelect
               style={styles.dropdown}
-              placeholderStyle={styles.dropdownPlaceholder}
+              placeholderStyle={value.length > 0 ? styles.dropdownText : styles.dropdownPlaceholder}
               selectedTextStyle={styles.dropdownText}
               data={CATEGORIES}
               labelField="label"
               valueField="value"
-              placeholder="Select categories"
+              placeholder={value.length > 0 ? value.join(', ') : 'Select categories'}
               value={value}
               onChange={onChange}
-              selectedStyle={styles.selectedChip}
+              visibleSelectedItem={false}
               activeColor={colors.primary + '10'}
               itemTextStyle={styles.dropdownItemText}
               containerStyle={styles.dropdownContainer}
@@ -235,16 +241,16 @@ const ExpertRegistration: React.FC = () => {
           render={({ field: { onChange, value } }) => (
             <MultiSelect
               style={styles.dropdown}
-              placeholderStyle={styles.dropdownPlaceholder}
+              placeholderStyle={value.length > 0 ? styles.dropdownText : styles.dropdownPlaceholder}
               selectedTextStyle={styles.dropdownText}
               data={LANGUAGES}
               labelField="label"
               valueField="value"
               dropdownPosition="top"
-              placeholder="Select languages"
+              placeholder={value.length > 0 ? value.join(', ') : 'Select languages'}
               value={value}
               onChange={onChange}
-              selectedStyle={styles.selectedChip}
+              visibleSelectedItem={false}
               activeColor={colors.primary + '10'}
               itemTextStyle={styles.dropdownItemText}
               containerStyle={styles.dropdownContainer}
@@ -260,7 +266,9 @@ const ExpertRegistration: React.FC = () => {
           disabled={loading}
         >
           <Text style={styles.registerBtnText}>
-            {loading ? 'Registering...' : 'Register as Expert'}
+            {loading
+              ? isEditing ? 'Updating...' : 'Registering...'
+              : isEditing ? 'Update Profile' : 'Register as Expert'}
           </Text>
         </TouchableOpacity>
       </ScrollView>

@@ -6,10 +6,10 @@ import {
   TouchableOpacity,
   Image,
   ActivityIndicator,
-  ScrollView,
   Modal,
   Platform,
 } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
 import AppHeaderWithBack from '../../../../components/AppHeaderWithBack';
@@ -56,6 +56,21 @@ const CreatorProfile = () => {
   const displayName = user?.name
     ? user.name.charAt(0).toUpperCase() + user.name.slice(1)
     : 'Creator';
+
+  const profileFields = [
+    { filled: !!user?.name },
+    { filled: !!user?.dob },
+    { filled: !!user?.email },
+    { filled: !!user?.phone },
+    { filled: !!(user?.profile_image || imageAdd) },
+    { filled: !!user?.instagram_link },
+    { filled: !!user?.linkedin_link },
+    { filled: !!user?.youtube_link },
+    { filled: !!user?.facebook_link },
+    { filled: !!user?.kyc_verified },
+  ];
+  const filledCount = profileFields.filter(f => f.filled).length;
+  const profilePercent = Math.round((filledCount / profileFields.length) * 100);
 
   const openLink = async (url: string) => {
     let finalUrl = url.trim();
@@ -260,10 +275,12 @@ const CreatorProfile = () => {
     <View style={styles.container}>
       <AppHeaderWithBack title="My Profile" />
 
-      <ScrollView
+      <KeyboardAwareScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        enableOnAndroid
+        extraScrollHeight={hp(20)}
       >
         {/* Profile Card */}
         <LinearGradient
@@ -320,6 +337,35 @@ const CreatorProfile = () => {
             >
               {user?.kyc_verified ? 'KYC Verified' : 'KYC Not Verified'}
             </Text>
+          </View>
+
+          {/* Profile Completion */}
+          <View style={styles.completionWrap}>
+            <View style={styles.completionHeader}>
+              <Text style={styles.completionLabel}>Profile Completion</Text>
+              <Text style={styles.completionPercent}>{profilePercent}%</Text>
+            </View>
+            <View style={styles.completionBarBg}>
+              <View
+                style={[
+                  styles.completionBarFill,
+                  {
+                    width: `${profilePercent}%`,
+                    backgroundColor:
+                      profilePercent === 100
+                        ? colors.success
+                        : profilePercent >= 60
+                        ? '#F59E0B'
+                        : colors.error,
+                  },
+                ]}
+              />
+            </View>
+            {profilePercent < 100 && (
+              <Text style={styles.completionHint}>
+                Complete all fields to reach 100%
+              </Text>
+            )}
           </View>
 
           {/* Social Links Icons */}
@@ -631,7 +677,7 @@ const CreatorProfile = () => {
             )}
           </TouchableOpacity>
         </View>
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
       {/* KYC Warning Modal */}
       <Modal
@@ -765,6 +811,44 @@ const styles = StyleSheet.create({
   kycBadgeText: {
     fontSize: fp(12),
     fontWeight: '700',
+  },
+  completionWrap: {
+    width: '100%',
+    marginTop: hp(16),
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: wp(12),
+    padding: wp(12),
+  },
+  completionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: hp(6),
+  },
+  completionLabel: {
+    fontSize: fp(11),
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.7)',
+  },
+  completionPercent: {
+    fontSize: fp(13),
+    fontWeight: '800',
+    color: colors.white,
+  },
+  completionBarBg: {
+    height: hp(6),
+    borderRadius: hp(3),
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    overflow: 'hidden',
+  },
+  completionBarFill: {
+    height: '100%',
+    borderRadius: hp(3),
+  },
+  completionHint: {
+    fontSize: fp(10),
+    color: 'rgba(255,255,255,0.45)',
+    marginTop: hp(5),
   },
   socialRow: {
     flexDirection: 'row',

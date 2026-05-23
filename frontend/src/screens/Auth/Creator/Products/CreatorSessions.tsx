@@ -15,6 +15,7 @@ import {
   ToggleRight,
   TrendingUp,
   PhoneCall,
+  Settings,
 } from 'lucide-react-native';
 import {useDispatch, useSelector} from 'react-redux';
 import {useIsFocused, useNavigation} from '@react-navigation/native';
@@ -136,6 +137,19 @@ const CreatorSessions: React.FC = () => {
           )}
         </TouchableOpacity>
       </View>
+
+      {/* Edit Profile */}
+      <TouchableOpacity
+        style={styles.editBtn}
+        activeOpacity={0.7}
+        onPress={() =>
+          navigation.navigate('ExpertRegistration', {
+            expertProfile: expertProfile,
+          })
+        }>
+        <Settings size={wp(16)} color={colors.info} strokeWidth={1.8} />
+        <Text style={styles.editBtnText}>Edit Session Profile</Text>
+      </TouchableOpacity>
 
       {/* Stats Row */}
       <View style={styles.statsRow}>
@@ -269,6 +283,23 @@ const styles = StyleSheet.create({
     fontSize: fp(11),
     color: colors.textSecondary,
     marginTop: hp(1),
+  },
+  editBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: wp(6),
+    backgroundColor: colors.info + '12',
+    borderRadius: wp(10),
+    paddingVertical: hp(10),
+    marginBottom: hp(16),
+    borderWidth: 1,
+    borderColor: colors.info + '25',
+  },
+  editBtnText: {
+    fontSize: fp(13),
+    fontWeight: '600',
+    color: colors.info,
   },
   statsRow: {
     flexDirection: 'row',

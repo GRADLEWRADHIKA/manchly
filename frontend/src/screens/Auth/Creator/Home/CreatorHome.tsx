@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -8,79 +8,38 @@ import {
   Image,
   Linking,
   Dimensions,
+  AppState,
 } from 'react-native';
-import {
-  useFocusEffect,
-  useIsFocused,
-  useNavigation,
-} from '@react-navigation/native';
-import {
-  Bell,
-  ChevronRight,
-  Sparkles,
-  Lightbulb,
-  PenLine,
-  Rocket,
-  TrendingUp,
-  BookOpen,
-  Users,
-  Award,
-  Phone,
-  Check,
-  Circle,
-  Star,
-  HelpCircle,
-  Instagram,
-} from 'lucide-react-native';
-import Svg, { Circle as SvgCircle } from 'react-native-svg';
+import { useNavigation } from '@react-navigation/native';
+import KycWarningModal from './KycWarningModal';
+import { Bell, Instagram } from 'lucide-react-native';
 import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
-import KycCard from './KeyCard';
 import { useSelector, useDispatch } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Toast from 'react-native-toast-message';
-import LinearGradient from 'react-native-linear-gradient';
-import { getCreatorSales } from '../../../../store/PaymentSlice';
-import {
-  fetchCourses,
-  getCreatorCourseStats,
-} from '../../../../store/CourseSlice';
-import {
-  getAllWebinar,
-  getCreatorWebinarStats,
-} from '../../../../store/WebinarSlice';
-import { getSessionStats } from '../../../../store/SessionSlice';
-import { instance } from '../../../../utils/AxiosInstance';
 import Video from 'react-native-video';
 import { X, Play, Maximize2 } from 'lucide-react-native';
 import { clearJustLoggedIn } from '../../../../store/UserSlice';
+import GoLiveCard from './GoLiveCard';
+import SessionCard from './SessionCard';
+import LaunchCourseCard from './LaunchCourseCard';
+import RevenueCard from './RevenueCard';
 
 const INTRO_VIDEO_URL =
   'https://stream.mux.com/aiFSECiPT501KG02eutUYBTKc8aPPOz27ikxTnTHaKJJ00.m3u8';
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const CreatorHome = () => {
   const navigation = useNavigation<any>();
   const dispatch = useDispatch<any>();
   const { user } = useSelector((state: any) => state.userReducer);
-  const { totalRevenue } = useSelector((state: any) => state.paymentReducer);
-  const { creatorStats } = useSelector((state: any) => state.coursesReducer);
-  const { creatorWebinarStats } = useSelector(
-    (state: any) => state.webinarReducer,
-  );
-  const { stats: sessionStats } = useSelector(
-    (state: any) => state.sessionReducer,
-  );
   const insets = useSafeAreaInsets();
-  const [bankAccount, setBankAccount] = useState<any>(null);
-  const [walletLoading, setWalletLoading] = useState(true);
-  const [walletData, setWalletData] = useState<any>(null);
   const { justLoggedIn } = useSelector((state: any) => state.userReducer);
-  const focus = useIsFocused();
-  const [courses, setCourses] = useState<any[]>([]);
-  const [webiniarData, setWebinarData] = useState<any[]>([]);
   const [showIntroVideo, setShowIntroVideo] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
+  const [showKycModal, setShowKycModal] = useState(false);
+  const kycDismissed = useRef(false);
+  const appState = useRef(AppState.currentState);
 
   useEffect(() => {
     if (justLoggedIn) {
@@ -89,82 +48,32 @@ const CreatorHome = () => {
     }
   }, [justLoggedIn]);
 
+  // Show KYC modal after page renders properly
   useEffect(() => {
-    getTheCourse();
-    fetchWebinars();
-  }, [focus]);
-
-  const getTheCourse = () => {
-    const payload = {
-      page: 1,
-      limit: 10,
-      my_courses: true,
-    };
-
-    dispatch(fetchCourses(payload))
-      .unwrap()
-      .then(response => {
-        const newData = response?.data?.data?.courses || [];
-        setCourses(newData);
-        console.log(courses.length);
-      })
-      .finally(() => {});
-  };
-
-  const fetchWebinars = () => {
-    const payload = {
-      page: 1,
-      limit: 50,
-      upcoming: true,
-      title: '',
-      my_webinars: true,
-    };
-    dispatch(getAllWebinar(payload))
-      .unwrap()
-      .then(response => {
-        setWebinarData(response?.data?.data?.webinars || []);
-      })
-      .finally(() => setLoading(false));
-  };
-
-  const fetchWallet = async () => {
-    try {
-      setWalletLoading(true);
-      const [walletRes, bankRes] = await Promise.all([
-        instance.get('settlements/wallet').catch((e: any) => {
-          console.log(
-            'Wallet API error:',
-            e?.response?.status,
-            e?.response?.data,
-          );
-          return null;
-        }),
-        instance.get('settlements/bank-account').catch((e: any) => {
-          console.log('Bank API error:', e?.response?.status);
-          return null;
-        }),
-      ]);
-      setWalletData(walletRes?.data?.data?.wallet || null);
-      setBankAccount(bankRes?.data?.data?.bankAccount || null);
-    } catch (error) {
-      console.log('Error fetching wallet:', error);
-    } finally {
-      setWalletLoading(false);
+    let timer: ReturnType<typeof setTimeout>;
+    if (!user?.kyc_verified && !kycDismissed.current) {
+      timer = setTimeout(() => {
+        setShowKycModal(true);
+      }, 1000);
     }
-  };
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchWallet();
-    }, []),
-  );
+    const subscription = AppState.addEventListener('change', nextAppState => {
+      if (
+        appState.current.match(/inactive|background/) &&
+        nextAppState === 'active' &&
+        !user?.kyc_verified &&
+        !kycDismissed.current
+      ) {
+        setShowKycModal(true);
+      }
+      appState.current = nextAppState;
+    });
 
-  useEffect(() => {
-    dispatch(getCreatorSales({}));
-    dispatch(getCreatorCourseStats());
-    dispatch(getCreatorWebinarStats());
-    dispatch(getSessionStats());
-  }, []);
+    return () => {
+      if (timer) clearTimeout(timer);
+      subscription.remove();
+    };
+  }, [user?.kyc_verified]);
 
   const displayName = user?.name
     ? user.name.charAt(0).toUpperCase() + user.name.slice(1)
@@ -178,49 +87,6 @@ const CreatorHome = () => {
   };
 
   const initials = user?.name ? user.name.charAt(0).toUpperCase() : 'C';
-
-  const withdrawableBalance = walletData?.available_balance || 0;
-  const totalRevenueAmount = walletData?.total_net_earnings || 0;
-
-  const milestones = useMemo(
-    () => [
-      { label: 'Create your account', pts: 10, completed: true },
-      { label: 'Complete your profile', pts: 2, completed: true },
-      {
-        label: 'Publish your first course',
-        pts: 30,
-        completed: courses.length > 0,
-      },
-      {
-        label: 'Go Live once',
-        pts: 20,
-        completed: webiniarData.length > 0,
-      },
-      {
-        label: 'Get your first student',
-        pts: 40,
-        completed: !!creatorStats?.statistics?.total_enrollments,
-      },
-    ],
-    [creatorStats, creatorWebinarStats],
-  );
-
-  const totalPts = milestones.reduce((sum, m) => sum + m.pts, 0);
-  const earnedPts = milestones.reduce(
-    (sum, m) => sum + (m.completed ? m.pts : 0),
-    0,
-  );
-  const progressPercent = Math.round((earnedPts / totalPts) * 100);
-  const circumference = 2 * Math.PI * wp(28);
-  const progressOffset = circumference * (1 - progressPercent / 100);
-  const allCompleted = milestones.every(m => m.completed);
-
-  const formatAmount = (amount: number) => {
-    return amount.toLocaleString('en-IN', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
-    });
-  };
 
   return (
     <View style={styles.container}>
@@ -254,7 +120,9 @@ const CreatorHome = () => {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.bellBtn}
-              onPress={() => Linking.openURL('https://www.instagram.com/manchly_app')}
+              onPress={() =>
+                Linking.openURL('https://www.instagram.com/manchly_app')
+              }
             >
               <Instagram size={wp(20)} color={colors.white} />
             </TouchableOpacity>
@@ -273,343 +141,36 @@ const CreatorHome = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Total Revenue Card */}
-        <View style={styles.sectionPadding}>
-          <LinearGradient
-            colors={['#1A1A2E', '#16213E', '#0F3460']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.revenueCard}
-          >
-            <View style={styles.revenueHeader}>
-              <View>
-                <Text style={styles.revenueLabel}>TOTAL REVENUE</Text>
-                <Text style={styles.revenueAmount}>
-                  <Text style={styles.rupeeSymbol}>₹</Text>
-                  {walletLoading
-                    ? '...'
-                    : `${formatAmount(totalRevenueAmount)}`}
-                </Text>
-              </View>
-              <View style={styles.growingBadge}>
-                <TrendingUp size={wp(14)} color={colors.white} />
-                <Text style={styles.growingText}>Growing</Text>
-              </View>
-            </View>
+        <RevenueCard />
 
-            <View style={styles.revenueDivider} />
+        <LaunchCourseCard />
 
-            <View style={styles.statsRow}>
-              <View style={styles.statItem}>
-                <View style={styles.statIconWrap}>
-                  <BookOpen size={wp(14)} color={colors.white} />
-                </View>
-                <Text style={styles.statValue}>
-                  {creatorStats?.statistics?.courses_sold ?? 0}
-                </Text>
-                <Text style={styles.statLabel}>Courses</Text>
-              </View>
-              <View style={styles.statDivider} />
-              <View style={styles.statItem}>
-                <View style={styles.statIconWrap}>
-                  <Users size={wp(14)} color={colors.white} />
-                </View>
-                <Text style={styles.statValue}>
-                  {creatorStats?.statistics?.total_enrollments ?? 0}
-                </Text>
-                <Text style={styles.statLabel}>Students</Text>
-              </View>
-              <View style={styles.statDivider} />
-              <View style={styles.statItem}>
-                <View style={styles.statIconWrap}>
-                  <Award size={wp(14)} color={colors.white} />
-                </View>
-                <Text style={styles.statValue}>
-                  {creatorWebinarStats?.statistics?.webinars_sold ?? 0}
-                </Text>
-                <Text style={styles.statLabel}>Webinars</Text>
-              </View>
-              <View style={styles.statDivider} />
-              <View style={styles.statItem}>
-                <View style={styles.statIconWrap}>
-                  <Phone size={wp(14)} color={colors.white} />
-                </View>
-                <Text style={styles.statValue}>
-                  {sessionStats?.total_sessions ?? 0}
-                </Text>
-                <Text style={styles.statLabel}>Sessions</Text>
-              </View>
-            </View>
-          </LinearGradient>
-        </View>
+        <GoLiveCard />
 
-        {/* Launch Your First Course Card */}
-        <View style={styles.sectionPadding}>
-          <LinearGradient
-            colors={['#1A1A2E', '#16213E', '#0F3460']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.courseCard}
-          >
-            {/* Header */}
-            <View style={styles.courseHeaderRow}>
-              <View style={{ flex: 1 }}>
-                <View style={styles.startBadge}>
-                  <Sparkles size={wp(12)} color={colors.secondary} />
-                  <Text style={styles.startBadgeText}>START CREATING</Text>
-                </View>
-                <Text style={styles.courseTitle}>
-                  Launch Your{'\n'}
-                  {creatorStats?.statistics?.courses_sold
-                    ? 'Next'
-                    : 'First'}{' '}
-                  Course
-                </Text>
-                <Text style={styles.courseSubtitle}>
-                  Turn expertise into income.{'\n'}Ready in under 10 mins.
-                </Text>
-              </View>
-              <Text style={styles.courseEmoji}>📚</Text>
-            </View>
-
-            {/* Horizontal Stepper with connected line */}
-            <View style={styles.stepperWrap}>
-              {/* Connecting line behind circles */}
-              <View style={styles.stepperLine} />
-
-              <View style={styles.stepsRow}>
-                <View style={styles.stepItem}>
-                  <View
-                    style={[
-                      styles.stepCircle,
-                      { backgroundColor: colors.secondary },
-                    ]}
-                  >
-                    <Lightbulb size={wp(13)} color={colors.white} />
-                  </View>
-                  <Text style={styles.stepTitle}>Pick Topic</Text>
-                </View>
-
-                <View style={styles.stepItem}>
-                  <View
-                    style={[
-                      styles.stepCircle,
-                      { backgroundColor: colors.info },
-                    ]}
-                  >
-                    <PenLine size={wp(13)} color={colors.white} />
-                  </View>
-                  <Text style={styles.stepTitle}>Add Content</Text>
-                </View>
-
-                <View style={styles.stepItem}>
-                  <View
-                    style={[
-                      styles.stepCircle,
-                      { backgroundColor: colors.accent },
-                    ]}
-                  >
-                    <Rocket size={wp(13)} color={colors.white} />
-                  </View>
-                  <Text style={styles.stepTitle}>Publish</Text>
-                </View>
-              </View>
-            </View>
-
-            {/* CTA Button */}
-            <TouchableOpacity
-              activeOpacity={0.85}
-              onPress={() => {
-                if (user?.kyc_verified) {
-                  navigation.navigate('CreateCourse');
-                } else {
-                  navigation.navigate('KYCVerificationScreen');
-                }
-              }}
-              style={styles.ctaButton}
-            >
-              <Text style={styles.ctaText}>Create Course Now</Text>
-              <ChevronRight size={wp(18)} color={colors.primary} />
-            </TouchableOpacity>
-          </LinearGradient>
-        </View>
-
-        {/* Go Live Card */}
-        <View style={styles.sectionPadding}>
-          <TouchableOpacity
-            activeOpacity={0.85}
-            onPress={() => {
-              if (user?.kyc_verified) {
-                navigation.navigate('CreateWebinar');
-              } else {
-                navigation.navigate('KYCVerificationScreen');
-              }
-            }}
-          >
-            <LinearGradient
-              colors={['#1A1A2E', '#16213E', '#0F3460']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.liveCard}
-            >
-              <View style={styles.liveLeft}>
-                <View style={styles.liveIconWrap}>
-                  <Text style={{ fontSize: fp(24) }}>📡</Text>
-                </View>
-                <View style={{ flex: 1 }}>
-                  <View style={styles.liveBadge}>
-                    <View style={styles.greenDot} />
-                    <Text style={styles.liveBadgeText}>GO LIVE</Text>
-                  </View>
-                  <Text style={styles.liveTitle}>Start a Live Session</Text>
-                  <Text style={styles.liveSubtitle}>
-                    Connect with your audience in real time
-                  </Text>
-                </View>
-              </View>
-              <ChevronRight size={wp(20)} color="rgba(255,255,255,0.5)" />
-            </LinearGradient>
-          </TouchableOpacity>
-        </View>
-
-        {/* Creator Score — temporarily hidden */}
-        {/* <View style={styles.sectionPadding}>
-          {allCompleted ? (
-            <LinearGradient
-              colors={['#1A1A2E', '#16213E', '#0F3460']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.scoreCard}
-            >
-              <View style={styles.trophyWrap}>
-                <Text style={styles.trophyEmoji}>🏆</Text>
-              </View>
-              <Text style={styles.proTitle}>You're a Manchly Pro!</Text>
-              <Text style={styles.proDescription}>
-                All starter tasks done. You've earned{' '}
-                <Text style={styles.proPointsHighlight}>{earnedPts} pts</Text>{' '}
-                and{'\n'}unlocked the{' '}
-                <Text style={styles.proBadgeHighlight}>Rising Star </Text>
-                <Star
-                  size={wp(14)}
-                  color={colors.golden}
-                  fill={colors.golden}
-                />{' '}
-                badge.
-              </Text>
-              <View style={styles.taskIconsRow}>
-                {['🎓', '📡', '💰', '👥', '✅'].map((emoji, index) => (
-                  <View key={index} style={styles.taskIconBox}>
-                    <Text style={styles.taskIconEmoji}>{emoji}</Text>
-                  </View>
-                ))}
-              </View>
-              <TouchableOpacity
-                activeOpacity={0.85}
-                onPress={() => navigation.navigate('CreateProducts')}
-                style={styles.keepGrowingBtn}
-              >
-                <Text style={styles.keepGrowingText}>
-                  🚀 Keep Growing on Manchly →
-                </Text>
-              </TouchableOpacity>
-            </LinearGradient>
-          ) : (
-            <LinearGradient
-              colors={['#1A1A2E', '#16213E', '#0F3460']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.scoreCard}
-            >
-              <View style={styles.scoreTopRow}>
-                <View>
-                  <Text style={styles.scoreLabel}>CREATOR SCORE</Text>
-                  <Text style={styles.scoreValue}>{earnedPts}</Text>
-                </View>
-                <View style={styles.progressRingWrap}>
-                  <Svg width={wp(70)} height={wp(70)}>
-                    <SvgCircle
-                      cx={wp(35)}
-                      cy={wp(35)}
-                      r={wp(28)}
-                      stroke="rgba(255,255,255,0.15)"
-                      strokeWidth={wp(5)}
-                      fill="none"
-                    />
-                    <SvgCircle
-                      cx={wp(35)}
-                      cy={wp(35)}
-                      r={wp(28)}
-                      stroke="#9B59B6"
-                      strokeWidth={wp(5)}
-                      fill="none"
-                      strokeDasharray={`${circumference}`}
-                      strokeDashoffset={`${progressOffset}`}
-                      strokeLinecap="round"
-                      rotation="-90"
-                      origin={`${wp(35)}, ${wp(35)}`}
-                    />
-                  </Svg>
-                  <View style={styles.progressRingText}>
-                    <Text style={styles.progressPercent}>
-                      {progressPercent}%
-                    </Text>
-                    <Text style={styles.progressDone}>done</Text>
-                  </View>
-                </View>
-              </View>
-              <View style={styles.nextLevelRow}>
-                <Text style={styles.nextLevelText}>Next: </Text>
-                <Text style={styles.nextLevelName}>Rising Star </Text>
-                <Star
-                  size={wp(16)}
-                  color={colors.golden}
-                  fill={colors.golden}
-                />
-              </View>
-              <View style={styles.milestonesWrap}>
-                {milestones.map((milestone, index) => (
-                  <View key={index} style={styles.milestoneItem}>
-                    <View
-                      style={[
-                        styles.milestoneCheck,
-                        milestone.completed && styles.milestoneCompleted,
-                      ]}
-                    >
-                      {milestone.completed ? (
-                        <Check
-                          size={wp(14)}
-                          color={colors.white}
-                          strokeWidth={3}
-                        />
-                      ) : (
-                        <Circle size={wp(14)} color="rgba(255,255,255,0.3)" />
-                      )}
-                    </View>
-                    <Text
-                      style={[
-                        styles.milestoneText,
-                        milestone.completed && styles.milestoneTextCompleted,
-                      ]}
-                    >
-                      {milestone.label}
-                    </Text>
-                    <View style={styles.milestonePts}>
-                      <Text style={styles.milestonePtsText}>
-                        +{milestone.pts} pts
-                      </Text>
-                    </View>
-                  </View>
-                ))}
-              </View>
-            </LinearGradient>
-          )}
-        </View> */}
+        <SessionCard />
       </ScrollView>
 
+      <KycWarningModal
+        visible={showKycModal}
+        onDismiss={() => {
+          kycDismissed.current = true;
+          setShowKycModal(false);
+        }}
+      />
+
       {showIntroVideo ? (
-        <View style={isFullScreen ? styles.fullScreenVideoContainer : styles.floatingVideoContainer}>
-          <View style={isFullScreen ? styles.expandedVideoWrap : styles.miniVideoWrap}>
+        <View
+          style={
+            isFullScreen
+              ? styles.fullScreenVideoContainer
+              : styles.floatingVideoContainer
+          }
+        >
+          <View
+            style={
+              isFullScreen ? styles.expandedVideoWrap : styles.miniVideoWrap
+            }
+          >
             <View style={styles.videoButtonsRow}>
               <TouchableOpacity
                 style={styles.videoActionButton}
@@ -734,445 +295,6 @@ const styles = StyleSheet.create({
   sectionPadding: {
     paddingHorizontal: wp(16),
     marginTop: hp(14),
-  },
-
-  // Revenue Card
-  revenueCard: {
-    borderRadius: wp(16),
-    padding: wp(16),
-    shadowColor: '#6C3CE1',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    elevation: 5,
-  },
-  revenueHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  revenueLabel: {
-    fontSize: fp(10),
-    fontWeight: '700',
-    color: 'rgba(255,255,255,0.65)',
-    letterSpacing: 1,
-    marginBottom: hp(2),
-  },
-  growingBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(4),
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    paddingHorizontal: wp(10),
-    paddingVertical: hp(4),
-    borderRadius: wp(20),
-  },
-  growingText: {
-    fontSize: fp(10),
-    fontWeight: '700',
-    color: colors.white,
-  },
-  revenueAmount: {
-    fontSize: fp(28),
-    fontWeight: '800',
-    color: colors.white,
-  },
-  rupeeSymbol: {
-    fontSize: fp(18),
-    fontWeight: '400',
-    color: 'rgba(255,255,255,0.6)',
-  },
-  revenueDivider: {
-    height: 1,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    marginVertical: hp(10),
-  },
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-  },
-  statItem: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  statIconWrap: {
-    width: wp(26),
-    height: wp(26),
-    borderRadius: wp(13),
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: hp(4),
-  },
-  statValue: {
-    fontSize: fp(16),
-    fontWeight: '800',
-    color: colors.white,
-  },
-  statLabel: {
-    fontSize: fp(10),
-    color: 'rgba(255,255,255,0.6)',
-    marginTop: hp(2),
-    fontWeight: '500',
-  },
-  statDivider: {
-    width: 1,
-    height: hp(40),
-    backgroundColor: 'rgba(255,255,255,0.15)',
-  },
-
-  // Course Card
-  courseCard: {
-    borderRadius: wp(16),
-    padding: wp(14),
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    elevation: 4,
-  },
-  courseHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: hp(14),
-  },
-  startBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    gap: wp(4),
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderRadius: wp(20),
-    paddingHorizontal: wp(10),
-    paddingVertical: hp(3),
-    marginBottom: hp(8),
-  },
-  startBadgeText: {
-    fontSize: fp(9),
-    fontWeight: '800',
-    color: colors.secondary,
-    letterSpacing: 1,
-  },
-  courseTitle: {
-    fontSize: fp(18),
-    fontWeight: '800',
-    color: colors.white,
-    lineHeight: fp(23),
-  },
-  courseSubtitle: {
-    fontSize: fp(11),
-    color: 'rgba(255,255,255,0.6)',
-    lineHeight: fp(16),
-    marginTop: hp(4),
-  },
-  courseEmoji: {
-    fontSize: fp(32),
-    marginLeft: wp(8),
-    marginTop: hp(6),
-  },
-
-  // Stepper
-  stepperWrap: {
-    position: 'relative',
-    marginBottom: hp(14),
-  },
-  stepperLine: {
-    position: 'absolute',
-    top: wp(14),
-    left: wp(18),
-    right: wp(18),
-    height: 2,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-  },
-  stepsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  stepItem: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  stepCircle: {
-    width: wp(28),
-    height: wp(28),
-    borderRadius: wp(14),
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: hp(4),
-  },
-  stepTitle: {
-    fontSize: fp(10),
-    fontWeight: '700',
-    color: 'rgba(255,255,255,0.85)',
-    textAlign: 'center',
-  },
-
-  // CTA
-  ctaButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: wp(6),
-    backgroundColor: colors.white,
-    borderRadius: wp(12),
-    paddingVertical: hp(10),
-  },
-  ctaText: {
-    fontSize: fp(13),
-    fontWeight: '700',
-    color: colors.primary,
-  },
-
-  // Go Live Card
-  liveCard: {
-    borderRadius: wp(18),
-    padding: wp(18),
-    flexDirection: 'row',
-    alignItems: 'center',
-    shadowColor: '#1A1A2E',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    elevation: 4,
-  },
-  liveLeft: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(12),
-  },
-  liveIconWrap: {
-    width: wp(48),
-    height: wp(48),
-    borderRadius: wp(14),
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  liveBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(5),
-    marginBottom: hp(4),
-  },
-  greenDot: {
-    width: wp(7),
-    height: wp(7),
-    borderRadius: wp(4),
-    backgroundColor: colors.accent,
-  },
-  liveBadgeText: {
-    fontSize: fp(11),
-    fontWeight: '800',
-    color: colors.accent,
-    letterSpacing: 0.5,
-  },
-  liveTitle: {
-    fontSize: fp(15),
-    fontWeight: '700',
-    color: colors.white,
-    marginBottom: hp(2),
-  },
-  liveSubtitle: {
-    fontSize: fp(12),
-    color: 'rgba(255,255,255,0.55)',
-  },
-
-  // Creator Score
-  scoreHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: hp(12),
-  },
-  scoreHeaderTitle: {
-    fontSize: fp(20),
-    fontWeight: '800',
-    color: colors.primary,
-  },
-  scoreHeaderLink: {
-    fontSize: fp(14),
-    fontWeight: '600',
-    color: '#9B59B6',
-  },
-  scoreCard: {
-    borderRadius: wp(20),
-    padding: wp(20),
-    shadowColor: '#1A1A2E',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
-    shadowRadius: 14,
-    elevation: 6,
-  },
-  scoreTopRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: hp(8),
-  },
-  scoreLabel: {
-    fontSize: fp(16),
-    fontWeight: '700',
-    color: 'rgba(255,255,255,0.65)',
-    letterSpacing: 1,
-    marginBottom: hp(4),
-  },
-  scoreValue: {
-    fontSize: fp(48),
-    fontWeight: '800',
-    color: '#9B59B6',
-  },
-  progressRingWrap: {
-    width: wp(70),
-    height: wp(70),
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  progressRingText: {
-    position: 'absolute',
-    alignItems: 'center',
-  },
-  progressPercent: {
-    fontSize: fp(14),
-    fontWeight: '700',
-    color: colors.white,
-  },
-  progressDone: {
-    fontSize: fp(10),
-    color: 'rgba(255,255,255,0.6)',
-    fontWeight: '500',
-  },
-  nextLevelRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: hp(16),
-  },
-  nextLevelText: {
-    fontSize: fp(15),
-    color: colors.white,
-    fontWeight: '500',
-  },
-  nextLevelName: {
-    fontSize: fp(15),
-    fontWeight: '800',
-    color: colors.secondary,
-  },
-  milestonesWrap: {
-    gap: hp(10),
-  },
-  milestoneItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderRadius: wp(14),
-    paddingVertical: hp(14),
-    paddingHorizontal: wp(14),
-  },
-  milestoneCheck: {
-    width: wp(28),
-    height: wp(28),
-    borderRadius: wp(14),
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: wp(12),
-  },
-  milestoneCompleted: {
-    backgroundColor: colors.accent,
-  },
-  milestoneText: {
-    flex: 1,
-    fontSize: fp(14),
-    fontWeight: '600',
-    color: colors.white,
-  },
-  milestoneTextCompleted: {
-    textDecorationLine: 'line-through',
-    color: 'rgba(255,255,255,0.5)',
-  },
-  milestonePts: {
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    borderRadius: wp(12),
-    paddingHorizontal: wp(10),
-    paddingVertical: hp(4),
-  },
-  milestonePtsText: {
-    fontSize: fp(12),
-    fontWeight: '700',
-    color: colors.golden,
-  },
-
-  // Manchly Pro Card (all completed)
-  radialGlow: {
-    position: 'absolute',
-    top: '20%',
-    left: '15%',
-    right: '15%',
-    bottom: '30%',
-    borderRadius: wp(100),
-    backgroundColor: 'rgba(34, 139, 34, 0.15)',
-  },
-  trophyWrap: {
-    alignItems: 'center',
-    marginBottom: hp(16),
-    marginTop: hp(8),
-  },
-  trophyEmoji: {
-    fontSize: fp(64),
-  },
-  proTitle: {
-    fontSize: fp(26),
-    fontWeight: '800',
-    color: colors.white,
-    textAlign: 'center',
-    marginBottom: hp(12),
-  },
-  proDescription: {
-    fontSize: fp(15),
-    color: 'rgba(255,255,255,0.7)',
-    textAlign: 'center',
-    lineHeight: fp(22),
-    marginBottom: hp(20),
-  },
-  proPointsHighlight: {
-    fontWeight: '800',
-    color: colors.golden,
-  },
-  proBadgeHighlight: {
-    fontWeight: '800',
-    color: colors.secondary,
-  },
-  taskIconsRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: wp(12),
-    marginBottom: hp(22),
-  },
-  taskIconBox: {
-    width: wp(52),
-    height: wp(52),
-    borderRadius: wp(14),
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  taskIconEmoji: {
-    fontSize: fp(24),
-  },
-  keepGrowingBtn: {
-    backgroundColor: '#2ECC71',
-    borderRadius: wp(16),
-    paddingVertical: hp(16),
-    alignItems: 'center',
-  },
-  keepGrowingText: {
-    fontSize: fp(16),
-    fontWeight: '700',
-    color: colors.primary,
   },
 
   // Floating Intro Video

@@ -7,7 +7,7 @@ import {
   Image,
   Linking,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, useRoute} from '@react-navigation/native';
 import {Bell, Instagram, UserCircle} from 'lucide-react-native';
 import {useSelector} from 'react-redux';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -22,9 +22,10 @@ type TabType = (typeof TABS)[number];
 
 const CreatorProducts: React.FC = () => {
   const navigation = useNavigation<any>();
+  const route = useRoute<any>();
   const {user} = useSelector((state: any) => state.userReducer);
   const insets = useSafeAreaInsets();
-  const [activeTab, setActiveTab] = useState<TabType>('Courses');
+  const [activeTab, setActiveTab] = useState<TabType>(route.params?.initialTab || 'Courses');
 
   return (
     <View style={styles.container}>

@@ -37,7 +37,7 @@ export class SettlementService {
   static async creditCreatorWallet(params: {
     creatorId: string;
     grossAmount: number;
-    transactionType: "COURSE" | "WEBINAR";
+    transactionType: "COURSE" | "WEBINAR" | "SESSION";
     transactionId: string;
     courseId?: string;
     webinarId?: string;

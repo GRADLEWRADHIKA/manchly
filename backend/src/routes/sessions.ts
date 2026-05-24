@@ -41,6 +41,7 @@ router.delete("/products/:product_id", jwtAuth, SessionController.deleteProduct)
 // Session Products (User)
 router.get("/products/creator/:creator_id", jwtAuth, SessionController.getCreatorProducts);
 router.post("/book", jwtAuth, SessionController.bookSession);
+router.post("/verify-payment", jwtAuth, SessionController.verifySessionPayment);
 router.post("/rate", jwtAuth, SessionController.rateSession);
 
 export default router;

@@ -412,26 +412,52 @@ model wallet_transactions {
 }
 
 model sessions {
-  id           String        @id @default(uuid())
-  call_id      String        @unique
-  caller_id    String
-  receiver_id  String
-  mode         SessionMode
-  status       SessionStatus @default(PENDING)
-  duration     Int           @default(0)
-  amount       Float         @default(0)
-  rate_per_min Float         @default(0)
-  started_at   DateTime?
-  ended_at     DateTime?
-  created_at   DateTime      @default(now())
-  updated_at   DateTime      @updatedAt
-  scheduled_at DateTime?
+  id             String        @id @default(uuid())
+  call_id        String        @unique
+  caller_id      String
+  receiver_id    String
+  mode           SessionMode
+  status         SessionStatus @default(PENDING)
+  duration       Int           @default(0)
+  amount         Float         @default(0)
+  rate_per_min   Float         @default(0)
+  started_at     DateTime?
+  ended_at       DateTime?
+  created_at     DateTime      @default(now())
+  updated_at     DateTime      @updatedAt
+  scheduled_at   DateTime?
+  payment_status String?       @default("PENDING") @db.VarChar(20)
 
   @@index([caller_id])
   @@index([receiver_id])
   @@index([status])
   @@index([scheduled_at])
   @@map("sessions")
+}
+
+model session_transactions {
+  id                String            @id @default(uuid())
+  user_id           String
+  session_id        String
+  expert_id         String
+  amount            Float
+  currency          String            @default("INR")
+  status            TransactionStatus @default(PENDING)
+  payment_method    PaymentMethod     @default(CASHFREE)
+  payment_details   Json?
+  failure_reason    String?
+  created_at        DateTime          @default(now())
+  updated_at        DateTime          @updatedAt
+  completed_at      DateTime?
+  cashfree_order_id String?           @unique
+  cf_payment_id     String?           @unique
+
+  @@index([user_id])
+  @@index([session_id])
+  @@index([expert_id])
+  @@index([status])
+  @@index([cashfree_order_id])
+  @@map("session_transactions")
 }
 
 model session_experts {

@@ -468,6 +468,12 @@ export class PaymentController {
         return;
       }
 
+      // Handle session payments
+      if (typeof orderId === "string" && orderId.startsWith("sess_")) {
+        await PaymentController.handleSessionPaymentSuccess(orderId, cfPaymentId, data);
+        return;
+      }
+
       const transaction = await prisma.transactions.findUnique({
         where: { cashfree_order_id: orderId },
         include: {
@@ -565,6 +571,12 @@ export class PaymentController {
         return;
       }
 
+      // Handle session payment failures
+      if (typeof orderId === "string" && orderId.startsWith("sess_")) {
+        await PaymentController.handleSessionPaymentFailed(orderId, data);
+        return;
+      }
+
       const transaction = await prisma.transactions.findUnique({
         where: { cashfree_order_id: orderId }
       });
@@ -590,6 +602,100 @@ export class PaymentController {
 
     } catch (err) {
       console.error("Error handling payment failure:", err);
+    }
+  }
+
+  /**
+   * Handle session payment success from webhook
+   */
+  private static async handleSessionPaymentSuccess(orderId: string, cfPaymentId: string | undefined, data: any) {
+    try {
+      const transaction = await prisma.session_transactions.findUnique({
+        where: { cashfree_order_id: orderId },
+      });
+
+      if (!transaction) {
+        console.error(`Session transaction not found for order ${orderId}`);
+        return;
+      }
+
+      if (transaction.status === "SUCCESS") {
+        console.log(`Session transaction already processed: ${transaction.id}`);
+        return;
+      }
+
+      await prisma.session_transactions.update({
+        where: { id: transaction.id },
+        data: {
+          status: "SUCCESS",
+          cf_payment_id: cfPaymentId || null,
+          completed_at: new Date(),
+          payment_details: { webhook_payload: data },
+        },
+      });
+
+      await prisma.sessions.update({
+        where: { id: transaction.session_id },
+        data: { payment_status: "SUCCESS" },
+      });
+
+      // Credit creator wallet
+      const expert = await prisma.session_experts.findUnique({ where: { id: transaction.expert_id } });
+      if (expert) {
+        await SettlementService.creditCreatorWallet({
+          creatorId: expert.user_id,
+          grossAmount: transaction.amount,
+          transactionType: "SESSION",
+          transactionId: transaction.id,
+          itemTitle: "Session booking",
+        });
+
+        await prisma.session_experts.update({
+          where: { id: expert.id },
+          data: {
+            total_sessions: { increment: 1 },
+            total_earnings: { increment: transaction.amount },
+          },
+        });
+      }
+
+      console.log(`SESSION PAYMENT SUCCESS WEBHOOK - Session: ${transaction.session_id}, Amount: ${transaction.amount}`);
+    } catch (err) {
+      console.error("Error handling session payment success:", err);
+    }
+  }
+
+  /**
+   * Handle session payment failure from webhook
+   */
+  private static async handleSessionPaymentFailed(orderId: string, data: any) {
+    try {
+      const transaction = await prisma.session_transactions.findUnique({
+        where: { cashfree_order_id: orderId },
+      });
+
+      if (!transaction) {
+        console.error(`Session transaction not found for order ${orderId}`);
+        return;
+      }
+
+      await prisma.session_transactions.update({
+        where: { id: transaction.id },
+        data: {
+          status: "FAILED",
+          failure_reason: data.payment?.payment_message || "Payment failed",
+          payment_details: { webhook_payload: data },
+        },
+      });
+
+      await prisma.sessions.update({
+        where: { id: transaction.session_id },
+        data: { status: "CANCELLED", payment_status: "FAILED" },
+      });
+
+      console.log(`Session payment failed for transaction ${transaction.id}`);
+    } catch (err) {
+      console.error("Error handling session payment failure:", err);
     }
   }
 

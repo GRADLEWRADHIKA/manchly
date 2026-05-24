@@ -1,6 +1,11 @@
 import { Response } from "express";
 import prisma from "../prismaClient";
 import { JWTRequest } from "../middleware/jwtAuth";
+import { cashfreePG } from "../services/cashfreeService";
+import { SettlementService } from "../services/settlementService";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const userSelect = { id: true, name: true, email: true, profile_image: true };
 
@@ -831,12 +836,11 @@ export class SessionController {
     }
   }
 
-  // User: book a session directly with an expert
+  // User: book a session with payment via Cashfree
   static async bookSession(req: JWTRequest, res: Response) {
     try {
       const callerId = req.user!.userId;
       const { expert_id, mode, duration, scheduled_at } = req.body;
-      // mode: "call" or "video", duration in minutes (default 30), scheduled_at: ISO date string
 
       if (!expert_id) {
         return res.status(400).json({ error: "expert_id is required" });
@@ -860,6 +864,11 @@ export class SessionController {
         return res.status(400).json({ error: "You cannot book a session with yourself" });
       }
 
+      const user = await prisma.users.findUnique({ where: { id: callerId } });
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
       const sessionMode = mode === "video" ? "VIDEO" : "CALL";
       const ratePerMin = sessionMode === "VIDEO" ? expert.video_rate : expert.audio_rate;
       const sessionDuration = duration || 30;
@@ -867,6 +876,7 @@ export class SessionController {
 
       const callId = `session_${callerId}_${expert.user_id}_${Date.now()}`;
 
+      // Create the session with payment_status PENDING
       const session = await prisma.sessions.create({
         data: {
           call_id: callId,
@@ -878,6 +888,63 @@ export class SessionController {
           duration: sessionDuration,
           scheduled_at: scheduledDate,
           status: "PENDING",
+          payment_status: amount > 0 ? "PENDING" : "SUCCESS",
+        },
+      });
+
+      // If free session, return immediately
+      if (amount === 0) {
+        const [caller, receiver] = await Promise.all([
+          prisma.users.findUnique({ where: { id: callerId }, select: userSelect }),
+          prisma.users.findUnique({ where: { id: expert.user_id }, select: userSelect }),
+        ]);
+
+        return res.status(201).json({
+          data: { ...session, caller, receiver, expert, is_free: true },
+        });
+      }
+
+      // Create Cashfree order for paid session
+      const orderId = `sess_${session.id.slice(0, 8)}_${Date.now()}`;
+
+      const orderRequest = {
+        order_id: orderId,
+        order_amount: parseFloat(amount.toFixed(2)),
+        order_currency: "INR",
+        customer_details: {
+          customer_id: callerId.slice(0, 50),
+          customer_phone: (user.phone || "9999999999").replace(/^\+?91/, "").replace(/\D/g, "").slice(-10) || "9999999999",
+          customer_name: (user.name || "User").slice(0, 100),
+          customer_email: user.email,
+        },
+        order_meta: {
+          return_url: `${process.env.APP_URL || 'https://manchly.com'}/payment/return?order_id={order_id}`,
+          notify_url: `${process.env.APP_URL || 'https://server.manchly.com'}/payments/webhook`,
+        },
+        order_note: `Session with expert`,
+        order_tags: {
+          user_id: callerId,
+          session_id: session.id,
+          expert_id: expert.id,
+          type: "session",
+        },
+      };
+
+      const cashfreeOrder = await cashfreePG.PGCreateOrder(orderRequest);
+      const orderData = cashfreeOrder.data;
+
+      // Create session transaction record
+      const transaction = await prisma.session_transactions.create({
+        data: {
+          user_id: callerId,
+          session_id: session.id,
+          expert_id: expert.id,
+          amount: parseFloat(amount.toFixed(2)),
+          currency: "INR",
+          status: "PENDING",
+          payment_method: "CASHFREE",
+          cashfree_order_id: orderId,
+          payment_details: JSON.parse(JSON.stringify({ cashfree_order: orderData })),
         },
       });
 
@@ -887,11 +954,143 @@ export class SessionController {
       ]);
 
       return res.status(201).json({
-        data: { ...session, caller, receiver, expert },
+        data: {
+          ...session,
+          caller,
+          receiver,
+          expert,
+          is_free: false,
+          transaction,
+          cashfree_order: {
+            order_id: orderData.order_id,
+            payment_session_id: orderData.payment_session_id,
+            order_status: orderData.order_status,
+          },
+          cashfree_pg_app_id: process.env.CASHFREE_PG_APP_ID,
+          cashfree_env: process.env.CASHFREE_PG_ENV || "SANDBOX",
+        },
       });
     } catch (err: any) {
-      console.error("bookSession error:", err);
+      const cfDetail = err?.response?.data || err?.data || err?.message || err;
+      console.error("bookSession error:", JSON.stringify(cfDetail, null, 2));
       return res.status(500).json({ error: "Failed to book session" });
+    }
+  }
+
+  // Verify session payment after Cashfree checkout
+  static async verifySessionPayment(req: JWTRequest, res: Response) {
+    try {
+      const userId = req.user!.userId;
+      const { order_id } = req.body;
+
+      if (!order_id) {
+        return res.status(400).json({ error: "order_id is required" });
+      }
+
+      const transaction = await prisma.session_transactions.findUnique({
+        where: { cashfree_order_id: order_id },
+      });
+
+      if (!transaction) {
+        return res.status(404).json({ error: "Transaction not found" });
+      }
+
+      if (transaction.user_id !== userId) {
+        return res.status(403).json({ error: "Unauthorized" });
+      }
+
+      if (transaction.status === "SUCCESS") {
+        return res.status(400).json({ error: "Payment already verified" });
+      }
+
+      // Verify with Cashfree
+      const orderResponse = await cashfreePG.PGFetchOrder(order_id);
+      const orderData = orderResponse.data;
+
+      if (orderData.order_status !== "PAID") {
+        if (orderData.order_status === "EXPIRED") {
+          await prisma.session_transactions.update({
+            where: { id: transaction.id },
+            data: { status: "FAILED", failure_reason: "Order expired" },
+          });
+          // Cancel the session
+          await prisma.sessions.update({
+            where: { id: transaction.session_id },
+            data: { status: "CANCELLED", payment_status: "FAILED" },
+          });
+        }
+        return res.status(400).json({ error: `Payment not completed. Status: ${orderData.order_status}` });
+      }
+
+      // Get payment details
+      let paymentInfo = null;
+      try {
+        const paymentsResponse = await cashfreePG.PGOrderFetchPayments(order_id);
+        paymentInfo = paymentsResponse.data;
+      } catch (e) {
+        console.error("Error fetching session payment details:", e);
+      }
+
+      const cfPaymentId = paymentInfo?.[0]?.cf_payment_id?.toString() || null;
+
+      // Update transaction as SUCCESS
+      const updatedTransaction = await prisma.session_transactions.update({
+        where: { id: transaction.id },
+        data: {
+          status: "SUCCESS",
+          cf_payment_id: cfPaymentId,
+          completed_at: new Date(),
+          payment_details: JSON.parse(JSON.stringify({
+            order_info: orderData,
+            payment_info: paymentInfo,
+          })),
+        },
+      });
+
+      // Update session payment_status
+      const session = await prisma.sessions.update({
+        where: { id: transaction.session_id },
+        data: { payment_status: "SUCCESS" },
+      });
+
+      // Get expert user_id to credit wallet
+      const expert = await prisma.session_experts.findUnique({ where: { id: transaction.expert_id } });
+      if (expert) {
+        SettlementService.creditCreatorWallet({
+          creatorId: expert.user_id,
+          grossAmount: transaction.amount,
+          transactionType: "SESSION",
+          transactionId: transaction.id,
+          itemTitle: `Session booking`,
+        }).catch(err => console.error("Session wallet credit error:", err));
+
+        // Update expert stats
+        await prisma.session_experts.update({
+          where: { id: expert.id },
+          data: {
+            total_sessions: { increment: 1 },
+            total_earnings: { increment: transaction.amount },
+          },
+        });
+      }
+
+      const [caller, receiver] = await Promise.all([
+        prisma.users.findUnique({ where: { id: session.caller_id }, select: userSelect }),
+        prisma.users.findUnique({ where: { id: session.receiver_id }, select: userSelect }),
+      ]);
+
+      console.log(`Session payment verified! User ${userId} booked session ${session.id} for ₹${transaction.amount}`);
+
+      return res.json({
+        data: {
+          session: { ...session, caller, receiver },
+          transaction: updatedTransaction,
+          message: "Payment verified and session booked successfully",
+        },
+      });
+    } catch (err: any) {
+      console.error("verifySessionPayment error:", err);
+      return res.status(500).json({ error: "Failed to verify session payment" });
     }
   }
 

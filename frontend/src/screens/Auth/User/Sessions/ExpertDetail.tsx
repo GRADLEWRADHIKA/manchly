@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
+  Alert,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -19,11 +20,18 @@ import {
   Calendar,
 } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
+import { CFPaymentGatewayService } from 'react-native-cashfree-pg-sdk';
+import {
+  CFEnvironment,
+  CFSession,
+  CFDropCheckoutPayment,
+  CFThemeBuilder,
+} from 'cashfree-pg-api-contract';
 import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
 import AppHeaderWithBack from '../../../../components/AppHeaderWithBack';
 import { instance } from '../../../../utils/AxiosInstance';
-import { getExpertDetail, bookSession } from '../../../../store/SessionSlice';
+import { getExpertDetail, bookSession, verifySessionPayment } from '../../../../store/SessionSlice';
 import SocketService from '../../../../services/SocketService';
 import BookingConfirmModal from './BookingConfirmModal';
 
@@ -44,6 +52,7 @@ const ExpertDetail: React.FC = () => {
     minute: number;
   } | null>(null);
   const [bookedSlots, setBookedSlots] = useState<Set<string>>(new Set());
+  const pendingOrderRef = useRef<string | null>(null);
 
   const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const MONTH_NAMES = [
@@ -140,6 +149,43 @@ const ExpertDetail: React.FC = () => {
     return () => { SocketService.off('expert_availability_updated', handler); };
   }, [expert?.id, expert?.user_id]);
 
+  // Register Cashfree payment callbacks
+  useEffect(() => {
+    CFPaymentGatewayService.setCallback({
+      onVerify: async (orderIdFromSDK: string) => {
+        const orderId = pendingOrderRef.current;
+        if (!orderId) return;
+        pendingOrderRef.current = null;
+
+        try {
+          await dispatch(verifySessionPayment({ order_id: orderId })).unwrap();
+          setShowConfirm(false);
+          navigation.navigate('UserBottomTab', { screen: 'UserSessions' });
+        } catch (e) {
+          console.error('Session payment verification failed:', e);
+        } finally {
+          setBooking(false);
+        }
+      },
+      onError: (error: any) => {
+        pendingOrderRef.current = null;
+        setBooking(false);
+        const msg =
+          error?.message || error?.code || 'Payment was cancelled or failed';
+        Toast.show({
+          type: 'error',
+          text1: 'Payment Failed',
+          text2: msg,
+          position: 'bottom',
+        });
+      },
+    });
+
+    return () => {
+      CFPaymentGatewayService.removeCallback();
+    };
+  }, []);
+
   const eu = expert?.user || expertParam?.user;
   const videoRate = expert?.video_rate ?? expertParam?.video_rate ?? 0;
 
@@ -160,8 +206,6 @@ const ExpertDetail: React.FC = () => {
       return;
     }
 
-    console.log('Booking scheduled_at:', dateObj.toISOString());
-
     setBooking(true);
     dispatch(
       bookSession({
@@ -172,17 +216,56 @@ const ExpertDetail: React.FC = () => {
       }),
     )
       .unwrap()
-      .then(() => {
-        setShowConfirm(false);
-        Toast.show({
-          type: 'success',
-          text1: 'Session Booked!',
-          text2: 'The expert will connect with you shortly.',
-          position: 'bottom',
-        });
-        navigation.navigate('UserBottomTab', { screen: 'UserSessions' });
+      .then((res: any) => {
+        const data = res?.data;
+
+        // Free session — no payment needed
+        if (data?.is_free) {
+          setShowConfirm(false);
+          Toast.show({
+            type: 'success',
+            text1: 'Session Booked!',
+            text2: 'The expert will connect with you shortly.',
+            position: 'bottom',
+          });
+          navigation.navigate('UserBottomTab', { screen: 'UserSessions' });
+          setBooking(false);
+          return;
+        }
+
+        // Paid session — launch Cashfree checkout
+        const { cashfree_order, cashfree_env } = data || {};
+        if (!cashfree_order?.payment_session_id || !cashfree_order?.order_id) {
+          throw new Error('Invalid payment order');
+        }
+
+        pendingOrderRef.current = cashfree_order.order_id;
+
+        const env =
+          cashfree_env === 'PRODUCTION'
+            ? CFEnvironment.PRODUCTION
+            : CFEnvironment.SANDBOX;
+
+        const session = new CFSession(
+          cashfree_order.payment_session_id,
+          cashfree_order.order_id,
+          env,
+        );
+
+        const theme = new CFThemeBuilder()
+          .setNavigationBarBackgroundColor(colors.primary)
+          .setNavigationBarTextColor('#FFFFFF')
+          .setButtonBackgroundColor(colors.secPrimary)
+          .setButtonTextColor('#FFFFFF')
+          .build();
+
+        const dropPayment = new CFDropCheckoutPayment(session, null, theme);
+        CFPaymentGatewayService.doPayment(dropPayment);
       })
-      .finally(() => setBooking(false));
+      .catch((err: any) => {
+        Alert.alert('Booking Failed', err?.message || 'Something went wrong');
+        setBooking(false);
+      });
   };
 
   const rate = videoRate;

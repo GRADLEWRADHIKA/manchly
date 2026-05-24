@@ -201,6 +201,21 @@ export const bookSession = createAsyncThunk(
   },
 );
 
+export const verifySessionPayment = createAsyncThunk(
+  'session/verifyPayment',
+  async (data: {order_id: string}) => {
+    try {
+      const response = await instance.post('sessions/verify-payment', data);
+      Toast.show({type: 'success', text1: 'Payment successful! Session booked.', position: 'bottom'});
+      return response.data;
+    } catch (error: any) {
+      const msg = JSON.parse(error?.request?._response || '{}');
+      Toast.show({type: 'error', text1: 'Payment verification failed', text2: msg?.error, position: 'bottom'});
+      throw error;
+    }
+  },
+);
+
 export const rateSession = createAsyncThunk(
   'session/rate',
   async (data: {session_id: string; rating: number; feedback?: string}) => {

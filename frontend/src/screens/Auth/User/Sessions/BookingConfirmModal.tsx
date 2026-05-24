@@ -99,7 +99,7 @@ const BookingConfirmModal = ({
             disabled={booking}>
             <Video size={wp(18)} color={colors.white} strokeWidth={2} />
             <Text style={styles.confirmBtnText}>
-              {booking ? 'Booking...' : 'Confirm & Book'}
+              {booking ? 'Processing...' : `Pay ₹${rate * 30} & Book`}
             </Text>
           </TouchableOpacity>
 

@@ -154,20 +154,13 @@ export default function AuthPage({ onAuthSuccess }) {
     setLoading(true);
     try {
       /*
-       * BUG 4 FIX — verify-otp payload used wrong field names.
-       *
-       * Old:  { email, code, tab }  /  { phone_number, code, tab }
-       * From Postman collection: { identifier, otp }
-       * "identifier" accepts either email or phone interchangeably.
-       * Field for the code is "otp", not "code".
-       * No "tab" field on this endpoint.
+       * Postman confirmed payload:
+       *   Email: { "email": "...", "code": "960670" }
+       *   SMS:   { "phone_number": "...", "code": "960670" }
        */
-      const identifier = otpMethod === "email" ? form.email : form.phone;
-
-      const payload = {
-        identifier,        // email or phone — server accepts either
-        otp: form.otp,     // field name is "otp", not "code"
-      };
+      const payload = otpMethod === "email"
+        ? { email:        form.email, code: form.otp }
+        : { phone_number: form.phone, code: form.otp };
 
       console.log("VERIFY OTP PAYLOAD:", payload);
 

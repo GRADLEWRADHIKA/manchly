@@ -1,51 +1,77 @@
 import React, { useState } from "react";
 
 import AuthPage from "./AuthPage";
-import StudentDashboard from "./StudentDasboard";
-import WebinarManager from "./WebinarManager";
+import StudentDashboard from "./StudentDasboard.jsx";
 import CourseStudio from "./CourseStudio";
+import WebinarManager from "./WebinarManager";
 import PaymentsDashboard from "./PaymentsDashboard";
-import CreatorSettlementsPortal from "./CreatorSettlementsPortal";
-import CreatorKycDashboard from "./CreatorKycDashboard";
+import CreatorSettlementPortal from "./CreatorSettlementsPortal";
+import CreateKycDashboard from "./CreateKycDashboard.jsx";
+import SessionHub from "./SessionHub";
 
 export default function App() {
-  const [user, setUser] = useState(null);
 
-  const [activePage, setActivePage] =
-    useState("dashboard");
+  // USER STATE
+  const [user, setUser] = useState(() => {
+    const savedUser =
+      localStorage.getItem("user");
 
-  // =========================================
+    return savedUser
+      ? JSON.parse(savedUser)
+      : null;
+  });
+
+  // ROLE NORMALIZER
+  const role =
+    user?.user_type ||
+    user?.role ||
+    user?.tab;
   // THEME
-  // =========================================
 
   const B = {
     bg: "#000000",
     card: "#111111",
     sidebar: "#0A0A0A",
     orange: "#FFC107",
+    orangeD: "#FFB300",
     border: "rgba(255,255,255,0.1)",
     textPrimary: "#FFFFFF",
     textSec: "#A1A1AA",
+    green: "#10B981",
     red: "#EF4444",
   };
 
-  // =========================================
-  // AUTH
-  // =========================================
+  // ACTIVE PAGE
+  const [activePage, setActivePage] =
+    useState("dashboard");
+  // NOT LOGGED IN
 
   if (!user) {
     return (
       <AuthPage
-        onAuthSuccess={(authUser) => {
+        onAuthSuccess={(authData) => {
           console.log(
-            "AUTH SUCCESS USER:",
-            authUser
+            "AUTH SUCCESS:",
+            authData
           );
 
-          setUser(authUser);
+          const finalUser =
+            authData?.user || authData;
+
+          localStorage.setItem(
+            "user",
+            JSON.stringify(finalUser)
+          );
+
+          setUser(finalUser);
+
+          const finalRole =
+            finalUser?.user_type ||
+            finalUser?.role ||
+            finalUser?.tab;
 
           if (
-            authUser?.role === "CREATOR"
+            finalRole === "CREATOR"
           ) {
             setActivePage("kyc");
           } else {
@@ -56,95 +82,107 @@ export default function App() {
     );
   }
 
-  // =========================================
   // LOGOUT
-  // =========================================
-
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-
     setUser(null);
+    setActivePage("dashboard");
   };
-
-  // =========================================
-  // MAIN UI
-  // =========================================
-
+  // MAIN APP
   return (
     <div
-      className="min-h-screen text-white"
       style={{
         background: B.bg,
+        minHeight: "100vh",
+        color: "white",
         fontFamily:
           "system-ui, -apple-system, sans-serif",
       }}
     >
-      {/* ========================================= */}
-      {/* HEADER */}
-      {/* ========================================= */}
-
+  
       <div
         style={{
-          background: B.card,
+          display: "flex",
+          justifyContent:
+            "space-between",
+          alignItems: "center",
+          padding: "24px 32px",
           borderBottom: `1px solid ${B.border}`,
+          background: B.card,
+          position: "sticky",
+          top: 0,
+          zIndex: 100,
         }}
-        className="sticky top-0 z-50"
       >
-        <div className="px-8 py-6 flex items-center justify-between">
-          <div>
-            <h1
-              style={{
-                color: B.orange,
-              }}
-              className="text-3xl font-black"
-            >
-              Manchly Platform
-            </h1>
+        <div>
+          <h1
+            style={{
+              color: B.orange,
+              margin: 0,
+              fontSize: 32,
+              fontWeight: 900,
+            }}
+          >
+            Manchly Platform
+          </h1>
 
-            <p
-              style={{
-                color: B.textSec,
-              }}
-              className="mt-2"
-            >
-              Welcome,{" "}
-              {user?.name || "User"}
-            </p>
+          <p
+            style={{
+              color: B.textSec,
+              marginTop: 8,
+            }}
+          >
+            Welcome,{" "}
+            {user?.name || "User"}
+          </p>
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            gap: 12,
+            alignItems: "center",
+          }}
+        >
+          <div
+            style={{
+              background: B.sidebar,
+              border: `1px solid ${B.border}`,
+              padding: "12px 18px",
+              borderRadius: 12,
+              color: B.orange,
+              fontWeight: 800,
+            }}
+          >
+            {role}
           </div>
 
-          <div className="flex items-center gap-4">
-            <div
-              style={{
-                background: B.sidebar,
-                border: `1px solid ${B.border}`,
-                color: B.orange,
-              }}
-              className="px-4 py-2 rounded-xl font-bold"
-            >
-              {user?.role}
-            </div>
-
-            <button
-              onClick={logout}
-              className="bg-red-500 hover:bg-red-600 transition-all px-5 py-2 rounded-xl font-bold"
-            >
-              Logout
-            </button>
-          </div>
+          <button
+            onClick={logout}
+            style={{
+              background: B.red,
+              border: "none",
+              color: "#fff",
+              padding: "12px 18px",
+              borderRadius: 12,
+              cursor: "pointer",
+              fontWeight: 700,
+            }}
+          >
+            Logout
+          </button>
         </div>
       </div>
-
-      {/* ========================================= */}
-      {/* NAVIGATION */}
-      {/* ========================================= */}
-
-      <div className="p-6 flex flex-wrap gap-3">
-        {/* ========================================= */}
-        {/* STUDENT NAV */}
-        {/* ========================================= */}
-
-        {user?.role === "STUDENT" && (
+      <div
+        style={{
+          display: "flex",
+          gap: 12,
+          padding: 24,
+          flexWrap: "wrap",
+        }}
+      >
+        {role === "USER" && (
           <>
             <NavButton
               label="Dashboard"
@@ -152,7 +190,9 @@ export default function App() {
                 activePage === "dashboard"
               }
               onClick={() =>
-                setActivePage("dashboard")
+                setActivePage(
+                  "dashboard"
+                )
               }
               B={B}
             />
@@ -163,18 +203,29 @@ export default function App() {
                 activePage === "payments"
               }
               onClick={() =>
-                setActivePage("payments")
+                setActivePage(
+                  "payments"
+                )
+              }
+              B={B}
+            />
+
+            <NavButton
+              label="1-on-1 Sessions"
+              active={
+                activePage === "sessions"
+              }
+              onClick={() =>
+                setActivePage(
+                  "sessions"
+                )
               }
               B={B}
             />
           </>
         )}
 
-        {/* ========================================= */}
-        {/* CREATOR NAV */}
-        {/* ========================================= */}
-
-        {user?.role === "CREATOR" && (
+        {role === "CREATOR" && (
           <>
             <NavButton
               label="KYC"
@@ -188,34 +239,14 @@ export default function App() {
             />
 
             <NavButton
-              label="Courses"
-              active={
-                activePage === "courses"
-              }
-              onClick={() =>
-                setActivePage("courses")
-              }
-              B={B}
-            />
-
-            <NavButton
-              label="Webinars"
-              active={
-                activePage === "webinars"
-              }
-              onClick={() =>
-                setActivePage("webinars")
-              }
-              B={B}
-            />
-
-            <NavButton
               label="Payments"
               active={
                 activePage === "payments"
               }
               onClick={() =>
-                setActivePage("payments")
+                setActivePage(
+                  "payments"
+                )
               }
               B={B}
             />
@@ -233,52 +264,78 @@ export default function App() {
               }
               B={B}
             />
+
+            <NavButton
+              label="Courses"
+              active={
+                activePage === "courses"
+              }
+              onClick={() =>
+                setActivePage(
+                  "courses"
+                )
+              }
+              B={B}
+            />
+
+            <NavButton
+              label="Webinars"
+              active={
+                activePage ===
+                "webinars"
+              }
+              onClick={() =>
+                setActivePage(
+                  "webinars"
+                )
+              }
+              B={B}
+            />
+
+            <NavButton
+              label="1-on-1 Sessions"
+              active={
+                activePage === "sessions"
+              }
+              onClick={() =>
+                setActivePage(
+                  "sessions"
+                )
+              }
+              B={B}
+            />
           </>
         )}
       </div>
 
-      {/* ========================================= */}
-      {/* CONTENT */}
-      {/* ========================================= */}
-
-      <div className="p-6">
-        {/* ========================================= */}
-        {/* STUDENT */}
-        {/* ========================================= */}
-
-        {activePage ===
-          "dashboard" &&
-          user?.role ===
-            "STUDENT" && (
+      <div style={{ padding: 24 }}>
+        {activePage === "dashboard" &&
+          role === "USER" && (
             <StudentDashboard />
           )}
-
-        {activePage ===
-          "payments" &&
-          user?.role ===
-            "STUDENT" && (
-            <PaymentsDashboard
-              role="STUDENT"
-            />
-          )}
-
-        {/* ========================================= */}
-        {/* CREATOR */}
-        {/* ========================================= */}
-
+        {activePage === "payments" && (
+          <PaymentsDashboard
+            user_type={role}
+          />
+        )}
         {activePage === "kyc" &&
-          user?.role ===
-            "CREATOR" && (
-            <CreatorKycDashboard />
+          role === "CREATOR" && (
+            <CreateKycDashboard />
           )}
 
         {activePage ===
-          "courses" &&
-          user?.role ===
-            "CREATOR" && (
+          "settlements" &&
+          role === "CREATOR" && (
+            <CreatorSettlementPortal />
+          )}
+
+        {activePage === "courses" &&
+          role === "CREATOR" && (
             <CourseStudio
+              B={B}
               userProfile={{
-                role: "CREATOR",
+                user_type:
+                  "CREATOR",
                 name:
                   user?.name ||
                   "Creator",
@@ -288,11 +345,12 @@ export default function App() {
 
         {activePage ===
           "webinars" &&
-          user?.role ===
-            "CREATOR" && (
+          role === "CREATOR" && (
             <WebinarManager
+              B={B}
               userProfile={{
-                role: "CREATOR",
+                user_type:
+                  "CREATOR",
                 name:
                   user?.name ||
                   "Creator",
@@ -300,29 +358,16 @@ export default function App() {
             />
           )}
 
-        {activePage ===
-          "payments" &&
-          user?.role ===
-            "CREATOR" && (
-            <PaymentsDashboard
-              role="CREATOR"
-            />
-          )}
-
-        {activePage ===
-          "settlements" &&
-          user?.role ===
-            "CREATOR" && (
-            <CreatorSettlementsPortal />
-          )}
+        {activePage === "sessions" && (
+          <SessionHub
+            user_type={role}
+            user={user}
+          />
+        )}
       </div>
     </div>
   );
 }
-
-// =========================================
-// NAV BUTTON
-// =========================================
 
 function NavButton({
   label,
@@ -337,14 +382,15 @@ function NavButton({
         background: active
           ? B.orange
           : B.card,
-
-        color: active
-          ? "#000"
-          : "#fff",
-
+        color:
+          active ? "#000" : "#fff",
         border: `1px solid ${B.border}`,
+        padding: "12px 20px",
+        borderRadius: 12,
+        cursor: "pointer",
+        fontWeight: 700,
+        transition: "0.2s ease",
       }}
-      className="px-5 py-3 rounded-xl font-bold transition-all hover:scale-[1.02]"
     >
       {label}
     </button>

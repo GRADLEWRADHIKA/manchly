@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-const API =
-  "https://server.manchly.com";
+const API = "https://server.manchly.com";
 
 export default function WebinarManager() {
   const B = {
@@ -12,163 +11,121 @@ export default function WebinarManager() {
     border: "rgba(255,255,255,0.1)",
     textSec: "#A1A1AA",
   };
+  const token = localStorage.getItem("token");
+  const [loading, setLoading] = useState(false);
+  const [webinars, setWebinars] = useState([]);
+  const [showCreate, setShowCreate] = useState(false);
 
-  const token =
-    localStorage.getItem("token");
-
-  const [loading, setLoading] =
-    useState(false);
-
-  const [webinars, setWebinars] =
-    useState([]);
-
-  const [showCreate, setShowCreate] =
-    useState(false);
-
-  const [form, setForm] =
-    useState({
-      title: "",
-      description: "",
-      date: "",
-      time: "",
-      thumbnail: "",
-      price: "",
-    });
-
-  // =====================================
+  const [form, setForm] = useState({
+    title: "",
+    description: "",
+    date: "",
+    time: "",
+    thumbnail: "",
+    price: "",
+  });
   // FETCH WEBINARS
-  // =====================================
+  const fetchWebinars = async () => {
+    try {
+      setLoading(true);
 
-  const fetchWebinars =
-    async () => {
-      try {
-        setLoading(true);
+      const response = await fetch(`${API}/webinars/my-webinars`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-        const response =
-          await fetch(
-            `${API}/webinars/my-webinars`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
+      const data = await response.json();
 
-        const data =
-          await response.json();
+      console.log("WEBINARS:", data);
 
-        console.log(
-          "WEBINARS:",
-          data
-        );
-
-        if (data.success) {
-          setWebinars(
-            Array.isArray(
-              data.data
-            )
-              ? data.data
-              : []
-          );
-        } else {
-          setWebinars([]);
-        }
-      } catch (error) {
-        console.error(error);
-
+      if (data.success) {
+        setWebinars(Array.isArray(data.data) ? data.data : []);
+      } else {
         setWebinars([]);
-      } finally {
-        setLoading(false);
       }
-    };
+    } catch (error) {
+      console.error(error);
 
-  // =====================================
+      setWebinars([]);
+    } finally {
+      setLoading(false);
+    }
+  };
   // CREATE WEBINAR
-  // =====================================
+  const createWebinar = async () => {
+  try {
+    setLoading(true);
 
-  const createWebinar =
-    async () => {
-      try {
-        setLoading(true);
+    const scheduledAt = new Date(
+      `${form.date}T${form.time}:00`
+    ).toISOString();
 
-        const payload = {
-          title: form.title,
-          description:
-            form.description,
-          date: form.date,
-          time: form.time,
-          thumbnail:
-            form.thumbnail,
-          price: Number(
-            form.price
-          ),
-        };
+    const payload = {
+      title: form.title,
+      description: form.description,
+      price: Number(form.price),
+      scheduled_at: scheduledAt,
+      duration: Number(
+        form.duration || 60
+      ),
 
-        console.log(
-          "CREATE WEBINAR:",
-          payload
-        );
+      timezone:
+        form.timezone ||
+        "Asia/Kolkata",
 
-        const response =
-          await fetch(
-            `${API}/webinars`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type":
-                  "application/json",
-                Authorization: `Bearer ${token}`,
-              },
-              body: JSON.stringify(
-                payload
-              ),
-            }
-          );
-
-        const data =
-          await response.json();
-
-        console.log(
-          "WEBINAR RESPONSE:",
-          data
-        );
-
-        if (data.success) {
-          alert(
-            "Webinar created successfully"
-          );
-
-          setShowCreate(false);
-
-          setForm({
-            title: "",
-            description:
-              "",
-            date: "",
-            time: "",
-            thumbnail:
-              "",
-            price: "",
-          });
-
-          fetchWebinars();
-        } else {
-          alert(
-            data.error
-              ?.message ||
-              "Failed to create webinar"
-          );
-        }
-      } catch (error) {
-        console.error(error);
-
-        alert(
-          "Something went wrong"
-        );
-      } finally {
-        setLoading(false);
-      }
+      category:
+        form.category ||
+        "General",
     };
+
+    console.log(
+      "CREATE WEBINAR:",
+      payload
+    );
+
+    const response = await apiCall(
+      "/webinars",
+      {
+        method: "POST",
+
+        body: JSON.stringify(
+          payload
+        ),
+      }
+    );
+
+    console.log(
+      "WEBINAR RESPONSE:",
+      response
+    );
+
+    if (response.success) {
+      fetchWebinars();
+
+      setForm({
+        title: "",
+        description: "",
+        date: "",
+        time: "",
+        price: "",
+        duration: 60,
+        timezone:
+          "Asia/Kolkata",
+        category: "",
+      });
+    }
+  } catch (err) {
+    console.error(err);
+
+    alert(
+      err.message ||
+        "Failed to create webinar"
+    );
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     fetchWebinars();
@@ -185,8 +142,7 @@ export default function WebinarManager() {
       <div
         style={{
           display: "flex",
-          justifyContent:
-            "space-between",
+          justifyContent: "space-between",
           alignItems: "center",
           marginBottom: 24,
         }}
@@ -212,30 +168,22 @@ export default function WebinarManager() {
         </div>
 
         <button
-          onClick={() =>
-            setShowCreate(
-              !showCreate
-            )
-          }
+          onClick={() => setShowCreate(!showCreate)}
           style={{
             background: B.orange,
             color: "#000",
             border: "none",
-            padding:
-              "12px 20px",
+            padding: "12px 20px",
             borderRadius: 12,
             fontWeight: 700,
             cursor: "pointer",
           }}
         >
-          {showCreate
-            ? "Close"
-            : "Create Webinar"}
+          {showCreate ? "Close" : "Create Webinar"}
         </button>
       </div>
 
       {/* CREATE */}
-
       {showCreate && (
         <div
           style={{
@@ -258,8 +206,7 @@ export default function WebinarManager() {
               onChange={(e) =>
                 setForm({
                   ...form,
-                  title:
-                    e.target.value,
+                  title: e.target.value,
                 })
               }
               style={inputStyle(B)}
@@ -268,14 +215,11 @@ export default function WebinarManager() {
             <textarea
               placeholder="Description"
               rows={5}
-              value={
-                form.description
-              }
+              value={form.description}
               onChange={(e) =>
                 setForm({
                   ...form,
-                  description:
-                    e.target.value,
+                  description: e.target.value,
                 })
               }
               style={inputStyle(B)}
@@ -287,8 +231,7 @@ export default function WebinarManager() {
               onChange={(e) =>
                 setForm({
                   ...form,
-                  date:
-                    e.target.value,
+                  date: e.target.value,
                 })
               }
               style={inputStyle(B)}
@@ -300,8 +243,7 @@ export default function WebinarManager() {
               onChange={(e) =>
                 setForm({
                   ...form,
-                  time:
-                    e.target.value,
+                  time: e.target.value,
                 })
               }
               style={inputStyle(B)}
@@ -309,14 +251,11 @@ export default function WebinarManager() {
 
             <input
               placeholder="Thumbnail URL"
-              value={
-                form.thumbnail
-              }
+              value={form.thumbnail}
               onChange={(e) =>
                 setForm({
                   ...form,
-                  thumbnail:
-                    e.target.value,
+                  thumbnail: e.target.value,
                 })
               }
               style={inputStyle(B)}
@@ -329,40 +268,31 @@ export default function WebinarManager() {
               onChange={(e) =>
                 setForm({
                   ...form,
-                  price:
-                    e.target.value,
+                  price: e.target.value,
                 })
               }
               style={inputStyle(B)}
             />
 
             <button
-              onClick={
-                createWebinar
-              }
+              onClick={createWebinar}
               disabled={loading}
               style={{
-                background:
-                  B.orange,
+                background: B.orange,
                 color: "#000",
                 border: "none",
-                padding:
-                  "16px",
+                padding: "16px",
                 borderRadius: 12,
                 fontWeight: 800,
                 cursor: "pointer",
               }}
             >
-              {loading
-                ? "Creating..."
-                : "Create Webinar"}
+              {loading ? "Creating..." : "Create Webinar"}
             </button>
           </div>
         </div>
       )}
-
       {/* LIST */}
-
       {loading ? (
         <div>Loading...</div>
       ) : webinars.length === 0 ? (
@@ -382,96 +312,65 @@ export default function WebinarManager() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns:
-              "repeat(auto-fit,minmax(320px,1fr))",
+            gridTemplateColumns: "repeat(auto-fit,minmax(320px,1fr))",
             gap: 20,
           }}
         >
-          {webinars.map(
-            (webinar) => (
-              <div
-                key={webinar.id}
+          {webinars.map((webinar) => (
+            <div
+              key={webinar.id}
+              style={{
+                background: B.card,
+                border: `1px solid ${B.border}`,
+                borderRadius: 20,
+                overflow: "hidden",
+              }}
+            >
+              <img
+                src={webinar.thumbnail || "https://via.placeholder.com/400x200"}
+                alt=""
                 style={{
-                  background:
-                    B.card,
-                  border: `1px solid ${B.border}`,
-                  borderRadius: 20,
-                  overflow:
-                    "hidden",
+                  width: "100%",
+                  height: 180,
+                  objectFit: "cover",
+                }}
+              />
+
+              <div
+                style={{
+                  padding: 20,
                 }}
               >
-                <img
-                  src={
-                    webinar.thumbnail ||
-                    "https://via.placeholder.com/400x200"
-                  }
-                  alt=""
+                <h3
                   style={{
-                    width:
-                      "100%",
-                    height: 180,
-                    objectFit:
-                      "cover",
+                    color: B.orange,
                   }}
-                />
+                >
+                  {webinar.title}
+                </h3>
+
+                <p
+                  style={{
+                    color: B.textSec,
+                  }}
+                >
+                  {webinar.description}
+                </p>
 
                 <div
                   style={{
-                    padding: 20,
+                    marginTop: 14,
                   }}
                 >
-                  <h3
-                    style={{
-                      color:
-                        B.orange,
-                    }}
-                  >
-                    {
-                      webinar.title
-                    }
-                  </h3>
+                  <div>📅 {webinar.date}</div>
 
-                  <p
-                    style={{
-                      color:
-                        B.textSec,
-                    }}
-                  >
-                    {
-                      webinar.description
-                    }
-                  </p>
+                  <div>⏰ {webinar.time}</div>
 
-                  <div
-                    style={{
-                      marginTop: 14,
-                    }}
-                  >
-                    <div>
-                      📅{" "}
-                      {
-                        webinar.date
-                      }
-                    </div>
-
-                    <div>
-                      ⏰{" "}
-                      {
-                        webinar.time
-                      }
-                    </div>
-
-                    <div>
-                      ₹
-                      {
-                        webinar.price
-                      }
-                    </div>
-                  </div>
+                  <div>₹{webinar.price}</div>
                 </div>
               </div>
-            )
-          )}
+            </div>
+          ))}
         </div>
       )}
     </div>

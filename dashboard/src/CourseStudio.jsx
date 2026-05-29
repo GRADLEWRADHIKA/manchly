@@ -33,26 +33,14 @@ const T = {
   textMut:  "#71717A",
 };
 
-/* ═══════════════════════════════════════════════
-   API LAYER
-═══════════════════════════════════════════════ */
-const API_BASE = "https://server.manchly.com";
 
-/**
- * Returns the stored token, or null if absent / clearly empty.
- * Sending `Bearer ` (empty string) causes "Malformed Authorization header"
- * 401 on the server — so we guard here before every request.
- */
+const API_BASE = "https://server.manchly.com";
 const getToken = () => {
   if (typeof window === "undefined") return null;
   const t = localStorage.getItem("manchly_token");
   return t && t.trim().length > 0 ? t.trim() : null;
 };
 
-/**
- * Typed auth error — thrown on 401 so polling and callers can
- * detect it immediately and stop retrying.
- */
 class AuthError extends Error {
   constructor(msg) {
     super(msg);
@@ -63,8 +51,6 @@ class AuthError extends Error {
 
 async function apiCall(method, path, body = null) {
   const token = getToken();
-
-  /* ── FIX 1: reject before hitting the network if no token ── */
   if (!token) {
     throw new AuthError("No auth token found. Please log in first.");
   }
@@ -73,7 +59,7 @@ async function apiCall(method, path, body = null) {
     method,
     headers: {
       "Content-Type": "application/json",
-      Authorization:  `Bearer ${token}`,   // token is always non-empty here
+      Authorization:  `Bearer ${token}`,   
     },
   };
   if (body) opts.body = JSON.stringify(body);
@@ -82,7 +68,6 @@ async function apiCall(method, path, body = null) {
   const data = await res.json().catch(() => ({}));
 
   if (!res.ok) {
-    /* ── FIX 1b: surface 401s as AuthError so callers can stop retrying ── */
     if (res.status === 401 || res.status === 403) {
       throw new AuthError(
         data?.message || data?.error?.message || "Unauthorized — please log in again."
@@ -92,8 +77,6 @@ async function apiCall(method, path, body = null) {
   }
   return data;
 }
-
-/** Multipart upload for video files */
 async function uploadVideoFile(courseId, file, extraFields = {}) {
   const token = getToken();
   if (!token) throw new AuthError("No auth token found. Please log in first.");
@@ -118,22 +101,18 @@ async function uploadVideoFile(courseId, file, extraFields = {}) {
 
 const API = {
   /* Courses */
-  getCreatorStats: ()          => apiCall("GET",    "/courses/stats/creator"),
-  getCourse:       (id)        => apiCall("GET",    `/courses/${id}`),
-  createCourse:    (body)      => apiCall("POST",   "/courses", body),
-  updateCourse:    (id, body)  => apiCall("PUT",    `/courses/${id}`, body),
-  deleteCourse:    (id)        => apiCall("DELETE", `/courses/${id}`),
-
+  getCreatorStats: ()  => apiCall("GET","/courses/stats/creator"),
+  getCourse:       (id)  => apiCall("GET", `/courses/${id}`),
+  createCourse:    (body) => apiCall("POST", "/courses", body),
+  updateCourse:    (id, body) => apiCall("PUT",`/courses/${id}`, body),
+  deleteCourse:    (id)  => apiCall("DELETE",`/courses/${id}`),
   /* Videos */
   uploadVideo:     (courseId, file, fields) => uploadVideoFile(courseId, file, fields),
-  getVideoStatus:  (vid)       => apiCall("GET",    `/courses/videos/${vid}/status`),
-  updateVideo:     (vid, body) => apiCall("PUT",    `/courses/videos/${vid}`, body),
-  deleteVideo:     (vid)       => apiCall("DELETE", `/courses/videos/${vid}`),
+  getVideoStatus:  (vid) => apiCall("GET", `/courses/videos/${vid}/status`),
+  updateVideo:     (vid, body) => apiCall("PUT", `/courses/videos/${vid}`, body),
+  deleteVideo:     (vid) => apiCall("DELETE", `/courses/videos/${vid}`),
 };
 
-/* ═══════════════════════════════════════════════
-   FALLBACK / SEED DATA  (shown while APIs load)
-═══════════════════════════════════════════════ */
 const SEED_COURSES = [
   {
     id: "c1", title: "Advanced Options Trading",
@@ -142,14 +121,11 @@ const SEED_COURSES = [
     students: 234, rating: 4.8, revenue: 233766,
     tags: ["options", "derivatives"],
     curriculum: [
-      { id:"v1", title:"Introduction to Options",  order:1, duration:"18:22", status:"READY", is_free:true,  uploadPct:100 },
-      { id:"v2", title:"Call & Put Strategies",    order:2, duration:"31:10", status:"READY", is_free:false, uploadPct:100 },
-      { id:"v3", title:"Greeks Explained",         order:3, duration:"24:45", status:"READY", is_free:false, uploadPct:100 },
-      /* FIX 2 — was "PROCESSING"/"UPLOADING": seed videos use fake IDs (v4/v5)
-         that don't exist on the server. Polling them caused infinite 401 loops.
-         Seed data always shows READY; only real server-uploaded videos poll. */
-      { id:"v4", title:"Iron Condor Mastery",      order:4, duration:"29:08", status:"READY", is_free:false, uploadPct:100 },
-      { id:"v5", title:"Live Trade Walkthrough",   order:5, duration:"38:15", status:"READY", is_free:false, uploadPct:100 },
+      { id:"v1", title:"Introduction to Options",order:1, duration:"18:22", status:"READY", is_free:true,  uploadPct:100 },
+      { id:"v2", title:"Call & Put Strategies", order:2, duration:"31:10", status:"READY", is_free:false, uploadPct:100 },
+      { id:"v3", title:"Greeks Explained",  order:3, duration:"24:45", status:"READY", is_free:false, uploadPct:100 },
+      { id:"v4", title:"Iron Condor Mastery",  order:4, duration:"29:08", status:"READY", is_free:false, uploadPct:100 },
+      { id:"v5", title:"Live Trade Walkthrough", order:5, duration:"38:15", status:"READY", is_free:false, uploadPct:100 },
     ],
   },
   {
@@ -159,27 +135,22 @@ const SEED_COURSES = [
     students: 0, rating: 0, revenue: 0,
     tags: ["startup", "growth"],
     curriculum: [
-      { id:"v6", title:"Product-Market Fit",     order:1, duration:"22:00", status:"READY", is_free:true,  uploadPct:100 },
-      /* FIX 2 — was "UPLOADING" with fake id v7 */
+      { id:"v6", title:"Product-Market Fit",order:1, duration:"22:00", status:"READY", is_free:true,  uploadPct:100 },
       { id:"v7", title:"Growth Hacking Tactics", order:2, duration:"28:40", status:"READY", is_free:false, uploadPct:100 },
     ],
   },
 ];
 
 const CATEGORIES = ["Trading","Business","Marketing","Finance","Design","Tech"];
-const LEVELS     = ["Beginner","Intermediate","Advanced"];
+const LEVELS = ["Beginner","Intermediate","Advanced"];
 const LANGUAGES  = ["English","Hindi","Hinglish"];
-
 const VIDEO_STATUS_MAP = {
-  READY:      { label:"READY",      color:T.green,  bg:T.greenL  },
-  PROCESSING: { label:"PROCESSING", color:T.blue,   bg:T.blueL   },
-  UPLOADING:  { label:"UPLOADING",  color:T.orange, bg:T.orangeL },
-  ERROR:      { label:"ERROR",      color:T.red,    bg:T.redL    },
+  READY: { label:"READY", color:T.green,bg:T.greenL },
+  PROCESSING: { label:"PROCESSING", color:T.blue, bg:T.blueL },
+  UPLOADING: { label:"UPLOADING", color:T.orange, bg:T.orangeL },
+  ERROR:{ label:"ERROR", color:T.red, bg:T.redL},
 };
 
-/* ═══════════════════════════════════════════════
-   TOAST SYSTEM
-═══════════════════════════════════════════════ */
 function useToast() {
   const [toasts, setToasts] = useState([]);
   const push = useCallback((msg, type = "info", ms = 3600) => {
@@ -211,9 +182,6 @@ function ToastStack({ toasts }) {
   );
 }
 
-/* ═══════════════════════════════════════════════
-   CONFIRM DIALOG
-═══════════════════════════════════════════════ */
 function ConfirmDialog({ title, message, onConfirm, onCancel, loading }) {
   return (
     <div style={{ position:"fixed", inset:0, zIndex:1000, background:"rgba(0,0,0,0.8)", backdropFilter:"blur(4px)", display:"flex", alignItems:"center", justifyContent:"center" }}>
@@ -235,15 +203,10 @@ function ConfirmDialog({ title, message, onConfirm, onCancel, loading }) {
   );
 }
 
-/* ═══════════════════════════════════════════════
-   EDIT VIDEO MODAL
-   PUT /courses/videos/:video_id
-═══════════════════════════════════════════════ */
 function EditVideoModal({ video, onClose, onSaved, toast }) {
   const [form, setForm]   = useState({ title: video.title, is_free: video.is_free });
   const [loading, setLoading] = useState(false);
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.type === "checkbox" ? e.target.checked : e.target.value }));
-
   const handleSave = async () => {
     if (!form.title.trim()) { toast("Title is required.", "error"); return; }
     setLoading(true);
@@ -299,9 +262,6 @@ function EditVideoModal({ video, onClose, onSaved, toast }) {
   );
 }
 
-/* ═══════════════════════════════════════════════
-   ATOMS
-═══════════════════════════════════════════════ */
 function GoldBtn({ children, onClick, outline=false, small=false, loading=false, disabled=false }) {
   const [h, setH] = useState(false);
   return (
@@ -364,10 +324,6 @@ function iconBtn(bg, color) {
   return { width:28, height:28, borderRadius:8, border:"none", background:bg, color, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" };
 }
 
-/* ═══════════════════════════════════════════════
-   CREATOR COURSE CARD
-   Clicking fetches GET /courses/:id
-═══════════════════════════════════════════════ */
 function CreatorCourseCard({ course, selected, onSelect, onDelete, fetchLoading }) {
   const active = selected?.id === course.id;
   return (
@@ -393,7 +349,6 @@ function CreatorCourseCard({ course, selected, onSelect, onDelete, fetchLoading 
         </div>
       </div>
 
-      {/* Action row — shown when active */}
       {active && (
         <div style={{ display:"flex", gap:8, marginTop:12, paddingTop:10, borderTop:`1px solid ${T.border}` }}>
           <span style={{ fontSize:9.5, color:T.textMut, background:"rgba(255,255,255,0.04)", borderRadius:20, padding:"2px 8px", fontFamily:"monospace" }}>
@@ -413,36 +368,21 @@ function CreatorCourseCard({ course, selected, onSelect, onDelete, fetchLoading 
   );
 }
 
-/* ═══════════════════════════════════════════════
-   VIDEO ROW
-   Edit  → PUT  /courses/videos/:id
-   Delete→ DELETE /courses/videos/:id
-   Status is polled via GET /courses/videos/:id/status
-═══════════════════════════════════════════════ */
 function VideoRow({ video, index, onEdit, onDelete, onStatusUpdate }) {
   const pollRef    = useRef(null);
-  const failsRef   = useRef(0);          // consecutive error counter
-  const MAX_FAILS  = 5;                  // stop after 5 consecutive non-auth errors
+  const failsRef   = useRef(0);          
+  const MAX_FAILS  = 5;                  
 
   useEffect(() => {
-    /* Only poll genuinely transitional statuses */
     if (!["UPLOADING", "PROCESSING"].includes(video.status)) return;
-
-    /* FIX 3 — never poll seed / fake IDs that don't exist on the server.
-       Real server IDs are typically UUIDs or mongo ObjectIds (length > 5).
-       Seed IDs like "v4", "v5", "v7" are short strings — skip them. */
     if (video.id.length <= 4) return;
-
-    /* FIX 3 — also skip if no token; no point spamming with guaranteed 401s */
     if (!getToken()) return;
-
     failsRef.current = 0;
-
     pollRef.current = setInterval(async () => {
       try {
-        const data    = await API.getVideoStatus(video.id);
+        const data = await API.getVideoStatus(video.id);
         const updated = data?.video || data;
-        failsRef.current = 0;            // reset on success
+        failsRef.current = 0;            
 
         if (updated?.status) {
           onStatusUpdate(video.id, updated);
@@ -451,15 +391,11 @@ function VideoRow({ video, index, onEdit, onDelete, onStatusUpdate }) {
           }
         }
       } catch (err) {
-        /* FIX 3 — stop immediately on any auth error (401 / 403).
-           Retrying auth failures is pointless and floods the network tab. */
         if (err?.isAuth) {
           clearInterval(pollRef.current);
           console.warn(`[VideoRow] poll stopped — auth error for video ${video.id}`);
           return;
         }
-
-        /* Stop after MAX_FAILS consecutive non-auth errors (network drops, 5xx) */
         failsRef.current += 1;
         if (failsRef.current >= MAX_FAILS) {
           clearInterval(pollRef.current);
@@ -543,20 +479,13 @@ function VideoRow({ video, index, onEdit, onDelete, onStatusUpdate }) {
   );
 }
 
-/* ═══════════════════════════════════════════════
-   CURRICULUM MANAGER
-   Add Lesson  → POST /courses/:id/videos
-   Edit video  → PUT  /courses/videos/:id
-   Delete video→ DELETE /courses/videos/:id
-   Status poll → GET  /courses/videos/:id/status  (inside VideoRow)
-═══════════════════════════════════════════════ */
 function CurriculumManager({ course, onCurriculumChange, toast }) {
   const fileRef  = useRef(null);
 
   /* Local video list (mirrors course.curriculum, mutated optimistically) */
-  const [videos,      setVideos]      = useState(course.curriculum || []);
-  const [uploading,   setUploading]   = useState(false);
-  const [uploadPct,   setUploadPct]   = useState(0);
+  const [videos, setVideos]  = useState(course.curriculum || []);
+  const [uploading,setUploading] = useState(false);
+  const [uploadPct,setUploadPct] = useState(0);
 
   /* Delete video confirm */
   const [deleteVideo, setDeleteVideo] = useState(null);
@@ -566,21 +495,15 @@ function CurriculumManager({ course, onCurriculumChange, toast }) {
   const [editVideo, setEditVideo] = useState(null);
 
   /* Keep local list in sync when parent course changes */
-  useEffect(() => { setVideos(course.curriculum || []); }, [course.id]); // eslint-disable-line
-
-  /* ── POST /courses/:id/videos ── */
+  useEffect(() => { setVideos(course.curriculum || []); }, [course.id]); 
   const handleFileSelect = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
     e.target.value = "";
-
-    /* Optimistic: add a placeholder row immediately */
     const tempId  = `temp_${Date.now()}`;
     const tempRow = { id:tempId, title:file.name, order:videos.length+1, duration:"—", status:"UPLOADING", is_free:false, uploadPct:0 };
     setVideos(prev => [...prev, tempRow]);
     setUploading(true);
-
-    /* Fake local progress tick while we wait for server */
     let localPct = 0;
     const ticker = setInterval(() => {
       localPct = Math.min(localPct + Math.random()*8 + 2, 90);
@@ -592,7 +515,6 @@ function CurriculumManager({ course, onCurriculumChange, toast }) {
       const data = await API.uploadVideo(course.id, file, { title: file.name, is_free: false });
       clearInterval(ticker);
       const serverVideo = data?.video || { ...tempRow, id: `v_${Date.now()}`, uploadPct:100, status:"PROCESSING" };
-
       setVideos(prev => prev.map(v => v.id === tempId ? serverVideo : v));
       onCurriculumChange(course.id, videos.map(v => v.id === tempId ? serverVideo : v));
       toast(`"${file.name}" uploaded — processing started.`, "success");
@@ -712,32 +634,24 @@ function CurriculumManager({ course, onCurriculumChange, toast }) {
     </>
   );
 }
-
-/* ═══════════════════════════════════════════════
-   COURSE WIZARD
-   POST /courses  (create)
-   PUT  /courses/:id (edit)
-═══════════════════════════════════════════════ */
 function CourseWizard({ onCancel, editTarget, onCreated, onUpdated, toast }) {
   const isEdit = Boolean(editTarget);
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
-    title:       editTarget?.title       || "",
+    title: editTarget?.title || "",
     description: editTarget?.description || "",
-    price:       editTarget?.price       ?? "",
-    category:    editTarget?.category    || "Trading",
-    level:       editTarget?.level       || "Beginner",
-    language:    editTarget?.language    || "English",
-    tags:        editTarget?.tags?.join(", ") || "",
+    price:editTarget?.price ?? "",
+    category:editTarget?.category || "Trading",
+    level:editTarget?.level || "Beginner",
+    language: editTarget?.language || "English",
+    tags:editTarget?.tags?.join(", ") || "",
   });
 
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }));
-
   const handleSubmit = async () => {
     if (!form.title.trim()) { toast("Course title is required.", "error"); return; }
     if (form.price === "")  { toast("Price is required (0 for free).", "error"); return; }
-
     setLoading(true);
     const payload = {
       ...form,
@@ -851,16 +765,11 @@ function CourseWizard({ onCancel, editTarget, onCreated, onUpdated, toast }) {
     </div>
   );
 }
-
-/* ═══════════════════════════════════════════════
-   CREATOR STATS
-   GET /courses/stats/creator
-═══════════════════════════════════════════════ */
 function CreatorStats({ stats, loading }) {
   const rows = [
-    { label:"Total Revenue",   value:loading?"…":(stats?.total_revenue   ? `₹${Number(stats.total_revenue).toLocaleString("en-IN")}`  : "₹0"),      icon:DollarSign, color:T.orange  },
-    { label:"Total Students",  value:loading?"…":(stats?.total_students  ?? "0"),                                                                     icon:Users,      color:T.purple  },
-    { label:"Avg Rating",      value:loading?"…":(stats?.avg_rating      ? `${stats.avg_rating} ★`                                   : "—"),          icon:Star,       color:T.orange  },
+    { label:"Total Revenue",value:loading?"…":(stats?.total_revenue ? `₹${Number(stats.total_revenue).toLocaleString("en-IN")}`  : "₹0"),      icon:DollarSign, color:T.orange  },
+    { label:"Total Students", value:loading?"…":(stats?.total_students  ?? "0"),                                                                     icon:Users,      color:T.purple  },
+    { label:"Avg Rating", value:loading?"…":(stats?.avg_rating ? `${stats.avg_rating} ★`                                   : "—"),          icon:Star,       color:T.orange  },
     { label:"Completion Rate", value:loading?"…":(stats?.completion_rate ? `${stats.completion_rate}%`                               : "—"),          icon:BarChart2,  color:T.green   },
   ];
 
@@ -886,9 +795,6 @@ function CreatorStats({ stats, loading }) {
   );
 }
 
-/* ═══════════════════════════════════════════════
-   MAIN COMPONENT
-═══════════════════════════════════════════════ */
 export default function CourseStudio() {
   /* ── UI state ── */
   const [showWizard,   setShowWizard]   = useState(false);
@@ -897,19 +803,12 @@ export default function CourseStudio() {
   const [delLoading,   setDelLoading]   = useState(false);
 
   /* ── Data state ── */
-  const [courses,      setCourses]      = useState(SEED_COURSES);
-  const [selected,     setSelected]     = useState(SEED_COURSES[0]);
+  const [courses,setCourses] = useState(SEED_COURSES);
+  const [selected, setSelected] = useState(SEED_COURSES[0]);
   const [fetchLoading, setFetchLoading] = useState(false);
-  const [statsData,    setStatsData]    = useState(null);
+  const [statsData, setStatsData] = useState(null);
   const [statsLoading, setStatsLoading] = useState(true);
-
   const { toasts, push: toast } = useToast();
-
-  /* ─────────────────────────────────────────
-     GET /courses/stats/creator  on mount
-     FIX 4 — skip entirely if no token is present;
-     avoids guaranteed 401 "Malformed Authorization header" spam.
-  ───────────────────────────────────────── */
   useEffect(() => {
     let active = true;
 
@@ -940,10 +839,6 @@ export default function CourseStudio() {
     return () => { active = false; };
   }, []);
 
-  /* ─────────────────────────────────────────
-     GET /courses/:id  when a card is clicked
-     FIX 4b — skip if no token
-  ───────────────────────────────────────── */
   const handleSelect = useCallback(async (course) => {
     setSelected(course); // optimistic
     if (!getToken()) return; // no token → keep seed data, don't attempt
@@ -961,19 +856,12 @@ export default function CourseStudio() {
     } finally { setFetchLoading(false); }
   }, []);
 
-  /* ─────────────────────────────────────────
-     POST /courses  →  prepend to list
-  ───────────────────────────────────────── */
   const handleCreated = useCallback(newCourse => {
     setCourses(prev => [newCourse, ...prev]);
     setSelected(newCourse);
     setShowWizard(false);
     setEditTarget(null);
   }, []);
-
-  /* ─────────────────────────────────────────
-     PUT /courses/:id  →  patch in list
-  ───────────────────────────────────────── */
   const handleUpdated = useCallback(updated => {
     setCourses(prev => prev.map(c => c.id === updated.id ? { ...c, ...updated } : c));
     setSelected(prev => prev?.id === updated.id ? { ...prev, ...updated } : prev);
@@ -982,9 +870,6 @@ export default function CourseStudio() {
     toast("Course saved.", "success");
   }, [toast]);
 
-  /* ─────────────────────────────────────────
-     DELETE /courses/:id
-  ───────────────────────────────────────── */
   const confirmDeleteCourse = async () => {
     if (!deleteCourse) return;
     setDelLoading(true);
@@ -1002,9 +887,6 @@ export default function CourseStudio() {
     }
   };
 
-  /* ─────────────────────────────────────────
-     Curriculum changed (video added/deleted)
-  ───────────────────────────────────────── */
   const handleCurriculumChange = useCallback((courseId, newCurriculum) => {
     setCourses(prev => prev.map(c => c.id === courseId ? { ...c, curriculum: newCurriculum } : c));
     setSelected(prev => prev?.id === courseId ? { ...prev, curriculum: newCurriculum } : prev);
@@ -1038,11 +920,11 @@ export default function CourseStudio() {
           {/* API endpoints strip */}
           <div style={{ display:"flex", gap:4, flexWrap:"nowrap", alignSelf:"center" }}>
             {[
-              { m:"POST",   p:"/courses",                    c:T.green  },
-              { m:"GET",    p:"/courses/:id",                c:T.blue   },
-              { m:"PUT",    p:"/courses/:id",                c:T.orange },
-              { m:"DELETE", p:"/courses/:id",                c:T.red    },
-              { m:"GET",    p:"/courses/stats/creator",      c:T.purple },
+              { m:"POST", p:"/courses",c:T.green },
+              { m:"GET", p:"/courses/:id", c:T.blue },
+              { m:"PUT", p:"/courses/:id", c:T.orange },
+              { m:"DELETE", p:"/courses/:id", c:T.red },
+              { m:"GET", p:"/courses/stats/creator", c:T.purple },
             ].map((e,i) => (
               <span key={i} style={{ fontSize:8.5, fontFamily:"monospace", borderRadius:20, padding:"2px 7px", background:`${e.c}12`, color:e.c, border:`1px solid ${e.c}30`, whiteSpace:"nowrap" }}>
                 {e.m} {e.p}
@@ -1164,9 +1046,9 @@ export default function CourseStudio() {
         ::-webkit-scrollbar-thumb { background:#222; border-radius:20px; }
         button, input, textarea, select { font-family:inherit; }
         select option { background:#111; color:#fff; }
-        @keyframes spin    { to { transform:rotate(360deg); } }
-        @keyframes pulse   { 0%,100%{opacity:1} 50%{opacity:0.35} }
-        @keyframes slide   { from{transform:translateX(-100%)} to{transform:translateX(300%)} }
+        @keyframes spin{ to { transform:rotate(360deg); } }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
+        @keyframes slide { from{transform:translateX(-100%)} to{transform:translateX(300%)} }
         @keyframes slideIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
       `}</style>
     </div>

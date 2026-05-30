@@ -828,7 +828,28 @@ export class WebinarController {
       }
 
       if (transaction.status === "SUCCESS") {
-        return ApiResponseHandler.customError(res, "Payment already verified", 400, "ALREADY_VERIFIED");
+        // Webhook may have already processed this payment — return success
+        const existingEnrollment = await prisma.webinar_enrollments.findUnique({
+          where: {
+            user_id_webinar_id: {
+              user_id: userId,
+              webinar_id: transaction.webinar_id
+            }
+          },
+          include: {
+            webinar: {
+              include: {
+                creator: { select: { id: true, name: true, email: true } }
+              }
+            }
+          }
+        });
+
+        return ApiResponseHandler.success(res, {
+          enrollment: existingEnrollment,
+          transaction,
+          message: "Payment already verified and enrollment exists"
+        }, "Payment verified successfully", 200);
       }
 
       // Verify order status with Cashfree server-to-server

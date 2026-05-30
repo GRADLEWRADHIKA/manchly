@@ -1000,7 +1000,22 @@ export class SessionController {
       }
 
       if (transaction.status === "SUCCESS") {
-        return res.status(400).json({ error: "Payment already verified" });
+        // Webhook may have already processed this payment — return success
+        const session = await prisma.sessions.findUnique({
+          where: { id: transaction.session_id },
+        });
+        const [caller, receiver] = await Promise.all([
+          prisma.users.findUnique({ where: { id: session!.caller_id }, select: userSelect }),
+          prisma.users.findUnique({ where: { id: session!.receiver_id }, select: userSelect }),
+        ]);
+
+        return res.json({
+          data: {
+            session: { ...session, caller, receiver },
+            transaction,
+            message: "Payment already verified and session booked successfully",
+          },
+        });
       }
 
       // Verify with Cashfree

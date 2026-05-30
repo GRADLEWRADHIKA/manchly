@@ -259,7 +259,31 @@ export class PaymentController {
       }
 
       if (transaction.status === "SUCCESS") {
-        return ApiResponseHandler.customError(res, "Payment already verified", 400, "ALREADY_VERIFIED");
+        // Webhook may have already processed this payment — return success
+        const existingEnrollment = await prisma.enrollments.findUnique({
+          where: {
+            user_id_course_id: {
+              user_id: userId,
+              course_id: transaction.course_id
+            }
+          },
+          include: {
+            course: {
+              include: {
+                creator: {
+                  select: { id: true, name: true, email: true }
+                },
+                videos: true
+              }
+            }
+          }
+        });
+
+        return ApiResponseHandler.success(res, {
+          enrollment: existingEnrollment,
+          transaction,
+          message: "Payment already verified and enrollment exists"
+        }, "Payment verified successfully", 200);
       }
 
       // Verify order status with Cashfree server-to-server
@@ -474,6 +498,12 @@ export class PaymentController {
         return;
       }
 
+      // Handle webinar payments
+      if (typeof orderId === "string" && orderId.startsWith("webinar_")) {
+        await PaymentController.handleWebinarPaymentSuccess(orderId, cfPaymentId, data);
+        return;
+      }
+
       const transaction = await prisma.transactions.findUnique({
         where: { cashfree_order_id: orderId },
         include: {
@@ -574,6 +604,12 @@ export class PaymentController {
       // Handle session payment failures
       if (typeof orderId === "string" && orderId.startsWith("sess_")) {
         await PaymentController.handleSessionPaymentFailed(orderId, data);
+        return;
+      }
+
+      // Handle webinar payment failures
+      if (typeof orderId === "string" && orderId.startsWith("webinar_")) {
+        await PaymentController.handleWebinarPaymentFailed(orderId, data);
         return;
       }
 
@@ -696,6 +732,107 @@ export class PaymentController {
       console.log(`Session payment failed for transaction ${transaction.id}`);
     } catch (err) {
       console.error("Error handling session payment failure:", err);
+    }
+  }
+
+  /**
+   * Handle webinar payment success from webhook
+   */
+  private static async handleWebinarPaymentSuccess(orderId: string, cfPaymentId: string | undefined, data: any) {
+    try {
+      const transaction = await prisma.webinar_transactions.findUnique({
+        where: { cashfree_order_id: orderId },
+        include: {
+          webinar: {
+            include: {
+              creator: { select: { id: true, name: true, email: true } }
+            }
+          }
+        }
+      });
+
+      if (!transaction) {
+        console.error(`Webinar transaction not found for order ${orderId}`);
+        return;
+      }
+
+      if (transaction.status === "SUCCESS") {
+        console.log(`Webinar transaction already processed: ${transaction.id}`);
+        return;
+      }
+
+      await prisma.webinar_transactions.update({
+        where: { id: transaction.id },
+        data: {
+          status: "SUCCESS",
+          cf_payment_id: cfPaymentId || null,
+          completed_at: new Date(),
+          payment_details: { webhook_payload: data },
+        },
+      });
+
+      // Create enrollment if not exists
+      const existingEnrollment = await prisma.webinar_enrollments.findUnique({
+        where: {
+          user_id_webinar_id: {
+            user_id: transaction.user_id,
+            webinar_id: transaction.webinar_id
+          }
+        }
+      });
+
+      if (!existingEnrollment) {
+        await prisma.webinar_enrollments.create({
+          data: {
+            user_id: transaction.user_id,
+            webinar_id: transaction.webinar_id,
+            transaction_id: transaction.id
+          }
+        });
+      }
+
+      // Credit creator's wallet
+      await SettlementService.creditCreatorWallet({
+        creatorId: transaction.webinar.creator.id,
+        grossAmount: transaction.webinar.price,
+        transactionType: "WEBINAR",
+        transactionId: transaction.id,
+        webinarId: transaction.webinar_id,
+        itemTitle: transaction.webinar.title,
+      });
+
+      console.log(`WEBINAR PAYMENT SUCCESS WEBHOOK - Webinar: ${transaction.webinar.title}, Amount: ${transaction.amount}`);
+    } catch (err) {
+      console.error("Error handling webinar payment success:", err);
+    }
+  }
+
+  /**
+   * Handle webinar payment failure from webhook
+   */
+  private static async handleWebinarPaymentFailed(orderId: string, data: any) {
+    try {
+      const transaction = await prisma.webinar_transactions.findUnique({
+        where: { cashfree_order_id: orderId },
+      });
+
+      if (!transaction) {
+        console.error(`Webinar transaction not found for order ${orderId}`);
+        return;
+      }
+
+      await prisma.webinar_transactions.update({
+        where: { id: transaction.id },
+        data: {
+          status: "FAILED",
+          failure_reason: data.payment?.payment_message || "Payment failed",
+          payment_details: { webhook_payload: data },
+        },
+      });
+
+      console.log(`Webinar payment failed for transaction ${transaction.id}`);
+    } catch (err) {
+      console.error("Error handling webinar payment failure:", err);
     }
   }
 

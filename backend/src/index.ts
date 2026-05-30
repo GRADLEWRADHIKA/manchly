@@ -23,6 +23,7 @@ import sdkRouter from "./routes/sdk";
 import clickancyRouter from "./routes/clickancy";
 import sessionsRouter from "./routes/sessions";
 import telegramRouter from "./routes/telegram";
+import aiRouter from "./routes/ai";
 import { initTelegramBot } from "./controllers/telegramController";
 import morgan from "morgan";
 import { webinarCleanupService } from "./utils/webinarCleanup";
@@ -101,6 +102,7 @@ app.use("/sdk", sdkRouter);
 app.use("/clickancy", clickancyRouter);
 app.use("/sessions", sessionsRouter);
 app.use("/telegram", telegramRouter);
+app.use("/ai", aiRouter);
 
 const listenPort = useHttps ? HTTPS_PORT : PORT;
 

@@ -57,17 +57,17 @@ export class AIController {
       endpoints: [
         // course
         "POST /ai/course/generate-meta",
-        "POST /ai/course/lesson-script",
+        "POST /ai/course/enhance",
         "POST /ai/course/quiz",
         "POST /ai/course/landing-copy",
         // webinar
         "POST /ai/webinar/describe",
-        "POST /ai/webinar/title-suggestions",
+        "POST /ai/webinar/enhance",
         "POST /ai/webinar/email-series",
         "POST /ai/webinar/social-posts",
         // session
         "POST /ai/expert/bio",
-        "POST /ai/session/prep-checklist",
+        "POST /ai/session/enhance",
         "POST /ai/session/product-suggestions",
         "POST /ai/session/follow-up-message",
         // chat + general
@@ -285,44 +285,50 @@ Return JSON: {
   // COURSE — extra endpoints
   // ════════════════════════════════════════════════════════════════
 
-  // POST /ai/course/lesson-script
-  // Body: { course_title, lesson_title, level?, duration_min? }
-  static async courseLessonScript(req: Request, res: Response) {
+  // POST /ai/course/enhance
+  // Body: { text, kind?: "title"|"description"|"lesson_title"|"outcome"|"general", tone? }
+  static async courseEnhance(req: Request, res: Response) {
     const started = Date.now();
-    const { course_title, lesson_title, level = "Beginner", duration_min = 8 } = req.body || {};
-    if (!course_title || !lesson_title) {
-      return res.status(400).json({ error: "course_title and lesson_title are required" });
+    const { text, kind = "general", tone = "conversational" } = req.body || {};
+    if (!text || typeof text !== "string") {
+      return res.status(400).json({ error: "text is required" });
+    }
+    if (text.trim().length < 3) {
+      return res.status(400).json({ error: "text must be at least 3 characters" });
     }
 
+    const kindHint = ({
+      title:        "a course title — under 70 chars, outcome-focused, scroll-stopping but not clickbait",
+      description:  "a course description — 2-3 sentences, value-first, no jargon",
+      lesson_title: "a lesson title — short, action verbs, makes the learner want to click",
+      outcome:      "a learning outcome — starts with an action verb, ends with the concrete result",
+      general:      "course content — clear, conversational, no filler",
+    } as Record<string, string>)[kind] || "course content";
+
     const result = await generate({
-      system: "You write video lesson scripts for Manchly creators. Conversational, no fluff. Return only JSON.",
-      user: `Course: ${course_title}
-Lesson: ${lesson_title}
-Level: ${level}
-Target duration: ${duration_min} minutes
+      system: "You are an expert editor for Manchly course creators. You enhance the author's text WITHOUT changing their voice or meaning. Return ONLY JSON.",
+      user: `Original text:
+"""${text.slice(0, 4000)}"""
+
+Goal: ${kindHint}
+Tone: ${tone}
+
+Tighten phrasing, remove filler words, sharpen the hook, and improve readability. Preserve the author's intent and any specific names/numbers they used.
 
 Return JSON: {
-  "hook": "<<first 15 seconds — a punchy hook>>",
-  "script": "<<the full lesson script, ~${duration_min * 130} words, second-person, speakable>>",
-  "talking_points": ["<<5-8 bullet points the creator can riff from instead of reading the script verbatim>>"],
-  "call_to_action": "<<what the student should do right after this lesson>>"
+  "enhanced": "<<the improved version>>",
+  "changes_summary": "<<one short sentence: what you changed and why>>",
+  "alternatives": ["<<a punchier variant>>", "<<a more formal variant>>"]
 }`,
       jsonOnly: true,
-      maxTokens: 1200,
+      maxTokens: 700,
       fallback: {
-        hook: `Here's the thing about ${lesson_title} that most ${level.toLowerCase()} guides skip — and once you see it, you can't un-see it.`,
-        script: `In this lesson on ${lesson_title}, we'll cover the core idea, walk through one worked example, and end with a quick exercise you can do in under five minutes. The goal isn't to make you an expert in 8 minutes — it's to give you the mental model so the next lesson clicks instantly. Let's get into it.`,
-        talking_points: [
-          `Why ${lesson_title} matters in the context of ${course_title}`,
-          "The single mental model to internalize",
-          "Worked example, step by step",
-          "Common mistake to avoid",
-          "The 5-minute exercise to lock it in",
-        ],
-        call_to_action: "Try the exercise before moving to the next lesson — it takes less than five minutes and the next lesson assumes you've done it.",
+        enhanced: text,
+        changes_summary: "No AI key configured on backend — original text returned unchanged.",
+        alternatives: [],
       },
     });
-    return reply(res, result.provider, result.data, started);
+    return reply(res, result.provider, { original: text, ...result.data }, started);
   }
 
   // POST /ai/course/quiz
@@ -419,35 +425,50 @@ Include 4 FAQ items.`,
   // WEBINAR — extra endpoints
   // ════════════════════════════════════════════════════════════════
 
-  // POST /ai/webinar/title-suggestions
-  // Body: { topic, audience?, count? }
-  static async webinarTitleSuggestions(req: Request, res: Response) {
+  // POST /ai/webinar/enhance
+  // Body: { text, kind?: "title"|"description"|"outcome"|"social_blurb"|"general", tone? }
+  static async webinarEnhance(req: Request, res: Response) {
     const started = Date.now();
-    const { topic, audience = "professionals", count = 5 } = req.body || {};
-    if (!topic) return res.status(400).json({ error: "topic is required" });
-    const n = Math.min(Math.max(parseInt(count) || 5, 1), 8);
+    const { text, kind = "general", tone = "punchy" } = req.body || {};
+    if (!text || typeof text !== "string") {
+      return res.status(400).json({ error: "text is required" });
+    }
+    if (text.trim().length < 3) {
+      return res.status(400).json({ error: "text must be at least 3 characters" });
+    }
+
+    const kindHint = ({
+      title:        "a webinar title — under 70 chars, makes someone stop scrolling and read",
+      description:  "a webinar description — 2 short paragraphs, urgent yet credible",
+      outcome:      "a learning outcome — specific, measurable, leaves no doubt about what attendees get",
+      social_blurb: "a social-media blurb — under 280 chars, designed to drive signups",
+      general:      "webinar copy — punchy, no fluff, ends with momentum",
+    } as Record<string, string>)[kind] || "webinar copy";
 
     const result = await generate({
-      system: "You write punchy, scroll-stopping webinar titles. No clickbait. Return only JSON.",
-      user: `Topic: ${topic}
-Audience: ${audience}
+      system: "You are an expert webinar copywriter for Manchly. You enhance the author's text WITHOUT changing their voice or meaning. Return ONLY JSON.",
+      user: `Original text:
+"""${text.slice(0, 4000)}"""
 
-Generate ${n} distinct title variants. Each has a different angle: outcome-focused, contrarian, how-to, story-based, urgency-based.
+Goal: ${kindHint}
+Tone: ${tone}
 
-Return JSON: { "titles": [{ "title": "<<title>>", "angle": "<<outcome|contrarian|how_to|story|urgency>>" }] }`,
+Make it scroll-stopping. Strengthen the hook, cut every filler word, surface the outcome up front. Preserve specific names, numbers, and dates exactly.
+
+Return JSON: {
+  "enhanced": "<<the improved version>>",
+  "changes_summary": "<<one short sentence>>",
+  "alternatives": ["<<contrarian-angle variant>>", "<<urgency-angle variant>>"]
+}`,
       jsonOnly: true,
-      maxTokens: 500,
+      maxTokens: 700,
       fallback: {
-        titles: [
-          { title: `The ${topic} playbook nobody's teaching`,                 angle: "contrarian" },
-          { title: `How to actually get good at ${topic} in 6 weeks`,         angle: "how_to" },
-          { title: `Why your ${topic} strategy isn't working (and the fix)`,  angle: "outcome" },
-          { title: `What I learned losing ₹50k on ${topic}`,                  angle: "story" },
-          { title: `${topic} masterclass — last cohort of 2026`,              angle: "urgency" },
-        ].slice(0, n),
+        enhanced: text,
+        changes_summary: "No AI key configured on backend — original text returned unchanged.",
+        alternatives: [],
       },
     });
-    return reply(res, result.provider, result.data, started);
+    return reply(res, result.provider, { original: text, ...result.data }, started);
   }
 
   // POST /ai/webinar/email-series
@@ -544,53 +565,51 @@ Return JSON: {
   // SESSION — extra endpoints
   // ════════════════════════════════════════════════════════════════
 
-  // POST /ai/session/prep-checklist
-  // Body: { product_title, learner_context?, duration_min? }
-  static async sessionPrepChecklist(req: Request, res: Response) {
+  // POST /ai/session/enhance
+  // Body: { text, kind?: "headline"|"bio"|"product_title"|"product_blurb"|"message"|"general", tone? }
+  static async sessionEnhance(req: Request, res: Response) {
     const started = Date.now();
-    const { product_title, learner_context = "", duration_min = 30 } = req.body || {};
-    if (!product_title) return res.status(400).json({ error: "product_title is required" });
+    const { text, kind = "general", tone = "warm" } = req.body || {};
+    if (!text || typeof text !== "string") {
+      return res.status(400).json({ error: "text is required" });
+    }
+    if (text.trim().length < 3) {
+      return res.status(400).json({ error: "text must be at least 3 characters" });
+    }
+
+    const kindHint = ({
+      headline:      "an expert headline — under 80 chars, names the niche + the outcome",
+      bio:           "an expert bio — first-person, 2-3 sentences, specific (no buzzwords)",
+      product_title: "a consulting product title — 7-10 words, action-oriented, names the outcome",
+      product_blurb: "a one-sentence product blurb that makes a buyer want to book",
+      message:       "a message to a learner — direct, warm, no filler",
+      general:       "session copy — specific, warm, no jargon",
+    } as Record<string, string>)[kind] || "session copy";
 
     const result = await generate({
-      system: "You help expert mentors prep for paid 1-on-1 calls. Be specific. Return only JSON.",
-      user: `Product: ${product_title}
-Duration: ${duration_min} min
-What the learner shared in advance: ${learner_context || "(nothing)"}
+      system: "You are an expert copy editor for Manchly creators offering 1-on-1 sessions. You enhance the author's text WITHOUT changing their voice or meaning. Return ONLY JSON.",
+      user: `Original text:
+"""${text.slice(0, 4000)}"""
+
+Goal: ${kindHint}
+Tone: ${tone}
+
+Make it more specific, cut buzzwords, replace generic claims with concrete details where possible. Preserve names, years of experience, and any numbers the author included.
 
 Return JSON: {
-  "expert_checklist": ["<<5-7 things the expert should do in the 15 min before the call>>"],
-  "questions_to_ask_first": ["<<3 opening questions to scope the problem>>"],
-  "potential_directions": ["<<3 likely directions the call could go and how to handle each>>"],
-  "red_flags": ["<<2-3 signs the call may go off the rails — and how to redirect>>"]
+  "enhanced": "<<the improved version>>",
+  "changes_summary": "<<one short sentence>>",
+  "alternatives": ["<<warmer variant>>", "<<more professional variant>>"]
 }`,
       jsonOnly: true,
-      maxTokens: 900,
+      maxTokens: 700,
       fallback: {
-        expert_checklist: [
-          "Re-read everything the learner shared in advance",
-          "Set up Mux/Zoom link 5 min early",
-          "Have a notes doc open and titled with the learner's name",
-          "Silence Slack / phone / email notifications",
-          "Glass of water + camera framed correctly",
-          "Pull up 1-2 example artifacts you might want to share-screen",
-        ],
-        questions_to_ask_first: [
-          "Walk me through what you've tried so far.",
-          "What does 'success' from this call look like for you?",
-          "Is there a deadline forcing the timing of this call?",
-        ],
-        potential_directions: [
-          "Tactical fix — they have a specific blocker. Solve it in the first 10 min, use the rest to teach the pattern.",
-          "Strategic review — they want feedback on a plan. Read it back, surface 2-3 assumptions, end with the one decision they need to make.",
-          "Open-ended exploration — they're not sure what to ask. Use the first 5 min to narrow it to ONE concrete problem before going deeper.",
-        ],
-        red_flags: [
-          "Learner keeps re-asking the same question — they don't trust the answer. Pause, ask what specifically isn't clicking.",
-          "They want you to do the work for them. Redirect to teaching the approach, not delivering the output.",
-        ],
+        enhanced: text,
+        changes_summary: "No AI key configured on backend — original text returned unchanged.",
+        alternatives: [],
       },
     });
-    return reply(res, result.provider, result.data, started);
+    return reply(res, result.provider, { original: text, ...result.data }, started);
   }
 
   // POST /ai/session/product-suggestions

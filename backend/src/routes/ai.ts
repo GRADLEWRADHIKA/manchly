@@ -12,19 +12,19 @@ router.use(jwtAuth);
 
 // Course
 router.post("/course/generate-meta",  AIController.courseGenerateMeta);
-router.post("/course/lesson-script",  AIController.courseLessonScript);
+router.post("/course/enhance",        AIController.courseEnhance);
 router.post("/course/quiz",           AIController.courseQuiz);
 router.post("/course/landing-copy",   AIController.courseLandingCopy);
 
 // Webinar
 router.post("/webinar/describe",            AIController.webinarDescribe);
-router.post("/webinar/title-suggestions",   AIController.webinarTitleSuggestions);
+router.post("/webinar/enhance",             AIController.webinarEnhance);
 router.post("/webinar/email-series",        AIController.webinarEmailSeries);
 router.post("/webinar/social-posts",        AIController.webinarSocialPosts);
 
 // Session
 router.post("/expert/bio",                  AIController.expertBio);
-router.post("/session/prep-checklist",      AIController.sessionPrepChecklist);
+router.post("/session/enhance",             AIController.sessionEnhance);
 router.post("/session/product-suggestions", AIController.sessionProductSuggestions);
 router.post("/session/follow-up-message",   AIController.sessionFollowUpMessage);
 

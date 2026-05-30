@@ -13,13 +13,7 @@ import {
   Wallet,
 } from "lucide-react";
 
-export default function PaymentsDashboard({
-  role = "STUDENT",
-}) {
-  // =========================================
-  // THEME
-  // =========================================
-
+export default function PaymentsDashboard({ role = "STUDENT" }) {
   const T = {
     bg: "#000000",
     card: "#111111",
@@ -37,52 +31,15 @@ export default function PaymentsDashboard({
     textSec: "#A1A1AA",
     textMut: "#71717A",
   };
-
-  // =========================================
-  // TOKEN
-  // =========================================
-
-  const TOKEN =
-    localStorage.getItem("token") || "";
-
-  // =========================================
-  // STATES
-  // =========================================
-
-  const [transactions, setTransactions] =
-    useState([]);
-
-  const [salesData, setSalesData] =
-    useState([]);
-
-  const [loadingTransactions,
-    setLoadingTransactions] =
-    useState(true);
-
-  const [loadingSales,
-    setLoadingSales] =
-    useState(true);
-
-  const [creatingOrder,
-    setCreatingOrder] =
-    useState(false);
-
-  const [verifyingPayment,
-    setVerifyingPayment] =
-    useState(false);
-
-  const [generatedOrder,
-    setGeneratedOrder] =
-    useState(null);
-
-  const [paymentVerified,
-    setPaymentVerified] =
-    useState(false);
-
-  // =========================================
-  // MOCK COURSES
-  // =========================================
-
+  const TOKEN = localStorage.getItem("token") || "";
+  const [transactions, setTransactions] = useState([]);
+  const [salesData, setSalesData] = useState([]);
+  const [loadingTransactions, setLoadingTransactions] = useState(true);
+  const [loadingSales, setLoadingSales] = useState(true);
+  const [creatingOrder, setCreatingOrder] = useState(false);
+  const [verifyingPayment, setVerifyingPayment] = useState(false);
+  const [generatedOrder, setGeneratedOrder] = useState(null);
+  const [paymentVerified, setPaymentVerified] = useState(false);
   const purchasableCourses = [
     {
       id: 1,
@@ -103,49 +60,27 @@ export default function PaymentsDashboard({
     },
   ];
 
-  const [selectedCourse,
-    setSelectedCourse] =
-    useState(purchasableCourses[0]);
-
-  // =========================================
-  // SAFE API
-  // =========================================
-
-  const apiFetch = async (
-    url,
-    options = {}
-  ) => {
+  const [selectedCourse, setSelectedCourse] = useState(purchasableCourses[0]);
+  const apiFetch = async (url, options = {}) => {
     try {
       const response = await fetch(url, {
         ...options,
-
         headers: {
           "Content-Type": "application/json",
-
           Authorization: `Bearer ${TOKEN}`,
-
           ...(options.headers || {}),
         },
       });
 
       if (!response.ok) {
-        throw new Error(
-          `API Error ${response.status}`
-        );
+        throw new Error(`API Error ${response.status}`);
       }
-
       return await response.json();
     } catch (error) {
       console.error(error);
-
       return [];
     }
   };
-
-  // =========================================
-  // LOAD DATA
-  // =========================================
-
   useEffect(() => {
     loadTransactions();
 
@@ -154,46 +89,32 @@ export default function PaymentsDashboard({
     }
   }, []);
 
-  // =========================================
-  // TRANSACTIONS
-  // =========================================
-
   const loadTransactions = async () => {
     setLoadingTransactions(true);
-
     const data = await apiFetch(
-      "https://server.manchly.com/payments/my-transactions"
+      "https://server.manchly.com/payments/my-transactions",
     );
 
     if (Array.isArray(data)) {
       setTransactions(data);
-    } else if (
-      Array.isArray(data.transactions)
-    ) {
+    } else if (Array.isArray(data.transactions)) {
       setTransactions(data.transactions);
     } else {
       setTransactions([]);
     }
-
     setLoadingTransactions(false);
   };
-
-  // =========================================
-  // CREATOR SALES
-  // =========================================
 
   const loadCreatorSales = async () => {
     setLoadingSales(true);
 
     const data = await apiFetch(
-      "https://server.manchly.com/payments/creator-sales"
+      "https://server.manchly.com/payments/creator-sales",
     );
 
     if (Array.isArray(data)) {
       setSalesData(data);
-    } else if (
-      Array.isArray(data.sales)
-    ) {
+    } else if (Array.isArray(data.sales)) {
       setSalesData(data.sales);
     } else {
       setSalesData([]);
@@ -201,106 +122,55 @@ export default function PaymentsDashboard({
 
     setLoadingSales(false);
   };
-
-  // =========================================
-  // CREATE ORDER
-  // =========================================
-
   const createOrder = async () => {
     setCreatingOrder(true);
-
     setGeneratedOrder(null);
-
     const data = await apiFetch(
       `https://server.manchly.com/payments/create-order/${selectedCourse.id}`,
       {
         method: "POST",
-      }
+      },
     );
 
     setTimeout(() => {
       setGeneratedOrder({
-        orderId:
-          data.order_id ||
-          `course_${selectedCourse.id}_${Date.now()}`,
-
-        paymentLink:
-          data.payment_link ||
-          "https://paymentsandbox.manchly.com",
+        orderId: data.order_id || `course_${selectedCourse.id}_${Date.now()}`,
+        paymentLink: data.payment_link || "https://paymentsandbox.manchly.com",
       });
 
       setCreatingOrder(false);
     }, 1500);
   };
-
-  // =========================================
-  // VERIFY PAYMENT
-  // =========================================
-
   const verifyPayment = async () => {
     setVerifyingPayment(true);
 
-    const data = await apiFetch(
-      "https://server.manchly.com/payments/verify",
-      {
-        method: "POST",
+    const data = await apiFetch("https://server.manchly.com/payments/verify", {
+      method: "POST",
 
-        body: JSON.stringify({
-          order_id:
-            generatedOrder.orderId,
-        }),
-      }
-    );
+      body: JSON.stringify({
+        order_id: generatedOrder.orderId,
+      }),
+    });
 
     setTimeout(() => {
       setVerifyingPayment(false);
-
       setPaymentVerified(true);
-
       setTransactions((prev) => [
         {
           id: Date.now(),
-
           title: selectedCourse.title,
-
           amount: selectedCourse.price,
-
           status: "Paid",
-
-          order_id:
-            generatedOrder.orderId,
-
-          created_at:
-            new Date().toISOString(),
+          order_id: generatedOrder.orderId,
+          created_at: new Date().toISOString(),
         },
 
         ...prev,
       ]);
     }, 1800);
   };
-
-  // =========================================
-  // STATS
-  // =========================================
-
-  const totalSpent =
-    transactions.reduce(
-      (acc, item) =>
-        acc + (item.amount || 0),
-      0
-    ) || 0;
-
-  const totalRevenue =
-    salesData.reduce(
-      (acc, item) =>
-        acc + (item.amount || 0),
-      0
-    ) || 0;
-
-  // =========================================
-  // UI
-  // =========================================
-
+  const totalSpent = transactions.reduce((acc, item) => acc + (item.amount || 0), 0) || 0;
+  const totalRevenue = salesData.reduce((acc, item) => acc + (item.amount || 0), 0) || 0;
   return (
     <div
       style={{
@@ -308,12 +178,10 @@ export default function PaymentsDashboard({
         background: T.bg,
         color: T.textPri,
         padding: 30,
-        fontFamily:
-          "system-ui, sans-serif",
+        fontFamily: "system-ui, sans-serif",
       }}
     >
       {/* HEADER */}
-
       <div
         style={{
           marginBottom: 28,
@@ -341,15 +209,11 @@ export default function PaymentsDashboard({
       </div>
 
       {/* STATS */}
-
       <div
         style={{
           display: "grid",
           gridTemplateColumns:
-            role === "CREATOR"
-              ? "repeat(3,1fr)"
-              : "repeat(2,1fr)",
-
+            role === "CREATOR" ? "repeat(3,1fr)" : "repeat(2,1fr)",
           gap: 18,
           marginBottom: 30,
         }}
@@ -379,22 +243,13 @@ export default function PaymentsDashboard({
       </div>
 
       {/* MAIN GRID */}
-
       <div
         style={{
           display: "grid",
-          gridTemplateColumns:
-            role === "CREATOR"
-              ? "1.3fr 0.9fr"
-              : "1fr",
-
+          gridTemplateColumns: role === "CREATOR" ? "1.3fr 0.9fr" : "1fr",
           gap: 28,
         }}
       >
-        {/* ================================= */}
-        {/* CREATOR SALES */}
-        {/* ================================= */}
-
         {role === "CREATOR" && (
           <div
             style={{
@@ -407,8 +262,7 @@ export default function PaymentsDashboard({
             <div
               style={{
                 padding: 24,
-                borderBottom:
-                  `1px solid ${T.border}`,
+                borderBottom: `1px solid ${T.border}`,
               }}
             >
               <h2
@@ -445,22 +299,16 @@ export default function PaymentsDashboard({
                   <div
                     key={sale.id}
                     style={{
-                      background:
-                        T.cardHigh,
-
-                      border:
-                        `1px solid ${T.border}`,
-
+                      background: T.cardHigh,
+                      border: `1px solid ${T.border}`,
                       borderRadius: 20,
-
                       padding: 22,
                     }}
                   >
                     <div
                       style={{
                         display: "flex",
-                        justifyContent:
-                          "space-between",
+                        justifyContent: "space-between",
                       }}
                     >
                       <div>
@@ -470,72 +318,52 @@ export default function PaymentsDashboard({
                             fontSize: 18,
                           }}
                         >
-                          {sale.customer ||
-                            "Student"}
+                          {sale.customer || "Student"}
                         </div>
 
                         <div
                           style={{
-                            color:
-                              T.textSec,
+                            color: T.textSec,
                             marginTop: 8,
                           }}
                         >
-                          {sale.course ||
-                            "Course Purchase"}
+                          {sale.course || "Course Purchase"}
                         </div>
 
                         <div
                           style={{
                             marginTop: 10,
-                            color:
-                              T.textMut,
+                            color: T.textMut,
                           }}
                         >
-                          {sale.created_at ||
-                            "Recent"}
+                          {sale.created_at || "Recent"}
                         </div>
                       </div>
 
                       <div
                         style={{
-                          textAlign:
-                            "right",
+                          textAlign: "right",
                         }}
                       >
                         <div
                           style={{
                             fontSize: 30,
                             fontWeight: 900,
-                            color:
-                              T.orange,
+                            color: T.orange,
                           }}
                         >
-                          ₹
-                          {(
-                            sale.amount ||
-                            0
-                          ).toLocaleString()}
+                          ₹{(sale.amount || 0).toLocaleString()}
                         </div>
 
                         <div
                           style={{
                             marginTop: 12,
-
-                            padding:
-                              "8px 14px",
-
+                            padding: "8px 14px",
                             borderRadius: 999,
-
-                            background:
-                              T.greenL,
-
+                            background: T.greenL,
                             color: T.green,
-
                             fontWeight: 700,
-
-                            display:
-                              "inline-block",
+                            display: "inline-block",
                           }}
                         >
                           Settled
@@ -548,26 +376,16 @@ export default function PaymentsDashboard({
             </div>
           </div>
         )}
-
-        {/* ================================= */}
-        {/* PAYMENT SANDBOX */}
-        {/* ================================= */}
-
         <div
           style={{
             background: T.card,
-            border:
-              `1px solid ${T.borderHi}`,
-
+            border: `1px solid ${T.borderHi}`,
             borderRadius: 30,
-
             padding: 28,
-
             height: "fit-content",
           }}
         >
           {/* TITLE */}
-
           <div
             style={{
               display: "flex",
@@ -584,13 +402,10 @@ export default function PaymentsDashboard({
                 background: T.orangeL,
                 display: "flex",
                 alignItems: "center",
-                justifyContent:
-                  "center",
+                justifyContent: "center",
               }}
             >
-              <CreditCard
-                color={T.orange}
-              />
+              <CreditCard color={T.orange} />
             </div>
 
             <div>
@@ -613,51 +428,33 @@ export default function PaymentsDashboard({
               </p>
             </div>
           </div>
-
           {/* SELECT */}
-
           <select
             value={selectedCourse.id}
             onChange={(e) => {
-              const course =
-                purchasableCourses.find(
-                  (c) =>
-                    c.id ===
-                    Number(
-                      e.target.value
-                    )
-                );
+              const course = purchasableCourses.find(
+                (c) => c.id === Number(e.target.value),
+              );
 
               setSelectedCourse(course);
             }}
             style={{
               width: "100%",
               background: T.sidebar,
-              border:
-                `1px solid ${T.border}`,
+              border: `1px solid ${T.border}`,
 
               padding: 18,
-
               borderRadius: 18,
-
               color: "#fff",
-
               marginBottom: 20,
-
               outline: "none",
             }}
           >
-            {purchasableCourses.map(
-              (course) => (
-                <option
-                  key={course.id}
-                  value={course.id}
-                >
-                  {course.title} • ₹
-                  {course.price}
-                </option>
-              )
-            )}
+            {purchasableCourses.map((course) => (
+              <option key={course.id} value={course.id}>
+                {course.title} • ₹{course.price}
+              </option>
+            ))}
           </select>
 
           {/* CREATE */}
@@ -676,9 +473,7 @@ export default function PaymentsDashboard({
               fontSize: 15,
             }}
           >
-            {creatingOrder
-              ? "Generating Order..."
-              : "Create Order"}
+            {creatingOrder ? "Generating Order..." : "Create Order"}
           </button>
 
           {/* ORDER */}
@@ -687,15 +482,9 @@ export default function PaymentsDashboard({
             <div
               style={{
                 marginTop: 24,
-
-                background:
-                  T.cardHigh,
-
-                border:
-                  `1px solid ${T.border}`,
-
+                background: T.cardHigh,
+                border: `1px solid ${T.border}`,
                 borderRadius: 22,
-
                 padding: 22,
               }}
             >
@@ -712,13 +501,10 @@ export default function PaymentsDashboard({
                 style={{
                   marginTop: 12,
                   fontWeight: 700,
-                  wordBreak:
-                    "break-all",
+                  wordBreak: "break-all",
                 }}
               >
-                {
-                  generatedOrder.orderId
-                }
+                {generatedOrder.orderId}
               </div>
 
               <button
@@ -736,9 +522,7 @@ export default function PaymentsDashboard({
                   fontSize: 15,
                 }}
               >
-                {verifyingPayment
-                  ? "Verifying..."
-                  : "Verify Payment"}
+                {verifyingPayment ? "Verifying..." : "Verify Payment"}
               </button>
             </div>
           )}
@@ -749,26 +533,16 @@ export default function PaymentsDashboard({
             <div
               style={{
                 marginTop: 22,
-
                 background: T.greenL,
-
-                border:
-                  `1px solid ${T.green}`,
-
+                border: `1px solid ${T.green}`,
                 borderRadius: 20,
-
                 padding: 18,
-
                 display: "flex",
-
                 alignItems: "center",
-
                 gap: 12,
               }}
             >
-              <CheckCircle
-                color={T.green}
-              />
+              <CheckCircle color={T.green} />
 
               <div>
                 <div
@@ -781,30 +555,24 @@ export default function PaymentsDashboard({
 
                 <div
                   style={{
-                    color:
-                      T.textSec,
+                    color: T.textSec,
                     marginTop: 4,
                     fontSize: 14,
                   }}
                 >
-                  POST /payments/verify
-                  successful
+                  POST /payments/verify successful
                 </div>
               </div>
             </div>
           )}
 
           {/* WEBHOOK INFO */}
-
           <div
             style={{
               marginTop: 28,
               background: T.sidebar,
-              border:
-                `1px solid ${T.border}`,
-
+              border: `1px solid ${T.border}`,
               borderRadius: 18,
-
               padding: 18,
             }}
           >
@@ -816,10 +584,7 @@ export default function PaymentsDashboard({
                 marginBottom: 10,
               }}
             >
-              <ShieldCheck
-                size={18}
-                color={T.orange}
-              />
+              <ShieldCheck size={18} color={T.orange} />
 
               <div
                 style={{
@@ -837,15 +602,13 @@ export default function PaymentsDashboard({
                 lineHeight: 1.6,
               }}
             >
-              POST:
-              https://server.manchly.com/payments/webhook
+              POST: https://server.manchly.com/payments/webhook
             </div>
           </div>
         </div>
       </div>
 
       {/* TRANSACTIONS */}
-
       <div
         style={{
           marginTop: 40,
@@ -874,18 +637,11 @@ export default function PaymentsDashboard({
                 key={tx.id}
                 style={{
                   background: T.card,
-                  border:
-                    `1px solid ${T.border}`,
-
+                  border: `1px solid ${T.border}`,
                   borderRadius: 22,
-
                   padding: 22,
-
                   display: "flex",
-
-                  justifyContent:
-                    "space-between",
-
+                  justifyContent: "space-between",
                   alignItems: "center",
                 }}
               >
@@ -896,15 +652,13 @@ export default function PaymentsDashboard({
                       fontSize: 18,
                     }}
                   >
-                    {tx.title ||
-                      "Course Purchase"}
+                    {tx.title || "Course Purchase"}
                   </div>
 
                   <div
                     style={{
                       marginTop: 8,
-                      color:
-                        T.textSec,
+                      color: T.textSec,
                     }}
                   >
                     {tx.order_id}
@@ -913,8 +667,7 @@ export default function PaymentsDashboard({
                   <div
                     style={{
                       marginTop: 8,
-                      color:
-                        T.textMut,
+                      color: T.textMut,
                     }}
                   >
                     {tx.created_at}
@@ -933,31 +686,20 @@ export default function PaymentsDashboard({
                       color: T.orange,
                     }}
                   >
-                    ₹
-                    {(
-                      tx.amount || 0
-                    ).toLocaleString()}
+                    ₹{(tx.amount || 0).toLocaleString()}
                   </div>
 
                   <div
                     style={{
                       marginTop: 10,
-
-                      background:
-                        T.greenL,
-
+                      background: T.greenL,
                       color: T.green,
-
-                      padding:
-                        "8px 14px",
-
+                      padding: "8px 14px",
                       borderRadius: 999,
-
                       fontWeight: 700,
                     }}
                   >
-                    {tx.status ||
-                      "Paid"}
+                    {tx.status || "Paid"}
                   </div>
                 </div>
               </div>
@@ -968,17 +710,8 @@ export default function PaymentsDashboard({
     </div>
   );
 }
-
-// =========================================
 // STAT CARD
-// =========================================
-
-function StatCard({
-  title,
-  value,
-  icon,
-  T,
-}) {
+function StatCard({ title, value, icon, T }) {
   return (
     <div
       style={{
@@ -991,8 +724,7 @@ function StatCard({
       <div
         style={{
           display: "flex",
-          justifyContent:
-            "space-between",
+          justifyContent: "space-between",
           alignItems: "center",
         }}
       >
@@ -1029,11 +761,7 @@ function StatCard({
     </div>
   );
 }
-
-// =========================================
 // LOADER
-// =========================================
-
 function Loader() {
   return (
     <div
@@ -1043,11 +771,7 @@ function Loader() {
         padding: 40,
       }}
     >
-      <Loader2
-        size={38}
-        color="#FFC107"
-        className="spin"
-      />
+      <Loader2 size={38} color="#FFC107" className="spin" />
     </div>
   );
 }

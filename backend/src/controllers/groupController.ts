@@ -2,14 +2,26 @@ import { Request, Response } from "express";
 import prisma from "../prismaClient";
 import { ConversationType } from "@prisma/client";
 
+// JWT payload only carries { userId, email } so we look user_type up on demand
+// for the admin-gated endpoints. user_type is a Prisma array (UserType[]).
+async function isUserAdmin(userId: string | undefined): Promise<boolean> {
+    if (!userId) return false;
+    const u = await prisma.users.findUnique({
+        where: { id: userId },
+        select: { user_type: true },
+    });
+    if (!u?.user_type) return false;
+    return (u.user_type as unknown as string[]).includes("ADMIN");
+}
+
 // Create a new group (Admin only)
 export const createGroup = async (req: Request, res: Response) => {
     try {
-        const userId = (req as any).userId;
-        const userType = (req as any).userType;
+        const userId = (req as any).user?.userId;
+        // userType replaced by isUserAdmin(userId) DB lookup
 
         // Check if user is admin
-        if (userType !== "ADMIN") {
+        if (!await isUserAdmin(userId)) {
             return res.status(403).json({ error: "Only admins can create groups" });
         }
 
@@ -97,7 +109,7 @@ export const createGroup = async (req: Request, res: Response) => {
 // Get group details
 export const getGroupDetails = async (req: Request, res: Response) => {
     try {
-        const userId = (req as any).userId;
+        const userId = (req as any).user?.userId;
         const { groupId } = req.params;
 
         // Check if user is a member
@@ -150,13 +162,13 @@ export const getGroupDetails = async (req: Request, res: Response) => {
 // Update group (Admin only)
 export const updateGroup = async (req: Request, res: Response) => {
     try {
-        const userId = (req as any).userId;
-        const userType = (req as any).userType;
+        const userId = (req as any).user?.userId;
+        // userType replaced by isUserAdmin(userId) DB lookup
         const { groupId } = req.params;
         const { name, description, avatarUrl } = req.body;
 
         // Check if user is admin
-        if (userType !== "ADMIN") {
+        if (!await isUserAdmin(userId)) {
             return res.status(403).json({ error: "Only admins can update groups" });
         }
 
@@ -202,12 +214,12 @@ export const updateGroup = async (req: Request, res: Response) => {
 // Add members to group (Admin only)
 export const addGroupMembers = async (req: Request, res: Response) => {
     try {
-        const userId = (req as any).userId;
-        const userType = (req as any).userType;
+        const userId = (req as any).user?.userId;
+        // userType replaced by isUserAdmin(userId) DB lookup
         const { groupId } = req.params;
         const { memberIds } = req.body;
 
-        if (userType !== "ADMIN") {
+        if (!await isUserAdmin(userId)) {
             return res.status(403).json({ error: "Only admins can add members" });
         }
 
@@ -273,11 +285,11 @@ export const addGroupMembers = async (req: Request, res: Response) => {
 // Remove member from group (Admin only)
 export const removeGroupMember = async (req: Request, res: Response) => {
     try {
-        const userId = (req as any).userId;
-        const userType = (req as any).userType;
+        const userId = (req as any).user?.userId;
+        // userType replaced by isUserAdmin(userId) DB lookup
         const { groupId, memberId } = req.params;
 
-        if (userType !== "ADMIN") {
+        if (!await isUserAdmin(userId)) {
             return res.status(403).json({ error: "Only admins can remove members" });
         }
 
@@ -317,12 +329,12 @@ export const removeGroupMember = async (req: Request, res: Response) => {
 // Update member role (Admin only)
 export const updateMemberRole = async (req: Request, res: Response) => {
     try {
-        const userId = (req as any).userId;
-        const userType = (req as any).userType;
+        const userId = (req as any).user?.userId;
+        // userType replaced by isUserAdmin(userId) DB lookup
         const { groupId, memberId } = req.params;
         const { isAdmin } = req.body;
 
-        if (userType !== "ADMIN") {
+        if (!await isUserAdmin(userId)) {
             return res.status(403).json({ error: "Only admins can update member roles" });
         }
 
@@ -346,7 +358,7 @@ export const updateMemberRole = async (req: Request, res: Response) => {
 // Leave group
 export const leaveGroup = async (req: Request, res: Response) => {
     try {
-        const userId = (req as any).userId;
+        const userId = (req as any).user?.userId;
         const { groupId } = req.params;
 
         // Get the conversation ID for this group
@@ -390,8 +402,8 @@ export const leaveGroup = async (req: Request, res: Response) => {
 // Delete group (Creator or Admin only)
 export const deleteGroup = async (req: Request, res: Response) => {
     try {
-        const userId = (req as any).userId;
-        const userType = (req as any).userType;
+        const userId = (req as any).user?.userId;
+        // userType replaced by isUserAdmin(userId) DB lookup
         const { groupId } = req.params;
 
         const group = await prisma.groups.findUnique({
@@ -403,7 +415,7 @@ export const deleteGroup = async (req: Request, res: Response) => {
         }
 
         // Only creator or admin can delete
-        if (group.creator_id !== userId && userType !== "ADMIN") {
+        if (group.creator_id !== userId && !await isUserAdmin(userId)) {
             return res.status(403).json({ error: "Only group creator or admin can delete the group" });
         }
 
@@ -415,5 +427,44 @@ export const deleteGroup = async (req: Request, res: Response) => {
     } catch (error: any) {
         console.error("Error deleting group:", error);
         res.status(500).json({ error: "Failed to delete group" });
+    }
+};
+
+// List all groups the current user belongs to.
+// Returns each group with member count + the user's role inside it.
+export const listMyGroups = async (req: Request, res: Response) => {
+    try {
+        const userId = (req as any).user?.userId;
+        if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+        const memberships = await prisma.group_members.findMany({
+            where: { user_id: userId },
+            include: {
+                group: {
+                    include: {
+                        _count: { select: { members: true } },
+                        creator: {
+                            select: {
+                                id: true,
+                                name: true,
+                                profile_image: true,
+                            },
+                        },
+                    },
+                },
+            },
+            orderBy: { joined_at: "desc" },
+        });
+
+        const groups = memberships.map((m) => ({
+            ...m.group,
+            member_count: (m.group as any)._count?.members ?? 0,
+            is_admin: m.is_admin,
+        }));
+
+        res.json({ data: groups });
+    } catch (error: any) {
+        console.error("Error listing groups:", error);
+        res.status(500).json({ error: "Failed to list groups" });
     }
 };

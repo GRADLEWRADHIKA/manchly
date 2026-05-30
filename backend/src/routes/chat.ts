@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { authenticate } from "../middleware/auth";
+import { jwtAuth } from "../middleware/jwtAuth";
 import {
     createConversation,
     getUserConversations,
@@ -12,7 +12,9 @@ import {
 const router = Router();
 
 // All chat routes require authentication
-router.use(authenticate);
+// Use jwtAuth (matches the rest of the app's token system; the Supabase-based
+// `authenticate` middleware doesn't accept tokens issued by /auth/verify-otp).
+router.use(jwtAuth);
 
 // Conversation routes
 router.post("/conversations", createConversation);

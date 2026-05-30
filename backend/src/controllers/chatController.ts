@@ -5,7 +5,7 @@ import { ConversationType, MessageType } from "@prisma/client";
 // Create or get a conversation between two users
 export const createConversation = async (req: Request, res: Response) => {
     try {
-        const userId = (req as any).userId;
+        const userId = (req as any).user?.userId;
         const { participantId, type = "DIRECT" } = req.body;
 
         if (!participantId) {
@@ -89,7 +89,7 @@ export const createConversation = async (req: Request, res: Response) => {
 // Get all conversations for a user
 export const getUserConversations = async (req: Request, res: Response) => {
     try {
-        const userId = (req as any).userId;
+        const userId = (req as any).user?.userId;
 
         const conversations = await prisma.conversations.findMany({
             where: {
@@ -143,7 +143,7 @@ export const getUserConversations = async (req: Request, res: Response) => {
 // Get messages for a conversation
 export const getConversationMessages = async (req: Request, res: Response) => {
     try {
-        const userId = (req as any).userId;
+        const userId = (req as any).user?.userId;
         const { conversationId } = req.params;
         const { limit = 50, offset = 0 } = req.query;
 
@@ -191,7 +191,7 @@ export const getConversationMessages = async (req: Request, res: Response) => {
 // Send a message
 export const sendMessage = async (req: Request, res: Response) => {
     try {
-        const userId = (req as any).userId;
+        const userId = (req as any).user?.userId;
         const { conversationId, content, type = "TEXT", attachmentUrl } = req.body;
 
         if (!conversationId || !content) {
@@ -248,7 +248,7 @@ export const sendMessage = async (req: Request, res: Response) => {
 // Mark messages as read
 export const markMessagesAsRead = async (req: Request, res: Response) => {
     try {
-        const userId = (req as any).userId;
+        const userId = (req as any).user?.userId;
         const { conversationId } = req.body;
 
         if (!conversationId) {
@@ -288,7 +288,7 @@ export const markMessagesAsRead = async (req: Request, res: Response) => {
 // Delete a message
 export const deleteMessage = async (req: Request, res: Response) => {
     try {
-        const userId = (req as any).userId;
+        const userId = (req as any).user?.userId;
         const { messageId } = req.params;
 
         // Check if user is the sender

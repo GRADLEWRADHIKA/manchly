@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+
 import {
   View,
   Text,
@@ -14,6 +15,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Users, Play, CheckCircle } from 'lucide-react-native';
 
 import colors from '../../../../../utils/colors';
+import AiButton from '../../../../../components/AiButton';
+import LandingCopyModal from '../../../../../components/ai/LandingCopyModal';
 import { wp, hp, fp } from '../../../../../utils/responsive';
 import AppHeaderWithBack from '../../../../../components/AppHeaderWithBack';
 import { getCourseById } from '../../../../../store/CourseSlice';
@@ -24,6 +27,7 @@ const CourseDetailsScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const dispatch = useDispatch<any>();
+  const [showLandingCopy, setShowLandingCopy] = useState(false);
 
   const courseId = route.params?.courseId || route.params?.id;
 
@@ -113,6 +117,12 @@ const CourseDetailsScreen: React.FC = () => {
             </View>
           </View>
 
+          <AiButton
+            label="Suggest Landing Copy"
+            onPress={() => setShowLandingCopy(true)}
+            style={{ alignSelf: 'flex-start', marginTop: hp(8) }}
+          />
+
           {/* PAYMENT DETAILS */}
           <View style={styles.priceBox}>
             <Text style={styles.sectionTitle}>Payment Details</Text>
@@ -134,6 +144,13 @@ const CourseDetailsScreen: React.FC = () => {
         </View>
       </ScrollView>
 
+      <LandingCopyModal
+        visible={showLandingCopy}
+        onClose={() => setShowLandingCopy(false)}
+        title={course?.title || ''}
+        description={course?.description || ''}
+        price={price}
+      />
     </View>
   );
 };

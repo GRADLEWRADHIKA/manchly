@@ -41,6 +41,7 @@ import {
   Type,
   IndianRupee,
 } from 'lucide-react-native';
+import TitleSuggestionsModal from '../../../../../components/ai/TitleSuggestionsModal';
 
 const CreateWebinarScreen = () => {
   const navigation = useNavigation();
@@ -54,6 +55,7 @@ const CreateWebinarScreen = () => {
   const [tagInput, setTagInput] = useState('');
   const [tagList, setTagList] = useState<string[]>(updatedata?.tags || []);
   const [isTimePickerVisible, setTimePickerVisibility] = useState(false);
+  const [showTitleSuggestions, setShowTitleSuggestions] = useState(false);
 
   const showDatePicker = () => {
     setDatePickerVisibility(true);
@@ -136,7 +138,7 @@ const CreateWebinarScreen = () => {
     }
   };
 
-  const { control, handleSubmit, reset } = useForm({
+  const { control, handleSubmit, reset, setValue } = useForm({
     defaultValues: {
       title: updatedata?.title,
       description: updatedata?.description,
@@ -232,9 +234,17 @@ const CreateWebinarScreen = () => {
             contentContainerStyle={styles.formScroll}
             showsVerticalScrollIndicator={false}
           >
-            <View style={[styles.labelRow, { marginTop: hp(10) }]}>
-              <Type size={wp(14)} color={colors.textSecondary} />
-              <Text style={styles.label}>Title</Text>
+            <View style={[styles.labelRow, { marginTop: hp(10), justifyContent: 'space-between' }]}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: wp(6) }}>
+                <Type size={wp(14)} color={colors.textSecondary} />
+                <Text style={styles.label}>Title</Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => setShowTitleSuggestions(true)}
+                style={styles.aiSuggestBtn}
+              >
+                <Text style={styles.aiSuggestText}>Suggest Titles</Text>
+              </TouchableOpacity>
             </View>
             <Controller
               name="title"
@@ -722,6 +732,12 @@ const CreateWebinarScreen = () => {
           </TouchableOpacity>
         </View>
       </View>
+      <TitleSuggestionsModal
+        visible={showTitleSuggestions}
+        onClose={() => setShowTitleSuggestions(false)}
+        topic={updatedata?.title || 'webinar'}
+        onSelect={(title: string) => setValue('title', title)}
+      />
     </View>
   );
 };
@@ -870,5 +886,18 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontSize: fp(14),
     fontWeight: 'bold',
+  },
+  aiSuggestBtn: {
+    backgroundColor: '#A78BFA15',
+    paddingHorizontal: wp(10),
+    paddingVertical: hp(4),
+    borderRadius: wp(8),
+    borderWidth: 1,
+    borderColor: '#A78BFA30',
+  },
+  aiSuggestText: {
+    fontSize: fp(11),
+    fontWeight: '600',
+    color: '#A78BFA',
   },
 });

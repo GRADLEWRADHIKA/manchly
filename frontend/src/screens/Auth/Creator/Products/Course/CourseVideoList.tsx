@@ -20,6 +20,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
 import YouTubePlayer from '../../../../../components/YouTubePlayer';
 import { Play, Clock, Plus, MoreVertical, Upload, CheckCircle, AlertCircle } from 'lucide-react-native';
+import AiButton from '../../../../../components/AiButton';
+import LessonScriptModal from '../../../../../components/ai/LessonScriptModal';
+import QuizModal from '../../../../../components/ai/QuizModal';
 import LinearGradient from 'react-native-linear-gradient';
 import { createShimmerPlaceholder } from 'react-native-shimmer-placeholder';
 import { Menu, FAB } from 'react-native-paper';
@@ -61,6 +64,10 @@ const CourseVideoList = () => {
   const focus = useIsFocused();
   const [refresh, setRefresh] = useState(false);
   const [isUpdate, setIsUpdate] = useState(false);
+
+  const [scriptModal, setScriptModal] = useState<{ visible: boolean; title: string }>({ visible: false, title: '' });
+  const [quizModal, setQuizModal] = useState<{ visible: boolean; topic: string }>({ visible: false, topic: '' });
+  const courseTitle = route?.params?.item?.title || 'Course';
 
   const activeUploads = useSelector(
     (state: RootState) => state.videosReducer.activeUploads,
@@ -250,6 +257,18 @@ const CourseVideoList = () => {
           <Text style={styles.videoDesc} numberOfLines={2}>
             {item?.description || 'No description available'}
           </Text>
+          <View style={styles.aiRow}>
+            <AiButton
+              compact
+              label="Script"
+              onPress={() => setScriptModal({ visible: true, title: item?.title || '' })}
+            />
+            <AiButton
+              compact
+              label="Quiz"
+              onPress={() => setQuizModal({ visible: true, topic: item?.title || '' })}
+            />
+          </View>
         </View>
       </TouchableOpacity>
     );
@@ -403,6 +422,19 @@ const CourseVideoList = () => {
         onDelete={handleDelete}
         loading={deleteLoading}
       />
+
+      <LessonScriptModal
+        visible={scriptModal.visible}
+        onClose={() => setScriptModal({ visible: false, title: '' })}
+        courseTitle={courseTitle}
+        lessonTitle={scriptModal.title}
+      />
+
+      <QuizModal
+        visible={quizModal.visible}
+        onClose={() => setQuizModal({ visible: false, topic: '' })}
+        topic={quizModal.topic}
+      />
     </View>
   );
 };
@@ -512,6 +544,11 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     lineHeight: fp(17),
     marginTop: hp(4),
+  },
+  aiRow: {
+    flexDirection: 'row',
+    gap: wp(6),
+    marginTop: hp(6),
   },
   menuButton: {
     padding: wp(4),

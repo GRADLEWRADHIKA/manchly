@@ -24,6 +24,8 @@ import SocketService from '../../../../services/SocketService';
 import colors from '../../../../utils/colors';
 import {wp, hp, fp} from '../../../../utils/responsive';
 import {getMySessions, getSessionStats, getMyExpertProfile, updateExpertProfile} from '../../../../store/SessionSlice';
+import AiButton from '../../../../components/AiButton';
+import PrepChecklistModal from '../../../../components/ai/PrepChecklistModal';
 
 const CreatorSessions: React.FC = () => {
   const dispatch = useDispatch<any>();
@@ -34,6 +36,7 @@ const CreatorSessions: React.FC = () => {
   );
 
   const [isAvailable, setIsAvailable] = useState(expertProfile?.is_available ?? false);
+  const [prepModal, setPrepModal] = useState<{visible: boolean; title: string; context?: string}>({visible: false, title: ''});
 
   useEffect(() => {
     if (isFocused) {
@@ -222,21 +225,39 @@ const CreatorSessions: React.FC = () => {
                   </View>
                 </View>
               </View>
-              {session.status === 'PENDING' ? (
-                <TouchableOpacity
-                  style={styles.callUserBtn}
-                  activeOpacity={0.8}
-                  onPress={() => handleCallUser(session)}>
-                  <PhoneOutgoing size={wp(14)} color={colors.white} strokeWidth={2} />
-                  <Text style={styles.callUserBtnText}>Call</Text>
-                </TouchableOpacity>
-              ) : (
-                <Text style={styles.sessionAmount}>₹{session.amount}</Text>
-              )}
+              <View style={{alignItems: 'flex-end', gap: hp(4)}}>
+                {session.status === 'PENDING' ? (
+                  <>
+                    <TouchableOpacity
+                      style={styles.callUserBtn}
+                      activeOpacity={0.8}
+                      onPress={() => handleCallUser(session)}>
+                      <PhoneOutgoing size={wp(14)} color={colors.white} strokeWidth={2} />
+                      <Text style={styles.callUserBtnText}>Call</Text>
+                    </TouchableOpacity>
+                    <AiButton
+                      compact
+                      label="Prep"
+                      onPress={() => setPrepModal({visible: true, title: session.product_title || 'Session'})}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <Text style={styles.sessionAmount}>₹{session.amount}</Text>
+                  </>
+                )}
+              </View>
             </View>
           );
         })
       )}
+      <PrepChecklistModal
+        visible={prepModal.visible}
+        onClose={() => setPrepModal({visible: false, title: ''})}
+        productTitle={prepModal.title}
+        learnerContext={prepModal.context}
+      />
+
     </ScrollView>
   );
 };

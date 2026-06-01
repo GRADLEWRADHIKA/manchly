@@ -59,12 +59,14 @@ const ExpertRegistration: React.FC = () => {
   const dispatch = useDispatch<any>();
   const [loading, setLoading] = useState(false);
 
+
   const editData = route.params?.expertProfile;
   const isEditing = !!editData;
 
   const {
     control,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<FormData>({
     defaultValues: {
@@ -272,6 +274,7 @@ const ExpertRegistration: React.FC = () => {
           </Text>
         </TouchableOpacity>
       </ScrollView>
+
     </View>
   );
 };

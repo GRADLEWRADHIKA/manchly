@@ -8,25 +8,31 @@ import {
   TouchableOpacity,
   Platform,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
-import {useDispatch} from 'react-redux';
+import {useNavigation, useRoute} from '@react-navigation/native';
+import {useDispatch, useSelector} from 'react-redux';
 import {Video, Clock, IndianRupee} from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 import colors from '../../../../utils/colors';
 import {wp, hp, fp} from '../../../../utils/responsive';
 import AppHeaderWithBack from '../../../../components/AppHeaderWithBack';
 import {createSessionProduct} from '../../../../store/SessionSlice';
+import AiButton from '../../../../components/AiButton';
+import ProductSuggestionsModal from '../../../../components/ai/ProductSuggestionsModal';
 
 const CreateSessionProduct: React.FC = () => {
   const navigation = useNavigation<any>();
+  const route = useRoute<any>();
   const dispatch = useDispatch<any>();
+  const prefill = route.params?.prefill;
+  const {expertProfile} = useSelector((state: any) => state.sessionReducer);
 
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [duration, setDuration] = useState('');
-  const [price, setPrice] = useState('');
+  const [title, setTitle] = useState(prefill?.title || '');
+  const [description, setDescription] = useState(prefill?.blurb || '');
+  const [duration, setDuration] = useState(prefill?.duration_min ? String(prefill.duration_min) : '');
+  const [price, setPrice] = useState(prefill?.suggested_price_inr ? String(prefill.suggested_price_inr) : '');
   const mode = 'video';
   const [loading, setLoading] = useState(false);
+  const [showProductSuggestions, setShowProductSuggestions] = useState(false);
 
   const handleCreate = () => {
     if (!title.trim() || !duration || !price) {
@@ -60,6 +66,12 @@ const CreateSessionProduct: React.FC = () => {
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}>
+        <AiButton
+          label="Suggest Products"
+          onPress={() => setShowProductSuggestions(true)}
+          style={{alignSelf: 'flex-start', marginBottom: hp(8)}}
+        />
+
         {/* Title */}
         <Text style={styles.label}>Session Title *</Text>
         <TextInput
@@ -196,6 +208,21 @@ const CreateSessionProduct: React.FC = () => {
           </Text>
         </TouchableOpacity>
       </ScrollView>
+
+      <ProductSuggestionsModal
+        visible={showProductSuggestions}
+        onClose={() => setShowProductSuggestions(false)}
+        expertHeadline={expertProfile?.profession || ''}
+        expertBio={expertProfile?.bio}
+        category={expertProfile?.categories?.[0] || ''}
+        onSelect={(product: any) => {
+          setShowProductSuggestions(false);
+          setTitle(product.title || '');
+          setDescription(product.blurb || '');
+          setDuration(product.duration_min ? String(product.duration_min) : '');
+          setPrice(product.suggested_price_inr ? String(product.suggested_price_inr) : '');
+        }}
+      />
     </View>
   );
 };

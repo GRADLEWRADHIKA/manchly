@@ -30,8 +30,13 @@ import {
 import { wp, hp, fp } from '../../../../../utils/responsive';
 import { getWebinarById } from '../../../../../store/WebinarSlice';
 import { createDynamicLink } from 'react-native-chottulink-sdk';
+import AiButton from '../../../../../components/AiButton';
+import EmailSeriesModal from '../../../../../components/ai/EmailSeriesModal';
+import SocialPostsModal from '../../../../../components/ai/SocialPostsModal';
 
 const WebinarDetails = () => {
+  const [showEmails, setShowEmails] = React.useState(false);
+  const [showSocialPosts, setShowSocialPosts] = React.useState(false);
   const { params } = useRoute<any>();
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
   const webinarFromStore = useSelector(
@@ -134,6 +139,11 @@ const WebinarDetails = () => {
           </TouchableOpacity>
         </View>
 
+        <View style={styles.linkActionRow}>
+          <AiButton label="Generate Emails" onPress={() => setShowEmails(true)} />
+          <AiButton label="Social Posts" onPress={() => setShowSocialPosts(true)} />
+        </View>
+
         <View style={styles.row}>
           <User size={wp(18)} color={colors.textSecondary} />
           <Text style={styles.host}>
@@ -203,7 +213,21 @@ const WebinarDetails = () => {
           </View>
         </View>
       </ScrollView>
-      
+
+      <EmailSeriesModal
+        visible={showEmails}
+        onClose={() => setShowEmails(false)}
+        title={data?.title || ''}
+        scheduledAt={data?.scheduled_at}
+      />
+
+      <SocialPostsModal
+        visible={showSocialPosts}
+        onClose={() => setShowSocialPosts(false)}
+        title={data?.title || ''}
+        description={data?.description}
+        scheduledAt={data?.scheduled_at}
+      />
     </View>
   );
 };

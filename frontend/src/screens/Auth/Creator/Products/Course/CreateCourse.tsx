@@ -32,6 +32,8 @@ import {
   FileText,
 } from 'lucide-react-native';
 import FacingIssues from './components/FacingIssues';
+import AiButton from '../../../../../components/AiButton';
+import TitleSuggestionsModal from '../../../../../components/ai/TitleSuggestionsModal';
 
 const CreateCourse = () => {
   const [loading, setLoading] = useState(false);
@@ -41,11 +43,14 @@ const CreateCourse = () => {
   const isUpdated = route?.params?.isUpdated;
   const updateData = route?.params?.data;
   const [uploading, setUploading] = useState(false);
+  const [showTitleSuggestions, setShowTitleSuggestions] = useState(false);
 
   const {
     control,
     handleSubmit,
     reset,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -190,9 +195,16 @@ const CreateCourse = () => {
           showsVerticalScrollIndicator={false}
         >
           {/* Title */}
-          <View style={styles.labelRow}>
-            <Type size={wp(14)} color={colors.textSecondary} />
-            <Text style={styles.label}>Course Title</Text>
+          <View style={[styles.labelRow, {justifyContent: 'space-between'}]}>
+            <View style={{flexDirection: 'row', alignItems: 'center', gap: wp(6)}}>
+              <Type size={wp(14)} color={colors.textSecondary} />
+              <Text style={styles.label}>Course Title</Text>
+            </View>
+            <AiButton
+              compact
+              label="Suggest Titles"
+              onPress={() => setShowTitleSuggestions(true)}
+            />
           </View>
           <Controller
             name="courseTitle"
@@ -391,6 +403,14 @@ const CreateCourse = () => {
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
+
+      <TitleSuggestionsModal
+        visible={showTitleSuggestions}
+        onClose={() => setShowTitleSuggestions(false)}
+        topic={watch('courseTitle') || 'course'}
+        onSelect={(title: string) => setValue('courseTitle', title)}
+      />
+
     </View>
   );
 };

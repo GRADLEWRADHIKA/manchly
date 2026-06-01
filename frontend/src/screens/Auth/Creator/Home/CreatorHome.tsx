@@ -90,7 +90,6 @@ const CreatorHome = () => {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={[styles.headerWrapper, { paddingTop: insets.top }]}>
         <View style={styles.header}>
           <View style={styles.headerLeft}>
@@ -296,6 +295,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(16),
     marginTop: hp(14),
   },
+
 
   // Floating Intro Video
   floatingVideoContainer: {

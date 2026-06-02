@@ -12,6 +12,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
 import { useForm, Controller } from 'react-hook-form';
 import { Briefcase, Clock, Video } from 'lucide-react-native';
+import EnhanceSuggestionCard from '../../../../components/ai/EnhanceSuggestionCard';
 import { MultiSelect } from 'react-native-element-dropdown';
 import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
@@ -67,6 +68,7 @@ const ExpertRegistration: React.FC = () => {
     control,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<FormData>({
     defaultValues: {
@@ -115,7 +117,16 @@ const ExpertRegistration: React.FC = () => {
         </View>
 
         {/* Profession */}
-        <Text style={styles.label}>Your Profession *</Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Text style={styles.label}>Your Profession *</Text>
+          <EnhanceSuggestionCard
+            value={watch('profession')}
+            onAccept={(text) => setValue('profession', text)}
+            endpoint="/ai/session/enhance"
+            kind="headline"
+            tone="warm"
+          />
+        </View>
         <Controller
           control={control}
           name="profession"
@@ -191,7 +202,16 @@ const ExpertRegistration: React.FC = () => {
         />
 
         {/* Bio */}
-        <Text style={styles.label}>Bio / About</Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Text style={styles.label}>Bio / About</Text>
+          <EnhanceSuggestionCard
+            value={watch('bio')}
+            onAccept={(text) => setValue('bio', text)}
+            endpoint="/ai/session/enhance"
+            kind="bio"
+            tone="warm"
+          />
+        </View>
         <Controller
           control={control}
           name="bio"

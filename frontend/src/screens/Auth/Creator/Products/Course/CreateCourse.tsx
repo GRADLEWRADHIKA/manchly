@@ -32,8 +32,7 @@ import {
   FileText,
 } from 'lucide-react-native';
 import FacingIssues from './components/FacingIssues';
-import AiButton from '../../../../../components/AiButton';
-import TitleSuggestionsModal from '../../../../../components/ai/TitleSuggestionsModal';
+import EnhanceSuggestionCard from '../../../../../components/ai/EnhanceSuggestionCard';
 
 const CreateCourse = () => {
   const [loading, setLoading] = useState(false);
@@ -43,8 +42,6 @@ const CreateCourse = () => {
   const isUpdated = route?.params?.isUpdated;
   const updateData = route?.params?.data;
   const [uploading, setUploading] = useState(false);
-  const [showTitleSuggestions, setShowTitleSuggestions] = useState(false);
-
   const {
     control,
     handleSubmit,
@@ -195,15 +192,19 @@ const CreateCourse = () => {
           showsVerticalScrollIndicator={false}
         >
           {/* Title */}
-          <View style={[styles.labelRow, {justifyContent: 'space-between'}]}>
-            <View style={{flexDirection: 'row', alignItems: 'center', gap: wp(6)}}>
+          <View style={[styles.labelRow, { justifyContent: 'space-between' }]}>
+            <View
+              style={{ flexDirection: 'row', alignItems: 'center', gap: wp(6) }}
+            >
               <Type size={wp(14)} color={colors.textSecondary} />
               <Text style={styles.label}>Course Title</Text>
             </View>
-            <AiButton
-              compact
-              label="Suggest Titles"
-              onPress={() => setShowTitleSuggestions(true)}
+            <EnhanceSuggestionCard
+              value={watch('courseTitle')}
+              onAccept={text => setValue('courseTitle', text)}
+              endpoint="/ai/course/enhance"
+              kind="title"
+              tone="punchy"
             />
           </View>
           <Controller
@@ -346,9 +347,20 @@ const CreateCourse = () => {
           />
 
           {/* Headline */}
-          <View style={styles.labelRow}>
-            <FileText size={wp(14)} color={colors.textSecondary} />
-            <Text style={styles.label}>Headline</Text>
+          <View style={[styles.labelRow, { justifyContent: 'space-between' }]}>
+            <View
+              style={{ flexDirection: 'row', alignItems: 'center', gap: wp(6) }}
+            >
+              <FileText size={wp(14)} color={colors.textSecondary} />
+              <Text style={styles.label}>Headline</Text>
+            </View>
+            <EnhanceSuggestionCard
+              value={watch('description')}
+              onAccept={text => setValue('description', text)}
+              endpoint="/ai/course/enhance"
+              kind="description"
+              tone="conversational"
+            />
           </View>
           <Controller
             name="description"
@@ -358,13 +370,21 @@ const CreateCourse = () => {
               minLength: 5,
               maxLength: 200,
             }}
-            render={({ field: { onChange, onBlur, value }, fieldState: { error } }) => (
+            render={({
+              field: { onChange, onBlur, value },
+              fieldState: { error },
+            }) => (
               <CustomTextInput
-                inputContainerStyle={[styles.input, error && styles.errorBorder]}
+                inputContainerStyle={[
+                  styles.input,
+                  styles.textArea,
+                  error && styles.errorBorder,
+                ]}
                 placeholder="Write a headline"
                 value={value}
                 onChange={onChange}
                 onBlur={onBlur}
+                multiline
               />
             )}
           />
@@ -403,14 +423,6 @@ const CreateCourse = () => {
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
-
-      <TitleSuggestionsModal
-        visible={showTitleSuggestions}
-        onClose={() => setShowTitleSuggestions(false)}
-        topic={watch('courseTitle') || 'course'}
-        onSelect={(title: string) => setValue('courseTitle', title)}
-      />
-
     </View>
   );
 };
@@ -435,8 +447,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(6),
-    marginTop: hp(14),
-    marginBottom: hp(6),
+    marginTop: hp(10),
+    marginBottom: hp(4),
   },
   label: {
     fontSize: fp(13),
@@ -448,11 +460,16 @@ const styles = StyleSheet.create({
   input: {
     borderRadius: wp(12),
     paddingHorizontal: wp(12),
-    height: hp(46),
+    height: hp(42),
     width: '100%',
     backgroundColor: colors.white,
     borderWidth: 1,
     borderColor: colors.borderColor,
+  },
+  textArea: {
+    height: hp(80),
+    // paddingTop: hp(8),
+    alignItems: 'flex-start',
   },
   errorBorder: {
     borderWidth: 1.5,
@@ -466,7 +483,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: wp(8),
     borderRadius: wp(12),
-    height: hp(46),
+    height: hp(42),
     backgroundColor: colors.white,
     borderWidth: 1,
     borderColor: colors.borderColor,
@@ -486,7 +503,7 @@ const styles = StyleSheet.create({
 
   // Dropdowns
   dropdown: {
-    height: hp(46),
+    height: hp(42),
     borderWidth: 1,
     borderColor: colors.borderColor,
     borderRadius: wp(12),

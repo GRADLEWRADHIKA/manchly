@@ -126,7 +126,7 @@ const CourseVideoList = () => {
           ) : isFailed ? (
             <AlertCircle color={colors.error} size={wp(24)} />
           ) : (
-            <Upload color={colors.info} size={wp(24)} />
+            <Upload color={colors.cAccentLight} size={wp(24)} />
           )}
         </View>
         <View style={styles.uploadInfo}>
@@ -161,16 +161,16 @@ const CourseVideoList = () => {
     <View style={styles.shimmerCard}>
       <ShimmerPlaceholder
         style={styles.shimmerThumbnail}
-        shimmerColors={[colors.lightGrey, colors.muted, colors.lightGrey]}
+        shimmerColors={[colors.cCard, colors.cCardLight, colors.cCard]}
       />
       <View style={styles.shimmerContent}>
         <ShimmerPlaceholder
           style={styles.shimmerTitle}
-          shimmerColors={[colors.lightGrey, colors.muted, colors.lightGrey]}
+          shimmerColors={[colors.cCard, colors.cCardLight, colors.cCard]}
         />
         <ShimmerPlaceholder
           style={styles.shimmerDuration}
-          shimmerColors={[colors.lightGrey, colors.muted, colors.lightGrey]}
+          shimmerColors={[colors.cCard, colors.cCardLight, colors.cCard]}
         />
       </View>
     </View>
@@ -226,7 +226,7 @@ const CourseVideoList = () => {
                   }}
                   style={styles.menuButton}
                 >
-                  <MoreVertical color={colors.textSecondary} size={wp(18)} />
+                  <MoreVertical color={colors.cTextSecondary} size={wp(18)} />
                 </TouchableOpacity>
               }
               contentStyle={styles.menuContent}
@@ -311,7 +311,7 @@ const CourseVideoList = () => {
       ) : (
         <View style={styles.noDataContainer}>
           <View style={styles.noDataIcon}>
-            <Play color={colors.primary} size={wp(48)} />
+            <Play color={colors.cAccent} size={wp(48)} />
           </View>
           <Text style={styles.noDataTitle}>No Videos Available</Text>
           <Text style={styles.noDataSubtitle}>
@@ -443,7 +443,7 @@ export default CourseVideoList;
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.cBg,
     flex: 1,
   },
   listContainer: {
@@ -457,20 +457,22 @@ const styles = StyleSheet.create({
   countText: {
     fontSize: fp(14),
     fontWeight: '600',
-    color: colors.text,
+    color: colors.cText,
   },
   // Video card - horizontal layout like user page
   card: {
     flexDirection: 'row',
-    backgroundColor: colors.white,
+    backgroundColor: colors.cCard,
     borderRadius: wp(12),
     marginBottom: hp(14),
     overflow: 'hidden',
     elevation: 3,
-    shadowColor: colors.black,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
+    borderWidth: 1,
+    borderColor: colors.cBorder,
   },
   thumbnailWrapper: {
     position: 'relative',
@@ -482,7 +484,7 @@ const styles = StyleSheet.create({
     height: '100%',
     borderTopLeftRadius: wp(12),
     borderBottomLeftRadius: wp(12),
-    backgroundColor: colors.lightGrey,
+    backgroundColor: colors.cSurface,
   },
   thumbnailGradient: {
     position: 'absolute',
@@ -535,13 +537,13 @@ const styles = StyleSheet.create({
   videoTitle: {
     fontSize: fp(15),
     fontWeight: '600',
-    color: colors.black,
+    color: colors.cText,
     flex: 1,
     marginRight: wp(4),
   },
   videoDesc: {
     fontSize: fp(12),
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
     lineHeight: fp(17),
     marginTop: hp(4),
   },
@@ -554,19 +556,21 @@ const styles = StyleSheet.create({
     padding: wp(4),
   },
   menuContent: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.cCard,
     borderRadius: wp(8),
     elevation: 4,
-    shadowColor: colors.black,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
+    borderWidth: 1,
+    borderColor: colors.cBorder,
   },
   menuItem: {
     paddingVertical: hp(8),
   },
   editText: {
-    color: colors.text,
+    color: colors.cText,
   },
   deleteText: {
     color: colors.error,
@@ -582,19 +586,19 @@ const styles = StyleSheet.create({
   },
   videoInfoContainer: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: colors.cBg,
     paddingHorizontal: wp(16),
     paddingTop: hp(16),
   },
   videoInfoTitle: {
     fontSize: fp(18),
     fontWeight: '700',
-    color: colors.text,
+    color: colors.cText,
     marginBottom: hp(6),
   },
   videoInfoDesc: {
     fontSize: fp(14),
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
     lineHeight: fp(20),
     marginBottom: hp(16),
   },
@@ -604,10 +608,10 @@ const styles = StyleSheet.create({
   upNextTitle: {
     fontSize: fp(16),
     fontWeight: '700',
-    color: colors.text,
+    color: colors.cText,
     marginBottom: hp(12),
     borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTopColor: colors.cBorder,
     paddingTop: hp(12),
   },
   upNextCard: {
@@ -620,7 +624,7 @@ const styles = StyleSheet.create({
     width: wp(120),
     height: hp(68),
     borderRadius: wp(8),
-    backgroundColor: colors.lightGrey,
+    backgroundColor: colors.cSurface,
   },
   upNextInfo: {
     flex: 1,
@@ -630,12 +634,12 @@ const styles = StyleSheet.create({
   upNextCardTitle: {
     fontSize: fp(14),
     fontWeight: '600',
-    color: colors.text,
+    color: colors.cText,
     marginBottom: hp(4),
   },
   upNextDuration: {
     fontSize: fp(12),
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
   },
   // Empty state
   noDataContainer: {
@@ -645,7 +649,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(40),
   },
   noDataIcon: {
-    backgroundColor: colors.lightGrey,
+    backgroundColor: colors.cCard,
     width: wp(100),
     height: hp(100),
     borderRadius: wp(50),
@@ -653,31 +657,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: hp(20),
     borderWidth: wp(1),
-    borderColor: colors.border,
+    borderColor: colors.cBorder,
   },
   noDataTitle: {
     fontSize: fp(20),
     fontWeight: '700',
-    color: colors.text,
+    color: colors.cText,
     textAlign: 'center',
     marginBottom: hp(8),
   },
   noDataSubtitle: {
     fontSize: fp(14),
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
     textAlign: 'center',
     lineHeight: fp(20),
   },
   // Shimmer
   shimmerCard: {
     flexDirection: 'row',
-    backgroundColor: colors.white,
+    backgroundColor: colors.cCard,
     borderRadius: wp(12),
     marginHorizontal: wp(16),
     marginVertical: hp(6),
     overflow: 'hidden',
     elevation: 3,
-    shadowColor: colors.black,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -710,12 +714,12 @@ const styles = StyleSheet.create({
   uploadCard: {
     flexDirection: 'row' as const,
     alignItems: 'center' as const,
-    backgroundColor: colors.white,
+    backgroundColor: colors.cCard,
     borderRadius: wp(10),
     padding: wp(12),
     marginBottom: hp(8),
     elevation: 2,
-    shadowColor: colors.black,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.08,
     shadowRadius: 3,
@@ -724,7 +728,7 @@ const styles = StyleSheet.create({
     width: wp(40),
     height: wp(40),
     borderRadius: wp(20),
-    backgroundColor: colors.surface,
+    backgroundColor: colors.cSurface,
     justifyContent: 'center' as const,
     alignItems: 'center' as const,
     marginRight: wp(12),
@@ -735,23 +739,23 @@ const styles = StyleSheet.create({
   uploadTitle: {
     fontSize: fp(14),
     fontWeight: '600' as const,
-    color: colors.text,
+    color: colors.cText,
     marginBottom: hp(2),
   },
   uploadStatus: {
     fontSize: fp(12),
-    color: colors.info,
+    color: colors.cAccentLight,
     marginBottom: hp(4),
   },
   progressBarBg: {
     height: hp(4),
-    backgroundColor: colors.lightGrey,
+    backgroundColor: colors.cCardLight,
     borderRadius: wp(2),
     overflow: 'hidden' as const,
   },
   progressBarFill: {
     height: '100%' as const,
-    backgroundColor: colors.info,
+    backgroundColor: colors.cAccent,
     borderRadius: wp(2),
   },
   // FAB
@@ -760,7 +764,7 @@ const styles = StyleSheet.create({
     margin: wp(16),
     right: 0,
     bottom: 0,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.cAccent,
     borderRadius: wp(50),
   },
   // Bottom modal

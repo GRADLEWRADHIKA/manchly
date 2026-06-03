@@ -174,13 +174,16 @@ const styles = StyleSheet.create({
   },
   sheetOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.45)',
+    backgroundColor: 'rgba(0,0,0,0.7)',
     justifyContent: 'flex-end',
   },
   sheetContainer: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.cCard,
     borderTopLeftRadius: wp(24),
     borderTopRightRadius: wp(24),
+    borderWidth: 1,
+    borderBottomWidth: 0,
+    borderColor: colors.cBorder,
     paddingHorizontal: wp(20),
     paddingTop: hp(10),
     paddingBottom: hp(28),
@@ -189,18 +192,18 @@ const styles = StyleSheet.create({
     width: wp(40),
     height: hp(4),
     borderRadius: wp(2),
-    backgroundColor: colors.handle,
+    backgroundColor: colors.cTextMuted,
     alignSelf: 'center',
     marginBottom: hp(16),
   },
   sheetTitle: {
     fontSize: fp(18),
     fontWeight: '800',
-    color: colors.text,
+    color: colors.cText,
   },
   sheetSubtitle: {
     fontSize: fp(13),
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
     marginTop: hp(4),
     marginBottom: hp(18),
   },
@@ -237,7 +240,7 @@ const styles = StyleSheet.create({
   },
   splitLegendLabel: {
     fontSize: fp(12),
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
     fontWeight: '500',
   },
   splitLegendValue: {
@@ -247,12 +250,12 @@ const styles = StyleSheet.create({
   },
   sheetDivider: {
     height: 1,
-    backgroundColor: colors.divider,
+    backgroundColor: colors.cBorder,
     marginVertical: hp(18),
   },
   calcLabel: {
     fontSize: fp(13),
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
     fontWeight: '500',
     marginBottom: hp(14),
   },
@@ -267,7 +270,7 @@ const styles = StyleSheet.create({
   saleAmountText: {
     fontSize: fp(22),
     fontWeight: '800',
-    color: colors.text,
+    color: colors.cText,
     textAlign: 'center',
     marginVertical: hp(10),
   },
@@ -291,7 +294,7 @@ const styles = StyleSheet.create({
   },
   resultLabel: {
     fontSize: fp(12),
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
     fontWeight: '500',
     marginBottom: hp(4),
   },

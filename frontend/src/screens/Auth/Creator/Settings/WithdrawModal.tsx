@@ -62,7 +62,7 @@ const WithdrawModal: React.FC<WithdrawModalProps> = ({
       <View style={styles.modalOverlay}>
         <View style={styles.modalContainer}>
           <View style={styles.modalIconWrap}>
-            <WalletMinimal size={wp(28)} color={colors.primary} />
+            <WalletMinimal size={wp(28)} color={colors.cAccent} />
           </View>
           <Text style={styles.modalTitle}>Withdraw Funds</Text>
 
@@ -74,7 +74,7 @@ const WithdrawModal: React.FC<WithdrawModalProps> = ({
           </View>
 
           <View style={styles.modalInfoRow}>
-            <Clock size={wp(16)} color={colors.info} />
+            <Clock size={wp(16)} color={colors.cAccentLight} />
             <Text style={styles.modalInfoText}>
               Your money will be credited to your bank account by{' '}
               <Text style={styles.boldText}>{getT2Date()}</Text> (T+2
@@ -84,7 +84,7 @@ const WithdrawModal: React.FC<WithdrawModalProps> = ({
 
           {bankAccount && (
             <View style={styles.modalBankRow}>
-              <Landmark size={wp(16)} color={colors.textSecondary} />
+              <Landmark size={wp(16)} color={colors.cTextSecondary} />
               <Text style={styles.modalBankText}>
                 Crediting to: {bankAccount.account_number} (
                 {bankAccount.ifsc_code})
@@ -138,24 +138,26 @@ export default memo(WithdrawModal);
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.7)',
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: wp(20),
   },
   modalContainer: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.cCard,
     borderRadius: wp(20),
     paddingVertical: hp(24),
     paddingHorizontal: wp(20),
     width: '100%',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.cBorder,
   },
   modalIconWrap: {
     width: wp(56),
     height: wp(56),
     borderRadius: wp(28),
-    backgroundColor: '#f0f0f0',
+    backgroundColor: colors.cAccentMuted,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: hp(12),
@@ -163,11 +165,11 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: fp(18),
     fontWeight: '700',
-    color: colors.text,
+    color: colors.cText,
     marginBottom: hp(16),
   },
   modalAmountCard: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: colors.cCardLight,
     borderRadius: wp(14),
     paddingVertical: hp(16),
     paddingHorizontal: wp(20),
@@ -177,20 +179,20 @@ const styles = StyleSheet.create({
   },
   modalAmountLabel: {
     fontSize: fp(12),
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
     fontWeight: '500',
     marginBottom: hp(4),
   },
   modalAmountValue: {
     fontSize: fp(28),
     fontWeight: '900',
-    color: colors.text,
+    color: colors.cText,
   },
   modalInfoRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: wp(10),
-    backgroundColor: colors.info + '10',
+    backgroundColor: colors.cAccentMuted,
     padding: wp(12),
     borderRadius: wp(12),
     width: '100%',
@@ -199,7 +201,7 @@ const styles = StyleSheet.create({
   modalInfoText: {
     flex: 1,
     fontSize: fp(12),
-    color: colors.info,
+    color: colors.cAccentLight,
     lineHeight: fp(17),
     fontWeight: '500',
   },
@@ -210,7 +212,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(8),
-    backgroundColor: '#f8f9fa',
+    backgroundColor: colors.cCardLight,
     padding: wp(12),
     borderRadius: wp(10),
     width: '100%',
@@ -219,7 +221,7 @@ const styles = StyleSheet.create({
   modalBankText: {
     flex: 1,
     fontSize: fp(12),
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
     fontWeight: '500',
   },
   modalNoteRow: {
@@ -233,7 +235,7 @@ const styles = StyleSheet.create({
   modalNoteText: {
     flex: 1,
     fontSize: fp(11),
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
     lineHeight: fp(16),
   },
   modalButtons: {
@@ -247,12 +249,12 @@ const styles = StyleSheet.create({
     borderRadius: wp(12),
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f4f4f5',
+    backgroundColor: colors.cCardLight,
     borderWidth: 1,
-    borderColor: '#eaecef',
+    borderColor: colors.cBorder,
   },
   modalCancelText: {
-    color: colors.text,
+    color: colors.cText,
     fontWeight: '600',
     fontSize: fp(14),
   },
@@ -263,7 +265,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.primary,
+    backgroundColor: colors.cAccent,
     gap: wp(6),
   },
   modalConfirmText: {

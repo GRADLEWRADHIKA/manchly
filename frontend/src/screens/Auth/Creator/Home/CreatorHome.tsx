@@ -216,12 +216,12 @@ export default CreatorHome;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: colors.cBg,
   },
 
   // Header
   headerWrapper: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.cBg,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
   },
@@ -242,13 +242,13 @@ const styles = StyleSheet.create({
     height: wp(48),
     borderRadius: wp(24),
     borderWidth: 2,
-    borderColor: colors.border,
+    borderColor: colors.cBorder,
   },
   avatarFallback: {
     width: wp(48),
     height: wp(48),
     borderRadius: wp(24),
-    backgroundColor: colors.secondary,
+    backgroundColor: colors.cAccent,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -259,24 +259,24 @@ const styles = StyleSheet.create({
   },
   greetingSub: {
     fontSize: fp(13),
-    color: colors.muted,
+    color: colors.cTextMuted,
     fontWeight: '500',
   },
   greeting: {
     fontSize: fp(18),
     fontWeight: '800',
-    color: colors.white,
+    color: colors.cText,
     marginTop: hp(1),
   },
   bellBtn: {
     width: wp(44),
     height: wp(44),
     borderRadius: wp(22),
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: 'rgba(255,255,255,0.08)',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.15)',
+    borderColor: 'rgba(255,255,255,0.1)',
   },
   bellDot: {
     position: 'absolute',

@@ -19,7 +19,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const Tab = createBottomTabNavigator();
 
-const TAB_ACCENT = colors.info;
+const TAB_ACCENT = colors.cAccentLight;
 
 const tabs = [
   {
@@ -151,7 +151,7 @@ const TabItem = ({ isFocused, icon: Icon, label, onPress }: any) => {
       >
         <Icon
           size={wp(isFocused ? 23 : 21)}
-          color={isFocused ? accent : colors.muted}
+          color={isFocused ? accent : colors.cTextMuted}
           strokeWidth={isFocused ? 2.4 : 1.5}
         />
       </Animated.View>
@@ -160,7 +160,7 @@ const TabItem = ({ isFocused, icon: Icon, label, onPress }: any) => {
         style={[
           styles.tabLabel,
           {
-            color: isFocused ? colors.white : colors.muted,
+            color: isFocused ? colors.cText : colors.cTextMuted,
             fontWeight: isFocused ? '700' : '400',
             opacity: labelOpacity,
             transform: [{ translateY: iconTranslateY }],
@@ -263,6 +263,7 @@ const CreatorBottomTab = () => {
   return (
     <Tab.Navigator
       initialRouteName="Home"
+      sceneContainerStyle={{ backgroundColor: colors.cBg }}
       screenOptions={{ headerShown: false, tabBarStyle: { display: 'none' } }}
       tabBar={props => <CustomTabBar {...props} />}
     >
@@ -282,14 +283,14 @@ export default CreatorBottomTab;
 
 const styles = StyleSheet.create({
   tabBarOuter: {
-    backgroundColor: colors.primary,
-    borderTopLeftRadius: wp(20),
-    borderTopRightRadius: wp(20),
-    shadowColor: colors.white,
+    backgroundColor: colors.cSurface,
+    shadowColor: colors.cAccent,
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.08,
     shadowRadius: 12,
     elevation: 12,
+    borderTopWidth: 1,
+    borderTopColor: colors.cBorder,
   },
   tabContainer: {
     flexDirection: 'row',
@@ -344,10 +345,10 @@ const styles = StyleSheet.create({
     width: wp(52),
     height: wp(52),
     borderRadius: wp(16),
-    backgroundColor: '#124685',
+    backgroundColor: colors.cAccent,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: colors.info,
+    shadowColor: colors.cAccent,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 8,
@@ -355,7 +356,7 @@ const styles = StyleSheet.create({
   },
   centerLabel: {
     fontSize: fp(9.5),
-    color: colors.muted,
+    color: colors.cTextMuted,
     marginTop: hp(2),
     fontWeight: '500',
     letterSpacing: 0.2,

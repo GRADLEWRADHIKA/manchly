@@ -57,7 +57,7 @@ const CreatorChat = () => {
         <View style={styles.illustrationWrap}>
           <View style={styles.iconCircleOuter}>
             <View style={styles.iconCircleInner}>
-              <MessageCircle size={wp(40)} color={colors.primary} />
+              <MessageCircle size={wp(40)} color={colors.cAccent} />
             </View>
           </View>
           <View style={styles.floatingBadge1}>
@@ -77,7 +77,7 @@ const CreatorChat = () => {
         {/* Feature preview cards */}
         <View style={styles.featureList}>
           <View style={styles.featureCard}>
-            <View style={[styles.featureIcon, { backgroundColor: '#EEF2FF' }]}>
+            <View style={[styles.featureIcon, { backgroundColor: '#3B82F620' }]}>
               <MessageCircle size={wp(18)} color={colors.info} />
             </View>
             <View style={styles.featureText}>
@@ -89,7 +89,7 @@ const CreatorChat = () => {
           </View>
 
           <View style={styles.featureCard}>
-            <View style={[styles.featureIcon, { backgroundColor: '#ECFDF5' }]}>
+            <View style={[styles.featureIcon, { backgroundColor: '#10B98120' }]}>
               <Users size={wp(18)} color={colors.accent} />
             </View>
             <View style={styles.featureText}>
@@ -101,7 +101,7 @@ const CreatorChat = () => {
           </View>
 
           <View style={styles.featureCard}>
-            <View style={[styles.featureIcon, { backgroundColor: '#FEF3C7' }]}>
+            <View style={[styles.featureIcon, { backgroundColor: '#F59E0B20' }]}>
               <Send size={wp(18)} color={colors.golden} />
             </View>
             <View style={styles.featureText}>
@@ -122,10 +122,10 @@ export default CreatorChat;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.cBg,
   },
   headerWrapper: {
-    backgroundColor: '#111111',
+    backgroundColor: colors.cBg,
   },
   header: {
     flexDirection: 'row',
@@ -144,21 +144,21 @@ const styles = StyleSheet.create({
     height: wp(46),
     borderRadius: wp(23),
     borderWidth: 2,
-    borderColor: '#2c2c2e',
+    borderColor: colors.cBorder,
   },
   avatarFallback: {
     width: wp(46),
     height: wp(46),
     borderRadius: wp(23),
-    backgroundColor: '#1c1c1e',
+    backgroundColor: colors.cCard,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#2c2c2e',
+    borderColor: colors.cBorder,
   },
   greetingSub: {
     fontSize: fp(12),
-    color: '#999999',
+    color: colors.cTextSecondary,
     fontWeight: '500',
   },
   headerTitle: {
@@ -171,11 +171,11 @@ const styles = StyleSheet.create({
     width: wp(40),
     height: wp(40),
     borderRadius: wp(20),
-    backgroundColor: '#1c1c1e',
+    backgroundColor: colors.cCard,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#2c2c2e',
+    borderColor: colors.cBorder,
   },
 
   // Content
@@ -195,7 +195,7 @@ const styles = StyleSheet.create({
     width: wp(100),
     height: wp(100),
     borderRadius: wp(50),
-    backgroundColor: colors.lightGrey,
+    backgroundColor: colors.cCardLight,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
     width: wp(72),
     height: wp(72),
     borderRadius: wp(36),
-    backgroundColor: colors.white,
+    backgroundColor: colors.cCard,
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 3,
@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
     width: wp(32),
     height: wp(32),
     borderRadius: wp(16),
-    backgroundColor: colors.white,
+    backgroundColor: colors.cCard,
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 4,
@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
     width: wp(32),
     height: wp(32),
     borderRadius: wp(16),
-    backgroundColor: colors.white,
+    backgroundColor: colors.cCard,
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 4,
@@ -248,13 +248,13 @@ const styles = StyleSheet.create({
   comingTitle: {
     fontSize: fp(22),
     fontWeight: '800',
-    color: colors.text,
+    color: colors.cText,
     textAlign: 'center',
     marginBottom: hp(8),
   },
   comingDesc: {
     fontSize: fp(14),
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
     textAlign: 'center',
     lineHeight: fp(20),
     marginBottom: hp(28),
@@ -269,9 +269,11 @@ const styles = StyleSheet.create({
   featureCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: colors.cCard,
     borderRadius: wp(14),
     padding: wp(14),
+    borderWidth: 1,
+    borderColor: colors.cBorder,
     elevation: 2,
     shadowColor: colors.black,
     shadowOffset: { width: 0, height: 1 },
@@ -292,11 +294,11 @@ const styles = StyleSheet.create({
   featureTitle: {
     fontSize: fp(14),
     fontWeight: '700',
-    color: colors.text,
+    color: colors.cText,
   },
   featureDesc: {
     fontSize: fp(12),
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
     marginTop: hp(2),
   },
 });

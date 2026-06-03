@@ -13,7 +13,7 @@ const AppHeaderWithBack = ({ title }) => {
   const { user } = useSelector((state: any) => state.userReducer);
 
   const isCreator = user?.user_type !== 'USER';
-  const bgColor = isCreator ? '#111111' : colors.secPrimary;
+  const bgColor = isCreator ? colors.cBg : colors.secPrimary;
 
   return (
     <View

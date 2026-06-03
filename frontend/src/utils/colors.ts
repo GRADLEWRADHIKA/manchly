@@ -38,6 +38,25 @@ const colors = {
   faaAiBg: '#0F0F1A',
   faaAiCard: '#1A1040',
   faaAiBlue: '#60A5FA',
+
+  // Creator Dark Theme
+  cBg: '#0A0A0F',
+  cSurface: '#12121C',
+  cCard: '#1C1C2E',
+  cCardLight: '#252538',
+  cBorder: '#2A2A3C',
+  cBorderLight: '#1F1F30',
+  cAccent: '#7C3AED',
+  cAccentLight: '#8B5CF6',
+  cAccentMuted: '#7C3AED20',
+  cText: '#FFFFFF',
+  cTextSecondary: '#A0A0B2',
+  cTextMuted: '#6B6B80',
+  cInputBg: '#1C1C2E',
+  cSuccess: '#22C55E',
+  cError: '#EF4444',
+  cGradientStart: '#7C3AED',
+  cGradientEnd: '#A855F7',
 };
 
 export default colors;

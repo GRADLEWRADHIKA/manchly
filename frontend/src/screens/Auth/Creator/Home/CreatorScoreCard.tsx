@@ -81,7 +81,7 @@ const CreatorScoreCard = () => {
     <View style={styles.sectionPadding}>
       {allCompleted ? (
         <LinearGradient
-          colors={['#1A1A2E', '#16213E', '#0F3460']}
+          colors={[colors.cCard, '#1A1A3E', colors.cAccent + '40']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.scoreCard}
@@ -121,7 +121,7 @@ const CreatorScoreCard = () => {
         </LinearGradient>
       ) : (
         <LinearGradient
-          colors={['#1A1A2E', '#16213E', '#0F3460']}
+          colors={[colors.cCard, '#1A1A3E', colors.cAccent + '40']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.scoreCard}
@@ -280,7 +280,7 @@ const styles = StyleSheet.create({
   nextLevelName: {
     fontSize: fp(15),
     fontWeight: '800',
-    color: colors.secondary,
+    color: colors.cAccentLight,
   },
   milestonesWrap: {
     gap: hp(10),
@@ -354,7 +354,7 @@ const styles = StyleSheet.create({
   },
   proBadgeHighlight: {
     fontWeight: '800',
-    color: colors.secondary,
+    color: colors.cAccentLight,
   },
   taskIconsRow: {
     flexDirection: 'row',
@@ -384,6 +384,6 @@ const styles = StyleSheet.create({
   keepGrowingText: {
     fontSize: fp(16),
     fontWeight: '700',
-    color: colors.primary,
+    color: colors.cText,
   },
 });

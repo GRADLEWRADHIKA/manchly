@@ -24,25 +24,25 @@ const settingsItems = [
   {
     title: 'Lock Direct Message',
     subtitle: 'Make your direct message locked',
-    icon: <Lock size={wp(22)} color={colors.black} />,
+    icon: <Lock size={wp(22)} color={colors.cText} />,
     onPress: () => {},
   },
   {
     title: 'FAQs',
     subtitle: 'Have a doubt about Manchly? Use our FAQ guide to solve them',
-    icon: <HelpCircle size={wp(22)} color={colors.black} />,
+    icon: <HelpCircle size={wp(22)} color={colors.cText} />,
     onPress: () => {},
   },
   {
     title: 'Upload your Invoice Details',
     subtitle: 'Sign and enter GST details.',
-    icon: <FileText size={wp(22)} color={colors.black} />,
+    icon: <FileText size={wp(22)} color={colors.cText} />,
     onPress: () => {},
   },
   {
     title: 'Need help?',
     subtitle: 'Get in touch with team Manchly',
-    icon: <MessageCircleQuestion size={wp(22)} color={colors.black} />,
+    icon: <MessageCircleQuestion size={wp(22)} color={colors.cText} />,
     onPress: () => {},
   }
 ];
@@ -75,7 +75,7 @@ export default CreatorSettingsDetails;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: colors.cBg,
   },
   scrollContainer: {
     paddingVertical: hp(8),
@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
     paddingVertical: hp(16),
     paddingHorizontal: wp(20),
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
+    borderBottomColor: colors.cBorder,
   },
   icon: {
     marginRight: wp(16),
@@ -97,11 +97,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: fp(16),
     fontWeight: '600',
-    color: colors.black,
+    color: colors.cText,
   },
   subtitle: {
     fontSize: fp(13),
-    color: colors.muted,
+    color: colors.cTextMuted,
     marginTop: hp(2),
   },
 });

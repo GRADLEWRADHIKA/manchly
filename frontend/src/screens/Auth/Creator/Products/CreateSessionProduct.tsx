@@ -77,7 +77,7 @@ const CreateSessionProduct: React.FC = () => {
         <TextInput
           style={styles.input}
           placeholder="e.g. Strategy Session, Quick Audit"
-          placeholderTextColor={colors.textMuted}
+          placeholderTextColor={colors.cTextMuted}
           value={title}
           onChangeText={setTitle}
         />
@@ -87,7 +87,7 @@ const CreateSessionProduct: React.FC = () => {
         <TextInput
           style={[styles.input, styles.textArea]}
           placeholder="What will you cover in this session?"
-          placeholderTextColor={colors.textMuted}
+          placeholderTextColor={colors.cTextMuted}
           value={description}
           onChangeText={setDescription}
           multiline
@@ -107,11 +107,11 @@ const CreateSessionProduct: React.FC = () => {
         {/* Duration */}
         <Text style={styles.label}>Duration (minutes) *</Text>
         <View style={styles.inputRow}>
-          <Clock size={wp(18)} color={colors.textMuted} strokeWidth={1.5} />
+          <Clock size={wp(18)} color={colors.cTextMuted} strokeWidth={1.5} />
           <TextInput
             style={styles.inputInner}
             placeholder="e.g. 30"
-            placeholderTextColor={colors.textMuted}
+            placeholderTextColor={colors.cTextMuted}
             value={duration}
             onChangeText={setDuration}
             keyboardType="numeric"
@@ -142,11 +142,11 @@ const CreateSessionProduct: React.FC = () => {
         {/* Price */}
         <Text style={styles.label}>Price (₹) *</Text>
         <View style={styles.inputRow}>
-          <IndianRupee size={wp(18)} color={colors.textMuted} strokeWidth={1.5} />
+          <IndianRupee size={wp(18)} color={colors.cTextMuted} strokeWidth={1.5} />
           <TextInput
             style={styles.inputInner}
             placeholder="e.g. 499"
-            placeholderTextColor={colors.textMuted}
+            placeholderTextColor={colors.cTextMuted}
             value={price}
             onChangeText={setPrice}
             keyboardType="numeric"
@@ -190,7 +190,7 @@ const CreateSessionProduct: React.FC = () => {
             </View>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Total Price</Text>
-              <Text style={[styles.summaryValue, {color: colors.info, fontWeight: '800'}]}>
+              <Text style={[styles.summaryValue, {color: colors.cAccentLight, fontWeight: '800'}]}>
                 ₹{price}
               </Text>
             </View>
@@ -232,7 +232,7 @@ export default memo(CreateSessionProduct);
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.cBg,
   },
   scroll: {flex: 1},
   scrollContent: {
@@ -243,38 +243,38 @@ const styles = StyleSheet.create({
   label: {
     fontSize: fp(13),
     fontWeight: '600',
-    color: colors.heading,
+    color: colors.cText,
     marginBottom: hp(6),
     marginTop: hp(14),
   },
   input: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.cInputBg,
     borderRadius: wp(12),
     paddingHorizontal: wp(14),
     paddingVertical: hp(12),
     fontSize: fp(14),
-    color: colors.text,
+    color: colors.cText,
     borderWidth: 1,
-    borderColor: colors.borderLight,
+    borderColor: colors.cBorder,
   },
   textArea: {
     minHeight: hp(80),
     paddingTop: hp(12),
   },
   inputRow: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.cInputBg,
     borderRadius: wp(12),
     paddingHorizontal: wp(14),
     paddingVertical: Platform.OS === 'ios' ? hp(12) : 0,
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: colors.borderLight,
+    borderColor: colors.cBorder,
   },
   inputInner: {
     flex: 1,
     fontSize: fp(14),
-    color: colors.text,
+    color: colors.cText,
     marginLeft: wp(8),
     paddingVertical: Platform.OS === 'ios' ? 0 : hp(12),
   },
@@ -290,13 +290,13 @@ const styles = StyleSheet.create({
     gap: wp(8),
     paddingVertical: hp(14),
     borderRadius: wp(12),
-    backgroundColor: colors.white,
+    backgroundColor: colors.cCard,
     borderWidth: 1.5,
-    borderColor: colors.borderLight,
+    borderColor: colors.cBorder,
   },
   modeBtnActive: {
-    backgroundColor: colors.info,
-    borderColor: colors.info,
+    backgroundColor: colors.cAccent,
+    borderColor: colors.cAccent,
   },
   modeBtnActiveGreen: {
     backgroundColor: colors.success,
@@ -305,7 +305,7 @@ const styles = StyleSheet.create({
   modeBtnText: {
     fontSize: fp(14),
     fontWeight: '600',
-    color: colors.text,
+    color: colors.cText,
   },
   modeBtnTextActive: {
     color: colors.white,
@@ -319,35 +319,35 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(14),
     paddingVertical: hp(8),
     borderRadius: wp(10),
-    backgroundColor: colors.white,
+    backgroundColor: colors.cCard,
     borderWidth: 1,
-    borderColor: colors.borderLight,
+    borderColor: colors.cBorder,
   },
   chipActive: {
-    backgroundColor: colors.info,
-    borderColor: colors.info,
+    backgroundColor: colors.cAccent,
+    borderColor: colors.cAccent,
   },
   chipText: {
     fontSize: fp(12),
     fontWeight: '500',
-    color: colors.text,
+    color: colors.cText,
   },
   chipTextActive: {
     color: colors.white,
     fontWeight: '600',
   },
   summaryCard: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.cCard,
     borderRadius: wp(14),
     padding: wp(16),
     marginTop: hp(20),
     borderWidth: 1,
-    borderColor: colors.info + '30',
+    borderColor: colors.cBorder,
   },
   summaryTitle: {
     fontSize: fp(14),
     fontWeight: '700',
-    color: colors.text,
+    color: colors.cText,
     marginBottom: hp(10),
   },
   summaryRow: {
@@ -357,15 +357,15 @@ const styles = StyleSheet.create({
   },
   summaryLabel: {
     fontSize: fp(13),
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
   },
   summaryValue: {
     fontSize: fp(13),
     fontWeight: '600',
-    color: colors.text,
+    color: colors.cText,
   },
   createBtn: {
-    backgroundColor: colors.info,
+    backgroundColor: colors.cAccent,
     borderRadius: wp(14),
     paddingVertical: hp(16),
     alignItems: 'center',

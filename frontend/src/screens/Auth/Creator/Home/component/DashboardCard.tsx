@@ -12,7 +12,7 @@ interface Props {
 
 const DashboardCard: React.FC<Props> = ({ icon, value, label }) => {
   return (
-    <LinearGradient colors={[colors.gradientStart, colors.surface]} style={styles.card}>
+    <LinearGradient colors={[colors.cGradientStart, colors.cGradientEnd]} style={styles.card}>
       <View style={styles.iconWrapper}>{icon}</View>
 
       <Text style={styles.value}>{value}</Text>
@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
   iconWrapper: {
     width: wp(50),
     height: hp(50),
-    backgroundColor: colors.white,
+    backgroundColor: colors.cCardLight,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -44,12 +44,12 @@ const styles = StyleSheet.create({
   value: {
     fontSize: fp(22),
     fontWeight: '800',
-    color: colors.text,
+    color: colors.cText,
   },
 
   label: {
     fontSize: fp(13),
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
     marginTop: hp(4),
   },
 });

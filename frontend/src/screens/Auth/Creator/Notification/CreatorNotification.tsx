@@ -58,7 +58,7 @@ const CreatorNotification = () => {
 
         <View style={styles.featureList}>
           <View style={styles.featureCard}>
-            <View style={[styles.featureIcon, { backgroundColor: '#EFF6FF' }]}>
+            <View style={[styles.featureIcon, { backgroundColor: '#3B82F620' }]}>
               <TrendingUp size={wp(20)} color="#3B82F6" />
             </View>
             <View style={styles.featureText}>
@@ -71,7 +71,7 @@ const CreatorNotification = () => {
           </View>
 
           <View style={styles.featureCard}>
-            <View style={[styles.featureIcon, { backgroundColor: '#ECFDF5' }]}>
+            <View style={[styles.featureIcon, { backgroundColor: '#10B98120' }]}>
               <MessageCircle size={wp(20)} color="#10B981" />
             </View>
             <View style={styles.featureText}>
@@ -84,7 +84,7 @@ const CreatorNotification = () => {
           </View>
 
           <View style={styles.featureCard}>
-            <View style={[styles.featureIcon, { backgroundColor: '#FEF3C7' }]}>
+            <View style={[styles.featureIcon, { backgroundColor: '#F59E0B20' }]}>
               <Clock size={wp(20)} color="#F59E0B" />
             </View>
             <View style={styles.featureText}>
@@ -96,7 +96,7 @@ const CreatorNotification = () => {
           </View>
 
           <View style={styles.featureCard}>
-            <View style={[styles.featureIcon, { backgroundColor: '#FDF2F8' }]}>
+            <View style={[styles.featureIcon, { backgroundColor: '#EC489920' }]}>
               <Rocket size={wp(20)} color="#EC4899" />
             </View>
             <View style={styles.featureText}>
@@ -127,7 +127,7 @@ export default CreatorNotification;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.cBg,
   },
   scrollContent: {
     paddingBottom: hp(40),
@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
     width: wp(100),
     height: wp(100),
     borderRadius: wp(50),
-    backgroundColor: '#EFF6FF',
+    backgroundColor: colors.cCardLight,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: hp(20),
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
     width: wp(72),
     height: wp(72),
     borderRadius: wp(36),
-    backgroundColor: colors.white,
+    backgroundColor: colors.cCard,
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 4,
@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     width: wp(32),
     height: wp(32),
     borderRadius: wp(16),
-    backgroundColor: colors.white,
+    backgroundColor: colors.cCard,
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 4,
@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
     width: wp(32),
     height: wp(32),
     borderRadius: wp(16),
-    backgroundColor: colors.white,
+    backgroundColor: colors.cCard,
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 4,
@@ -198,13 +198,13 @@ const styles = StyleSheet.create({
   heroTitle: {
     fontSize: fp(22),
     fontWeight: '800',
-    color: colors.text,
+    color: colors.cText,
     textAlign: 'center',
     marginBottom: hp(8),
   },
   heroDesc: {
     fontSize: fp(14),
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
     textAlign: 'center',
     lineHeight: fp(21),
     paddingHorizontal: wp(8),
@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: fp(17),
     fontWeight: '700',
-    color: colors.text,
+    color: colors.cText,
     marginHorizontal: wp(16),
     marginTop: hp(8),
     marginBottom: hp(12),
@@ -228,8 +228,10 @@ const styles = StyleSheet.create({
   featureCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: colors.cCard,
     borderRadius: wp(14),
+    borderWidth: 1,
+    borderColor: colors.cBorder,
     padding: wp(14),
     elevation: 2,
     shadowColor: colors.black,
@@ -251,11 +253,11 @@ const styles = StyleSheet.create({
   featureTitle: {
     fontSize: fp(14),
     fontWeight: '700',
-    color: colors.text,
+    color: colors.cText,
   },
   featureDesc: {
     fontSize: fp(12),
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
     marginTop: hp(2),
     lineHeight: fp(17),
   },
@@ -266,17 +268,17 @@ const styles = StyleSheet.create({
     marginTop: hp(20),
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#EFF6FF',
+    backgroundColor: colors.cAccentMuted,
     borderRadius: wp(12),
     padding: wp(14),
     gap: wp(10),
     borderWidth: 1,
-    borderColor: '#BFDBFE',
+    borderColor: colors.cAccent + '30',
   },
   statusText: {
     flex: 1,
     fontSize: fp(13),
-    color: '#1E40AF',
+    color: colors.cAccentLight,
     lineHeight: fp(18),
     fontWeight: '500',
   },

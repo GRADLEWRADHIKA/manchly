@@ -137,13 +137,13 @@ const ExpertRegistration: React.FC = () => {
             >
               <Briefcase
                 size={wp(18)}
-                color={colors.textMuted}
+                color={colors.cTextMuted}
                 strokeWidth={1.5}
               />
               <TextInput
                 style={styles.inputInner}
                 placeholder="e.g. Business Consultant, Coach"
-                placeholderTextColor={colors.textMuted}
+                placeholderTextColor={colors.cTextMuted}
                 value={value}
                 onChangeText={onChange}
               />
@@ -171,7 +171,7 @@ const ExpertRegistration: React.FC = () => {
               value={value}
               onChange={onChange}
               visibleSelectedItem={false}
-              activeColor={colors.primary + '10'}
+              activeColor={colors.cAccentMuted}
               itemTextStyle={styles.dropdownItemText}
               containerStyle={styles.dropdownContainer}
               search
@@ -188,11 +188,11 @@ const ExpertRegistration: React.FC = () => {
           name="experience"
           render={({ field: { onChange, value } }) => (
             <View style={styles.inputRow}>
-              <Clock size={wp(18)} color={colors.textMuted} strokeWidth={1.5} />
+              <Clock size={wp(18)} color={colors.cTextMuted} strokeWidth={1.5} />
               <TextInput
                 style={styles.inputInner}
                 placeholder="e.g. 5"
-                placeholderTextColor={colors.textMuted}
+                placeholderTextColor={colors.cTextMuted}
                 value={value}
                 onChangeText={onChange}
                 keyboardType="numeric"
@@ -219,7 +219,7 @@ const ExpertRegistration: React.FC = () => {
             <TextInput
               style={[styles.input, styles.textArea]}
               placeholder="Tell users about your expertise..."
-              placeholderTextColor={colors.textMuted}
+              placeholderTextColor={colors.cTextMuted}
               value={value}
               onChangeText={onChange}
               multiline
@@ -243,7 +243,7 @@ const ExpertRegistration: React.FC = () => {
               <TextInput
                 style={styles.inputInner}
                 placeholder="e.g. 30"
-                placeholderTextColor={colors.textMuted}
+                placeholderTextColor={colors.cTextMuted}
                 value={value}
                 onChangeText={onChange}
                 keyboardType="numeric"
@@ -273,7 +273,7 @@ const ExpertRegistration: React.FC = () => {
               value={value}
               onChange={onChange}
               visibleSelectedItem={false}
-              activeColor={colors.primary + '10'}
+              activeColor={colors.cAccentMuted}
               itemTextStyle={styles.dropdownItemText}
               containerStyle={styles.dropdownContainer}
             />
@@ -302,108 +302,109 @@ const ExpertRegistration: React.FC = () => {
 export default ExpertRegistration;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.surface },
+  container: { flex: 1, backgroundColor: colors.cBg },
   scroll: {
     paddingHorizontal: wp(16),
     paddingTop: hp(14),
     paddingBottom: hp(40),
   },
   banner: {
-    backgroundColor: colors.primary + '10',
+    backgroundColor: colors.cAccentMuted,
     borderRadius: wp(14),
     padding: wp(16),
     marginBottom: hp(16),
     borderWidth: 1,
-    borderColor: colors.primary + '20',
+    borderColor: colors.cBorder,
   },
-  bannerTitle: { fontSize: fp(17), fontWeight: '700', color: colors.primary },
+  bannerTitle: { fontSize: fp(17), fontWeight: '700', color: colors.cAccentLight },
   bannerSub: {
     fontSize: fp(12),
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
     marginTop: hp(4),
     lineHeight: fp(18),
   },
   label: {
     fontSize: fp(13),
     fontWeight: '600',
-    color: colors.heading,
+    color: colors.cText,
     marginBottom: hp(6),
     marginTop: hp(14),
   },
   input: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.cInputBg,
     borderRadius: wp(12),
     paddingHorizontal: wp(14),
     paddingVertical: hp(12),
     fontSize: fp(14),
-    color: colors.text,
+    color: colors.cText,
     borderWidth: 1,
-    borderColor: colors.borderLight,
+    borderColor: colors.cBorder,
   },
   textArea: { minHeight: hp(80), paddingTop: hp(12) },
   inputRow: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.cInputBg,
     borderRadius: wp(12),
     paddingHorizontal: wp(14),
     paddingVertical: Platform.OS === 'ios' ? hp(12) : 0,
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: colors.borderLight,
+    borderColor: colors.cBorder,
   },
-  inputError: { borderColor: colors.error },
+  inputError: { borderColor: colors.cError },
   inputInner: {
     flex: 1,
     fontSize: fp(14),
-    color: colors.text,
+    color: colors.cText,
     marginLeft: wp(8),
     paddingVertical: Platform.OS === 'ios' ? 0 : hp(12),
   },
-  errorText: { fontSize: fp(11), color: colors.error, marginTop: hp(4) },
+  errorText: { fontSize: fp(11), color: colors.cError, marginTop: hp(4) },
   dropdown: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.cCard,
     borderRadius: wp(12),
     paddingHorizontal: wp(14),
     paddingVertical: hp(12),
     borderWidth: 1,
-    borderColor: colors.borderLight,
+    borderColor: colors.cBorder,
   },
   dropdownContainer: {
     borderRadius: wp(12),
     borderWidth: 1,
-    borderColor: colors.borderLight,
+    borderColor: colors.cBorder,
+    backgroundColor: colors.cCard,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 5,
   },
-  dropdownText: { fontSize: fp(14), color: colors.text },
-  dropdownPlaceholder: { fontSize: fp(14), color: colors.textMuted },
-  dropdownItemText: { fontSize: fp(13), color: colors.text },
+  dropdownText: { fontSize: fp(14), color: colors.cText },
+  dropdownPlaceholder: { fontSize: fp(14), color: colors.cTextMuted },
+  dropdownItemText: { fontSize: fp(13), color: colors.cText },
   searchInput: {
     fontSize: fp(13),
-    color: colors.text,
+    color: colors.cText,
     borderRadius: wp(8),
-    borderColor: colors.borderLight,
+    borderColor: colors.cBorder,
   },
   selectedChip: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: colors.cAccentMuted,
     borderRadius: wp(16),
     borderWidth: 1,
-    borderColor: colors.info,
+    borderColor: colors.cAccent,
     paddingHorizontal: wp(10),
     paddingVertical: hp(4),
     marginTop: hp(8),
     marginRight: wp(6),
   },
   registerBtn: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.cAccent,
     borderRadius: wp(14),
     paddingVertical: hp(16),
     alignItems: 'center',
     marginTop: hp(24),
   },
   registerBtnDisabled: { opacity: 0.6 },
-  registerBtnText: { fontSize: fp(16), fontWeight: '700', color: colors.white },
+  registerBtnText: { fontSize: fp(16), fontWeight: '700', color: colors.cText },
 });

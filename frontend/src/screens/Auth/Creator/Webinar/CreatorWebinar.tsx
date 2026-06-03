@@ -76,7 +76,7 @@ const CreatorWebinar = ({embedded = false}: {embedded?: boolean}) => {
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
       <View style={styles.emptyIcon}>
-        <Presentation size={wp(48)} color={colors.primary} />
+        <Presentation size={wp(48)} color={colors.cAccent} />
       </View>
       <Text style={styles.emptyTitle}>No Webinars Yet</Text>
     </View>
@@ -128,11 +128,11 @@ const CreatorWebinar = ({embedded = false}: {embedded?: boolean}) => {
       )}
 
       <View style={styles.searchContainer}>
-        <Search size={wp(18)} color={colors.textSecondary} />
+        <Search size={wp(18)} color={colors.cTextSecondary} />
         <CustomTextInput
           inputContainerStyle={styles.searchInput}
-          inputStyle={{ fontSize: fp(14), color: colors.black }}
-          placeholderTextColor={colors.borderColor}
+          inputStyle={{ fontSize: fp(14), color: colors.cText }}
+          placeholderTextColor={colors.cTextMuted}
           placeholder="Search webinars..."
           onChange={setSearchQuery as any}
           value={searchQuery}
@@ -141,7 +141,7 @@ const CreatorWebinar = ({embedded = false}: {embedded?: boolean}) => {
 
       {loading ? (
         <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
+          <ActivityIndicator size="large" color={colors.cAccent} />
           <Text style={styles.loadingText}>Loading webinars...</Text>
         </View>
       ) : filteredWebinars.length > 0 ? (
@@ -175,10 +175,10 @@ export default CreatorWebinar;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.cBg,
   },
   headerWrapper: {
-    backgroundColor: '#111111',
+    backgroundColor: colors.cBg,
      borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20
   },
@@ -199,17 +199,17 @@ const styles = StyleSheet.create({
     height: wp(46),
     borderRadius: wp(23),
     borderWidth: 2,
-    borderColor: '#2c2c2e',
+    borderColor: colors.cBorder,
   },
   avatarFallback: {
     width: wp(46),
     height: wp(46),
     borderRadius: wp(23),
-    backgroundColor: '#1c1c1e',
+    backgroundColor: colors.cCard,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#2c2c2e',
+    borderColor: colors.cBorder,
   },
   headerTitle: {
     fontSize: fp(18),
@@ -219,18 +219,18 @@ const styles = StyleSheet.create({
   },
   headerSubtitle: {
     fontSize: fp(12),
-    color: '#999999',
+    color: colors.cTextSecondary,
     fontWeight: '500',
   },
   bellBtn: {
     width: wp(40),
     height: wp(40),
     borderRadius: wp(20),
-    backgroundColor: '#1c1c1e',
+    backgroundColor: colors.cCard,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#2c2c2e',
+    borderColor: colors.cBorder,
   },
   searchContainer: {
     flexDirection: 'row',
@@ -238,10 +238,10 @@ const styles = StyleSheet.create({
     marginHorizontal: wp(16),
     marginVertical: hp(12),
     borderWidth: wp(1),
-    borderColor: colors.borderColor,
+    borderColor: colors.cBorder,
     borderRadius: wp(12),
     paddingHorizontal: wp(12),
-    backgroundColor: colors.white,
+    backgroundColor: colors.cInputBg,
     elevation: 2,
     shadowColor: colors.black,
     shadowOffset: { width: 0, height: 1 },
@@ -260,7 +260,7 @@ const styles = StyleSheet.create({
     gap: wp(12),
   },
   loadingText: {
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
     fontSize: fp(14),
     fontWeight: '500',
   },
@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyIcon: {
-    backgroundColor: colors.lightGrey,
+    backgroundColor: colors.cCardLight,
     width: wp(96),
     height: wp(96),
     borderRadius: wp(48),
@@ -286,19 +286,19 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: fp(20),
     fontWeight: '700',
-    color: colors.text,
+    color: colors.cText,
     marginBottom: hp(8),
     textAlign: 'center',
   },
   emptySubtitle: {
     fontSize: fp(14),
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
     textAlign: 'center',
     lineHeight: fp(20),
     marginBottom: hp(24),
   },
   emptyCreateBtn: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.cAccent,
     paddingHorizontal: wp(24),
     paddingVertical: hp(12),
     borderRadius: wp(12),
@@ -314,7 +314,7 @@ const styles = StyleSheet.create({
     bottom: hp(16),
   },
   fab: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.cAccent,
     borderRadius: wp(50),
   },
 });

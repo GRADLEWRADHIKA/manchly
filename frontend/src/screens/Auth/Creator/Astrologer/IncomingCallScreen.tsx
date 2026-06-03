@@ -163,7 +163,7 @@ export default memo(IncomingCallScreen);
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1a1a2e',
+    backgroundColor: colors.cBg,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
     height: wp(130),
     borderRadius: wp(65),
     borderWidth: 2,
-    borderColor: colors.info + '30',
+    borderColor: colors.cAccentLight + '30',
   },
   avatarOuter: {
     flex: 1,
@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
     width: wp(100),
     height: wp(100),
     borderRadius: wp(50),
-    backgroundColor: colors.secPrimary + '30',
+    backgroundColor: colors.cAccent + '30',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: hp(20),

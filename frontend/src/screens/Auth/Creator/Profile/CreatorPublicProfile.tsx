@@ -240,13 +240,13 @@ export default CreatorPublicProfile;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.cBg,
   },
   scrollContent: {
     paddingBottom: hp(40),
   },
   profileCard: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.cCard,
     marginHorizontal: wp(16),
     marginTop: hp(20),
     borderRadius: wp(20),
@@ -258,6 +258,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.cBorder,
   },
   avatarContainer: {
     marginBottom: hp(16),
@@ -266,11 +268,11 @@ const styles = StyleSheet.create({
     width: wp(110),
     height: wp(110),
     borderRadius: wp(55),
-    backgroundColor: colors.secPrimary,
+    backgroundColor: colors.cAccent,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 3,
-    borderColor: colors.secPrimary + '40',
+    borderColor: colors.cAccentLight + '40',
   },
   profileImage: {
     width: wp(110),
@@ -280,7 +282,7 @@ const styles = StyleSheet.create({
   profileName: {
     fontSize: fp(24),
     fontWeight: '800',
-    color: colors.text,
+    color: colors.cText,
     marginBottom: hp(12),
   },
   sessionBtns: {
@@ -308,11 +310,11 @@ const styles = StyleSheet.create({
   productCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface,
+    backgroundColor: colors.cCardLight,
     borderRadius: wp(12),
     padding: wp(12),
     borderWidth: 1,
-    borderColor: colors.borderLight,
+    borderColor: colors.cBorder,
   },
   productIcon: {
     width: wp(42),
@@ -325,17 +327,17 @@ const styles = StyleSheet.create({
   productName: {
     fontSize: fp(14),
     fontWeight: '600',
-    color: colors.text,
+    color: colors.cText,
   },
   productMeta: {
     fontSize: fp(11),
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
     marginTop: hp(2),
   },
   productPrice: {
     fontSize: fp(16),
     fontWeight: '800',
-    color: colors.info,
+    color: colors.cAccentLight,
   },
   kycBadge: {
     flexDirection: 'row',
@@ -361,13 +363,13 @@ const styles = StyleSheet.create({
   divider: {
     width: '80%',
     height: 1,
-    backgroundColor: colors.borderLight,
+    backgroundColor: colors.cBorder,
     marginVertical: hp(20),
   },
   connectTitle: {
     fontSize: fp(14),
     fontWeight: '700',
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
     marginBottom: hp(14),
     letterSpacing: 0.5,
     textTransform: 'uppercase',
@@ -392,7 +394,7 @@ const styles = StyleSheet.create({
   },
   socialLabel: {
     fontSize: fp(11),
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
     fontWeight: '600',
   },
 });

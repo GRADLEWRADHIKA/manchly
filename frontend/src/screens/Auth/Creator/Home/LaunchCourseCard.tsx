@@ -21,7 +21,7 @@ const LaunchCourseCard = () => {
   return (
     <View style={styles.sectionPadding}>
       <LinearGradient
-        colors={['#1A1A2E', '#16213E', '#0F3460']}
+        colors={['#1A1A2E', '#1C1C38', '#241845']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.courseCard}
@@ -29,7 +29,7 @@ const LaunchCourseCard = () => {
         <View style={styles.courseHeaderRow}>
           <View style={styles.courseHeaderLeft}>
             <View style={styles.startBadge}>
-              <Sparkles size={wp(12)} color={colors.secondary} />
+              <Sparkles size={wp(12)} color={colors.cAccentLight} />
               <Text style={styles.startBadgeText}>START CREATING</Text>
             </View>
             <Text style={styles.courseTitle}>
@@ -46,7 +46,7 @@ const LaunchCourseCard = () => {
         <View style={styles.stepsRow}>
           <View style={styles.stepItem}>
             <View
-              style={[styles.stepCircle, { backgroundColor: colors.secondary }]}
+              style={[styles.stepCircle, { backgroundColor: colors.cAccent }]}
             >
               <Lightbulb size={wp(12)} color={colors.white} />
             </View>
@@ -57,7 +57,7 @@ const LaunchCourseCard = () => {
 
           <View style={styles.stepItem}>
             <View
-              style={[styles.stepCircle, { backgroundColor: colors.info }]}
+              style={[styles.stepCircle, { backgroundColor: colors.cAccentLight }]}
             >
               <PenLine size={wp(12)} color={colors.white} />
             </View>
@@ -88,7 +88,7 @@ const LaunchCourseCard = () => {
           style={styles.ctaButton}
         >
           <Text style={styles.ctaText}>Create Course Now</Text>
-          <ChevronRight size={wp(16)} color={colors.primary} />
+          <ChevronRight size={wp(16)} color={colors.cAccent} />
         </TouchableOpacity>
       </LinearGradient>
     </View>
@@ -105,11 +105,8 @@ const styles = StyleSheet.create({
   courseCard: {
     borderRadius: wp(16),
     padding: wp(14),
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    elevation: 4,
+    borderWidth: 1,
+    borderColor: colors.cBorder,
   },
   courseHeaderRow: {
     flexDirection: 'row',
@@ -134,7 +131,7 @@ const styles = StyleSheet.create({
   startBadgeText: {
     fontSize: fp(8),
     fontWeight: '800',
-    color: colors.secondary,
+    color: colors.cAccentLight,
     letterSpacing: 1,
   },
   courseTitle: {
@@ -196,6 +193,6 @@ const styles = StyleSheet.create({
   ctaText: {
     fontSize: fp(12),
     fontWeight: '700',
-    color: colors.primary,
+    color: colors.cAccent,
   },
 });

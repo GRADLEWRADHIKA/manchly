@@ -89,7 +89,7 @@ const CreatorView: React.FC<{embedded?: boolean}> = ({embedded = false}) => {
     if (!loadingMore) return null;
     return (
       <View style={styles.footerLoader}>
-        <ActivityIndicator size="small" color={colors.primary} />
+        <ActivityIndicator size="small" color={colors.cAccent} />
         <Text style={styles.loadingText}>Loading more courses...</Text>
       </View>
     );
@@ -98,7 +98,7 @@ const CreatorView: React.FC<{embedded?: boolean}> = ({embedded = false}) => {
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
       <View style={styles.emptyIcon}>
-        <BookOpen size={wp(30)} color={colors.muted} />
+        <BookOpen size={wp(30)} color={colors.cTextMuted} />
       </View>
       <Text style={styles.emptyTitle}>No courses found</Text>
       <Text style={styles.emptySubtitle}>
@@ -159,11 +159,11 @@ const CreatorView: React.FC<{embedded?: boolean}> = ({embedded = false}) => {
         contentContainerStyle={styles.scrollContent}
       >
         <View style={styles.searchContainer}>
-          <Search size={wp(18)} color={colors.textSecondary} />
+          <Search size={wp(18)} color={colors.cTextSecondary} />
           <CustomTextInput
             inputContainerStyle={styles.searchInput}
-            inputStyle={{ fontSize: fp(14), color: colors.black }}
-            placeholderTextColor={colors.borderColor}
+            inputStyle={{ fontSize: fp(14), color: colors.cText }}
+            placeholderTextColor={colors.cTextMuted}
             placeholder="Search courses..."
             onChange={setSearchCourse as any}
             value={searchCourse}
@@ -179,7 +179,7 @@ const CreatorView: React.FC<{embedded?: boolean}> = ({embedded = false}) => {
 
         {loading ? (
           <View style={styles.loaderContainer}>
-            <ActivityIndicator size="large" color={colors.primary} />
+            <ActivityIndicator size="large" color={colors.cAccent} />
             <Text style={styles.loadingText}>Loading your courses...</Text>
           </View>
         ) : (
@@ -227,7 +227,7 @@ export default CreatorView;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.cBg,
   },
   scrollContent: {
     flexGrow: 1,
@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
 
   // Header
   headerWrapper: {
-    backgroundColor: '#111111',
+    backgroundColor: colors.cSurface,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
   },
@@ -257,38 +257,38 @@ const styles = StyleSheet.create({
     height: wp(46),
     borderRadius: wp(23),
     borderWidth: 2,
-    borderColor: '#2c2c2e',
+    borderColor: colors.cBorder,
   },
   avatarFallback: {
     width: wp(46),
     height: wp(46),
     borderRadius: wp(23),
-    backgroundColor: '#1c1c1e',
+    backgroundColor: colors.cCard,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#2c2c2e',
+    borderColor: colors.cBorder,
   },
   headerSub: {
     fontSize: fp(12),
-    color: '#999999',
+    color: colors.cTextSecondary,
     fontWeight: '500',
   },
   headerTitle: {
     fontSize: fp(18),
     fontWeight: '800',
-    color: colors.white,
+    color: colors.cText,
     marginTop: hp(1),
   },
   bellBtn: {
     width: wp(40),
     height: wp(40),
     borderRadius: wp(20),
-    backgroundColor: '#1c1c1e',
+    backgroundColor: colors.cCard,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#2c2c2e',
+    borderColor: colors.cBorder,
   },
 
   // Search
@@ -298,12 +298,12 @@ const styles = StyleSheet.create({
     marginHorizontal: wp(16),
     marginTop: hp(14),
     borderWidth: 1,
-    borderColor: colors.borderColor,
+    borderColor: colors.cBorder,
     borderRadius: wp(14),
     paddingHorizontal: wp(12),
-    backgroundColor: colors.white,
+    backgroundColor: colors.cInputBg,
     elevation: 2,
-    shadowColor: colors.black,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.04,
     shadowRadius: 3,
@@ -326,11 +326,11 @@ const styles = StyleSheet.create({
   listTitle: {
     fontSize: fp(18),
     fontWeight: '700',
-    color: colors.text,
+    color: colors.cText,
   },
   courseCount: {
     fontSize: fp(13),
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
     fontWeight: '500',
   },
 
@@ -353,7 +353,7 @@ const styles = StyleSheet.create({
     gap: wp(12),
   },
   loadingText: {
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
     fontSize: fp(14),
     fontWeight: '500',
   },
@@ -369,7 +369,7 @@ const styles = StyleSheet.create({
     width: wp(64),
     height: wp(64),
     borderRadius: wp(32),
-    backgroundColor: colors.lightGrey,
+    backgroundColor: colors.cCard,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: hp(14),
@@ -377,13 +377,13 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: fp(17),
     fontWeight: '700',
-    color: colors.text,
+    color: colors.cText,
     marginBottom: hp(6),
     textAlign: 'center',
   },
   emptySubtitle: {
     fontSize: fp(13),
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
     textAlign: 'center',
     lineHeight: fp(19),
   },
@@ -395,7 +395,7 @@ const styles = StyleSheet.create({
   statsTitle: {
     fontSize: fp(18),
     fontWeight: '700',
-    color: colors.text,
+    color: colors.cText,
     marginBottom: hp(10),
   },
   statsGrid: {
@@ -407,7 +407,7 @@ const styles = StyleSheet.create({
 
   // Withdraw
   withdrawCard: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.cCard,
     borderRadius: wp(16),
     padding: wp(16),
     flexDirection: 'row',
@@ -415,24 +415,26 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginHorizontal: wp(16),
     elevation: 3,
-    shadowColor: colors.black,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 6,
+    borderWidth: 1,
+    borderColor: colors.cBorder,
   },
   withdrawLabel: {
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
     fontWeight: '600',
     fontSize: fp(12),
   },
   withdrawAmount: {
-    color: colors.primary,
+    color: colors.cAccentLight,
     marginTop: hp(2),
     fontSize: fp(18),
     fontWeight: '900',
   },
   withdrawBtn: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.cAccent,
     paddingVertical: hp(10),
     paddingHorizontal: wp(18),
     borderRadius: wp(10),

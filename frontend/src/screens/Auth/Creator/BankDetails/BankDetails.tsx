@@ -188,7 +188,7 @@ const BankDetails = () => {
       <View style={styles.container}>
         <AppHeaderWithBack title="Bank Details" />
         <View style={styles.loaderWrap}>
-          <ActivityIndicator size="large" color={colors.primary} />
+          <ActivityIndicator size="large" color={colors.cAccent} />
         </View>
       </View>
     );
@@ -210,7 +210,7 @@ const BankDetails = () => {
         >
           {/* Header Card */}
           <LinearGradient
-            colors={['#1A1A2E', '#16213E', '#0F3460']}
+            colors={['#1A1A2E', '#1E1E3A', '#2A1A4E']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.headerCard}
@@ -265,7 +265,7 @@ const BankDetails = () => {
 
               <View style={styles.bankInfoRow}>
                 <View style={styles.bankInfoIcon}>
-                  <CreditCard size={wp(16)} color={colors.info} />
+                  <CreditCard size={wp(16)} color={colors.cAccentLight} />
                 </View>
                 <View style={styles.bankInfoContent}>
                   <Text style={styles.bankInfoLabel}>Account Number</Text>
@@ -279,7 +279,7 @@ const BankDetails = () => {
 
               <View style={styles.bankInfoRow}>
                 <View style={styles.bankInfoIcon}>
-                  <Building2 size={wp(16)} color={colors.info} />
+                  <Building2 size={wp(16)} color={colors.cAccentLight} />
                 </View>
                 <View style={styles.bankInfoContent}>
                   <Text style={styles.bankInfoLabel}>IFSC Code</Text>
@@ -293,7 +293,7 @@ const BankDetails = () => {
 
               <View style={styles.bankInfoRow}>
                 <View style={styles.bankInfoIcon}>
-                  <User size={wp(16)} color={colors.info} />
+                  <User size={wp(16)} color={colors.cAccentLight} />
                 </View>
                 <View style={styles.bankInfoContent}>
                   <Text style={styles.bankInfoLabel}>Beneficiary Name</Text>
@@ -339,7 +339,7 @@ const BankDetails = () => {
             <>
               {/* Info Banner */}
               <View style={styles.infoBanner}>
-                <Info size={wp(16)} color={colors.info} />
+                <Info size={wp(16)} color={colors.cAccentLight} />
                 <Text style={styles.infoBannerText}>
                   Enter your bank account details carefully. The account must be
                   in your name for verification.
@@ -375,7 +375,7 @@ const BankDetails = () => {
                       <View style={styles.labelRow}>
                         <CreditCard
                           size={wp(14)}
-                          color={colors.textSecondary}
+                          color={colors.cTextSecondary}
                         />
                         <Text style={styles.inputLabel}>Account Number</Text>
                       </View>
@@ -420,7 +420,7 @@ const BankDetails = () => {
                       <View style={styles.labelRow}>
                         <CreditCard
                           size={wp(14)}
-                          color={colors.textSecondary}
+                          color={colors.cTextSecondary}
                         />
                         <Text style={styles.inputLabel}>
                           Confirm Account Number
@@ -469,7 +469,7 @@ const BankDetails = () => {
                       <View style={styles.labelRow}>
                         <Building2
                           size={wp(14)}
-                          color={colors.textSecondary}
+                          color={colors.cTextSecondary}
                         />
                         <Text style={styles.inputLabel}>IFSC Code</Text>
                       </View>
@@ -515,7 +515,7 @@ const BankDetails = () => {
                   }) => (
                     <View style={styles.fieldWrapper}>
                       <View style={styles.labelRow}>
-                        <User size={wp(14)} color={colors.textSecondary} />
+                        <User size={wp(14)} color={colors.cTextSecondary} />
                         <Text style={styles.inputLabel}>Beneficiary Name</Text>
                       </View>
                       <CustomTextInput
@@ -588,7 +588,7 @@ const BankDetails = () => {
                 { backgroundColor: colors.info + '15' },
               ]}
             >
-              <ShieldCheck size={wp(32)} color={colors.info} />
+              <ShieldCheck size={wp(32)} color={colors.cAccentLight} />
             </View>
             <Text style={styles.modalTitle}>Verify Bank Account</Text>
             <Text style={styles.modalMessage}>
@@ -699,7 +699,7 @@ const BankDetails = () => {
                   backgroundColor: verificationResult?.bank_verification
                     ?.verified
                     ? colors.success
-                    : colors.primary,
+                    : colors.cAccent,
                 },
               ]}
               onPress={() => setShowResultModal(false)}
@@ -719,7 +719,7 @@ export default BankDetails;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.cBg,
   },
   scrollView: {
     flex: 1,
@@ -765,7 +765,7 @@ const styles = StyleSheet.create({
 
   // Bank Card
   bankCard: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.cCard,
     marginHorizontal: wp(16),
     marginTop: hp(16),
     borderRadius: wp(16),
@@ -775,6 +775,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.04,
     shadowRadius: 6,
+    borderWidth: 1,
+    borderColor: colors.cBorder,
   },
   bankCardHeader: {
     flexDirection: 'row',
@@ -785,7 +787,7 @@ const styles = StyleSheet.create({
   bankCardTitle: {
     fontSize: fp(16),
     fontWeight: '700',
-    color: colors.text,
+    color: colors.cText,
   },
   verifiedBadge: {
     flexDirection: 'row',
@@ -809,7 +811,7 @@ const styles = StyleSheet.create({
     width: wp(36),
     height: wp(36),
     borderRadius: wp(10),
-    backgroundColor: colors.surface,
+    backgroundColor: colors.cCardLight,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: wp(12),
@@ -819,18 +821,18 @@ const styles = StyleSheet.create({
   },
   bankInfoLabel: {
     fontSize: fp(11),
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
     fontWeight: '500',
     marginBottom: hp(2),
   },
   bankInfoValue: {
     fontSize: fp(15),
-    color: colors.text,
+    color: colors.cText,
     fontWeight: '600',
   },
   bankDivider: {
     height: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.cBorder,
     marginLeft: wp(48),
   },
   bankActions: {
@@ -839,7 +841,7 @@ const styles = StyleSheet.create({
     marginTop: hp(18),
     paddingTop: hp(16),
     borderTopWidth: 1,
-    borderTopColor: colors.surface,
+    borderTopColor: colors.cBorder,
   },
   editBtn: {
     flex: 1,
@@ -847,12 +849,12 @@ const styles = StyleSheet.create({
     borderRadius: wp(12),
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.surface,
+    backgroundColor: colors.cCardLight,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.cBorder,
   },
   editBtnText: {
-    color: colors.text,
+    color: colors.cText,
     fontWeight: '600',
     fontSize: fp(14),
   },
@@ -863,7 +865,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.primary,
+    backgroundColor: colors.cAccent,
     gap: wp(6),
   },
   verifyBtnText: {
@@ -877,18 +879,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: wp(10),
-    backgroundColor: colors.info + '10',
+    backgroundColor: colors.cAccentMuted,
     marginHorizontal: wp(16),
     marginTop: hp(16),
     padding: wp(14),
     borderRadius: wp(12),
     borderWidth: 1,
-    borderColor: colors.info + '20',
+    borderColor: colors.cAccent + '30',
   },
   infoBannerText: {
     flex: 1,
     fontSize: fp(12),
-    color: colors.info,
+    color: colors.cAccentLight,
     lineHeight: fp(17),
     fontWeight: '500',
   },
@@ -897,7 +899,7 @@ const styles = StyleSheet.create({
   formSection: {
     marginHorizontal: wp(16),
     marginTop: hp(16),
-    backgroundColor: colors.white,
+    backgroundColor: colors.cCard,
     borderRadius: wp(16),
     padding: wp(16),
     elevation: 2,
@@ -905,6 +907,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.04,
     shadowRadius: 6,
+    borderWidth: 1,
+    borderColor: colors.cBorder,
   },
   fieldWrapper: {
     marginBottom: hp(16),
@@ -918,20 +922,20 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: fp(13),
     fontWeight: '600',
-    color: colors.text,
+    color: colors.cText,
   },
   input: {
     height: hp(48),
     borderWidth: 1,
-    borderColor: colors.borderColor,
+    borderColor: colors.cBorder,
     borderRadius: wp(12),
     paddingHorizontal: wp(14),
     justifyContent: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: colors.cInputBg,
   },
   disabledInput: {
-    backgroundColor: colors.surface,
-    borderColor: colors.surface,
+    backgroundColor: colors.cCardLight,
+    borderColor: colors.cCardLight,
   },
   inputError: {
     borderColor: colors.error,
@@ -953,12 +957,12 @@ const styles = StyleSheet.create({
     borderRadius: wp(12),
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.surface,
+    backgroundColor: colors.cCardLight,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.cBorder,
   },
   cancelBtnText: {
-    color: colors.text,
+    color: colors.cText,
     fontWeight: '600',
     fontSize: fp(14),
   },
@@ -968,7 +972,7 @@ const styles = StyleSheet.create({
     borderRadius: wp(12),
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.primary,
+    backgroundColor: colors.cAccent,
   },
   saveBtnText: {
     color: colors.white,
@@ -979,18 +983,20 @@ const styles = StyleSheet.create({
   // Modal
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.7)',
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: wp(24),
   },
   modalContainer: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.cCard,
     borderRadius: wp(20),
     paddingVertical: hp(28),
     paddingHorizontal: wp(24),
     width: '100%',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.cBorder,
   },
   modalIconWrap: {
     width: wp(68),
@@ -1003,18 +1009,18 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: fp(18),
     fontWeight: '700',
-    color: colors.text,
+    color: colors.cText,
     marginBottom: hp(8),
   },
   modalMessage: {
     fontSize: fp(14),
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
     textAlign: 'center',
     lineHeight: fp(20),
     marginBottom: hp(20),
   },
   modalDetail: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.cCardLight,
     borderRadius: wp(10),
     paddingHorizontal: wp(16),
     paddingVertical: hp(10),
@@ -1023,13 +1029,13 @@ const styles = StyleSheet.create({
   },
   modalDetailLabel: {
     fontSize: fp(11),
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
     fontWeight: '500',
     marginBottom: hp(2),
   },
   modalDetailValue: {
     fontSize: fp(15),
-    color: colors.text,
+    color: colors.cText,
     fontWeight: '700',
   },
   verifyInputWrap: {

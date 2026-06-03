@@ -92,7 +92,7 @@ const WebinarDetails = () => {
       <View style={styles.container}>
         <AppHeaderWithBack title="Webinar Details" />
         <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
+          <ActivityIndicator size="large" color={colors.cAccent} />
         </View>
       </View>
     );
@@ -111,7 +111,7 @@ const WebinarDetails = () => {
             />
           ) : (
             <View style={styles.thumbnailPlaceholder}>
-              <ImageOff size={wp(60)} color={colors.textSecondary} />
+              <ImageOff size={wp(60)} color={colors.cTextSecondary} />
               <Text style={styles.noImageText}>No Thumbnail Available</Text>
             </View>
           )}
@@ -145,21 +145,21 @@ const WebinarDetails = () => {
         </View>
 
         <View style={styles.row}>
-          <User size={wp(18)} color={colors.textSecondary} />
+          <User size={wp(18)} color={colors.cTextSecondary} />
           <Text style={styles.host}>
             Hosted by {data?.creator?.name || 'Unknown'}
           </Text>
         </View>
 
         <View style={styles.row}>
-          <Calendar size={wp(18)} color={colors.textSecondary} />
+          <Calendar size={wp(18)} color={colors.cTextSecondary} />
           <Text style={styles.detailText}>
             {new Date(data?.scheduled_at).toDateString()}
           </Text>
         </View>
 
         <View style={styles.row}>
-          <Clock size={wp(18)} color={colors.textSecondary} />
+          <Clock size={wp(18)} color={colors.cTextSecondary} />
           <Text style={styles.detailText}>
             {new Date(data?.scheduled_at).toLocaleTimeString([], {
               hour: '2-digit',
@@ -170,12 +170,12 @@ const WebinarDetails = () => {
         </View>
 
         <View style={styles.row}>
-          <Video size={wp(18)} color={colors.textSecondary} />
+          <Video size={wp(18)} color={colors.cTextSecondary} />
           <Text style={styles.detailText}>Zoom Meeting</Text>
         </View>
 
         <View style={styles.row}>
-          <Users size={wp(18)} color={colors.textSecondary} />
+          <Users size={wp(18)} color={colors.cTextSecondary} />
           <Text style={styles.detailText}>
             Max Participants: {data?.max_participants}
           </Text>
@@ -244,7 +244,7 @@ const PriceRow = ({ label, value }: { label: string; value: string }) => (
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: colors.cBg,
   },
   loaderContainer: {
     flex: 1,
@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
   thumbnailWrapper: {
     width: '100%',
     height: hp(220),
-    backgroundColor: colors.lightGrey,
+    backgroundColor: colors.cSurface,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
   },
   noImageText: {
     marginTop: hp(8),
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
     fontSize: fp(14),
   },
 
@@ -279,7 +279,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginTop: hp(15),
     paddingHorizontal: wp(15),
-    color: colors.text,
+    color: colors.cText,
   },
 
   row: {
@@ -290,11 +290,11 @@ const styles = StyleSheet.create({
     gap: wp(6),
   },
   host: {
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
     fontSize: fp(14),
   },
   detailText: {
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
     fontSize: fp(14),
   },
   linkActionRow: {
@@ -307,7 +307,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(6),
-    backgroundColor: colors.primary,
+    backgroundColor: colors.cAccent,
     paddingVertical: hp(9),
     paddingHorizontal: wp(12),
     borderRadius: wp(20),
@@ -329,7 +329,7 @@ const styles = StyleSheet.create({
   tag: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.primary,
+    backgroundColor: colors.cAccent,
     paddingVertical: hp(5),
     paddingHorizontal: wp(10),
     borderRadius: wp(20),
@@ -342,10 +342,12 @@ const styles = StyleSheet.create({
   },
 
   priceBox: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.cCard,
     padding: wp(16),
     borderRadius: wp(12),
     marginHorizontal: wp(15),
+    borderWidth: 1,
+    borderColor: colors.cBorder,
   },
   priceRow: {
     flexDirection: 'row',
@@ -353,14 +355,15 @@ const styles = StyleSheet.create({
     marginVertical: hp(6),
   },
   priceLabel: {
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
   },
   priceValue: {
     fontWeight: '600',
+    color: colors.cText,
   },
   totalRow: {
     borderTopWidth: wp(1),
-    borderColor: colors.border,
+    borderColor: colors.cBorder,
     marginTop: hp(10),
     paddingTop: hp(10),
     flexDirection: 'row',
@@ -369,15 +372,16 @@ const styles = StyleSheet.create({
   totalLabel: {
     fontSize: fp(16),
     fontWeight: '700',
+    color: colors.cText,
   },
   totalValue: {
     fontSize: fp(18),
     fontWeight: '800',
-    color: colors.primary,
+    color: colors.cAccentLight,
   },
   participants: {
     fontSize: fp(14),
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
     marginTop: hp(10),
   },
 
@@ -385,11 +389,11 @@ const styles = StyleSheet.create({
     fontSize: fp(18),
     fontWeight: '600',
     paddingHorizontal: wp(15),
-    color: colors.text,
+    color: colors.cText,
   },
   description: {
     fontSize: fp(14),
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
     marginTop: hp(8),
     paddingHorizontal: wp(15),
     lineHeight: fp(20),
@@ -401,9 +405,9 @@ const styles = StyleSheet.create({
     bottom: 0,
     width: '100%',
     padding: wp(15),
-    backgroundColor: colors.white,
+    backgroundColor: colors.cSurface,
     borderTopWidth: wp(1),
-    borderColor: colors.border,
+    borderColor: colors.cBorder,
     marginBottom: hp(10),
   },
   buyButton: {

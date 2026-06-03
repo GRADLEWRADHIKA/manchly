@@ -24,7 +24,7 @@ const GoLiveCard = () => {
         }}
       >
         <LinearGradient
-          colors={['#1A1A2E', '#16213E', '#0F3460']}
+          colors={['#1A1A2E', '#1C1C38', '#241845']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.liveCard}
@@ -63,11 +63,8 @@ const styles = StyleSheet.create({
     padding: wp(18),
     flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: '#1A1A2E',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    elevation: 4,
+    borderWidth: 1,
+    borderColor: colors.cBorder,
   },
   liveLeft: {
     flex: 1,

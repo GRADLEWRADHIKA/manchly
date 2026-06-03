@@ -143,15 +143,15 @@ const WalletCreator = () => {
             styles.txIcon,
             {
               backgroundColor: isCredit
-                ? colors.success + '12'
-                : colors.error + '12',
+                ? colors.cSuccess + '15'
+                : colors.cError + '15',
             },
           ]}
         >
           {isCredit ? (
-            <ArrowDownLeft size={wp(16)} color={colors.success} />
+            <ArrowDownLeft size={wp(16)} color={colors.cSuccess} />
           ) : (
-            <ArrowUpRight size={wp(16)} color={colors.error} />
+            <ArrowUpRight size={wp(16)} color={colors.cError} />
           )}
         </View>
         <View style={styles.txContent}>
@@ -165,9 +165,9 @@ const WalletCreator = () => {
               {
                 color:
                   item.status === 'SETTLED'
-                    ? colors.success
+                    ? colors.cSuccess
                     : item.status === 'FAILED'
-                    ? colors.error
+                    ? colors.cError
                     : colors.secondary,
               },
             ]}
@@ -179,7 +179,7 @@ const WalletCreator = () => {
           <Text
             style={[
               styles.txAmount,
-              { color: isCredit ? colors.success : colors.error },
+              { color: isCredit ? colors.cSuccess : colors.cError },
             ]}
           >
             {isCredit ? '+' : '-'}₹{formatAmount(item.net_amount)}
@@ -197,7 +197,7 @@ const WalletCreator = () => {
       <View style={styles.container}>
         <AppHeaderWithBack title="My Wallet" />
         <View style={styles.loaderWrap}>
-          <ActivityIndicator size="large" color={colors.primary} />
+          <ActivityIndicator size="large" color={colors.cAccent} />
         </View>
       </View>
     );
@@ -214,14 +214,14 @@ const WalletCreator = () => {
         {/* Balance Card */}
         <View style={styles.balanceCard}>
           <LinearGradient
-            colors={['#1A1A2E', '#16213E', '#0F3460']}
+            colors={['#1A1A2E', '#1E1E3A', '#2A1A4E']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.balanceGradient}
           >
             <View style={styles.balanceHeader}>
               <View style={styles.balanceIconWrap}>
-                <Wallet size={wp(20)} color={colors.white} />
+                <Wallet size={wp(20)} color={colors.cText} />
               </View>
               <Text style={styles.balanceLabel}>Pending Settlement</Text>
             </View>
@@ -237,7 +237,7 @@ const WalletCreator = () => {
               activeOpacity={0.8}
               onPress={handleWithdraw}
             >
-              <ArrowDownToLine size={wp(16)} color={colors.primary} />
+              <ArrowDownToLine size={wp(16)} color={colors.cBg} />
               <Text style={styles.withdrawBtnText}>Withdraw</Text>
             </TouchableOpacity>
           </LinearGradient>
@@ -247,8 +247,8 @@ const WalletCreator = () => {
         <Text style={styles.sectionTitle}>Earnings Overview</Text>
         <View style={styles.statsGrid}>
           <View style={styles.statCard}>
-            <View style={[styles.statIconWrap, { backgroundColor: '#EEF2FF' }]}>
-              <TrendingUp size={wp(18)} color={colors.info} />
+            <View style={[styles.statIconWrap, { backgroundColor: colors.cAccent + '20' }]}>
+              <TrendingUp size={wp(18)} color={colors.cAccentLight} />
             </View>
             <Text style={styles.statValue}>
               ₹ {formatAmount(totalEarnings)}
@@ -257,8 +257,8 @@ const WalletCreator = () => {
           </View>
 
           <View style={styles.statCard}>
-            <View style={[styles.statIconWrap, { backgroundColor: '#ECFDF5' }]}>
-              <CheckCircle2 size={wp(18)} color={colors.accent} />
+            <View style={[styles.statIconWrap, { backgroundColor: colors.cSuccess + '20' }]}>
+              <CheckCircle2 size={wp(18)} color={colors.cSuccess} />
             </View>
             <Text style={styles.statValue}>
               ₹ {formatAmount(settledBalance)}
@@ -267,7 +267,7 @@ const WalletCreator = () => {
           </View>
 
           <View style={styles.statCard}>
-            <View style={[styles.statIconWrap, { backgroundColor: '#FEF3C7' }]}>
+            <View style={[styles.statIconWrap, { backgroundColor: colors.golden + '20' }]}>
               <Clock size={wp(18)} color={colors.golden} />
             </View>
             <Text style={styles.statValue}>
@@ -277,7 +277,7 @@ const WalletCreator = () => {
           </View>
 
           <View style={styles.statCard}>
-            <View style={[styles.statIconWrap, { backgroundColor: '#FDF2F8' }]}>
+            <View style={[styles.statIconWrap, { backgroundColor: colors.secondary + '20' }]}>
               <IndianRupee size={wp(18)} color={colors.secondary} />
             </View>
             <Text style={styles.statValue}>
@@ -301,7 +301,7 @@ const WalletCreator = () => {
         ) : (
           <View style={styles.txSection}>
             <View style={styles.txEmptyCard}>
-              <IndianRupee size={wp(32)} color={colors.muted} />
+              <IndianRupee size={wp(32)} color={colors.cTextMuted} />
               <Text style={styles.txEmptyTitle}>No transactions yet</Text>
               <Text style={styles.txEmptyDesc}>
                 Your earnings from courses and webinars will appear here
@@ -320,15 +320,15 @@ const WalletCreator = () => {
           onPress={() => navigation.navigate('BankDetails')}
         >
           <View style={styles.actionLeft}>
-            <View style={[styles.actionIcon, { backgroundColor: '#EEF2FF' }]}>
-              <Landmark size={wp(18)} color={colors.info} />
+            <View style={[styles.actionIcon, { backgroundColor: colors.cAccent + '20' }]}>
+              <Landmark size={wp(18)} color={colors.cAccentLight} />
             </View>
             <View>
               <Text style={styles.actionTitle}>Bank Account</Text>
               <Text style={styles.actionDesc}>Manage bank details</Text>
             </View>
           </View>
-          <ChevronRight size={wp(18)} color={colors.muted} />
+          <ChevronRight size={wp(18)} color={colors.cTextMuted} />
         </TouchableOpacity>
       </ScrollView>
 
@@ -342,7 +342,7 @@ const WalletCreator = () => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
             <View style={styles.modalIconWrap}>
-              <Wallet size={wp(28)} color={colors.primary} />
+              <Wallet size={wp(28)} color={colors.cAccent} />
             </View>
             <Text style={styles.modalTitle}>Withdraw Funds</Text>
 
@@ -354,7 +354,7 @@ const WalletCreator = () => {
             </View>
 
             <View style={styles.modalInfoRow}>
-              <Clock size={wp(16)} color={colors.info} />
+              <Clock size={wp(16)} color={colors.cAccentLight} />
               <Text style={styles.modalInfoText}>
                 Your money will be credited to your bank account by{' '}
                 <Text style={{ fontWeight: '700' }}>{getT2Date()}</Text> (T+2
@@ -364,7 +364,7 @@ const WalletCreator = () => {
 
             {bankAccount && (
               <View style={styles.modalBankRow}>
-                <Landmark size={wp(16)} color={colors.textSecondary} />
+                <Landmark size={wp(16)} color={colors.cTextSecondary} />
                 <Text style={styles.modalBankText}>
                   Crediting to: {bankAccount.account_number} (
                   {bankAccount.ifsc_code})
@@ -403,7 +403,7 @@ const WalletCreator = () => {
                 }}
                 activeOpacity={0.8}
               >
-                <CheckCircle2 size={wp(16)} color={colors.white} />
+                <CheckCircle2 size={wp(16)} color={colors.cText} />
                 <Text style={styles.modalConfirmText}>Got It</Text>
               </TouchableOpacity>
             </View>
@@ -419,7 +419,7 @@ export default WalletCreator;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.cBg,
   },
   scrollContent: {
     paddingBottom: hp(30),
@@ -437,7 +437,7 @@ const styles = StyleSheet.create({
     borderRadius: wp(20),
     overflow: 'hidden',
     elevation: 6,
-    shadowColor: colors.black,
+    shadowColor: colors.cAccent,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 12,
@@ -455,7 +455,7 @@ const styles = StyleSheet.create({
     width: wp(36),
     height: wp(36),
     borderRadius: wp(18),
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: 'rgba(255,255,255,0.12)',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: wp(10),
@@ -466,7 +466,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   balanceAmount: {
-    color: colors.white,
+    color: colors.cText,
     fontSize: fp(32),
     fontWeight: '900',
     letterSpacing: 1,
@@ -481,14 +481,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: colors.cText,
     paddingVertical: hp(12),
     borderRadius: wp(12),
     gap: wp(8),
   },
   withdrawBtnText: {
     fontWeight: '800',
-    color: colors.primary,
+    color: colors.cBg,
     fontSize: fp(15),
   },
 
@@ -496,7 +496,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: fp(16),
     fontWeight: '700',
-    color: colors.text,
+    color: colors.cText,
     marginHorizontal: wp(16),
     marginTop: hp(24),
     marginBottom: hp(12),
@@ -504,7 +504,7 @@ const styles = StyleSheet.create({
   sectionTitleOne: {
     fontSize: fp(16),
     fontWeight: '700',
-    color: colors.text,
+    color: colors.cText,
     marginVertical: hp(15),
   },
 
@@ -517,14 +517,11 @@ const styles = StyleSheet.create({
   },
   statCard: {
     width: '47%',
-    backgroundColor: colors.white,
+    backgroundColor: colors.cCard,
     borderRadius: wp(16),
     padding: wp(14),
-    elevation: 2,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
+    borderWidth: 1,
+    borderColor: colors.cBorder,
   },
   statIconWrap: {
     width: wp(38),
@@ -537,12 +534,12 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: fp(18),
     fontWeight: '800',
-    color: colors.text,
+    color: colors.cText,
     marginBottom: hp(2),
   },
   statLabel: {
     fontSize: fp(12),
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
     fontWeight: '500',
   },
 
@@ -559,16 +556,13 @@ const styles = StyleSheet.create({
   txRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: colors.cCard,
     marginHorizontal: wp(16),
     marginBottom: hp(8),
     padding: wp(14),
     borderRadius: wp(14),
-    elevation: 1,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 4,
+    borderWidth: 1,
+    borderColor: colors.cBorder,
   },
   txIcon: {
     width: wp(40),
@@ -584,11 +578,11 @@ const styles = StyleSheet.create({
   txTitle: {
     fontSize: fp(13),
     fontWeight: '600',
-    color: colors.text,
+    color: colors.cText,
   },
   txDate: {
     fontSize: fp(11),
-    color: colors.muted,
+    color: colors.cTextMuted,
     marginTop: hp(2),
   },
   txStatus: {
@@ -605,30 +599,27 @@ const styles = StyleSheet.create({
   },
   txGross: {
     fontSize: fp(10),
-    color: colors.muted,
+    color: colors.cTextMuted,
     marginTop: hp(2),
   },
   txEmptyCard: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.cCard,
     marginHorizontal: wp(16),
     borderRadius: wp(16),
     padding: wp(24),
     alignItems: 'center',
-    elevation: 1,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 4,
+    borderWidth: 1,
+    borderColor: colors.cBorder,
   },
   txEmptyTitle: {
     fontSize: fp(15),
     fontWeight: '700',
-    color: colors.text,
+    color: colors.cText,
     marginTop: hp(10),
   },
   txEmptyDesc: {
     fontSize: fp(13),
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
     textAlign: 'center',
     marginTop: hp(4),
     lineHeight: fp(18),
@@ -639,16 +630,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: colors.white,
+    backgroundColor: colors.cCard,
     marginHorizontal: wp(16),
     marginBottom: hp(10),
     padding: wp(14),
     borderRadius: wp(14),
-    elevation: 2,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
+    borderWidth: 1,
+    borderColor: colors.cBorder,
   },
   actionLeft: {
     flexDirection: 'row',
@@ -665,35 +653,37 @@ const styles = StyleSheet.create({
   actionTitle: {
     fontSize: fp(14),
     fontWeight: '600',
-    color: colors.text,
+    color: colors.cText,
   },
   actionDesc: {
     fontSize: fp(12),
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
     marginTop: hp(1),
   },
 
   // Modal
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.7)',
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: wp(20),
   },
   modalContainer: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.cCard,
     borderRadius: wp(20),
     paddingVertical: hp(24),
     paddingHorizontal: wp(20),
     width: '100%',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.cBorder,
   },
   modalIconWrap: {
     width: wp(56),
     height: wp(56),
     borderRadius: wp(28),
-    backgroundColor: '#f0f0f0',
+    backgroundColor: colors.cCardLight,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: hp(12),
@@ -701,11 +691,11 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: fp(18),
     fontWeight: '700',
-    color: colors.text,
+    color: colors.cText,
     marginBottom: hp(16),
   },
   modalAmountCard: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: colors.cCardLight,
     borderRadius: wp(14),
     paddingVertical: hp(16),
     paddingHorizontal: wp(20),
@@ -715,20 +705,20 @@ const styles = StyleSheet.create({
   },
   modalAmountLabel: {
     fontSize: fp(12),
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
     fontWeight: '500',
     marginBottom: hp(4),
   },
   modalAmountValue: {
     fontSize: fp(28),
     fontWeight: '900',
-    color: colors.text,
+    color: colors.cText,
   },
   modalInfoRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: wp(10),
-    backgroundColor: colors.info + '10',
+    backgroundColor: colors.cAccent + '15',
     padding: wp(12),
     borderRadius: wp(12),
     width: '100%',
@@ -737,7 +727,7 @@ const styles = StyleSheet.create({
   modalInfoText: {
     flex: 1,
     fontSize: fp(12),
-    color: colors.info,
+    color: colors.cAccentLight,
     lineHeight: fp(17),
     fontWeight: '500',
   },
@@ -745,7 +735,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(8),
-    backgroundColor: '#f8f9fa',
+    backgroundColor: colors.cCardLight,
     padding: wp(12),
     borderRadius: wp(10),
     width: '100%',
@@ -754,7 +744,7 @@ const styles = StyleSheet.create({
   modalBankText: {
     flex: 1,
     fontSize: fp(12),
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
     fontWeight: '500',
   },
   modalNoteRow: {
@@ -768,7 +758,7 @@ const styles = StyleSheet.create({
   modalNoteText: {
     flex: 1,
     fontSize: fp(11),
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
     lineHeight: fp(16),
   },
   modalButtons: {
@@ -782,12 +772,12 @@ const styles = StyleSheet.create({
     borderRadius: wp(12),
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f4f4f5',
+    backgroundColor: colors.cCardLight,
     borderWidth: 1,
-    borderColor: '#eaecef',
+    borderColor: colors.cBorder,
   },
   modalCancelText: {
-    color: colors.text,
+    color: colors.cText,
     fontWeight: '600',
     fontSize: fp(14),
   },
@@ -798,11 +788,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.primary,
+    backgroundColor: colors.cAccent,
     gap: wp(6),
   },
   modalConfirmText: {
-    color: colors.white,
+    color: colors.cText,
     fontWeight: '700',
     fontSize: fp(14),
   },

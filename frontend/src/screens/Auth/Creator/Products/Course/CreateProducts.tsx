@@ -144,7 +144,7 @@ export default CreateProducts;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: colors.cBg,
   },
   headerWrapper: {
     borderBottomLeftRadius: wp(20),
@@ -289,7 +289,7 @@ const styles = StyleSheet.create({
   aiFeaturesTitle: {
     fontSize: fp(16),
     fontWeight: '700',
-    color: colors.heading,
+    color: colors.cText,
     marginTop: hp(24),
     marginBottom: hp(14),
   },

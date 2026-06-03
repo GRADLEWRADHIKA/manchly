@@ -196,7 +196,7 @@ const CreateCourse = () => {
             <View
               style={{ flexDirection: 'row', alignItems: 'center', gap: wp(6) }}
             >
-              <Type size={wp(14)} color={colors.textSecondary} />
+              <Type size={wp(14)} color={colors.cTextSecondary} />
               <Text style={styles.label}>Course Title</Text>
             </View>
             <EnhanceSuggestionCard
@@ -227,7 +227,7 @@ const CreateCourse = () => {
 
           {/* Price */}
           <View style={styles.labelRow}>
-            <IndianRupee size={wp(14)} color={colors.textSecondary} />
+            <IndianRupee size={wp(14)} color={colors.cTextSecondary} />
             <Text style={styles.label}>Price (INR)</Text>
           </View>
           <Controller
@@ -251,7 +251,7 @@ const CreateCourse = () => {
 
           {/* Thumbnail */}
           <View style={styles.labelRow}>
-            <ImagePlus size={wp(14)} color={colors.textSecondary} />
+            <ImagePlus size={wp(14)} color={colors.cTextSecondary} />
             <Text style={styles.label}>Course Thumbnail</Text>
           </View>
           <Controller
@@ -266,10 +266,10 @@ const CreateCourse = () => {
                   activeOpacity={0.7}
                 >
                   {uploading ? (
-                    <ActivityIndicator color={colors.primary} />
+                    <ActivityIndicator color={colors.cAccent} />
                   ) : (
                     <>
-                      <ImagePlus size={wp(18)} color={colors.textSecondary} />
+                      <ImagePlus size={wp(18)} color={colors.cTextSecondary} />
                       <Text style={styles.thumbnailBtnText}>
                         {value ? 'Change Thumbnail' : 'Choose Thumbnail'}
                       </Text>
@@ -289,7 +289,7 @@ const CreateCourse = () => {
 
           {/* Level */}
           <View style={styles.labelRow}>
-            <BarChart3 size={wp(14)} color={colors.textSecondary} />
+            <BarChart3 size={wp(14)} color={colors.cTextSecondary} />
             <Text style={styles.label}>Level</Text>
           </View>
           <Controller
@@ -319,7 +319,7 @@ const CreateCourse = () => {
 
           {/* Status */}
           <View style={styles.labelRow}>
-            <ToggleLeft size={wp(14)} color={colors.textSecondary} />
+            <ToggleLeft size={wp(14)} color={colors.cTextSecondary} />
             <Text style={styles.label}>Status</Text>
           </View>
           <Controller
@@ -351,7 +351,7 @@ const CreateCourse = () => {
             <View
               style={{ flexDirection: 'row', alignItems: 'center', gap: wp(6) }}
             >
-              <FileText size={wp(14)} color={colors.textSecondary} />
+              <FileText size={wp(14)} color={colors.cTextSecondary} />
               <Text style={styles.label}>Headline</Text>
             </View>
             <EnhanceSuggestionCard
@@ -432,7 +432,7 @@ export default CreateCourse;
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.cBg,
   },
   flex: {
     flex: 1,
@@ -452,7 +452,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: fp(13),
-    color: colors.heading,
+    color: colors.cText,
     fontWeight: '600',
   },
 
@@ -462,9 +462,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(12),
     height: hp(42),
     width: '100%',
-    backgroundColor: colors.white,
+    backgroundColor: colors.cInputBg,
     borderWidth: 1,
-    borderColor: colors.borderColor,
+    borderColor: colors.cBorder,
   },
   textArea: {
     height: hp(80),
@@ -473,7 +473,7 @@ const styles = StyleSheet.create({
   },
   errorBorder: {
     borderWidth: 1.5,
-    borderColor: colors.error,
+    borderColor: colors.cError,
   },
 
   // Thumbnail
@@ -484,13 +484,13 @@ const styles = StyleSheet.create({
     gap: wp(8),
     borderRadius: wp(12),
     height: hp(42),
-    backgroundColor: colors.white,
+    backgroundColor: colors.cCard,
     borderWidth: 1,
-    borderColor: colors.borderColor,
+    borderColor: colors.cBorder,
     borderStyle: 'dashed',
   },
   thumbnailBtnText: {
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
     fontSize: fp(14),
     fontWeight: '500',
   },
@@ -505,15 +505,18 @@ const styles = StyleSheet.create({
   dropdown: {
     height: hp(42),
     borderWidth: 1,
-    borderColor: colors.borderColor,
+    borderColor: colors.cBorder,
     borderRadius: wp(12),
     paddingHorizontal: wp(14),
     justifyContent: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: colors.cCard,
   },
   dropdownContainer: {
     borderRadius: wp(12),
     overflow: 'hidden',
+    backgroundColor: colors.cCard,
+    borderWidth: 1,
+    borderColor: colors.cBorder,
   },
   dropdownItem: {
     paddingHorizontal: wp(14),
@@ -523,22 +526,22 @@ const styles = StyleSheet.create({
     borderRadius: wp(8),
   },
   dropdownItemSelected: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.cAccent,
   },
   dropdownItemText: {
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
     fontSize: fp(14),
   },
   dropdownItemTextSelected: {
-    color: colors.white,
+    color: colors.cText,
   },
   placeholderText: {
     fontSize: fp(14),
-    color: colors.borderColor,
+    color: colors.cTextMuted,
   },
   selectedText: {
     fontSize: fp(14),
-    color: colors.primary,
+    color: colors.cAccentLight,
   },
 
   // Bottom Actions
@@ -548,8 +551,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(16),
     paddingVertical: hp(14),
     borderTopWidth: 1,
-    borderTopColor: colors.border,
-    backgroundColor: colors.white,
+    borderTopColor: colors.cBorder,
+    backgroundColor: colors.cSurface,
   },
   cancelBtn: {
     flex: 1,
@@ -557,18 +560,18 @@ const styles = StyleSheet.create({
     borderRadius: wp(12),
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.surface,
+    backgroundColor: colors.cCard,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.cBorder,
   },
   cancelText: {
-    color: colors.text,
+    color: colors.cText,
     fontWeight: '600',
     fontSize: fp(15),
   },
   primaryBtn: {
     flex: 2,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.cAccent,
     paddingVertical: hp(14),
     borderRadius: wp(12),
     alignItems: 'center',

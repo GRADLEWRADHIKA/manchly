@@ -72,10 +72,10 @@ const openWhatsApp = (message: string) => {
 
 const MenuRow = ({
   icon: Icon,
-  iconColor = colors.text,
-  iconBg = '#f4f4f5',
+  iconColor = colors.cText,
+  iconBg = colors.cCardLight,
   label,
-  labelColor = colors.text,
+  labelColor = colors.cText,
   subtitle,
   onPress,
   isLast = false,
@@ -98,7 +98,7 @@ const MenuRow = ({
         {subtitle && <Text style={styles.rowSubtext}>{subtitle}</Text>}
       </View>
     </View>
-    <ChevronRight size={wp(18)} color="#c8ccd0" />
+    <ChevronRight size={wp(18)} color={colors.cTextMuted} />
   </Pressable>
 );
 
@@ -227,7 +227,7 @@ const CreatorSetting: React.FC = () => {
     <View style={styles.container}>
       {/* ──────── Header ──────── */}
       <LinearGradient
-        colors={['#1A1A2E', '#16213E', '#0F3460']}
+        colors={[colors.cBg, colors.cBg, colors.cBg]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={[styles.headerWrapper, { paddingTop: insets.top }]}
@@ -295,7 +295,7 @@ const CreatorSetting: React.FC = () => {
 
         {/* ──────── Wallet Card ──────── */}
         <LinearGradient
-          colors={['#1A1A2E', '#16213E', '#0F3460']}
+          colors={[colors.cCard, '#1E1E3A', '#2A1A4E']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.withdrawCard}
@@ -351,7 +351,7 @@ const CreatorSetting: React.FC = () => {
               </Text>
             </Text>
           </View>
-          <ChevronRight size={wp(18)} color="#c8ccd0" />
+          <ChevronRight size={wp(18)} color={colors.cTextMuted} />
         </Pressable>
 
         {/* ──────── Account Section ──────── */}
@@ -359,7 +359,7 @@ const CreatorSetting: React.FC = () => {
         <View style={styles.section}>
           <MenuRow
             icon={User2}
-            iconBg="#f0f4ff"
+            iconBg="#3B82F620"
             iconColor="#3B82F6"
             label="My Profile"
             subtitle={`Complete your profile · ${profilePercent}%`}
@@ -367,16 +367,16 @@ const CreatorSetting: React.FC = () => {
           />
           <MenuRow
             icon={WalletMinimal}
-            iconBg="#f0fdf4"
-            iconColor={colors.success}
+            iconBg={colors.cSuccess + '20'}
+            iconColor={colors.cSuccess}
             label="Wallet"
             subtitle="Earnings & transactions"
             onPress={() => Nav.navigate('WalletCreator')}
           />
           <MenuRow
             icon={Landmark}
-            iconBg="#f4f4f5"
-            iconColor={colors.textSecondary}
+            iconBg={colors.cCardLight}
+            iconColor={colors.cTextSecondary}
             label="Bank Details"
             subtitle="Manage your bank information"
             onPress={() => Nav.navigate('BankDetails')}
@@ -423,7 +423,7 @@ const CreatorSetting: React.FC = () => {
         <View style={styles.logoutSection}>
           <MenuRow
             icon={LogOut}
-            iconBg="#fef2f2"
+            iconBg={colors.cError + '20'}
             iconColor={colors.error}
             label="Logout"
             labelColor={colors.error}
@@ -480,7 +480,7 @@ export default CreatorSetting;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f7',
+    backgroundColor: colors.cBg,
   },
 
   headerWrapper: {
@@ -547,14 +547,14 @@ const styles = StyleSheet.create({
     borderRadius: wp(14),
     alignItems: 'center',
     gap: hp(8),
-    backgroundColor: colors.white,
+    backgroundColor: colors.cCard,
     shadowColor: colors.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
     elevation: 2,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#eaecef',
+    borderColor: colors.cBorder,
   },
   topCardIcon: {
     width: wp(42),
@@ -564,7 +564,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   topCardText: {
-    color: colors.text,
+    color: colors.cText,
     fontSize: fp(13),
     fontWeight: '600',
   },
@@ -579,11 +579,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: hp(22),
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
-    elevation: 5,
+    borderWidth: 1,
+    borderColor: colors.cBorder,
   },
   withdrawLeft: {
     flexDirection: 'row',
@@ -603,7 +600,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   withdrawLabel: {
-    color: '#808088',
+    color: colors.cTextSecondary,
     fontWeight: '500',
     fontSize: fp(12),
   },
@@ -615,7 +612,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   withdrawBtn: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.cAccent,
     paddingVertical: hp(9),
     paddingHorizontal: wp(18),
     borderRadius: wp(10),
@@ -626,7 +623,7 @@ const styles = StyleSheet.create({
   },
   withdrawBtnText: {
     fontWeight: '700',
-    color: '#111111',
+    color: colors.white,
     fontSize: fp(13),
   },
 
@@ -634,14 +631,14 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: fp(13),
     fontWeight: '600',
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
     textTransform: 'uppercase',
     letterSpacing: 0.8,
     marginHorizontal: wp(20),
     marginBottom: hp(8),
   },
   section: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.cCard,
     marginHorizontal: wp(16),
     borderRadius: wp(16),
     shadowColor: colors.black,
@@ -650,11 +647,11 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 2,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#eaecef',
+    borderColor: colors.cBorder,
     overflow: 'hidden',
   },
   logoutSection: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.cCard,
     marginHorizontal: wp(16),
     marginTop: hp(16),
     borderRadius: wp(16),
@@ -664,7 +661,7 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 2,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#eaecef',
+    borderColor: colors.cBorder,
     overflow: 'hidden',
   },
 
@@ -678,10 +675,10 @@ const styles = StyleSheet.create({
   },
   rowBorder: {
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#f0f2f5',
+    borderBottomColor: colors.cBorder,
   },
   rowPressed: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: colors.cCardLight,
   },
   rowLeft: {
     flexDirection: 'row',
@@ -698,25 +695,25 @@ const styles = StyleSheet.create({
   },
   rowText: {
     fontSize: fp(15),
-    color: colors.text,
+    color: colors.cText,
     fontWeight: '500',
   },
   rowSubtext: {
     fontSize: fp(12),
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
     marginTop: hp(1),
   },
 
   versionText: {
     textAlign: 'center',
     fontSize: fp(12),
-    color: colors.muted,
+    color: colors.cTextMuted,
     marginTop: hp(24),
     fontWeight: '500',
   },
   headerSubtitle: {
     fontSize: fp(12),
-    color: '#999999',
+    color: colors.cTextSecondary,
     fontWeight: '500',
   },
   headerTitle: {
@@ -730,14 +727,14 @@ const styles = StyleSheet.create({
   hissaCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: colors.cCard,
     marginHorizontal: wp(16),
     marginBottom: hp(20),
     paddingVertical: hp(14),
     paddingHorizontal: wp(14),
     borderRadius: wp(16),
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#eaecef',
+    borderColor: colors.cBorder,
     shadowColor: colors.black,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.04,
@@ -768,7 +765,7 @@ const styles = StyleSheet.create({
   hissaTitle: {
     fontSize: fp(15),
     fontWeight: '700',
-    color: colors.text,
+    color: colors.cText,
   },
   hissaSubtitle: {
     fontSize: fp(12),
@@ -779,7 +776,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   hissaDot: {
-    color: colors.muted,
+    color: colors.cTextMuted,
     fontWeight: '700',
   },
   hissaPlatform: {

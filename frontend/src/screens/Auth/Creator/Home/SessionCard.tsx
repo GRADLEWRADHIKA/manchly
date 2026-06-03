@@ -32,7 +32,7 @@ const SessionCard = () => {
         }}
       >
         <LinearGradient
-          colors={['#1A1A2E', '#16213E', '#0F3460']}
+          colors={['#1A1A2E', '#1C1C38', '#241845']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.sessionCard}
@@ -88,11 +88,8 @@ const styles = StyleSheet.create({
   sessionCard: {
     borderRadius: wp(18),
     padding: wp(18),
-    shadowColor: '#0A2342',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 5,
+    borderWidth: 1,
+    borderColor: colors.cBorder,
   },
   sessionTopRow: {
     flexDirection: 'row',

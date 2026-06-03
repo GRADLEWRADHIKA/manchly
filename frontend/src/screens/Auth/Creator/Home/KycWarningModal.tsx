@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(24),
   },
   modalCard: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.cCard,
     borderRadius: wp(20),
     padding: wp(24),
     alignItems: 'center',
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     width: wp(64),
     height: wp(64),
     borderRadius: wp(32),
-    backgroundColor: '#FFF3E0',
+    backgroundColor: colors.cCardLight,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: hp(16),
@@ -85,19 +85,19 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: fp(20),
     fontWeight: '800',
-    color: colors.primary,
+    color: colors.cText,
     marginBottom: hp(8),
     textAlign: 'center',
   },
   modalDesc: {
     fontSize: fp(13),
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
     textAlign: 'center',
     lineHeight: fp(20),
     marginBottom: hp(20),
   },
   modalPrimaryBtn: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.cAccent,
     borderRadius: wp(12),
     paddingVertical: hp(12),
     width: '100%',
@@ -115,6 +115,6 @@ const styles = StyleSheet.create({
   modalCancelText: {
     fontSize: fp(13),
     fontWeight: '600',
-    color: colors.textMuted,
+    color: colors.cTextMuted,
   },
 });

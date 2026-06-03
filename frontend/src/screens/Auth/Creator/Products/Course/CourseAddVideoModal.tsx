@@ -313,7 +313,7 @@ const CourseAddVideoModal = ({
           onPress={onClose}
           style={styles.closeButton}
         >
-          <X color={colors.text} size={wp(22)} />
+          <X color={colors.cText} size={wp(22)} />
         </TouchableOpacity>
       </View>
 
@@ -349,7 +349,7 @@ const CourseAddVideoModal = ({
               style={styles.uploadButton}
               onPress={handleVideoSelect}
             >
-              <Video color={colors.primary} size={wp(22)} />
+              <Video color={colors.cAccent} size={wp(22)} />
               <Text style={styles.uploadText}>
                 {selectedVideo?.name || 'Tap to select video'}
               </Text>
@@ -390,7 +390,7 @@ const CourseAddVideoModal = ({
                 disabled={thumbnailUploading}
               >
                 {thumbnailUploading ? (
-                  <ActivityIndicator color={colors.primary} />
+                  <ActivityIndicator color={colors.cAccent} />
                 ) : (
                   <Text style={styles.buttonText}>
                     {value ? 'Change Thumbnail' : 'Choose Thumbnail'}
@@ -491,7 +491,7 @@ export default CourseAddVideoModal;
 
 const styles = StyleSheet.create({
   modalContainer: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.cSurface,
     borderTopLeftRadius: wp(20),
     borderTopRightRadius: wp(20),
     maxHeight: '100%',
@@ -501,41 +501,41 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     borderBottomWidth: wp(1),
-    borderColor: colors.border,
+    borderColor: colors.cBorder,
     padding: wp(16),
   },
-  modalTitle: { fontSize: fp(18), fontWeight: '700', color: colors.text },
+  modalTitle: { fontSize: fp(18), fontWeight: '700', color: colors.cText },
   closeButton: { padding: wp(4) },
   modalContent: { padding: wp(20) },
   label: {
     fontSize: fp(14),
-    color: colors.heading,
+    color: colors.cText,
     fontWeight: '600',
     marginBottom: hp(6),
     marginTop: hp(12),
   },
   inputField: {
     borderWidth: wp(1),
-    borderColor: colors.borderColor,
+    borderColor: colors.cBorder,
     borderRadius: wp(8),
     paddingHorizontal: wp(10),
     height: hp(44),
-    backgroundColor: colors.white,
+    backgroundColor: colors.cInputBg,
   },
   uploadButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderColor: colors.borderColor,
+    borderColor: colors.cBorder,
     borderWidth: wp(1),
     borderRadius: wp(8),
     height: hp(44),
     paddingHorizontal: wp(10),
-    backgroundColor: colors.white,
+    backgroundColor: colors.cInputBg,
   },
   uploadText: {
     marginLeft: wp(10),
     fontSize: fp(16),
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
   },
   progressContainer: {
     flexDirection: 'row',
@@ -546,20 +546,21 @@ const styles = StyleSheet.create({
   },
   progressText: {
     fontSize: fp(14),
-    color: colors.primary,
+    color: colors.cAccentLight,
     fontWeight: '600',
   },
   dropdown: {
     height: hp(44),
     borderWidth: wp(1),
-    borderColor: colors.borderColor,
+    borderColor: colors.cBorder,
     borderRadius: wp(8),
     paddingHorizontal: wp(12),
     justifyContent: 'center',
+    backgroundColor: colors.cCard,
   },
-  placeholder: { color: colors.borderColor },
-  selectedText: { color: colors.primary, fontSize: fp(16) },
-  errorBorder: { borderColor: 'red' },
+  placeholder: { color: colors.cTextMuted },
+  selectedText: { color: colors.cAccentLight, fontSize: fp(16) },
+  errorBorder: { borderColor: colors.cError },
   modalFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -571,14 +572,15 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: hp(10),
     borderWidth: wp(1),
-    borderColor: colors.border,
+    borderColor: colors.cBorder,
     borderRadius: wp(8),
     alignItems: 'center',
+    backgroundColor: colors.cCard,
   },
-  cancelButtonText: { color: colors.text, fontWeight: '600' },
+  cancelButtonText: { color: colors.cText, fontWeight: '600' },
   saveButton: {
     flex: 1,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.cAccent,
     borderRadius: wp(8),
     alignItems: 'center',
     justifyContent: 'center',
@@ -589,14 +591,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(10),
     height: hp(44),
     width: '100%',
-    backgroundColor: colors.white,
+    backgroundColor: colors.cCard,
     borderWidth: wp(1),
-    borderColor: colors.borderColor,
+    borderColor: colors.cBorder,
     justifyContent: 'center',
     alignItems: 'center',
   },
   buttonText: {
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
     fontSize: fp(14),
     fontWeight: '500',
   },
@@ -605,5 +607,7 @@ const styles = StyleSheet.create({
     height: hp(150),
     borderRadius: wp(8),
     marginTop: hp(10),
+    borderWidth: 1,
+    borderColor: colors.cBorder,
   },
 });

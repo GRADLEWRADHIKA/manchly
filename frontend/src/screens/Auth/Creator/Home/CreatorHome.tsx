@@ -144,9 +144,10 @@ const CreatorHome = () => {
 
         <LaunchCourseCard />
 
-        <GoLiveCard />
-
-        <SessionCard />
+        <View style={styles.bottomCardsRow}>
+          <GoLiveCard />
+          <SessionCard />
+        </View>
       </ScrollView>
 
       <KycWarningModal
@@ -289,7 +290,13 @@ const styles = StyleSheet.create({
   },
 
   scrollContent: {
-    paddingBottom: hp(30),
+    paddingBottom: hp(50),
+  },
+  bottomCardsRow: {
+    flexDirection: 'row',
+    paddingHorizontal: wp(16),
+    marginTop: hp(14),
+    gap: wp(10),
   },
   sectionPadding: {
     paddingHorizontal: wp(16),

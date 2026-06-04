@@ -465,6 +465,7 @@ const CreatorSetting: React.FC = () => {
 
       <LogoutModal
         visible={logoutVisible}
+        variant="dark"
         onCancel={() => setLogoutVisible(false)}
         onConfirm={() => {
           setLogoutVisible(false);

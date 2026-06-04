@@ -61,6 +61,7 @@ const RevenueCard = () => {
   }, []);
 
   const totalRevenueAmount = walletData?.total_net_earnings || 0;
+  const totalSessions = sessionStats?.total_sessions ?? 0;
 
   const formatAmount = (amount: number) => {
     return amount.toLocaleString('en-IN', {
@@ -69,72 +70,77 @@ const RevenueCard = () => {
     });
   };
 
+  const statsData = [
+    {
+      icon: <BookOpen size={wp(14)} color={colors.white} />,
+      value: creatorStats?.statistics?.courses_sold ?? 0,
+      label: 'Courses',
+      bgColor: '#1a3a2a',
+    },
+    {
+      icon: <Users size={wp(14)} color={colors.white} />,
+      value: creatorStats?.statistics?.total_enrollments ?? 0,
+      label: 'Students',
+      bgColor: '#2a2a1a',
+    },
+    {
+      icon: <Award size={wp(14)} color={colors.white} />,
+      value: creatorWebinarStats?.statistics?.webinars_sold ?? 0,
+      label: 'Webinars',
+      bgColor: '#3a1a1a',
+    },
+    {
+      icon: <Phone size={wp(14)} color={colors.white} />,
+      value: totalSessions,
+      label: 'Sessions',
+      bgColor: '#1a2a3a',
+    },
+  ];
+
   return (
     <View style={styles.sectionPadding}>
-      <LinearGradient
-        colors={['#1A1A2E', '#1C1C38', '#241845']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.revenueCard}
-      >
-        <View style={styles.revenueHeader}>
-          <View>
-            <Text style={styles.revenueLabel}>TOTAL REVENUE</Text>
-            <Text style={styles.revenueAmount}>
-              <Text style={styles.rupeeSymbol}>₹</Text>
-              {walletLoading ? '...' : `${formatAmount(totalRevenueAmount)}`}
-            </Text>
-          </View>
+      <View style={styles.topRow}>
+        {/* Revenue Card */}
+        <LinearGradient
+          colors={['#1E2038', '#222448', '#2A2455']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.revenueCard}
+        >
+          <Text style={styles.revenueLabel}>TOTAL REVENUE</Text>
+          <Text style={styles.revenueAmount}>
+            <Text style={styles.rupeeSymbol}>₹</Text>
+            {walletLoading ? '...' : formatAmount(totalRevenueAmount)}
+          </Text>
           <View style={styles.growingBadge}>
-            <TrendingUp size={wp(14)} color={colors.white} />
+            <TrendingUp size={wp(12)} color={colors.white} />
             <Text style={styles.growingText}>Growing</Text>
           </View>
-        </View>
+        </LinearGradient>
 
-        <View style={styles.revenueDivider} />
-
-        <View style={styles.statsRow}>
-          <View style={styles.statItem}>
-            <View style={styles.statIconWrap}>
-              <BookOpen size={wp(14)} color={colors.white} />
+        {/* Stats Card - 2x2 grid */}
+        <LinearGradient
+          colors={['#1E2038', '#222448', '#2A2455']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.statsCard}
+        >
+          {[0, 1].map(row => (
+            <View key={row} style={styles.statsRow}>
+              {statsData.slice(row * 2, row * 2 + 2).map((stat, idx) => (
+                <View key={idx} style={styles.statItem}>
+                  <View style={styles.statInner}>
+                    <Text style={styles.statValue}>{stat.value}</Text>
+                    <Text style={styles.statLabel}>{stat.label}</Text>
+                  </View>
+                </View>
+              ))}
+              {row === 0 && <View style={styles.horizontalDivider} />}
             </View>
-            <Text style={styles.statValue}>
-              {creatorStats?.statistics?.courses_sold ?? 0}
-            </Text>
-            <Text style={styles.statLabel}>Courses</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <View style={styles.statIconWrap}>
-              <Users size={wp(14)} color={colors.white} />
-            </View>
-            <Text style={styles.statValue}>
-              {creatorStats?.statistics?.total_enrollments ?? 0}
-            </Text>
-            <Text style={styles.statLabel}>Students</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <View style={styles.statIconWrap}>
-              <Award size={wp(14)} color={colors.white} />
-            </View>
-            <Text style={styles.statValue}>
-              {creatorWebinarStats?.statistics?.webinars_sold ?? 0}
-            </Text>
-            <Text style={styles.statLabel}>Webinars</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <View style={styles.statIconWrap}>
-              <Phone size={wp(14)} color={colors.white} />
-            </View>
-            <Text style={styles.statValue}>
-              {sessionStats?.total_sessions ?? 0}
-            </Text>
-            <Text style={styles.statLabel}>Sessions</Text>
-          </View>
-        </View>
-      </LinearGradient>
+          ))}
+          <View style={styles.verticalDivider} />
+        </LinearGradient>
+      </View>
     </View>
   );
 };
@@ -146,29 +152,42 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(16),
     marginTop: hp(14),
   },
+  topRow: {
+    flexDirection: 'row',
+    gap: wp(10),
+  },
   revenueCard: {
+    flex: 1,
     borderRadius: wp(16),
     padding: wp(16),
     borderWidth: 1,
     borderColor: colors.cBorder,
-  },
-  revenueHeader: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
   },
   revenueLabel: {
     fontSize: fp(10),
     fontWeight: '700',
-    color: 'rgba(255,255,255,0.65)',
-    letterSpacing: 1,
-    marginBottom: hp(2),
+    color: 'rgba(255,255,255,0.5)',
+    letterSpacing: 1.5,
+    marginBottom: hp(8),
+  },
+  revenueAmount: {
+    fontSize: fp(32),
+    fontWeight: '800',
+    color: colors.white,
+    marginBottom: hp(10),
+  },
+  rupeeSymbol: {
+    fontSize: fp(20),
+    fontWeight: '400',
+    color: 'rgba(255,255,255,0.6)',
   },
   growingBadge: {
     flexDirection: 'row',
     alignItems: 'center',
+    alignSelf: 'flex-start',
     gap: wp(4),
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: 'rgba(16,185,129,0.2)',
     paddingHorizontal: wp(10),
     paddingVertical: hp(4),
     borderRadius: wp(20),
@@ -178,53 +197,52 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.white,
   },
-  revenueAmount: {
-    fontSize: fp(28),
-    fontWeight: '800',
-    color: colors.white,
-  },
-  rupeeSymbol: {
-    fontSize: fp(18),
-    fontWeight: '400',
-    color: 'rgba(255,255,255,0.6)',
-  },
-  revenueDivider: {
-    height: 1,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    marginVertical: hp(10),
+  statsCard: {
+    flex: 1,
+    borderRadius: wp(16),
+    padding: wp(4),
+    borderWidth: 1,
+    borderColor: colors.cBorder,
+    justifyContent: 'center',
+    overflow: 'hidden',
   },
   statsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
   },
   statItem: {
-    alignItems: 'center',
     flex: 1,
-  },
-  statIconWrap: {
-    width: wp(26),
-    height: wp(26),
-    borderRadius: wp(13),
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: hp(4),
+    justifyContent: 'center',
+    paddingVertical: hp(12),
+  },
+  statInner: {
+    alignItems: 'center',
+  },
+  horizontalDivider: {
+    position: 'absolute',
+    bottom: 0,
+    left: wp(16),
+    right: wp(16),
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+  },
+  verticalDivider: {
+    position: 'absolute',
+    top: hp(12),
+    bottom: hp(12),
+    left: '50%' as any,
+    width: 1,
+    backgroundColor: 'rgba(255,255,255,0.1)',
   },
   statValue: {
-    fontSize: fp(16),
+    fontSize: fp(20),
     fontWeight: '800',
     color: colors.white,
   },
   statLabel: {
     fontSize: fp(10),
-    color: 'rgba(255,255,255,0.6)',
+    color: 'rgba(255,255,255,0.45)',
     marginTop: hp(2),
     fontWeight: '500',
-  },
-  statDivider: {
-    width: 1,
-    height: hp(40),
-    backgroundColor: 'rgba(255,255,255,0.15)',
   },
 });

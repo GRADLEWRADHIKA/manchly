@@ -40,12 +40,12 @@ const colors = {
   faaAiBlue: '#60A5FA',
 
   // Creator Dark Theme
-  cBg: '#0A0A0F',
-  cSurface: '#12121C',
-  cCard: '#1C1C2E',
-  cCardLight: '#252538',
-  cBorder: '#2A2A3C',
-  cBorderLight: '#1F1F30',
+  cBg: '#10101A',
+  cSurface: '#181826',
+  cCard: '#1E1E30',
+  cCardLight: '#2A2A40',
+  cBorder: '#32324A',
+  cBorderLight: '#262638',
   cAccent: '#7C3AED',
   cAccentLight: '#8B5CF6',
   cAccentMuted: '#7C3AED20',

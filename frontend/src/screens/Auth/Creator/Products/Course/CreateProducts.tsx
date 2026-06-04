@@ -25,7 +25,7 @@ const CreateProducts = () => {
     <View style={styles.container}>
       {/* Header */}
       <LinearGradient
-        colors={['#1A1A2E', '#16213E', '#0F3460']}
+        colors={['#1E2038', '#222448', '#2A2455']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={[styles.headerWrapper, { paddingTop: insets.top }]}
@@ -49,7 +49,7 @@ const CreateProducts = () => {
         {/* AI Coming Soon Banner */}
         <View style={styles.aiBannerSection}>
           <LinearGradient
-            colors={['#1A1A2E', '#16213E', '#0F3460']}
+            colors={['#1E2038', '#222448', '#2A2455']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.aiBanner}
@@ -99,7 +99,7 @@ const CreateProducts = () => {
 
         <View style={styles.aiFeatureCard}>
           <LinearGradient
-            colors={['#1A1A2E', '#16213E', '#0F3460']}
+            colors={['#1E2038', '#222448', '#2A2455']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={styles.aiFeatureInner}
@@ -118,7 +118,7 @@ const CreateProducts = () => {
 
         <View style={styles.aiFeatureCard}>
           <LinearGradient
-            colors={['#1A1A2E', '#16213E', '#0F3460']}
+            colors={['#1E2038', '#222448', '#2A2455']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={styles.aiFeatureInner}

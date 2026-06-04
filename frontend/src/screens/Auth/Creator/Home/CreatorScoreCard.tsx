@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
   scoreCard: {
     borderRadius: wp(20),
     padding: wp(20),
-    shadowColor: '#1A1A2E',
+    shadowColor: '#1E2038',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.25,
     shadowRadius: 14,

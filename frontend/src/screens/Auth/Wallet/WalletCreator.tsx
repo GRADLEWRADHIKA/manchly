@@ -214,7 +214,7 @@ const WalletCreator = () => {
         {/* Balance Card */}
         <View style={styles.balanceCard}>
           <LinearGradient
-            colors={['#1A1A2E', '#1E1E3A', '#2A1A4E']}
+            colors={['#1E2038', '#222448', '#2A2455']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.balanceGradient}

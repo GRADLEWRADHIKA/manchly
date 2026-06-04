@@ -6,17 +6,15 @@ import {
   Animated,
   Image,
   StyleSheet,
-  Dimensions,
   Share,
 } from 'react-native';
 import {
   Edit3,
   Trash2,
   Share2,
-  Eye,
+  ChevronRight,
   BarChart3,
   BookOpen,
-  Play,
   IndianRupee,
 } from 'lucide-react-native';
 import LinearGradient from 'react-native-linear-gradient';
@@ -38,7 +36,7 @@ const CourseCard: React.FC<Props> = ({ item, onEdit, onDelete, onView }) => {
 
   const handlePressIn = () => {
     Animated.spring(scaleAnim, {
-      toValue: 0.96,
+      toValue: 0.97,
       useNativeDriver: true,
     }).start();
   };
@@ -74,19 +72,20 @@ const CourseCard: React.FC<Props> = ({ item, onEdit, onDelete, onView }) => {
   return (
     <Animated.View style={[styles.card, { transform: [{ scale: scaleAnim }] }]}>
       <LinearGradient
-        colors={['#2A2A4A', '#22335A', '#1A4A7A']}
+        colors={['#1E2038', '#222448', '#2A2455']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.gradient}
       >
+        {/* Clickable main area */}
         <TouchableOpacity
-          activeOpacity={0.95}
+          activeOpacity={0.85}
           onPressIn={handlePressIn}
           onPressOut={handlePressOut}
           onPress={onView}
           style={styles.touchable}
         >
-          {/* Thumbnail with overlay */}
+          {/* Thumbnail */}
           <View style={styles.thumbnailWrap}>
             <Image
               source={{
@@ -96,13 +95,7 @@ const CourseCard: React.FC<Props> = ({ item, onEdit, onDelete, onView }) => {
               }}
               style={styles.thumbnail}
             />
-            {/* Dark overlay on image */}
             <View style={styles.thumbnailOverlay} />
-
-            {/* Play icon center */}
-            <View style={styles.playButton}>
-              <Play size={wp(14)} color={colors.white} fill={colors.white} />
-            </View>
 
             {/* Price badge */}
             <LinearGradient
@@ -128,7 +121,7 @@ const CourseCard: React.FC<Props> = ({ item, onEdit, onDelete, onView }) => {
             {/* Level badge */}
             {item.level && (
               <View style={styles.levelBadge}>
-                <BarChart3 size={wp(10)} color={'#60A5FA'} />
+                <BarChart3 size={wp(10)} color={colors.cAccentLight} />
                 <Text style={styles.levelText}>{item.level}</Text>
               </View>
             )}
@@ -136,104 +129,97 @@ const CourseCard: React.FC<Props> = ({ item, onEdit, onDelete, onView }) => {
 
           {/* Content */}
           <View style={styles.content}>
-            {/* Category chip */}
-            {item.category && (
-              <View style={styles.categoryChip}>
-                <Text style={styles.categoryText}>{item.category}</Text>
+            <View style={styles.contentTop}>
+              <View style={styles.contentLeft}>
+                {item.category && (
+                  <View style={styles.categoryChip}>
+                    <Text style={styles.categoryText}>{item.category}</Text>
+                  </View>
+                )}
+                <Text style={styles.title} numberOfLines={1}>
+                  {item?.title}
+                </Text>
+                {item.description ? (
+                  <Text style={styles.description} numberOfLines={1}>
+                    {item.description}
+                  </Text>
+                ) : null}
               </View>
-            )}
-
-            {/* Title */}
-            <Text style={styles.title} numberOfLines={2}>
-              {item?.title}
-            </Text>
-
-            {/* Description */}
-            {item.description ? (
-              <Text style={styles.description} numberOfLines={2}>
-                {item.description}
-              </Text>
-            ) : null}
+              <View style={styles.arrowWrap}>
+                <ChevronRight size={wp(18)} color={colors.cAccentLight} />
+              </View>
+            </View>
 
             {/* Stats row */}
             <View style={styles.statsRow}>
               <View style={styles.statItem}>
-                <BookOpen size={wp(13)} color={'#60A5FA'} />
+                <BookOpen size={wp(12)} color={colors.cAccentLight} />
                 <Text style={styles.statText}>
                   {videoCount} {videoCount === 1 ? 'video' : 'videos'}
                 </Text>
               </View>
-
-              <TouchableOpacity
-                style={styles.detailsBtn}
-                onPress={() =>
-                  navigation.navigate('CourseDetailsScreen', {
-                    courseId: item?.id,
-                  })
-                }
-                activeOpacity={0.7}
-              >
-                <Eye size={wp(13)} color={colors.white} />
-                <Text style={styles.detailsBtnText}>View Details</Text>
-              </TouchableOpacity>
             </View>
           </View>
-
-          {/* Separator line with glow */}
-          <View style={styles.separator} />
-
-          {/* Actions */}
-          <View style={styles.actionsRow}>
-            <TouchableOpacity
-              style={styles.actionBtn}
-              onPress={onEdit}
-              activeOpacity={0.7}
-            >
-              <View style={styles.actionIconWrap}>
-                <Edit3 size={wp(14)} color={'#60A5FA'} />
-              </View>
-              <Text style={[styles.actionText, { color: '#60A5FA' }]}>
-                Edit
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.actionBtn}
-              onPress={handleShare}
-              activeOpacity={0.7}
-            >
-              <View
-                style={[
-                  styles.actionIconWrap,
-                  { backgroundColor: 'rgba(16,185,129,0.15)' },
-                ]}
-              >
-                <Share2 size={wp(14)} color={'#10B981'} />
-              </View>
-              <Text style={[styles.actionText, { color: '#10B981' }]}>
-                Share
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.actionBtn}
-              onPress={onDelete}
-              activeOpacity={0.7}
-            >
-              <View
-                style={[
-                  styles.actionIconWrap,
-                  { backgroundColor: 'rgba(239,68,68,0.15)' },
-                ]}
-              >
-                <Trash2 size={wp(14)} color={colors.error} />
-              </View>
-              <Text style={[styles.actionText, { color: colors.error }]}>
-                Delete
-              </Text>
-            </TouchableOpacity>
-          </View>
         </TouchableOpacity>
+
+        {/* Separator */}
+        <View style={styles.separator} />
+
+        {/* Actions */}
+        <View style={styles.actionsRow}>
+          <TouchableOpacity
+            style={styles.actionBtn}
+            onPress={onEdit}
+            activeOpacity={0.7}
+          >
+            <View style={styles.actionIconWrap}>
+              <Edit3 size={wp(14)} color={colors.cAccentLight} />
+            </View>
+            <Text style={[styles.actionText, { color: colors.cAccentLight }]}>
+              Edit
+            </Text>
+          </TouchableOpacity>
+
+          <View style={styles.actionDivider} />
+
+          <TouchableOpacity
+            style={styles.actionBtn}
+            onPress={handleShare}
+            activeOpacity={0.7}
+          >
+            <View
+              style={[
+                styles.actionIconWrap,
+                { backgroundColor: 'rgba(16,185,129,0.15)' },
+              ]}
+            >
+              <Share2 size={wp(14)} color={'#10B981'} />
+            </View>
+            <Text style={[styles.actionText, { color: '#10B981' }]}>
+              Share
+            </Text>
+          </TouchableOpacity>
+
+          <View style={styles.actionDivider} />
+
+          <TouchableOpacity
+            style={styles.actionBtn}
+            onPress={onDelete}
+            activeOpacity={0.7}
+          >
+            <View
+              style={[
+                styles.actionIconWrap,
+                { backgroundColor: 'rgba(239,68,68,0.15)' },
+              ]}
+            >
+              <Trash2 size={wp(14)} color={colors.error} />
+            </View>
+            <Text style={[styles.actionText, { color: colors.error }]}>
+              Delete
+            </Text>
+          </TouchableOpacity>
+        </View>
       </LinearGradient>
     </Animated.View>
   );
@@ -248,10 +234,12 @@ const styles = StyleSheet.create({
     marginBottom: hp(14),
     overflow: 'hidden',
     elevation: 8,
-    shadowColor: '#0F3460',
+    shadowColor: '#1E2038',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.3,
     shadowRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.cBorder,
   },
   gradient: {
     flex: 1,
@@ -266,37 +254,25 @@ const styles = StyleSheet.create({
   },
   thumbnail: {
     width: '100%',
-    height: hp(120),
-    backgroundColor: '#0D1B2A',
+    height: hp(130),
+    borderTopLeftRadius: wp(16),
+    borderTopRightRadius: wp(16),
+    backgroundColor: colors.cBg,
   },
   thumbnailOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(15,52,96,0.3)',
-  },
-  playButton: {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    marginTop: -wp(16),
-    marginLeft: -wp(16),
-    width: wp(32),
-    height: wp(32),
-    borderRadius: wp(16),
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.4)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingLeft: wp(2),
+    backgroundColor: 'rgba(30,32,56,0.25)',
+    borderTopLeftRadius: wp(16),
+    borderTopRightRadius: wp(16),
   },
   priceBadge: {
     position: 'absolute',
-    top: hp(12),
-    right: wp(12),
+    top: hp(10),
+    right: wp(10),
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: wp(12),
-    paddingVertical: hp(5),
+    paddingHorizontal: wp(10),
+    paddingVertical: hp(4),
     borderRadius: wp(20),
     gap: wp(2),
   },
@@ -307,17 +283,17 @@ const styles = StyleSheet.create({
   },
   levelBadge: {
     position: 'absolute',
-    bottom: hp(12),
-    left: wp(12),
-    backgroundColor: 'rgba(26,26,46,0.85)',
+    bottom: hp(10),
+    left: wp(10),
+    backgroundColor: 'rgba(30,32,56,0.9)',
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(4),
     paddingHorizontal: wp(10),
     paddingVertical: hp(4),
-    borderRadius: wp(12),
+    borderRadius: wp(10),
     borderWidth: 1,
-    borderColor: 'rgba(96,165,250,0.3)',
+    borderColor: 'rgba(139,92,246,0.3)',
   },
   levelText: {
     color: colors.white,
@@ -326,104 +302,104 @@ const styles = StyleSheet.create({
   },
 
   content: {
-    padding: wp(12),
+    padding: wp(14),
+  },
+  contentTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: hp(10),
+  },
+  contentLeft: {
     flex: 1,
+  },
+  arrowWrap: {
+    width: wp(32),
+    height: wp(32),
+    borderRadius: wp(16),
+    backgroundColor: 'rgba(139,92,246,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: wp(10),
   },
   categoryChip: {
     alignSelf: 'flex-start',
-    backgroundColor: 'rgba(96,165,250,0.15)',
-    paddingHorizontal: wp(10),
-    paddingVertical: hp(3),
-    borderRadius: wp(12),
-    borderWidth: 1,
-    borderColor: 'rgba(96,165,250,0.25)',
-    marginBottom: hp(5),
+    backgroundColor: 'rgba(139,92,246,0.15)',
+    paddingHorizontal: wp(8),
+    paddingVertical: hp(2),
+    borderRadius: wp(6),
+    marginBottom: hp(6),
   },
   categoryText: {
-    color: '#60A5FA',
+    color: colors.cAccentLight,
     fontSize: fp(9),
     fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
   title: {
-    fontSize: fp(14),
+    fontSize: fp(15),
     fontWeight: '800',
     color: colors.white,
-    lineHeight: fp(19),
-    marginBottom: hp(4),
+    marginBottom: hp(2),
   },
   description: {
-    color: colors.white,
+    color: 'rgba(255,255,255,0.5)',
     fontSize: fp(11),
-    lineHeight: fp(16),
-    marginBottom: hp(8),
   },
 
   statsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
   },
   statItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: wp(4),
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    paddingHorizontal: wp(10),
-    paddingVertical: hp(4),
-    borderRadius: wp(8),
-  },
-  statText: {
-    color: '#94A3B8',
-    fontSize: fp(10),
-    fontWeight: '600',
-  },
-  detailsBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(4),
-    backgroundColor: 'rgba(96,165,250,0.2)',
+    gap: wp(5),
+    backgroundColor: 'rgba(139,92,246,0.1)',
     paddingHorizontal: wp(10),
     paddingVertical: hp(5),
     borderRadius: wp(8),
-    borderWidth: 1,
-    borderColor: 'rgba(96,165,250,0.3)',
   },
-  detailsBtnText: {
-    color: colors.white,
+  statText: {
+    color: 'rgba(255,255,255,0.6)',
     fontSize: fp(10),
-    fontWeight: '700',
+    fontWeight: '600',
   },
 
   separator: {
     height: 1,
-    marginHorizontal: wp(12),
+    marginHorizontal: wp(14),
     backgroundColor: 'rgba(255,255,255,0.08)',
   },
 
   actionsRow: {
     flexDirection: 'row',
-    paddingVertical: hp(6),
+    paddingVertical: hp(10),
     paddingHorizontal: wp(6),
   },
   actionBtn: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: wp(3),
-    paddingVertical: hp(3),
+    flexDirection: 'row',
+    gap: wp(6),
+    paddingVertical: hp(2),
   },
   actionIconWrap: {
     width: wp(28),
     height: wp(28),
     borderRadius: wp(14),
-    backgroundColor: 'rgba(96,165,250,0.15)',
+    backgroundColor: 'rgba(139,92,246,0.15)',
     alignItems: 'center',
     justifyContent: 'center',
   },
+  actionDivider: {
+    width: 1,
+    height: hp(24),
+    backgroundColor: 'rgba(255,255,255,0.08)',
+  },
   actionText: {
-    fontSize: fp(10),
-    fontWeight: '600',
+    fontSize: fp(11),
+    fontWeight: '700',
   },
 });

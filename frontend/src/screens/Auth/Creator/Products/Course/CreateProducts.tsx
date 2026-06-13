@@ -10,13 +10,69 @@ import { wp, hp, fp } from '../../../../../utils/responsive';
 import {
   Sparkles,
   BrainCircuit,
-  ImagePlus,
   FileText,
+  Share2,
+  Mail,
+  Lightbulb,
+  ClipboardCheck,
+  HelpCircle,
+  Zap,
 } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 
 const HORIZONTAL_PAD = wp(16);
+
+const AI_FEATURES = [
+  {
+    icon: FileText,
+    label: 'AI Lesson Script Writer',
+    desc: 'Generate full lesson scripts with key points, examples, and speaker notes.',
+    color: '#A78BFA',
+  },
+  {
+    icon: HelpCircle,
+    label: 'AI Quiz Generator',
+    desc: 'Create quizzes from your lesson content with multiple-choice questions and explanations.',
+    color: '#F472B6',
+  },
+  {
+    icon: Share2,
+    label: 'AI Social Posts',
+    desc: 'Generate ready-to-post content for Twitter, LinkedIn, Instagram & WhatsApp.',
+    color: '#34D399',
+  },
+  {
+    icon: Mail,
+    label: 'AI Email Series',
+    desc: 'Auto-generate confirmation, reminder, and post-event email sequences.',
+    color: '#FBBF24',
+  },
+  {
+    icon: ClipboardCheck,
+    label: 'AI Session Prep',
+    desc: 'Get a prep checklist, questions to ask, potential directions & red flags before sessions.',
+    color: '#FB923C',
+  },
+  {
+    icon: Lightbulb,
+    label: 'AI Product Suggestions',
+    desc: 'Get AI-powered ideas for new courses, webinars, and sessions based on your expertise.',
+    color: '#2DD4BF',
+  },
+  {
+    icon: Sparkles,
+    label: 'AI Content Enhancer',
+    desc: 'Improve your existing descriptions and content with AI-powered suggestions.',
+    color: '#E879F9',
+  },
+  {
+    icon: FileText,
+    label: 'AI Landing Copy',
+    desc: 'Generate compelling landing page copy that converts visitors into students.',
+    color: '#38BDF8',
+  },
+];
 
 const CreateProducts = () => {
   const insets = useSafeAreaInsets();
@@ -25,7 +81,7 @@ const CreateProducts = () => {
     <View style={styles.container}>
       {/* Header */}
       <LinearGradient
-        colors={['#1E2038', '#222448', '#2A2455']}
+        colors={['#1A1A2E', '#16213E', '#0F3460']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={[styles.headerWrapper, { paddingTop: insets.top }]}
@@ -46,94 +102,73 @@ const CreateProducts = () => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* AI Coming Soon Banner */}
-        <View style={styles.aiBannerSection}>
-          <LinearGradient
-            colors={['#1E2038', '#222448', '#2A2455']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.aiBanner}
-          >
-            <View style={styles.aiBannerGlow} />
+        {/* Hero Banner */}
+        <LinearGradient
+          colors={['#1A1A2E', '#16213E', '#0F3460']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.heroBanner}
+        >
+          <View style={styles.heroGlow} />
 
-            <View style={styles.aiBannerHeader}>
-              <View style={styles.aiComingSoonBadge}>
-                <Sparkles size={wp(12)} color={colors.faaAiPrimary} />
-                <Text style={styles.aiComingSoonText}>COMING SOON</Text>
-              </View>
-            </View>
+          <View style={styles.heroBadge}>
+            <Zap size={wp(12)} color={colors.faaAiPrimary} fill={colors.faaAiPrimary} />
+            <Text style={styles.heroBadgeText}>LIVE</Text>
+          </View>
 
-            <View style={styles.aiBannerContent}>
-              <View style={styles.aiBotIconWrap}>
-                <BrainCircuit size={wp(40)} color={colors.faaAiPrimary} />
-              </View>
-              <Text style={styles.aiBannerTitle}>
-                AI-Powered{'\n'}Creator
-              </Text>
-              <Text style={styles.aiBannerSubtitle}>
-                We're building something incredible. Generate stunning thumbnails, course descriptions, and more — all powered by AI.
-              </Text>
+          <View style={styles.heroContent}>
+            <View style={styles.heroBotIcon}>
+              <BrainCircuit size={wp(28)} color={colors.faaAiPrimary} />
             </View>
+            <Text style={styles.heroTitle}>
+              AI-Powered{'\n'}Creator Tools
+            </Text>
+            <Text style={styles.heroSubtitle}>
+              8 AI features to help you create courses, prep for sessions, and grow your audience — all built in.
+            </Text>
+          </View>
 
-            <View style={styles.aiStatsRow}>
-              <View style={styles.aiStatItem}>
-                <Text style={styles.aiStatValue}>10x</Text>
-                <Text style={styles.aiStatLabel}>Faster</Text>
-              </View>
-              <View style={styles.aiStatDivider} />
-              <View style={styles.aiStatItem}>
-                <Text style={styles.aiStatValue}>AI</Text>
-                <Text style={styles.aiStatLabel}>Powered</Text>
-              </View>
-              <View style={styles.aiStatDivider} />
-              <View style={styles.aiStatItem}>
-                <Text style={styles.aiStatValue}>0</Text>
-                <Text style={styles.aiStatLabel}>Effort</Text>
-              </View>
+          <View style={styles.statsRow}>
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>8</Text>
+              <Text style={styles.statLabel}>AI Tools</Text>
             </View>
-          </LinearGradient>
-        </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>Live</Text>
+              <Text style={styles.statLabel}>& Ready</Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>0</Text>
+              <Text style={styles.statLabel}>Effort</Text>
+            </View>
+          </View>
+        </LinearGradient>
 
-        {/* AI Features */}
-        <Text style={styles.aiFeaturesTitle}>What Manchly-AI will do for you</Text>
+        {/* Features List */}
+        <Text style={styles.featuresTitle}>What Manchly-AI does for you</Text>
 
-        <View style={styles.aiFeatureCard}>
-          <LinearGradient
-            colors={['#1E2038', '#222448', '#2A2455']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.aiFeatureInner}
-          >
-            <View style={styles.aiFeatureIconWrap}>
-              <ImagePlus size={wp(22)} color={colors.faaAiPrimary} />
+        {AI_FEATURES.map((feature, index) => {
+          const Icon = feature.icon;
+          return (
+            <View key={index} style={styles.featureCard}>
+              <LinearGradient
+                colors={['#1A1A2E', '#16213E', '#0F3460']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.featureInner}
+              >
+                <View style={[styles.featureIconWrap, { backgroundColor: feature.color + '20' }]}>
+                  <Icon size={wp(20)} color={feature.color} />
+                </View>
+                <View style={styles.featureContent}>
+                  <Text style={styles.featureLabel}>{feature.label}</Text>
+                  <Text style={styles.featureDesc}>{feature.desc}</Text>
+                </View>
+              </LinearGradient>
             </View>
-            <View style={styles.aiFeatureContent}>
-              <Text style={styles.aiFeatureLabel}>AI Thumbnail Generator</Text>
-              <Text style={styles.aiFeatureDesc}>
-                Create eye-catching thumbnails instantly. Just enter your topic and let AI design it.
-              </Text>
-            </View>
-          </LinearGradient>
-        </View>
-
-        <View style={styles.aiFeatureCard}>
-          <LinearGradient
-            colors={['#1E2038', '#222448', '#2A2455']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.aiFeatureInner}
-          >
-            <View style={styles.aiFeatureIconWrap}>
-              <FileText size={wp(22)} color={colors.faaAiBlue} />
-            </View>
-            <View style={styles.aiFeatureContent}>
-              <Text style={styles.aiFeatureLabel}>AI Description Writer</Text>
-              <Text style={styles.aiFeatureDesc}>
-                Auto-generate compelling course descriptions that attract students and boost sales.
-              </Text>
-            </View>
-          </LinearGradient>
-        </View>
+          );
+        })}
       </ScrollView>
     </View>
   );
@@ -144,7 +179,7 @@ export default CreateProducts;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.cBg,
+    backgroundColor: colors.white,
   },
   headerWrapper: {
     borderBottomLeftRadius: wp(20),
@@ -190,13 +225,14 @@ const styles = StyleSheet.create({
     paddingTop: hp(20),
     paddingBottom: hp(40),
   },
-  aiBannerSection: {},
-  aiBanner: {
-    borderRadius: wp(24),
-    padding: wp(24),
+
+  // Hero Banner
+  heroBanner: {
+    borderRadius: wp(20),
+    padding: wp(18),
     overflow: 'hidden',
   },
-  aiBannerGlow: {
+  heroGlow: {
     position: 'absolute',
     top: -wp(40),
     right: -wp(40),
@@ -205,95 +241,93 @@ const styles = StyleSheet.create({
     borderRadius: wp(80),
     backgroundColor: 'rgba(167, 139, 250, 0.08)',
   },
-  aiBannerHeader: {
-    alignItems: 'flex-start',
-    marginBottom: hp(20),
-  },
-  aiComingSoonBadge: {
+  heroBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: wp(6),
-    backgroundColor: 'rgba(167, 139, 250, 0.15)',
-    paddingHorizontal: wp(14),
-    paddingVertical: hp(6),
-    borderRadius: wp(20),
+    alignSelf: 'flex-start',
+    gap: wp(4),
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    paddingHorizontal: wp(10),
+    paddingVertical: hp(4),
+    borderRadius: wp(16),
     borderWidth: 1,
-    borderColor: 'rgba(167, 139, 250, 0.25)',
+    borderColor: 'rgba(16, 185, 129, 0.25)',
+    marginBottom: hp(12),
   },
-  aiComingSoonText: {
-    fontSize: fp(11),
+  heroBadgeText: {
+    fontSize: fp(9),
     fontWeight: '800',
-    color: colors.faaAiPrimary,
+    color: colors.accent,
     letterSpacing: 1.5,
   },
-  aiBannerContent: {
+  heroContent: {
     alignItems: 'center',
-    marginBottom: hp(24),
+    marginBottom: hp(16),
   },
-  aiBotIconWrap: {
-    width: wp(72),
-    height: wp(72),
-    borderRadius: wp(36),
+  heroBotIcon: {
+    width: wp(52),
+    height: wp(52),
+    borderRadius: wp(26),
     backgroundColor: 'rgba(167, 139, 250, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: hp(16),
+    marginBottom: hp(10),
     borderWidth: 1,
     borderColor: 'rgba(167, 139, 250, 0.2)',
   },
-  aiBannerTitle: {
-    fontSize: fp(28),
+  heroTitle: {
+    fontSize: fp(22),
     fontWeight: '800',
     color: colors.white,
     textAlign: 'center',
-    lineHeight: fp(34),
-    marginBottom: hp(10),
+    lineHeight: fp(28),
+    marginBottom: hp(6),
   },
-  aiBannerSubtitle: {
-    fontSize: fp(13),
+  heroSubtitle: {
+    fontSize: fp(11),
     color: 'rgba(255,255,255,0.55)',
     textAlign: 'center',
-    lineHeight: fp(20),
+    lineHeight: fp(17),
     paddingHorizontal: wp(8),
   },
-  aiStatsRow: {
+  statsRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
     backgroundColor: 'rgba(255,255,255,0.05)',
-    borderRadius: wp(16),
-    paddingVertical: hp(16),
+    borderRadius: wp(12),
+    paddingVertical: hp(10),
   },
-  aiStatItem: {
+  statItem: {
     alignItems: 'center',
     flex: 1,
   },
-  aiStatValue: {
-    fontSize: fp(22),
+  statValue: {
+    fontSize: fp(18),
     fontWeight: '800',
     color: colors.faaAiPrimary,
   },
-  aiStatLabel: {
-    fontSize: fp(11),
+  statLabel: {
+    fontSize: fp(9),
     color: 'rgba(255,255,255,0.5)',
     fontWeight: '600',
     marginTop: hp(2),
   },
-  aiStatDivider: {
+  statDivider: {
     width: 1,
     height: hp(32),
     backgroundColor: 'rgba(255,255,255,0.1)',
   },
 
-  // AI Features
-  aiFeaturesTitle: {
+  // Features
+  featuresTitle: {
     fontSize: fp(16),
     fontWeight: '700',
-    color: colors.cText,
+    color: '#1A1A2E',
     marginTop: hp(24),
     marginBottom: hp(14),
   },
-  aiFeatureCard: {
+  featureCard: {
     marginBottom: hp(10),
     borderRadius: wp(16),
     shadowColor: '#000',
@@ -302,31 +336,30 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 3,
   },
-  aiFeatureInner: {
+  featureInner: {
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: wp(16),
     padding: wp(16),
   },
-  aiFeatureIconWrap: {
+  featureIconWrap: {
     width: wp(48),
     height: wp(48),
     borderRadius: wp(14),
-    backgroundColor: 'rgba(255,255,255,0.08)',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: wp(14),
   },
-  aiFeatureContent: {
+  featureContent: {
     flex: 1,
   },
-  aiFeatureLabel: {
+  featureLabel: {
     fontSize: fp(14),
     fontWeight: '700',
     color: colors.white,
     marginBottom: hp(4),
   },
-  aiFeatureDesc: {
+  featureDesc: {
     fontSize: fp(12),
     color: 'rgba(255,255,255,0.5)',
     lineHeight: fp(17),

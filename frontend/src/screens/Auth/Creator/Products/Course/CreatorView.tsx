@@ -89,7 +89,7 @@ const CreatorView: React.FC<{embedded?: boolean}> = ({embedded = false}) => {
     if (!loadingMore) return null;
     return (
       <View style={styles.footerLoader}>
-        <ActivityIndicator size="small" color={colors.cAccent} />
+        <ActivityIndicator size="small" color={colors.cBg} />
         <Text style={styles.loadingText}>Loading more courses...</Text>
       </View>
     );
@@ -98,7 +98,7 @@ const CreatorView: React.FC<{embedded?: boolean}> = ({embedded = false}) => {
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
       <View style={styles.emptyIcon}>
-        <BookOpen size={wp(30)} color={colors.cTextMuted} />
+        <BookOpen size={wp(30)} color={'#94A3B8'} />
       </View>
       <Text style={styles.emptyTitle}>No courses found</Text>
       <Text style={styles.emptySubtitle}>
@@ -159,11 +159,11 @@ const CreatorView: React.FC<{embedded?: boolean}> = ({embedded = false}) => {
         contentContainerStyle={styles.scrollContent}
       >
         <View style={styles.searchContainer}>
-          <Search size={wp(18)} color={colors.cTextSecondary} />
+          <Search size={wp(18)} color={'#64748B'} />
           <CustomTextInput
             inputContainerStyle={styles.searchInput}
-            inputStyle={{ fontSize: fp(14), color: colors.cText }}
-            placeholderTextColor={colors.cTextMuted}
+            inputStyle={{ fontSize: fp(14), color: '#1A1A2E' }}
+            placeholderTextColor={'#94A3B8'}
             placeholder="Search courses..."
             onChange={setSearchCourse as any}
             value={searchCourse}
@@ -179,7 +179,7 @@ const CreatorView: React.FC<{embedded?: boolean}> = ({embedded = false}) => {
 
         {loading ? (
           <View style={styles.loaderContainer}>
-            <ActivityIndicator size="large" color={colors.cAccent} />
+            <ActivityIndicator size="large" color={colors.cBg} />
             <Text style={styles.loadingText}>Loading your courses...</Text>
           </View>
         ) : (
@@ -227,7 +227,7 @@ export default CreatorView;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.cBg,
+    backgroundColor: colors.white,
   },
   scrollContent: {
     flexGrow: 1,
@@ -257,17 +257,17 @@ const styles = StyleSheet.create({
     height: wp(46),
     borderRadius: wp(23),
     borderWidth: 2,
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
   },
   avatarFallback: {
     width: wp(46),
     height: wp(46),
     borderRadius: wp(23),
-    backgroundColor: colors.cCard,
+    backgroundColor: colors.white,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
   },
   headerSub: {
     fontSize: fp(12),
@@ -284,11 +284,11 @@ const styles = StyleSheet.create({
     width: wp(40),
     height: wp(40),
     borderRadius: wp(20),
-    backgroundColor: colors.cCard,
+    backgroundColor: colors.white,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
   },
 
   // Search
@@ -298,10 +298,10 @@ const styles = StyleSheet.create({
     marginHorizontal: wp(16),
     marginTop: hp(14),
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
     borderRadius: wp(14),
     paddingHorizontal: wp(12),
-    backgroundColor: colors.cInputBg,
+    backgroundColor: '#F8FAFC',
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
@@ -326,11 +326,11 @@ const styles = StyleSheet.create({
   listTitle: {
     fontSize: fp(18),
     fontWeight: '700',
-    color: colors.cText,
+    color: '#1A1A2E',
   },
   courseCount: {
     fontSize: fp(13),
-    color: colors.cTextSecondary,
+    color: '#64748B',
     fontWeight: '500',
   },
 
@@ -353,7 +353,7 @@ const styles = StyleSheet.create({
     gap: wp(12),
   },
   loadingText: {
-    color: colors.cTextSecondary,
+    color: '#64748B',
     fontSize: fp(14),
     fontWeight: '500',
   },
@@ -369,7 +369,7 @@ const styles = StyleSheet.create({
     width: wp(64),
     height: wp(64),
     borderRadius: wp(32),
-    backgroundColor: colors.cCard,
+    backgroundColor: colors.white,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: hp(14),
@@ -377,13 +377,13 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: fp(17),
     fontWeight: '700',
-    color: colors.cText,
+    color: '#1A1A2E',
     marginBottom: hp(6),
     textAlign: 'center',
   },
   emptySubtitle: {
     fontSize: fp(13),
-    color: colors.cTextSecondary,
+    color: '#64748B',
     textAlign: 'center',
     lineHeight: fp(19),
   },
@@ -395,7 +395,7 @@ const styles = StyleSheet.create({
   statsTitle: {
     fontSize: fp(18),
     fontWeight: '700',
-    color: colors.cText,
+    color: '#1A1A2E',
     marginBottom: hp(10),
   },
   statsGrid: {
@@ -407,7 +407,7 @@ const styles = StyleSheet.create({
 
   // Withdraw
   withdrawCard: {
-    backgroundColor: colors.cCard,
+    backgroundColor: colors.white,
     borderRadius: wp(16),
     padding: wp(16),
     flexDirection: 'row',
@@ -420,10 +420,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 6,
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
   },
   withdrawLabel: {
-    color: colors.cTextSecondary,
+    color: '#64748B',
     fontWeight: '600',
     fontSize: fp(12),
   },

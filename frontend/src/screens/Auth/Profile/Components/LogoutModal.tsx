@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
     }),
   },
   cardDark: {
-    backgroundColor: '#1E2038',
+    backgroundColor: '#1A1A2E',
     borderWidth: 1,
     borderColor: colors.cBorder,
   },

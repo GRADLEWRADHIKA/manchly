@@ -173,7 +173,7 @@ const WebinarCard: React.FC<WebinarCardProps> = ({
         style={[styles.card, { transform: [{ scale: scaleAnim }] }]}
       >
         <LinearGradient
-          colors={['#1E2038', '#222448', '#2A2455']}
+          colors={['#1A1A2E', '#16213E', '#0F3460']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.gradient}
@@ -458,7 +458,7 @@ const styles = StyleSheet.create({
   thumbnail: {
     width: '100%',
     height: hp(160),
-    backgroundColor: '#0D1B2A',
+    backgroundColor: '#1A1A2E',
   },
   thumbnailOverlay: {
     ...StyleSheet.absoluteFillObject,

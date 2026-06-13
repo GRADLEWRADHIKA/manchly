@@ -27,7 +27,7 @@ const LaunchCourseCard = () => {
         }}
       >
         <LinearGradient
-          colors={['#1E2038', '#222448', '#2A2455']}
+          colors={['#1A1A2E', '#16213E', '#0F3460']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.courseCard}
@@ -37,7 +37,7 @@ const LaunchCourseCard = () => {
               <BookOpen size={wp(20)} color="#60A5FA" />
             </View>
             <View style={styles.createBadge}>
-              <Sparkles size={wp(10)} color={colors.cAccentLight} />
+              <Sparkles size={wp(10)} color={colors.white} />
               <Text style={styles.createBadgeText}>CREATE</Text>
             </View>
           </View>
@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: fp(18),
     fontWeight: '800',
-    color: colors.cText,
+    color: colors.black,
     marginBottom: hp(12),
   },
   courseCard: {
@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(4),
-    backgroundColor: 'rgba(139,92,246,0.2)',
+    backgroundColor: 'rgba(15,52,96,0.6)',
     paddingHorizontal: wp(10),
     paddingVertical: hp(5),
     borderRadius: wp(8),
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
   createBadgeText: {
     fontSize: fp(10),
     fontWeight: '800',
-    color: colors.cAccentLight,
+    color: colors.white,
     letterSpacing: 0.5,
   },
   courseTitle: {

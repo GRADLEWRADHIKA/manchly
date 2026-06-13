@@ -72,10 +72,10 @@ const openWhatsApp = (message: string) => {
 
 const MenuRow = ({
   icon: Icon,
-  iconColor = colors.cText,
-  iconBg = colors.cCardLight,
+  iconColor = '#1A1A2E',
+  iconBg = '#F1F5F9',
   label,
-  labelColor = colors.cText,
+  labelColor = '#1A1A2E',
   subtitle,
   onPress,
   isLast = false,
@@ -98,7 +98,7 @@ const MenuRow = ({
         {subtitle && <Text style={styles.rowSubtext}>{subtitle}</Text>}
       </View>
     </View>
-    <ChevronRight size={wp(18)} color={colors.cTextMuted} />
+    <ChevronRight size={wp(18)} color="#94A3B8" />
   </Pressable>
 );
 
@@ -286,7 +286,7 @@ const CreatorSetting: React.FC = () => {
           <QuickAction
             icon={Megaphone}
             label="Marketing"
-            color="#8B5CF6"
+            color="#60A5FA"
             onPress={() =>
               openWhatsApp('Hello, I am a Creator, I need help for marketing.')
             }
@@ -295,7 +295,7 @@ const CreatorSetting: React.FC = () => {
 
         {/* ──────── Wallet Card ──────── */}
         <LinearGradient
-          colors={[colors.cCard, '#1E1E3A', '#2A1A4E']}
+          colors={['#1A1A2E', '#16213E', '#0F3460']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.withdrawCard}
@@ -351,7 +351,7 @@ const CreatorSetting: React.FC = () => {
               </Text>
             </Text>
           </View>
-          <ChevronRight size={wp(18)} color={colors.cTextMuted} />
+          <ChevronRight size={wp(18)} color="#94A3B8" />
         </Pressable>
 
         {/* ──────── Account Section ──────── */}
@@ -375,8 +375,8 @@ const CreatorSetting: React.FC = () => {
           />
           <MenuRow
             icon={Landmark}
-            iconBg={colors.cCardLight}
-            iconColor={colors.cTextSecondary}
+            iconBg="#F1F5F9"
+            iconColor="#64748B"
             label="Bank Details"
             subtitle="Manage your bank information"
             onPress={() => Nav.navigate('BankDetails')}
@@ -465,7 +465,7 @@ const CreatorSetting: React.FC = () => {
 
       <LogoutModal
         visible={logoutVisible}
-        variant="dark"
+        variant="light"
         onCancel={() => setLogoutVisible(false)}
         onConfirm={() => {
           setLogoutVisible(false);
@@ -481,7 +481,7 @@ export default CreatorSetting;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.cBg,
+    backgroundColor: colors.white,
   },
 
   headerWrapper: {
@@ -507,13 +507,13 @@ const styles = StyleSheet.create({
     height: wp(34),
     borderRadius: wp(11),
     borderWidth: 1.5,
-    borderColor: '#2a2a2e',
+    borderColor: '#1A1A2E',
   },
   avatarFallback: {
     width: wp(48),
     height: wp(48),
     borderRadius: wp(16),
-    backgroundColor: '#2a2a2e',
+    backgroundColor: '#1A1A2E',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -548,14 +548,14 @@ const styles = StyleSheet.create({
     borderRadius: wp(14),
     alignItems: 'center',
     gap: hp(8),
-    backgroundColor: colors.cCard,
+    backgroundColor: colors.white,
     shadowColor: colors.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
     elevation: 2,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
   },
   topCardIcon: {
     width: wp(42),
@@ -565,7 +565,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   topCardText: {
-    color: colors.cText,
+    color: '#1A1A2E',
     fontSize: fp(13),
     fontWeight: '600',
   },
@@ -613,7 +613,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   withdrawBtn: {
-    backgroundColor: colors.cAccent,
+    backgroundColor: colors.white,
     paddingVertical: hp(9),
     paddingHorizontal: wp(18),
     borderRadius: wp(10),
@@ -624,7 +624,7 @@ const styles = StyleSheet.create({
   },
   withdrawBtnText: {
     fontWeight: '700',
-    color: colors.white,
+    color: '#0F3460',
     fontSize: fp(13),
   },
 
@@ -632,14 +632,14 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: fp(13),
     fontWeight: '600',
-    color: colors.cTextSecondary,
+    color: '#64748B',
     textTransform: 'uppercase',
     letterSpacing: 0.8,
     marginHorizontal: wp(20),
     marginBottom: hp(8),
   },
   section: {
-    backgroundColor: colors.cCard,
+    backgroundColor: colors.white,
     marginHorizontal: wp(16),
     borderRadius: wp(16),
     shadowColor: colors.black,
@@ -648,11 +648,11 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 2,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
     overflow: 'hidden',
   },
   logoutSection: {
-    backgroundColor: colors.cCard,
+    backgroundColor: colors.white,
     marginHorizontal: wp(16),
     marginTop: hp(16),
     borderRadius: wp(16),
@@ -662,7 +662,7 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 2,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
     overflow: 'hidden',
   },
 
@@ -676,10 +676,10 @@ const styles = StyleSheet.create({
   },
   rowBorder: {
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.cBorder,
+    borderBottomColor: '#E2E8F0',
   },
   rowPressed: {
-    backgroundColor: colors.cCardLight,
+    backgroundColor: '#F1F5F9',
   },
   rowLeft: {
     flexDirection: 'row',
@@ -696,19 +696,19 @@ const styles = StyleSheet.create({
   },
   rowText: {
     fontSize: fp(15),
-    color: colors.cText,
+    color: '#1A1A2E',
     fontWeight: '500',
   },
   rowSubtext: {
     fontSize: fp(12),
-    color: colors.cTextSecondary,
+    color: '#64748B',
     marginTop: hp(1),
   },
 
   versionText: {
     textAlign: 'center',
     fontSize: fp(12),
-    color: colors.cTextMuted,
+    color: '#94A3B8',
     marginTop: hp(24),
     fontWeight: '500',
   },
@@ -728,14 +728,14 @@ const styles = StyleSheet.create({
   hissaCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.cCard,
+    backgroundColor: colors.white,
     marginHorizontal: wp(16),
     marginBottom: hp(20),
     paddingVertical: hp(14),
     paddingHorizontal: wp(14),
     borderRadius: wp(16),
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
     shadowColor: colors.black,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.04,
@@ -766,7 +766,7 @@ const styles = StyleSheet.create({
   hissaTitle: {
     fontSize: fp(15),
     fontWeight: '700',
-    color: colors.cText,
+    color: '#1A1A2E',
   },
   hissaSubtitle: {
     fontSize: fp(12),
@@ -777,7 +777,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   hissaDot: {
-    color: colors.cTextMuted,
+    color: '#94A3B8',
     fontWeight: '700',
   },
   hissaPlatform: {

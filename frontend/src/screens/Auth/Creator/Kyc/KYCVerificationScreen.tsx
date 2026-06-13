@@ -101,7 +101,7 @@ const KYCVerificationScreen: React.FC = () => {
         >
           {/* Header Card */}
           <LinearGradient
-            colors={['#1E2038', '#222448', '#2A2455']}
+            colors={['#1A1A2E', '#16213E', '#0F3460']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.headerCard}
@@ -144,7 +144,7 @@ const KYCVerificationScreen: React.FC = () => {
               }) => (
                 <View style={styles.fieldWrapper}>
                   <View style={styles.labelRow}>
-                    <User size={wp(14)} color={colors.cTextSecondary} />
+                    <User size={wp(14)} color={'#64748B'} />
                     <Text style={styles.inputLabel}>Full Name</Text>
                     <Text style={styles.labelHint}>(as per PAN card)</Text>
                   </View>
@@ -190,7 +190,7 @@ const KYCVerificationScreen: React.FC = () => {
                 return (
                   <View style={styles.fieldWrapper}>
                     <View style={styles.labelRow}>
-                      <Calendar size={wp(14)} color={colors.cTextSecondary} />
+                      <Calendar size={wp(14)} color={'#64748B'} />
                       <Text style={styles.inputLabel}>Date of Birth</Text>
                       <Text style={styles.labelHint}>(as per PAN card)</Text>
                     </View>
@@ -255,7 +255,7 @@ const KYCVerificationScreen: React.FC = () => {
               }) => (
                 <View style={styles.fieldWrapper}>
                   <View style={styles.labelRow}>
-                    <CreditCard size={wp(14)} color={colors.cTextSecondary} />
+                    <CreditCard size={wp(14)} color={'#64748B'} />
                     <Text style={styles.inputLabel}>PAN Number</Text>
                   </View>
                   <CustomTextInput
@@ -311,7 +311,7 @@ const KYCVerificationScreen: React.FC = () => {
 
           {/* Footer Note */}
           <View style={styles.footerNote}>
-            <Shield size={wp(12)} color={colors.cTextSecondary} />
+            <Shield size={wp(12)} color={'#64748B'} />
             <Text style={styles.footerText}>
               Your data is encrypted and securely processed. We do not store
               your PAN details beyond verification.
@@ -328,7 +328,7 @@ export default KYCVerificationScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.cBg,
+    backgroundColor: colors.white,
   },
   scrollView: {
     flex: 1,
@@ -387,13 +387,13 @@ const styles = StyleSheet.create({
   },
   // Form
   formSection: {
-    backgroundColor: colors.cCard,
+    backgroundColor: colors.white,
     marginHorizontal: wp(16),
     marginTop: hp(16),
     borderRadius: wp(16),
     padding: wp(20),
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
@@ -411,24 +411,24 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: fp(14),
     fontWeight: '600',
-    color: colors.cText,
+    color: '#1A1A2E',
     marginLeft: wp(6),
   },
   labelHint: {
     fontSize: fp(12),
-    color: colors.cTextSecondary,
+    color: '#64748B',
     marginLeft: wp(4),
   },
   input: {
     borderRadius: wp(10),
     paddingHorizontal: wp(14),
     height: hp(48),
-    backgroundColor: colors.cInputBg,
+    backgroundColor: '#F8FAFC',
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
   },
   disabledInput: {
-    backgroundColor: colors.cCardLight,
+    backgroundColor: '#F1F5F9',
   },
   inputError: {
     borderColor: colors.error,
@@ -442,7 +442,7 @@ const styles = StyleSheet.create({
   },
   charCount: {
     fontSize: fp(11),
-    color: colors.cTextSecondary,
+    color: '#64748B',
     textAlign: 'right',
     marginTop: hp(4),
   },
@@ -452,10 +452,10 @@ const styles = StyleSheet.create({
   },
   datePickerText: {
     fontSize: fp(14),
-    color: colors.cText,
+    color: '#1A1A2E',
   },
   placeholderText: {
-    color: colors.cTextMuted,
+    color: '#94A3B8',
   },
   // Button
   buttonContainer: {
@@ -496,7 +496,7 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: fp(11),
-    color: colors.cTextSecondary,
+    color: '#64748B',
     marginLeft: wp(6),
     flex: 1,
     lineHeight: fp(16),

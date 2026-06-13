@@ -240,13 +240,13 @@ export default CreatorPublicProfile;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.cBg,
+    backgroundColor: colors.white,
   },
   scrollContent: {
     paddingBottom: hp(40),
   },
   profileCard: {
-    backgroundColor: colors.cCard,
+    backgroundColor: colors.white,
     marginHorizontal: wp(16),
     marginTop: hp(20),
     borderRadius: wp(20),
@@ -259,7 +259,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 10,
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
   },
   avatarContainer: {
     marginBottom: hp(16),
@@ -282,7 +282,7 @@ const styles = StyleSheet.create({
   profileName: {
     fontSize: fp(24),
     fontWeight: '800',
-    color: colors.cText,
+    color: '#1A1A2E',
     marginBottom: hp(12),
   },
   sessionBtns: {
@@ -310,11 +310,11 @@ const styles = StyleSheet.create({
   productCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.cCardLight,
+    backgroundColor: '#F1F5F9',
     borderRadius: wp(12),
     padding: wp(12),
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
   },
   productIcon: {
     width: wp(42),
@@ -327,11 +327,11 @@ const styles = StyleSheet.create({
   productName: {
     fontSize: fp(14),
     fontWeight: '600',
-    color: colors.cText,
+    color: '#1A1A2E',
   },
   productMeta: {
     fontSize: fp(11),
-    color: colors.cTextSecondary,
+    color: '#64748B',
     marginTop: hp(2),
   },
   productPrice: {
@@ -363,13 +363,13 @@ const styles = StyleSheet.create({
   divider: {
     width: '80%',
     height: 1,
-    backgroundColor: colors.cBorder,
+    backgroundColor: '#E2E8F0',
     marginVertical: hp(20),
   },
   connectTitle: {
     fontSize: fp(14),
     fontWeight: '700',
-    color: colors.cTextSecondary,
+    color: '#64748B',
     marginBottom: hp(14),
     letterSpacing: 0.5,
     textTransform: 'uppercase',
@@ -394,7 +394,7 @@ const styles = StyleSheet.create({
   },
   socialLabel: {
     fontSize: fp(11),
-    color: colors.cTextSecondary,
+    color: '#64748B',
     fontWeight: '600',
   },
 });

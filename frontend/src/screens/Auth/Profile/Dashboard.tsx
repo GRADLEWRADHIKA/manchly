@@ -15,7 +15,7 @@ import colors from '../../../utils/colors';
 import {wp, hp, fp} from '../../../utils/responsive';
 import {getDashboardStats} from '../../../store/SessionSlice';
 
-const ACCENT = colors.cAccentLight;
+const ACCENT = '#60A5FA';
 const GOLDEN = colors.golden;
 
 const TABS = ['Course', 'Webinar', '1:1 Session'] as const;
@@ -99,7 +99,7 @@ const Dashboard = () => {
 
       {loading ? (
         <View style={styles.loader}>
-          <ActivityIndicator size="large" color={ACCENT} />
+          <ActivityIndicator size="large" color={colors.cBg} />
         </View>
       ) : (
         <ScrollView
@@ -170,7 +170,7 @@ const Dashboard = () => {
               <Text style={styles.sectionTitle}>PRODUCT OVERVIEW</Text>
             </View>
             <View style={styles.leaderRow}>
-              <View style={[styles.rankBadge, {backgroundColor: colors.cAccent + '30'}]}>
+              <View style={[styles.rankBadge, {backgroundColor: 'rgba(15,52,96,0.5)'}]}>
                 <Text style={styles.rankText}>📚</Text>
               </View>
               <Text style={styles.leaderName}>Courses</Text>
@@ -179,7 +179,7 @@ const Dashboard = () => {
               </Text>
             </View>
             <View style={styles.leaderRow}>
-              <View style={[styles.rankBadge, {backgroundColor: colors.cAccent + '30'}]}>
+              <View style={[styles.rankBadge, {backgroundColor: 'rgba(15,52,96,0.5)'}]}>
                 <Text style={styles.rankText}>🎥</Text>
               </View>
               <Text style={styles.leaderName}>Webinars</Text>
@@ -188,7 +188,7 @@ const Dashboard = () => {
               </Text>
             </View>
             <View style={styles.leaderRow}>
-              <View style={[styles.rankBadge, {backgroundColor: colors.cAccent + '30'}]}>
+              <View style={[styles.rankBadge, {backgroundColor: 'rgba(15,52,96,0.5)'}]}>
                 <Text style={styles.rankText}>🤝</Text>
               </View>
               <Text style={styles.leaderName}>1:1 Sessions</Text>
@@ -208,7 +208,7 @@ export default memo(Dashboard);
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.cBg,
+    backgroundColor: colors.white,
   },
   headerArea: {
     backgroundColor: colors.cBg,
@@ -271,7 +271,7 @@ const styles = StyleSheet.create({
   overviewValueAccent: {
     fontSize: fp(20),
     fontWeight: '800',
-    color: colors.cAccentLight,
+    color: '#60A5FA',
   },
   overviewValue: {
     fontSize: fp(20),
@@ -280,12 +280,12 @@ const styles = StyleSheet.create({
   },
   tabBar: {
     flexDirection: 'row',
-    backgroundColor: colors.cCard,
+    backgroundColor: colors.white,
     borderRadius: wp(14),
     padding: wp(4),
     marginBottom: hp(16),
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
   },
   tab: {
     flex: 1,
@@ -297,8 +297,8 @@ const styles = StyleSheet.create({
     gap: wp(4),
   },
   tabActive: {
-    backgroundColor: colors.cAccent,
-    shadowColor: colors.cAccent,
+    backgroundColor: '#0F3460',
+    shadowColor: '#0F3460',
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 4,
@@ -310,10 +310,10 @@ const styles = StyleSheet.create({
   tabText: {
     fontSize: fp(12),
     fontWeight: '600',
-    color: colors.cTextMuted,
+    color: '#64748B',
   },
   tabTextActive: {
-    color: colors.cText,
+    color: colors.white,
     fontWeight: '700',
   },
   statsRow: {
@@ -323,41 +323,51 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: colors.cAccent + '15',
+    backgroundColor: colors.white,
     borderRadius: wp(16),
     padding: wp(16),
     borderWidth: 1,
-    borderColor: colors.cAccent + '25',
+    borderColor: '#E2E8F0',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
   },
   statLabel: {
     fontSize: fp(10),
     fontWeight: '700',
-    color: colors.cAccentLight,
+    color: '#0F3460',
     letterSpacing: 1,
     marginBottom: hp(6),
   },
   statValueLight: {
     fontSize: fp(28),
     fontWeight: '800',
-    color: colors.cText,
+    color: '#1A1A2E',
   },
   statValueAccent: {
     fontSize: fp(28),
     fontWeight: '800',
-    color: colors.cAccentLight,
+    color: '#0F3460',
   },
   sectionCard: {
-    backgroundColor: colors.cCard,
+    backgroundColor: colors.white,
     borderRadius: wp(16),
     padding: wp(16),
     marginBottom: hp(16),
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
   },
   sectionTitle: {
     fontSize: fp(10),
     fontWeight: '700',
-    color: colors.cTextMuted,
+    color: '#64748B',
     letterSpacing: 1.5,
     marginBottom: hp(14),
   },
@@ -372,13 +382,13 @@ const styles = StyleSheet.create({
   breakdownName: {
     fontSize: fp(14),
     fontWeight: '600',
-    color: colors.cText,
+    color: '#1A1A2E',
     flex: 1,
   },
   breakdownPrice: {
     fontSize: fp(14),
     fontWeight: '700',
-    color: colors.cAccentLight,
+    color: '#0F3460',
   },
   leaderboardHeader: {
     flexDirection: 'row',
@@ -391,7 +401,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: hp(10),
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.cBorder,
+    borderTopColor: '#E2E8F0',
   },
   rankBadge: {
     width: wp(28),
@@ -407,12 +417,12 @@ const styles = StyleSheet.create({
   leaderName: {
     fontSize: fp(14),
     fontWeight: '600',
-    color: colors.cText,
+    color: '#1A1A2E',
     flex: 1,
   },
   leaderRevenue: {
     fontSize: fp(14),
     fontWeight: '700',
-    color: colors.cAccentLight,
+    color: '#0F3460',
   },
 });

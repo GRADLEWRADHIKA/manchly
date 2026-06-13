@@ -23,23 +23,6 @@ const UserHome = () => {
       >
         <HeroCarousel />
 
-        {/* Session Experts Banner */}
-        <TouchableOpacity
-          style={styles.expertBanner}
-          activeOpacity={0.8}
-          onPress={() => navigation.navigate('ExpertList')}>
-          <View style={styles.expertBannerIcon}>
-            <PhoneCall size={wp(24)} color={colors.white} strokeWidth={1.8} />
-          </View>
-          <View style={styles.expertBannerContent}>
-            <Text style={styles.expertBannerTitle}>Talk to Experts</Text>
-            <Text style={styles.expertBannerSub}>
-              Book 1:1 audio & video sessions with professionals
-            </Text>
-          </View>
-          <ChevronRight size={wp(20)} color={colors.white + '80'} strokeWidth={2} />
-        </TouchableOpacity>
-
         <TopExperts />
         <LatestCourses />
         <LatestWebinars />

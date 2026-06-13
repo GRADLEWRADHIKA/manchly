@@ -92,7 +92,7 @@ const WebinarDetails = () => {
       <View style={styles.container}>
         <AppHeaderWithBack title="Webinar Details" />
         <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color={colors.cAccent} />
+          <ActivityIndicator size="large" color={colors.cBg} />
         </View>
       </View>
     );
@@ -111,7 +111,7 @@ const WebinarDetails = () => {
             />
           ) : (
             <View style={styles.thumbnailPlaceholder}>
-              <ImageOff size={wp(60)} color={colors.cTextSecondary} />
+              <ImageOff size={wp(60)} color={'#64748B'} />
               <Text style={styles.noImageText}>No Thumbnail Available</Text>
             </View>
           )}
@@ -145,21 +145,21 @@ const WebinarDetails = () => {
         </View>
 
         <View style={styles.row}>
-          <User size={wp(18)} color={colors.cTextSecondary} />
+          <User size={wp(18)} color={'#64748B'} />
           <Text style={styles.host}>
             Hosted by {data?.creator?.name || 'Unknown'}
           </Text>
         </View>
 
         <View style={styles.row}>
-          <Calendar size={wp(18)} color={colors.cTextSecondary} />
+          <Calendar size={wp(18)} color={'#64748B'} />
           <Text style={styles.detailText}>
             {new Date(data?.scheduled_at).toDateString()}
           </Text>
         </View>
 
         <View style={styles.row}>
-          <Clock size={wp(18)} color={colors.cTextSecondary} />
+          <Clock size={wp(18)} color={'#64748B'} />
           <Text style={styles.detailText}>
             {new Date(data?.scheduled_at).toLocaleTimeString([], {
               hour: '2-digit',
@@ -170,12 +170,12 @@ const WebinarDetails = () => {
         </View>
 
         <View style={styles.row}>
-          <Video size={wp(18)} color={colors.cTextSecondary} />
+          <Video size={wp(18)} color={'#64748B'} />
           <Text style={styles.detailText}>Zoom Meeting</Text>
         </View>
 
         <View style={styles.row}>
-          <Users size={wp(18)} color={colors.cTextSecondary} />
+          <Users size={wp(18)} color={'#64748B'} />
           <Text style={styles.detailText}>
             Max Participants: {data?.max_participants}
           </Text>
@@ -244,7 +244,7 @@ const PriceRow = ({ label, value }: { label: string; value: string }) => (
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.cBg,
+    backgroundColor: colors.white,
   },
   loaderContainer: {
     flex: 1,
@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
   thumbnailWrapper: {
     width: '100%',
     height: hp(220),
-    backgroundColor: colors.cSurface,
+    backgroundColor: '#F1F5F9',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
   },
   noImageText: {
     marginTop: hp(8),
-    color: colors.cTextSecondary,
+    color: '#64748B',
     fontSize: fp(14),
   },
 
@@ -279,7 +279,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginTop: hp(15),
     paddingHorizontal: wp(15),
-    color: colors.cText,
+    color: '#1A1A2E',
   },
 
   row: {
@@ -290,11 +290,11 @@ const styles = StyleSheet.create({
     gap: wp(6),
   },
   host: {
-    color: colors.cTextSecondary,
+    color: '#64748B',
     fontSize: fp(14),
   },
   detailText: {
-    color: colors.cTextSecondary,
+    color: '#64748B',
     fontSize: fp(14),
   },
   linkActionRow: {
@@ -342,12 +342,12 @@ const styles = StyleSheet.create({
   },
 
   priceBox: {
-    backgroundColor: colors.cCard,
+    backgroundColor: colors.white,
     padding: wp(16),
     borderRadius: wp(12),
     marginHorizontal: wp(15),
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
   },
   priceRow: {
     flexDirection: 'row',
@@ -355,15 +355,15 @@ const styles = StyleSheet.create({
     marginVertical: hp(6),
   },
   priceLabel: {
-    color: colors.cTextSecondary,
+    color: '#64748B',
   },
   priceValue: {
     fontWeight: '600',
-    color: colors.cText,
+    color: '#1A1A2E',
   },
   totalRow: {
     borderTopWidth: wp(1),
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
     marginTop: hp(10),
     paddingTop: hp(10),
     flexDirection: 'row',
@@ -372,7 +372,7 @@ const styles = StyleSheet.create({
   totalLabel: {
     fontSize: fp(16),
     fontWeight: '700',
-    color: colors.cText,
+    color: '#1A1A2E',
   },
   totalValue: {
     fontSize: fp(18),
@@ -381,7 +381,7 @@ const styles = StyleSheet.create({
   },
   participants: {
     fontSize: fp(14),
-    color: colors.cTextSecondary,
+    color: '#64748B',
     marginTop: hp(10),
   },
 
@@ -389,11 +389,11 @@ const styles = StyleSheet.create({
     fontSize: fp(18),
     fontWeight: '600',
     paddingHorizontal: wp(15),
-    color: colors.cText,
+    color: '#1A1A2E',
   },
   description: {
     fontSize: fp(14),
-    color: colors.cTextSecondary,
+    color: '#64748B',
     marginTop: hp(8),
     paddingHorizontal: wp(15),
     lineHeight: fp(20),
@@ -405,9 +405,9 @@ const styles = StyleSheet.create({
     bottom: 0,
     width: '100%',
     padding: wp(15),
-    backgroundColor: colors.cSurface,
+    backgroundColor: '#F1F5F9',
     borderTopWidth: wp(1),
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
     marginBottom: hp(10),
   },
   buyButton: {

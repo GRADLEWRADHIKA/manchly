@@ -197,7 +197,7 @@ const WalletCreator = () => {
       <View style={styles.container}>
         <AppHeaderWithBack title="My Wallet" />
         <View style={styles.loaderWrap}>
-          <ActivityIndicator size="large" color={colors.cAccent} />
+          <ActivityIndicator size="large" color={colors.cBg} />
         </View>
       </View>
     );
@@ -214,7 +214,7 @@ const WalletCreator = () => {
         {/* Balance Card */}
         <View style={styles.balanceCard}>
           <LinearGradient
-            colors={['#1E2038', '#222448', '#2A2455']}
+            colors={['#1A1A2E', '#16213E', '#0F3460']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.balanceGradient}
@@ -328,7 +328,7 @@ const WalletCreator = () => {
               <Text style={styles.actionDesc}>Manage bank details</Text>
             </View>
           </View>
-          <ChevronRight size={wp(18)} color={colors.cTextMuted} />
+          <ChevronRight size={wp(18)} color={'#94A3B8'} />
         </TouchableOpacity>
       </ScrollView>
 
@@ -419,7 +419,7 @@ export default WalletCreator;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.cBg,
+    backgroundColor: colors.white,
   },
   scrollContent: {
     paddingBottom: hp(30),
@@ -496,7 +496,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: fp(16),
     fontWeight: '700',
-    color: colors.cText,
+    color: '#1A1A2E',
     marginHorizontal: wp(16),
     marginTop: hp(24),
     marginBottom: hp(12),
@@ -504,7 +504,7 @@ const styles = StyleSheet.create({
   sectionTitleOne: {
     fontSize: fp(16),
     fontWeight: '700',
-    color: colors.cText,
+    color: '#1A1A2E',
     marginVertical: hp(15),
   },
 
@@ -517,11 +517,11 @@ const styles = StyleSheet.create({
   },
   statCard: {
     width: '47%',
-    backgroundColor: colors.cCard,
+    backgroundColor: colors.white,
     borderRadius: wp(16),
     padding: wp(14),
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
   },
   statIconWrap: {
     width: wp(38),
@@ -534,12 +534,12 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: fp(18),
     fontWeight: '800',
-    color: colors.cText,
+    color: '#1A1A2E',
     marginBottom: hp(2),
   },
   statLabel: {
     fontSize: fp(12),
-    color: colors.cTextSecondary,
+    color: '#64748B',
     fontWeight: '500',
   },
 
@@ -556,13 +556,13 @@ const styles = StyleSheet.create({
   txRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.cCard,
+    backgroundColor: colors.white,
     marginHorizontal: wp(16),
     marginBottom: hp(8),
     padding: wp(14),
     borderRadius: wp(14),
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
   },
   txIcon: {
     width: wp(40),
@@ -578,11 +578,11 @@ const styles = StyleSheet.create({
   txTitle: {
     fontSize: fp(13),
     fontWeight: '600',
-    color: colors.cText,
+    color: '#1A1A2E',
   },
   txDate: {
     fontSize: fp(11),
-    color: colors.cTextMuted,
+    color: '#94A3B8',
     marginTop: hp(2),
   },
   txStatus: {
@@ -599,27 +599,27 @@ const styles = StyleSheet.create({
   },
   txGross: {
     fontSize: fp(10),
-    color: colors.cTextMuted,
+    color: '#94A3B8',
     marginTop: hp(2),
   },
   txEmptyCard: {
-    backgroundColor: colors.cCard,
+    backgroundColor: colors.white,
     marginHorizontal: wp(16),
     borderRadius: wp(16),
     padding: wp(24),
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
   },
   txEmptyTitle: {
     fontSize: fp(15),
     fontWeight: '700',
-    color: colors.cText,
+    color: '#1A1A2E',
     marginTop: hp(10),
   },
   txEmptyDesc: {
     fontSize: fp(13),
-    color: colors.cTextSecondary,
+    color: '#64748B',
     textAlign: 'center',
     marginTop: hp(4),
     lineHeight: fp(18),
@@ -630,13 +630,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: colors.cCard,
+    backgroundColor: colors.white,
     marginHorizontal: wp(16),
     marginBottom: hp(10),
     padding: wp(14),
     borderRadius: wp(14),
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
   },
   actionLeft: {
     flexDirection: 'row',
@@ -653,11 +653,11 @@ const styles = StyleSheet.create({
   actionTitle: {
     fontSize: fp(14),
     fontWeight: '600',
-    color: colors.cText,
+    color: '#1A1A2E',
   },
   actionDesc: {
     fontSize: fp(12),
-    color: colors.cTextSecondary,
+    color: '#64748B',
     marginTop: hp(1),
   },
 
@@ -670,20 +670,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(20),
   },
   modalContainer: {
-    backgroundColor: colors.cCard,
+    backgroundColor: colors.white,
     borderRadius: wp(20),
     paddingVertical: hp(24),
     paddingHorizontal: wp(20),
     width: '100%',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
   },
   modalIconWrap: {
     width: wp(56),
     height: wp(56),
     borderRadius: wp(28),
-    backgroundColor: colors.cCardLight,
+    backgroundColor: '#F1F5F9',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: hp(12),
@@ -691,11 +691,11 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: fp(18),
     fontWeight: '700',
-    color: colors.cText,
+    color: '#1A1A2E',
     marginBottom: hp(16),
   },
   modalAmountCard: {
-    backgroundColor: colors.cCardLight,
+    backgroundColor: '#F1F5F9',
     borderRadius: wp(14),
     paddingVertical: hp(16),
     paddingHorizontal: wp(20),
@@ -705,14 +705,14 @@ const styles = StyleSheet.create({
   },
   modalAmountLabel: {
     fontSize: fp(12),
-    color: colors.cTextSecondary,
+    color: '#64748B',
     fontWeight: '500',
     marginBottom: hp(4),
   },
   modalAmountValue: {
     fontSize: fp(28),
     fontWeight: '900',
-    color: colors.cText,
+    color: '#1A1A2E',
   },
   modalInfoRow: {
     flexDirection: 'row',
@@ -735,7 +735,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(8),
-    backgroundColor: colors.cCardLight,
+    backgroundColor: '#F1F5F9',
     padding: wp(12),
     borderRadius: wp(10),
     width: '100%',
@@ -772,12 +772,12 @@ const styles = StyleSheet.create({
     borderRadius: wp(12),
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.cCardLight,
+    backgroundColor: '#F1F5F9',
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
   },
   modalCancelText: {
-    color: colors.cText,
+    color: '#1A1A2E',
     fontWeight: '600',
     fontSize: fp(14),
   },

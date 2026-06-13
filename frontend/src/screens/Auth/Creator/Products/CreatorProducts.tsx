@@ -96,7 +96,7 @@ export default memo(CreatorProducts);
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.cBg,
+    backgroundColor: colors.white,
   },
   headerWrapper: {
     backgroundColor: colors.cBg,
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
     borderRadius: wp(10),
   },
   tabActive: {
-    backgroundColor: colors.cAccent,
+    backgroundColor: '#0F3460',
   },
   tabText: {
     fontSize: fp(13),

@@ -24,7 +24,7 @@ const GoLiveCard = () => {
       }}
     >
       <LinearGradient
-        colors={['#1E2038', '#222448', '#2A2455']}
+        colors={['#1A1A2E', '#16213E', '#0F3460']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.card}
@@ -112,6 +112,6 @@ const styles = StyleSheet.create({
   ctaText: {
     fontSize: fp(13),
     fontWeight: '700',
-    color: colors.cAccentLight,
+    color: colors.white,
   },
 });

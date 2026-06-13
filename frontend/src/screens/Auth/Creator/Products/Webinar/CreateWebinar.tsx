@@ -234,7 +234,7 @@ const CreateWebinarScreen = () => {
           >
             <View style={[styles.labelRow, { marginTop: hp(10), justifyContent: 'space-between' }]}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: wp(6) }}>
-                <Type size={wp(14)} color={colors.cTextSecondary} />
+                <Type size={wp(14)} color={'#64748B'} />
                 <Text style={styles.label}>Title</Text>
               </View>
               <EnhanceSuggestionCard
@@ -262,14 +262,14 @@ const CreateWebinarScreen = () => {
                   inputContainerStyle={[
                     styles.nameFields,
                     {
-                      borderColor: error ? colors.cError : colors.cBorder,
+                      borderColor: error ? colors.cError : '#E2E8F0',
                     },
                   ]}
                   inputStyle={{
                     fontSize: fp(14),
-                    color: colors.cText,
+                    color: '#1A1A2E',
                   }}
-                  placeholderTextColor={colors.cTextMuted}
+                  placeholderTextColor={'#94A3B8'}
                   placeholder="Enter title for the webinar"
                   onChange={onChange}
                   onBlur={onBlur}
@@ -279,7 +279,7 @@ const CreateWebinarScreen = () => {
             />
 
             <View style={styles.labelRow}>
-              <IndianRupee size={wp(14)} color={colors.cTextSecondary} />
+              <IndianRupee size={wp(14)} color={'#64748B'} />
               <Text style={styles.label}>Price</Text>
             </View>
             <Controller
@@ -299,14 +299,14 @@ const CreateWebinarScreen = () => {
                   inputContainerStyle={[
                     styles.nameFields,
                     {
-                      borderColor: error ? colors.cError : colors.cBorder,
+                      borderColor: error ? colors.cError : '#E2E8F0',
                     },
                   ]}
                   inputStyle={{
                     fontSize: fp(14),
-                    color: colors.cText,
+                    color: '#1A1A2E',
                   }}
-                  placeholderTextColor={colors.cTextMuted}
+                  placeholderTextColor={'#94A3B8'}
                   placeholder="Enter price for the webinar (₹499)"
                   onChange={onChange}
                   onBlur={onBlur}
@@ -316,7 +316,7 @@ const CreateWebinarScreen = () => {
             />
 
             <View style={styles.labelRow}>
-              <Calendar size={wp(14)} color={colors.cTextSecondary} />
+              <Calendar size={wp(14)} color={'#64748B'} />
               <Text style={styles.label}>Date</Text>
             </View>
             <Controller
@@ -331,7 +331,7 @@ const CreateWebinarScreen = () => {
                   style={[styles.datePicker, error && styles.errorBorder]}
                   onPress={showDatePicker}
                 >
-                  <Text style={{ fontSize: fp(14), color: colors.cAccentLight }}>
+                  <Text style={{ fontSize: fp(14), color: value ? '#1A1A2E' : '#94A3B8' }}>
                     {value ? value : 'Select Date'}
                   </Text>
 
@@ -350,7 +350,7 @@ const CreateWebinarScreen = () => {
             />
 
             <View style={styles.labelRow}>
-              <Clock size={wp(14)} color={colors.cTextSecondary} />
+              <Clock size={wp(14)} color={'#64748B'} />
               <Text style={styles.label}>Start Time</Text>
             </View>
 
@@ -367,7 +367,7 @@ const CreateWebinarScreen = () => {
                     style={[styles.datePicker, error && styles.errorBorder]}
                     onPress={showTimePicker}
                   >
-                    <Text style={{ fontSize: fp(14), color: colors.cAccentLight }}>
+                    <Text style={{ fontSize: fp(14), color: value ? '#1A1A2E' : '#94A3B8' }}>
                       {value
                         ? moment(value, 'HH:mm').format('hh:mm A')
                         : 'Select start time '}
@@ -390,7 +390,7 @@ const CreateWebinarScreen = () => {
             />
 
             <View style={styles.labelRow}>
-              <ImagePlus size={wp(14)} color={colors.cTextSecondary} />
+              <ImagePlus size={wp(14)} color={'#64748B'} />
               <Text style={styles.label}>Select Thumbnail</Text>
             </View>
             <Controller
@@ -407,10 +407,10 @@ const CreateWebinarScreen = () => {
                     disabled={uploading}
                   >
                     {uploading ? (
-                      <ActivityIndicator color={colors.cAccent} />
+                      <ActivityIndicator color={'#60A5FA'} />
                     ) : (
                       <Text
-                        style={{ fontSize: fp(13.5), color: colors.cAccentLight }}
+                        style={{ fontSize: fp(13.5), color: value ? '#1A1A2E' : '#94A3B8' }}
                       >
                         {value ? 'Change Thumbnail' : 'Choose Thumbnail'}
                       </Text>
@@ -429,7 +429,7 @@ const CreateWebinarScreen = () => {
             />
 
             <View style={styles.labelRow}>
-              <Timer size={wp(14)} color={colors.cTextSecondary} />
+              <Timer size={wp(14)} color={'#64748B'} />
               <Text style={styles.label}>Duration</Text>
             </View>
             <Controller
@@ -449,14 +449,14 @@ const CreateWebinarScreen = () => {
                   inputContainerStyle={[
                     styles.nameFields,
                     {
-                      borderColor: error ? colors.cError : colors.cBorder,
+                      borderColor: error ? colors.cError : '#E2E8F0',
                     },
                   ]}
                   inputStyle={{
                     fontSize: fp(14),
-                    color: colors.cText,
+                    color: '#1A1A2E',
                   }}
-                  placeholderTextColor={colors.cTextMuted}
+                  placeholderTextColor={'#94A3B8'}
                   placeholder="Enter duration for the webinar (in minutes)"
                   onChange={onChange}
                   onBlur={onBlur}
@@ -466,7 +466,7 @@ const CreateWebinarScreen = () => {
             />
 
             <View style={styles.labelRow}>
-              <Tag size={wp(14)} color={colors.cTextSecondary} />
+              <Tag size={wp(14)} color={'#64748B'} />
               <Text style={styles.label}>Categories</Text>
             </View>
             <Controller
@@ -480,16 +480,16 @@ const CreateWebinarScreen = () => {
                       inputContainerStyle={[
                         styles.nameFields,
                         {
-                          borderColor: error ? colors.cError : colors.cBorder,
+                          borderColor: error ? colors.cError : '#E2E8F0',
                           width: '90%',
                           marginBottom: 0,
                         },
                       ]}
                       inputStyle={{
                         fontSize: fp(14),
-                        color: colors.cText,
+                        color: '#1A1A2E',
                       }}
-                      placeholderTextColor={colors.cTextMuted}
+                      placeholderTextColor={'#94A3B8'}
                       placeholder="Enter tag"
                       value={tagInput}
                       onChange={setTagInput as any}
@@ -532,7 +532,7 @@ const CreateWebinarScreen = () => {
                     >
                       <CirclePlus
                         size={wp(30)}
-                        color={colors.cAccent}
+                        color={'#60A5FA'}
                         strokeWidth={1.6}
                       />
                     </TouchableOpacity>
@@ -564,7 +564,7 @@ const CreateWebinarScreen = () => {
             />
 
             <View style={styles.labelRow}>
-              <UsersRound size={wp(14)} color={colors.cTextSecondary} />
+              <UsersRound size={wp(14)} color={'#64748B'} />
               <Text style={styles.label}>Max Participants</Text>
             </View>
             <Controller
@@ -584,14 +584,14 @@ const CreateWebinarScreen = () => {
                   inputContainerStyle={[
                     styles.nameFields,
                     {
-                      borderColor: error ? colors.cError : colors.cBorder,
+                      borderColor: error ? colors.cError : '#E2E8F0',
                     },
                   ]}
                   inputStyle={{
                     fontSize: fp(14),
-                    color: colors.cText,
+                    color: '#1A1A2E',
                   }}
-                  placeholderTextColor={colors.cTextMuted}
+                  placeholderTextColor={'#94A3B8'}
                   placeholder="Enter max participants for the webinar"
                   onChange={onChange}
                   onBlur={onBlur}
@@ -601,7 +601,7 @@ const CreateWebinarScreen = () => {
             />
 
             <View style={styles.labelRow}>
-              <ToggleLeft size={wp(14)} color={colors.cTextSecondary} />
+              <ToggleLeft size={wp(14)} color={'#64748B'} />
               <Text style={styles.label}>Status</Text>
             </View>
             <Controller
@@ -618,9 +618,9 @@ const CreateWebinarScreen = () => {
                   selectedTextStyle={styles.selectedText}
                   containerStyle={{
                     borderRadius: wp(10),
-                    backgroundColor: colors.cCard,
+                    backgroundColor: colors.white,
                     borderWidth: 1,
-                    borderColor: colors.cBorder,
+                    borderColor: '#E2E8F0',
                   }}
                   data={[
                     { label: 'Published', value: 'PUBLISHED' },
@@ -641,16 +641,16 @@ const CreateWebinarScreen = () => {
                           paddingVertical: hp(5),
                           margin: wp(10),
                           backgroundColor: isSelected
-                            ? colors.cAccent
-                            : colors.cCard,
+                            ? '#0F3460'
+                            : '#F8FAFC',
                           borderRadius: wp(5),
                         }}
                       >
                         <Text
                           style={{
                             color: isSelected
-                              ? colors.cText
-                              : colors.cTextSecondary,
+                              ? colors.white
+                              : '#64748B',
                           }}
                         >
                           {item.label}
@@ -664,7 +664,7 @@ const CreateWebinarScreen = () => {
 
             <View style={[styles.labelRow, { justifyContent: 'space-between' }]}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: wp(6) }}>
-                <Type size={wp(14)} color={colors.cTextSecondary} />
+                <Type size={wp(14)} color={'#64748B'} />
                 <Text style={styles.label}>Headline</Text>
               </View>
               <EnhanceSuggestionCard
@@ -692,14 +692,14 @@ const CreateWebinarScreen = () => {
                     styles.nameFields,
                     styles.textArea,
                     {
-                      borderColor: error ? colors.cError : colors.cBorder,
+                      borderColor: error ? colors.cError : '#E2E8F0',
                     },
                   ]}
                   inputStyle={{
                     fontSize: fp(14),
-                    color: colors.cText,
+                    color: '#1A1A2E',
                   }}
-                  placeholderTextColor={colors.cTextMuted}
+                  placeholderTextColor={'#94A3B8'}
                   placeholder="Write a headline"
                   onChange={onChange}
                   onBlur={onBlur}
@@ -754,7 +754,7 @@ export default CreateWebinarScreen;
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: colors.cBg,
+    backgroundColor: colors.white,
   },
   container: {
     flex: 1,
@@ -774,7 +774,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: fp(13),
-    color: colors.cText,
+    color: '#1A1A2E',
     fontWeight: '600',
   },
   actions: {
@@ -782,7 +782,7 @@ const styles = StyleSheet.create({
     gap: wp(12),
     paddingVertical: hp(16),
     borderTopWidth: 1,
-    borderTopColor: colors.cBorder,
+    borderTopColor: '#E2E8F0',
   },
   cancelBtn: {
     flex: 1,
@@ -790,18 +790,18 @@ const styles = StyleSheet.create({
     borderRadius: wp(12),
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.cCard,
+    backgroundColor: colors.white,
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
   },
   cancelText: {
-    color: colors.cText,
+    color: '#1A1A2E',
     fontWeight: '600',
     fontSize: fp(15),
   },
   primaryButton: {
     flex: 2,
-    backgroundColor: colors.cAccent,
+    backgroundColor: '#0F3460',
     paddingVertical: hp(10),
     borderRadius: wp(12),
     alignItems: 'center',
@@ -819,7 +819,7 @@ const styles = StyleSheet.create({
     width: '100%',
     borderWidth: wp(1),
     marginBottom: hp(10),
-    backgroundColor: colors.cInputBg,
+    backgroundColor: '#F8FAFC',
   },
   textArea: {
     height: hp(90),
@@ -829,23 +829,23 @@ const styles = StyleSheet.create({
   dropdown: {
     height: hp(44),
     borderWidth: wp(1),
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
     borderRadius: wp(10),
     paddingHorizontal: wp(12),
     justifyContent: 'center',
     marginBottom: hp(10),
-    backgroundColor: colors.cCard,
+    backgroundColor: colors.white,
   },
   errorBorder: {
     borderColor: colors.cError,
   },
   placeholder: {
     fontSize: fp(14),
-    color: colors.cTextMuted,
+    color: '#94A3B8',
   },
   selectedText: {
     fontSize: fp(14),
-    color: colors.cAccentLight,
+    color: '#1A1A2E',
   },
   datePicker: {
     flex: 1,
@@ -853,10 +853,10 @@ const styles = StyleSheet.create({
     borderWidth: wp(1),
     borderRadius: wp(10),
     height: hp(44),
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
     paddingLeft: wp(12),
     marginBottom: hp(10),
-    backgroundColor: colors.cInputBg,
+    backgroundColor: '#F8FAFC',
   },
   imagePreview: {
     width: '100%',
@@ -864,7 +864,7 @@ const styles = StyleSheet.create({
     borderRadius: wp(8),
     marginTop: hp(10),
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
   },
   customHeader: {
     flexDirection: 'row',
@@ -885,7 +885,7 @@ const styles = StyleSheet.create({
   tagItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.cAccent,
+    backgroundColor: '#0F3460',
     paddingHorizontal: wp(10),
     paddingVertical: hp(5),
     borderRadius: wp(20),

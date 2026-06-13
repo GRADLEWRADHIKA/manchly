@@ -32,13 +32,13 @@ const SessionCard = () => {
       }}
     >
       <LinearGradient
-        colors={['#1E2038', '#222448', '#2A2455']}
+        colors={['#1A1A2E', '#16213E', '#0F3460']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.card}
       >
         <View style={styles.iconWrap}>
-          <Phone size={wp(18)} color="#A78BFA" />
+          <Phone size={wp(18)} color="#60A5FA" />
         </View>
 
         <Text style={styles.title}>1:1 Sessions</Text>
@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
     width: wp(40),
     height: wp(40),
     borderRadius: wp(12),
-    backgroundColor: 'rgba(167,139,250,0.12)',
+    backgroundColor: 'rgba(96,165,250,0.12)',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: hp(10),
@@ -88,6 +88,6 @@ const styles = StyleSheet.create({
   ctaText: {
     fontSize: fp(13),
     fontWeight: '700',
-    color: colors.cAccentLight,
+    color: colors.white,
   },
 });

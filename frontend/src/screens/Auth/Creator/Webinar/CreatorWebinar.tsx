@@ -76,7 +76,7 @@ const CreatorWebinar = ({embedded = false}: {embedded?: boolean}) => {
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
       <View style={styles.emptyIcon}>
-        <Presentation size={wp(48)} color={colors.cAccent} />
+        <Presentation size={wp(48)} color={'#60A5FA'} />
       </View>
       <Text style={styles.emptyTitle}>No Webinars Yet</Text>
     </View>
@@ -128,11 +128,11 @@ const CreatorWebinar = ({embedded = false}: {embedded?: boolean}) => {
       )}
 
       <View style={styles.searchContainer}>
-        <Search size={wp(18)} color={colors.cTextSecondary} />
+        <Search size={wp(18)} color={'#64748B'} />
         <CustomTextInput
           inputContainerStyle={styles.searchInput}
-          inputStyle={{ fontSize: fp(14), color: colors.cText }}
-          placeholderTextColor={colors.cTextMuted}
+          inputStyle={{ fontSize: fp(14), color: '#1A1A2E' }}
+          placeholderTextColor={'#94A3B8'}
           placeholder="Search webinars..."
           onChange={setSearchQuery as any}
           value={searchQuery}
@@ -141,7 +141,7 @@ const CreatorWebinar = ({embedded = false}: {embedded?: boolean}) => {
 
       {loading ? (
         <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color={colors.cAccent} />
+          <ActivityIndicator size="large" color={colors.cBg} />
           <Text style={styles.loadingText}>Loading webinars...</Text>
         </View>
       ) : filteredWebinars.length > 0 ? (
@@ -175,7 +175,7 @@ export default CreatorWebinar;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.cBg,
+    backgroundColor: colors.white,
   },
   headerWrapper: {
     backgroundColor: colors.cBg,
@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
     height: wp(46),
     borderRadius: wp(23),
     borderWidth: 2,
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
   },
   avatarFallback: {
     width: wp(46),
@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
   },
   headerTitle: {
     fontSize: fp(18),
@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
   },
   searchContainer: {
     flexDirection: 'row',
@@ -238,10 +238,10 @@ const styles = StyleSheet.create({
     marginHorizontal: wp(16),
     marginVertical: hp(12),
     borderWidth: wp(1),
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
     borderRadius: wp(12),
     paddingHorizontal: wp(12),
-    backgroundColor: colors.cInputBg,
+    backgroundColor: '#F8FAFC',
     elevation: 2,
     shadowColor: colors.black,
     shadowOffset: { width: 0, height: 1 },
@@ -260,7 +260,7 @@ const styles = StyleSheet.create({
     gap: wp(12),
   },
   loadingText: {
-    color: colors.cTextSecondary,
+    color: '#64748B',
     fontSize: fp(14),
     fontWeight: '500',
   },
@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyIcon: {
-    backgroundColor: colors.cCardLight,
+    backgroundColor: '#E2E8F0',
     width: wp(96),
     height: wp(96),
     borderRadius: wp(48),
@@ -286,19 +286,19 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: fp(20),
     fontWeight: '700',
-    color: colors.cText,
+    color: '#1A1A2E',
     marginBottom: hp(8),
     textAlign: 'center',
   },
   emptySubtitle: {
     fontSize: fp(14),
-    color: colors.cTextSecondary,
+    color: '#64748B',
     textAlign: 'center',
     lineHeight: fp(20),
     marginBottom: hp(24),
   },
   emptyCreateBtn: {
-    backgroundColor: colors.cAccent,
+    backgroundColor: '#0F3460',
     paddingHorizontal: wp(24),
     paddingVertical: hp(12),
     borderRadius: wp(12),
@@ -314,7 +314,7 @@ const styles = StyleSheet.create({
     bottom: hp(16),
   },
   fab: {
-    backgroundColor: colors.cAccent,
+    backgroundColor: '#0F3460',
     borderRadius: wp(50),
   },
 });

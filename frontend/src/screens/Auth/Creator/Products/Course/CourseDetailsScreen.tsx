@@ -63,7 +63,7 @@ const CourseDetailsScreen: React.FC = () => {
       <View style={styles.container}>
         <AppHeaderWithBack title="Course Details" />
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.cAccent} />
+          <ActivityIndicator size="large" color={colors.cBg} />
         </View>
       </View>
     );
@@ -103,14 +103,14 @@ const CourseDetailsScreen: React.FC = () => {
 
           <View style={styles.statsContainer}>
             <View style={styles.statItem}>
-              <Users size={wp(18)} color={colors.cTextSecondary} />
+              <Users size={wp(18)} color={'#64748B'} />
               <Text style={styles.statText}>
                 {course.enrollments?.length || 0} students
               </Text>
             </View>
 
             <View style={styles.statItem}>
-              <Play size={wp(18)} color={colors.cTextSecondary} />
+              <Play size={wp(18)} color={'#64748B'} />
               <Text style={styles.statText}>
                 {course.videos?.length || 0} videos
               </Text>
@@ -165,21 +165,21 @@ const PriceRow = ({ label, value }: any) => (
 );
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.cBg },
+  container: { flex: 1, backgroundColor: colors.white },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   thumbnail: { width: '100%', height: hp(220) },
   content: { padding: wp(16) },
-  title: { fontSize: fp(24), fontWeight: '700', color: colors.cText },
-  instructor: { color: colors.cTextSecondary, marginBottom: hp(16) },
+  title: { fontSize: fp(24), fontWeight: '700', color: '#1A1A2E' },
+  instructor: { color: '#64748B', marginBottom: hp(16) },
   section: { marginVertical: hp(16) },
-  sectionTitle: { fontSize: fp(18), fontWeight: '600', marginBottom: hp(10), color: colors.cText },
-  description: { fontSize: fp(15), lineHeight: fp(22), color: colors.cTextSecondary },
+  sectionTitle: { fontSize: fp(18), fontWeight: '600', marginBottom: hp(10), color: '#1A1A2E' },
+  description: { fontSize: fp(15), lineHeight: fp(22), color: '#64748B' },
   statsContainer: { flexDirection: 'row', gap: wp(16), marginVertical: hp(12) },
   statItem: { flexDirection: 'row', gap: wp(6), alignItems: 'center' },
-  statText: { color: colors.cTextSecondary },
+  statText: { color: '#64748B' },
 
   priceBox: {
-    backgroundColor: colors.cCard,
+    backgroundColor: colors.white,
     padding: wp(16),
     borderRadius: wp(12),
     marginTop: hp(20),
@@ -189,24 +189,24 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginVertical: hp(6),
   },
-  priceLabel: { color: colors.cTextSecondary },
-  priceValue: { fontWeight: '600', color: colors.cText },
+  priceLabel: { color: '#64748B' },
+  priceValue: { fontWeight: '600', color: '#1A1A2E' },
 
   totalRow: {
     borderTopWidth: wp(1),
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
     marginTop: hp(10),
     paddingTop: hp(10),
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
-  totalLabel: { fontSize: fp(16), fontWeight: '700', color: colors.cText },
+  totalLabel: { fontSize: fp(16), fontWeight: '700', color: '#1A1A2E' },
   totalValue: { fontSize: fp(18), fontWeight: '800', color: colors.cAccentLight },
 
   bottomBar: {
     padding: wp(16),
     borderTopWidth: wp(1),
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
   },
   purchaseButton: {
     backgroundColor: colors.secPrimary,

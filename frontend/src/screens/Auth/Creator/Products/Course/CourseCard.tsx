@@ -72,7 +72,7 @@ const CourseCard: React.FC<Props> = ({ item, onEdit, onDelete, onView }) => {
   return (
     <Animated.View style={[styles.card, { transform: [{ scale: scaleAnim }] }]}>
       <LinearGradient
-        colors={['#1E2038', '#222448', '#2A2455']}
+        colors={['#1A1A2E', '#16213E', '#0F3460']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.gradient}
@@ -121,7 +121,7 @@ const CourseCard: React.FC<Props> = ({ item, onEdit, onDelete, onView }) => {
             {/* Level badge */}
             {item.level && (
               <View style={styles.levelBadge}>
-                <BarChart3 size={wp(10)} color={colors.cAccentLight} />
+                <BarChart3 size={wp(10)} color={'#60A5FA'} />
                 <Text style={styles.levelText}>{item.level}</Text>
               </View>
             )}
@@ -146,14 +146,14 @@ const CourseCard: React.FC<Props> = ({ item, onEdit, onDelete, onView }) => {
                 ) : null}
               </View>
               <View style={styles.arrowWrap}>
-                <ChevronRight size={wp(18)} color={colors.cAccentLight} />
+                <ChevronRight size={wp(18)} color={'#60A5FA'} />
               </View>
             </View>
 
             {/* Stats row */}
             <View style={styles.statsRow}>
               <View style={styles.statItem}>
-                <BookOpen size={wp(12)} color={colors.cAccentLight} />
+                <BookOpen size={wp(12)} color={'#60A5FA'} />
                 <Text style={styles.statText}>
                   {videoCount} {videoCount === 1 ? 'video' : 'videos'}
                 </Text>
@@ -173,9 +173,9 @@ const CourseCard: React.FC<Props> = ({ item, onEdit, onDelete, onView }) => {
             activeOpacity={0.7}
           >
             <View style={styles.actionIconWrap}>
-              <Edit3 size={wp(14)} color={colors.cAccentLight} />
+              <Edit3 size={wp(14)} color={'#60A5FA'} />
             </View>
-            <Text style={[styles.actionText, { color: colors.cAccentLight }]}>
+            <Text style={[styles.actionText, { color: '#60A5FA' }]}>
               Edit
             </Text>
           </TouchableOpacity>
@@ -234,12 +234,12 @@ const styles = StyleSheet.create({
     marginBottom: hp(14),
     overflow: 'hidden',
     elevation: 8,
-    shadowColor: '#1E2038',
+    shadowColor: '#1A1A2E',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.3,
     shadowRadius: 14,
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
   },
   gradient: {
     flex: 1,
@@ -293,7 +293,7 @@ const styles = StyleSheet.create({
     paddingVertical: hp(4),
     borderRadius: wp(10),
     borderWidth: 1,
-    borderColor: 'rgba(139,92,246,0.3)',
+    borderColor: 'rgba(15,52,96,0.6)',
   },
   levelText: {
     color: colors.white,
@@ -316,21 +316,21 @@ const styles = StyleSheet.create({
     width: wp(32),
     height: wp(32),
     borderRadius: wp(16),
-    backgroundColor: 'rgba(139,92,246,0.15)',
+    backgroundColor: 'rgba(15,52,96,0.5)',
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: wp(10),
   },
   categoryChip: {
     alignSelf: 'flex-start',
-    backgroundColor: 'rgba(139,92,246,0.15)',
+    backgroundColor: 'rgba(15,52,96,0.5)',
     paddingHorizontal: wp(8),
     paddingVertical: hp(2),
     borderRadius: wp(6),
     marginBottom: hp(6),
   },
   categoryText: {
-    color: colors.cAccentLight,
+    color: '#60A5FA',
     fontSize: fp(9),
     fontWeight: '700',
     textTransform: 'uppercase',
@@ -355,7 +355,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(5),
-    backgroundColor: 'rgba(139,92,246,0.1)',
+    backgroundColor: 'rgba(15,52,96,0.4)',
     paddingHorizontal: wp(10),
     paddingVertical: hp(5),
     borderRadius: wp(8),
@@ -389,7 +389,7 @@ const styles = StyleSheet.create({
     width: wp(28),
     height: wp(28),
     borderRadius: wp(14),
-    backgroundColor: 'rgba(139,92,246,0.15)',
+    backgroundColor: 'rgba(15,52,96,0.5)',
     alignItems: 'center',
     justifyContent: 'center',
   },

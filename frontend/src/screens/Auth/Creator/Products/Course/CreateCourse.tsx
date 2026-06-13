@@ -196,7 +196,7 @@ const CreateCourse = () => {
             <View
               style={{ flexDirection: 'row', alignItems: 'center', gap: wp(6) }}
             >
-              <Type size={wp(14)} color={colors.cTextSecondary} />
+              <Type size={wp(14)} color={'#64748B'} />
               <Text style={styles.label}>Course Title</Text>
             </View>
             <EnhanceSuggestionCard
@@ -227,7 +227,7 @@ const CreateCourse = () => {
 
           {/* Price */}
           <View style={styles.labelRow}>
-            <IndianRupee size={wp(14)} color={colors.cTextSecondary} />
+            <IndianRupee size={wp(14)} color={'#64748B'} />
             <Text style={styles.label}>Price (INR)</Text>
           </View>
           <Controller
@@ -251,7 +251,7 @@ const CreateCourse = () => {
 
           {/* Thumbnail */}
           <View style={styles.labelRow}>
-            <ImagePlus size={wp(14)} color={colors.cTextSecondary} />
+            <ImagePlus size={wp(14)} color={'#64748B'} />
             <Text style={styles.label}>Course Thumbnail</Text>
           </View>
           <Controller
@@ -266,10 +266,10 @@ const CreateCourse = () => {
                   activeOpacity={0.7}
                 >
                   {uploading ? (
-                    <ActivityIndicator color={colors.cAccent} />
+                    <ActivityIndicator color={'#60A5FA'} />
                   ) : (
                     <>
-                      <ImagePlus size={wp(18)} color={colors.cTextSecondary} />
+                      <ImagePlus size={wp(18)} color={'#64748B'} />
                       <Text style={styles.thumbnailBtnText}>
                         {value ? 'Change Thumbnail' : 'Choose Thumbnail'}
                       </Text>
@@ -289,7 +289,7 @@ const CreateCourse = () => {
 
           {/* Level */}
           <View style={styles.labelRow}>
-            <BarChart3 size={wp(14)} color={colors.cTextSecondary} />
+            <BarChart3 size={wp(14)} color={'#64748B'} />
             <Text style={styles.label}>Level</Text>
           </View>
           <Controller
@@ -319,7 +319,7 @@ const CreateCourse = () => {
 
           {/* Status */}
           <View style={styles.labelRow}>
-            <ToggleLeft size={wp(14)} color={colors.cTextSecondary} />
+            <ToggleLeft size={wp(14)} color={'#64748B'} />
             <Text style={styles.label}>Status</Text>
           </View>
           <Controller
@@ -351,7 +351,7 @@ const CreateCourse = () => {
             <View
               style={{ flexDirection: 'row', alignItems: 'center', gap: wp(6) }}
             >
-              <FileText size={wp(14)} color={colors.cTextSecondary} />
+              <FileText size={wp(14)} color={'#64748B'} />
               <Text style={styles.label}>Headline</Text>
             </View>
             <EnhanceSuggestionCard
@@ -432,7 +432,7 @@ export default CreateCourse;
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: colors.cBg,
+    backgroundColor: colors.white,
   },
   flex: {
     flex: 1,
@@ -452,7 +452,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: fp(13),
-    color: colors.cText,
+    color: '#1A1A2E',
     fontWeight: '600',
   },
 
@@ -462,9 +462,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(12),
     height: hp(42),
     width: '100%',
-    backgroundColor: colors.cInputBg,
+    backgroundColor: '#F8FAFC',
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
   },
   textArea: {
     height: hp(80),
@@ -484,13 +484,13 @@ const styles = StyleSheet.create({
     gap: wp(8),
     borderRadius: wp(12),
     height: hp(42),
-    backgroundColor: colors.cCard,
+    backgroundColor: colors.white,
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
     borderStyle: 'dashed',
   },
   thumbnailBtnText: {
-    color: colors.cTextSecondary,
+    color: '#64748B',
     fontSize: fp(14),
     fontWeight: '500',
   },
@@ -505,18 +505,18 @@ const styles = StyleSheet.create({
   dropdown: {
     height: hp(42),
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
     borderRadius: wp(12),
     paddingHorizontal: wp(14),
     justifyContent: 'center',
-    backgroundColor: colors.cCard,
+    backgroundColor: colors.white,
   },
   dropdownContainer: {
     borderRadius: wp(12),
     overflow: 'hidden',
-    backgroundColor: colors.cCard,
+    backgroundColor: colors.white,
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
   },
   dropdownItem: {
     paddingHorizontal: wp(14),
@@ -526,22 +526,23 @@ const styles = StyleSheet.create({
     borderRadius: wp(8),
   },
   dropdownItemSelected: {
-    backgroundColor: colors.cAccent,
+    backgroundColor: '#EEF2FF',
   },
   dropdownItemText: {
-    color: colors.cTextSecondary,
+    color: '#64748B',
     fontSize: fp(14),
   },
   dropdownItemTextSelected: {
-    color: colors.cText,
+    color: '#0F3460',
+    fontWeight: '600',
   },
   placeholderText: {
     fontSize: fp(14),
-    color: colors.cTextMuted,
+    color: '#94A3B8',
   },
   selectedText: {
     fontSize: fp(14),
-    color: colors.cAccentLight,
+    color: '#1A1A2E',
   },
 
   // Bottom Actions
@@ -551,8 +552,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(16),
     paddingVertical: hp(14),
     borderTopWidth: 1,
-    borderTopColor: colors.cBorder,
-    backgroundColor: colors.cSurface,
+    borderTopColor: '#E2E8F0',
+    backgroundColor: colors.white,
   },
   cancelBtn: {
     flex: 1,
@@ -560,18 +561,18 @@ const styles = StyleSheet.create({
     borderRadius: wp(12),
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.cCard,
+    backgroundColor: colors.white,
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
   },
   cancelText: {
-    color: colors.cText,
+    color: '#1A1A2E',
     fontWeight: '600',
     fontSize: fp(15),
   },
   primaryBtn: {
     flex: 2,
-    backgroundColor: colors.cAccent,
+    backgroundColor: '#0F3460',
     paddingVertical: hp(14),
     borderRadius: wp(12),
     alignItems: 'center',

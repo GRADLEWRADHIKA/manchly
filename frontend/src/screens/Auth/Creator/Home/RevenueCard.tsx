@@ -75,25 +75,25 @@ const RevenueCard = () => {
       icon: <BookOpen size={wp(14)} color={colors.white} />,
       value: creatorStats?.statistics?.courses_sold ?? 0,
       label: 'Courses',
-      bgColor: '#1a3a2a',
+      bgColor: '#16213E',
     },
     {
       icon: <Users size={wp(14)} color={colors.white} />,
       value: creatorStats?.statistics?.total_enrollments ?? 0,
       label: 'Students',
-      bgColor: '#2a2a1a',
+      bgColor: '#16213E',
     },
     {
       icon: <Award size={wp(14)} color={colors.white} />,
       value: creatorWebinarStats?.statistics?.webinars_sold ?? 0,
       label: 'Webinars',
-      bgColor: '#3a1a1a',
+      bgColor: '#16213E',
     },
     {
       icon: <Phone size={wp(14)} color={colors.white} />,
       value: totalSessions,
       label: 'Sessions',
-      bgColor: '#1a2a3a',
+      bgColor: '#16213E',
     },
   ];
 
@@ -102,7 +102,7 @@ const RevenueCard = () => {
       <View style={styles.topRow}>
         {/* Revenue Card */}
         <LinearGradient
-          colors={['#1E2038', '#222448', '#2A2455']}
+          colors={['#1A1A2E', '#16213E', '#0F3460']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.revenueCard}
@@ -120,7 +120,7 @@ const RevenueCard = () => {
 
         {/* Stats Card - 2x2 grid */}
         <LinearGradient
-          colors={['#1E2038', '#222448', '#2A2455']}
+          colors={['#1A1A2E', '#16213E', '#0F3460']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.statsCard}

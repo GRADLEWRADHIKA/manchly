@@ -217,7 +217,7 @@ export default CreatorHome;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.cBg,
+    backgroundColor: colors.white,
   },
 
   // Header
@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
   greeting: {
     fontSize: fp(18),
     fontWeight: '800',
-    color: colors.cText,
+    color: colors.white,
     marginTop: hp(1),
   },
   bellBtn: {

@@ -19,7 +19,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const Tab = createBottomTabNavigator();
 
-const TAB_ACCENT = colors.cAccentLight;
+const TAB_ACCENT = '#60A5FA';
 
 const tabs = [
   {
@@ -263,7 +263,7 @@ const CreatorBottomTab = () => {
   return (
     <Tab.Navigator
       initialRouteName="Home"
-      sceneContainerStyle={{ backgroundColor: colors.cBg }}
+      sceneContainerStyle={{ backgroundColor: colors.white }}
       screenOptions={{ headerShown: false, tabBarStyle: { display: 'none' } }}
       tabBar={props => <CustomTabBar {...props} />}
     >
@@ -283,14 +283,14 @@ export default CreatorBottomTab;
 
 const styles = StyleSheet.create({
   tabBarOuter: {
-    backgroundColor: colors.cSurface,
-    shadowColor: colors.cAccent,
+    backgroundColor: '#152238',
+    shadowColor: '#0F3460',
     shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.15,
     shadowRadius: 12,
     elevation: 12,
     borderTopWidth: 1,
-    borderTopColor: colors.cBorder,
+    borderTopColor: '#16213E',
   },
   tabContainer: {
     flexDirection: 'row',
@@ -319,7 +319,7 @@ const styles = StyleSheet.create({
     width: wp(50),
     height: wp(42),
     borderRadius: wp(16),
-    backgroundColor: colors.white + '10',
+    backgroundColor: '#16213E',
     borderWidth: 1,
   },
   tabLabel: {
@@ -345,10 +345,10 @@ const styles = StyleSheet.create({
     width: wp(52),
     height: wp(52),
     borderRadius: wp(16),
-    backgroundColor: colors.cAccent,
+    backgroundColor: '#0F3460',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: colors.cAccent,
+    shadowColor: '#0F3460',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 8,

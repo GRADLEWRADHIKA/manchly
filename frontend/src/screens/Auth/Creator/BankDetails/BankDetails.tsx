@@ -188,7 +188,7 @@ const BankDetails = () => {
       <View style={styles.container}>
         <AppHeaderWithBack title="Bank Details" />
         <View style={styles.loaderWrap}>
-          <ActivityIndicator size="large" color={colors.cAccent} />
+          <ActivityIndicator size="large" color={'#0F3460'} />
         </View>
       </View>
     );
@@ -210,7 +210,7 @@ const BankDetails = () => {
         >
           {/* Header Card */}
           <LinearGradient
-            colors={['#1E2038', '#222448', '#2A2455']}
+            colors={['#1A1A2E', '#16213E', '#0F3460']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.headerCard}
@@ -265,7 +265,7 @@ const BankDetails = () => {
 
               <View style={styles.bankInfoRow}>
                 <View style={styles.bankInfoIcon}>
-                  <CreditCard size={wp(16)} color={colors.cAccentLight} />
+                  <CreditCard size={wp(16)} color={'#60A5FA'} />
                 </View>
                 <View style={styles.bankInfoContent}>
                   <Text style={styles.bankInfoLabel}>Account Number</Text>
@@ -279,7 +279,7 @@ const BankDetails = () => {
 
               <View style={styles.bankInfoRow}>
                 <View style={styles.bankInfoIcon}>
-                  <Building2 size={wp(16)} color={colors.cAccentLight} />
+                  <Building2 size={wp(16)} color={'#60A5FA'} />
                 </View>
                 <View style={styles.bankInfoContent}>
                   <Text style={styles.bankInfoLabel}>IFSC Code</Text>
@@ -293,7 +293,7 @@ const BankDetails = () => {
 
               <View style={styles.bankInfoRow}>
                 <View style={styles.bankInfoIcon}>
-                  <User size={wp(16)} color={colors.cAccentLight} />
+                  <User size={wp(16)} color={'#60A5FA'} />
                 </View>
                 <View style={styles.bankInfoContent}>
                   <Text style={styles.bankInfoLabel}>Beneficiary Name</Text>
@@ -339,7 +339,7 @@ const BankDetails = () => {
             <>
               {/* Info Banner */}
               <View style={styles.infoBanner}>
-                <Info size={wp(16)} color={colors.cAccentLight} />
+                <Info size={wp(16)} color={'#D97706'} />
                 <Text style={styles.infoBannerText}>
                   Enter your bank account details carefully. The account must be
                   in your name for verification.
@@ -375,7 +375,7 @@ const BankDetails = () => {
                       <View style={styles.labelRow}>
                         <CreditCard
                           size={wp(14)}
-                          color={colors.cTextSecondary}
+                          color={'#64748B'}
                         />
                         <Text style={styles.inputLabel}>Account Number</Text>
                       </View>
@@ -420,7 +420,7 @@ const BankDetails = () => {
                       <View style={styles.labelRow}>
                         <CreditCard
                           size={wp(14)}
-                          color={colors.cTextSecondary}
+                          color={'#64748B'}
                         />
                         <Text style={styles.inputLabel}>
                           Confirm Account Number
@@ -469,7 +469,7 @@ const BankDetails = () => {
                       <View style={styles.labelRow}>
                         <Building2
                           size={wp(14)}
-                          color={colors.cTextSecondary}
+                          color={'#64748B'}
                         />
                         <Text style={styles.inputLabel}>IFSC Code</Text>
                       </View>
@@ -515,7 +515,7 @@ const BankDetails = () => {
                   }) => (
                     <View style={styles.fieldWrapper}>
                       <View style={styles.labelRow}>
-                        <User size={wp(14)} color={colors.cTextSecondary} />
+                        <User size={wp(14)} color={'#64748B'} />
                         <Text style={styles.inputLabel}>Beneficiary Name</Text>
                       </View>
                       <CustomTextInput
@@ -588,7 +588,7 @@ const BankDetails = () => {
                 { backgroundColor: colors.info + '15' },
               ]}
             >
-              <ShieldCheck size={wp(32)} color={colors.cAccentLight} />
+              <ShieldCheck size={wp(32)} color={'#60A5FA'} />
             </View>
             <Text style={styles.modalTitle}>Verify Bank Account</Text>
             <Text style={styles.modalMessage}>
@@ -699,7 +699,7 @@ const BankDetails = () => {
                   backgroundColor: verificationResult?.bank_verification
                     ?.verified
                     ? colors.success
-                    : colors.cAccent,
+                    : '#0F3460',
                 },
               ]}
               onPress={() => setShowResultModal(false)}
@@ -719,7 +719,7 @@ export default BankDetails;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.cBg,
+    backgroundColor: colors.white,
   },
   scrollView: {
     flex: 1,
@@ -765,7 +765,7 @@ const styles = StyleSheet.create({
 
   // Bank Card
   bankCard: {
-    backgroundColor: colors.cCard,
+    backgroundColor: colors.white,
     marginHorizontal: wp(16),
     marginTop: hp(16),
     borderRadius: wp(16),
@@ -776,7 +776,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.04,
     shadowRadius: 6,
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
   },
   bankCardHeader: {
     flexDirection: 'row',
@@ -787,7 +787,7 @@ const styles = StyleSheet.create({
   bankCardTitle: {
     fontSize: fp(16),
     fontWeight: '700',
-    color: colors.cText,
+    color: '#1A1A2E',
   },
   verifiedBadge: {
     flexDirection: 'row',
@@ -811,7 +811,7 @@ const styles = StyleSheet.create({
     width: wp(36),
     height: wp(36),
     borderRadius: wp(10),
-    backgroundColor: colors.cCardLight,
+    backgroundColor: '#F1F5F9',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: wp(12),
@@ -821,18 +821,18 @@ const styles = StyleSheet.create({
   },
   bankInfoLabel: {
     fontSize: fp(11),
-    color: colors.cTextSecondary,
+    color: '#64748B',
     fontWeight: '500',
     marginBottom: hp(2),
   },
   bankInfoValue: {
     fontSize: fp(15),
-    color: colors.cText,
+    color: '#1A1A2E',
     fontWeight: '600',
   },
   bankDivider: {
     height: 1,
-    backgroundColor: colors.cBorder,
+    backgroundColor: '#E2E8F0',
     marginLeft: wp(48),
   },
   bankActions: {
@@ -841,7 +841,7 @@ const styles = StyleSheet.create({
     marginTop: hp(18),
     paddingTop: hp(16),
     borderTopWidth: 1,
-    borderTopColor: colors.cBorder,
+    borderTopColor: '#E2E8F0',
   },
   editBtn: {
     flex: 1,
@@ -849,12 +849,12 @@ const styles = StyleSheet.create({
     borderRadius: wp(12),
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.cCardLight,
+    backgroundColor: '#F1F5F9',
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
   },
   editBtnText: {
-    color: colors.cText,
+    color: '#1A1A2E',
     fontWeight: '600',
     fontSize: fp(14),
   },
@@ -865,7 +865,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.cAccent,
+    backgroundColor: '#0F3460',
     gap: wp(6),
   },
   verifyBtnText: {
@@ -879,18 +879,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: wp(10),
-    backgroundColor: colors.cAccentMuted,
+    backgroundColor: '#FFF7ED',
     marginHorizontal: wp(16),
     marginTop: hp(16),
     padding: wp(14),
     borderRadius: wp(12),
     borderWidth: 1,
-    borderColor: colors.cAccent + '30',
+    borderColor: '#FDBA7440',
   },
   infoBannerText: {
     flex: 1,
     fontSize: fp(12),
-    color: colors.cAccentLight,
+    color: '#B45309',
     lineHeight: fp(17),
     fontWeight: '500',
   },
@@ -899,7 +899,7 @@ const styles = StyleSheet.create({
   formSection: {
     marginHorizontal: wp(16),
     marginTop: hp(16),
-    backgroundColor: colors.cCard,
+    backgroundColor: colors.white,
     borderRadius: wp(16),
     padding: wp(16),
     elevation: 2,
@@ -908,7 +908,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.04,
     shadowRadius: 6,
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
   },
   fieldWrapper: {
     marginBottom: hp(16),
@@ -922,20 +922,20 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: fp(13),
     fontWeight: '600',
-    color: colors.cText,
+    color: '#1A1A2E',
   },
   input: {
     height: hp(48),
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
     borderRadius: wp(12),
     paddingHorizontal: wp(14),
     justifyContent: 'center',
-    backgroundColor: colors.cInputBg,
+    backgroundColor: '#F8FAFC',
   },
   disabledInput: {
-    backgroundColor: colors.cCardLight,
-    borderColor: colors.cCardLight,
+    backgroundColor: '#F1F5F9',
+    borderColor: '#E2E8F0',
   },
   inputError: {
     borderColor: colors.error,
@@ -957,12 +957,12 @@ const styles = StyleSheet.create({
     borderRadius: wp(12),
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.cCardLight,
+    backgroundColor: '#F1F5F9',
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
   },
   cancelBtnText: {
-    color: colors.cText,
+    color: '#1A1A2E',
     fontWeight: '600',
     fontSize: fp(14),
   },
@@ -972,7 +972,7 @@ const styles = StyleSheet.create({
     borderRadius: wp(12),
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.cAccent,
+    backgroundColor: '#0F3460',
   },
   saveBtnText: {
     color: colors.white,
@@ -989,14 +989,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(24),
   },
   modalContainer: {
-    backgroundColor: colors.cCard,
+    backgroundColor: colors.white,
     borderRadius: wp(20),
     paddingVertical: hp(28),
     paddingHorizontal: wp(24),
     width: '100%',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
   },
   modalIconWrap: {
     width: wp(68),
@@ -1009,18 +1009,18 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: fp(18),
     fontWeight: '700',
-    color: colors.cText,
+    color: '#1A1A2E',
     marginBottom: hp(8),
   },
   modalMessage: {
     fontSize: fp(14),
-    color: colors.cTextSecondary,
+    color: '#64748B',
     textAlign: 'center',
     lineHeight: fp(20),
     marginBottom: hp(20),
   },
   modalDetail: {
-    backgroundColor: colors.cCardLight,
+    backgroundColor: '#F1F5F9',
     borderRadius: wp(10),
     paddingHorizontal: wp(16),
     paddingVertical: hp(10),
@@ -1029,13 +1029,13 @@ const styles = StyleSheet.create({
   },
   modalDetailLabel: {
     fontSize: fp(11),
-    color: colors.cTextSecondary,
+    color: '#64748B',
     fontWeight: '500',
     marginBottom: hp(2),
   },
   modalDetailValue: {
     fontSize: fp(15),
-    color: colors.cText,
+    color: '#1A1A2E',
     fontWeight: '700',
   },
   verifyInputWrap: {

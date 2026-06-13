@@ -88,7 +88,7 @@ const CreatorSessions: React.FC = () => {
       <View style={styles.container}>
         <View style={styles.regContent}>
           <View style={styles.regIcon}>
-            <PhoneCall size={wp(36)} color={colors.cAccentLight} strokeWidth={1.5} />
+            <PhoneCall size={wp(36)} color={'#60A5FA'} strokeWidth={1.5} />
           </View>
           <Text style={styles.regTitle}>Become a Session Expert</Text>
           <Text style={styles.regSub}>
@@ -267,7 +267,7 @@ export default memo(CreatorSessions);
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.cBg,
+    backgroundColor: colors.white,
   },
   scrollContent: {
     paddingHorizontal: wp(16),
@@ -278,11 +278,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: colors.cCard,
+    backgroundColor: colors.white,
     borderRadius: wp(14),
     padding: wp(14),
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
     marginBottom: hp(16),
   },
   availLeft: {
@@ -298,11 +298,11 @@ const styles = StyleSheet.create({
   availTitle: {
     fontSize: fp(15),
     fontWeight: '700',
-    color: colors.cText,
+    color: '#1A1A2E',
   },
   availSub: {
     fontSize: fp(11),
-    color: colors.cTextSecondary,
+    color: '#64748B',
     marginTop: hp(1),
   },
   editBtn: {
@@ -315,7 +315,7 @@ const styles = StyleSheet.create({
     paddingVertical: hp(10),
     marginBottom: hp(16),
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
   },
   editBtnText: {
     fontSize: fp(13),
@@ -329,22 +329,22 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: colors.cCard,
+    backgroundColor: colors.white,
     borderRadius: wp(12),
     paddingVertical: hp(14),
     alignItems: 'center',
     gap: hp(4),
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
   },
   statValue: {
     fontSize: fp(16),
     fontWeight: '800',
-    color: colors.cText,
+    color: '#1A1A2E',
   },
   statLabel: {
     fontSize: fp(10),
-    color: colors.cTextMuted,
+    color: '#94A3B8',
   },
   sectionRow: {
     flexDirection: 'row',
@@ -355,7 +355,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: fp(14),
     fontWeight: '700',
-    color: colors.cText,
+    color: '#1A1A2E',
   },
   addBtn: {
     flexDirection: 'row',
@@ -376,11 +376,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: wp(8),
-    backgroundColor: colors.cCard,
+    backgroundColor: colors.white,
     borderRadius: wp(14),
     padding: wp(18),
     borderWidth: 1.5,
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
     borderStyle: 'dashed',
     marginBottom: hp(10),
   },
@@ -395,12 +395,12 @@ const styles = StyleSheet.create({
   modeCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.cCard,
+    backgroundColor: colors.white,
     borderRadius: wp(14),
     padding: wp(14),
     marginBottom: hp(10),
     borderWidth: 1.5,
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
   },
   modeCardActive: {
     borderColor: colors.cAccent,
@@ -419,7 +419,7 @@ const styles = StyleSheet.create({
   modeName: {
     fontSize: fp(15),
     fontWeight: '700',
-    color: colors.cText,
+    color: '#1A1A2E',
   },
   modeRateRow: {
     flexDirection: 'row',
@@ -428,7 +428,7 @@ const styles = StyleSheet.create({
   },
   modeRate: {
     fontSize: fp(13),
-    color: colors.cTextSecondary,
+    color: '#64748B',
     fontWeight: '500',
   },
   modeToggle: {
@@ -448,18 +448,18 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: fp(13),
-    color: colors.cTextMuted,
+    color: '#94A3B8',
   },
   sessionCard: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: colors.cCard,
+    backgroundColor: colors.white,
     borderRadius: wp(12),
     padding: wp(12),
     marginBottom: hp(8),
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
   },
   sessionLeft: {
     flexDirection: 'row',
@@ -482,7 +482,7 @@ const styles = StyleSheet.create({
   sessionName: {
     fontSize: fp(14),
     fontWeight: '600',
-    color: colors.cText,
+    color: '#1A1A2E',
   },
   sessionMeta: {
     flexDirection: 'row',
@@ -492,13 +492,13 @@ const styles = StyleSheet.create({
   },
   sessionMetaText: {
     fontSize: fp(10),
-    color: colors.cTextMuted,
+    color: '#94A3B8',
   },
   dot: {
     width: wp(3),
     height: wp(3),
     borderRadius: wp(2),
-    backgroundColor: colors.cTextMuted,
+    backgroundColor: '#94A3B8',
   },
   sessionAmount: {
     fontSize: fp(15),
@@ -529,7 +529,7 @@ const styles = StyleSheet.create({
     width: wp(80),
     height: wp(80),
     borderRadius: wp(24),
-    backgroundColor: colors.cAccentMuted,
+    backgroundColor: '#0F3460',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: hp(20),
@@ -537,19 +537,19 @@ const styles = StyleSheet.create({
   regTitle: {
     fontSize: fp(20),
     fontWeight: '700',
-    color: colors.cText,
+    color: '#1A1A2E',
     textAlign: 'center',
   },
   regSub: {
     fontSize: fp(13),
-    color: colors.cTextSecondary,
+    color: '#64748B',
     textAlign: 'center',
     lineHeight: fp(20),
     marginTop: hp(8),
     marginBottom: hp(24),
   },
   regBtn: {
-    backgroundColor: colors.cAccent,
+    backgroundColor: '#0F3460',
     borderRadius: wp(14),
     paddingHorizontal: wp(32),
     paddingVertical: hp(14),
@@ -557,6 +557,6 @@ const styles = StyleSheet.create({
   regBtnText: {
     fontSize: fp(15),
     fontWeight: '700',
-    color: colors.cText,
+    color: colors.white,
   },
 });

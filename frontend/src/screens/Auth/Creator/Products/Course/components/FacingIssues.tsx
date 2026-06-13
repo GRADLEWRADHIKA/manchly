@@ -11,7 +11,7 @@ const FacingIssues = ({ messgae, title }) => {
             <View style={styles.uploadHeader}>
                 <View style={styles.uploadMain}>
                     <View style={styles.secHead}>
-                        <CloudUpload width={wp(40)} height={hp(40)} color={colors.cAccent} />
+                        <CloudUpload width={wp(40)} height={hp(40)} color={'#60A5FA'} />
                     </View>
                     <View style={styles.mainHead}>
                         <Text style={styles.mainPara}>{title}</Text>
@@ -74,11 +74,11 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         padding: wp(16),
         borderRadius: wp(10),
-        backgroundColor: colors.cCard,
+        backgroundColor: colors.white,
         elevation: 5,
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: colors.cBorder,
+        borderColor: '#E2E8F0',
     },
     secHead: {
         width: '20%',
@@ -91,14 +91,14 @@ const styles = StyleSheet.create({
     mainPara: {
         fontSize: fp(16),
         fontWeight: '500',
-        color: colors.cText,
+        color: '#1A1A2E',
     },
     buttonHelp: {
         width: '30%',
         borderWidth: wp(1),
         alignItems: 'center',
-        backgroundColor: colors.cAccent,
-        borderColor: colors.cAccent,
+        backgroundColor: '#0F3460',
+        borderColor: '#0F3460',
         borderRadius: wp(5),
         paddingVertical: hp(5),
     },

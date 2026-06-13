@@ -81,7 +81,7 @@ const CreatorScoreCard = () => {
     <View style={styles.sectionPadding}>
       {allCompleted ? (
         <LinearGradient
-          colors={[colors.cCard, '#1A1A3E', colors.cAccent + '40']}
+          colors={['#1A1A2E', '#16213E', '#0F3460']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.scoreCard}
@@ -121,7 +121,7 @@ const CreatorScoreCard = () => {
         </LinearGradient>
       ) : (
         <LinearGradient
-          colors={[colors.cCard, '#1A1A3E', colors.cAccent + '40']}
+          colors={['#1A1A2E', '#16213E', '#0F3460']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.scoreCard}
@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
   scoreCard: {
     borderRadius: wp(20),
     padding: wp(20),
-    shadowColor: '#1E2038',
+    shadowColor: '#1A1A2E',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.25,
     shadowRadius: 14,

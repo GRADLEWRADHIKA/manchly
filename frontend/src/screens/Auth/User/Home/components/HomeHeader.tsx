@@ -71,6 +71,15 @@ const HomeHeader = () => {
             accessibilityLabel="Search courses">
             <Search size={wp(18)} color={colors.white} strokeWidth={2} />
           </Pressable>
+          <Pressable
+            style={({ pressed }) => [
+              styles.iconBtn,
+              pressed && styles.iconBtnPressed,
+            ]}
+            onPress={() => navigation.navigate('UserNotification')}
+            accessibilityLabel="Notifications">
+            <Bell size={wp(18)} color={colors.white} strokeWidth={2} />
+          </Pressable>
         </View>
       </View>
       <View style={styles.headerCurve} />

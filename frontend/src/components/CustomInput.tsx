@@ -71,7 +71,7 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
           underlineColorAndroid={'transparent'}
           style={[
             styles.textInput,
-            isCreator && { color: colors.cText },
+            isCreator && { color: '#1A1A2E' },
             inputStyle,
             showFullHeight ? { height: '100%' } : {},
             { width: passwordFild === true ? '90%' : '100%' },
@@ -85,7 +85,7 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
           value={value}
           secureTextEntry={passwordFild ? !isPasswordVisible : false}
           editable={!disabled}
-          placeholderTextColor={restProps.placeholderTextColor || (isCreator ? colors.cTextMuted : 'grey')}
+          placeholderTextColor={restProps.placeholderTextColor || (isCreator ? '#94A3B8' : 'grey')}
         />
 
       </View>

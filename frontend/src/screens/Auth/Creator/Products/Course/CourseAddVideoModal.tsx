@@ -349,7 +349,7 @@ const CourseAddVideoModal = ({
               style={styles.uploadButton}
               onPress={handleVideoSelect}
             >
-              <Video color={colors.cAccent} size={wp(22)} />
+              <Video color={'#60A5FA'} size={wp(22)} />
               <Text style={styles.uploadText}>
                 {selectedVideo?.name || 'Tap to select video'}
               </Text>
@@ -390,7 +390,7 @@ const CourseAddVideoModal = ({
                 disabled={thumbnailUploading}
               >
                 {thumbnailUploading ? (
-                  <ActivityIndicator color={colors.cAccent} />
+                  <ActivityIndicator color={'#60A5FA'} />
                 ) : (
                   <Text style={styles.buttonText}>
                     {value ? 'Change Thumbnail' : 'Choose Thumbnail'}
@@ -491,7 +491,7 @@ export default CourseAddVideoModal;
 
 const styles = StyleSheet.create({
   modalContainer: {
-    backgroundColor: colors.cSurface,
+    backgroundColor: '#0D1B2A',
     borderTopLeftRadius: wp(20),
     borderTopRightRadius: wp(20),
     maxHeight: '100%',
@@ -546,7 +546,7 @@ const styles = StyleSheet.create({
   },
   progressText: {
     fontSize: fp(14),
-    color: colors.cAccentLight,
+    color: '#60A5FA',
     fontWeight: '600',
   },
   dropdown: {
@@ -559,7 +559,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.cCard,
   },
   placeholder: { color: colors.cTextMuted },
-  selectedText: { color: colors.cAccentLight, fontSize: fp(16) },
+  selectedText: { color: '#60A5FA', fontSize: fp(16) },
   errorBorder: { borderColor: colors.cError },
   modalFooter: {
     flexDirection: 'row',
@@ -580,7 +580,7 @@ const styles = StyleSheet.create({
   cancelButtonText: { color: colors.cText, fontWeight: '600' },
   saveButton: {
     flex: 1,
-    backgroundColor: colors.cAccent,
+    backgroundColor: '#0F3460',
     borderRadius: wp(8),
     alignItems: 'center',
     justifyContent: 'center',

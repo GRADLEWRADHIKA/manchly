@@ -122,7 +122,7 @@ const HissaModal: React.FC<HissaModalProps> = ({ visible, onClose }) => {
                 }
                 theme={{
                   minimumTrackTintColor: colors.creatorGreen,
-                  maximumTrackTintColor: colors.trackDark,
+                  maximumTrackTintColor: '#E2E8F0',
                   bubbleBackgroundColor: colors.creatorGreen,
                   bubbleTextColor: colors.white,
                 }}
@@ -174,16 +174,13 @@ const styles = StyleSheet.create({
   },
   sheetOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
+    backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'flex-end',
   },
   sheetContainer: {
-    backgroundColor: colors.cCard,
+    backgroundColor: colors.white,
     borderTopLeftRadius: wp(24),
     borderTopRightRadius: wp(24),
-    borderWidth: 1,
-    borderBottomWidth: 0,
-    borderColor: colors.cBorder,
     paddingHorizontal: wp(20),
     paddingTop: hp(10),
     paddingBottom: hp(28),
@@ -192,18 +189,18 @@ const styles = StyleSheet.create({
     width: wp(40),
     height: hp(4),
     borderRadius: wp(2),
-    backgroundColor: colors.cTextMuted,
+    backgroundColor: '#D4D4D8',
     alignSelf: 'center',
     marginBottom: hp(16),
   },
   sheetTitle: {
     fontSize: fp(18),
     fontWeight: '800',
-    color: colors.cText,
+    color: '#1A1A2E',
   },
   sheetSubtitle: {
     fontSize: fp(13),
-    color: colors.cTextSecondary,
+    color: '#64748B',
     marginTop: hp(4),
     marginBottom: hp(18),
   },
@@ -212,7 +209,7 @@ const styles = StyleSheet.create({
     height: hp(14),
     borderRadius: wp(20),
     overflow: 'hidden',
-    backgroundColor: colors.splitBarBg,
+    backgroundColor: '#F1F5F9',
   },
   splitCreator: {
     backgroundColor: colors.creatorGreen,
@@ -240,7 +237,7 @@ const styles = StyleSheet.create({
   },
   splitLegendLabel: {
     fontSize: fp(12),
-    color: colors.cTextSecondary,
+    color: '#64748B',
     fontWeight: '500',
   },
   splitLegendValue: {
@@ -250,12 +247,12 @@ const styles = StyleSheet.create({
   },
   sheetDivider: {
     height: 1,
-    backgroundColor: colors.cBorder,
+    backgroundColor: '#E2E8F0',
     marginVertical: hp(18),
   },
   calcLabel: {
     fontSize: fp(13),
-    color: colors.cTextSecondary,
+    color: '#64748B',
     fontWeight: '500',
     marginBottom: hp(14),
   },
@@ -270,7 +267,7 @@ const styles = StyleSheet.create({
   saleAmountText: {
     fontSize: fp(22),
     fontWeight: '800',
-    color: colors.cText,
+    color: '#1A1A2E',
     textAlign: 'center',
     marginVertical: hp(10),
   },
@@ -294,7 +291,7 @@ const styles = StyleSheet.create({
   },
   resultLabel: {
     fontSize: fp(12),
-    color: colors.cTextSecondary,
+    color: '#64748B',
     fontWeight: '500',
     marginBottom: hp(4),
   },

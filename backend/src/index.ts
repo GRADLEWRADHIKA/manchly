@@ -24,6 +24,7 @@ import clickancyRouter from "./routes/clickancy";
 import sessionsRouter from "./routes/sessions";
 import telegramRouter from "./routes/telegram";
 import aiRouter from "./routes/ai";
+import notificationsRouter from "./routes/notifications";
 import { initTelegramBot } from "./controllers/telegramController";
 import morgan from "morgan";
 import { webinarCleanupService } from "./utils/webinarCleanup";
@@ -103,6 +104,7 @@ app.use("/clickancy", clickancyRouter);
 app.use("/sessions", sessionsRouter);
 app.use("/telegram", telegramRouter);
 app.use("/ai", aiRouter);
+app.use("/notifications", notificationsRouter);
 
 const listenPort = useHttps ? HTTPS_PORT : PORT;
 

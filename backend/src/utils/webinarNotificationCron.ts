@@ -1,6 +1,7 @@
 import prisma from '../prismaClient';
 import * as cron from 'node-cron';
 import { notificationService } from '../services/NotificationService';
+import { NotificationController } from '../controllers/notificationController';
 
 /**
  * Webinar Notification Cron Service
@@ -101,6 +102,29 @@ async function sendNotificationsForWebinars(
 
       try {
         await sendFn(data);
+
+        // Create in-app notification
+        const reminderMessages: Record<string, string> = {
+          '24hr': `Your webinar "${webinar.title}" starts tomorrow at ${time}`,
+          '6hr': `Your webinar "${webinar.title}" starts in 6 hours at ${time}`,
+          '30min': `Your webinar "${webinar.title}" starts in 30 minutes!`,
+          'live': `Your webinar "${webinar.title}" is now live! Join now.`,
+        };
+        const reminderTitles: Record<string, string> = {
+          '24hr': 'Webinar Tomorrow',
+          '6hr': 'Webinar in 6 Hours',
+          '30min': 'Webinar Starting Soon',
+          'live': 'Webinar is Live!',
+        };
+
+        NotificationController.createNotification({
+          userId: enrollment.user.id,
+          type: "WEBINAR",
+          title: reminderTitles[type],
+          message: reminderMessages[type],
+          data: { webinarId: webinar.id, webinarTitle: webinar.title },
+        }).catch(err => console.error(`Failed to create in-app notification:`, err));
+
         sentNotifications.add(key);
         console.log(`✅ ${type} notification sent for webinar "${webinar.title}" to ${enrollment.user.email}`);
       } catch (error) {

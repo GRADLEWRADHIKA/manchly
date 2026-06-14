@@ -5,6 +5,7 @@ import { isUser, isCreator } from "../utils/userTypeHelper";
 import { SettlementService } from "../services/settlementService";
 import { notificationService } from "../services/NotificationService";
 import { cashfreePG } from "../services/cashfreeService";
+import { NotificationController } from "./notificationController";
 import { processTelegramPaymentSuccess, processTelegramPaymentFailed } from "./telegramController";
 import crypto from "crypto";
 import dotenv from "dotenv";
@@ -91,6 +92,23 @@ export class PaymentController {
             transaction_id: transaction.id
           }
         });
+
+        // In-app notifications
+        NotificationController.createNotification({
+          userId,
+          type: "COURSE",
+          title: "Course Enrolled",
+          message: `You have successfully enrolled in "${course.title}". Start learning now!`,
+          data: { courseId },
+        }).catch(err => console.error("Notification error:", err));
+
+        NotificationController.createNotification({
+          userId: course.creator_id,
+          type: "SALE",
+          title: "New Course Enrollment",
+          message: `${user.name || "A user"} enrolled in your "${course.title}" course.`,
+          data: { courseId, buyerId: userId },
+        }).catch(err => console.error("Notification error:", err));
 
         // Send course purchase notification for free course
         notificationService.sendCoursePurchaseNotification({
@@ -377,6 +395,23 @@ export class PaymentController {
         }).catch(err => console.error('Course purchase notification error:', err));
       }
 
+      // In-app notifications
+      NotificationController.createNotification({
+        userId,
+        type: "COURSE",
+        title: "Course Purchased",
+        message: `You have successfully enrolled in "${transaction.course.title}". Start learning now!`,
+        data: { courseId: transaction.course_id },
+      }).catch(err => console.error("Notification error:", err));
+
+      NotificationController.createNotification({
+        userId: transaction.course.creator.id,
+        type: "SALE",
+        title: "New Course Purchase",
+        message: `${buyer?.name || "A user"} purchased your "${transaction.course.title}" course for Rs. ${transaction.amount}.`,
+        data: { courseId: transaction.course_id, buyerId: userId },
+      }).catch(err => console.error("Notification error:", err));
+
       console.log(`New purchase! User ${userId} purchased course "${transaction.course.title}" for ${transaction.amount}`);
 
       ApiResponseHandler.success(res, {
@@ -582,6 +617,23 @@ export class PaymentController {
         itemTitle: transaction.course.title,
       });
 
+      // In-app notifications
+      NotificationController.createNotification({
+        userId: transaction.user_id,
+        type: "COURSE",
+        title: "Course Purchased",
+        message: `You have successfully enrolled in "${transaction.course.title}". Start learning now!`,
+        data: { courseId: transaction.course_id },
+      }).catch(err => console.error("Notification error:", err));
+
+      NotificationController.createNotification({
+        userId: transaction.course.creator.id,
+        type: "SALE",
+        title: "New Course Purchase",
+        message: `${transaction.user?.name || "A user"} purchased your "${transaction.course.title}" course.`,
+        data: { courseId: transaction.course_id, buyerId: transaction.user_id },
+      }).catch(err => console.error("Notification error:", err));
+
       console.log(`PAYMENT SUCCESS WEBHOOK - Course: ${transaction.course.title}, Amount: ${transaction.amount}, Creator: ${transaction.course.creator.name}`);
 
     } catch (err) {
@@ -695,6 +747,25 @@ export class PaymentController {
         });
       }
 
+      // In-app notifications
+      NotificationController.createNotification({
+        userId: transaction.user_id,
+        type: "SESSION",
+        title: "Session Booked",
+        message: `Your session has been booked successfully. Payment of Rs. ${transaction.amount} confirmed.`,
+        data: { sessionId: transaction.session_id },
+      }).catch(err => console.error("Notification error:", err));
+
+      if (expert) {
+        NotificationController.createNotification({
+          userId: expert.user_id,
+          type: "SESSION",
+          title: "New Session Booking",
+          message: `A new session has been booked with you. Rs. ${transaction.amount} received.`,
+          data: { sessionId: transaction.session_id },
+        }).catch(err => console.error("Notification error:", err));
+      }
+
       console.log(`SESSION PAYMENT SUCCESS WEBHOOK - Session: ${transaction.session_id}, Amount: ${transaction.amount}`);
     } catch (err) {
       console.error("Error handling session payment success:", err);
@@ -800,6 +871,23 @@ export class PaymentController {
         webinarId: transaction.webinar_id,
         itemTitle: transaction.webinar.title,
       });
+
+      // In-app notifications
+      NotificationController.createNotification({
+        userId: transaction.user_id,
+        type: "WEBINAR",
+        title: "Webinar Enrolled",
+        message: `You have successfully enrolled in "${transaction.webinar.title}".`,
+        data: { webinarId: transaction.webinar_id },
+      }).catch(err => console.error("Notification error:", err));
+
+      NotificationController.createNotification({
+        userId: transaction.webinar.creator.id,
+        type: "SALE",
+        title: "New Webinar Enrollment",
+        message: `A user enrolled in your "${transaction.webinar.title}" webinar. Rs. ${transaction.amount} received.`,
+        data: { webinarId: transaction.webinar_id, buyerId: transaction.user_id },
+      }).catch(err => console.error("Notification error:", err));
 
       console.log(`WEBINAR PAYMENT SUCCESS WEBHOOK - Webinar: ${transaction.webinar.title}, Amount: ${transaction.amount}`);
     } catch (err) {

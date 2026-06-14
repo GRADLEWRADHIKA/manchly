@@ -19,7 +19,59 @@ interface CallNotificationData {
   callerId: string;
 }
 
+interface PushNotificationData {
+  title: string;
+  body: string;
+  type: string;
+  notificationId?: string;
+  data?: Record<string, string>;
+}
+
 class FirebaseService {
+  async sendPushNotification(fcmToken: string, payload: PushNotificationData) {
+    try {
+      await admin.messaging().send({
+        token: fcmToken,
+        data: {
+          type: payload.type,
+          notificationId: payload.notificationId || "",
+          ...(payload.data || {}),
+        },
+        notification: {
+          title: payload.title,
+          body: payload.body,
+        },
+        android: {
+          priority: "high",
+          notification: {
+            channelId: "default",
+            sound: "default",
+            priority: "high",
+          },
+        },
+        apns: {
+          headers: {
+            "apns-priority": "10",
+            "apns-push-type": "alert",
+          },
+          payload: {
+            aps: {
+              alert: {
+                title: payload.title,
+                body: payload.body,
+              },
+              sound: "default",
+              "content-available": 1,
+            },
+          },
+        },
+      });
+      console.log(`[FCM] Push notification sent to token: ${fcmToken.slice(0, 10)}...`);
+    } catch (error: any) {
+      console.error("[FCM] Failed to send push notification:", error.message);
+    }
+  }
+
   async sendCallNotification(fcmToken: string, data: CallNotificationData) {
     try {
       await admin.messaging().send({

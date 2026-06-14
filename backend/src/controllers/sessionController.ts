@@ -3,6 +3,7 @@ import prisma from "../prismaClient";
 import { JWTRequest } from "../middleware/jwtAuth";
 import { cashfreePG } from "../services/cashfreeService";
 import { SettlementService } from "../services/settlementService";
+import { NotificationController } from "./notificationController";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -137,6 +138,15 @@ export class SessionController {
           },
         });
       }
+
+      // Notify the expert about the review
+      NotificationController.createNotification({
+        userId: session.receiver_id,
+        type: "SESSION",
+        title: "New Review",
+        message: `You received a ${rating}-star review on your consultation session.`,
+        data: { sessionId: session_id, rating },
+      }).catch(err => console.error("Notification error:", err));
 
       return res.json({
         data: {
@@ -899,6 +909,23 @@ export class SessionController {
           prisma.users.findUnique({ where: { id: expert.user_id }, select: userSelect }),
         ]);
 
+        // In-app notifications
+        NotificationController.createNotification({
+          userId: callerId,
+          type: "SESSION",
+          title: "Session Booked",
+          message: `Your free session with ${receiver?.name || "the expert"} has been booked.`,
+          data: { sessionId: session.id },
+        }).catch(err => console.error("Notification error:", err));
+
+        NotificationController.createNotification({
+          userId: expert.user_id,
+          type: "SESSION",
+          title: "New Session Booking",
+          message: `${caller?.name || "A user"} booked a free session with you.`,
+          data: { sessionId: session.id },
+        }).catch(err => console.error("Notification error:", err));
+
         return res.status(201).json({
           data: { ...session, caller, receiver, expert, is_free: true },
         });
@@ -1093,6 +1120,25 @@ export class SessionController {
         prisma.users.findUnique({ where: { id: session.caller_id }, select: userSelect }),
         prisma.users.findUnique({ where: { id: session.receiver_id }, select: userSelect }),
       ]);
+
+      // In-app notifications
+      NotificationController.createNotification({
+        userId,
+        type: "SESSION",
+        title: "Session Booked",
+        message: `Your session has been booked successfully. Payment of Rs. ${transaction.amount} confirmed.`,
+        data: { sessionId: session.id },
+      }).catch(err => console.error("Notification error:", err));
+
+      if (expert) {
+        NotificationController.createNotification({
+          userId: expert.user_id,
+          type: "SESSION",
+          title: "New Session Booking",
+          message: `${caller?.name || "A user"} booked a session with you. Rs. ${transaction.amount} received.`,
+          data: { sessionId: session.id },
+        }).catch(err => console.error("Notification error:", err));
+      }
 
       console.log(`Session payment verified! User ${userId} booked session ${session.id} for ₹${transaction.amount}`);
 

@@ -41,6 +41,7 @@ model users {
   webinar_enrollments       webinar_enrollments[]
   webinar_transactions      webinar_transactions[]
   webinars                  webinars[]
+  notifications             notifications[]
 
   @@map("users")
 }
@@ -611,6 +612,33 @@ enum SessionStatus {
 enum SessionMode {
   CALL
   VIDEO
+}
+
+model notifications {
+  id         String           @id @default(uuid())
+  user_id    String
+  type       NotificationType
+  title      String
+  message    String
+  is_read    Boolean          @default(false)
+  data       Json?
+  created_at DateTime         @default(now())
+  updated_at DateTime         @updatedAt
+  user       users            @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([user_id, is_read])
+  @@index([created_at])
+  @@map("notifications")
+}
+
+enum NotificationType {
+  SALE
+  SESSION
+  WEBINAR
+  COURSE
+  EXPERT
+  SYSTEM
 }
 
 model telegram_channels {

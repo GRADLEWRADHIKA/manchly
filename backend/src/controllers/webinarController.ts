@@ -6,6 +6,7 @@ import { isCreator, isUser } from "../utils/userTypeHelper";
 import { SettlementService } from "../services/settlementService";
 import { notificationService } from "../services/NotificationService";
 import { cashfreePG } from "../services/cashfreeService";
+import { NotificationController } from "./notificationController";
 import crypto from "crypto";
 import dotenv from "dotenv";
 
@@ -930,6 +931,23 @@ export class WebinarController {
       WebinarController.sendEnrollmentNotifications(transaction.user, transaction.webinar).catch(err => {
         console.error('Error sending enrollment notifications:', err);
       });
+
+      // In-app notifications
+      NotificationController.createNotification({
+        userId,
+        type: "WEBINAR",
+        title: "Webinar Enrolled",
+        message: `You have successfully enrolled in "${transaction.webinar.title}".`,
+        data: { webinarId: transaction.webinar_id },
+      }).catch(err => console.error("Notification error:", err));
+
+      NotificationController.createNotification({
+        userId: transaction.webinar.creator.id,
+        type: "SALE",
+        title: "New Webinar Enrollment",
+        message: `${transaction.user?.name || "A user"} enrolled in your "${transaction.webinar.title}" webinar for Rs. ${transaction.amount}.`,
+        data: { webinarId: transaction.webinar_id, buyerId: userId },
+      }).catch(err => console.error("Notification error:", err));
 
       console.log(`New webinar enrollment! User ${userId} enrolled in "${transaction.webinar.title}"`);
 

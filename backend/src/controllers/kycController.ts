@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 import prisma from "../prismaClient";
 import { ApiResponseHandler } from "../utils/ApiResponseHandler";
 import { JWTRequest } from "../middleware/jwtAuth";
+import { NotificationController } from "./notificationController";
 
 const DIGIO_API_URL = "https://api.digio.in/v3/client/kyc/fetch_id_data";
 const DIGIO_BANK_VERIFY_URL = "https://api.digio.in/v4/client/verify/bank_account";
@@ -363,6 +364,18 @@ export class KYCController {
           }
         } catch (userError) {
           console.log("Error fetching user data:", userError);
+        }
+
+        // In-app notification
+        if (userId) {
+          NotificationController.createNotification({
+            userId,
+            type: "SYSTEM",
+            title: verified ? "KYC Approved" : "KYC Verification Failed",
+            message: verified
+              ? "Your KYC verification has been approved. You can now receive payouts."
+              : "Your KYC verification failed. Please check your details and try again.",
+          }).catch(err => console.error("Notification error:", err));
         }
 
         return ApiResponseHandler.success(

@@ -11,6 +11,10 @@ interface AuthenticatedSocket extends Socket {
     userType?: string;
 }
 
+let ioInstance: SocketIOServer | null = null;
+
+export const getIO = (): SocketIOServer | null => ioInstance;
+
 export const initializeSocketIO = (httpServer: HTTPServer | HTTPSServer) => {
     const io = new SocketIOServer(httpServer, {
         cors: {
@@ -277,5 +281,6 @@ export const initializeSocketIO = (httpServer: HTTPServer | HTTPSServer) => {
         });
     });
 
+    ioInstance = io;
     return io;
 };

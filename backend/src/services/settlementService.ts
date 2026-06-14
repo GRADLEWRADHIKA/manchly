@@ -1,5 +1,6 @@
 import prisma from "../prismaClient";
 import { CashfreePayout } from "./cashfreeService";
+import { NotificationController } from "../controllers/notificationController";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -427,6 +428,16 @@ export class SettlementService {
           },
         });
         await updateWalletStatus("SETTLED");
+
+        // Notify creator about successful payout
+        NotificationController.createNotification({
+          userId: settlement.creator_id,
+          type: "SALE",
+          title: "Payout Processed",
+          message: `Rs. ${settlement.net_amount.toFixed(0)} has been transferred to your bank account.`,
+          data: { settlementId: settlement.id },
+        }).catch(err => console.error("Notification error:", err));
+
         console.log(`Settlement ${settlement.id} completed successfully`);
         break;
 

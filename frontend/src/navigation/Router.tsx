@@ -11,8 +11,10 @@ import UserMainStack from './UserMainStack';
 import CreatorMainStack from './CreatorMainStack';
 import { getAppLinkDataFromUrl } from 'react-native-chottulink-sdk';
 import NotificationService from '../services/NotificationService';
+import notifee, { EventType } from '@notifee/react-native';
 import { store } from '../store/Store';
 import { updateProfile } from '../store/UserSlice';
+import { getUnreadCount } from '../store/NotificationSlice';
 import CallListener, { setNavigationRef } from '../components/CallListener';
 import { useDispatch } from 'react-redux';
 
@@ -118,6 +120,23 @@ const linking = {
   },
 };
 
+const navigateFromNotification = (data: any) => {
+  if (!navigationRef.current?.isReady()) return;
+  // FCM data has payload as stringified JSON
+  let parsed = data;
+  if (typeof data?.payload === 'string') {
+    try { parsed = JSON.parse(data.payload); } catch {}
+  }
+  // Notifee data may already have the fields directly
+  if (parsed?.courseId) {
+    navigationRef.current?.navigate('CourseDetailsScreen', { courseId: parsed.courseId });
+  } else if (parsed?.webinarId) {
+    navigationRef.current?.navigate('WebinarDetails', { webinarId: parsed.webinarId, id: parsed.webinarId });
+  } else if (parsed?.sessionId) {
+    navigationRef.current?.navigate('SessionDetails', { sessionId: parsed.sessionId });
+  }
+};
+
 const navigateToIncomingCall = (data: any) => {
   if (!navigationRef.current?.isReady()) return;
   const currentRoute = navigationRef.current?.getCurrentRoute?.();
@@ -142,6 +161,7 @@ const Router = () => {
     id: string;
   } | null>(null);
   const pendingCallData = useRef<any>(null);
+  const pendingNotificationData = useRef<any>(null);
 
   // Keep module-level auth flag in sync
   useEffect(() => {
@@ -164,20 +184,40 @@ const Router = () => {
     // Foreground notification — displayed via notifee (calls are handled by socket)
     const unsubForeground = NotificationService.onForegroundMessage();
 
-    // Background notification tap handler
+    // Background notification tap handler (FCM)
     const unsubOpened = NotificationService.onNotificationOpenedApp(
       (remoteMessage) => {
         if (NotificationService.isCallNotification(remoteMessage.data)) {
           navigateToIncomingCall(remoteMessage.data);
+        } else {
+          navigateFromNotification(remoteMessage.data);
         }
+        dispatch(getUnreadCount());
       },
     );
 
+    // Foreground notifee tap handler
+    const unsubNotifee = notifee.onForegroundEvent(({ type, detail }) => {
+      if (type === EventType.PRESS && detail.notification?.data) {
+        const data = detail.notification.data;
+        if (NotificationService.isCallNotification(data)) {
+          navigateToIncomingCall(data);
+        } else {
+          navigateFromNotification(data);
+        }
+        dispatch(getUnreadCount());
+      }
+    });
+
     // Check if app was opened from a killed state notification
     NotificationService.getInitialNotification().then((remoteMessage) => {
-      if (remoteMessage && NotificationService.isCallNotification(remoteMessage.data)) {
-        // Store for later — navigation may not be ready yet
-        pendingCallData.current = remoteMessage.data;
+      if (remoteMessage) {
+        if (NotificationService.isCallNotification(remoteMessage.data)) {
+          pendingCallData.current = remoteMessage.data;
+        } else {
+          // Store for later navigation after mount
+          pendingNotificationData.current = remoteMessage.data;
+        }
       }
     });
 
@@ -191,16 +231,24 @@ const Router = () => {
     return () => {
       unsubForeground();
       unsubOpened();
+      unsubNotifee();
       unsubTokenRefresh();
     };
   }, [token]);
 
-  // Handle pending call data after navigation is ready
+  // Handle pending call/notification data after navigation is ready
   useEffect(() => {
-    if (token && user && pendingCallData.current) {
-      const data = pendingCallData.current;
-      pendingCallData.current = null;
-      setTimeout(() => navigateToIncomingCall(data), 1000);
+    if (token && user) {
+      if (pendingCallData.current) {
+        const data = pendingCallData.current;
+        pendingCallData.current = null;
+        setTimeout(() => navigateToIncomingCall(data), 1000);
+      }
+      if (pendingNotificationData.current) {
+        const data = pendingNotificationData.current;
+        pendingNotificationData.current = null;
+        setTimeout(() => navigateFromNotification(data), 1000);
+      }
     }
   }, [token, user]);
 

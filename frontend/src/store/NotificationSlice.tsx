@@ -49,6 +49,18 @@ export const markAllNotificationsRead = createAsyncThunk(
   },
 );
 
+export const getUnreadCount = createAsyncThunk(
+  'notifications/getUnreadCount',
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await instance.get('notifications/unread-count');
+      return res.data?.data?.count || 0;
+    } catch (e: any) {
+      return rejectWithValue(e?.response?.data?.message || 'Failed');
+    }
+  },
+);
+
 export interface Notification {
   _id: string;
   type: 'sale' | 'session' | 'webinar' | 'system' | 'course' | 'expert';
@@ -61,12 +73,14 @@ export interface Notification {
 
 interface NotificationState {
   notifications: Notification[];
+  unreadCount: number;
   loading: boolean;
   error: string | null;
 }
 
 const initialState: NotificationState = {
   notifications: [],
+  unreadCount: 0,
   loading: false,
   error: null,
 };
@@ -103,10 +117,17 @@ const notificationSlice = createSlice({
       })
       .addCase(markNotificationRead.fulfilled, (state, action) => {
         const n = state.notifications.find(n => n._id === action.payload);
-        if (n) n.is_read = true;
+        if (n && !n.is_read) {
+          n.is_read = true;
+          state.unreadCount = Math.max(0, state.unreadCount - 1);
+        }
       })
       .addCase(markAllNotificationsRead.fulfilled, state => {
         state.notifications.forEach(n => (n.is_read = true));
+        state.unreadCount = 0;
+      })
+      .addCase(getUnreadCount.fulfilled, (state, action) => {
+        state.unreadCount = action.payload;
       });
   },
 });

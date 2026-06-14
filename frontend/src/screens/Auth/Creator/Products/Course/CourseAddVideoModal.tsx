@@ -8,7 +8,8 @@ import {
   ActivityIndicator,
   Image,
 } from 'react-native';
-import { Video, X } from 'lucide-react-native';
+import { Video, X, Sparkles, ArrowRight, ArrowLeft } from 'lucide-react-native';
+import { aiCall } from '../../../../../utils/aiApi';
 import colors from '../../../../../utils/colors';
 import { wp, hp, fp } from '../../../../../utils/responsive';
 import { Controller, useForm } from 'react-hook-form';
@@ -42,6 +43,10 @@ const CourseAddVideoModal = ({
   const [loading, setLoading] = useState(false); // main submit
   const [thumbnailUploading, setThumbnailUploading] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState<any>(null);
+  const [aiView, setAiView] = useState<null | { field: string; label: string }>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiSuggestion, setAiSuggestion] = useState<any>(null);
+  const [aiWarning, setAiWarning] = useState<string | null>(null);
   const route = useRoute();
   const { token } = useSelector((state: any) => state.userReducer);
   const courseId = route?.params?.item?.id;
@@ -50,6 +55,8 @@ const CourseAddVideoModal = ({
     control,
     handleSubmit,
     reset,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -187,6 +194,40 @@ const CourseAddVideoModal = ({
     }
   };
 
+  const handleEnhance = async (field: string, label: string) => {
+    const text = watch(field as any);
+    console.log('[AI] Enhance pressed, field:', field, 'text:', text);
+    if (!text || text.trim().length < 3) {
+      setAiWarning(field);
+      setTimeout(() => setAiWarning(null), 3000);
+      return;
+    }
+    setAiWarning(null);
+    setAiView({ field, label });
+    setAiLoading(true);
+    setAiSuggestion(null);
+    try {
+      const kind = field === 'title' ? 'headline' : 'description';
+      const res = await aiCall<any>('ai/course/enhance', { text, kind, tone: 'conversational' });
+      console.log('[AI] Response:', JSON.stringify(res));
+      setAiSuggestion(res);
+    } catch (err: any) {
+      console.log('[AI] Error:', err?.message, err?.response?.data);
+      Toast.show({ type: 'error', text1: 'Failed to enhance', position: 'bottom' });
+      setAiView(null);
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const acceptAi = (text: string) => {
+    if (aiView) {
+      setValue(aiView.field as any, text);
+    }
+    setAiView(null);
+    setAiSuggestion(null);
+  };
+
   // 🔹 Submit and upload video in background
   const onSubmit = async (data: any) => {
     console.log('=== onSubmit called ===');
@@ -302,6 +343,74 @@ const CourseAddVideoModal = ({
     }
   };
 
+  // AI view — replaces form content
+  if (aiView) {
+    return (
+      <View style={styles.modalContainer}>
+        <View style={styles.modalHeader}>
+          <TouchableOpacity
+            onPress={() => { setAiView(null); setAiSuggestion(null); }}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: wp(6) }}
+          >
+            <ArrowLeft color={'#1A1A2E'} size={wp(20)} />
+            <Text style={styles.modalTitle}>Enhance {aiView.label}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+            <X color={'#1A1A2E'} size={wp(22)} />
+          </TouchableOpacity>
+        </View>
+
+        <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
+          {aiLoading ? (
+            <View style={{ alignItems: 'center', paddingVertical: hp(40), gap: hp(12) }}>
+              <ActivityIndicator size="large" color={'#60A5FA'} />
+              <Text style={{ color: '#64748B', fontSize: fp(14) }}>Enhancing your {aiView.label.toLowerCase()}...</Text>
+            </View>
+          ) : aiSuggestion ? (
+            <>
+              <View style={styles.aiOriginalBlock}>
+                <Text style={styles.aiSectionLabel}>Original</Text>
+                <Text style={styles.aiOriginalText}>{aiSuggestion.original}</Text>
+              </View>
+
+              <View style={styles.aiEnhancedBlock}>
+                <Text style={styles.aiEnhancedLabel}>Enhanced</Text>
+                <Text style={styles.aiEnhancedText}>{aiSuggestion.enhanced}</Text>
+                <TouchableOpacity style={styles.aiUseBtn} onPress={() => acceptAi(aiSuggestion.enhanced)}>
+                  <Text style={styles.aiUseBtnText}>Use this</Text>
+                  <ArrowRight size={wp(14)} color={colors.white} />
+                </TouchableOpacity>
+              </View>
+
+              {aiSuggestion.changes_summary ? (
+                <Text style={styles.aiSummary}>{aiSuggestion.changes_summary}</Text>
+              ) : null}
+
+              {aiSuggestion.alternatives?.length > 0 && (
+                <>
+                  <Text style={styles.aiAltLabel}>Alternatives</Text>
+                  {aiSuggestion.alternatives.map((alt: string, i: number) => (
+                    <TouchableOpacity key={i} style={styles.aiAltChip} onPress={() => acceptAi(alt)}>
+                      <Text style={styles.aiAltText}>{alt}</Text>
+                      <ArrowRight size={wp(12)} color={'#60A5FA'} />
+                    </TouchableOpacity>
+                  ))}
+                </>
+              )}
+
+              <TouchableOpacity
+                style={styles.aiKeepBtn}
+                onPress={() => { setAiView(null); setAiSuggestion(null); }}
+              >
+                <Text style={styles.aiKeepBtnText}>Keep original</Text>
+              </TouchableOpacity>
+            </>
+          ) : null}
+        </ScrollView>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.modalContainer}>
       {/* Header */}
@@ -309,30 +418,27 @@ const CourseAddVideoModal = ({
         <Text style={styles.modalTitle}>
           {isUpdate ? 'Update Video' : 'Add Course Video'}
         </Text>
-        <TouchableOpacity
-          onPress={onClose}
-          style={styles.closeButton}
-        >
-          <X color={colors.cText} size={wp(22)} />
+        <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+          <X color={'#1A1A2E'} size={wp(22)} />
         </TouchableOpacity>
       </View>
 
-      <ScrollView
-        style={styles.modalContent}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
         {/* Video Title */}
-        <Text style={styles.label}>Video Title</Text>
+        <View style={styles.labelRow}>
+          <Text style={styles.label}>Video Title</Text>
+          <TouchableOpacity style={styles.enhanceBtn} onPress={() => handleEnhance('title', 'Title')}>
+            <Sparkles size={wp(12)} color={'#60A5FA'} />
+            <Text style={styles.enhanceBtnText}>Enhance</Text>
+          </TouchableOpacity>
+        </View>
         <Controller
           name="title"
           control={control}
           rules={{ required: 'Title is required' }}
           render={({ field: { onChange, onBlur, value } }) => (
             <CustomTextInput
-              inputContainerStyle={[
-                styles.inputField,
-                errors.title && styles.errorBorder,
-              ]}
+              inputContainerStyle={[styles.inputField, errors.title && styles.errorBorder]}
               placeholder="Enter video title"
               onChange={onChange}
               onBlur={onBlur}
@@ -340,15 +446,15 @@ const CourseAddVideoModal = ({
             />
           )}
         />
+        {aiWarning === 'title' && (
+          <Text style={styles.warningText}>Type at least 3 characters to enhance</Text>
+        )}
 
         {/* Video Picker */}
         {!isUpdate && (
           <>
-            <Text style={styles.label}>Select Video</Text>
-            <TouchableOpacity
-              style={styles.uploadButton}
-              onPress={handleVideoSelect}
-            >
+            <Text style={[styles.label, { marginTop: hp(12) }]}>Select Video</Text>
+            <TouchableOpacity style={styles.uploadButton} onPress={handleVideoSelect}>
               <Video color={'#60A5FA'} size={wp(22)} />
               <Text style={styles.uploadText}>
                 {selectedVideo?.name || 'Tap to select video'}
@@ -358,17 +464,20 @@ const CourseAddVideoModal = ({
         )}
 
         {/* Description */}
-        <Text style={styles.label}>Video Description</Text>
+        <View style={styles.labelRow}>
+          <Text style={styles.label}>Video Description</Text>
+          <TouchableOpacity style={styles.enhanceBtn} onPress={() => handleEnhance('description', 'Description')}>
+            <Sparkles size={wp(12)} color={'#60A5FA'} />
+            <Text style={styles.enhanceBtnText}>Enhance</Text>
+          </TouchableOpacity>
+        </View>
         <Controller
           name="description"
           control={control}
           rules={{ required: 'Description is required' }}
           render={({ field: { onChange, onBlur, value } }) => (
             <CustomTextInput
-              inputContainerStyle={[
-                styles.inputField,
-                errors.description && styles.errorBorder,
-              ]}
+              inputContainerStyle={[styles.inputField, errors.description && styles.errorBorder]}
               placeholder="Enter description"
               onChange={onChange}
               onBlur={onBlur}
@@ -376,9 +485,12 @@ const CourseAddVideoModal = ({
             />
           )}
         />
+        {aiWarning === 'description' && (
+          <Text style={styles.warningText}>Type at least 3 characters to enhance</Text>
+        )}
 
-        {/* Thumbnail Upload */}
-        <Text style={styles.label}>Choose Thumbnail</Text>
+        {/* Thumbnail */}
+        <Text style={[styles.label, { marginTop: hp(12) }]}>Choose Thumbnail</Text>
         <Controller
           name="thumbnail_url"
           control={control}
@@ -397,30 +509,22 @@ const CourseAddVideoModal = ({
                   </Text>
                 )}
               </TouchableOpacity>
-
               {value ? (
-                <Image
-                  source={{ uri: value }}
-                  style={styles.imagePreview}
-                  resizeMode="cover"
-                />
+                <Image source={{ uri: value }} style={styles.imagePreview} resizeMode="cover" />
               ) : null}
             </View>
           )}
         />
 
         {/* Order */}
-        <Text style={styles.label}>Video Order</Text>
+        <Text style={[styles.label, { marginTop: hp(12) }]}>Video Order</Text>
         <Controller
           name="order"
           control={control}
           rules={{ required: 'Order is required' }}
           render={({ field: { onChange, onBlur, value } }) => (
             <CustomTextInput
-              inputContainerStyle={[
-                styles.inputField,
-                errors.order && styles.errorBorder,
-              ]}
+              inputContainerStyle={[styles.inputField, errors.order && styles.errorBorder]}
               placeholder="Enter order (e.g., 1, 2, 3)"
               keyboardType="numeric"
               onChange={onChange}
@@ -429,57 +533,22 @@ const CourseAddVideoModal = ({
             />
           )}
         />
-
-        {/* Free / Paid Dropdown */}
-        {/* <Text style={styles.label}>Is this Video Free?</Text>
-        <Controller
-          control={control}
-          name="is_free"
-          rules={{ required: 'Status is required' }}
-          render={({ field: { onChange, value }, fieldState: { error } }) => (
-            <Dropdown
-              style={[styles.dropdown, error && styles.errorBorder]}
-              placeholderStyle={styles.placeholder}
-              selectedTextStyle={styles.selectedText}
-              data={[
-                { label: 'Yes', value: true },
-                { label: 'No', value: false },
-              ]}
-              labelField="label"
-              valueField="value"
-              placeholder="Select option"
-              value={value}
-              dropdownPosition="top"
-              onChange={item => onChange(item.value)}
-            />
-          )}
-        /> */}
       </ScrollView>
 
       {/* Footer */}
       <View style={styles.modalFooter}>
-        <TouchableOpacity
-          style={styles.cancelButton}
-          onPress={onClose}
-          disabled={loading}
-        >
+        <TouchableOpacity style={styles.cancelButton} onPress={onClose} disabled={loading}>
           <Text style={styles.cancelButtonText}>Cancel</Text>
         </TouchableOpacity>
-
         <TouchableOpacity
-          style={[
-            styles.saveButton,
-            loading && { opacity: 0.7 },
-          ]}
+          style={[styles.saveButton, loading && { opacity: 0.7 }]}
           disabled={loading}
           onPress={handleSubmit(isUpdate ? onSubmitUpdate : onSubmit)}
         >
           {loading ? (
             <ActivityIndicator color={colors.white} size="small" />
           ) : (
-            <Text style={styles.saveButtonText}>
-              {isUpdate ? 'Update' : 'Save'}
-            </Text>
+            <Text style={styles.saveButtonText}>{isUpdate ? 'Update' : 'Save'}</Text>
           )}
         </TouchableOpacity>
       </View>
@@ -491,7 +560,7 @@ export default CourseAddVideoModal;
 
 const styles = StyleSheet.create({
   modalContainer: {
-    backgroundColor: '#0D1B2A',
+    backgroundColor: colors.white,
     borderTopLeftRadius: wp(20),
     borderTopRightRadius: wp(20),
     maxHeight: '100%',
@@ -500,42 +569,48 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    borderBottomWidth: wp(1),
-    borderColor: colors.cBorder,
+    borderBottomWidth: 1,
+    borderColor: '#E2E8F0',
     padding: wp(16),
   },
-  modalTitle: { fontSize: fp(18), fontWeight: '700', color: colors.cText },
+  modalTitle: { fontSize: fp(18), fontWeight: '700', color: '#1A1A2E' },
   closeButton: { padding: wp(4) },
   modalContent: { padding: wp(20) },
-  label: {
-    fontSize: fp(14),
-    color: colors.cText,
-    fontWeight: '600',
-    marginBottom: hp(6),
+  labelRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginTop: hp(12),
+    marginBottom: hp(6),
+  },
+  label: {
+    fontSize: fp(13),
+    color: '#1A1A2E',
+    fontWeight: '600',
   },
   inputField: {
-    borderWidth: wp(1),
-    borderColor: colors.cBorder,
-    borderRadius: wp(8),
-    paddingHorizontal: wp(10),
-    height: hp(44),
-    backgroundColor: colors.cInputBg,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: wp(12),
+    paddingHorizontal: wp(12),
+    height: hp(42),
+    backgroundColor: '#F8FAFC',
   },
   uploadButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderColor: colors.cBorder,
-    borderWidth: wp(1),
-    borderRadius: wp(8),
-    height: hp(44),
-    paddingHorizontal: wp(10),
-    backgroundColor: colors.cInputBg,
+    borderColor: '#E2E8F0',
+    borderWidth: 1,
+    borderRadius: wp(12),
+    borderStyle: 'dashed',
+    height: hp(42),
+    paddingHorizontal: wp(12),
+    backgroundColor: '#F8FAFC',
   },
   uploadText: {
     marginLeft: wp(10),
-    fontSize: fp(16),
-    color: colors.cTextSecondary,
+    fontSize: fp(14),
+    color: '#64748B',
   },
   progressContainer: {
     flexDirection: 'row',
@@ -550,16 +625,16 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   dropdown: {
-    height: hp(44),
-    borderWidth: wp(1),
-    borderColor: colors.cBorder,
-    borderRadius: wp(8),
-    paddingHorizontal: wp(12),
+    height: hp(42),
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: wp(12),
+    paddingHorizontal: wp(14),
     justifyContent: 'center',
-    backgroundColor: colors.cCard,
+    backgroundColor: '#F8FAFC',
   },
-  placeholder: { color: colors.cTextMuted },
-  selectedText: { color: '#60A5FA', fontSize: fp(16) },
+  placeholder: { color: '#94A3B8', fontSize: fp(14) },
+  selectedText: { color: '#1A1A2E', fontSize: fp(14) },
   errorBorder: { borderColor: colors.cError },
   modalFooter: {
     flexDirection: 'row',
@@ -570,44 +645,171 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     flex: 1,
-    paddingVertical: hp(10),
-    borderWidth: wp(1),
-    borderColor: colors.cBorder,
-    borderRadius: wp(8),
+    paddingVertical: hp(12),
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: wp(12),
     alignItems: 'center',
-    backgroundColor: colors.cCard,
+    backgroundColor: colors.white,
   },
-  cancelButtonText: { color: colors.cText, fontWeight: '600' },
+  cancelButtonText: { color: '#1A1A2E', fontWeight: '600', fontSize: fp(14) },
   saveButton: {
     flex: 1,
     backgroundColor: '#0F3460',
-    borderRadius: wp(8),
+    borderRadius: wp(12),
     alignItems: 'center',
     justifyContent: 'center',
+    paddingVertical: hp(12),
   },
-  saveButtonText: { color: colors.white, fontWeight: '600', fontSize: fp(16) },
+  saveButtonText: { color: colors.white, fontWeight: '700', fontSize: fp(14) },
   button: {
-    borderRadius: wp(8),
-    paddingHorizontal: wp(10),
-    height: hp(44),
+    borderRadius: wp(12),
+    paddingHorizontal: wp(12),
+    height: hp(42),
     width: '100%',
-    backgroundColor: colors.cCard,
-    borderWidth: wp(1),
-    borderColor: colors.cBorder,
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderStyle: 'dashed',
     justifyContent: 'center',
     alignItems: 'center',
   },
   buttonText: {
-    color: colors.cTextSecondary,
+    color: '#64748B',
     fontSize: fp(14),
     fontWeight: '500',
   },
   imagePreview: {
     width: '100%',
     height: hp(150),
-    borderRadius: wp(8),
+    borderRadius: wp(12),
     marginTop: hp(10),
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: '#E2E8F0',
+  },
+
+  warningText: {
+    fontSize: fp(11),
+    color: '#F59E0B',
+    marginTop: hp(4),
+    fontWeight: '500',
+  },
+
+  // Enhance button
+  enhanceBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(4),
+    backgroundColor: 'rgba(96,165,250,0.12)',
+    paddingHorizontal: wp(8),
+    paddingVertical: hp(5),
+    borderRadius: wp(8),
+  },
+  enhanceBtnText: {
+    fontSize: fp(11),
+    fontWeight: '600',
+    color: '#60A5FA',
+  },
+
+  // AI view styles
+  aiOriginalBlock: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: wp(10),
+    padding: wp(12),
+    marginBottom: hp(12),
+  },
+  aiSectionLabel: {
+    fontSize: fp(10),
+    fontWeight: '700',
+    color: '#94A3B8',
+    textTransform: 'uppercase',
+    marginBottom: hp(4),
+  },
+  aiOriginalText: {
+    fontSize: fp(14),
+    color: '#64748B',
+    lineHeight: fp(21),
+  },
+  aiEnhancedBlock: {
+    backgroundColor: 'rgba(96,165,250,0.06)',
+    borderRadius: wp(10),
+    padding: wp(12),
+    borderLeftWidth: 3,
+    borderLeftColor: '#60A5FA',
+    marginBottom: hp(10),
+  },
+  aiEnhancedLabel: {
+    fontSize: fp(10),
+    fontWeight: '700',
+    color: '#60A5FA',
+    textTransform: 'uppercase',
+    marginBottom: hp(4),
+  },
+  aiEnhancedText: {
+    fontSize: fp(14),
+    color: '#1A1A2E',
+    lineHeight: fp(21),
+    marginBottom: hp(10),
+  },
+  aiUseBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-end',
+    gap: wp(6),
+    backgroundColor: '#60A5FA',
+    paddingHorizontal: wp(16),
+    paddingVertical: hp(8),
+    borderRadius: wp(10),
+  },
+  aiUseBtnText: {
+    fontSize: fp(13),
+    fontWeight: '600',
+    color: colors.white,
+  },
+  aiSummary: {
+    fontSize: fp(12),
+    color: '#94A3B8',
+    fontStyle: 'italic',
+    marginBottom: hp(12),
+    lineHeight: fp(18),
+  },
+  aiAltLabel: {
+    fontSize: fp(10),
+    fontWeight: '700',
+    color: '#94A3B8',
+    textTransform: 'uppercase',
+    marginBottom: hp(6),
+  },
+  aiAltChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#F8FAFC',
+    borderRadius: wp(10),
+    paddingHorizontal: wp(12),
+    paddingVertical: hp(10),
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    marginBottom: hp(8),
+  },
+  aiAltText: {
+    flex: 1,
+    fontSize: fp(13),
+    color: '#64748B',
+    lineHeight: fp(19),
+    marginRight: wp(8),
+  },
+  aiKeepBtn: {
+    alignItems: 'center',
+    paddingVertical: hp(12),
+    borderRadius: wp(10),
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    marginTop: hp(8),
+  },
+  aiKeepBtnText: {
+    fontSize: fp(13),
+    fontWeight: '600',
+    color: '#64748B',
   },
 });

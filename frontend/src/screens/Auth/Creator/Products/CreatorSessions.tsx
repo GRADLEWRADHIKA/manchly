@@ -176,9 +176,19 @@ const CreatorSessions: React.FC = () => {
       </View>
 
       {/* Recent Sessions */}
-      <Text style={[styles.sectionTitle, {marginTop: hp(20)}]}>
-        Recent Sessions
-      </Text>
+      <View style={styles.sectionRow}>
+        <Text style={[styles.sectionTitle, {marginTop: hp(20)}]}>
+          Recent Sessions
+        </Text>
+        {sessions.length > 3 && (
+          <TouchableOpacity
+            onPress={() => navigation.navigate('AllSessions')}
+            style={{marginTop: hp(20)}}
+          >
+            <Text style={styles.viewAllText}>View All</Text>
+          </TouchableOpacity>
+        )}
+      </View>
 
       {loading ? (
         <ActivityIndicator
@@ -192,7 +202,7 @@ const CreatorSessions: React.FC = () => {
           <Text style={styles.emptyText}>No sessions yet</Text>
         </View>
       ) : (
-        sessions.map((session: any) => {
+        sessions.slice(0, 3).map((session: any) => {
           const callerName = session.caller?.name || 'User';
           const initials = callerName
             .split(' ')
@@ -235,11 +245,6 @@ const CreatorSessions: React.FC = () => {
                       <PhoneOutgoing size={wp(14)} color={colors.white} strokeWidth={2} />
                       <Text style={styles.callUserBtnText}>Call</Text>
                     </TouchableOpacity>
-                    <AiButton
-                      compact
-                      label="Prep"
-                      onPress={() => setPrepModal({visible: true, title: session.product_title || 'Session'})}
-                    />
                   </>
                 ) : (
                   <>
@@ -356,6 +361,11 @@ const styles = StyleSheet.create({
     fontSize: fp(14),
     fontWeight: '700',
     color: '#1A1A2E',
+  },
+  viewAllText: {
+    fontSize: fp(13),
+    fontWeight: '600',
+    color: colors.cAccentLight,
   },
   addBtn: {
     flexDirection: 'row',

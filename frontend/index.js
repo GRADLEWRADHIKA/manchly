@@ -12,8 +12,8 @@ import { name as appName } from './app.json';
 messaging().setBackgroundMessageHandler(async remoteMessage => {
   console.log('Background message:', remoteMessage);
 
-  // Show a high-priority call notification when app is killed/background
   if (remoteMessage.data?.type === 'incoming_call') {
+    // Show a high-priority call notification
     const callerName = remoteMessage.data.callerName || 'Expert';
 
     await notifee.createChannel({
@@ -45,11 +45,19 @@ messaging().setBackgroundMessageHandler(async remoteMessage => {
       },
     });
   }
+  // Regular notifications are displayed automatically by FCM notification payload
+  // No need to manually display — Android shows them from the `notification` field
 });
 
-// Handle background notification events from notifee
+// Handle background notifee tap events (deep linking)
 notifee.onBackgroundEvent(async ({ type, detail }) => {
-  console.log('Notifee background event:', type, detail);
+  if (type === 1 /* PRESS */ && detail.notification?.data) {
+    // Navigation will be handled by getInitialNotification when app opens
+    // Just dismiss the notification
+    if (detail.notification.id) {
+      await notifee.cancelNotification(detail.notification.id);
+    }
+  }
 });
 
 AppRegistry.registerComponent(appName, () => App);

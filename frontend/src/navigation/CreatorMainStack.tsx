@@ -22,6 +22,7 @@ import CreatorPublicProfile from '../screens/Auth/Creator/Profile/CreatorPublicP
 import IncomingCallScreen from '../screens/Auth/Creator/Astrologer/IncomingCallScreen';
 import CallScreen from '../screens/Auth/User/Astrologer/CallScreen';
 import ExpertRegistration from '../screens/Auth/Creator/Products/ExpertRegistration';
+import AllSessions from '../screens/Auth/Creator/Products/AllSessions';
 
 const Stack = createNativeStackNavigator();
 
@@ -66,6 +67,7 @@ const CreatorMainStack = () => {
           component={CreatorWebinarDetails}
         />
         <Stack.Screen name="ExpertRegistration" component={ExpertRegistration} />
+        <Stack.Screen name="AllSessions" component={AllSessions} />
         <Stack.Screen name="IncomingCallScreen" component={IncomingCallScreen} />
         <Stack.Screen name="CallScreen" component={CallScreen} />
     </Stack.Navigator>

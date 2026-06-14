@@ -26,10 +26,12 @@ import {
   Info,
 } from 'lucide-react-native';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
 import {
   getUserNotifications,
   markNotificationRead,
   markAllNotificationsRead,
+  getUnreadCount,
   Notification,
 } from '../../../../store/NotificationSlice';
 
@@ -74,6 +76,7 @@ function getTimeAgo(dateStr: string): string {
 
 const UserNotification = () => {
   const dispatch = useDispatch<any>();
+  const navigation = useNavigation<any>();
   const { notifications: storeNotifications, loading } = useSelector(
     (state: any) => state.notificationReducer,
   );
@@ -91,6 +94,9 @@ const UserNotification = () => {
 
   useEffect(() => {
     dispatch(getUserNotifications({}));
+    return () => {
+      dispatch(getUnreadCount());
+    };
   }, [dispatch]);
 
   const onRefresh = useCallback(async () => {
@@ -103,10 +109,20 @@ const UserNotification = () => {
     if (!item.is_read) {
       dispatch(markNotificationRead(item._id));
     }
+    // Deep link to relevant screen based on notification data
+    if (item.data?.courseId) {
+      navigation.navigate('CourseDetailsScreen', { courseId: item.data.courseId });
+    } else if (item.data?.webinarId) {
+      navigation.navigate('WebinarDetails', { webinarId: item.data.webinarId, id: item.data.webinarId });
+    } else if (item.data?.sessionId) {
+      navigation.navigate('SessionDetails', { sessionId: item.data.sessionId });
+    }
   };
 
   const handleMarkAllRead = () => {
-    dispatch(markAllNotificationsRead());
+    dispatch(markAllNotificationsRead()).then(() => {
+      dispatch(getUnreadCount());
+    });
   };
 
   const getIconForItem = (item: Notification) => {

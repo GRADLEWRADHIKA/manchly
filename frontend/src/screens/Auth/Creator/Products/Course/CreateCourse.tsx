@@ -484,7 +484,7 @@ const styles = StyleSheet.create({
     gap: wp(8),
     borderRadius: wp(12),
     height: hp(42),
-    backgroundColor: colors.white,
+    backgroundColor: '#F8FAFC',
     borderWidth: 1,
     borderColor: '#E2E8F0',
     borderStyle: 'dashed',
@@ -509,7 +509,7 @@ const styles = StyleSheet.create({
     borderRadius: wp(12),
     paddingHorizontal: wp(14),
     justifyContent: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: '#F8FAFC',
   },
   dropdownContainer: {
     borderRadius: wp(12),

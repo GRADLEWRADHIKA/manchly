@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -16,11 +16,13 @@ import { useDispatch, useSelector } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
 import { getAllWebinar } from '../../../../store/WebinarSlice';
 import WebinarCard from '../Products/Webinar/WebinarCard';
-import { Plus, Search, Presentation, UserCircle, Bell, Instagram } from 'lucide-react-native';
+import { Plus, Search, Presentation, UserCircle, Bell, Instagram, X } from 'lucide-react-native';
 import { FAB } from 'react-native-paper';
 import CustomTextInput from '../../../../components/CustomInput';
 import Toast from 'react-native-toast-message';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+const LIMIT = 10;
 
 const CreatorWebinar = ({embedded = false}: {embedded?: boolean}) => {
   const navigation = useNavigation<any>();
@@ -29,36 +31,75 @@ const CreatorWebinar = ({embedded = false}: {embedded?: boolean}) => {
   const { user } = useSelector((state: any) => state.userReducer);
   const insets = useSafeAreaInsets();
 
-  const [webinarData, setWebinarData] = useState<any[]>([]);
+  const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [refreshWebinar, setRefreshWebinar] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [total, setTotal] = useState(0);
+
   const [searchQuery, setSearchQuery] = useState('');
+  const searchTimer = useRef<any>(null);
+  const [refreshFlag, setRefreshFlag] = useState(false);
 
-  const displayName = user?.name
-    ? user.name.charAt(0).toUpperCase() + user.name.slice(1)
-    : 'Creator';
+  const fetchData = useCallback((pageNum: number, search: string, refresh = false) => {
+    if (refresh) {
+      setLoading(true);
+    } else {
+      setLoadingMore(true);
+    }
 
-  useEffect(() => {
-    fetchWebinars();
-  }, [focus, refreshWebinar]);
+    const payload: any = { page: pageNum, limit: LIMIT, my_webinars: true };
+    if (search.trim()) {
+      payload.search = search.trim();
+    }
 
-  const fetchWebinars = () => {
-    setLoading(true);
-    const payload = { page: 1, limit: 50, upcoming: true, title: '', my_webinars: true };
     dispatch(getAllWebinar(payload))
       .unwrap()
       .then(response => {
-        setWebinarData(response?.data?.data?.webinars || []);
+        const webinars = response?.data?.data?.webinars || [];
+        const totalCount = response?.data?.data?.pagination?.total || webinars.length;
+
+        if (refresh) {
+          setData(webinars);
+        } else {
+          setData(prev => [...prev, ...webinars]);
+        }
+
+        setTotal(totalCount);
+        setHasMore(webinars.length >= LIMIT);
+        setPage(pageNum);
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        setLoading(false);
+        setLoadingMore(false);
+      });
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (focus) {
+      fetchData(1, searchQuery, true);
+    }
+  }, [focus, refreshFlag]);
+
+  const handleSearch = (text: string) => {
+    setSearchQuery(text);
+    if (searchTimer.current) clearTimeout(searchTimer.current);
+    searchTimer.current = setTimeout(() => {
+      fetchData(1, text, true);
+    }, 500);
   };
 
-  const filteredWebinars = useMemo(() => {
-    if (!searchQuery.trim()) return webinarData;
-    return webinarData.filter(item =>
-      item?.title?.toLowerCase().includes(searchQuery.toLowerCase()),
-    );
-  }, [searchQuery, webinarData]);
+  const clearSearch = () => {
+    setSearchQuery('');
+    fetchData(1, '', true);
+  };
+
+  const handleLoadMore = () => {
+    if (!loadingMore && hasMore && !loading) {
+      fetchData(page + 1, searchQuery, false);
+    }
+  };
 
   const handleCreateWebinar = () => {
     if (user?.kyc_verified) {
@@ -73,13 +114,70 @@ const CreatorWebinar = ({embedded = false}: {embedded?: boolean}) => {
     }
   };
 
-  const renderEmptyState = () => (
-    <View style={styles.emptyState}>
-      <View style={styles.emptyIcon}>
-        <Presentation size={wp(48)} color={'#60A5FA'} />
+  const renderItem = ({ item }: { item: any }) => (
+    <WebinarCard
+      data={item}
+      setRefreshWebinar={() => setRefreshFlag(f => !f)}
+    />
+  );
+
+  const renderFooter = () => {
+    if (!loadingMore) return null;
+    return (
+      <View style={styles.footerLoader}>
+        <ActivityIndicator size="small" color={colors.cAccentLight} />
+        <Text style={styles.loadingText}>Loading more...</Text>
       </View>
-      <Text style={styles.emptyTitle}>No Webinars Yet</Text>
-    </View>
+    );
+  };
+
+  const renderEmpty = () => {
+    if (loading) return null;
+    return (
+      <View style={styles.emptyState}>
+        <View style={styles.emptyIcon}>
+          <Presentation size={wp(48)} color={'#60A5FA'} />
+        </View>
+        <Text style={styles.emptyTitle}>No Webinars Found</Text>
+        <Text style={styles.emptySubtitle}>
+          {searchQuery
+            ? 'Try a different search term'
+            : 'Create your first webinar to get started'}
+        </Text>
+      </View>
+    );
+  };
+
+  const renderHeader = () => (
+    <>
+      <View style={styles.searchContainer}>
+        <Search size={wp(18)} color={'#64748B'} />
+        <CustomTextInput
+          inputContainerStyle={styles.searchInput}
+          inputStyle={{ fontSize: fp(14), color: '#1A1A2E' }}
+          placeholderTextColor={'#94A3B8'}
+          placeholder="Search webinars..."
+          onChange={handleSearch as any}
+          value={searchQuery}
+        />
+        {searchQuery.length > 0 && (
+          <TouchableOpacity onPress={clearSearch} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+            <X size={wp(18)} color={'#94A3B8'} />
+          </TouchableOpacity>
+        )}
+      </View>
+
+      <View style={styles.listHeader}>
+        <Text style={styles.listTitle}>My Webinars</Text>
+        <Text style={styles.webinarCount}>{total} webinars</Text>
+      </View>
+
+      {loading && (
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color={colors.cAccentLight} />
+        </View>
+      )}
+    </>
   );
 
   return (
@@ -89,10 +187,7 @@ const CreatorWebinar = ({embedded = false}: {embedded?: boolean}) => {
           <View style={styles.header}>
             <View style={styles.headerLeft}>
               {user?.profile_image ? (
-                <Image
-                  source={{ uri: user.profile_image }}
-                  style={styles.avatar}
-                />
+                <Image source={{ uri: user.profile_image }} style={styles.avatar} />
               ) : (
                 <View style={styles.avatarFallback}>
                   <UserCircle size={wp(28)} color={colors.white} />
@@ -101,18 +196,14 @@ const CreatorWebinar = ({embedded = false}: {embedded?: boolean}) => {
               <View>
                 <Text style={styles.headerSubtitle}>My Webinars</Text>
                 <Text style={styles.headerTitle}>
-                  {webinarData.length} webinar{webinarData.length !== 1 ? 's' : ''}
+                  {total} webinar{total !== 1 ? 's' : ''}
                 </Text>
               </View>
             </View>
-            <View
-              style={{ flexDirection: 'row', alignItems: 'center', gap: wp(4) }}
-            >
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: wp(4) }}>
               <TouchableOpacity
                 style={styles.bellBtn}
-                onPress={() =>
-                  Linking.openURL('https://www.instagram.com/manchly_app')
-                }
+                onPress={() => Linking.openURL('https://www.instagram.com/manchly_app')}
               >
                 <Instagram size={wp(20)} color={colors.white} />
               </TouchableOpacity>
@@ -127,36 +218,18 @@ const CreatorWebinar = ({embedded = false}: {embedded?: boolean}) => {
         </View>
       )}
 
-      <View style={styles.searchContainer}>
-        <Search size={wp(18)} color={'#64748B'} />
-        <CustomTextInput
-          inputContainerStyle={styles.searchInput}
-          inputStyle={{ fontSize: fp(14), color: '#1A1A2E' }}
-          placeholderTextColor={'#94A3B8'}
-          placeholder="Search webinars..."
-          onChange={setSearchQuery as any}
-          value={searchQuery}
-        />
-      </View>
-
-      {loading ? (
-        <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color={colors.cBg} />
-          <Text style={styles.loadingText}>Loading webinars...</Text>
-        </View>
-      ) : filteredWebinars.length > 0 ? (
-        <FlatList
-          data={filteredWebinars}
-          keyExtractor={item => item.id}
-          renderItem={({ item }) => (
-            <WebinarCard data={item} setRefreshWebinar={setRefreshWebinar} />
-          )}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-        />
-      ) : (
-        renderEmptyState()
-      )}
+      <FlatList
+        data={loading ? [] : data}
+        renderItem={renderItem}
+        keyExtractor={item => item.id}
+        ListHeaderComponent={renderHeader}
+        ListEmptyComponent={renderEmpty}
+        ListFooterComponent={renderFooter}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.3}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.listContent}
+      />
 
       <View style={styles.fabContainer}>
         <FAB
@@ -177,10 +250,17 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.white,
   },
+  listContent: {
+    flexGrow: 1,
+    paddingHorizontal: wp(16),
+    paddingBottom: hp(80),
+  },
+
+  // Header
   headerWrapper: {
     backgroundColor: colors.cBg,
-     borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
   },
   header: {
     flexDirection: 'row',
@@ -232,12 +312,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E2E8F0',
   },
+
+  // Search
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginHorizontal: wp(16),
-    marginVertical: hp(12),
-    borderWidth: wp(1),
+    marginTop: hp(12),
+    marginBottom: hp(4),
+    borderWidth: 1,
     borderColor: '#E2E8F0',
     borderRadius: wp(12),
     paddingHorizontal: wp(12),
@@ -250,64 +332,79 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     height: hp(42),
-    width: '92%',
+    width: '85%',
     borderRadius: wp(12),
   },
+
+  // List header
+  listHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: hp(10),
+    paddingHorizontal: wp(4),
+  },
+  listTitle: {
+    fontSize: fp(18),
+    fontWeight: '700',
+    color: '#1A1A2E',
+  },
+  webinarCount: {
+    fontSize: fp(13),
+    color: '#64748B',
+    fontWeight: '500',
+  },
+
+  // Loaders
   loaderContainer: {
-    flex: 1,
+    height: hp(200),
     justifyContent: 'center',
     alignItems: 'center',
-    gap: wp(12),
+  },
+  footerLoader: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: wp(16),
+    gap: wp(8),
   },
   loadingText: {
     color: '#64748B',
-    fontSize: fp(14),
+    fontSize: fp(13),
     fontWeight: '500',
   },
-  listContent: {
-    paddingHorizontal: wp(16),
-    paddingVertical: hp(8),
-    paddingBottom: hp(80),
-  },
+
+  // Empty
   emptyState: {
-    flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: hp(60),
+    paddingHorizontal: wp(40),
   },
   emptyIcon: {
     backgroundColor: '#E2E8F0',
-    width: wp(96),
-    height: wp(96),
-    borderRadius: wp(48),
+    width: wp(80),
+    height: wp(80),
+    borderRadius: wp(40),
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: hp(20),
+    marginBottom: hp(16),
   },
   emptyTitle: {
-    fontSize: fp(20),
+    fontSize: fp(17),
     fontWeight: '700',
     color: '#1A1A2E',
-    marginBottom: hp(8),
+    marginBottom: hp(6),
     textAlign: 'center',
   },
   emptySubtitle: {
-    fontSize: fp(14),
+    fontSize: fp(13),
     color: '#64748B',
     textAlign: 'center',
-    lineHeight: fp(20),
-    marginBottom: hp(24),
+    lineHeight: fp(19),
   },
-  emptyCreateBtn: {
-    backgroundColor: '#0F3460',
-    paddingHorizontal: wp(24),
-    paddingVertical: hp(12),
-    borderRadius: wp(12),
-  },
-  emptyCreateBtnText: {
-    color: colors.white,
-    fontSize: fp(15),
-    fontWeight: '700',
-  },
+
+  // FAB
   fabContainer: {
     position: 'absolute',
     right: wp(16),

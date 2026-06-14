@@ -20,6 +20,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Video from 'react-native-video';
 import { X, Play, Maximize2 } from 'lucide-react-native';
 import { clearJustLoggedIn } from '../../../../store/UserSlice';
+import { getUnreadCount } from '../../../../store/NotificationSlice';
 import GoLiveCard from './GoLiveCard';
 import SessionCard from './SessionCard';
 import LaunchCourseCard from './LaunchCourseCard';
@@ -35,6 +36,7 @@ const CreatorHome = () => {
   const { user } = useSelector((state: any) => state.userReducer);
   const insets = useSafeAreaInsets();
   const { justLoggedIn } = useSelector((state: any) => state.userReducer);
+  const { unreadCount } = useSelector((state: any) => state.notificationReducer);
   const [showIntroVideo, setShowIntroVideo] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [showKycModal, setShowKycModal] = useState(false);
@@ -47,6 +49,10 @@ const CreatorHome = () => {
       dispatch(clearJustLoggedIn());
     }
   }, [justLoggedIn]);
+
+  useEffect(() => {
+    dispatch(getUnreadCount());
+  }, [dispatch]);
 
   // Show KYC modal after page renders properly
   useEffect(() => {
@@ -130,7 +136,13 @@ const CreatorHome = () => {
               onPress={() => navigation.navigate('CreatorNotification')}
             >
               <Bell size={wp(20)} color={colors.white} />
-              <View style={styles.bellDot} />
+              {unreadCount > 0 && (
+                <View style={styles.bellBadge}>
+                  <Text style={styles.bellBadgeText}>
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </Text>
+                </View>
+              )}
             </TouchableOpacity>
           </View>
         </View>
@@ -279,14 +291,24 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
   },
-  bellDot: {
+  bellBadge: {
     position: 'absolute',
-    top: wp(10),
-    right: wp(12),
-    width: wp(8),
-    height: wp(8),
-    borderRadius: wp(4),
+    top: wp(6),
+    right: wp(6),
+    minWidth: wp(18),
+    height: wp(18),
+    borderRadius: wp(9),
     backgroundColor: colors.error,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: wp(4),
+    borderWidth: 1.5,
+    borderColor: colors.cBg,
+  },
+  bellBadgeText: {
+    fontSize: fp(9),
+    fontWeight: '700',
+    color: colors.white,
   },
 
   scrollContent: {

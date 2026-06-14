@@ -22,10 +22,11 @@ type Props = {
   endpoint: string;
   kind?: string;
   tone?: string;
+  inline?: boolean;
 };
 
 const EnhanceSuggestionCard: React.FC<Props> = ({
-  value, onAccept, endpoint, kind = 'general', tone,
+  value, onAccept, endpoint, kind = 'general', tone, inline = false,
 }) => {
   const [loading, setLoading] = useState(false);
   const [suggestion, setSuggestion] = useState<EnhanceResponse | null>(null);
@@ -62,9 +63,56 @@ const EnhanceSuggestionCard: React.FC<Props> = ({
 
   const dismiss = () => setSuggestion(null);
 
+  const renderSuggestionContent = () => {
+    if (!suggestion) return null;
+    return (
+      <>
+        <View style={styles.originalBlock}>
+          <Text style={styles.sectionLabel}>Original</Text>
+          <Text style={styles.originalText}>{suggestion.original}</Text>
+        </View>
+
+        <View style={styles.enhancedBlock}>
+          <Text style={styles.enhancedLabel}>Enhanced</Text>
+          <Text style={styles.enhancedText}>{suggestion.enhanced}</Text>
+          <TouchableOpacity style={styles.useBtn} onPress={() => accept(suggestion.enhanced)}>
+            <Text style={styles.useBtnText}>Use this</Text>
+            <ArrowRight size={wp(14)} color={colors.white} />
+          </TouchableOpacity>
+        </View>
+
+        {suggestion.changes_summary ? (
+          <Text style={styles.summary}>{suggestion.changes_summary}</Text>
+        ) : null}
+
+        {suggestion.alternatives?.length > 0 && (
+          <>
+            <Text style={styles.altLabel}>Alternatives</Text>
+            <View style={styles.altRow}>
+              {suggestion.alternatives.map((alt, i) => (
+                <TouchableOpacity
+                  key={i}
+                  style={styles.altChip}
+                  onPress={() => accept(alt)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.altText}>{alt}</Text>
+                  <ArrowRight size={wp(12)} color={colors.faaAiPrimary} />
+                </TouchableOpacity>
+              ))}
+            </View>
+          </>
+        )}
+
+        <TouchableOpacity style={styles.keepBtn} onPress={dismiss}>
+          <Text style={styles.keepBtnText}>Keep original</Text>
+        </TouchableOpacity>
+      </>
+    );
+  };
+
   return (
     <>
-      {/* Enhance trigger button — stays inline in the label row */}
       <TouchableOpacity
         style={styles.triggerBtn}
         onPress={enhance}
@@ -81,84 +129,39 @@ const EnhanceSuggestionCard: React.FC<Props> = ({
         </Text>
       </TouchableOpacity>
 
-      {/* Suggestion card — shown as a bottom sheet modal */}
-      <Modal
-        visible={!!suggestion}
-        animationType="slide"
-        transparent
-        onRequestClose={dismiss}
-      >
-        <KeyboardAvoidingView
-          style={styles.overlay}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      {inline && suggestion ? (
+        <View style={styles.inlineCard}>
+          {renderSuggestionContent()}
+        </View>
+      ) : (
+        <Modal
+          visible={!!suggestion}
+          animationType="slide"
+          transparent
+          onRequestClose={dismiss}
         >
-          <TouchableOpacity style={styles.overlayBg} activeOpacity={1} onPress={dismiss} />
-          <View style={styles.sheet}>
-            {/* Header */}
-            <View style={styles.sheetHeader}>
-              <View style={styles.sheetHandle} />
-              <TouchableOpacity style={styles.dismissBtn} onPress={dismiss}>
-                <X size={wp(18)} color={colors.textMuted} />
-              </TouchableOpacity>
+          <KeyboardAvoidingView
+            style={styles.overlay}
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          >
+            <TouchableOpacity style={styles.overlayBg} activeOpacity={1} onPress={dismiss} />
+            <View style={styles.sheet}>
+              <View style={styles.sheetHeader}>
+                <View style={styles.sheetHandle} />
+                <TouchableOpacity style={styles.dismissBtn} onPress={dismiss}>
+                  <X size={wp(18)} color={colors.textMuted} />
+                </TouchableOpacity>
+              </View>
+              <ScrollView
+                contentContainerStyle={styles.sheetContent}
+                showsVerticalScrollIndicator={false}
+              >
+                {renderSuggestionContent()}
+              </ScrollView>
             </View>
-
-            <ScrollView
-              contentContainerStyle={styles.sheetContent}
-              showsVerticalScrollIndicator={false}
-            >
-              {suggestion && (
-                <>
-                  {/* Original */}
-                  <View style={styles.originalBlock}>
-                    <Text style={styles.sectionLabel}>Original</Text>
-                    <Text style={styles.originalText}>{suggestion.original}</Text>
-                  </View>
-
-                  {/* Enhanced version */}
-                  <View style={styles.enhancedBlock}>
-                    <Text style={styles.enhancedLabel}>Enhanced</Text>
-                    <Text style={styles.enhancedText}>{suggestion.enhanced}</Text>
-                    <TouchableOpacity style={styles.useBtn} onPress={() => accept(suggestion.enhanced)}>
-                      <Text style={styles.useBtnText}>Use this</Text>
-                      <ArrowRight size={wp(14)} color={colors.white} />
-                    </TouchableOpacity>
-                  </View>
-
-                  {/* Changes summary */}
-                  {suggestion.changes_summary ? (
-                    <Text style={styles.summary}>{suggestion.changes_summary}</Text>
-                  ) : null}
-
-                  {/* Alternatives */}
-                  {suggestion.alternatives?.length > 0 && (
-                    <>
-                      <Text style={styles.altLabel}>Alternatives</Text>
-                      <View style={styles.altRow}>
-                        {suggestion.alternatives.map((alt, i) => (
-                          <TouchableOpacity
-                            key={i}
-                            style={styles.altChip}
-                            onPress={() => accept(alt)}
-                            activeOpacity={0.7}
-                          >
-                            <Text style={styles.altText}>{alt}</Text>
-                            <ArrowRight size={wp(12)} color={colors.faaAiPrimary} />
-                          </TouchableOpacity>
-                        ))}
-                      </View>
-                    </>
-                  )}
-
-                  {/* Keep original */}
-                  <TouchableOpacity style={styles.keepBtn} onPress={dismiss}>
-                    <Text style={styles.keepBtnText}>Keep original</Text>
-                  </TouchableOpacity>
-                </>
-              )}
-            </ScrollView>
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
+          </KeyboardAvoidingView>
+        </Modal>
+      )}
     </>
   );
 };
@@ -179,6 +182,16 @@ const styles = StyleSheet.create({
     fontSize: fp(11),
     fontWeight: '600',
     color: colors.faaAiPrimary,
+  },
+
+  // Inline mode
+  inlineCard: {
+    backgroundColor: colors.surface,
+    borderRadius: wp(12),
+    padding: wp(14),
+    marginTop: hp(10),
+    borderWidth: 1,
+    borderColor: colors.borderLight,
   },
 
   // Modal overlay

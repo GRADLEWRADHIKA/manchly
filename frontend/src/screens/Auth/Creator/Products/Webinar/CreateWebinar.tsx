@@ -616,12 +616,7 @@ const CreateWebinarScreen = () => {
                   style={[styles.dropdown, error && styles.errorBorder]}
                   placeholderStyle={styles.placeholder}
                   selectedTextStyle={styles.selectedText}
-                  containerStyle={{
-                    borderRadius: wp(10),
-                    backgroundColor: colors.white,
-                    borderWidth: 1,
-                    borderColor: '#E2E8F0',
-                  }}
+                  containerStyle={styles.dropdownContainer}
                   data={[
                     { label: 'Published', value: 'PUBLISHED' },
                     { label: 'Draft', value: 'DRAFT' },
@@ -636,22 +631,10 @@ const CreateWebinarScreen = () => {
                     const isSelected = item.value === value;
                     return (
                       <View
-                        style={{
-                          paddingHorizontal: wp(10),
-                          paddingVertical: hp(5),
-                          margin: wp(10),
-                          backgroundColor: isSelected
-                            ? '#0F3460'
-                            : '#F8FAFC',
-                          borderRadius: wp(5),
-                        }}
+                        style={[styles.dropdownItem, isSelected && styles.dropdownItemSelected]}
                       >
                         <Text
-                          style={{
-                            color: isSelected
-                              ? colors.white
-                              : '#64748B',
-                          }}
+                          style={[styles.dropdownItemText, isSelected && styles.dropdownItemTextSelected]}
                         >
                           {item.label}
                         </Text>
@@ -827,14 +810,39 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   dropdown: {
-    height: hp(44),
-    borderWidth: wp(1),
+    height: hp(42),
+    borderWidth: 1,
     borderColor: '#E2E8F0',
-    borderRadius: wp(10),
-    paddingHorizontal: wp(12),
+    borderRadius: wp(12),
+    paddingHorizontal: wp(14),
     justifyContent: 'center',
     marginBottom: hp(10),
+    backgroundColor: '#F8FAFC',
+  },
+  dropdownContainer: {
+    borderRadius: wp(12),
+    overflow: 'hidden',
     backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  dropdownItem: {
+    paddingHorizontal: wp(14),
+    paddingVertical: hp(10),
+    marginHorizontal: wp(6),
+    marginVertical: hp(3),
+    borderRadius: wp(8),
+  },
+  dropdownItemSelected: {
+    backgroundColor: '#EEF2FF',
+  },
+  dropdownItemText: {
+    color: '#64748B',
+    fontSize: fp(14),
+  },
+  dropdownItemTextSelected: {
+    color: '#0F3460',
+    fontWeight: '600',
   },
   errorBorder: {
     borderColor: colors.cError,

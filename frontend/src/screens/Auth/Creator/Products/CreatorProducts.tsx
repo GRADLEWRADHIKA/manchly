@@ -1,4 +1,4 @@
-import React, {useState, memo} from 'react';
+import React, {useState, useRef, memo} from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Image,
   Linking,
+  Animated,
 } from 'react-native';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import {Bell, Instagram, UserCircle} from 'lucide-react-native';
@@ -25,7 +26,24 @@ const CreatorProducts: React.FC = () => {
   const route = useRoute<any>();
   const {user} = useSelector((state: any) => state.userReducer);
   const insets = useSafeAreaInsets();
-  const [activeTab, setActiveTab] = useState<TabType>(route.params?.initialTab || 'Courses');
+  const initialTab = route.params?.initialTab || 'Courses';
+  const [activeTab, setActiveTab] = useState<TabType>(initialTab);
+  const slideAnim = useRef(new Animated.Value(TABS.indexOf(initialTab as TabType))).current;
+  const [tabBarWidth, setTabBarWidth] = useState(0);
+  const padding = wp(3);
+  const tabCount = TABS.length;
+  const sliderWidth = tabBarWidth > 0 ? (tabBarWidth - padding * 2) / tabCount : 0;
+
+  const handleTabChange = (tab: TabType) => {
+    if (tab === activeTab) return;
+    Animated.spring(slideAnim, {
+      toValue: TABS.indexOf(tab),
+      useNativeDriver: true,
+      friction: 7,
+      tension: 70,
+    }).start();
+    setActiveTab(tab);
+  };
 
   return (
     <View style={styles.container}>
@@ -61,13 +79,32 @@ const CreatorProducts: React.FC = () => {
           </View>
         </View>
 
-        {/* Tab Bar */}
-        <View style={styles.tabBar}>
+        {/* Tab Bar with sliding indicator */}
+        <View
+          style={styles.tabBar}
+          onLayout={(e) => setTabBarWidth(e.nativeEvent.layout.width)}
+        >
+          {sliderWidth > 0 && (
+            <Animated.View
+              style={[
+                styles.tabSlider,
+                {
+                  width: sliderWidth,
+                  transform: [{
+                    translateX: slideAnim.interpolate({
+                      inputRange: [0, 1, 2],
+                      outputRange: [0, sliderWidth, sliderWidth * 2],
+                    }),
+                  }],
+                },
+              ]}
+            />
+          )}
           {TABS.map(tab => (
             <TouchableOpacity
               key={tab}
-              style={[styles.tab, activeTab === tab && styles.tabActive]}
-              onPress={() => setActiveTab(tab)}
+              style={styles.tab}
+              onPress={() => handleTabChange(tab)}
               activeOpacity={0.7}>
               <Text
                 style={[
@@ -158,15 +195,22 @@ const styles = StyleSheet.create({
     backgroundColor: colors.cCard,
     borderRadius: wp(12),
     padding: wp(3),
+    position: 'relative',
+  },
+  tabSlider: {
+    position: 'absolute',
+    top: wp(3),
+    left: wp(3),
+    height: '100%',
+    backgroundColor: '#0F3460',
+    borderRadius: wp(10),
   },
   tab: {
     flex: 1,
     alignItems: 'center',
     paddingVertical: hp(9),
     borderRadius: wp(10),
-  },
-  tabActive: {
-    backgroundColor: '#0F3460',
+    zIndex: 1,
   },
   tabText: {
     fontSize: fp(13),

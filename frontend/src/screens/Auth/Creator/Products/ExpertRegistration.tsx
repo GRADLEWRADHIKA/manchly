@@ -106,6 +106,8 @@ const ExpertRegistration: React.FC = () => {
       <ScrollView
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
+        nestedScrollEnabled
+        keyboardShouldPersistTaps="handled"
       >
         {/* Banner */}
         <View style={styles.banner}>
@@ -160,24 +162,29 @@ const ExpertRegistration: React.FC = () => {
           control={control}
           name="categories"
           render={({ field: { onChange, value } }) => (
-            <MultiSelect
-              style={styles.dropdown}
-              placeholderStyle={value.length > 0 ? styles.dropdownText : styles.dropdownPlaceholder}
-              selectedTextStyle={styles.dropdownText}
-              data={CATEGORIES}
-              labelField="label"
-              valueField="value"
-              placeholder={value.length > 0 ? value.join(', ') : 'Select categories'}
-              value={value}
-              onChange={onChange}
-              visibleSelectedItem={false}
-              activeColor={'rgba(15,52,96,0.4)'}
-              itemTextStyle={styles.dropdownItemText}
-              containerStyle={styles.dropdownContainer}
-              search
-              searchPlaceholder="Search categories..."
-              inputSearchStyle={styles.searchInput}
-            />
+            <View style={{ zIndex: 20 }}>
+              <MultiSelect
+                style={styles.dropdown}
+                placeholderStyle={value.length > 0 ? styles.dropdownText : styles.dropdownPlaceholder}
+                selectedTextStyle={styles.dropdownText}
+                selectedStyle={styles.selectedChipStyle}
+                data={CATEGORIES}
+                labelField="label"
+                valueField="value"
+                placeholder={value.length > 0 ? value.join(', ') : 'Select categories'}
+                value={value}
+                onChange={onChange}
+                visibleSelectedItem={false}
+                activeColor={'#EBF5FF'}
+                itemTextStyle={styles.dropdownItemText}
+                containerStyle={styles.dropdownContainer}
+                search
+                searchPlaceholder="Search categories..."
+                inputSearchStyle={styles.searchInput}
+                maxHeight={hp(250)}
+                renderSelectedItem={() => null}
+              />
+            </View>
           )}
         />
 
@@ -261,22 +268,27 @@ const ExpertRegistration: React.FC = () => {
           control={control}
           name="languages"
           render={({ field: { onChange, value } }) => (
-            <MultiSelect
-              style={styles.dropdown}
-              placeholderStyle={value.length > 0 ? styles.dropdownText : styles.dropdownPlaceholder}
-              selectedTextStyle={styles.dropdownText}
-              data={LANGUAGES}
-              labelField="label"
-              valueField="value"
-              dropdownPosition="top"
-              placeholder={value.length > 0 ? value.join(', ') : 'Select languages'}
-              value={value}
-              onChange={onChange}
-              visibleSelectedItem={false}
-              activeColor={'rgba(15,52,96,0.4)'}
-              itemTextStyle={styles.dropdownItemText}
-              containerStyle={styles.dropdownContainer}
-            />
+            <View style={{ zIndex: 10 }}>
+              <MultiSelect
+                style={styles.dropdown}
+                placeholderStyle={value.length > 0 ? styles.dropdownText : styles.dropdownPlaceholder}
+                selectedTextStyle={styles.dropdownText}
+                selectedStyle={styles.selectedChipStyle}
+                data={LANGUAGES}
+                labelField="label"
+                valueField="value"
+                dropdownPosition="top"
+                placeholder={value.length > 0 ? value.join(', ') : 'Select languages'}
+                value={value}
+                onChange={onChange}
+                visibleSelectedItem={false}
+                activeColor={'#EBF5FF'}
+                itemTextStyle={styles.dropdownItemText}
+                containerStyle={styles.dropdownContainer}
+                maxHeight={hp(250)}
+                renderSelectedItem={() => null}
+              />
+            </View>
           )}
         />
 
@@ -366,7 +378,7 @@ const styles = StyleSheet.create({
   },
   errorText: { fontSize: fp(11), color: colors.cError, marginTop: hp(4) },
   dropdown: {
-    backgroundColor: colors.white,
+    backgroundColor: '#F8FAFC',
     borderRadius: wp(12),
     paddingHorizontal: wp(14),
     paddingVertical: hp(12),
@@ -380,28 +392,24 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    elevation: 8,
+    overflow: 'hidden',
   },
   dropdownText: { fontSize: fp(14), color: '#1A1A2E' },
   dropdownPlaceholder: { fontSize: fp(14), color: '#94A3B8' },
-  dropdownItemText: { fontSize: fp(13), color: '#1A1A2E' },
+  dropdownItemText: { fontSize: fp(14), color: '#1A1A2E', paddingVertical: hp(2) },
   searchInput: {
     fontSize: fp(13),
     color: '#1A1A2E',
     borderRadius: wp(8),
     borderColor: '#E2E8F0',
+    height: hp(40),
   },
-  selectedChip: {
-    backgroundColor: 'rgba(15,52,96,0.4)',
-    borderRadius: wp(16),
-    borderWidth: 1,
-    borderColor: '#0F3460',
-    paddingHorizontal: wp(10),
-    paddingVertical: hp(4),
-    marginTop: hp(8),
-    marginRight: wp(6),
+  selectedChipStyle: {
+    borderRadius: wp(8),
+    backgroundColor: '#EBF5FF',
   },
   registerBtn: {
     backgroundColor: '#0F3460',

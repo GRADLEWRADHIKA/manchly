@@ -46,17 +46,17 @@ const colors = {
   cCardLight: '#1A2744',
   cBorder: '#0F3460',
   cBorderLight: '#16213E',
-  cAccent: '#7C3AED',
-  cAccentLight: '#8B5CF6',
-  cAccentMuted: '#7C3AED20',
+  cAccent: '#0F3460',
+  cAccentLight: '#1A56DB',
+  cAccentMuted: '#1A56DB15',
   cText: '#FFFFFF',
   cTextSecondary: '#A0A0B2',
   cTextMuted: '#6B6B80',
   cInputBg: '#16213E',
   cSuccess: '#22C55E',
   cError: '#EF4444',
-  cGradientStart: '#7C3AED',
-  cGradientEnd: '#A855F7',
+  cGradientStart: '#0F3460',
+  cGradientEnd: '#1A56DB',
 };
 
 export default colors;

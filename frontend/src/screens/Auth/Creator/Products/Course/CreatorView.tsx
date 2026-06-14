@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
   ActivityIndicator,
   StyleSheet,
   Image,
-  ScrollView,
+  FlatList,
   TouchableOpacity,
   Linking,
 } from 'react-native';
@@ -17,49 +17,98 @@ import { ThunkDispatch } from '@reduxjs/toolkit';
 import { deleteCourse, fetchCourses } from '../../../../../store/CourseSlice';
 import DynamicModal from '../../../../../components/CommonModal';
 import CourseCard from './CourseCard';
-import { Bell, BookOpen, Search, UserCircle, Instagram } from 'lucide-react-native';
+import { Bell, BookOpen, Search, UserCircle, Instagram, X } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import CustomTextInput from '../../../../../components/CustomInput';
+
+const LIMIT = 10;
 
 const CreatorView: React.FC<{embedded?: boolean}> = ({embedded = false}) => {
   const navigation = useNavigation<any>();
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
+  const focus = useIsFocused();
+  const { user } = useSelector((state: any) => state.userReducer);
+  const insets = useSafeAreaInsets();
+
+  const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
-  const focus = useIsFocused();
-  const [data, setData] = useState<any[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [total, setTotal] = useState(0);
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const searchTimer = useRef<any>(null);
+
   const [showModal, setShowModal] = useState(false);
   const [courseId, setCourseId] = useState('');
   const [deleteLoader, setDeleteLoader] = useState(false);
-  const { user } = useSelector((state: any) => state.userReducer);
-  const insets = useSafeAreaInsets();
-  const [searchCourse, setSearchCourse] = useState('');
 
-  useEffect(() => {
-    getTheCourse(1, true);
-  }, [focus]);
+  // Fetch courses from API
+  const fetchData = useCallback((pageNum: number, search: string, refresh = false) => {
+    if (refresh) {
+      setLoading(true);
+    } else {
+      setLoadingMore(true);
+    }
 
-  const getTheCourse = (pageNum: number, refresh = false) => {
-    if (loading || loadingMore) return;
-
-    refresh ? setLoading(true) : setLoadingMore(true);
-
-    const payload = { page: pageNum, limit: 10, my_courses: true };
+    const payload: any = { page: pageNum, limit: LIMIT, my_courses: true };
+    if (search.trim()) {
+      payload.search = search.trim();
+    }
 
     dispatch(fetchCourses(payload))
       .unwrap()
       .then(response => {
-        const newData = response?.data?.data?.courses || [];
-        refresh ? setData(newData) : setData(prev => [...prev, ...newData]);
-        setHasMore(newData.length >= 10);
+        const courses = response?.data?.data?.courses || [];
+        const totalCount = response?.data?.data?.pagination?.total || courses.length;
+
+        if (refresh) {
+          setData(courses);
+        } else {
+          setData(prev => [...prev, ...courses]);
+        }
+
+        setTotal(totalCount);
+        setHasMore(courses.length >= LIMIT);
         setPage(pageNum);
       })
       .finally(() => {
         setLoading(false);
         setLoadingMore(false);
       });
+  }, [dispatch]);
+
+  // Initial load + refetch on focus
+  useEffect(() => {
+    if (focus) {
+      fetchData(1, searchQuery, true);
+    }
+  }, [focus]);
+
+  // Debounced search - hit API after 500ms of no typing
+  const handleSearch = (text: string) => {
+    setSearchQuery(text);
+
+    if (searchTimer.current) {
+      clearTimeout(searchTimer.current);
+    }
+
+    searchTimer.current = setTimeout(() => {
+      fetchData(1, text, true);
+    }, 500);
+  };
+
+  const clearSearch = () => {
+    setSearchQuery('');
+    fetchData(1, '', true);
+  };
+
+  // Load more on scroll end
+  const handleLoadMore = () => {
+    if (!loadingMore && hasMore && !loading) {
+      fetchData(page + 1, searchQuery, false);
+    }
   };
 
   const handleDelete = () => {
@@ -69,44 +118,84 @@ const CreatorView: React.FC<{embedded?: boolean}> = ({embedded = false}) => {
       .then(() => {
         setDeleteLoader(false);
         setShowModal(false);
-        getTheCourse(1, true);
+        fetchData(1, searchQuery, true);
       })
       .catch(() => setDeleteLoader(false));
   };
 
-  const handleCancel = () => setShowModal(false);
-
-  // search course-----
-  const filteredCourses = useMemo(() => {
-    if (!searchCourse.trim()) return data;
-
-    return data.filter(item =>
-      item?.title?.toLowerCase().includes(searchCourse.toLowerCase()),
-    );
-  }, [searchCourse, data]);
+  const renderItem = ({ item }: { item: any }) => (
+    <CourseCard
+      item={item}
+      onEdit={() =>
+        navigation.navigate('CreateCourse', { data: item, isUpdated: true })
+      }
+      onDelete={() => {
+        setShowModal(true);
+        setCourseId(item?.id);
+      }}
+      onView={() => navigation.navigate('CourseVideoList', { item })}
+    />
+  );
 
   const renderFooter = () => {
     if (!loadingMore) return null;
     return (
       <View style={styles.footerLoader}>
-        <ActivityIndicator size="small" color={colors.cBg} />
-        <Text style={styles.loadingText}>Loading more courses...</Text>
+        <ActivityIndicator size="small" color={colors.cAccentLight} />
+        <Text style={styles.loadingText}>Loading more...</Text>
       </View>
     );
   };
 
-  const renderEmptyState = () => (
-    <View style={styles.emptyState}>
-      <View style={styles.emptyIcon}>
-        <BookOpen size={wp(30)} color={'#94A3B8'} />
+  const renderEmpty = () => {
+    if (loading) return null;
+    return (
+      <View style={styles.emptyState}>
+        <View style={styles.emptyIcon}>
+          <BookOpen size={wp(30)} color={'#94A3B8'} />
+        </View>
+        <Text style={styles.emptyTitle}>No courses found</Text>
+        <Text style={styles.emptySubtitle}>
+          {searchQuery
+            ? 'Try a different search term'
+            : 'Create your first course to get started'}
+        </Text>
       </View>
-      <Text style={styles.emptyTitle}>No courses found</Text>
-      <Text style={styles.emptySubtitle}>
-        {searchCourse
-          ? 'Try a different search term'
-          : 'Create your first course to get started'}
-      </Text>
-    </View>
+    );
+  };
+
+  const renderHeader = () => (
+    <>
+      {/* Search */}
+      <View style={styles.searchContainer}>
+        <Search size={wp(18)} color={'#64748B'} />
+        <CustomTextInput
+          inputContainerStyle={styles.searchInput}
+          inputStyle={{ fontSize: fp(14), color: '#1A1A2E' }}
+          placeholderTextColor={'#94A3B8'}
+          placeholder="Search courses..."
+          onChange={handleSearch as any}
+          value={searchQuery}
+        />
+        {searchQuery.length > 0 && (
+          <TouchableOpacity onPress={clearSearch} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+            <X size={wp(18)} color={'#94A3B8'} />
+          </TouchableOpacity>
+        )}
+      </View>
+
+      {/* List header */}
+      <View style={styles.listHeader}>
+        <Text style={styles.listTitle}>My Courses</Text>
+        <Text style={styles.courseCount}>{total} courses</Text>
+      </View>
+
+      {loading && (
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color={colors.cAccentLight} />
+        </View>
+      )}
+    </>
   );
 
   return (
@@ -116,10 +205,7 @@ const CreatorView: React.FC<{embedded?: boolean}> = ({embedded = false}) => {
           <View style={styles.header}>
             <View style={styles.headerLeft}>
               {user?.profile_image ? (
-                <Image
-                  source={{ uri: user?.profile_image }}
-                  style={styles.avatar}
-                />
+                <Image source={{ uri: user?.profile_image }} style={styles.avatar} />
               ) : (
                 <View style={styles.avatarFallback}>
                   <UserCircle size={wp(28)} color={colors.white} />
@@ -128,18 +214,14 @@ const CreatorView: React.FC<{embedded?: boolean}> = ({embedded = false}) => {
               <View>
                 <Text style={styles.headerSub}>My Courses</Text>
                 <Text style={styles.headerTitle}>
-                  {data.length} course{data.length !== 1 ? 's' : ''}
+                  {total} course{total !== 1 ? 's' : ''}
                 </Text>
               </View>
             </View>
-            <View
-              style={{ flexDirection: 'row', alignItems: 'center', gap: wp(4) }}
-            >
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: wp(4) }}>
               <TouchableOpacity
                 style={styles.bellBtn}
-                onPress={() =>
-                  Linking.openURL('https://www.instagram.com/manchly_app')
-                }
+                onPress={() => Linking.openURL('https://www.instagram.com/manchly_app')}
               >
                 <Instagram size={wp(20)} color={colors.white} />
               </TouchableOpacity>
@@ -154,67 +236,24 @@ const CreatorView: React.FC<{embedded?: boolean}> = ({embedded = false}) => {
         </View>
       )}
 
-      <ScrollView
+      <FlatList
+        data={loading ? [] : data}
+        renderItem={renderItem}
+        keyExtractor={item => item.id}
+        ListHeaderComponent={renderHeader}
+        ListEmptyComponent={renderEmpty}
+        ListFooterComponent={renderFooter}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.3}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        <View style={styles.searchContainer}>
-          <Search size={wp(18)} color={'#64748B'} />
-          <CustomTextInput
-            inputContainerStyle={styles.searchInput}
-            inputStyle={{ fontSize: fp(14), color: '#1A1A2E' }}
-            placeholderTextColor={'#94A3B8'}
-            placeholder="Search courses..."
-            onChange={setSearchCourse as any}
-            value={searchCourse}
-          />
-        </View>
-
-        <View style={styles.listHeader}>
-          <Text style={styles.listTitle}>My Courses</Text>
-          <Text style={styles.courseCount}>
-            {filteredCourses.length} courses
-          </Text>
-        </View>
-
-        {loading ? (
-          <View style={styles.loaderContainer}>
-            <ActivityIndicator size="large" color={colors.cBg} />
-            <Text style={styles.loadingText}>Loading your courses...</Text>
-          </View>
-        ) : (
-          <View style={styles.verticalListContainer}>
-            {filteredCourses.length === 0
-              ? renderEmptyState()
-              : filteredCourses.map(item => (
-                  <CourseCard
-                    key={item.id}
-                    item={item}
-                    onEdit={() =>
-                      navigation.navigate('CreateCourse', {
-                        data: item,
-                        isUpdated: true,
-                      })
-                    }
-                    onDelete={() => {
-                      setShowModal(true);
-                      setCourseId(item?.id);
-                    }}
-                    onView={() =>
-                      navigation.navigate('CourseVideoList', { item })
-                    }
-                  />
-                ))}
-            {renderFooter()}
-          </View>
-        )}
-      </ScrollView>
+        contentContainerStyle={styles.listContent}
+      />
 
       <DynamicModal
         visible={showModal}
         heading="Delete Course"
         message="Are you sure you want to delete this course?"
-        onCancel={handleCancel}
+        onCancel={() => setShowModal(false)}
         onDelete={handleDelete}
         loading={deleteLoader}
       />
@@ -229,7 +268,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.white,
   },
-  scrollContent: {
+  listContent: {
     flexGrow: 1,
     paddingBottom: hp(20),
   },
@@ -310,7 +349,7 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     height: hp(44),
-    width: '92%',
+    width: '85%',
     borderRadius: wp(14),
   },
 
@@ -334,27 +373,22 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
 
-  // Course list
-  verticalListContainer: {
-    paddingHorizontal: wp(12),
-    paddingTop: hp(4),
-  },
+  // Loaders
   loaderContainer: {
     height: hp(200),
     justifyContent: 'center',
     alignItems: 'center',
-    gap: wp(12),
   },
   footerLoader: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: wp(20),
-    gap: wp(12),
+    padding: wp(16),
+    gap: wp(8),
   },
   loadingText: {
     color: '#64748B',
-    fontSize: fp(14),
+    fontSize: fp(13),
     fontWeight: '500',
   },
 
@@ -386,62 +420,5 @@ const styles = StyleSheet.create({
     color: '#64748B',
     textAlign: 'center',
     lineHeight: fp(19),
-  },
-
-  // Stats
-  statsSection: {
-    padding: wp(16),
-  },
-  statsTitle: {
-    fontSize: fp(18),
-    fontWeight: '700',
-    color: '#1A1A2E',
-    marginBottom: hp(10),
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    rowGap: hp(10),
-  },
-
-  // Withdraw
-  withdrawCard: {
-    backgroundColor: colors.white,
-    borderRadius: wp(16),
-    padding: wp(16),
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginHorizontal: wp(16),
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  withdrawLabel: {
-    color: '#64748B',
-    fontWeight: '600',
-    fontSize: fp(12),
-  },
-  withdrawAmount: {
-    color: colors.cAccentLight,
-    marginTop: hp(2),
-    fontSize: fp(18),
-    fontWeight: '900',
-  },
-  withdrawBtn: {
-    backgroundColor: colors.cAccent,
-    paddingVertical: hp(10),
-    paddingHorizontal: wp(18),
-    borderRadius: wp(10),
-  },
-  withdrawBtnText: {
-    fontWeight: '700',
-    color: colors.white,
-    fontSize: fp(13),
   },
 });

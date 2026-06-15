@@ -668,21 +668,28 @@ export class AuthController {
     }
   }
 
-  // Health check endpoint
+  // Health check endpoint.
+  // "healthy" means the API process is up and serving. A Redis outage only makes
+  // OTP fall back to in-memory storage (degraded, not down), so we still return
+  // 200 and surface the degradation in the body rather than failing the check.
   static async healthCheck(req: Request, res: Response) {
+    let stats = { activeOTPs: 0, redisEnabled: false };
+    let note: string | undefined;
     try {
-      const stats = await otpManager.getStats();
-
-      ApiResponseHandler.success(res, {
-        status: "healthy",
-        otp_manager: {
-          active_otps: stats.activeOTPs,
-          redis_enabled: stats.redisEnabled
-        },
-        timestamp: new Date().toISOString()
-      }, "Service is healthy");
+      stats = await otpManager.getStats();
     } catch (err: any) {
-      ApiResponseHandler.customError(res, "Service is unhealthy", 500, "SERVICE_UNHEALTHY", err.message);
+      note = err?.message || "otp stats unavailable";
+      console.warn("[health] otp stats unavailable:", note);
     }
+
+    ApiResponseHandler.success(res, {
+      status: stats.redisEnabled ? "healthy" : "degraded",
+      otp_manager: {
+        active_otps: stats.activeOTPs,
+        redis_enabled: stats.redisEnabled,
+        ...(note ? { note } : {}),
+      },
+      timestamp: new Date().toISOString()
+    }, "Service is healthy");
   }
 }

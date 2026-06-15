@@ -494,20 +494,29 @@ class OTPManager {
    * Get statistics about OTP usage
    */
   async getStats(): Promise<{ activeOTPs: number; redisEnabled: boolean }> {
+    // Prefer Redis when available, but NEVER let a stats call throw — this powers
+    // the /auth/health endpoint, which must stay up even when Redis is down.
     if (this.redisClient) {
-      // Get all OTP keys from Redis
-      const keys = await this.redisClient.keys('otp:*');
-      return {
-        activeOTPs: keys.length,
-        redisEnabled: true
-      };
-    } else {
-      const keys = Array.from(this.cache.keys());
-      return {
-        activeOTPs: keys.length,
-        redisEnabled: false
-      };
+      try {
+        const keys = await this.redisClient.keys('otp:*');
+        return { activeOTPs: keys.length, redisEnabled: true };
+      } catch (err) {
+        console.warn('[otp] redis stats failed, falling back to memory count:', (err as Error)?.message);
+      }
     }
+
+    // In-memory fallback. The ttl-cache build in use does not expose keys(), so
+    // probe defensively for whatever the cache offers instead of assuming one.
+    let activeOTPs = 0;
+    try {
+      const c = this.cache as any;
+      if (typeof c.keys === 'function') activeOTPs = Array.from(c.keys()).length;
+      else if (typeof c.size === 'number') activeOTPs = c.size;
+      else if (typeof c.length === 'number') activeOTPs = c.length;
+    } catch {
+      activeOTPs = 0;
+    }
+    return { activeOTPs, redisEnabled: false };
   }
 
   /**

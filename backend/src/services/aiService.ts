@@ -46,7 +46,10 @@ interface ChatResult {
   text: string;
 }
 
-const HF_DEFAULT     = process.env.HF_MODEL     || "meta-llama/Llama-3.1-8B-Instruct";
+const HF_DEFAULT     = process.env.HF_MODEL          || "meta-llama/Llama-3.1-8B-Instruct";
+// Optional cheaper/free-tier model to retry with if the primary is rate-limited
+// or unavailable (the 72B model often needs HF PRO). Mirrors the claude_ai project.
+const HF_FALLBACK    = process.env.HF_MODEL_FALLBACK || "Qwen/Qwen2.5-7B-Instruct";
 const OPENAI_DEFAULT = process.env.OPENAI_MODEL || "gpt-4o-mini";
 const GEMINI_DEFAULT = process.env.GEMINI_MODEL || "gemini-1.5-flash";
 
@@ -72,31 +75,52 @@ async function chatHF(opts: ChatOptions): Promise<string> {
   if (opts.system) messages.push({ role: "system", content: opts.system });
   messages.push({ role: "user", content: opts.user });
 
-  const body: any = {
-    model: opts.model || HF_DEFAULT,
-    messages,
-    temperature: opts.temperature ?? 0.6,
-    max_tokens: opts.maxTokens ?? 600,
+  const callModel = async (model: string): Promise<string> => {
+    const body: any = {
+      model,
+      messages,
+      temperature: opts.temperature ?? 0.6,
+      max_tokens: opts.maxTokens ?? 600,
+    };
+    // NOTE: the HF Inference Router rejects `response_format: json_object` for
+    // the Qwen models ("not supported" → 400). Our prompts already instruct the
+    // model to return JSON and safeParseJSON() strips any fences/prose, so we
+    // rely on that instead of the API param. (jsonOnly is still honoured upstream.)
+
+    const res = await fetch("https://router.huggingface.co/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.HF_TOKEN}`,
+      },
+      body: JSON.stringify(body),
+    });
+
+    const data: any = await res.json();
+    if (!res.ok) {
+      const msg = data?.error?.message || data?.error || `HF error ${res.status}`;
+      throw new Error(typeof msg === "string" ? msg : JSON.stringify(msg));
+    }
+    return data?.choices?.[0]?.message?.content?.trim() || "";
   };
-  // Many HF-served models accept this; if a model doesn't, it just gets ignored
-  // and safeParseJSON() handles loose output. So opting in is safe.
-  if (opts.jsonOnly) body.response_format = { type: "json_object" };
 
-  const res = await fetch("https://router.huggingface.co/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.HF_TOKEN}`,
-    },
-    body: JSON.stringify(body),
-  });
-
-  const data: any = await res.json();
-  if (!res.ok) {
-    const msg = data?.error?.message || data?.error || `HF error ${res.status}`;
-    throw new Error(typeof msg === "string" ? msg : JSON.stringify(msg));
+  const primary = opts.model || HF_DEFAULT;
+  try {
+    return await callModel(primary);
+  } catch (err: any) {
+    // Retry once on the fallback model for transient/availability errors
+    // (rate limit, model cold/unavailable, free-tier gating on the big model).
+    const msg = String(err?.message || err);
+    const shouldFallback =
+      HF_FALLBACK &&
+      HF_FALLBACK !== primary &&
+      /\b(404|429|503)\b|quota|rate.?limit|overloaded|not supported|does not exist|currently loading/i.test(msg);
+    if (!shouldFallback) throw err;
+    console.warn(
+      `[ai] HF primary "${primary}" unavailable (${msg.slice(0, 120)}). Falling back to ${HF_FALLBACK}.`
+    );
+    return await callModel(HF_FALLBACK);
   }
-  return data?.choices?.[0]?.message?.content?.trim() || "";
 }
 
 async function chatOpenAI(opts: ChatOptions): Promise<string> {

@@ -301,8 +301,9 @@ export class SessionController {
       const userId = req.user!.userId;
       const { profession, bio, categories, experience, audio_rate, video_rate, languages } = req.body;
 
-      if (!profession || !audio_rate) {
-        return res.status(400).json({ error: "profession and audio_rate are required" });
+      const effectiveAudioRate = audio_rate || video_rate;
+      if (!profession || !effectiveAudioRate) {
+        return res.status(400).json({ error: "profession and audio_rate or video_rate are required" });
       }
 
       const existing = await prisma.session_experts.findUnique({ where: { user_id: userId } });
@@ -317,8 +318,8 @@ export class SessionController {
           bio: bio || null,
           categories: categories || [],
           experience: experience || 0,
-          audio_rate,
-          video_rate: video_rate || audio_rate,
+          audio_rate: effectiveAudioRate,
+          video_rate: video_rate || effectiveAudioRate,
           languages: languages || [],
           is_active: true,
           is_available: true,
@@ -579,7 +580,11 @@ export class SessionController {
         select: userSelect,
       });
 
-      return res.json({ data: { products, creator } });
+      const expert = await prisma.session_experts.findFirst({
+        where: { user_id: creator_id, is_active: true },
+      });
+
+      return res.json({ data: { products, creator, expert } });
     } catch (err: any) {
       console.error("getCreatorProducts error:", err);
       return res.status(500).json({ error: "Failed to fetch products" });

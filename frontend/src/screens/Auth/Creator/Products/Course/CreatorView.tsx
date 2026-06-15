@@ -17,7 +17,8 @@ import { ThunkDispatch } from '@reduxjs/toolkit';
 import { deleteCourse, fetchCourses } from '../../../../../store/CourseSlice';
 import DynamicModal from '../../../../../components/CommonModal';
 import CourseCard from './CourseCard';
-import { Bell, BookOpen, Search, UserCircle, Instagram, X } from 'lucide-react-native';
+import { Bell, BookOpen, Search, UserCircle, Instagram, X, Plus } from 'lucide-react-native';
+import { FAB } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import CustomTextInput from '../../../../../components/CustomInput';
 
@@ -249,6 +250,15 @@ const CreatorView: React.FC<{embedded?: boolean}> = ({embedded = false}) => {
         contentContainerStyle={styles.listContent}
       />
 
+      <View style={styles.fabContainer}>
+        <FAB
+          icon={({ size, color }) => <Plus size={size} color={color} />}
+          style={styles.fab}
+          onPress={() => navigation.navigate('CreateCourse')}
+          color={colors.white}
+        />
+      </View>
+
       <DynamicModal
         visible={showModal}
         heading="Delete Course"
@@ -420,5 +430,16 @@ const styles = StyleSheet.create({
     color: '#64748B',
     textAlign: 'center',
     lineHeight: fp(19),
+  },
+
+  // FAB
+  fabContainer: {
+    position: 'absolute',
+    right: wp(16),
+    bottom: hp(16),
+  },
+  fab: {
+    backgroundColor: '#0F3460',
+    borderRadius: wp(50),
   },
 });

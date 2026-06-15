@@ -14,32 +14,42 @@ import {
   ShieldCheck,
   ShieldX,
   Video,
-  Clock,
-  IndianRupee,
+  Star,
+  Briefcase,
+  Globe,
+  ArrowLeft,
+  MapPin,
 } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 import { useSelector, useDispatch } from 'react-redux';
+import LinearGradient from 'react-native-linear-gradient';
 import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
 import AppHeaderWithBack from '../../../../components/AppHeaderWithBack';
 import { InstagramIcon, LinkedinIcon, YoutubeIcon, FacebookIcon } from '../../../../components/SocialIcons';
-import { createSession, getCreatorSessionProducts, bookSession } from '../../../../store/SessionSlice';
+import { getCreatorSessionProducts } from '../../../../store/SessionSlice';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const CreatorPublicProfile = () => {
   const navigation = useNavigation<any>();
+  const insets = useSafeAreaInsets();
   const route = useRoute<any>();
   const dispatch = useDispatch<any>();
   const isFocused = useIsFocused();
   const creator = route.params?.creator;
   const { user } = useSelector((state: any) => state.userReducer);
   const [sessionProducts, setSessionProducts] = React.useState<any[]>([]);
+  const [expert, setExpert] = React.useState<any>(null);
 
   React.useEffect(() => {
     const creatorId = creator?.id || creator?._id;
     if (creatorId && isFocused) {
       dispatch(getCreatorSessionProducts(creatorId))
         .unwrap()
-        .then((res: any) => setSessionProducts(res?.data?.products || []));
+        .then((res: any) => {
+          setSessionProducts(res?.data?.products || []);
+          setExpert(res?.data?.expert || null);
+        });
     }
   }, [isFocused, creator]);
 
@@ -83,72 +93,123 @@ const CreatorPublicProfile = () => {
   const hasSocialLinks =
     creator?.instagram_link || creator?.linkedin_link || creator?.youtube_link || creator?.facebook_link;
 
+  const socialLinks = [
+    creator?.instagram_link && {
+      key: 'instagram',
+      url: creator.instagram_link,
+      icon: InstagramIcon,
+      color: '#E1306C',
+      label: 'Instagram',
+    },
+    creator?.linkedin_link && {
+      key: 'linkedin',
+      url: creator.linkedin_link,
+      icon: LinkedinIcon,
+      color: '#0077B5',
+      label: 'LinkedIn',
+    },
+    creator?.youtube_link && {
+      key: 'youtube',
+      url: creator.youtube_link,
+      icon: YoutubeIcon,
+      color: '#FF0000',
+      label: 'YouTube',
+    },
+    creator?.facebook_link && {
+      key: 'facebook',
+      url: creator.facebook_link,
+      icon: FacebookIcon,
+      color: '#1877F2',
+      label: 'Facebook',
+    },
+  ].filter(Boolean) as any[];
+
   return (
     <View style={styles.container}>
-      <AppHeaderWithBack title="Creator Profile" />
-
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Profile Card */}
-        <View style={styles.profileCard}>
+        {/* Hero Header */}
+        <LinearGradient
+          colors={['#3B0D0D', '#692626', '#8B3A3A']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[styles.heroGradient, { paddingTop: insets.top + hp(10) }]}
+        >
+          {/* Back button */}
+          <TouchableOpacity
+            style={[styles.backBtn, { top: insets.top + hp(10) }]}
+            onPress={() => navigation.goBack()}
+            activeOpacity={0.7}
+          >
+            <ArrowLeft
+              size={wp(22)}
+              color={colors.white}
+              strokeWidth={2.5}
+            />
+          </TouchableOpacity>
+
+          {/* Decorative circles */}
+          <View style={styles.decorCircle1} />
+          <View style={styles.decorCircle2} />
+
           {/* Avatar */}
-          <View style={styles.avatarContainer}>
-            <View style={styles.imageWrapper}>
+          <View style={styles.avatarOuter}>
+            <View style={styles.avatarInner}>
               {creator?.profile_image ? (
                 <Image source={{ uri: creator.profile_image }} style={styles.profileImage} />
               ) : (
-                <User2 size={wp(44)} color={colors.white} />
+                <LinearGradient
+                  colors={['#8B3A3A', '#692626']}
+                  style={styles.avatarFallback}
+                >
+                  <User2 size={wp(40)} color={colors.white} />
+                </LinearGradient>
               )}
             </View>
           </View>
 
-          {/* Name */}
+          {/* Name & Profession */}
           <Text style={styles.profileName}>{displayName}</Text>
-
-          {/* Book Session Products (user can only book, expert calls) */}
-
-          {/* Bookable Session Products */}
-          {sessionProducts.length > 0 && (
-            <>
-              <View style={styles.divider} />
-              <Text style={styles.connectTitle}>Book a Session</Text>
-              <View style={{alignSelf: 'stretch', gap: hp(8)}}>
-                {sessionProducts.map((product: any) => (
-                    <TouchableOpacity
-                      key={product.id}
-                      style={styles.productCard}
-                      activeOpacity={0.8}
-                      onPress={() => {
-                        dispatch(bookSession({product_id: product.id}))
-                          .unwrap()
-                          .then((res: any) => {
-                            const session = res?.data;
-                            navigation.navigate('CallScreen', {
-                              callID: session.call_id,
-                              userID: user?.id,
-                              userName: user?.name || 'User',
-                              mode: 'video',
-                              sessionId: session.id,
-                            });
-                          });
-                      }}>
-                      <View style={[styles.productIcon, {backgroundColor: colors.success + '15'}]}>
-                        <Video size={wp(20)} color={colors.success} strokeWidth={1.8} />
-                      </View>
-                      <View style={{flex: 1}}>
-                        <Text style={styles.productName}>{product.title}</Text>
-                        <Text style={styles.productMeta}>
-                          {product.duration} min · Video
-                        </Text>
-                      </View>
-                      <Text style={styles.productPrice}>₹{product.price}</Text>
-                    </TouchableOpacity>
-                ))}
-              </View>
-            </>
+          {expert?.profession && (
+            <View style={styles.professionRow}>
+              <Briefcase size={wp(13)} color={'rgba(255,255,255,0.6)'} />
+              <Text style={styles.professionText}>{expert.profession}</Text>
+            </View>
           )}
+
+          {/* Stats Row */}
+          <View style={styles.statsRow}>
+            {expert?.rating > 0 && (
+              <View style={styles.statItem}>
+                <Star size={wp(14)} color={'#FBBF24'} fill={'#FBBF24'} />
+                <Text style={styles.statValue}>{expert.rating}</Text>
+                <Text style={styles.statLabel}>Rating</Text>
+              </View>
+            )}
+            {expert?.experience > 0 && (
+              <View style={styles.statItem}>
+                <Briefcase size={wp(14)} color={'#F97316'} />
+                <Text style={styles.statValue}>{expert.experience}+</Text>
+                <Text style={styles.statLabel}>Years</Text>
+              </View>
+            )}
+            {expert?.total_sessions > 0 && (
+              <View style={styles.statItem}>
+                <Video size={wp(14)} color={'#34D399'} />
+                <Text style={styles.statValue}>{expert.total_sessions}</Text>
+                <Text style={styles.statLabel}>Sessions</Text>
+              </View>
+            )}
+            {expert?.languages?.length > 0 && (
+              <View style={styles.statItem}>
+                <Globe size={wp(14)} color={'#FB923C'} />
+                <Text style={styles.statValue}>{expert.languages.length}</Text>
+                <Text style={styles.statLabel}>Languages</Text>
+              </View>
+            )}
+          </View>
 
           {/* KYC Badge */}
           <View
@@ -158,78 +219,81 @@ const CreatorPublicProfile = () => {
             ]}
           >
             {creator?.kyc_verified ? (
-              <ShieldCheck size={wp(14)} color={colors.success} />
+              <ShieldCheck size={wp(13)} color={'#34D399'} />
             ) : (
-              <ShieldX size={wp(14)} color={colors.error} />
+              <ShieldX size={wp(13)} color={'#F87171'} />
             )}
             <Text
               style={[
                 styles.kycText,
-                { color: creator?.kyc_verified ? colors.success : colors.error },
+                { color: creator?.kyc_verified ? '#34D399' : '#F87171' },
               ]}
             >
               {creator?.kyc_verified ? 'KYC Verified' : 'KYC Not Verified'}
             </Text>
           </View>
+        </LinearGradient>
 
-          {/* Social Links */}
-          {hasSocialLinks && (
-            <>
-              <View style={styles.divider} />
-              <Text style={styles.connectTitle}>Connect</Text>
-              <View style={styles.socialGrid}>
-                {creator?.instagram_link ? (
+        {/* Bio Section */}
+        {expert?.bio ? (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>About</Text>
+            <Text style={styles.bioText}>{expert.bio}</Text>
+          </View>
+        ) : null}
+
+        {/* Languages */}
+        {expert?.languages?.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Languages</Text>
+            <View style={styles.chipRow}>
+              {expert.languages.map((lang: string) => (
+                <View key={lang} style={styles.chip}>
+                  <Text style={styles.chipText}>{lang}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* Categories */}
+        {expert?.categories?.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Expertise</Text>
+            <View style={styles.chipRow}>
+              {expert.categories.map((cat: string) => (
+                <View key={cat} style={[styles.chip, styles.chipAccent]}>
+                  <Text style={[styles.chipText, styles.chipTextAccent]}>{cat}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* Social Links */}
+        {hasSocialLinks && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Connect</Text>
+            <View style={styles.socialRow}>
+              {socialLinks.map((s) => {
+                const Icon = s.icon;
+                return (
                   <TouchableOpacity
+                    key={s.key}
                     style={styles.socialBtn}
-                    onPress={() => openLink(creator.instagram_link)}
+                    onPress={() => openLink(s.url)}
                     activeOpacity={0.7}
                   >
-                    <View style={[styles.socialIconWrap, { backgroundColor: '#E1306C15' }]}>
-                      <InstagramIcon size={wp(22)} color="#E1306C" />
+                    <View style={[styles.socialIconWrap, { backgroundColor: s.color + '12' }]}>
+                      <Icon size={wp(22)} color={s.color} />
                     </View>
-                    <Text style={styles.socialLabel}>Instagram</Text>
+                    <Text style={styles.socialLabel}>{s.label}</Text>
                   </TouchableOpacity>
-                ) : null}
-                {creator?.linkedin_link ? (
-                  <TouchableOpacity
-                    style={styles.socialBtn}
-                    onPress={() => openLink(creator.linkedin_link)}
-                    activeOpacity={0.7}
-                  >
-                    <View style={[styles.socialIconWrap, { backgroundColor: '#0077B515' }]}>
-                      <LinkedinIcon size={wp(22)} color="#0077B5" />
-                    </View>
-                    <Text style={styles.socialLabel}>LinkedIn</Text>
-                  </TouchableOpacity>
-                ) : null}
-                {creator?.youtube_link ? (
-                  <TouchableOpacity
-                    style={styles.socialBtn}
-                    onPress={() => openLink(creator.youtube_link)}
-                    activeOpacity={0.7}
-                  >
-                    <View style={[styles.socialIconWrap, { backgroundColor: '#FF000015' }]}>
-                      <YoutubeIcon size={wp(22)} color="#FF0000" />
-                    </View>
-                    <Text style={styles.socialLabel}>YouTube</Text>
-                  </TouchableOpacity>
-                ) : null}
-                {creator?.facebook_link ? (
-                  <TouchableOpacity
-                    style={styles.socialBtn}
-                    onPress={() => openLink(creator.facebook_link)}
-                    activeOpacity={0.7}
-                  >
-                    <View style={[styles.socialIconWrap, { backgroundColor: '#1877F215' }]}>
-                      <FacebookIcon size={wp(22)} color="#1877F2" />
-                    </View>
-                    <Text style={styles.socialLabel}>Facebook</Text>
-                  </TouchableOpacity>
-                ) : null}
-              </View>
-            </>
-          )}
-        </View>
+                );
+              })}
+            </View>
+          </View>
+        )}
       </ScrollView>
     </View>
   );
@@ -240,83 +304,209 @@ export default CreatorPublicProfile;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: '#F1F5F9',
   },
   scrollContent: {
     paddingBottom: hp(40),
   },
-  profileCard: {
-    backgroundColor: colors.white,
-    marginHorizontal: wp(16),
-    marginTop: hp(20),
-    borderRadius: wp(20),
-    paddingVertical: hp(30),
+
+  // Hero
+  heroGradient: {
+    paddingTop: hp(20),
+    paddingBottom: hp(24),
     paddingHorizontal: wp(20),
     alignItems: 'center',
-    elevation: 3,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderBottomLeftRadius: wp(28),
+    borderBottomRightRadius: wp(28),
+    overflow: 'hidden',
   },
-  avatarContainer: {
-    marginBottom: hp(16),
-  },
-  imageWrapper: {
-    width: wp(110),
-    height: wp(110),
-    borderRadius: wp(55),
-    backgroundColor: colors.cAccent,
+  backBtn: {
+    position: 'absolute',
+    left: wp(16),
+    width: wp(38),
+    height: wp(38),
+    borderRadius: wp(12),
+    backgroundColor: 'rgba(255,255,255,0.15)',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 3,
-    borderColor: colors.cAccentLight + '40',
+    zIndex: 10,
   },
-  profileImage: {
+  decorCircle1: {
+    position: 'absolute',
+    top: -wp(60),
+    right: -wp(40),
+    width: wp(180),
+    height: wp(180),
+    borderRadius: wp(90),
+    backgroundColor: 'rgba(139, 58, 58, 0.15)',
+  },
+  decorCircle2: {
+    position: 'absolute',
+    bottom: -wp(30),
+    left: -wp(50),
+    width: wp(130),
+    height: wp(130),
+    borderRadius: wp(65),
+    backgroundColor: 'rgba(249, 115, 22, 0.1)',
+  },
+
+  // Avatar
+  avatarOuter: {
+    padding: wp(4),
+    borderRadius: wp(62),
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    marginBottom: hp(14),
+  },
+  avatarInner: {
     width: wp(110),
     height: wp(110),
     borderRadius: wp(55),
+    overflow: 'hidden',
+    borderWidth: 3,
+    borderColor: 'rgba(255,255,255,0.2)',
   },
+  profileImage: {
+    width: '100%',
+    height: '100%',
+  },
+  avatarFallback: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
   profileName: {
     fontSize: fp(24),
     fontWeight: '800',
-    color: '#1A1A2E',
-    marginBottom: hp(12),
+    color: colors.white,
+    marginBottom: hp(4),
   },
-  sessionBtns: {
-    flexDirection: 'row',
-    gap: wp(12),
-    marginBottom: hp(16),
-  },
-  sessionBtn: {
+  professionRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: wp(8),
-    paddingHorizontal: wp(20),
-    paddingVertical: hp(12),
-    borderRadius: wp(12),
-    shadowOffset: {width: 0, height: 3},
-    shadowOpacity: 0.25,
-    shadowRadius: 6,
-    elevation: 4,
+    gap: wp(6),
+    marginBottom: hp(18),
   },
-  sessionBtnText: {
-    fontSize: fp(14),
-    fontWeight: '700',
+  professionText: {
+    fontSize: fp(13),
+    color: 'rgba(255,255,255,0.6)',
+    fontWeight: '500',
+  },
+
+  // Stats
+  statsRow: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(255,255,255,0.07)',
+    borderRadius: wp(14),
+    paddingVertical: hp(12),
+    paddingHorizontal: wp(8),
+    gap: wp(4),
+    marginBottom: hp(14),
+    alignSelf: 'stretch',
+  },
+  statItem: {
+    flex: 1,
+    alignItems: 'center',
+    gap: hp(3),
+  },
+  statValue: {
+    fontSize: fp(15),
+    fontWeight: '800',
     color: colors.white,
   },
+  statLabel: {
+    fontSize: fp(10),
+    color: 'rgba(255,255,255,0.45)',
+    fontWeight: '600',
+  },
+
+  // KYC
+  kycBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(5),
+    paddingHorizontal: wp(12),
+    paddingVertical: hp(5),
+    borderRadius: wp(20),
+  },
+  kycVerified: {
+    backgroundColor: 'rgba(52, 211, 153, 0.1)',
+  },
+  kycNotVerified: {
+    backgroundColor: 'rgba(248, 113, 113, 0.1)',
+  },
+  kycText: {
+    fontSize: fp(11),
+    fontWeight: '700',
+  },
+
+  // Sections
+  section: {
+    marginHorizontal: wp(16),
+    marginTop: hp(18),
+    backgroundColor: colors.white,
+    borderRadius: wp(16),
+    padding: wp(16),
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  sectionTitle: {
+    fontSize: fp(14),
+    fontWeight: '700',
+    color: '#1A1A2E',
+    marginBottom: hp(12),
+    letterSpacing: 0.3,
+  },
+
+  // Bio
+  bioText: {
+    fontSize: fp(13),
+    color: '#475569',
+    lineHeight: fp(20),
+  },
+
+  // Chips
+  chipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: wp(8),
+  },
+  chip: {
+    backgroundColor: '#F1F5F9',
+    paddingHorizontal: wp(12),
+    paddingVertical: hp(6),
+    borderRadius: wp(20),
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  chipText: {
+    fontSize: fp(12),
+    fontWeight: '600',
+    color: '#475569',
+  },
+  chipAccent: {
+    backgroundColor: colors.secPrimary + '10',
+    borderColor: colors.secPrimary + '25',
+  },
+  chipTextAccent: {
+    color: colors.secPrimary,
+  },
+
+  // Products
   productCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F1F5F9',
-    borderRadius: wp(12),
+    backgroundColor: '#F8FAFC',
+    borderRadius: wp(14),
     padding: wp(12),
     borderWidth: 1,
     borderColor: '#E2E8F0',
   },
-  productIcon: {
+  productIconWrap: {
     width: wp(42),
     height: wp(42),
     borderRadius: wp(12),
@@ -326,69 +516,45 @@ const styles = StyleSheet.create({
   },
   productName: {
     fontSize: fp(14),
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#1A1A2E',
   },
   productMeta: {
     fontSize: fp(11),
-    color: '#64748B',
+    color: '#94A3B8',
     marginTop: hp(2),
+    fontWeight: '500',
   },
-  productPrice: {
-    fontSize: fp(16),
-    fontWeight: '800',
-    color: colors.cAccentLight,
-  },
-  kycBadge: {
+  priceTag: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(6),
-    paddingHorizontal: wp(14),
-    paddingVertical: hp(7),
-    borderRadius: wp(20),
-    borderWidth: 1,
+    alignItems: 'baseline',
+    marginRight: wp(4),
   },
-  kycVerified: {
-    backgroundColor: colors.success + '10',
-    borderColor: colors.success + '30',
-  },
-  kycNotVerified: {
-    backgroundColor: colors.error + '10',
-    borderColor: colors.error + '30',
-  },
-  kycText: {
+  priceSymbol: {
     fontSize: fp(12),
     fontWeight: '700',
+    color: colors.secPrimary,
   },
-  divider: {
-    width: '80%',
-    height: 1,
-    backgroundColor: '#E2E8F0',
-    marginVertical: hp(20),
+  priceValue: {
+    fontSize: fp(18),
+    fontWeight: '800',
+    color: colors.secPrimary,
   },
-  connectTitle: {
-    fontSize: fp(14),
-    fontWeight: '700',
-    color: '#64748B',
-    marginBottom: hp(14),
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
-  },
-  socialGrid: {
+
+  // Social
+  socialRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     justifyContent: 'center',
-    gap: wp(12),
+    gap: wp(16),
   },
   socialBtn: {
     alignItems: 'center',
-    gap: hp(8),
-    width: wp(80),
+    gap: hp(6),
   },
   socialIconWrap: {
-    width: wp(52),
-    height: wp(52),
-    borderRadius: wp(16),
+    width: wp(50),
+    height: wp(50),
+    borderRadius: wp(15),
     justifyContent: 'center',
     alignItems: 'center',
   },

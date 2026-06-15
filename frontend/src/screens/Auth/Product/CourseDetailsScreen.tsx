@@ -18,7 +18,7 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
-import { Users, Play, CheckCircle } from 'lucide-react-native';
+import { Users, Play, CheckCircle, BookOpen } from 'lucide-react-native';
 import { CFPaymentGatewayService } from 'react-native-cashfree-pg-sdk';
 import {
   CFEnvironment,
@@ -219,7 +219,14 @@ const CourseDetailsScreen: React.FC = () => {
             style={styles.heroPlayer}
           />
         ) : (
-          <Image source={{ uri: course.thumbnail }} style={styles.thumbnail} />
+          course.thumbnail ? (
+            <Image source={{ uri: course.thumbnail }} style={styles.thumbnail} />
+          ) : (
+            <View style={styles.thumbnailPlaceholder}>
+              <BookOpen size={wp(44)} color={colors.secPrimary} strokeWidth={1.2} />
+              <Text style={styles.placeholderText}>{course.title || 'Course'}</Text>
+            </View>
+          )
         )}
 
         <View style={styles.content}>
@@ -348,7 +355,23 @@ const PriceRow = ({ label, value }: any) => (
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.white },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  thumbnail: { width: '100%', height: hp(220) },
+  thumbnail: { width: '100%', height: hp(220), backgroundColor: '#F1F5F9' },
+  thumbnailPlaceholder: {
+    width: '100%',
+    height: hp(220),
+    backgroundColor: colors.secPrimary + '10',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: hp(8),
+  },
+  placeholderText: {
+    fontSize: fp(15),
+    fontWeight: '600',
+    color: colors.secPrimary,
+    opacity: 0.6,
+    paddingHorizontal: wp(30),
+    textAlign: 'center',
+  },
   heroPlayer: {
     width: '100%',
     aspectRatio: 16 / 9,

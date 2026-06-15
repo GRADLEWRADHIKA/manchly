@@ -34,22 +34,32 @@ const CourseCard: React.FC<CourseCardProps> = ({
     item.thumbnail || item.videos?.[0]?.thumbnail_url || item.image || null;
 
   return (
-    <View style={styles.card}>
+    <TouchableOpacity
+      style={styles.card}
+      activeOpacity={0.85}
+      onPress={() => handleCoursePress(courseId)}
+    >
       {/* Thumbnail */}
-      <View style={styles.mediaContainer}>
-        <TouchableOpacity style={styles.thumbnailContainer} activeOpacity={1}>
-          {thumbnailUrl ? (
-            <Image source={{ uri: thumbnailUrl }} style={styles.courseThumbnail} />
-          ) : (
-            <View style={styles.placeholderThumbnail}>
-              <BookOpen size={wp(40)} color={colors.textSecondary} />
-            </View>
-          )}
-
-          <View style={styles.levelBadge}>
-            <Text style={styles.levelText}>{level}</Text>
+      <View style={styles.thumbnailWrap}>
+        {thumbnailUrl ? (
+          <Image source={{ uri: thumbnailUrl }} style={styles.thumbnail} />
+        ) : (
+          <View style={styles.placeholderThumbnail}>
+            <BookOpen size={wp(36)} color={colors.secPrimary} strokeWidth={1.2} />
+            <Text style={styles.placeholderText}>{item.title || 'Course'}</Text>
           </View>
-        </TouchableOpacity>
+        )}
+
+        <View style={styles.levelBadge}>
+          <Text style={styles.levelText}>{level}</Text>
+        </View>
+
+        {/* Price badge */}
+        <View style={styles.priceBadge}>
+          <Text style={styles.priceBadgeText}>
+            {isEnrolled ? 'Enrolled' : price}
+          </Text>
+        </View>
       </View>
 
       {/* Content */}
@@ -58,9 +68,8 @@ const CourseCard: React.FC<CourseCardProps> = ({
           <Text style={styles.title} numberOfLines={2}>
             {item.title}
           </Text>
-
-          <View style={styles.ratingContainer}>
-            <Star size={wp(14)} color="#FFD700" fill="#FFD700" />
+          <View style={styles.ratingBadge}>
+            <Star size={wp(12)} color="#FFD700" fill="#FFD700" />
             <Text style={styles.ratingText}>{rating}</Text>
           </View>
         </View>
@@ -69,60 +78,43 @@ const CourseCard: React.FC<CourseCardProps> = ({
           by {instructorName}
         </Text>
 
-        <View style={styles.metaRow}>
-          <View style={styles.metaItem}>
-            <Users size={wp(14)} color={colors.textSecondary} />
-            <Text style={styles.metaText}>{studentsCount}</Text>
-          </View>
-
-          <View style={styles.metaItem}>
-            <Play size={wp(14)} color={colors.textSecondary} />
-            <Text style={styles.metaText}>{videosCount}</Text>
-          </View>
-
-          <View style={styles.metaItem}>
-            <Clock size={wp(14)} color={colors.textSecondary} />
-            <Text style={styles.metaText}>{duration}</Text>
-          </View>
-        </View>
-
+        {/* Meta + Button row */}
         <View style={styles.footerRow}>
-          <View style={styles.priceContainer}>
-            <Text style={[styles.priceText, isEnrolled && styles.enrolledText]}>
-              {isEnrolled ? 'Enrolled' : price}
+          <View style={styles.metaRow}>
+            <View style={styles.metaItem}>
+              <Users size={wp(13)} color={colors.textSecondary} strokeWidth={1.8} />
+              <Text style={styles.metaText}>{studentsCount}</Text>
+            </View>
+            <View style={styles.metaItem}>
+              <Play size={wp(13)} color={colors.textSecondary} strokeWidth={1.8} />
+              <Text style={styles.metaText}>{videosCount}</Text>
+            </View>
+            <View style={styles.metaItem}>
+              <Clock size={wp(13)} color={colors.textSecondary} strokeWidth={1.8} />
+              <Text style={styles.metaText}>{duration}</Text>
+            </View>
+          </View>
+
+          <TouchableOpacity
+            style={[
+              styles.enrollBtn,
+              {
+                backgroundColor: isEnrolled
+                  ? colors.success
+                  : userType === 'USER'
+                  ? colors.secPrimary
+                  : colors.primary,
+              },
+            ]}
+            onPress={() => handleCoursePress(courseId)}
+          >
+            <Text style={styles.enrollBtnText}>
+              {isEnrolled ? 'Continue' : 'Enroll Now'}
             </Text>
-          </View>
-
-          <View style={styles.buttonGroup}>
-            <TouchableOpacity
-              style={[
-                styles.button,
-                styles.primaryButton,
-                {
-                  backgroundColor: isEnrolled
-                    ? colors.success
-                    : userType === 'USER'
-                    ? colors.secPrimary
-                    : colors.primary,
-                },
-              ]}
-              onPress={() => handleCoursePress(courseId)}
-            >
-              <Text style={styles.primaryButtonText}>
-                {isEnrolled ? 'Continue' : 'Enroll Now'}
-              </Text>
-            </TouchableOpacity>
-
-            {/* <TouchableOpacity
-              style={[styles.button, styles.outlineButton]}
-              onPress={() => handleCoursePress(courseId)}
-            >
-              <Text style={styles.outlineButtonText}>Preview</Text>
-            </TouchableOpacity> */}
-          </View>
+          </TouchableOpacity>
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 
@@ -130,79 +122,132 @@ export default CourseCard;
 
 const styles = StyleSheet.create({
   card: {
-    width: '100%',
-    backgroundColor: colors.surface,
-    borderRadius: wp(20),
+    backgroundColor: colors.white,
+    borderRadius: wp(14),
     overflow: 'hidden',
-    elevation: 5,
-    marginBottom: hp(16),
+    marginBottom: hp(12),
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#E2E8F0',
   },
-  mediaContainer: { position: 'relative' },
-  thumbnailContainer: { position: 'relative' },
-  courseThumbnail: { width: '100%', height: hp(180) },
+  thumbnailWrap: {
+    position: 'relative',
+  },
+  thumbnail: {
+    width: '100%',
+    height: hp(120),
+    backgroundColor: '#F1F5F9',
+  },
   placeholderThumbnail: {
     width: '100%',
-    height: hp(180),
-    backgroundColor: colors.surface,
+    height: hp(120),
+    backgroundColor: colors.secPrimary + '10',
     justifyContent: 'center',
     alignItems: 'center',
+    gap: hp(6),
+  },
+  placeholderText: {
+    fontSize: fp(13),
+    fontWeight: '600',
+    color: colors.secPrimary,
+    opacity: 0.6,
   },
   levelBadge: {
     position: 'absolute',
-    top: hp(10),
-    left: wp(10),
-    backgroundColor: '#00000099',
+    top: wp(8),
+    left: wp(8),
+    backgroundColor: 'rgba(0,0,0,0.6)',
     paddingHorizontal: wp(8),
-    paddingVertical: hp(4),
+    paddingVertical: hp(3),
+    borderRadius: wp(6),
+  },
+  levelText: {
+    color: colors.white,
+    fontSize: fp(11),
+    fontWeight: '600',
+  },
+  priceBadge: {
+    position: 'absolute',
+    top: wp(8),
+    right: wp(8),
+    backgroundColor: colors.secPrimary,
+    paddingHorizontal: wp(10),
+    paddingVertical: hp(3),
     borderRadius: wp(8),
   },
-  levelText: { color: colors.white, fontSize: fp(12), fontWeight: '600' },
-  cardBody: { padding: wp(16) },
+  priceBadgeText: {
+    fontSize: fp(12),
+    fontWeight: '700',
+    color: colors.white,
+  },
+  cardBody: {
+    padding: wp(12),
+  },
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: hp(6),
+    alignItems: 'flex-start',
   },
   title: {
-    fontSize: fp(16),
+    fontSize: fp(15),
     fontWeight: '700',
-    flex: 1,
     color: colors.text,
-    marginRight: wp(10),
+    flex: 1,
+    marginRight: wp(8),
+    lineHeight: fp(20),
   },
-  ratingContainer: {
+  ratingBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFD70022',
+    backgroundColor: '#FFD70015',
     paddingHorizontal: wp(6),
     paddingVertical: hp(2),
     borderRadius: wp(6),
+    gap: wp(3),
   },
-  ratingText: { fontSize: fp(12), fontWeight: '600', marginLeft: wp(2) },
-  instructor: { fontSize: fp(14), color: colors.textSecondary, marginBottom: hp(10) },
-  metaRow: { flexDirection: 'row', marginBottom: hp(12) },
-  metaItem: { flexDirection: 'row', alignItems: 'center', marginRight: wp(12) },
-  metaText: { marginLeft: wp(4), color: colors.textSecondary },
+  ratingText: {
+    fontSize: fp(12),
+    fontWeight: '700',
+    color: '#1A1A2E',
+  },
+  instructor: {
+    fontSize: fp(12),
+    color: colors.textSecondary,
+    marginTop: hp(2),
+    fontWeight: '500',
+  },
   footerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginTop: hp(10),
   },
-  priceText: { fontSize: fp(18), fontWeight: '700', color: colors.primary },
-  enrolledText: { color: colors.success, fontSize: fp(14) },
-  buttonGroup: { flexDirection: 'row' },
-  button: {
-    paddingHorizontal: wp(16),
-    paddingVertical: hp(8),
-    borderRadius: wp(12),
-    marginLeft: wp(8),
+  metaRow: {
+    flexDirection: 'row',
+    gap: wp(10),
   },
-  primaryButton: {},
-  primaryButtonText: { color: colors.white, fontWeight: '600' },
-  outlineButton: {
-    borderWidth: wp(1),
-    borderColor: colors.border,
+  metaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(3),
   },
-  outlineButtonText: { color: colors.text, fontWeight: '600' },
-  priceContainer: { flex: 1 },
+  metaText: {
+    fontSize: fp(11.5),
+    color: colors.textSecondary,
+    fontWeight: '500',
+  },
+  enrollBtn: {
+    paddingHorizontal: wp(14),
+    paddingVertical: hp(7),
+    borderRadius: wp(8),
+  },
+  enrollBtnText: {
+    color: colors.white,
+    fontWeight: '700',
+    fontSize: fp(12),
+  },
 });

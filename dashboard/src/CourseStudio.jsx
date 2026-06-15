@@ -30,11 +30,11 @@ const T = {
   borderHi: "rgba(255,193,7,0.35)",
   textPri:  "#FFFFFF",
   textSec:  "#A1A1AA",
-  textMut:  "#71717A",
+  textMut:  "#8A8A93",
 };
 
 
-const API_BASE = "https://server.manchly.com";
+import { API_BASE } from "./api";
 const getToken = () => {
   if (typeof window === "undefined") return null;
   const t = localStorage.getItem("manchly_token");
@@ -77,26 +77,57 @@ async function apiCall(method, path, body = null) {
   }
   return data;
 }
-async function uploadVideoFile(courseId, file, extraFields = {}) {
+// Mux direct-upload flow (matches the mobile app + backend contract):
+//  1. POST /courses/:id/videos  with a JSON body → returns { video, upload_url }
+//     (the endpoint creates the DB row + a Mux direct-upload URL; it does NOT
+//      accept the file itself — there is no multer on that route).
+//  2. PUT the raw file bytes straight to that Mux upload_url.
+async function createVideoUpload(courseId, fields) {
   const token = getToken();
   if (!token) throw new AuthError("No auth token found. Please log in first.");
 
-  const fd = new FormData();
-  fd.append("video", file);
-  Object.entries(extraFields).forEach(([k, v]) => fd.append(k, v));
-
   const res = await fetch(`${API_BASE}/courses/${courseId}/videos`, {
     method:  "POST",
-    headers: { Authorization: `Bearer ${token}` },
-    body:    fd,
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body:    JSON.stringify(fields),
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     if (res.status === 401 || res.status === 403)
-      throw new AuthError(data?.message || "Unauthorized");
-    throw new Error(data?.message || `Upload error ${res.status}`);
+      throw new AuthError(data?.error?.message || data?.message || "Unauthorized");
+    throw new Error(data?.error?.message || data?.message || `Upload init error ${res.status}`);
   }
-  return data;
+  const payload = data?.data || data;
+  if (!payload?.upload_url) throw new Error("Server did not return a Mux upload URL.");
+  return payload; // { video, upload_url, upload_id }
+}
+
+// PUT the file straight to Mux. The backend creates the upload with
+// cors_origin "*", so the browser can upload cross-origin. XHR gives real %.
+function putFileToMux(uploadUrl, file, onProgress) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("PUT", uploadUrl, true);
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable && onProgress) onProgress(Math.round((e.loaded / e.total) * 100));
+    };
+    xhr.onload  = () => (xhr.status >= 200 && xhr.status < 300)
+      ? resolve()
+      : reject(new Error(`Mux upload failed (${xhr.status})`));
+    xhr.onerror = () => reject(new Error("Network error while uploading the video."));
+    xhr.send(file);
+  });
+}
+
+// Full single-file upload = create record + push bytes to Mux.
+async function uploadVideoFile(courseId, file, extraFields = {}, onProgress) {
+  const { video, upload_url } = await createVideoUpload(courseId, {
+    title:   extraFields.title ?? file.name,
+    is_free: extraFields.is_free ?? false,
+    order:   extraFields.order ?? 0,
+  });
+  await putFileToMux(upload_url, file, onProgress);
+  return video; // status starts UPLOADING/PROCESSING; VideoRow polls until READY
 }
 
 const API = {
@@ -107,7 +138,7 @@ const API = {
   updateCourse:    (id, body) => apiCall("PUT",`/courses/${id}`, body),
   deleteCourse:    (id)  => apiCall("DELETE",`/courses/${id}`),
   /* Videos */
-  uploadVideo:     (courseId, file, fields) => uploadVideoFile(courseId, file, fields),
+  uploadVideo:     (courseId, file, fields, onProgress) => uploadVideoFile(courseId, file, fields, onProgress),
   getVideoStatus:  (vid) => apiCall("GET", `/courses/videos/${vid}/status`),
   updateVideo:     (vid, body) => apiCall("PUT", `/courses/videos/${vid}`, body),
   deleteVideo:     (vid) => apiCall("DELETE", `/courses/videos/${vid}`),
@@ -147,6 +178,7 @@ const LANGUAGES  = ["English","Hindi","Hinglish"];
 const VIDEO_STATUS_MAP = {
   READY: { label:"READY", color:T.green,bg:T.greenL },
   PROCESSING: { label:"PROCESSING", color:T.blue, bg:T.blueL },
+  QUEUED: { label:"QUEUED", color:T.textMut, bg:"rgba(255,255,255,0.06)" },
   UPLOADING: { label:"UPLOADING", color:T.orange, bg:T.orangeL },
   ERROR:{ label:"ERROR", color:T.red, bg:T.redL},
 };
@@ -324,6 +356,14 @@ function iconBtn(bg, color) {
   return { width:28, height:28, borderRadius:8, border:"none", background:bg, color, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" };
 }
 
+// Duration may be a string ("18:22"), a number of seconds (from Mux), or null.
+function fmtDur(d) {
+  if (d == null || d === "") return "—";
+  if (typeof d === "string") return d;
+  const s = Math.max(0, Math.floor(Number(d) || 0));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+}
+
 function CreatorCourseCard({ course, selected, onSelect, onDelete, fetchLoading }) {
   const active = selected?.id === course.id;
   return (
@@ -341,7 +381,7 @@ function CreatorCourseCard({ course, selected, onSelect, onDelete, fetchLoading 
             <span style={{ background:course.status==="PUBLISHED"?T.greenL:T.orangeL, color:course.status==="PUBLISHED"?T.green:T.orange, fontSize:10, padding:"2px 7px", borderRadius:20, fontWeight:700 }}>{course.status}</span>
           </div>
           <h3 style={{ fontSize:14, marginBottom:4, fontWeight:700, color:T.textPri, lineHeight:1.3 }}>{course.title}</h3>
-          <p style={{ color:T.textMut, fontSize:11 }}>{course.curriculum.length} lessons · {course.students} students</p>
+          <p style={{ color:T.textMut, fontSize:11 }}>{course.curriculum.length} lessons · {course.students} users</p>
         </div>
         <div style={{ textAlign:"right", flexShrink:0 }}>
           <div style={{ fontSize:16, fontWeight:900, color:T.orange }}>₹{course.price}</div>
@@ -368,7 +408,7 @@ function CreatorCourseCard({ course, selected, onSelect, onDelete, fetchLoading 
   );
 }
 
-function VideoRow({ video, index, onEdit, onDelete, onStatusUpdate }) {
+function VideoRow({ video, index, onEdit, onDelete, onStatusUpdate, onToggleFree }) {
   const pollRef    = useRef(null);
   const failsRef   = useRef(0);          
   const MAX_FAILS  = 5;                  
@@ -429,13 +469,25 @@ function VideoRow({ video, index, onEdit, onDelete, onStatusUpdate }) {
         <div style={{ display:"flex", gap:8, alignItems:"center", flexWrap:"wrap" }}>
           <p style={{ fontSize:13, fontWeight:600, color:T.textPri }}>{video.title}</p>
           <StatusPill status={video.status}/>
-          {video.is_free && (
-            <span style={{ background:T.greenL, color:T.green, borderRadius:20, padding:"1px 6px", fontSize:9, fontWeight:700 }}>FREE</span>
+          {!["UPLOADING","QUEUED"].includes(video.status) && (
+            <button
+              onClick={() => onToggleFree && onToggleFree(video)}
+              title={video.is_free ? "Free preview — click to make paid" : "Paid — click to make a free preview"}
+              aria-label={`Toggle free preview for ${video.title}`}
+              style={{
+                cursor:"pointer", border:"none", borderRadius:20, padding:"1px 8px",
+                fontSize:9, fontWeight:700,
+                background: video.is_free ? T.greenL : "rgba(255,255,255,0.06)",
+                color: video.is_free ? T.green : T.textMut,
+              }}
+            >
+              {video.is_free ? "FREE" : "PAID"}
+            </button>
           )}
         </div>
 
         <div style={{ display:"flex", gap:8, marginTop:4, alignItems:"center" }}>
-          <span style={{ color:T.textMut, fontSize:11 }}>{video.duration}</span>
+          <span style={{ color:T.textMut, fontSize:11 }}>{fmtDur(video.duration)}</span>
           {/* Polling badge */}
           {["UPLOADING","PROCESSING"].includes(video.status) && (
             <span style={{ fontSize:9.5, color:T.blue, display:"flex", alignItems:"center", gap:3 }}>
@@ -468,10 +520,10 @@ function VideoRow({ video, index, onEdit, onDelete, onStatusUpdate }) {
 
       {/* Actions */}
       <div style={{ display:"flex", gap:6, flexShrink:0 }}>
-        <button onClick={() => onEdit(video)} style={iconBtn(T.orangeL, T.orange)} title="Edit video (PUT)">
+        <button onClick={() => onEdit(video)} style={iconBtn(T.orangeL, T.orange)} title="Edit video" aria-label={`Edit ${video.title}`}>
           <Edit3 size={12}/>
         </button>
-        <button onClick={() => onDelete(video)} style={iconBtn(T.redL, T.red)} title="Delete video">
+        <button onClick={() => onDelete(video)} style={iconBtn(T.redL, T.red)} title="Delete video" aria-label={`Delete ${video.title}`}>
           <Trash2 size={12}/>
         </button>
       </div>
@@ -485,7 +537,7 @@ function CurriculumManager({ course, onCurriculumChange, toast }) {
   /* Local video list (mirrors course.curriculum, mutated optimistically) */
   const [videos, setVideos]  = useState(course.curriculum || []);
   const [uploading,setUploading] = useState(false);
-  const [uploadPct,setUploadPct] = useState(0);
+  const [batch,setBatch] = useState({ done:0, total:0 });
 
   /* Delete video confirm */
   const [deleteVideo, setDeleteVideo] = useState(null);
@@ -496,36 +548,73 @@ function CurriculumManager({ course, onCurriculumChange, toast }) {
 
   /* Keep local list in sync when parent course changes */
   useEffect(() => { setVideos(course.curriculum || []); }, [course.id]); 
-  const handleFileSelect = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    e.target.value = "";
-    const tempId  = `temp_${Date.now()}`;
-    const tempRow = { id:tempId, title:file.name, order:videos.length+1, duration:"—", status:"UPLOADING", is_free:false, uploadPct:0 };
-    setVideos(prev => [...prev, tempRow]);
-    setUploading(true);
-    let localPct = 0;
-    const ticker = setInterval(() => {
-      localPct = Math.min(localPct + Math.random()*8 + 2, 90);
-      setVideos(prev => prev.map(v => v.id === tempId ? { ...v, uploadPct:Math.round(localPct) } : v));
-      setUploadPct(Math.round(localPct));
-    }, 250);
+  // BULK upload: accept many files, upload each (bounded concurrency), real %.
+  const handleFiles = async (fileList) => {
+    const files = Array.from(fileList || []);
+    if (!files.length) return;
 
-    try {
-      const data = await API.uploadVideo(course.id, file, { title: file.name, is_free: false });
-      clearInterval(ticker);
-      const serverVideo = data?.video || { ...tempRow, id: `v_${Date.now()}`, uploadPct:100, status:"PROCESSING" };
-      setVideos(prev => prev.map(v => v.id === tempId ? serverVideo : v));
-      onCurriculumChange(course.id, videos.map(v => v.id === tempId ? serverVideo : v));
-      toast(`"${file.name}" uploaded — processing started.`, "success");
-    } catch (err) {
-      clearInterval(ticker);
-      setVideos(prev => prev.map(v => v.id === tempId ? { ...v, status:"ERROR", uploadPct:0 } : v));
-      toast(err.message || "Upload failed.", "error");
-    } finally {
-      setUploading(false);
-      setUploadPct(0);
-    }
+    const targetCourseId = course.id;
+    // base on the MAX existing order (not the count) so prior deletions don't collide
+    const baseOrder = videos.reduce((m, v) => Math.max(m, Number(v.order) || 0), 0);
+    const items = files.map((file, i) => ({
+      file,
+      tempId: `temp_${Date.now()}_${i}`,
+      order:  baseOrder + i + 1,
+    }));
+
+    // optimistic "queued" row for every selected file
+    const queuedRows = items.map(it => ({
+      id: it.tempId, title: it.file.name, order: it.order,
+      duration: null, status: "QUEUED", is_free: false, uploadPct: 0,
+    }));
+    // local authoritative list — kept OUT of setState updaters so the final
+    // onCurriculumChange is a pure call, not a side effect inside a reducer.
+    let working = [...videos, ...queuedRows];
+    setVideos(working);
+    setUploading(true);
+    setBatch({ done: 0, total: items.length });
+
+    let done = 0, ok = 0, fail = 0, authFailed = false;
+    const replace = (id, makeRow) => {
+      working = working.map(v => v.id === id ? makeRow(v) : v);
+      setVideos(prev => prev.map(v => v.id === id ? makeRow(v) : v));
+    };
+
+    // bounded concurrency so a big drop doesn't saturate the connection
+    const CONCURRENCY = Math.min(3, items.length);
+    let cursor = 0;
+    const worker = async () => {
+      while (cursor < items.length && !authFailed) {
+        const it = items[cursor++];
+        replace(it.tempId, v => ({ ...v, status: "UPLOADING" }));
+        try {
+          const video = await uploadVideoFile(
+            course.id, it.file,
+            { title: it.file.name, is_free: false, order: it.order },
+            (pct) => setVideos(prev => prev.map(v => v.id === it.tempId ? { ...v, uploadPct: pct } : v)),
+          );
+          const serverVideo = video
+            ? { ...video, uploadPct: 100, status: video.status || "PROCESSING" }
+            : { id:`v_${Date.now()}`, title:it.file.name, order:it.order, duration:null, status:"PROCESSING", is_free:false, uploadPct:100 };
+          replace(it.tempId, () => serverVideo);
+          ok++;
+        } catch (err) {
+          replace(it.tempId, v => ({ ...v, status:"ERROR", uploadPct:0 }));
+          fail++;
+          if (err instanceof AuthError) { authFailed = true; toast(err.message || "Please log in again.", "error"); }
+        } finally {
+          done++;
+          setBatch({ done, total: items.length });
+        }
+      }
+    };
+    await Promise.all(Array.from({ length: CONCURRENCY }, worker));
+
+    setUploading(false);
+    onCurriculumChange(targetCourseId, working);  // pure call, outside any updater
+
+    if (ok)   toast(`${ok} video${ok > 1 ? "s" : ""} uploaded — processing started.`, "success");
+    if (fail && !authFailed) toast(`${fail} upload${fail > 1 ? "s" : ""} failed. Drop them again to retry.`, "error");
   };
 
   /* ── DELETE /courses/videos/:id ── */
@@ -557,6 +646,20 @@ function CurriculumManager({ course, onCurriculumChange, toast }) {
   /* ── Status poll callback from VideoRow ── */
   const handleStatusUpdate = (videoId, updated) => {
     setVideos(prev => prev.map(v => v.id === videoId ? { ...v, ...updated } : v));
+  };
+
+  /* ── Quick Free/Paid toggle → PUT /courses/videos/:id ── */
+  const handleToggleFree = async (video) => {
+    const next = !video.is_free;
+    setVideos(prev => prev.map(v => v.id === video.id ? { ...v, is_free: next } : v)); // optimistic
+    try {
+      await API.updateVideo(video.id, { is_free: next });
+      onCurriculumChange(course.id, videos.map(v => v.id === video.id ? { ...v, is_free: next } : v));
+      toast(`"${video.title}" set to ${next ? "Free preview" : "Paid"}.`, "success");
+    } catch (err) {
+      setVideos(prev => prev.map(v => v.id === video.id ? { ...v, is_free: !next } : v)); // revert
+      toast(err.message || "Could not update lesson.", "error");
+    }
   };
 
   return (
@@ -595,9 +698,10 @@ function CurriculumManager({ course, onCurriculumChange, toast }) {
               POST /courses/{course.id}/videos
             </span>
             <GoldBtn small onClick={() => fileRef.current?.click()} loading={uploading}>
-              <Upload size={13}/>{uploading ? `Uploading ${uploadPct}%` : "Add Lesson"}
+              <Upload size={13}/>{uploading ? `Uploading ${batch.done}/${batch.total}…` : "Add Lessons"}
             </GoldBtn>
-            <input ref={fileRef} type="file" accept="video/*" style={{ display:"none" }} onChange={handleFileSelect}/>
+            <input ref={fileRef} type="file" accept="video/*" multiple style={{ display:"none" }}
+              onChange={e => { handleFiles(e.target.files); e.target.value = ""; }}/>
           </div>
         </div>
 
@@ -610,25 +714,27 @@ function CurriculumManager({ course, onCurriculumChange, toast }) {
             onEdit={setEditVideo}
             onDelete={setDeleteVideo}
             onStatusUpdate={handleStatusUpdate}
+            onToggleFree={handleToggleFree}
           />
         ))}
 
         {/* Drop zone */}
         <div
+          role="button" tabIndex={0} aria-label="Upload videos"
           style={{ marginTop:10, border:`2px dashed ${T.borderHi}`, borderRadius:12, padding:"24px", textAlign:"center", cursor:"pointer", transition:"background 0.2s" }}
           onClick={() => fileRef.current?.click()}
+          onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fileRef.current?.click(); } }}
           onDragOver={e => { e.preventDefault(); e.currentTarget.style.background = T.orangeL; }}
           onDragLeave={e => { e.currentTarget.style.background = "transparent"; }}
-          onDrop={async e => {
+          onDrop={e => {
             e.preventDefault();
             e.currentTarget.style.background = "transparent";
-            const file = e.dataTransfer.files[0];
-            if (file) { fileRef.current._droppedFile = file; handleFileSelect({ target:{ files:[file], value:"" } }); }
+            handleFiles(e.dataTransfer.files);
           }}
         >
           <Upload size={18} style={{ color:T.orange, marginBottom:8 }}/>
-          <p style={{ color:T.textMut, fontSize:12 }}>Drop video here or <span style={{ color:T.orange, fontWeight:600 }}>click to upload</span></p>
-          <p style={{ color:T.textMut, fontSize:10, marginTop:4 }}>MP4, MOV, AVI · calls POST /courses/{course.id}/videos</p>
+          <p style={{ color:T.textMut, fontSize:12 }}>Drop videos here or <span style={{ color:T.orange, fontWeight:600 }}>click to upload</span></p>
+          <p style={{ color:T.textMut, fontSize:10, marginTop:4 }}>Bulk upload supported · MP4, MOV, AVI</p>
         </div>
       </div>
     </>
@@ -721,7 +827,7 @@ function CourseWizard({ onCancel, editTarget, onCreated, onUpdated, toast }) {
           <Input label="Course Title" value={form.title} onChange={set("title")} placeholder="e.g. Advanced Options Trading" required/>
           <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
             <label style={{ fontSize:11.5, color:T.textSec, fontWeight:600 }}>Description</label>
-            <textarea value={form.description} onChange={set("description")} rows={3} placeholder="What will students learn?"
+            <textarea value={form.description} onChange={set("description")} rows={3} placeholder="What will users learn?"
               style={{ background:"#0D0D0D", border:`1px solid ${T.border}`, borderRadius:8, padding:"10px 12px", color:"#fff", outline:"none", fontSize:13, resize:"vertical", fontFamily:"inherit" }}
               onFocus={e => e.target.style.borderColor = T.orange}
               onBlur={e  => e.target.style.borderColor = T.border}
@@ -768,7 +874,7 @@ function CourseWizard({ onCancel, editTarget, onCreated, onUpdated, toast }) {
 function CreatorStats({ stats, loading }) {
   const rows = [
     { label:"Total Revenue",value:loading?"…":(stats?.total_revenue ? `₹${Number(stats.total_revenue).toLocaleString("en-IN")}`  : "₹0"),      icon:DollarSign, color:T.orange  },
-    { label:"Total Students", value:loading?"…":(stats?.total_students  ?? "0"),                                                                     icon:Users,      color:T.purple  },
+    { label:"Total Users", value:loading?"…":(stats?.total_students  ?? "0"),                                                                     icon:Users,      color:T.purple  },
     { label:"Avg Rating", value:loading?"…":(stats?.avg_rating ? `${stats.avg_rating} ★`                                   : "—"),          icon:Star,       color:T.orange  },
     { label:"Completion Rate", value:loading?"…":(stats?.completion_rate ? `${stats.completion_rate}%`                               : "—"),          icon:BarChart2,  color:T.green   },
   ];
@@ -899,7 +1005,7 @@ export default function CourseStudio() {
       {deleteCourse && (
         <ConfirmDialog
           title="Delete Course"
-          message={`Permanently delete "${deleteCourse.title}"? All enrolled students will lose access.`}
+          message={`Permanently delete "${deleteCourse.title}"? All enrolled users will lose access.`}
           onConfirm={confirmDeleteCourse}
           onCancel={() => setDeleteCourse(null)}
           loading={delLoading}
@@ -1021,6 +1127,7 @@ export default function CourseStudio() {
           <div>
             {selected ? (
               <CurriculumManager
+                key={selected.id}
                 course={selected}
                 onCurriculumChange={handleCurriculumChange}
                 toast={toast}

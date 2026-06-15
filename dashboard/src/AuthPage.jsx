@@ -1,7 +1,9 @@
 import React, { useState } from "react";
-const API = "https://server.manchly.com";
+import { API_BASE as API } from "./api";
 export default function AuthPage({ onAuthSuccess }) {
-  const [step, setStep] = useState("signup");
+  // mode: "login" | "signup"  ·  step: "form" | "otp"
+  const [mode, setMode] = useState("login");
+  const [step, setStep] = useState("form");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(""); // replaces alert()
   const [otpMethod, setOtpMethod] = useState("email");
@@ -14,7 +16,35 @@ export default function AuthPage({ onAuthSuccess }) {
   });
   const setField = (key) => (e) =>
     setForm((f) => ({ ...f, [key]: e.target.value }));
-  const backendTab = form.user_type === "CREATOR" ? "CREATOR" : "USER";
+  const backendTab =
+    form.user_type === "ADMIN"   ? "ADMIN"   :
+    form.user_type === "CREATOR" ? "CREATOR" :
+                                   "USER";
+
+  // LOGIN — for existing users. Skips signup, sends OTP directly.
+  // The backend send-otp endpoint requires a `tab` (user_type) param,
+  // which the user picks below.
+  const handleLogin = async () => {
+    setError("");
+    if (otpMethod === "email" && !form.email.trim()) {
+      setError("Email is required.");
+      return;
+    }
+    if (otpMethod === "sms" && !form.phone.trim()) {
+      setError("Phone is required.");
+      return;
+    }
+    setLoading(true);
+    try {
+      await sendOtp();
+      setStep("otp");
+    } catch (err) {
+      console.error("[handleLogin]", err.message);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
   // SIGNUP
   const handleSignup = async () => {
     setError("");
@@ -188,36 +218,76 @@ export default function AuthPage({ onAuthSuccess }) {
           </div>
         )}
 
-        {step === "signup" ? (
+        {step === "form" ? (
           <>
-            <input
-              placeholder="Full Name"
-              value={form.name}
-              onChange={setField("name")}
-              style={styles.input}
-            />
-            <input
-              placeholder="Email"
-              value={form.email}
-              onChange={setField("email")}
-              type="email"
-              style={styles.input}
-            />
-            <input
-              placeholder="Phone (10 digits)"
-              value={form.phone}
-              onChange={setField("phone")}
-              type="tel"
-              style={styles.input}
-            />
+            {/* MODE TOGGLE — Login | Sign up */}
+            <div style={{ display: "flex", gap: 8, marginBottom: 18,
+              background: "#1A1A1A", borderRadius: 12, padding: 4 }}>
+              <button
+                onClick={() => { setMode("login"); setError(""); }}
+                style={{
+                  flex: 1, padding: 11,
+                  background: mode === "login" ? "#FFC107" : "transparent",
+                  color: mode === "login" ? "#000" : "#A1A1AA",
+                  border: "none", borderRadius: 9, cursor: "pointer",
+                  fontWeight: 700, fontSize: 14, fontFamily: "inherit",
+                }}
+              >
+                Login
+              </button>
+              <button
+                onClick={() => { setMode("signup"); setError(""); }}
+                style={{
+                  flex: 1, padding: 11,
+                  background: mode === "signup" ? "#FFC107" : "transparent",
+                  color: mode === "signup" ? "#000" : "#A1A1AA",
+                  border: "none", borderRadius: 9, cursor: "pointer",
+                  fontWeight: 700, fontSize: 14, fontFamily: "inherit",
+                }}
+              >
+                Sign up
+              </button>
+            </div>
+
+            {/* SIGN-UP-ONLY: name field */}
+            {mode === "signup" && (
+              <input
+                placeholder="Full Name"
+                value={form.name}
+                onChange={setField("name")}
+                style={styles.input}
+              />
+            )}
+
+            {/* Email / Phone — both modes. Phone hidden in login when otpMethod=email,
+                and email hidden in login when otpMethod=sms, to keep the form tight. */}
+            {(mode === "signup" || otpMethod === "email") && (
+              <input
+                placeholder="Email"
+                value={form.email}
+                onChange={setField("email")}
+                type="email"
+                style={styles.input}
+              />
+            )}
+            {(mode === "signup" || otpMethod === "sms") && (
+              <input
+                placeholder="Phone (10 digits)"
+                value={form.phone}
+                onChange={setField("phone")}
+                type="tel"
+                style={styles.input}
+              />
+            )}
 
             <select
               value={form.user_type}
               onChange={setField("user_type")}
               style={styles.input}
             >
-              <option value="STUDENT">Student</option>
+              <option value="USER">User</option>
               <option value="CREATOR">Creator</option>
+              <option value="ADMIN">Admin</option>
             </select>
 
             <select
@@ -238,14 +308,16 @@ export default function AuthPage({ onAuthSuccess }) {
                 fontFamily: "monospace",
               }}
             >
-              tab:"{backendTab}" → /auth/send-otp/{otpMethod}
+              {mode === "login" ? "LOGIN" : "SIGN UP"} · tab:"{backendTab}" → /auth/send-otp/{otpMethod}
             </p>
             <button
-              onClick={handleSignup}
+              onClick={mode === "login" ? handleLogin : handleSignup}
               disabled={loading}
               style={styles.button}
             >
-              {loading ? "Sending OTP…" : "Continue"}
+              {loading
+                ? "Sending OTP…"
+                : (mode === "login" ? "Send Login OTP" : "Continue")}
             </button>
           </>
         ) : (
@@ -284,7 +356,7 @@ export default function AuthPage({ onAuthSuccess }) {
             </button>
             <button
               onClick={() => {
-                setStep("signup");
+                setStep("form");
                 setError("");
               }}
               style={styles.ghost}

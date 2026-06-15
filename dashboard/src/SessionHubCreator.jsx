@@ -28,7 +28,7 @@ const T = {
   textSec:"#A1A1AA",
   textMut:"#71717A",
 };
-const API_BASE = "https://server.manchly.com";
+import { API_BASE } from "./api";
 
 const getToken = () => {
   if (typeof window === "undefined") return null;
@@ -59,17 +59,33 @@ async function apiCall(method, path, body = null) {
   return data;
 }
 const API = {
-  getStats:() => apiCall("GET","/sessions/stats"),
-  getExpertMe:() => apiCall("GET", "/sessions/expert/me"),
-  registerExpert: (b) => apiCall("POST","/sessions/expert/register", b),
-  updateExpert: (b) => apiCall("PATCH","/sessions/expert/update", b),
-  addSlot: (b) => apiCall("POST","/sessions/availability/slot", b),
-  deleteSlot:(id) => apiCall("DELETE", `/sessions/availability/${id}`),
-  createProduct:(b) => apiCall("POST","/sessions/products", b),
-  updateProduct:(id, b) => apiCall("PATCH", `/sessions/products/${id}`, b),
-  deleteProduct:(id)  => apiCall("DELETE", `/sessions/products/${id}`),
-  acceptSession:(id) => apiCall("PATCH",  `/sessions/${id}/accept`),
-  endSession:(id) => apiCall("PATCH", `/sessions/${id}/end`),
+  // Dashboard summaries
+  getStats:        ()      => apiCall("GET",   "/sessions/stats"),
+  getDashboard:    ()      => apiCall("GET",   "/sessions/dashboard"),
+
+  // Expert profile
+  getExpertMe:     ()      => apiCall("GET",   "/sessions/expert/me"),
+  registerExpert:  (b)     => apiCall("POST",  "/sessions/expert/register", b),
+  updateExpert:    (b)     => apiCall("PATCH", "/sessions/expert/update",   b),
+
+  // Availability (slots)
+  getMyAvailability: ()    => apiCall("GET",   "/sessions/availability/me"),
+  setAvailability: (b)     => apiCall("POST",  "/sessions/availability",    b),  // bulk set
+  addSlot:         (b)     => apiCall("POST",  "/sessions/availability/slot", b),
+  deleteSlot:      (id)    => apiCall("DELETE",`/sessions/availability/${id}`),
+
+  // Products
+  getMyProducts:   ()      => apiCall("GET",   "/sessions/products/my"),
+  createProduct:   (b)     => apiCall("POST",  "/sessions/products",        b),
+  updateProduct:   (id, b) => apiCall("PATCH", `/sessions/products/${id}`,  b),
+  deleteProduct:   (id)    => apiCall("DELETE",`/sessions/products/${id}`),
+
+  // Sessions (calls)
+  getMySessions:   ()      => apiCall("GET",   "/sessions"),
+  getSessionByCall:(callId)=> apiCall("GET",   `/sessions/call/${callId}`),
+  acceptSession:   (id)    => apiCall("PATCH", `/sessions/${id}/accept`),
+  endSession:      (id)    => apiCall("PATCH", `/sessions/${id}/end`),
+  rateSession:     (b)     => apiCall("POST",  "/sessions/rate",            b),
 };
 
 //MOCK DATA
@@ -285,6 +301,31 @@ function ExpertProfileSection({ toast }) {
     audio_rate: MOCK_EXPERT.audio_rate,
     video_rate: MOCK_EXPERT.video_rate,
   });
+
+  // Hydrate from GET /sessions/expert/me when authenticated
+  useEffect(() => {
+    if (!getToken()) return;
+    API.getExpertMe()
+      .then((d) => {
+        const exp = d?.expert || d?.data || d;
+        if (!exp || typeof exp !== "object") return;
+        const merged = { ...MOCK_EXPERT, ...exp, is_registered: true };
+        setExpert(merged);
+        setForm({
+          headline:   merged.headline   ?? "",
+          bio:        merged.bio        ?? "",
+          category:   merged.category   ?? "Trading",
+          audio_rate: merged.audio_rate ?? 0,
+          video_rate: merged.video_rate ?? 0,
+        });
+      })
+      .catch((e) => {
+        // 404 / not-registered → keep mock with is_registered:false so the form shows
+        if (!e.isAuth) {
+          setExpert((prev) => ({ ...prev, is_registered: false }));
+        }
+      });
+  }, []);
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }));
   const handleSave = async () => {
     setLoading(true);
@@ -383,6 +424,33 @@ function AvailabilityManager({ toast }) {
   const [newSlot,setNewSlot] = useState({ start:"09:00", end:"10:00" });
   const [delLoading, setDelLoading] = useState(null);
 
+  // GET /sessions/availability/me — hydrate real slots grouped by day
+  // If the API returns nothing (or errors), keep MOCK_SLOTS visible so the UI
+  // is never empty — the user can still see the layout.
+  useEffect(() => {
+    if (!getToken()) return;
+    API.getMyAvailability()
+      .then((d) => {
+        const raw = d?.availability || d?.slots || d?.data || d;
+        if (!raw) return;
+        if (Array.isArray(raw)) {
+          if (raw.length === 0) return; // keep mocks visible
+          const grouped = {};
+          raw.forEach((s) => {
+            const day = s.day || s.day_of_week;
+            if (!day) return;
+            (grouped[day] ||= []).push({
+              id: s.id, start: s.start || s.start_time, end: s.end || s.end_time,
+            });
+          });
+          if (Object.keys(grouped).length > 0) setSlots(grouped);
+        } else if (typeof raw === "object" && Object.keys(raw).length > 0) {
+          setSlots(raw);
+        }
+      })
+      .catch((e) => { if (!e.isAuth) console.warn("[AvailabilityManager]", e.message); });
+  }, []);
+
   const handleAdd = async () => {
     if (!adding) return;
     try {
@@ -470,6 +538,24 @@ function ProductsShelf({ toast }) {
   const [editTarget,setEditTarget] = useState(null);
   const [delLoading, setDelLoading]  = useState(null);
   const [saveLoading, setSaveLoading] = useState(false);
+
+  // GET /sessions/products/my — hydrate real consulting products
+  // Falls back to MOCK_PRODUCTS when the API returns nothing.
+  useEffect(() => {
+    if (!getToken()) return;
+    API.getMyProducts()
+      .then((d) => {
+        const list = d?.products || d?.data || (Array.isArray(d) ? d : null);
+        if (Array.isArray(list) && list.length > 0) {
+          setProducts(list.map((p) => ({
+            id: p.id, title: p.title, duration: p.duration,
+            price: p.price, type: p.type || "video",
+            sessions_sold: p.sessions_sold ?? p.total_sold ?? 0,
+          })));
+        }
+      })
+      .catch((e) => { if (!e.isAuth) console.warn("[ProductsShelf]", e.message); });
+  }, []);
 
   const EMPTY = { title:"", duration:30, price:"", type:"video" };
   const [form, setForm] = useState(EMPTY);
@@ -605,6 +691,35 @@ function ProductsShelf({ toast }) {
 function IncomingStream({ toast }) {
   const [sessions,setSessions] = useState(MOCK_INCOMING);
   const [actLoading, setActLoading] = useState(null);
+
+  // GET /sessions — real incoming/historical session rows
+  // Falls back to MOCK_INCOMING when there's no real data so the UI keeps showing the layout.
+  useEffect(() => {
+    if (!getToken()) return;
+    API.getMySessions()
+      .then((d) => {
+        const rawList = d?.data?.sessions || d?.sessions || d?.data || (Array.isArray(d) ? d : null);
+        const list = Array.isArray(rawList) ? rawList : null;
+        if (!list || list.length === 0) return; // keep mocks visible
+        setSessions(list.map((s) => {
+          const learnerName = s.learner_name || s.caller_name || s.user_name || s.learner || "User";
+          const initials = String(learnerName).split(" ").map(p => p[0]).join("").slice(0, 2).toUpperCase();
+          const when = s.scheduled_at || s.started_at || s.created_at;
+          return {
+            id:       s.id,
+            learner:  learnerName,
+            product:  s.product_title || s.product?.title || "Direct call",
+            status:   s.status || "PENDING",
+            time:     when ? new Date(when).toLocaleString() : "—",
+            amount:   s.amount ?? s.price ?? 0,
+            initials,
+            call_id:  s.call_id,
+          };
+        }));
+      })
+      .catch((e) => { if (!e.isAuth) console.warn("[IncomingStream]", e.message); });
+  }, []);
+
   const handleAccept = async (id) => {
     setActLoading(id + "_accept");
     try {

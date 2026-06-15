@@ -10,6 +10,7 @@ import {
   Loader2,
   CheckCircle2,
   BarChart3,
+  Search,
 } from "lucide-react";
 
 export default function StudentDashboard() {
@@ -37,6 +38,7 @@ export default function StudentDashboard() {
   const [activeTab, setActiveTab] = useState("catalog");
   const [gatewayLoading, setGatewayLoading] = useState(false);
   const [selectedWebinar, setSelectedWebinar] = useState(null);
+  const [search, setSearch] = useState("");
 
   // SAFE FETCH
   const apiFetch = async (url, options = {}) => {
@@ -323,6 +325,39 @@ export default function StudentDashboard() {
         />
       </div>
 
+      {/* DISCOVERY HERO */}
+      <div
+        style={{
+          background: "linear-gradient(135deg,#3D1515,#7A2A20,#1a0f0f)",
+          border: `1px solid ${T.border}`,
+          borderRadius: 20,
+          padding: 24,
+          marginBottom: 18,
+        }}
+      >
+        <span style={{ display: "inline-block", background: "rgba(255,255,255,0.1)", border: `1px solid ${T.orange}`, color: T.orange, fontSize: 11, fontWeight: 800, padding: "4px 12px", borderRadius: 999 }}>
+          This Week's Top Pick
+        </span>
+        <h2 style={{ fontSize: 26, fontWeight: 900, margin: "12px 0 6px" }}>Grow with the Best Creators</h2>
+        <p style={{ color: T.textSec, margin: 0 }}>Expert-led learning paths, just for you.</p>
+        <div style={{ display: "flex", gap: 8, marginTop: 14, flexWrap: "wrap" }}>
+          {["Trending Now", "New Arrivals", "Top Picks"].map((t) => (
+            <span key={t} style={{ background: "rgba(0,0,0,0.3)", border: `1px solid ${T.border}`, color: "#fff", fontSize: 11.5, fontWeight: 700, padding: "5px 11px", borderRadius: 999 }}>{t}</span>
+          ))}
+        </div>
+      </div>
+
+      {/* SEARCH */}
+      <div style={{ position: "relative", marginBottom: 22 }}>
+        <Search size={17} color={T.textSec} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)" }} />
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search courses by title…"
+          style={{ width: "100%", background: T.card, border: `1px solid ${T.border}`, color: T.text, padding: "13px 16px 13px 42px", borderRadius: 14, outline: "none", fontSize: 14, boxSizing: "border-box", fontFamily: "inherit" }}
+        />
+      </div>
+
       {/* TABS */}
 
       <div
@@ -361,7 +396,9 @@ export default function StudentDashboard() {
             <Loader />
           ) : (
             Array.isArray(courses) &&
-            courses.map((course) => (
+            courses
+              .filter((c) => !search || (c.title || "").toLowerCase().includes(search.toLowerCase()))
+              .map((course) => (
               <div
                 key={course.id}
                 style={{

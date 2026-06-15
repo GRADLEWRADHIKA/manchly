@@ -19,6 +19,7 @@ import CreatorOverview from "./CreatorOverview.jsx";
 import NotificationsPanel, { NotificationBell } from "./NotificationsPanel.jsx";
 import CoursePlayer from "./CoursePlayer.jsx";
 import AIAssistant from "./AIAssistant.jsx";
+import HelpCenter from "./HelpCenter.jsx";
 
 export default function App() {
   // USER STATE — restored from localStorage
@@ -464,6 +465,32 @@ export default function App() {
         {activePage === "groups" && (
           <GroupsPanel currentUser={user} />
         )}
+        {/* HELP & LEGAL — all roles */}
+        {activePage === "help" && <HelpCenter role={role} />}
+      </div>
+
+      {/* ── FOOTER (support · social · policies) ── */}
+      <AppFooter onHelp={() => setActivePage("help")} B={B} />
+    </div>
+  );
+}
+
+function AppFooter({ onHelp, B }) {
+  const IG = "https://www.instagram.com/manchly_app";
+  const WA = "https://wa.me/916363790659?text=" + encodeURIComponent("Hello, I need help with Manchly.");
+  const link = { background: "transparent", border: "none", color: B.textSec, cursor: "pointer", fontSize: 12.5, padding: 0, fontFamily: "inherit", textDecoration: "underline" };
+  return (
+    <div style={{ borderTop: `1px solid ${B.border}`, padding: "18px 24px", display: "flex", flexWrap: "wrap", gap: 14, alignItems: "center", justifyContent: "space-between", color: B.textSec, fontSize: 12.5 }}>
+      <div style={{ display: "flex", gap: 16, flexWrap: "wrap", alignItems: "center" }}>
+        <span>© Agnivora Digital · Manchly</span>
+        <button onClick={onHelp} style={link}>Help &amp; Support</button>
+        <button onClick={onHelp} style={link}>Terms</button>
+        <button onClick={onHelp} style={link}>Privacy</button>
+        <button onClick={onHelp} style={link}>Refund Policy</button>
+      </div>
+      <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
+        <a href={WA} target="_blank" rel="noreferrer" style={{ color: B.textSec, textDecoration: "none" }}>WhatsApp</a>
+        <a href={IG} target="_blank" rel="noreferrer" style={{ color: B.textSec, textDecoration: "none" }}>Instagram</a>
       </div>
     </div>
   );

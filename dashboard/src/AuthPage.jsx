@@ -68,7 +68,7 @@ export default function AuthPage({ onAuthSuccess }) {
         body: JSON.stringify({
           name: form.name,
           email: form.email,
-          phone: form.phone,
+          phone: (form.phone || "").replace(/\D/g, "").slice(-10),
           user_type: backendTab,
         }),
       });
@@ -99,7 +99,9 @@ export default function AuthPage({ onAuthSuccess }) {
     } else {
       endpoint = "/auth/send-otp/sms";
       payload = {
-        phone_number: form.phone,
+        // normalize to the bare 10-digit number so the OTP key on send matches
+        // verify, and Fast2SMS gets the format it expects (no +91 / spaces).
+        phone_number: (form.phone || "").replace(/\D/g, "").slice(-10),
         tab: backendTab,
       };
     }
@@ -131,7 +133,7 @@ export default function AuthPage({ onAuthSuccess }) {
       const payload =
         otpMethod === "email"
           ? { email: form.email, code: form.otp }
-          : { phone_number: form.phone, code: form.otp };
+          : { phone_number: (form.phone || "").replace(/\D/g, "").slice(-10), code: form.otp };
       console.log("VERIFY OTP PAYLOAD:", payload);
       const response = await fetch(`${API}/auth/verify-otp`, {
         method: "POST",

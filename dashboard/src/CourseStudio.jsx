@@ -108,6 +108,10 @@ function putFileToMux(uploadUrl, file, onProgress) {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open("PUT", uploadUrl, true);
+    // Mux's direct upload wants the raw video bytes with a video content-type
+    // (the mobile uploader sends video/mp4). Browsers usually set this from the
+    // File, but set it explicitly so files with an empty type still upload.
+    xhr.setRequestHeader("Content-Type", file.type || "video/mp4");
     xhr.upload.onprogress = (e) => {
       if (e.lengthComputable && onProgress) onProgress(Math.round((e.loaded / e.total) * 100));
     };

@@ -1,3 +1,4 @@
+import { API_BASE } from "./api";
 import React, { useEffect, useState } from "react";
 import {
   BookOpen,
@@ -9,6 +10,7 @@ import {
   Loader2,
   CheckCircle2,
   BarChart3,
+  Search,
 } from "lucide-react";
 
 export default function StudentDashboard() {
@@ -36,6 +38,7 @@ export default function StudentDashboard() {
   const [activeTab, setActiveTab] = useState("catalog");
   const [gatewayLoading, setGatewayLoading] = useState(false);
   const [selectedWebinar, setSelectedWebinar] = useState(null);
+  const [search, setSearch] = useState("");
 
   // SAFE FETCH
   const apiFetch = async (url, options = {}) => {
@@ -72,7 +75,7 @@ export default function StudentDashboard() {
   // COURSES
   const loadCourses = async () => {
     setLoadingCourses(true);
-    const data = await apiFetch("https://server.manchly.com/courses");
+    const data = await apiFetch(API_BASE + "/courses");
     if (Array.isArray(data)) {
       setCourses(data);
     } else if (Array.isArray(data.courses)) {
@@ -86,7 +89,7 @@ export default function StudentDashboard() {
 
   const loadEnrollments = async () => {
     const data = await apiFetch(
-      "https://server.manchly.com/courses/enrolled/me",
+      API_BASE + "/courses/enrolled/me",
     );
 
     if (Array.isArray(data)) {
@@ -100,7 +103,7 @@ export default function StudentDashboard() {
   // WEBINARS
   const loadWebinars = async () => {
     setLoadingWebinars(true);
-    const data = await apiFetch("https://server.manchly.com/webinars");
+    const data = await apiFetch(API_BASE + "/webinars");
     if (Array.isArray(data)) {
       setWebinars(data);
     } else if (Array.isArray(data.webinars)) {
@@ -112,7 +115,7 @@ export default function StudentDashboard() {
   };
   const loadMyWebinars = async () => {
     const data = await apiFetch(
-      "https://server.manchly.com/webinars/enrolled/me",
+      API_BASE + "/webinars/enrolled/me",
     );
 
     if (Array.isArray(data)) {
@@ -126,7 +129,7 @@ export default function StudentDashboard() {
   // ENROLL COURSE
   const enrollCourse = async (courseId) => {
     try {
-      await apiFetch(`https://server.manchly.com/courses/${courseId}/enroll`, {
+      await apiFetch(`${API_BASE}/courses/${courseId}/enroll`, {
         method: "POST",
       });
 
@@ -140,7 +143,7 @@ export default function StudentDashboard() {
   const updateProgress = async (courseId, progress) => {
     try {
       await apiFetch(
-        `https://server.manchly.com/courses/${courseId}/progress`,
+        `${API_BASE}/courses/${courseId}/progress`,
         {
           method: "PUT",
 
@@ -169,7 +172,7 @@ export default function StudentDashboard() {
   // UNENROLL
   const unenrollCourse = async (courseId) => {
     try {
-      await apiFetch(`https://server.manchly.com/courses/${courseId}/enroll`, {
+      await apiFetch(`${API_BASE}/courses/${courseId}/enroll`, {
         method: "DELETE",
       });
 
@@ -180,28 +183,63 @@ export default function StudentDashboard() {
       console.log(err);
     }
   };
-  // WEBINAR ENROLL
+  // WEBINAR ENROLL — full flow:
+  // POST /webinars/:id/enroll → if paid, opens Cashfree pay.html → POST /webinars/payment/verify
   const enrollWebinar = async (webinarId) => {
     setGatewayLoading(true);
 
     try {
-      await apiFetch(
-        `https://server.manchly.com/webinars/${webinarId}/enroll`,
-        {
-          method: "POST",
-        },
+      const data = await apiFetch(
+        `${API_BASE}/webinars/${webinarId}/enroll`,
+        { method: "POST" },
       );
 
-      setTimeout(() => {
-        setGatewayLoading(false);
+      // Extract order info if the webinar is paid
+      const order = data?.data || data || {};
+      const orderId = order.order_id || order.cashfree_order_id;
+      const paymentSessionId = order.payment_session_id;
+      const paymentLink = order.payment_link
+        || (paymentSessionId
+            ? `/pay.html?session_id=${encodeURIComponent(paymentSessionId)}&order_id=${encodeURIComponent(orderId)}&verify_url=${encodeURIComponent("/webinars/payment/verify")}`
+            : null);
 
-        setSelectedWebinar(webinarId);
-
-        loadMyWebinars();
-      }, 2000);
+      if (paymentLink && orderId) {
+        // Paid webinar — open Cashfree checkout in a new tab
+        window.open(paymentLink, "_blank");
+        // Poll verify until paid (light cap so we don't spam forever)
+        let attempts = 0;
+        const poll = setInterval(async () => {
+          attempts++;
+          try {
+            const v = await apiFetch(
+              API_BASE + "/webinars/payment/verify",
+              { method: "POST", body: JSON.stringify({ order_id: orderId }) },
+            );
+            const status = v?.data?.status || v?.status;
+            if (status === "PAID" || status === "ACTIVE" || v?.success) {
+              clearInterval(poll);
+              setGatewayLoading(false);
+              setSelectedWebinar(webinarId);
+              loadMyWebinars();
+            }
+          } catch (_) {
+            // ignore, keep polling until cap
+          }
+          if (attempts > 60) { // ~5 minutes
+            clearInterval(poll);
+            setGatewayLoading(false);
+          }
+        }, 5000);
+      } else {
+        // Free webinar — already enrolled by the enroll call
+        setTimeout(() => {
+          setGatewayLoading(false);
+          setSelectedWebinar(webinarId);
+          loadMyWebinars();
+        }, 1500);
+      }
     } catch (err) {
       console.log(err);
-
       setGatewayLoading(false);
     }
   };
@@ -245,7 +283,7 @@ export default function StudentDashboard() {
             marginBottom: 10,
           }}
         >
-          Student Learning Hub
+          User Learning Hub
         </h1>
         <p
           style={{
@@ -287,6 +325,39 @@ export default function StudentDashboard() {
         />
       </div>
 
+      {/* DISCOVERY HERO */}
+      <div
+        style={{
+          background: "linear-gradient(135deg,#3D1515,#7A2A20,#1a0f0f)",
+          border: `1px solid ${T.border}`,
+          borderRadius: 20,
+          padding: 24,
+          marginBottom: 18,
+        }}
+      >
+        <span style={{ display: "inline-block", background: "rgba(255,255,255,0.1)", border: `1px solid ${T.orange}`, color: T.orange, fontSize: 11, fontWeight: 800, padding: "4px 12px", borderRadius: 999 }}>
+          This Week's Top Pick
+        </span>
+        <h2 style={{ fontSize: 26, fontWeight: 900, margin: "12px 0 6px" }}>Grow with the Best Creators</h2>
+        <p style={{ color: T.textSec, margin: 0 }}>Expert-led learning paths, just for you.</p>
+        <div style={{ display: "flex", gap: 8, marginTop: 14, flexWrap: "wrap" }}>
+          {["Trending Now", "New Arrivals", "Top Picks"].map((t) => (
+            <span key={t} style={{ background: "rgba(0,0,0,0.3)", border: `1px solid ${T.border}`, color: "#fff", fontSize: 11.5, fontWeight: 700, padding: "5px 11px", borderRadius: 999 }}>{t}</span>
+          ))}
+        </div>
+      </div>
+
+      {/* SEARCH */}
+      <div style={{ position: "relative", marginBottom: 22 }}>
+        <Search size={17} color={T.textSec} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)" }} />
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search courses by title…"
+          style={{ width: "100%", background: T.card, border: `1px solid ${T.border}`, color: T.text, padding: "13px 16px 13px 42px", borderRadius: 14, outline: "none", fontSize: 14, boxSizing: "border-box", fontFamily: "inherit" }}
+        />
+      </div>
+
       {/* TABS */}
 
       <div
@@ -325,7 +396,9 @@ export default function StudentDashboard() {
             <Loader />
           ) : (
             Array.isArray(courses) &&
-            courses.map((course) => (
+            courses
+              .filter((c) => !search || (c.title || "").toLowerCase().includes(search.toLowerCase()))
+              .map((course) => (
               <div
                 key={course.id}
                 style={{

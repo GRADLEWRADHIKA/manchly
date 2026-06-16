@@ -33,7 +33,7 @@ const T = {
   textMut: "#71717A",
 };
 
-const BASE = "https://server.manchly.com";
+import { API_BASE as BASE } from "./api";
 
 export default function CreateKycDashboard() {
   const token = localStorage.getItem("token");

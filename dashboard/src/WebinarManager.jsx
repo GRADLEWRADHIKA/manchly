@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-const API_BASE = "https://server.manchly.com";
+import { API_BASE } from "./api";
 
 const getToken = () => {
   if (typeof window === "undefined") return null;
@@ -49,6 +49,9 @@ export default function WebinarManager() {
   const [loading,    setLoading]    = useState(false);
   const [webinars,   setWebinars]   = useState([]);
   const [showCreate, setShowCreate] = useState(false);
+  const [editTarget, setEditTarget] = useState(null);    // wired to PUT /webinars/:id
+  const [deleting,   setDeleting]   = useState(null);    // id currently being deleted
+  const [stats,      setStats]      = useState(null);    // wired to GET /webinars/stats/creator
   const [error,      setError]      = useState("");
   const [success,    setSuccess]    = useState("");
 
@@ -101,13 +104,59 @@ export default function WebinarManager() {
   }
 };
 
-  useEffect(() => { fetchWebinars(); }, []);
+  // GET /webinars/stats/creator — creator summary cards
+  const fetchStats = async () => {
+    try {
+      const data = await apiCall("/webinars/stats/creator");
+      setStats(data?.data || data?.stats || data || null);
+    } catch (err) {
+      console.warn("[WebinarManager] stats:", err.message);
+    }
+  };
+
+  useEffect(() => { fetchWebinars(); fetchStats(); }, []);
+
+  // Pre-fill the form from a webinar row → opens form in edit mode
+  const startEdit = (webinar) => {
+    const iso = webinar.scheduled_at ? new Date(webinar.scheduled_at) : null;
+    setForm({
+      title:       webinar.title       || "",
+      description: webinar.description || "",
+      date:        iso ? iso.toISOString().slice(0, 10) : "",
+      time:        iso ? iso.toTimeString().slice(0, 5) : "",
+      price:       webinar.price ?? "",
+      duration:    webinar.duration ?? 60,
+      timezone:    webinar.timezone || "Asia/Kolkata",
+      category:    webinar.category || "General",
+    });
+    setEditTarget(webinar);
+    setShowCreate(true);
+    setError(""); setSuccess("");
+  };
+
+  // DELETE /webinars/:id
+  const deleteWebinar = async (webinar) => {
+    if (!confirm(`Delete "${webinar.title}"? Enrolled users will lose access.`)) return;
+    setDeleting(webinar.id);
+    setError(""); setSuccess("");
+    try {
+      await apiCall(`/webinars/${webinar.id}`, { method: "DELETE" });
+      setWebinars((prev) => prev.filter((w) => w.id !== webinar.id));
+      setSuccess("Webinar deleted.");
+      fetchStats();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setDeleting(null);
+    }
+  };
 
   // ─────────────────────────────────────────────────────
-  // CREATE WEBINAR
-  // Payload matches Postman schema exactly:
-  // { title, description, price, scheduled_at,
-  //   duration, timezone, category }
+  // CREATE / UPDATE WEBINAR
+  // POST /webinars       — create
+  // PUT  /webinars/:id   — edit (when editTarget set)
+  // Payload schema: { title, description, price, scheduled_at,
+  //                  duration, timezone, category }
   // ─────────────────────────────────────────────────────
   const createWebinar = async () => {
     setError("");
@@ -136,21 +185,27 @@ export default function WebinarManager() {
         category:     form.category,
       };
 
-      const response = await apiCall("/webinars", {
-        method: "POST",
-        body:   JSON.stringify(payload),
-      });
+      const isEdit = Boolean(editTarget);
+      const response = await apiCall(
+        isEdit ? `/webinars/${editTarget.id}` : "/webinars",
+        {
+          method: isEdit ? "PUT" : "POST",
+          body:   JSON.stringify(payload),
+        }
+      );
 
       if (response.success || response.webinar || response.data) {
-        setSuccess("Webinar created successfully!");
+        setSuccess(isEdit ? "Webinar updated!" : "Webinar created successfully!");
         setShowCreate(false);
+        setEditTarget(null);
         setForm({
           title: "", description: "", date: "", time: "",
           price: "", duration: 60, timezone: "Asia/Kolkata", category: "General",
         });
         fetchWebinars();
+        fetchStats();
       } else {
-        throw new Error(response.message || "Failed to create webinar");
+        throw new Error(response.message || (isEdit ? "Failed to update" : "Failed to create webinar"));
       }
     } catch (err) {
       console.error("[WebinarManager] create:", err.message);
@@ -193,12 +248,40 @@ export default function WebinarManager() {
           <h1 style={{ color: B.orange, margin: 0 }}>Webinar Manager</h1>
           <p style={{ color: B.textSec, marginTop: 8 }}>Manage your webinars</p>
         </div>
-        <button onClick={() => { setShowCreate(!showCreate); setError(""); setSuccess(""); }}
+        <button onClick={() => {
+            if (showCreate) {
+              // closing
+              setShowCreate(false);
+              setEditTarget(null);
+              setForm({
+                title: "", description: "", date: "", time: "",
+                price: "", duration: 60, timezone: "Asia/Kolkata", category: "General",
+              });
+            } else {
+              setShowCreate(true);
+              setEditTarget(null);
+            }
+            setError(""); setSuccess("");
+          }}
           style={{ background: B.orange, color: "#000", border: "none",
             padding: "12px 20px", borderRadius: 12, fontWeight: 700, cursor: "pointer" }}>
           {showCreate ? "Close" : "Create Webinar"}
         </button>
       </div>
+
+      {/* ── CREATOR STATS (GET /webinars/stats/creator) ── */}
+      {stats && (
+        <div style={{ display: "grid",
+          gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))",
+          gap: 14, marginBottom: 24 }}>
+          <StatBox B={B} label="Total Webinars" value={stats.total_webinars ?? webinars.length} />
+          <StatBox B={B} label="Total Enrollments" value={stats.total_enrollments ?? "—"} />
+          <StatBox B={B} label="Total Revenue"
+            value={stats.total_revenue != null ? `₹${Number(stats.total_revenue).toLocaleString("en-IN")}` : "—"} />
+          <StatBox B={B} label="Avg Attendance"
+            value={stats.avg_attendance != null ? `${stats.avg_attendance}%` : "—"} />
+        </div>
+      )}
 
       {/* ── ALERTS ── */}
       {error && (
@@ -224,8 +307,18 @@ export default function WebinarManager() {
           {/* API badge */}
           <p style={{ fontSize: 10.5, color: B.textMut, fontFamily: "monospace",
             marginBottom: 18 }}>
-            POST /webinars · schema: title, description, price, scheduled_at, duration, timezone, category
+            {editTarget
+              ? `PUT /webinars/${editTarget.id} · schema: title, description, price, scheduled_at, duration, timezone, category`
+              : "POST /webinars · schema: title, description, price, scheduled_at, duration, timezone, category"}
           </p>
+
+          {editTarget && (
+            <div style={{ background: "rgba(255,193,7,0.1)",
+              border: `1px solid ${B.orange}`, borderRadius: 10,
+              padding: "8px 12px", marginBottom: 14, fontSize: 12.5, color: B.orange }}>
+              Editing: <strong>{editTarget.title}</strong>
+            </div>
+          )}
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
             {/* Title — full width */}
@@ -297,7 +390,9 @@ export default function WebinarManager() {
                   padding: "16px", borderRadius: 12, fontWeight: 800,
                   cursor: loading ? "not-allowed" : "pointer", width: "100%",
                   fontSize: 15, opacity: loading ? 0.75 : 1 }}>
-                {loading ? "Creating…" : "Create Webinar"}
+                {loading
+                  ? (editTarget ? "Saving…" : "Creating…")
+                  : (editTarget ? "Save Changes" : "Create Webinar")}
               </button>
             </div>
           </div>
@@ -366,11 +461,47 @@ export default function WebinarManager() {
                     {webinar.status}
                   </div>
                 )}
+
+                {/* Edit / Delete actions */}
+                <div style={{ display: "flex", gap: 8, marginTop: 14, paddingTop: 14,
+                  borderTop: `1px solid ${B.border}` }}>
+                  <button onClick={() => startEdit(webinar)}
+                    style={{ flex: 1, background: "rgba(255,193,7,0.12)",
+                      border: `1px solid rgba(255,193,7,0.35)`, color: B.orange,
+                      padding: "8px", borderRadius: 10, fontWeight: 700,
+                      fontSize: 12, cursor: "pointer" }}>
+                    ✎ Edit
+                  </button>
+                  <button onClick={() => deleteWebinar(webinar)}
+                    disabled={deleting === webinar.id}
+                    style={{ flex: 1, background: "rgba(239,68,68,0.12)",
+                      border: `1px solid rgba(239,68,68,0.35)`, color: B.red,
+                      padding: "8px", borderRadius: 10, fontWeight: 700,
+                      fontSize: 12, cursor: deleting === webinar.id ? "wait" : "pointer",
+                      opacity: deleting === webinar.id ? 0.6 : 1 }}>
+                    {deleting === webinar.id ? "Deleting…" : "🗑 Delete"}
+                  </button>
+                </div>
               </div>
             </div>
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+function StatBox({ B, label, value }) {
+  return (
+    <div style={{ background: B.card, border: `1px solid ${B.border}`,
+      borderRadius: 14, padding: "14px 16px" }}>
+      <div style={{ fontSize: 11, color: B.textSec, marginBottom: 6,
+        textTransform: "uppercase", letterSpacing: 0.5, fontWeight: 600 }}>
+        {label}
+      </div>
+      <div style={{ fontSize: 22, fontWeight: 900, color: B.orange }}>
+        {value}
+      </div>
     </div>
   );
 }

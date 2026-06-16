@@ -43,7 +43,7 @@ const T = {
   textMut: "#71717A",
 };
 
-const API = "https://server.manchly.com";
+import { API_BASE as API } from "./api";
 
 export default function CreatorSettlementPortal() {
   const token = localStorage.getItem("token");

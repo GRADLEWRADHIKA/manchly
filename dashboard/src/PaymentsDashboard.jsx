@@ -1,3 +1,4 @@
+import { API_BASE } from "./api";
 import React, { useEffect, useState } from "react";
 import {
   CreditCard,
@@ -40,27 +41,17 @@ export default function PaymentsDashboard({ role = "STUDENT" }) {
   const [verifyingPayment, setVerifyingPayment] = useState(false);
   const [generatedOrder, setGeneratedOrder] = useState(null);
   const [paymentVerified, setPaymentVerified] = useState(false);
-  const purchasableCourses = [
-    {
-      id: 1,
-      title: "Advanced React Architecture",
-      price: 4999,
-    },
 
-    {
-      id: 2,
-      title: "AI Prompt Engineering",
-      price: 2999,
-    },
-
-    {
-      id: 3,
-      title: "System Design Bootcamp",
-      price: 6999,
-    },
+  // Real catalog from GET /courses — falls back to demo courses if the API has none yet.
+  // The demo array preserves the original sandbox UX while the platform is empty.
+  const DEMO_COURSES = [
+    { id: 1, title: "Advanced React Architecture", price: 4999 },
+    { id: 2, title: "AI Prompt Engineering",       price: 2999 },
+    { id: 3, title: "System Design Bootcamp",      price: 6999 },
   ];
-
-  const [selectedCourse, setSelectedCourse] = useState(purchasableCourses[0]);
+  const [purchasableCourses, setPurchasableCourses] = useState(DEMO_COURSES);
+  const [selectedCourse, setSelectedCourse] = useState(DEMO_COURSES[0]);
+  const [loadingCatalog, setLoadingCatalog] = useState(true);
   const apiFetch = async (url, options = {}) => {
     try {
       const response = await fetch(url, {
@@ -83,16 +74,41 @@ export default function PaymentsDashboard({ role = "STUDENT" }) {
   };
   useEffect(() => {
     loadTransactions();
+    loadCatalog();
 
     if (role === "CREATOR") {
       loadCreatorSales();
     }
   }, []);
 
+  // GET /courses — real catalog for the sandbox purchase flow
+  const loadCatalog = async () => {
+    setLoadingCatalog(true);
+    try {
+      const data = await apiFetch(API_BASE + "/courses");
+      const list = Array.isArray(data) ? data
+                 : Array.isArray(data?.courses) ? data.courses
+                 : Array.isArray(data?.data) ? data.data
+                 : [];
+      const trimmed = list.slice(0, 20).map((c) => ({
+        id: c.id, title: c.title, price: Number(c.price || 0),
+      }));
+      if (trimmed.length > 0) {
+        setPurchasableCourses(trimmed);
+        setSelectedCourse(trimmed[0]);
+      }
+      // else: keep DEMO_COURSES visible so the sandbox keeps working
+    } catch (err) {
+      console.warn("[PaymentsDashboard] catalog:", err.message);
+    } finally {
+      setLoadingCatalog(false);
+    }
+  };
+
   const loadTransactions = async () => {
     setLoadingTransactions(true);
     const data = await apiFetch(
-      "https://server.manchly.com/payments/my-transactions",
+      API_BASE + "/payments/my-transactions",
     );
 
     if (Array.isArray(data)) {
@@ -109,7 +125,7 @@ export default function PaymentsDashboard({ role = "STUDENT" }) {
     setLoadingSales(true);
 
     const data = await apiFetch(
-      "https://server.manchly.com/payments/creator-sales",
+      API_BASE + "/payments/creator-sales",
     );
 
     if (Array.isArray(data)) {
@@ -123,28 +139,37 @@ export default function PaymentsDashboard({ role = "STUDENT" }) {
     setLoadingSales(false);
   };
   const createOrder = async () => {
+    if (!selectedCourse) return;
     setCreatingOrder(true);
     setGeneratedOrder(null);
-    const data = await apiFetch(
-      `https://server.manchly.com/payments/create-order/${selectedCourse.id}`,
-      {
-        method: "POST",
-      },
-    );
+    setPaymentVerified(false);
+    try {
+      const data = await apiFetch(
+        `${API_BASE}/payments/create-order/${selectedCourse.id}`,
+        { method: "POST" },
+      );
+      // Backend returns { order_id, payment_session_id, ... } for Cashfree
+      const orderId           = data.order_id      || data?.data?.order_id;
+      const paymentSessionId  = data.payment_session_id || data?.data?.payment_session_id;
+      const paymentLink       = data.payment_link  || data?.data?.payment_link;
 
-    setTimeout(() => {
       setGeneratedOrder({
-        orderId: data.order_id || `course_${selectedCourse.id}_${Date.now()}`,
-        paymentLink: data.payment_link || "https://paymentsandbox.manchly.com",
+        orderId: orderId || `course_${selectedCourse.id}_${Date.now()}`,
+        paymentSessionId,
+        paymentLink: paymentLink || (paymentSessionId
+          ? `/pay.html?session_id=${encodeURIComponent(paymentSessionId)}&order_id=${encodeURIComponent(orderId)}`
+          : null),
       });
-
+    } catch (err) {
+      console.warn("[PaymentsDashboard] createOrder:", err.message);
+    } finally {
       setCreatingOrder(false);
-    }, 1500);
+    }
   };
   const verifyPayment = async () => {
     setVerifyingPayment(true);
 
-    const data = await apiFetch("https://server.manchly.com/payments/verify", {
+    const data = await apiFetch(API_BASE + "/payments/verify", {
       method: "POST",
 
       body: JSON.stringify({
@@ -318,7 +343,7 @@ export default function PaymentsDashboard({ role = "STUDENT" }) {
                             fontSize: 18,
                           }}
                         >
-                          {sale.customer || "Student"}
+                          {sale.customer || "User"}
                         </div>
 
                         <div
@@ -429,38 +454,41 @@ export default function PaymentsDashboard({ role = "STUDENT" }) {
             </div>
           </div>
           {/* SELECT */}
-          <select
-            value={selectedCourse.id}
-            onChange={(e) => {
-              const course = purchasableCourses.find(
-                (c) => c.id === Number(e.target.value),
-              );
-
-              setSelectedCourse(course);
-            }}
-            style={{
-              width: "100%",
-              background: T.sidebar,
-              border: `1px solid ${T.border}`,
-
-              padding: 18,
-              borderRadius: 18,
-              color: "#fff",
-              marginBottom: 20,
-              outline: "none",
-            }}
-          >
-            {purchasableCourses.map((course) => (
-              <option key={course.id} value={course.id}>
-                {course.title} • ₹{course.price}
-              </option>
-            ))}
-          </select>
+          {loadingCatalog ? (
+            <div style={{ padding: 18, color: T.textSec, fontSize: 14, marginBottom: 20 }}>
+              Loading course catalog from GET /courses…
+            </div>
+          ) : (
+            <select
+              value={selectedCourse?.id ?? ""}
+              onChange={(e) => {
+                const course = purchasableCourses.find((c) => String(c.id) === e.target.value);
+                if (course) setSelectedCourse(course);
+              }}
+              style={{
+                width: "100%",
+                background: T.sidebar,
+                border: `1px solid ${T.border}`,
+                padding: 18,
+                borderRadius: 18,
+                color: "#fff",
+                marginBottom: 20,
+                outline: "none",
+              }}
+            >
+              {purchasableCourses.map((course) => (
+                <option key={course.id} value={course.id}>
+                  {course.title} • ₹{course.price}
+                </option>
+              ))}
+            </select>
+          )}
 
           {/* CREATE */}
 
           <button
             onClick={createOrder}
+            disabled={creatingOrder || !selectedCourse}
             style={{
               width: "100%",
               background: T.orange,
@@ -469,8 +497,9 @@ export default function PaymentsDashboard({ role = "STUDENT" }) {
               padding: "16px",
               borderRadius: 18,
               fontWeight: 900,
-              cursor: "pointer",
+              cursor: (creatingOrder || !selectedCourse) ? "not-allowed" : "pointer",
               fontSize: 15,
+              opacity: (creatingOrder || !selectedCourse) ? 0.6 : 1,
             }}
           >
             {creatingOrder ? "Generating Order..." : "Create Order"}
@@ -507,11 +536,35 @@ export default function PaymentsDashboard({ role = "STUDENT" }) {
                 {generatedOrder.orderId}
               </div>
 
+              {generatedOrder.paymentLink && (
+                <a
+                  href={generatedOrder.paymentLink}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{
+                    display: "block",
+                    width: "100%",
+                    marginTop: 20,
+                    background: T.orange,
+                    color: "#000",
+                    textAlign: "center",
+                    padding: "16px",
+                    borderRadius: 18,
+                    fontWeight: 900,
+                    textDecoration: "none",
+                    fontSize: 15,
+                    boxSizing: "border-box",
+                  }}
+                >
+                  🔗 Pay with Cashfree
+                </a>
+              )}
+
               <button
                 onClick={verifyPayment}
                 style={{
                   width: "100%",
-                  marginTop: 20,
+                  marginTop: 12,
                   background: T.green,
                   color: "#000",
                   border: "none",
@@ -602,7 +655,7 @@ export default function PaymentsDashboard({ role = "STUDENT" }) {
                 lineHeight: 1.6,
               }}
             >
-              POST: https://server.manchly.com/payments/webhook
+              POST: http://localhost:8080/payments/webhook
             </div>
           </div>
         </div>

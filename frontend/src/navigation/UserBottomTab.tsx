@@ -19,10 +19,12 @@ import {
   ShoppingBag,
   House,
   UserPen,
+  Store,
 } from 'lucide-react-native';
 import UserHome from '../screens/Auth/User/Home/UserHome';
 import UserChat from '../screens/Auth/User/Chat/UserChat';
 import UserSetting from '../screens/Auth/User/Settings/UserSetting';
+import CreatorEngineBrandMarketplace from '../screens/Auth/CreatorEngineBranchMarketplace/CreatorEngineBrandMarketplace';
 
 const Tab = createBottomTabNavigator();
 
@@ -49,6 +51,12 @@ const tabs = [
     component: PurchasesScreen,
     label: 'My Learning',
     Icon: ShoppingBag,
+  },
+  {
+    name: 'BrandMarketplace',
+    component: CreatorEngineBrandMarketplace,
+    label: 'Market',
+    Icon: Store,
   },
   {
     name: 'UserSetting',

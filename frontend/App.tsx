@@ -14,6 +14,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { initializeChottuLink } from 'react-native-chottulink-sdk';
 import { Settings, AppEventsLogger } from 'react-native-fbsdk-next';
 
+
 export default function App() {
   injectStore(store);
   const isDarkMode = useColorScheme() === 'dark';

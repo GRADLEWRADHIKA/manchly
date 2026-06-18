@@ -24,7 +24,8 @@ import {
 import UserHome from '../screens/Auth/User/Home/UserHome';
 import UserChat from '../screens/Auth/User/Chat/UserChat';
 import UserSetting from '../screens/Auth/User/Settings/UserSetting';
-import CreatorEngineBrandMarketplace from '../screens/Auth/CreatorEngineBranchMarketplace/CreatorEngineBrandMarketplace';
+import BrandMarketplace from '../screens/Auth/User/Marketplace/BrandMarketplace';import { Profile } from 'react-native-fbsdk-next';
+
 
 const Tab = createBottomTabNavigator();
 
@@ -54,7 +55,7 @@ const tabs = [
   },
   {
     name: 'BrandMarketplace',
-    component: CreatorEngineBrandMarketplace,
+    component: BrandMarketplace,
     label: 'Market',
     Icon: Store,
   },

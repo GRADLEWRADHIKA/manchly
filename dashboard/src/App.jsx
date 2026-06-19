@@ -20,6 +20,9 @@ import NotificationsPanel, { NotificationBell } from "./NotificationsPanel.jsx";
 import CoursePlayer from "./CoursePlayer.jsx";
 import AIAssistant from "./AIAssistant.jsx";
 import HelpCenter from "./HelpCenter.jsx";
+//import CreatorEngineBrandMarketplace from "./CreatorMarketplace.jsx";
+import BrandMarketplace from "./BrandMarketplace.jsx";
+import CreatorCenter from "./CreatorCenter.jsx";
 
 export default function App() {
   // USER STATE — restored from localStorage
@@ -36,7 +39,8 @@ export default function App() {
   // up with server-side changes (e.g. admin promoted them to CREATOR, or kyc_verified flipped).
   // If the token is invalid the call 401s — we treat that as a forced logout.
   useEffect(() => {
-    const token = localStorage.getItem("manchly_token") || localStorage.getItem("token");
+    const token =
+      localStorage.getItem("manchly_token") || localStorage.getItem("token");
     if (!token) return;
 
     fetch(API_BASE + "/auth/me", {
@@ -67,10 +71,12 @@ export default function App() {
 
   // user_type may be an array (e.g. ["USER","CREATOR"]) or a string
   const rawRole = Array.isArray(user?.user_type)
-    ? (user.user_type.includes("ADMIN") ? "ADMIN"
-       : user.user_type.includes("CREATOR") ? "CREATOR"
-       : user.user_type[0] || "")
-    : (user?.user_type || user?.role || user?.tab || "");
+    ? user.user_type.includes("ADMIN")
+      ? "ADMIN"
+      : user.user_type.includes("CREATOR")
+        ? "CREATOR"
+        : user.user_type[0] || ""
+    : user?.user_type || user?.role || user?.tab || "";
   const role = (() => {
     const r = String(rawRole).toUpperCase();
     if (r === "ADMIN") return "ADMIN";
@@ -93,9 +99,14 @@ export default function App() {
   };
   const [activePage, setActivePage] = useState(() => {
     const rawT = user?.user_type;
-    const r = (Array.isArray(rawT)
-      ? (rawT.includes("ADMIN") ? "ADMIN" : rawT.includes("CREATOR") ? "CREATOR" : rawT[0] || "")
-      : String(rawT || user?.role || user?.tab || "")
+    const r = (
+      Array.isArray(rawT)
+        ? rawT.includes("ADMIN")
+          ? "ADMIN"
+          : rawT.includes("CREATOR")
+            ? "CREATOR"
+            : rawT[0] || ""
+        : String(rawT || user?.role || user?.tab || "")
     ).toUpperCase();
     if (r === "ADMIN") return "admin";
     if (r === "CREATOR") return "overview";
@@ -115,15 +126,22 @@ export default function App() {
           setUser(finalUser);
 
           const rawT = finalUser?.user_type;
-          const finalRole = (Array.isArray(rawT)
-            ? (rawT.includes("ADMIN") ? "ADMIN" : rawT.includes("CREATOR") ? "CREATOR" : rawT[0] || "")
-            : String(rawT || finalUser?.role || finalUser?.tab || "")
+          const finalRole = (
+            Array.isArray(rawT)
+              ? rawT.includes("ADMIN")
+                ? "ADMIN"
+                : rawT.includes("CREATOR")
+                  ? "CREATOR"
+                  : rawT[0] || ""
+              : String(rawT || finalUser?.role || finalUser?.tab || "")
           ).toUpperCase();
 
           setActivePage(
-            finalRole === "ADMIN"   ? "admin" :
-            finalRole === "CREATOR" ? "overview" :
-            "dashboard"
+            finalRole === "ADMIN"
+              ? "admin"
+              : finalRole === "CREATOR"
+                ? "overview"
+                : "dashboard",
           );
         }}
       />
@@ -294,6 +312,12 @@ export default function App() {
               onClick={() => setActivePage("groups")}
               B={B}
             />
+            <NavButton
+              label="Brand Marketplace"
+              active={activePage === "brand-marketplace"}
+              onClick={() => setActivePage("brand-marketplace")}
+              B={B}
+            />
           </>
         )}
 
@@ -304,6 +328,12 @@ export default function App() {
               label="Overview"
               active={activePage === "overview"}
               onClick={() => setActivePage("overview")}
+              B={B}
+            />
+            <NavButton
+              label="Creator Center"
+              active={activePage === "creator-center"}
+              onClick={() => setActivePage("creator-center")}
               B={B}
             />
             <NavButton
@@ -390,6 +420,19 @@ export default function App() {
               onClick={() => setActivePage("groups")}
               B={B}
             />
+            <NavButton
+              label="Brand Marketplace"
+              active={activePage === "brand-marketplace"}
+              onClick={() => setActivePage("brand-marketplace")}
+              B={B}
+            />
+
+            <NavButton
+              label="Creator Center"
+              active={activePage === "creator-center"}
+              onClick={() => setActivePage("creator-center")}
+              B={B}
+            />
           </>
         )}
       </div>
@@ -400,6 +443,10 @@ export default function App() {
         {activePage === "overview" && role === "CREATOR" && (
           <CreatorOverview user={user} onNavigate={setActivePage} />
         )}
+        {activePage === "brand-marketplace" &&
+          (role === "USER" || role === "ADMIN") && <BrandMarketplace />}
+        {activePage === "creator-center" &&
+          (role === "CREATOR" || role === "ADMIN") && <CreatorCenter />}
         {/* USER DASHBOARD */}
         {activePage === "dashboard" && role === "USER" && <StudentDashboard />}
         {/* USER — MY LEARNING / VIDEO PLAYER */}
@@ -414,7 +461,9 @@ export default function App() {
           />
         )}
         {/* PAYMENTS — both roles */}
-        {activePage === "payments" && <PaymentsDashboard role={role} user_type={role} />}
+        {activePage === "payments" && (
+          <PaymentsDashboard role={role} user_type={role} />
+        )}
         {/* CREATOR KYC */}
         {activePage === "kyc" && role === "CREATOR" && <CreateKycDashboard />}
         {/* CREATOR SETTLEMENTS */}
@@ -450,21 +499,15 @@ export default function App() {
           <TelegramChannels />
         )}
         {/* CHAT — both roles */}
-        {activePage === "chat" && (
-          <ChatPanel currentUser={user} />
-        )}
+        {activePage === "chat" && <ChatPanel currentUser={user} />}
         {/* STUDENT SESSION BOOKING — USER ONLY */}
         {activePage === "book" && role === "USER" && (
           <StudentSessionBooking currentUser={user} />
         )}
         {/* ADMIN PANEL — ADMIN ONLY */}
-        {activePage === "admin" && role === "ADMIN" && (
-          <AdminPanel />
-        )}
+        {activePage === "admin" && role === "ADMIN" && <AdminPanel />}
         {/* GROUPS — all roles */}
-        {activePage === "groups" && (
-          <GroupsPanel currentUser={user} />
-        )}
+        {activePage === "groups" && <GroupsPanel currentUser={user} />}
         {/* HELP & LEGAL — all roles */}
         {activePage === "help" && <HelpCenter role={role} />}
       </div>
@@ -477,20 +520,72 @@ export default function App() {
 
 function AppFooter({ onHelp, B }) {
   const IG = "https://www.instagram.com/manchly_app";
-  const WA = "https://wa.me/916363790659?text=" + encodeURIComponent("Hello, I need help with Manchly.");
-  const link = { background: "transparent", border: "none", color: B.textSec, cursor: "pointer", fontSize: 12.5, padding: 0, fontFamily: "inherit", textDecoration: "underline" };
+  const WA =
+    "https://wa.me/916363790659?text=" +
+    encodeURIComponent("Hello, I need help with Manchly.");
+  const link = {
+    background: "transparent",
+    border: "none",
+    color: B.textSec,
+    cursor: "pointer",
+    fontSize: 12.5,
+    padding: 0,
+    fontFamily: "inherit",
+    textDecoration: "underline",
+  };
   return (
-    <div style={{ borderTop: `1px solid ${B.border}`, padding: "18px 24px", display: "flex", flexWrap: "wrap", gap: 14, alignItems: "center", justifyContent: "space-between", color: B.textSec, fontSize: 12.5 }}>
-      <div style={{ display: "flex", gap: 16, flexWrap: "wrap", alignItems: "center" }}>
+    <div
+      style={{
+        borderTop: `1px solid ${B.border}`,
+        padding: "18px 24px",
+        display: "flex",
+        flexWrap: "wrap",
+        gap: 14,
+        alignItems: "center",
+        justifyContent: "space-between",
+        color: B.textSec,
+        fontSize: 12.5,
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          gap: 16,
+          flexWrap: "wrap",
+          alignItems: "center",
+        }}
+      >
         <span>© Agnivora Digital · Manchly</span>
-        <button onClick={onHelp} style={link}>Help &amp; Support</button>
-        <button onClick={onHelp} style={link}>Terms</button>
-        <button onClick={onHelp} style={link}>Privacy</button>
-        <button onClick={onHelp} style={link}>Refund Policy</button>
+        <button onClick={onHelp} style={link}>
+          Help &amp; Support
+        </button>
+        <button onClick={onHelp} style={link}>
+          Terms
+        </button>
+        <button onClick={onHelp} style={link}>
+          Privacy
+        </button>
+        <button onClick={onHelp} style={link}>
+          Refund Policy
+        </button>
       </div>
       <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
-        <a href={WA} target="_blank" rel="noreferrer" style={{ color: B.textSec, textDecoration: "none" }}>WhatsApp</a>
-        <a href={IG} target="_blank" rel="noreferrer" style={{ color: B.textSec, textDecoration: "none" }}>Instagram</a>
+        <a
+          href={WA}
+          target="_blank"
+          rel="noreferrer"
+          style={{ color: B.textSec, textDecoration: "none" }}
+        >
+          WhatsApp
+        </a>
+        <a
+          href={IG}
+          target="_blank"
+          rel="noreferrer"
+          style={{ color: B.textSec, textDecoration: "none" }}
+        >
+          AtSign
+        </a>
       </div>
     </div>
   );
@@ -498,13 +593,13 @@ function AppFooter({ onHelp, B }) {
 // PROFILE EDIT MODAL — PUT /auth/profile
 function ProfileEditModal({ B, user, onClose, onSaved }) {
   const [form, setForm] = useState({
-    name:           user?.name           || "",
-    phone_number:   user?.phone_number   || user?.phone || "",
-    profile_image:  user?.profile_image  || "",
+    name: user?.name || "",
+    phone_number: user?.phone_number || user?.phone || "",
+    profile_image: user?.profile_image || "",
     instagram_link: user?.instagram_link || "",
-    linkedin_link:  user?.linkedin_link  || "",
-    youtube_link:   user?.youtube_link   || "",
-    facebook_link:  user?.facebook_link  || "",
+    linkedin_link: user?.linkedin_link || "",
+    youtube_link: user?.youtube_link || "",
+    facebook_link: user?.facebook_link || "",
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -515,7 +610,8 @@ function ProfileEditModal({ B, user, onClose, onSaved }) {
     setSaving(true);
     setError("");
     try {
-      const token = localStorage.getItem("manchly_token") || localStorage.getItem("token");
+      const token =
+        localStorage.getItem("manchly_token") || localStorage.getItem("token");
       const res = await fetch(API_BASE + "/auth/profile", {
         method: "PUT",
         headers: {
@@ -526,7 +622,9 @@ function ProfileEditModal({ B, user, onClose, onSaved }) {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(data?.error?.message || data?.message || "Update failed");
+        throw new Error(
+          data?.error?.message || data?.message || "Update failed",
+        );
       }
       const updated = data?.user || data?.data || data;
       onSaved(updated || form);
@@ -538,56 +636,167 @@ function ProfileEditModal({ B, user, onClose, onSaved }) {
   };
 
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)",
-      display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000,
-      backdropFilter: "blur(4px)" }}>
-      <div style={{ background: B.card, border: `1px solid ${B.border}`,
-        borderRadius: 18, padding: 26, width: 440, maxHeight: "90vh",
-        overflowY: "auto", boxSizing: "border-box" }}>
-        <div style={{ display: "flex", justifyContent: "space-between",
-          alignItems: "center", marginBottom: 18 }}>
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(0,0,0,0.75)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 1000,
+        backdropFilter: "blur(4px)",
+      }}
+    >
+      <div
+        style={{
+          background: B.card,
+          border: `1px solid ${B.border}`,
+          borderRadius: 18,
+          padding: 26,
+          width: 440,
+          maxHeight: "90vh",
+          overflowY: "auto",
+          boxSizing: "border-box",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 18,
+          }}
+        >
           <h2 style={{ margin: 0, fontSize: 18, fontWeight: 800 }}>
             Edit Profile
           </h2>
-          <button onClick={onClose}
-            style={{ background: "transparent", border: "none",
-              color: B.textSec, fontSize: 22, cursor: "pointer" }}>×</button>
+          <button
+            onClick={onClose}
+            style={{
+              background: "transparent",
+              border: "none",
+              color: B.textSec,
+              fontSize: 22,
+              cursor: "pointer",
+            }}
+          >
+            ×
+          </button>
         </div>
-        <p style={{ fontSize: 11, color: B.textSec, fontFamily: "monospace",
-          marginBottom: 16 }}>
+        <p
+          style={{
+            fontSize: 11,
+            color: B.textSec,
+            fontFamily: "monospace",
+            marginBottom: 16,
+          }}
+        >
           PUT /auth/profile
         </p>
 
         {error && (
-          <div style={{ background: "rgba(239,68,68,0.1)",
-            border: `1px solid ${B.red}`, color: B.red, borderRadius: 10,
-            padding: "8px 12px", marginBottom: 12, fontSize: 13 }}>
+          <div
+            style={{
+              background: "rgba(239,68,68,0.1)",
+              border: `1px solid ${B.red}`,
+              color: B.red,
+              borderRadius: 10,
+              padding: "8px 12px",
+              marginBottom: 12,
+              fontSize: 13,
+            }}
+          >
             ⚠️ {error}
           </div>
         )}
 
         <div style={{ display: "grid", gap: 12 }}>
-          <ProfileField B={B} label="Name"             value={form.name}           onChange={set("name")}/>
-          <ProfileField B={B} label="Phone number"     value={form.phone_number}   onChange={set("phone_number")}/>
-          <ProfileField B={B} label="Profile image URL" value={form.profile_image} onChange={set("profile_image")}/>
-          <ProfileField B={B} label="Instagram"        value={form.instagram_link} onChange={set("instagram_link")} placeholder="https://instagram.com/..."/>
-          <ProfileField B={B} label="LinkedIn"         value={form.linkedin_link}  onChange={set("linkedin_link")} placeholder="https://linkedin.com/in/..."/>
-          <ProfileField B={B} label="YouTube"          value={form.youtube_link}   onChange={set("youtube_link")} placeholder="https://youtube.com/@..."/>
-          <ProfileField B={B} label="Facebook"         value={form.facebook_link}  onChange={set("facebook_link")} placeholder="https://facebook.com/..."/>
+          <ProfileField
+            B={B}
+            label="Name"
+            value={form.name}
+            onChange={set("name")}
+          />
+          <ProfileField
+            B={B}
+            label="Phone number"
+            value={form.phone_number}
+            onChange={set("phone_number")}
+          />
+          <ProfileField
+            B={B}
+            label="Profile image URL"
+            value={form.profile_image}
+            onChange={set("profile_image")}
+          />
+          <ProfileField
+            B={B}
+            label="Instagram"
+            value={form.instagram_link}
+            onChange={set("instagram_link")}
+            placeholder="https://instagram.com/..."
+          />
+          <ProfileField
+            B={B}
+            label="LinkedIn"
+            value={form.linkedin_link}
+            onChange={set("linkedin_link")}
+            placeholder="https://linkedin.com/in/..."
+          />
+          <ProfileField
+            B={B}
+            label="YouTube"
+            value={form.youtube_link}
+            onChange={set("youtube_link")}
+            placeholder="https://youtube.com/@..."
+          />
+          <ProfileField
+            B={B}
+            label="Facebook"
+            value={form.facebook_link}
+            onChange={set("facebook_link")}
+            placeholder="https://facebook.com/..."
+          />
         </div>
 
-        <div style={{ display: "flex", gap: 10, marginTop: 20, justifyContent: "flex-end" }}>
-          <button onClick={onClose} disabled={saving}
-            style={{ background: "transparent", border: `1px solid ${B.border}`,
-              color: B.textSec, padding: "10px 18px", borderRadius: 10,
-              cursor: "pointer", fontWeight: 600 }}>
+        <div
+          style={{
+            display: "flex",
+            gap: 10,
+            marginTop: 20,
+            justifyContent: "flex-end",
+          }}
+        >
+          <button
+            onClick={onClose}
+            disabled={saving}
+            style={{
+              background: "transparent",
+              border: `1px solid ${B.border}`,
+              color: B.textSec,
+              padding: "10px 18px",
+              borderRadius: 10,
+              cursor: "pointer",
+              fontWeight: 600,
+            }}
+          >
             Cancel
           </button>
-          <button onClick={save} disabled={saving}
-            style={{ background: B.orange, color: "#000", border: "none",
-              padding: "10px 20px", borderRadius: 10, fontWeight: 700,
+          <button
+            onClick={save}
+            disabled={saving}
+            style={{
+              background: B.orange,
+              color: "#000",
+              border: "none",
+              padding: "10px 20px",
+              borderRadius: 10,
+              fontWeight: 700,
               cursor: saving ? "not-allowed" : "pointer",
-              opacity: saving ? 0.6 : 1 }}>
+              opacity: saving ? 0.6 : 1,
+            }}
+          >
             {saving ? "Saving…" : "Save changes"}
           </button>
         </div>
@@ -599,15 +808,34 @@ function ProfileEditModal({ B, user, onClose, onSaved }) {
 function ProfileField({ B, label, value, onChange, placeholder }) {
   return (
     <div>
-      <label style={{ display: "block", fontSize: 11.5,
-        fontWeight: 600, color: B.textSec, marginBottom: 5 }}>
+      <label
+        style={{
+          display: "block",
+          fontSize: 11.5,
+          fontWeight: 600,
+          color: B.textSec,
+          marginBottom: 5,
+        }}
+      >
         {label}
       </label>
-      <input value={value} onChange={onChange} placeholder={placeholder || ""}
-        style={{ width: "100%", background: B.sidebar,
-          border: `1px solid ${B.border}`, color: B.textPrimary,
-          padding: "10px 12px", borderRadius: 10, outline: "none",
-          fontSize: 13, boxSizing: "border-box", fontFamily: "inherit" }}/>
+      <input
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder || ""}
+        style={{
+          width: "100%",
+          background: B.sidebar,
+          border: `1px solid ${B.border}`,
+          color: B.textPrimary,
+          padding: "10px 12px",
+          borderRadius: 10,
+          outline: "none",
+          fontSize: 13,
+          boxSizing: "border-box",
+          fontFamily: "inherit",
+        }}
+      />
     </div>
   );
 }

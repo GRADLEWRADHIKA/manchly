@@ -19,10 +19,13 @@ import {
   ShoppingBag,
   House,
   UserPen,
+  Store,
 } from 'lucide-react-native';
 import UserHome from '../screens/Auth/User/Home/UserHome';
 import UserSessions from '../screens/Auth/User/Sessions/UserSessions';
 import UserSetting from '../screens/Auth/User/Settings/UserSetting';
+import BrandMarketplace from '../screens/Auth/User/Marketplace/BrandMarketplace';import { Profile } from 'react-native-fbsdk-next';
+
 
 const Tab = createBottomTabNavigator();
 
@@ -49,6 +52,12 @@ const tabs = [
     component: PurchasesScreen,
     label: 'My Learning',
     Icon: ShoppingBag,
+  },
+  {
+    name: 'BrandMarketplace',
+    component: BrandMarketplace,
+    label: 'Market',
+    Icon: Store,
   },
   {
     name: 'UserSetting',

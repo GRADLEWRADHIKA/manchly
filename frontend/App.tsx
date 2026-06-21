@@ -15,6 +15,7 @@ import { initializeChottuLink } from 'react-native-chottulink-sdk';
 import { Settings, AppEventsLogger } from 'react-native-fbsdk-next';
 import SplashScreen from 'react-native-splash-screen';
 
+
 export default function App() {
   injectStore(store);
   const isDarkMode = useColorScheme() === 'dark';

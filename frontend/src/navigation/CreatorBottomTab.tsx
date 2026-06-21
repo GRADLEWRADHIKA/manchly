@@ -9,12 +9,14 @@ import {
   ShoppingBag,
   LayoutDashboard,
   Plus,
+  Store,
 } from 'lucide-react-native';
 import CreatorHome from '../screens/Auth/Creator/Home/CreatorHome';
 import CreatorProducts from '../screens/Auth/Creator/Products/CreatorProducts';
 import CreatorSetting from '../screens/Auth/Creator/Settings/CreatorSetting';
 import Dashboard from '../screens/Auth/Profile/Dashboard';
 import CreateProducts from '../screens/Auth/Creator/Products/Course/CreateProducts';
+import CreatorCenter from '../screens/Auth/Creator/CreatorCenter/CreatorCenter';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const Tab = createBottomTabNavigator();
@@ -46,6 +48,12 @@ const tabs = [
     component: Dashboard,
     label: 'Dashboard',
     Icon: LayoutDashboard,
+  },
+  {
+    name: 'CreatorCenter',
+    component: CreatorCenter,
+    label: 'Creator Center',
+    Icon: Store,
   },
   {
     name: 'CreatorSetting',

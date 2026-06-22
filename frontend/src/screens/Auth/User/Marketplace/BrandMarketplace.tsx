@@ -13,21 +13,27 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Image,
+  Pressable,
 } from 'react-native';
 import {
   BriefcaseBusiness,
   ChevronDown,
-  Instagram,
+  AtSign,
   Search,
   Send,
   ShieldCheck,
   X,
+  Instagram,
+  MessageCircle,
+  UserCircle,
+  Bell,
 } from 'lucide-react-native';
-import { fp, hp, wp } from '../../../utils/responsive';
-
-/* ─────────────────────────────────────────
-   TYPES
-───────────────────────────────────────── */
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import colors from '../../../../utils/colors';
+import { fp, hp, wp } from '../../../../utils/responsive';
 
 type AudienceRow = [string, string];
 type PackageRow = [string, string];
@@ -63,30 +69,6 @@ type InspectorDrawerProps = {
   onClose: () => void;
 };
 
-/* ─────────────────────────────────────────
-   DESIGN TOKENS
-───────────────────────────────────────── */
-
-const token = {
-  bg: '#050505',
-  card: '#111111',
-  cardHi: '#171717',
-  ink: '#FFFFFF',
-  muted: '#8B929E',
-  soft: '#CDD2DA',
-  border: '#292929',
-  orange: '#F97316',
-  green: '#16A34A',
-  greenText: '#DCFCE7',
-  blue: '#2563EB',
-  blueText: '#DBEAFE',
-  terminal: '#0A0A0A',
-};
-
-/* ─────────────────────────────────────────
-   STATIC DATA
-───────────────────────────────────────── */
-
 const NICHES: string[] = ['Finance', 'AI', 'Beauty', 'Fitness', 'SaaS'];
 
 const CREATORS: Creator[] = [
@@ -114,18 +96,103 @@ const CREATORS: Creator[] = [
       ['Newsletter drop', '₹85,000'],
     ],
   },
+  {
+    id: 'cr-102',
+    name: 'Rohan Sharma',
+    niche: 'AI',
+    city: 'Bangalore',
+    bio: 'AI enthusiast showcasing workflows, automation tools, and agent setups.',
+    phone: '919876543211',
+    instagram: 'rohan.ai',
+    sebiRegistered: false,
+    followers: '150K',
+    er: '8.2%',
+    views: '45K',
+    audience: [
+      ['Age 18-25', '65%'],
+      ['Developers & techies', '50%'],
+      ['English', '90%'],
+      ['Tool signups', '5K/mo'],
+    ],
+    packages: [
+      ['Reel promotion', '₹45,000'],
+      ['Sponsorship deal', '₹1,00,000'],
+      ['LinkedIn post', '₹30,000'],
+    ],
+  },
+  {
+    id: 'cr-103',
+    name: 'Anjali Sen',
+    niche: 'Beauty',
+    city: 'Delhi',
+    bio: 'Skincare specialist reviewing clean makeup and organic beauty products.',
+    phone: '919876543212',
+    instagram: 'anjali.beauty',
+    sebiRegistered: false,
+    followers: '280K',
+    er: '7.5%',
+    views: '80K',
+    audience: [
+      ['Age 18-35 (Female)', '85%'],
+      ['Skincare buyers', '60%'],
+      ['Hindi + English', '75%'],
+      ['Conversion rate', '4.2%'],
+    ],
+    packages: [
+      ['Video review', '₹70,000'],
+      ['Insta story package', '₹35,000'],
+      ['Product placement', '₹90,000'],
+    ],
+  },
+  {
+    id: 'cr-104',
+    name: 'Vikram Singh',
+    niche: 'Fitness',
+    city: 'Pune',
+    bio: 'Personal trainer and nutritionist helping professionals get fit.',
+    phone: '919876543213',
+    instagram: 'vikramfit',
+    sebiRegistered: false,
+    followers: '320K',
+    er: '5.9%',
+    views: '110K',
+    audience: [
+      ['Age 20-40', '70%'],
+      ['Gymgoers', '65%'],
+      ['Hindi + English', '85%'],
+      ['Active gym sub', '30%'],
+    ],
+    packages: [
+      ['Workout reel', '₹80,000'],
+      ['Supplement sponsor', '₹1,50,000'],
+      ['Transformation post', '₹50,000'],
+    ],
+  },
+  {
+    id: 'cr-105',
+    name: 'Simran Kaur',
+    niche: 'SaaS',
+    city: 'Hyderabad',
+    bio: 'Product manager sharing reviews of productivity apps and startup tools.',
+    phone: '919876543214',
+    instagram: 'simransaashustle',
+    sebiRegistered: false,
+    followers: '95K',
+    er: '9.1%',
+    views: '30K',
+    audience: [
+      ['Age 22-35', '75%'],
+      ['Founders & PMs', '55%'],
+      ['English', '95%'],
+      ['Trial activations', '1.2K/mo'],
+    ],
+    packages: [
+      ['Product demo reel', '₹40,000'],
+      ['Newsletter feature', '₹20,000'],
+      ['Dedicated video', '₹85,000'],
+    ],
+  },
 ];
-
-/* ─────────────────────────────────────────
-   ATOMS
-───────────────────────────────────────── */
-
-const Metric: React.FC<MetricProps> = ({ label, value }) => (
-  <View style={s.metricBox}>
-    <Text style={s.metricValue}>{value}</Text>
-    <Text style={s.metricLabel}>{label}</Text>
-  </View>
-);
 
 const NativeTable: React.FC<NativeTableProps> = ({ title, rows }) => (
   <View style={s.tableBlock}>
@@ -139,10 +206,6 @@ const NativeTable: React.FC<NativeTableProps> = ({ title, rows }) => (
   </View>
 );
 
-/* ─────────────────────────────────────────
-   INSPECTOR DRAWER
-───────────────────────────────────────── */
-
 const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
   creator,
   onClose,
@@ -154,7 +217,7 @@ const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
     onRequestClose={onClose}
   >
     <View style={s.modalScrim}>
-      <TouchableOpacity style={s.scrimTouch} onPress={onClose} />
+      <TouchableOpacity style={s.scrimTouch} activeOpacity={1} onPress={onClose} />
       {creator && (
         <SafeAreaView style={s.drawer}>
           <View style={s.drawerHandle} />
@@ -168,11 +231,27 @@ const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
             </View>
 
             <TouchableOpacity onPress={onClose} style={s.closeBtn}>
-              <X size={18} color={token.ink} />
+              <X size={18} color="#475467" />
             </TouchableOpacity>
           </View>
 
-          <ScrollView>
+          <ScrollView showsVerticalScrollIndicator={false}>
+            {/* Quick Metrics in Drawer */}
+            <View style={s.drawerMetricsRow}>
+              <View style={s.drawerMetricBox}>
+                <Text style={s.drawerMetricVal}>{creator.followers}</Text>
+                <Text style={s.drawerMetricLabel}>Followers</Text>
+              </View>
+              <View style={s.drawerMetricBox}>
+                <Text style={s.drawerMetricVal}>{creator.er}</Text>
+                <Text style={s.drawerMetricLabel}>ER</Text>
+              </View>
+              <View style={s.drawerMetricBox}>
+                <Text style={s.drawerMetricVal}>{creator.views}</Text>
+                <Text style={s.drawerMetricLabel}>Avg Views</Text>
+              </View>
+            </View>
+
             <NativeTable
               title="Target Audience Demographics"
               rows={creator.audience}
@@ -188,11 +267,11 @@ const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
   </Modal>
 );
 
-/* ─────────────────────────────────────────
-   MAIN COMPONENT
-───────────────────────────────────────── */
-
 export default function BrandMarketplace() {
+  const insets = useSafeAreaInsets();
+  const navigation = useNavigation<any>();
+  const { user } = useSelector((state: any) => state.userReducer);
+
   const [query, setQuery] = useState<string>('');
   const [activeNiche, setActiveNiche] = useState<string>('Finance');
   const [sebiOnly, setSebiOnly] = useState<boolean>(false);
@@ -230,38 +309,100 @@ export default function BrandMarketplace() {
   }, [query, activeNiche, sebiOnly]);
 
   return (
-    <SafeAreaView style={s.safe}>
-      <StatusBar barStyle="light-content" backgroundColor={token.bg} />
+    <View style={s.container}>
+      <StatusBar barStyle="light-content" backgroundColor={colors.secPrimary} />
+
+      {/* Maroon App Header */}
+      <View style={[s.headerWrapper, { paddingTop: insets.top }]}>
+        <View style={s.header}>
+          <View style={s.headerLeft}>
+            {user?.profile_image ? (
+              <Image
+                source={{ uri: user.profile_image }}
+                style={s.avatar}
+              />
+            ) : (
+              <View style={s.avatarFallback}>
+                <UserCircle size={wp(28)} color={colors.white} />
+              </View>
+            )}
+            <View>
+              <Text style={s.headerSubtitle}>Discover Brands</Text>
+              <Text style={s.headerTitle}>Marketplace</Text>
+            </View>
+          </View>
+          <View style={s.headerActions}>
+            <Pressable
+              style={({ pressed }) => [
+                s.bellBtn,
+                pressed && s.bellBtnPressed,
+              ]}
+              onPress={() => Linking.openURL('https://www.instagram.com/manchly_app')}
+              accessibilityLabel="Instagram"
+            >
+              <Instagram size={wp(18)} color={colors.white} strokeWidth={2} />
+            </Pressable>
+          </View>
+        </View>
+      </View>
 
       <FlatList
         data={filtered}
         keyExtractor={(item) => item.id}
         contentContainerStyle={s.feedContent}
+        showsVerticalScrollIndicator={false}
         ListHeaderComponent={
           <View>
-            <View style={s.heroBlock}>
-              <View style={s.heroIcon}>
-                <BriefcaseBusiness size={22} color={token.ink} />
-              </View>
-              <View style={s.heroCopy}>
-                <Text style={s.title}>Brand Marketplace</Text>
-              </View>
-            </View>
-
-            <View style={s.searchBox}>
-              <Search size={18} color={token.muted} />
+            {/* Search Box */}
+            <View style={s.searchContainer}>
+              <Search size={18} color="#64748B" />
               <TextInput
                 value={query}
                 onChangeText={setQuery}
-                placeholder="Search creator"
-                placeholderTextColor={token.muted}
+                placeholder="Search creator by name or city..."
+                placeholderTextColor="#94A3B8"
                 style={s.searchInput}
               />
+              {query.length > 0 && (
+                <TouchableOpacity onPress={() => setQuery('')}>
+                  <X size={16} color="#64748B" />
+                </TouchableOpacity>
+              )}
             </View>
 
+            {/* Niche Tabs / Chips */}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={s.nicheScroll}
+              contentContainerStyle={s.nicheContent}
+            >
+              {NICHES.map((niche) => {
+                const isActive = activeNiche === niche;
+                return (
+                  <TouchableOpacity
+                    key={niche}
+                    style={[s.nicheTab, isActive && s.nicheTabActive]}
+                    onPress={() => setActiveNiche(niche)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={[s.nicheTabText, isActive && s.nicheTabTextActive]}>
+                      {niche}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+
+            {/* SEBI Only Switch */}
             <View style={s.switchRow}>
-              <Text style={s.switchTitle}>SEBI Only</Text>
-              <Switch value={sebiOnly} onValueChange={setSebiOnly} />
+              <Text style={s.switchTitle}>SEBI Registered Creators Only</Text>
+              <Switch
+                value={sebiOnly}
+                onValueChange={setSebiOnly}
+                trackColor={{ false: '#CBD5E1', true: colors.secPrimary + '50' }}
+                thumbColor={sebiOnly ? colors.secPrimary : '#F1F5F9'}
+              />
             </View>
           </View>
         }
@@ -269,28 +410,74 @@ export default function BrandMarketplace() {
           <TouchableOpacity
             style={s.creatorCard}
             onPress={() => setSelectedCreator(item)}
+            activeOpacity={0.9}
           >
-            <Text style={s.creatorName}>{item.name}</Text>
-            <Text style={s.creatorBio}>{item.bio}</Text>
+            <View style={s.creatorHeader}>
+              <Text style={s.creatorName}>{item.name}</Text>
+              {item.sebiRegistered && (
+                <View style={s.sebiBadge}>
+                  <ShieldCheck size={wp(12)} color="#16A34A" />
+                  <Text style={s.sebiText}>SEBI Registered</Text>
+                </View>
+              )}
+            </View>
+            <Text style={s.creatorNiche}>{item.niche} • {item.city}</Text>
+            <Text style={s.creatorBio} numberOfLines={2}>
+              {item.bio}
+            </Text>
 
+            {/* Micro metrics */}
+            <View style={s.metricsRow}>
+              <View style={s.cardMetric}>
+                <Text style={s.cardMetricVal}>{item.followers}</Text>
+                <Text style={s.cardMetricLabel}>Followers</Text>
+              </View>
+              <View style={s.cardMetric}>
+                <Text style={s.cardMetricVal}>{item.er}</Text>
+                <Text style={s.cardMetricLabel}>Engagement</Text>
+              </View>
+              <View style={s.cardMetric}>
+                <Text style={s.cardMetricVal}>{item.views}</Text>
+                <Text style={s.cardMetricLabel}>Avg Views</Text>
+              </View>
+            </View>
+
+            {/* Premium Action Row */}
             <View style={s.actionRow}>
-              <TouchableOpacity onPress={() => openWhatsApp(item)}>
-                <Text>WhatsApp</Text>
+              <TouchableOpacity
+                style={[s.actionBtn, s.waBtn]}
+                onPress={() => openWhatsApp(item)}
+                activeOpacity={0.8}
+              >
+                <MessageCircle size={16} color="#16A34A" />
+                <Text style={s.waBtnText}>WhatsApp</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity onPress={() => openInstagram(item)}>
-                <Text>Instagram</Text>
+              <TouchableOpacity
+                style={[s.actionBtn, s.igBtn]}
+                onPress={() => openInstagram(item)}
+                activeOpacity={0.8}
+              >
+                <Instagram size={16} color="#DB2777" />
+                <Text style={s.igBtnText}>Instagram</Text>
               </TouchableOpacity>
             </View>
           </TouchableOpacity>
         )}
+        ListEmptyComponent={
+          <View style={s.emptyState}>
+            <BriefcaseBusiness size={40} color="#94A3B8" />
+            <Text style={s.emptyTextTitle}>No Creators Found</Text>
+            <Text style={s.emptyTextSub}>Try searching for a different creator name or niche.</Text>
+          </View>
+        }
       />
 
       <InspectorDrawer
         creator={selectedCreator}
         onClose={() => setSelectedCreator(null)}
       />
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -299,68 +486,383 @@ export default function BrandMarketplace() {
 ───────────────────────────────────────── */
 
 const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: token.bg },
-  feedContent: { padding: 16 },
-
-  heroBlock: { flexDirection: 'row', marginBottom: 12 },
-  heroIcon: {
-    width: 48,
-    height: 48,
-    backgroundColor: token.blue,
-    justifyContent: 'center',
-    alignItems: 'center',
+  container: {
+    flex: 1,
+    backgroundColor: colors.surface,
   },
-  heroCopy: { marginLeft: 10 },
-
-  title: { color: token.ink, fontSize: 20, fontWeight: '900' },
-
-  searchBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: token.card,
-    padding: 10,
-    marginBottom: 12,
+  feedContent: {
+    paddingBottom: hp(100),
   },
-  searchInput: { color: token.ink, marginLeft: 8, flex: 1 },
 
-  switchRow: {
+  // Curved Header Styles matching User settings/UserHome
+  headerWrapper: {
+    backgroundColor: colors.secPrimary,
+    zIndex: 10,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+  },
+  header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    alignItems: 'center',
+    paddingHorizontal: wp(16),
+    paddingVertical: hp(14),
   },
-  switchTitle: { color: token.ink },
-
-  creatorCard: {
-    backgroundColor: token.card,
-    padding: 12,
-    marginBottom: 12,
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(12),
+    flex: 1,
   },
-  creatorName: { color: token.ink, fontWeight: '900' },
-  creatorBio: { color: token.soft, marginTop: 4 },
-
-  actionRow: { flexDirection: 'row', marginTop: 10, gap: 10 },
-
-  metricBox: {
-    padding: 8,
-    backgroundColor: token.bg,
+  avatar: {
+    width: wp(44),
+    height: wp(44),
+    borderRadius: wp(22),
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.5)',
+  },
+  avatarFallback: {
+    width: wp(44),
+    height: wp(44),
+    borderRadius: wp(22),
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.5)',
+  },
+  headerSubtitle: {
+    fontSize: fp(12),
+    color: 'rgba(255,255,255,0.75)',
+    fontWeight: '400',
+  },
+  headerTitle: {
+    fontSize: fp(17),
+    fontWeight: '700',
+    color: colors.white,
+    lineHeight: fp(22),
+  },
+  headerActions: {
+    flexDirection: 'row',
+    gap: wp(10),
+  },
+  bellBtn: {
+    width: wp(40),
+    height: wp(40),
+    borderRadius: wp(14),
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
     borderWidth: 1,
-    borderColor: token.border,
+    borderColor: 'rgba(255,255,255,0.2)',
   },
-  metricValue: { color: token.ink },
-  metricLabel: { color: token.muted },
+  bellBtnPressed: {
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    transform: [{ scale: 0.93 }],
+  },
 
-  tableBlock: { marginTop: 10 },
-  tableTitle: { color: token.orange, fontWeight: '900' },
-  tableRow: { flexDirection: 'row', justifyContent: 'space-between' },
-  tableLabel: { color: token.soft },
-  tableValue: { color: token.ink },
+  // Search Box
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.white,
+    borderRadius: wp(14),
+    marginTop: hp(16),
+    marginHorizontal: wp(16),
+    paddingHorizontal: wp(14),
+    height: hp(48),
+    elevation: 3,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    gap: wp(8),
+  },
+  searchInput: {
+    flex: 1,
+    height: hp(48),
+    color: '#0F172A',
+    fontSize: fp(13.5),
+  },
 
-  modalScrim: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)' },
-  scrimTouch: { flex: 1 },
-  drawer: { backgroundColor: token.card, padding: 12, maxHeight: '80%' },
-  drawerHandle: { height: 4, width: 40, backgroundColor: '#444' },
-  drawerHeader: { flexDirection: 'row', justifyContent: 'space-between' },
-  drawerTitle: { color: token.ink, fontSize: 18 },
-  drawerSub: { color: token.muted },
-  closeBtn: { padding: 6 },
+  // Niche Scroll
+  nicheScroll: {
+    marginVertical: hp(12),
+    paddingLeft: wp(16),
+  },
+  nicheContent: {
+    paddingRight: wp(32),
+    gap: wp(8),
+  },
+  nicheTab: {
+    paddingHorizontal: wp(16),
+    paddingVertical: hp(8),
+    borderRadius: wp(20),
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  nicheTabActive: {
+    backgroundColor: colors.secPrimary,
+    borderColor: colors.secPrimary,
+  },
+  nicheTabText: {
+    fontSize: fp(12.5),
+    color: '#64748B',
+    fontWeight: '600',
+  },
+  nicheTabTextActive: {
+    color: colors.white,
+    fontWeight: '700',
+  },
+
+  // SEBI Switch
+  switchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.white,
+    marginHorizontal: wp(16),
+    marginBottom: hp(12),
+    paddingHorizontal: wp(16),
+    paddingVertical: hp(12),
+    borderRadius: wp(14),
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  switchTitle: {
+    fontSize: fp(13),
+    color: '#334155',
+    fontWeight: '700',
+  },
+
+  // Creator Card
+  creatorCard: {
+    backgroundColor: colors.white,
+    borderRadius: wp(16),
+    padding: wp(16),
+    marginHorizontal: wp(16),
+    marginBottom: hp(12),
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  creatorHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: hp(6),
+  },
+  creatorName: {
+    fontSize: fp(15),
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+  sebiBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(4),
+    backgroundColor: '#DCFCE7',
+    paddingHorizontal: wp(8),
+    paddingVertical: hp(3),
+    borderRadius: wp(6),
+  },
+  sebiText: {
+    color: '#16A34A',
+    fontSize: fp(9.5),
+    fontWeight: '800',
+  },
+  creatorNiche: {
+    color: colors.secPrimary,
+    fontSize: fp(11),
+    fontWeight: '700',
+    marginBottom: hp(6),
+  },
+  creatorBio: {
+    color: '#64748B',
+    fontSize: fp(12.5),
+    lineHeight: fp(17),
+    marginBottom: hp(12),
+  },
+  metricsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    backgroundColor: '#F8FAFC',
+    borderRadius: wp(10),
+    padding: wp(10),
+    marginBottom: hp(12),
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  cardMetric: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  cardMetricVal: {
+    fontSize: fp(13),
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+  cardMetricLabel: {
+    fontSize: fp(9.5),
+    color: '#64748B',
+    marginTop: hp(2),
+    fontWeight: '600',
+  },
+  actionRow: {
+    flexDirection: 'row',
+    gap: wp(8),
+  },
+  actionBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: wp(6),
+    paddingVertical: hp(10),
+    borderRadius: wp(10),
+  },
+  waBtn: {
+    backgroundColor: '#DCFCE7',
+  },
+  waBtnText: {
+    color: '#16A34A',
+    fontSize: fp(12),
+    fontWeight: '700',
+  },
+  igBtn: {
+    backgroundColor: '#FDF2F8',
+  },
+  igBtnText: {
+    color: '#DB2777',
+    fontSize: fp(12),
+    fontWeight: '700',
+  },
+
+  // Modal / Drawer Bottom Sheet
+  modalScrim: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  scrimTouch: {
+    flex: 1,
+  },
+  drawer: {
+    backgroundColor: colors.white,
+    borderTopLeftRadius: wp(24),
+    borderTopRightRadius: wp(24),
+    paddingHorizontal: wp(16),
+    paddingTop: hp(10),
+    paddingBottom: hp(24),
+    maxHeight: '80%',
+  },
+  drawerHandle: {
+    height: hp(4),
+    width: wp(40),
+    backgroundColor: '#E2E8F0',
+    borderRadius: wp(2),
+    alignSelf: 'center',
+    marginBottom: hp(16),
+  },
+  drawerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: hp(16),
+  },
+  drawerTitle: {
+    color: '#0F172A',
+    fontSize: fp(18),
+    fontWeight: '800',
+  },
+  drawerSub: {
+    color: '#64748B',
+    fontSize: fp(12),
+    marginTop: hp(2),
+  },
+  closeBtn: {
+    width: wp(32),
+    height: wp(32),
+    borderRadius: wp(16),
+    backgroundColor: '#F1F5F9',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  drawerMetricsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    backgroundColor: '#F8FAFC',
+    borderRadius: wp(14),
+    padding: wp(14),
+    marginBottom: hp(16),
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  drawerMetricBox: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  drawerMetricVal: {
+    fontSize: fp(16),
+    fontWeight: '800',
+    color: colors.secPrimary,
+  },
+  drawerMetricLabel: {
+    fontSize: fp(10.5),
+    color: '#64748B',
+    marginTop: hp(2),
+    fontWeight: '600',
+  },
+
+  tableBlock: {
+    marginBottom: hp(16),
+  },
+  tableTitle: {
+    color: colors.secPrimary,
+    fontWeight: '800',
+    fontSize: fp(13),
+    marginBottom: hp(8),
+    letterSpacing: 0.3,
+  },
+  tableRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: hp(10),
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  tableLabel: {
+    color: '#475467',
+    fontSize: fp(12.5),
+  },
+  tableValue: {
+    color: '#0F172A',
+    fontWeight: '700',
+    fontSize: fp(12.5),
+  },
+
+  // Empty State
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: hp(48),
+    paddingHorizontal: wp(32),
+  },
+  emptyTextTitle: {
+    fontSize: fp(16),
+    fontWeight: '800',
+    color: '#334155',
+    marginTop: hp(12),
+  },
+  emptyTextSub: {
+    fontSize: fp(12),
+    color: '#64748B',
+    textAlign: 'center',
+    marginTop: hp(4),
+  },
 });

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import {
   Platform,
-  SafeAreaView,
+  Image,
+  Linking,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -18,8 +19,14 @@ import {
   Sparkles,
   Terminal,
   WalletCards,
+  UserCircle,
+  Bell,
+  Instagram,
 } from 'lucide-react-native';
-
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import colors from '../../../../utils/colors';
 import { fp, hp, wp } from '../../../../utils/responsive';
 
 /* ─────────────────────────────────────────
@@ -36,31 +43,6 @@ type LinksState = {
 type LinkKey = keyof LinksState;
 
 type TerminalLine = string;
-
-/* ─────────────────────────────────────────
-   DESIGN TOKENS
-───────────────────────────────────────── */
-
-const token = {
-  bg: '#050505',
-  card: '#111111',
-  cardHi: '#171717',
-  ink: '#FFFFFF',
-  muted: '#8B929E',
-  soft: '#CDD2DA',
-  border: '#292929',
-  borderHi: '#F97316',
-  orange: '#F97316',
-  green: '#16A34A',
-  greenText: '#DCFCE7',
-  blue: '#2563EB',
-  blueText: '#DBEAFE',
-  terminal: '#0A0A0A',
-};
-
-/* ─────────────────────────────────────────
-   INITIAL DATA
-───────────────────────────────────────── */
 
 const INITIAL_LINKS: LinksState = {
   education: 'https://rigi.link/wealth-sprint',
@@ -80,10 +62,6 @@ const PERMISSIONS: string[] = [
   'instagram_manage_insights',
   'messages',
 ];
-
-/* ─────────────────────────────────────────
-   MOCK PROFILE
-───────────────────────────────────────── */
 
 type MockProfileProps = {
   links: LinksState;
@@ -109,7 +87,7 @@ const MockProfile: React.FC<MockProfileProps> = ({ links }) => {
       </Text>
 
       {items.map(([label, value]) => (
-        <TouchableOpacity key={label} style={styles.mockLink}>
+        <TouchableOpacity key={label} style={styles.mockLink} activeOpacity={0.7}>
           <Text style={styles.mockLinkTitle}>{label}</Text>
           <Text style={styles.mockLinkValue} numberOfLines={1}>
             {value}
@@ -120,11 +98,11 @@ const MockProfile: React.FC<MockProfileProps> = ({ links }) => {
   );
 };
 
-/* ─────────────────────────────────────────
-   MAIN COMPONENT
-───────────────────────────────────────── */
-
 export default function CreatorCenter() {
+  const insets = useSafeAreaInsets();
+  const navigation = useNavigation<any>();
+  const { user } = useSelector((state: any) => state.userReducer);
+
   const [links, setLinks] = useState<LinksState>(INITIAL_LINKS);
   const [focusedField, setFocusedField] = useState<LinkKey | null>(null);
   const [previewOpen, setPreviewOpen] = useState<boolean>(false);
@@ -135,6 +113,18 @@ export default function CreatorCenter() {
     '$ waiting for webhook payload...',
     'Graph API sandbox connected.',
   ]);
+
+  const displayName = user?.name
+    ? user.name.charAt(0).toUpperCase() + user.name.slice(1)
+    : 'Creator';
+  const initials = user?.name ? user.name.charAt(0).toUpperCase() : 'C';
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    return 'Good evening';
+  };
 
   const updateLink = (field: LinkKey, value: string) => {
     setLinks((prev) => ({
@@ -161,14 +151,55 @@ export default function CreatorCenter() {
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="light-content" backgroundColor={token.bg} />
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor={colors.primary} />
 
-      <ScrollView contentContainerStyle={styles.content}>
-        {/* HERO */}
+      {/* Curved App Header */}
+      <View style={[styles.headerWrapper, { paddingTop: insets.top }]}>
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            {user?.profile_image ? (
+              <Image
+                source={{ uri: user.profile_image }}
+                style={styles.avatar}
+              />
+            ) : (
+              <View style={styles.avatarFallback}>
+                <Text style={styles.avatarText}>{initials}</Text>
+              </View>
+            )}
+            <View>
+              <Text style={styles.greetingSub}>{getGreeting()}</Text>
+              <Text style={styles.greeting}>{displayName?.split(' ')[0]}</Text>
+            </View>
+          </View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: wp(4) }}>
+            <TouchableOpacity
+              style={styles.bellBtn}
+              onPress={() => Linking.openURL('https://www.instagram.com/manchly_app')}
+              accessibilityLabel="Instagram"
+            >
+              <Instagram size={wp(20)} color={colors.white} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.bellBtn}
+              onPress={() => navigation.navigate('CreatorNotification')}
+              accessibilityLabel="Notifications"
+            >
+              <Bell size={wp(20)} color={colors.white} />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* HERO BANNER */}
         <View style={styles.heroBlock}>
-          <View style={[styles.heroIcon, styles.orangeIcon]}>
-            <Sparkles size={wp(22)} color={token.ink} />
+          <View style={styles.heroIcon}>
+            <Sparkles size={wp(22)} color={colors.secondary} />
           </View>
 
           <View style={styles.heroCopy}>
@@ -183,7 +214,7 @@ export default function CreatorCenter() {
         {/* LINK BUILDER */}
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeader}>
-            <WalletCards size={wp(19)} color={token.orange} />
+            <WalletCards size={wp(19)} color={colors.info} />
             <Text style={styles.sectionTitle}>
               Link-In-Bio Digital Forge
             </Text>
@@ -200,7 +231,7 @@ export default function CreatorCenter() {
                 onChangeText={(v) => updateLink(field, v)}
                 onFocus={() => setFocusedField(field)}
                 onBlur={() => setFocusedField(null)}
-                placeholderTextColor={token.muted}
+                placeholderTextColor="#94A3B8"
                 style={[
                   styles.formInput,
                   focusedField === field && styles.formInputFocused,
@@ -212,8 +243,9 @@ export default function CreatorCenter() {
           <TouchableOpacity
             style={styles.previewToggle}
             onPress={() => setPreviewOpen((p) => !p)}
+            activeOpacity={0.8}
           >
-            <ExternalLink size={wp(16)} color={token.ink} />
+            <ExternalLink size={wp(16)} color={colors.white} />
             <Text style={styles.previewToggleText}>
               {previewOpen
                 ? 'Hide Live Preview'
@@ -227,7 +259,7 @@ export default function CreatorCenter() {
         {/* META AUTOMATION */}
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeader}>
-            <BadgeCheck size={wp(19)} color={token.blue} />
+            <BadgeCheck size={wp(19)} color={colors.info} />
             <Text style={styles.sectionTitle}>
               Meta Instagram Graph Automation
             </Text>
@@ -235,7 +267,7 @@ export default function CreatorCenter() {
 
           {PERMISSIONS.map((p) => (
             <View key={p} style={styles.permissionRow}>
-              <CheckCircle2 size={wp(18)} color={token.green} />
+              <CheckCircle2 size={wp(18)} color={colors.success} />
               <Text style={styles.permissionText}>{p}</Text>
               <Text style={styles.permissionBadge}>ACTIVE</Text>
             </View>
@@ -244,7 +276,7 @@ export default function CreatorCenter() {
           {/* TERMINAL */}
           <View style={styles.terminalBlock}>
             <View style={styles.terminalTop}>
-              <Terminal size={wp(16)} color={token.greenText} />
+              <Terminal size={wp(16)} color="#38BDF8" />
               <Text style={styles.terminalTitle}>
                 Webhook Testing Shell
               </Text>
@@ -254,15 +286,16 @@ export default function CreatorCenter() {
               value={comment}
               onChangeText={setComment}
               placeholder="Mock user comment"
-              placeholderTextColor={token.muted}
+              placeholderTextColor="#64748B"
               style={styles.commentInput}
             />
 
             <TouchableOpacity
               style={styles.runButton}
               onPress={runHook}
+              activeOpacity={0.8}
             >
-              <Play size={wp(15)} color={token.ink} />
+              <Play size={wp(15)} color={colors.white} />
               <Text style={styles.runButtonText}>
                 Run Hook Emulation
               </Text>
@@ -278,231 +311,341 @@ export default function CreatorCenter() {
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
-/* ─────────────────────────────────────────
-   STYLES
-───────────────────────────────────────── */
-
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: token.bg },
-  content: { paddingHorizontal: wp(16), paddingBottom: hp(110) },
+  container: {
+    flex: 1,
+    backgroundColor: colors.white,
+  },
+  scrollContent: {
+    paddingHorizontal: wp(16),
+    paddingBottom: hp(110),
+  },
 
+  // Curved Header Styles matching CreatorHome/CreatorWebinar
+  headerWrapper: {
+    backgroundColor: colors.primary,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: wp(16),
+    paddingVertical: hp(14),
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(12),
+  },
+  avatar: {
+    width: wp(44),
+    height: wp(44),
+    borderRadius: wp(22),
+    borderWidth: 2,
+    borderColor: colors.border,
+  },
+  avatarFallback: {
+    width: wp(44),
+    height: wp(44),
+    borderRadius: wp(22),
+    backgroundColor: colors.secondary,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarText: {
+    fontSize: fp(18),
+    fontWeight: '700',
+    color: colors.white,
+  },
+  greetingSub: {
+    fontSize: fp(12),
+    color: colors.muted,
+    fontWeight: '500',
+  },
+  greeting: {
+    fontSize: fp(16),
+    fontWeight: '800',
+    color: colors.white,
+    marginTop: hp(1),
+  },
+  bellBtn: {
+    width: wp(40),
+    height: wp(40),
+    borderRadius: wp(20),
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.15)',
+  },
+
+  // Hero section
   heroBlock: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: hp(18),
+    backgroundColor: '#F8FAFC',
+    borderRadius: wp(16),
+    borderWidth: 1,
+    borderColor: '#eaecef',
+    padding: wp(16),
+    marginVertical: hp(16),
   },
   heroIcon: {
-    width: wp(48),
-    height: wp(48),
-    borderRadius: wp(8),
-    backgroundColor: token.blue,
+    width: wp(46),
+    height: wp(46),
+    borderRadius: wp(12),
+    backgroundColor: '#FFF7ED',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: wp(12),
+    borderWidth: 1,
+    borderColor: '#FED7AA',
   },
-  orangeIcon: { backgroundColor: token.orange },
   heroCopy: { flex: 1 },
-
   kicker: {
-    color: token.orange,
+    color: colors.seconday,
     fontSize: fp(10),
     fontWeight: '900',
+    letterSpacing: 0.5,
   },
   title: {
-    color: token.ink,
-    fontSize: fp(24),
-    fontWeight: '900',
+    color: '#0F172A',
+    fontSize: fp(20),
+    fontWeight: '800',
+    marginTop: hp(2),
   },
   subtitle: {
-    color: token.soft,
-    fontSize: fp(12),
+    color: '#64748b',
+    fontSize: fp(11.5),
+    marginTop: hp(2),
+    lineHeight: fp(16),
   },
 
+  // Cards
   sectionCard: {
-    backgroundColor: token.card,
+    backgroundColor: colors.white,
     borderWidth: 1,
-    borderColor: token.border,
-    borderRadius: wp(8),
-    padding: wp(14),
-    marginBottom: hp(12),
+    borderColor: '#E2E8F0',
+    borderRadius: wp(16),
+    padding: wp(16),
+    marginBottom: hp(16),
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
   },
 
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(8),
-    marginBottom: hp(12),
+    marginBottom: hp(16),
   },
 
   sectionTitle: {
-    color: token.ink,
+    color: '#0F172A',
     fontSize: fp(15),
-    fontWeight: '900',
+    fontWeight: '800',
     flex: 1,
   },
 
-  inputGroup: { marginBottom: hp(10) },
+  inputGroup: { marginBottom: hp(12) },
   inputLabel: {
-    color: token.soft,
-    fontSize: fp(11),
-    fontWeight: '800',
+    color: '#475467',
+    fontSize: fp(11.5),
+    fontWeight: '700',
     marginBottom: hp(6),
   },
   formInput: {
     minHeight: hp(46),
-    borderRadius: wp(8),
+    borderRadius: wp(12),
     borderWidth: 1,
-    borderColor: token.border,
-    backgroundColor: '#090909',
-    color: token.ink,
-    paddingHorizontal: wp(12),
-    fontSize: fp(13),
+    borderColor: '#E2E8F0',
+    backgroundColor: '#F8FAFC',
+    color: '#0F172A',
+    paddingHorizontal: wp(14),
+    fontSize: fp(13.5),
   },
-  formInputFocused: { borderColor: token.borderHi },
+  formInputFocused: {
+    borderColor: colors.secondary,
+    backgroundColor: colors.white,
+  },
 
   previewToggle: {
     minHeight: hp(44),
-    borderRadius: wp(8),
-    backgroundColor: token.orange,
+    borderRadius: wp(12),
+    backgroundColor: colors.info,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: wp(8),
-    marginTop: hp(2),
+    marginTop: hp(8),
   },
   previewToggleText: {
-    color: token.ink,
-    fontWeight: '900',
-    fontSize: fp(13),
+    color: colors.white,
+    fontWeight: '700',
+    fontSize: fp(13.5),
   },
 
+  // Live Preview Mock
   mockProfile: {
-    marginTop: hp(12),
-    backgroundColor: '#F7F8FA',
-    borderRadius: wp(8),
-    padding: wp(14),
+    marginTop: hp(16),
+    backgroundColor: '#F8FAFC',
+    borderRadius: wp(20),
+    borderWidth: 2,
+    borderColor: '#E2E8F0',
+    padding: wp(16),
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 3,
   },
   mockAvatar: {
-    width: wp(54),
-    height: wp(54),
-    borderRadius: wp(8),
-    backgroundColor: token.bg,
+    width: wp(56),
+    height: wp(56),
+    borderRadius: wp(28),
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     alignSelf: 'center',
+    borderWidth: 2,
+    borderColor: colors.white,
+    elevation: 2,
   },
   mockAvatarText: {
-    color: token.ink,
-    fontWeight: '900',
+    color: colors.white,
+    fontWeight: '800',
     fontSize: fp(18),
   },
   mockName: {
-    color: '#111',
-    fontWeight: '900',
+    color: '#0F172A',
+    fontWeight: '800',
     textAlign: 'center',
-    fontSize: fp(18),
-  },
-  mockSub: {
-    color: '#555',
-    textAlign: 'center',
-    fontSize: fp(11),
-  },
-  mockLink: {
-    backgroundColor: '#111',
-    borderRadius: wp(8),
-    padding: wp(12),
+    fontSize: fp(16),
     marginTop: hp(8),
   },
+  mockSub: {
+    color: '#64748b',
+    textAlign: 'center',
+    fontSize: fp(11.5),
+    marginTop: hp(2),
+    marginBottom: hp(12),
+  },
+  mockLink: {
+    backgroundColor: colors.white,
+    borderRadius: wp(12),
+    padding: wp(12),
+    marginTop: hp(8),
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    flexDirection: 'column',
+  },
   mockLinkTitle: {
-    color: token.ink,
-    fontSize: fp(13),
-    fontWeight: '900',
+    color: '#0F172A',
+    fontSize: fp(12.5),
+    fontWeight: '700',
   },
   mockLinkValue: {
-    color: '#D1D5DB',
+    color: '#64748b',
     fontSize: fp(11),
+    marginTop: hp(1),
   },
 
   permissionRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#090909',
-    borderRadius: wp(8),
-    padding: wp(10),
+    backgroundColor: '#F8FAFC',
+    borderRadius: wp(12),
+    padding: wp(12),
     marginBottom: hp(8),
     gap: wp(8),
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
   permissionText: {
-    color: token.soft,
+    color: '#334155',
     flex: 1,
     fontSize: fp(12),
-    fontWeight: '700',
+    fontWeight: '600',
   },
   permissionBadge: {
-    color: token.green,
+    color: '#16A34A',
     fontSize: fp(10),
-    fontWeight: '900',
+    fontWeight: '800',
+    backgroundColor: '#DCFCE7',
+    paddingHorizontal: wp(8),
+    paddingVertical: hp(2),
+    borderRadius: wp(6),
+    overflow: 'hidden',
   },
 
+  // Terminal
   terminalBlock: {
-    backgroundColor: token.terminal,
-    borderRadius: wp(8),
+    backgroundColor: '#0F172A',
+    borderRadius: wp(14),
     borderWidth: 1,
-    borderColor: '#202020',
-    padding: wp(12),
+    borderColor: '#1E293B',
+    padding: wp(14),
+    marginTop: hp(8),
   },
-
   terminalTop: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(8),
-    marginBottom: hp(10),
+    marginBottom: hp(12),
   },
-
   terminalTitle: {
-    color: token.greenText,
+    color: '#38BDF8',
     fontSize: fp(12),
-    fontWeight: '900',
+    fontWeight: '800',
   },
-
   commentInput: {
     minHeight: hp(42),
-    borderRadius: wp(8),
+    borderRadius: wp(10),
     borderWidth: 1,
-    borderColor: '#222',
-    color: token.ink,
-    paddingHorizontal: wp(10),
-    marginBottom: hp(8),
+    borderColor: '#334155',
+    color: colors.white,
+    backgroundColor: '#1E293B',
+    paddingHorizontal: wp(12),
+    fontSize: fp(12.5),
+    marginBottom: hp(10),
   },
-
   runButton: {
     minHeight: hp(40),
-    borderRadius: wp(8),
-    backgroundColor: token.blue,
+    borderRadius: wp(10),
+    backgroundColor: colors.info,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: wp(8),
-    marginBottom: hp(10),
+    marginBottom: hp(12),
   },
-
   runButtonText: {
-    color: token.ink,
-    fontSize: fp(12),
-    fontWeight: '900',
+    color: colors.white,
+    fontSize: fp(12.5),
+    fontWeight: '700',
   },
-
-  logs: { gap: hp(5) },
+  logs: {
+    gap: hp(6),
+    borderTopWidth: 1,
+    borderTopColor: '#1E293B',
+    paddingTop: hp(10),
+  },
   logLine: {
-    color: '#9FE8B5',
+    color: '#34D399',
     fontFamily: Platform.select({
       ios: 'Menlo',
       android: 'monospace',
     }),
     fontSize: fp(11),
+    lineHeight: fp(15),
   },
 });

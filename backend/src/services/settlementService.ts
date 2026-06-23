@@ -6,16 +6,30 @@ import dotenv from "dotenv";
 dotenv.config();
 
 // Settlement configuration
-const PLATFORM_FEE_PERCENT = 10; // 10% platform commission
+const PLATFORM_FEE_PERCENT = 10; // default 10% platform commission
 const GST_ON_PLATFORM_FEE_PERCENT = 18; // 18% GST on platform fee
 const TDS_PERCENT = 1; // 1% TDS (u/s 194O for e-commerce)
 
+// Creators with a negotiated commission rate (else the default above).
+const CREATOR_COMMISSION_OVERRIDES: Record<string, number> = {
+  "21ac6faa-d579-44f9-8458-7e995adfa90c": 5, // Sahmad ansari (xtechmoneymatrix) — 5%
+};
+
 export class SettlementService {
   /**
-   * Calculate deductions and net amount for a transaction
+   * Platform commission % for a creator — a negotiated override or the default.
    */
-  static calculateDeductions(grossAmount: number) {
-    const platformFee = (grossAmount * PLATFORM_FEE_PERCENT) / 100;
+  static getCommissionPercent(creatorId: string): number {
+    return CREATOR_COMMISSION_OVERRIDES[creatorId] ?? PLATFORM_FEE_PERCENT;
+  }
+
+  /**
+   * Calculate deductions and net amount for a transaction. `platformFeePercent`
+   * defaults to the platform default; pass getCommissionPercent(creatorId) for
+   * creators on a negotiated rate.
+   */
+  static calculateDeductions(grossAmount: number, platformFeePercent: number = PLATFORM_FEE_PERCENT) {
+    const platformFee = (grossAmount * platformFeePercent) / 100;
     const gstOnPlatformFee = (platformFee * GST_ON_PLATFORM_FEE_PERCENT) / 100;
     const tdsAmount = (grossAmount * TDS_PERCENT) / 100;
     const totalDeductions = platformFee + gstOnPlatformFee + tdsAmount;
@@ -77,7 +91,10 @@ export class SettlementService {
       return;
     }
 
-    const deductions = this.calculateDeductions(params.grossAmount);
+    const deductions = this.calculateDeductions(
+      params.grossAmount,
+      this.getCommissionPercent(params.creatorId)
+    );
 
     try {
       await prisma.wallet_transactions.create({

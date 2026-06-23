@@ -2,12 +2,14 @@ import { Request, Response } from "express";
 import prisma from "../prismaClient";
 import { ApiResponseHandler } from "../utils/ApiResponseHandler";
 
-// Creator whose published catalog drives the Clickancy landing page.
-const CLICKANCY_CREATOR_ID = "eaddf98c-346e-4e6f-a339-1a9e2f4c5437"; // Harsh Bardhan Raj
+// Creator whose published catalog drives the xtechmoneymatrix landing page.
+// NOTE: the live site now fetches /courses/public?creator_id=<id> directly, so
+// this endpoint is a legacy fallback — keep it in sync with the frontend config.
+const CLICKANCY_CREATOR_ID = "21ac6faa-d579-44f9-8458-7e995adfa90c"; // Sahmad ansari (xtechnawada@gmail.com)
 
 // Lead course shown in the Hero / PromoVideo. Anything else is rendered as a
 // secondary card in the catalog grid.
-const CLICKANCY_LEAD_COURSE_ID = "9da05355-1ade-4e4b-8c10-5af58273339b"; // YouTube se Paise kaise earn kare?
+const CLICKANCY_LEAD_COURSE_ID = "50c4b8ae-fc6e-47e5-97dc-4e33539a3e5e"; // YouTube Automation Blueprint
 
 export class ClickancyController {
   /**

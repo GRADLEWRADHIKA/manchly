@@ -130,14 +130,26 @@ export class PaymentController {
       // Create Cashfree order for paid courses
       // Some courses are billed at the listed price with no GST/platform fee added.
       const NO_FEE_COURSE_IDS = new Set<string>([
-        '50c4b8ae-fc6e-47e5-97dc-4e33539a3e5e', // Xtech masterclass
+        // (Sahmad ansari's "YouTube Automation Blueprint" used to be exempt; it
+        // now charges 18% GST + 2%-of-base platform fee like the rest of the
+        // xtechmoneymatrix catalog.)
       ]);
+      // xtechmoneymatrix catalog (creator: Sahmad ansari — xtechnawada@gmail.com,
+      // drives the xtechmoneymatrix.com landing page). These courses bill the
+      // platform fee as a flat 2% of the base price; every other course keeps the
+      // legacy 5%-of-GST platform fee.
+      const XTECHMONEYMATRIX_CREATOR_ID = '21ac6faa-d579-44f9-8458-7e995adfa90c';
       const GST_PERCENT = 18;
-      const PLATFORM_FEE_PERCENT = 5; // applied on GST amount, not base
       const noFee = NO_FEE_COURSE_IDS.has(courseId);
+      const isXtechMoneyMatrix = course.creator_id === XTECHMONEYMATRIX_CREATOR_ID;
+      const PLATFORM_FEE_PERCENT = isXtechMoneyMatrix ? 2 : 5; // xtechmoneymatrix: 2% of base; others: 5% of GST
       const basePrice = course.price;
       const gstAmount = noFee ? 0 : basePrice * (GST_PERCENT / 100);
-      const platformFee = noFee ? 0 : gstAmount * (PLATFORM_FEE_PERCENT / 100);
+      const platformFee = noFee
+        ? 0
+        : isXtechMoneyMatrix
+          ? basePrice * (PLATFORM_FEE_PERCENT / 100)   // 2% of base price
+          : gstAmount * (PLATFORM_FEE_PERCENT / 100);  // 5% of GST amount (legacy)
       const finalAmount = basePrice + gstAmount + platformFee;
       const round2 = (n: number) => parseFloat(n.toFixed(2));
       const finalAmountRounded = round2(finalAmount);

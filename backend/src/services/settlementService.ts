@@ -35,6 +35,30 @@ export class SettlementService {
    * Credit creator's wallet after a successful payment.
    * Money stays in wallet until creator requests withdrawal.
    */
+  /**
+   * Confirm the underlying payment actually exists and is SUCCESS before we
+   * credit a creator's wallet. Guards against orphaned/phantom credits (e.g.
+   * test orders, rolled-back or later-deleted transactions). Webinar payments
+   * live in `webinar_transactions`; course & session payments in `transactions`.
+   */
+  static async isPaymentSuccessful(
+    transactionType: "COURSE" | "WEBINAR" | "SESSION",
+    transactionId: string
+  ): Promise<boolean> {
+    if (transactionType === "WEBINAR") {
+      const wt = await prisma.webinar_transactions.findUnique({
+        where: { id: transactionId },
+        select: { status: true },
+      });
+      return wt?.status === "SUCCESS";
+    }
+    const t = await prisma.transactions.findUnique({
+      where: { id: transactionId },
+      select: { status: true },
+    });
+    return t?.status === "SUCCESS";
+  }
+
   static async creditCreatorWallet(params: {
     creatorId: string;
     grossAmount: number;
@@ -44,6 +68,15 @@ export class SettlementService {
     webinarId?: string;
     itemTitle: string;
   }) {
+    // Never credit a wallet for a payment that isn't a persisted SUCCESS.
+    const paid = await this.isPaymentSuccessful(params.transactionType, params.transactionId);
+    if (!paid) {
+      console.warn(
+        `Skipping wallet credit — ${params.transactionType} transaction ${params.transactionId} is not a successful/persisted payment.`
+      );
+      return;
+    }
+
     const deductions = this.calculateDeductions(params.grossAmount);
 
     try {

@@ -28,7 +28,16 @@ model users {
   linkedin_link             String?
   youtube_link              String?
   facebook_link             String?
+  companyName               String?                     @map("company_name")
+  isPremium                 Boolean                     @default(false) @map("is_premium")
+  freeViewsCount            Int                         @default(0) @map("free_views_count")
+  premiumExpiresAt          DateTime?                   @map("premium_expires_at")
   conversation_participants conversation_participants[]
+  marketplaceProfileViews   marketplace_profile_views[] @relation("MarketplaceProfileViews")
+  marketplaceCreatorViews   marketplace_profile_views[] @relation("MarketplaceCreatorViews")
+  marketplaceCreatorProfile marketplace_creator_profiles?
+  premiumSubscriptions      premium_subscriptions[]
+  sessionExpert             session_experts?
   courses                   courses[]
   bank_account              creator_bank_accounts?
   enrollments               enrollments[]
@@ -480,6 +489,7 @@ model session_experts {
   review_count   Int      @default(0)
   created_at     DateTime @default(now())
   updated_at     DateTime @updatedAt
+  user           users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@index([is_active, is_available], map: "session_experts_active_avail_idx")
   @@map("session_experts")
@@ -519,6 +529,8 @@ model expert_availability {
 enum UserType {
   USER
   CREATOR
+  BRAND
+  AGENCY
   ADMIN
 }
 
@@ -639,6 +651,70 @@ enum NotificationType {
   COURSE
   EXPERT
   SYSTEM
+}
+
+enum PremiumSubscriptionStatus {
+  PENDING
+  ACTIVE
+  EXPIRED
+  FAILED
+}
+
+model marketplace_profile_views {
+  id         String   @id @default(uuid())
+  user_id    String   @map("user_id")
+  creator_id String   @map("creator_id")
+  viewed_at  DateTime @default(now()) @map("viewed_at")
+  viewer     users    @relation("MarketplaceProfileViews", fields: [user_id], references: [id], onDelete: Cascade)
+  creator    users    @relation("MarketplaceCreatorViews", fields: [creator_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, creator_id])
+  @@index([user_id])
+  @@index([creator_id])
+  @@map("marketplace_profile_views")
+}
+
+model marketplace_creator_profiles {
+  id               String   @id @default(uuid())
+  user_id          String   @unique @map("user_id")
+  niche            String
+  city             String?
+  bio              String?
+  instagram_handle String?  @map("instagram_handle")
+  sebi_registered  Boolean  @default(false) @map("sebi_registered")
+  followers_count  Int      @default(0) @map("followers_count")
+  engagement_rate  String?  @map("engagement_rate")
+  views_display    String?  @map("views_display")
+  audience         Json     @default("[]")
+  packages         Json     @default("[]")
+  is_listed        Boolean  @default(true) @map("is_listed")
+  created_at       DateTime @default(now()) @map("created_at")
+  updated_at       DateTime @updatedAt @map("updated_at")
+  user             users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([niche])
+  @@index([city])
+  @@index([is_listed])
+  @@map("marketplace_creator_profiles")
+}
+
+model premium_subscriptions {
+  id                String                    @id @default(uuid())
+  user_id           String                    @map("user_id")
+  plan              String                    @default("premium")
+  status            PremiumSubscriptionStatus @default(PENDING)
+  amount            Float
+  currency          String                    @default("INR")
+  cashfree_order_id String?                   @unique @map("cashfree_order_id")
+  cf_payment_id     String?                   @unique @map("cf_payment_id")
+  expires_at        DateTime?                 @map("expires_at")
+  created_at        DateTime                  @default(now()) @map("created_at")
+  updated_at        DateTime                  @updatedAt @map("updated_at")
+  user              users                     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([status])
+  @@map("premium_subscriptions")
 }
 
 model telegram_channels {

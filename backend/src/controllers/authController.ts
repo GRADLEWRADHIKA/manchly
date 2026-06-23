@@ -4,40 +4,65 @@ import { UserType } from "@prisma/client";
 import jwt from "jsonwebtoken";
 import OTPManager from "../utils/otpManager";
 import { ApiResponseHandler } from "../utils/ApiResponseHandler";
+import { issueAccessToken, serializeAuthUser } from "../utils/userSerializer";
 import dotenv from "dotenv";
 
 dotenv.config();
 
 const JWT_SECRET = process.env.JWT_SECRET || "changeme";
 
+const AUTH_USER_SELECT = {
+  id: true,
+  email: true,
+  name: true,
+  phone: true,
+  profile_image: true,
+  user_type: true,
+  companyName: true,
+  isPremium: true,
+  freeViewsCount: true,
+  premiumExpiresAt: true,
+  dob: true,
+  kyc_verified: true,
+  fcm_token: true,
+  instagram_link: true,
+  linkedin_link: true,
+  youtube_link: true,
+  facebook_link: true,
+} as const;
+
 // OTP Manager Configuration
 const emailConfig = {
-  host: process.env.EMAIL_HOST || 'smtp.hostinger.com',
+  host: process.env.EMAIL_HOST || "smtp.hostinger.com",
   port: Number(process.env.EMAIL_PORT || 465),
-  secure: process.env.EMAIL_SECURE === 'true',
+  secure: process.env.EMAIL_SECURE === "true",
   auth: {
     user: process.env.EMAIL_USER!,
-    pass: process.env.EMAIL_PASSWORD!
+    pass: process.env.EMAIL_PASSWORD!,
   },
-  from: process.env.EMAIL_FROM || "noreply@manchly.com"
+  from: process.env.EMAIL_FROM || "noreply@manchly.com",
 };
 
 const smsConfig = {
   region: process.env.AWS_REGION || "us-east-1",
   accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-  senderId: process.env.SMS_SENDER_ID || "OTPService"
+  senderId: process.env.SMS_SENDER_ID || "OTPService",
 };
 
 // Redis config - support both REDIS_URL and individual config
-const redisConfig = process.env.REDIS_URL ? {
-  url: process.env.REDIS_URL
-} : process.env.REDIS_HOST ? {
-  host: process.env.REDIS_HOST,
-  port: Number(process.env.REDIS_PORT || 6379),
-  password: process.env.REDIS_PASSWORD,
-  db: Number(process.env.REDIS_DB || 0)
-} : undefined;
+const redisConfig = process.env.REDIS_URL
+  ? {
+      url: process.env.REDIS_URL,
+    }
+  : process.env.REDIS_HOST
+    ? {
+        host: process.env.REDIS_HOST,
+        port: Number(process.env.REDIS_PORT || 6379),
+        password: process.env.REDIS_PASSWORD,
+        db: Number(process.env.REDIS_DB || 0),
+      }
+    : undefined;
 
 // Initialize OTP Manager
 // SMS enabled if Fast2SMS API key OR AWS credentials exist
@@ -47,11 +72,13 @@ const otpManager = new OTPManager(
     ttl: 180, // 3 minutes
     maxAttempts: 3,
     emailEnabled: true,
-    smsEnabled: !!(process.env.FAST2SMS_API_KEY || process.env.AWS_ACCESS_KEY_ID)
+    smsEnabled: !!(
+      process.env.FAST2SMS_API_KEY || process.env.AWS_ACCESS_KEY_ID
+    ),
   },
   emailConfig,
   smsConfig,
-  redisConfig
+  redisConfig,
 );
 
 // Helper to validate email format
@@ -66,31 +93,59 @@ function isValidPhoneNumber(phone: string): boolean {
   return phoneRegex.test(phone);
 }
 
+function validateTabAgainstUserTypes(
+  tab: string | undefined,
+  userTypes: string[],
+  bypassEmail?: string,  // test account bypass
+  email?: string,
+): boolean {
+  // No tab supplied → skip validation, let the user through
+  if (!tab) return true;
+
+  // Test-account bypass (keep existing behaviour)
+  if (bypassEmail && email === bypassEmail) return true;
+
+  
+  const normaliseTab = (t: string) => {
+    const up = t.toUpperCase().trim();
+    return up === "USER" ? "BRAND" : up;   
+  };
+
+  const normTab = normaliseTab(tab);
+  const normUserTypes = userTypes.map(t => normaliseTab(String(t)));
+
+  return normUserTypes.includes(normTab);
+}
+
 export class AuthController {
   // Helper function to normalize user_type to UserType array
-  private static normalizeUserTypes(user_type: string | string[] | undefined): UserType[] {
-    const validUserTypes: UserType[] = [UserType.USER, UserType.CREATOR, UserType.ADMIN];
-    
+  private static normalizeUserTypes(
+    user_type: string | string[] | undefined,
+  ): UserType[] {
+    const validUserTypes: UserType[] = [
+      UserType.USER,
+      UserType.CREATOR,
+      UserType.BRAND,
+      UserType.AGENCY,
+      UserType.ADMIN,
+    ];
+
     if (!user_type) {
       return [UserType.USER];
     }
-    
+
     // Normalize to array
     const typesArray = Array.isArray(user_type) ? user_type : [user_type];
-    
+
     // Validate and convert to UserType enum values
     const normalizedTypes: UserType[] = [];
     for (const type of typesArray) {
       const upperType = type.toUpperCase();
-      if (upperType === 'USER') {
-        normalizedTypes.push(UserType.USER);
-      } else if (upperType === 'CREATOR') {
-        normalizedTypes.push(UserType.CREATOR);
-      } else if (upperType === 'ADMIN') {
-        normalizedTypes.push(UserType.ADMIN);
+      if (validUserTypes.includes(upperType as UserType)) {
+        normalizedTypes.push(upperType as UserType);
       }
     }
-    
+
     // Remove duplicates and return
     return [...new Set(normalizedTypes)];
   }
@@ -109,57 +164,96 @@ export class AuthController {
 
   // 1. Signup - create user record
   static async signup(req: Request, res: Response) {
-    const { email, phone, name, user_type, dob } = req.body;
+    const {
+      email,
+      phone,
+      name,
+      user_type,
+      role,
+      companyName,
+      company_name,
+      dob,
+    } = req.body;
 
     if (!email) {
-      return ApiResponseHandler.customError(res, "Email is required", 400, "MISSING_EMAIL");
+      return ApiResponseHandler.customError(
+        res,
+        "Email is required",
+        400,
+        "MISSING_EMAIL",
+      );
     }
     if (!phone) {
-      return ApiResponseHandler.customError(res, "Phone number is required", 400, "MISSING_PHONE");
+      return ApiResponseHandler.customError(
+        res,
+        "Phone number is required",
+        400,
+        "MISSING_PHONE",
+      );
     }
     if (!isValidEmail(email)) {
-      return ApiResponseHandler.customError(res, "Invalid email format", 400, "INVALID_EMAIL_FORMAT");
+      return ApiResponseHandler.customError(
+        res,
+        "Invalid email format",
+        400,
+        "INVALID_EMAIL_FORMAT",
+      );
     }
     if (dob && !AuthController.isValidDOB(dob)) {
-      return ApiResponseHandler.customError(res, "Invalid date of birth format. Use YYYY-MM-DD format", 400, "INVALID_DOB_FORMAT");
+      return ApiResponseHandler.customError(
+        res,
+        "Invalid date of birth format. Use YYYY-MM-DD format",
+        400,
+        "INVALID_DOB_FORMAT",
+      );
     }
 
     // Normalize and validate user_type
     let userTypesArray: UserType[];
     try {
-      userTypesArray = AuthController.normalizeUserTypes(user_type);
+      userTypesArray = AuthController.normalizeUserTypes(role || user_type);
 
-      console.log("userTypesArray---",userTypesArray);
-      
       // Validate that at least one valid type was provided
       if (userTypesArray.length === 0) {
         return ApiResponseHandler.customError(
-          res, 
-          "Invalid user type(s). Must be USER, CREATOR, or ADMIN", 
-          400, 
-          "INVALID_USER_TYPE"
+          res,
+          "Invalid user type(s). Must be USER,CREATOR, BRAND, AGENCY, or ADMIN",
+          400,
+          "INVALID_USER_TYPE",
         );
       }
     } catch (error) {
-
-      console.log("error---",error);
       return ApiResponseHandler.customError(
-        res, 
-        "Invalid user type(s). Must be USER, CREATOR, or ADMIN", 
-        400, 
-        "INVALID_USER_TYPE"
+        res,
+        "Invalid user type(s). Must be USER,CREATOR, BRAND, AGENCY, or ADMIN",
+        400,
+        "INVALID_USER_TYPE",
       );
     }
 
     try {
+      const organizationRoleSelected = userTypesArray.some(
+        (type) => type === UserType.BRAND || type === UserType.AGENCY,
+      );
+      const normalizedCompanyName =
+        typeof (company_name ?? companyName) === "string"
+          ? String(company_name ?? companyName).trim()
+          : undefined;
+
+      if (organizationRoleSelected && !normalizedCompanyName) {
+        return ApiResponseHandler.customError(
+          res,
+          "Company name is required for brand and agency accounts",
+          400,
+          "MISSING_COMPANY_NAME",
+        );
+      }
+
       // Check if user already exists with this email or phone
       const existingUser = await prisma.users.findFirst({
         where: {
-          OR: [
-            { email },
-            { phone }
-          ]
-        }
+          OR: [{ email }, { phone }],
+        },
       });
 
       if (existingUser) {
@@ -171,11 +265,24 @@ export class AuthController {
               phone,
               name,
               user_type: userTypesArray,
-              ...(dob && { dob })
-            }
+              companyName: organizationRoleSelected
+                ? normalizedCompanyName
+                : null,
+              ...(dob && { dob }),
+            },
+            select: AUTH_USER_SELECT,
           });
 
-          return ApiResponseHandler.success(res, { user }, "User updated successfully", 200);
+          const token = issueAccessToken(user.id, user.email);
+          return ApiResponseHandler.success(
+            res,
+            {
+              token,
+              user: serializeAuthUser(user),
+            },
+            "User updated successfully",
+            200,
+          );
         }
 
         // If only phone matches but different email, return error
@@ -184,23 +291,37 @@ export class AuthController {
             res,
             "Phone number already registered with a different email",
             409,
-            "PHONE_ALREADY_EXISTS"
+            "PHONE_ALREADY_EXISTS",
           );
         }
       }
 
       // Create new user - ensure user_type is properly formatted as array
       const user = await prisma.users.create({
-        data: { 
-          email, 
-          phone, 
-          name, 
-          user_type: userTypesArray.length > 0 ? userTypesArray : [UserType.USER],
-          ...(dob && { dob })
-        }
+        data: {
+          email,
+          phone,
+          name,
+          user_type:
+            userTypesArray.length > 0 ? userTypesArray : [UserType.USER],
+          ...(organizationRoleSelected && {
+            companyName: normalizedCompanyName,
+          }),
+          ...(dob && { dob }),
+        },
+        select: AUTH_USER_SELECT,
       });
 
-      ApiResponseHandler.success(res, { user }, "User created successfully", 201);
+      const token = issueAccessToken(user.id, user.email);
+      ApiResponseHandler.success(
+        res,
+        {
+          token,
+          user: serializeAuthUser(user),
+        },
+        "User created successfully",
+        201,
+      );
     } catch (err: any) {
       ApiResponseHandler.unexpectedError(res, err, 500);
     }
@@ -211,15 +332,35 @@ export class AuthController {
     const { email, purpose = "login", tab } = req.body;
 
     if (!email) {
-      return ApiResponseHandler.customError(res, "Email is required", 400, "MISSING_EMAIL");
+      return ApiResponseHandler.customError(
+        res,
+        "Email is required",
+        400,
+        "MISSING_EMAIL",
+      );
     }
     if (!isValidEmail(email)) {
-      return ApiResponseHandler.customError(res, "Invalid email format", 400, "INVALID_EMAIL_FORMAT");
+      return ApiResponseHandler.customError(
+        res,
+        "Invalid email format",
+        400,
+        "INVALID_EMAIL_FORMAT",
+      );
     }
 
-    const allowedPurposes = ["login", "signup", "verification", "password_reset"];
+    const allowedPurposes = [
+      "login",
+      "signup",
+      "verification",
+      "password_reset",
+    ];
     if (!allowedPurposes.includes(purpose)) {
-      return ApiResponseHandler.customError(res, "Invalid purpose", 400, "INVALID_PURPOSE");
+      return ApiResponseHandler.customError(
+        res,
+        "Invalid purpose",
+        400,
+        "INVALID_PURPOSE",
+      );
     }
 
     try {
@@ -227,85 +368,152 @@ export class AuthController {
       if (purpose === "login") {
         const user = await prisma.users.findUnique({ where: { email } });
         if (!user) {
-          return ApiResponseHandler.customError(res, "User not found. Please sign up first.", 404, "USER_NOT_FOUND");
+          return ApiResponseHandler.customError(
+            res,
+            "User not found. Please sign up first.",
+            404,
+            "USER_NOT_FOUND",
+          );
         }
         // Check if user has the requested user type (user_type is now an array)
-        const userTypes = Array.isArray(user.user_type) ? user.user_type : [user.user_type];
-        if (!userTypes.includes(tab)) {
-          if (email !== 'test@manchly.com') {
-            return ApiResponseHandler.customError(res, "Invalid user type", 400, "INVALID_USER_TYPE");
+        const userTypes = Array.isArray(user.user_type)
+          ? user.user_type
+          : [user.user_type];
+        if (!validateTabAgainstUserTypes(tab, userTypes as string[], "test@manchly.com", email)) {
+          return ApiResponseHandler.customError(
+            res, "Invalid user type", 400, "INVALID_USER_TYPE",
+          );
           }
-        }
       }
 
       // Use OTPManager to send OTP
-      const otp = await otpManager.sendOTP(email, 6, 'email');
+      const otp = await otpManager.sendOTP(email, 6, "email");
 
-      ApiResponseHandler.success(res, {
-        purpose,
-        expires_in: "10 minutes",
-        otp: otp // Include OTP in response for testing
-      }, "OTP sent successfully to your email");
+      ApiResponseHandler.success(
+        res,
+        {
+          purpose,
+          expires_in: "10 minutes",
+          otp: otp, // Include OTP in response for testing
+        },
+        "OTP sent successfully to your email",
+      );
     } catch (err: any) {
-      if (err.message.includes('Rate limit exceeded')) {
-        return ApiResponseHandler.customError(res, "Too many OTP requests. Please try again later.", 429, "RATE_LIMIT_EXCEEDED");
+      if (err.message.includes("Rate limit exceeded")) {
+        return ApiResponseHandler.customError(
+          res,
+          "Too many OTP requests. Please try again later.",
+          429,
+          "RATE_LIMIT_EXCEEDED",
+        );
       }
-      if (err.message.includes('OTP already sent')) {
-        return ApiResponseHandler.customError(res, "OTP already sent. Please wait for it to expire or use the existing one.", 400, "OTP_ALREADY_SENT");
+      if (err.message.includes("OTP already sent")) {
+        return ApiResponseHandler.customError(
+          res,
+          "OTP already sent. Please wait for it to expire or use the existing one.",
+          400,
+          "OTP_ALREADY_SENT",
+        );
       }
       ApiResponseHandler.unexpectedError(res, err, 500);
     }
   }
 
   // 3. Send OTP via SMS
-  static async sendSMSOTP(req: Request, res: Response) {
+ static async sendSMSOTP(req: Request, res: Response) {
     const { phone_number, purpose = "login", tab } = req.body;
 
     if (!phone_number) {
-      return ApiResponseHandler.customError(res, "Phone number is required", 400, "MISSING_PHONE");
+      return ApiResponseHandler.customError(
+        res,
+        "Phone number is required",
+        400,
+        "MISSING_PHONE",
+      );
     }
     if (!isValidPhoneNumber(phone_number)) {
-      return ApiResponseHandler.customError(res, "Invalid phone number format", 400, "INVALID_PHONE_FORMAT");
+      return ApiResponseHandler.customError(
+        res,
+        "Invalid phone number format",
+        400,
+        "INVALID_PHONE_FORMAT",
+      );
     }
 
     const allowedPurposes = ["login", "signup", "verification"];
     if (!allowedPurposes.includes(purpose)) {
-      return ApiResponseHandler.customError(res, "Invalid purpose", 400, "INVALID_PURPOSE");
+      return ApiResponseHandler.customError(
+        res,
+        "Invalid purpose",
+        400,
+        "INVALID_PURPOSE",
+      );
     }
 
     try {
       // Find user by phone number for login purpose
       if (purpose === "login") {
         const user = await prisma.users.findFirst({
-          where: { phone: phone_number }
+          where: { phone: phone_number },
         });
         if (!user) {
-          return ApiResponseHandler.customError(res, "User not found. Please sign up first.", 404, "USER_NOT_FOUND");
+          return ApiResponseHandler.customError(
+            res,
+            "User not found. Please sign up first.",
+            404,
+            "USER_NOT_FOUND",
+          );
         }
         // Check if user has the requested user type (user_type is now an array)
-        const userTypes = Array.isArray(user.user_type) ? user.user_type : [user.user_type];
-        if (!userTypes.includes(tab)) {
-          return ApiResponseHandler.customError(res, "Invalid user type", 400, "INVALID_USER_TYPE");
+        const userTypes = Array.isArray(user.user_type)
+          ? user.user_type
+          : [user.user_type];
+          //added and will remove 
+        console.log("tab:", tab);
+        console.log("user.user_type:", user.user_type);
+          if (!validateTabAgainstUserTypes(tab, userTypes as string[])) {
+          return ApiResponseHandler.customError(
+            res, "Invalid user type", 400, "INVALID_USER_TYPE",
+          );
         }
       }
 
       // Use OTPManager to send SMS OTP
-      const otp = await otpManager.sendOTP(phone_number, 6, 'sms');
+      const otp = await otpManager.sendOTP(phone_number, 6, "sms");
 
-      ApiResponseHandler.success(res, {
-        purpose,
-        expires_in: "10 minutes",
-        otp: otp // Include OTP in response for testing
-      }, "OTP sent successfully to your phone");
+      ApiResponseHandler.success(
+        res,
+        {
+          purpose,
+          expires_in: "10 minutes",
+          otp: otp, // Include OTP in response for testing
+        },
+        "OTP sent successfully to your phone",
+      );
     } catch (err: any) {
-      if (err.message.includes('Rate limit exceeded')) {
-        return ApiResponseHandler.customError(res, "Too many OTP requests. Please try again later.", 429, "RATE_LIMIT_EXCEEDED");
+      if (err.message.includes("Rate limit exceeded")) {
+        return ApiResponseHandler.customError(
+          res,
+          "Too many OTP requests. Please try again later.",
+          429,
+          "RATE_LIMIT_EXCEEDED",
+        );
       }
-      if (err.message.includes('OTP already sent')) {
-        return ApiResponseHandler.customError(res, "OTP already sent. Please wait for it to expire or use the existing one.", 400, "OTP_ALREADY_SENT");
+      if (err.message.includes("OTP already sent")) {
+        return ApiResponseHandler.customError(
+          res,
+          "OTP already sent. Please wait for it to expire or use the existing one.",
+          400,
+          "OTP_ALREADY_SENT",
+        );
       }
-      if (err.message.includes('SMS OTP is not enabled')) {
-        return ApiResponseHandler.customError(res, "SMS service is not configured", 400, "SMS_NOT_CONFIGURED");
+      if (err.message.includes("SMS OTP is not enabled")) {
+        return ApiResponseHandler.customError(
+          res,
+          "SMS service is not configured",
+          400,
+          "SMS_NOT_CONFIGURED",
+        );
       }
       ApiResponseHandler.unexpectedError(res, err, 500);
     }
@@ -313,15 +521,32 @@ export class AuthController {
 
   // 4. Verify OTP and issue JWT
   static async verifyOTP(req: Request, res: Response) {
-    const { email, phone_number, code, purpose = "login",user_type, fcm_token } = req.body;
+    const {
+      email,
+      phone_number,
+      code,
+      purpose = "login",
+      user_type,
+      fcm_token,
+    } = req.body;
 
     if (!code) {
-      return ApiResponseHandler.customError(res, "OTP code is required", 400, "MISSING_OTP_CODE");
+      return ApiResponseHandler.customError(
+        res,
+        "OTP code is required",
+        400,
+        "MISSING_OTP_CODE",
+      );
     }
 
     // Either email or phone_number must be provided
     if (!email && !phone_number) {
-      return ApiResponseHandler.customError(res, "Email or phone number is required", 400, "MISSING_IDENTIFIER");
+      return ApiResponseHandler.customError(
+        res,
+        "Email or phone number is required",
+        400,
+        "MISSING_IDENTIFIER",
+      );
     }
 
     const identifier = email || phone_number;
@@ -331,7 +556,12 @@ export class AuthController {
       const verificationResult = await otpManager.verifyOTP(identifier, code);
 
       if (!verificationResult.success) {
-        return ApiResponseHandler.customError(res, verificationResult.message, 400, "OTP_VERIFICATION_FAILED");
+        return ApiResponseHandler.customError(
+          res,
+          verificationResult.message,
+          400,
+          "OTP_VERIFICATION_FAILED",
+        );
       }
 
       // Find or create user
@@ -344,12 +574,19 @@ export class AuthController {
       } else if (phone_number) {
         user = await prisma.users.findFirst({ where: { phone: phone_number } });
         if (!user) {
-          user = await prisma.users.create({ data: { phone: phone_number, email: "" } });
+          user = await prisma.users.create({
+            data: { phone: phone_number, email: "" },
+          });
         }
       }
 
       if (!user) {
-        return ApiResponseHandler.customError(res, "Failed to retrieve or create user", 500, "USER_CREATION_FAILED");
+        return ApiResponseHandler.customError(
+          res,
+          "Failed to retrieve or create user",
+          500,
+          "USER_CREATION_FAILED",
+        );
       }
 
       // For password reset, issue a short-lived reset token
@@ -358,53 +595,40 @@ export class AuthController {
           {
             userId: user.id,
             purpose: "password_reset",
-            type: "reset"
+            type: "reset",
           },
           JWT_SECRET,
-          { expiresIn: "15 minutes" }
+          { expiresIn: "15 minutes" },
         );
 
-        return ApiResponseHandler.success(res, {
-          reset_token: resetToken,
-          purpose: "password_reset"
-        }, "OTP verified successfully");
+        return ApiResponseHandler.success(
+          res,
+          {
+            reset_token: resetToken,
+            purpose: "password_reset",
+          },
+          "OTP verified successfully",
+        );
       }
 
       // For login/signup, issue regular JWT
-      const token = jwt.sign(
-        {
-          userId: user.id,
-          email: user.email,
-          type: "access"
-        },
-        JWT_SECRET,
-        { expiresIn: "365d" }
-      );
+      const token = issueAccessToken(user.id, user.email);
 
       // Update user last login time and fcm token
-      await prisma.users.update({
+      const updatedUser = await prisma.users.update({
         where: { id: user.id },
-        data: { last_login: new Date(), ...(fcm_token && { fcm_token }) }
+        data: { last_login: new Date(), ...(fcm_token && { fcm_token }) },
+        select: AUTH_USER_SELECT,
       });
 
-      ApiResponseHandler.success(res, {
-        token,
-        user: {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          dob: (user as any).dob,
-          kyc_verified: (user as any).kyc_verified,
-          phone: user.phone,
-          profile_image: user.profile_image,
-          user_type: user_type || (Array.isArray(user.user_type) ? user.user_type[0] : user.user_type),
-          fcm_token: fcm_token || user.fcm_token,
-          instagram_link: (user as any).instagram_link,
-          linkedin_link: (user as any).linkedin_link,
-          youtube_link: (user as any).youtube_link,
-          facebook_link: (user as any).facebook_link
-        }
-      }, "OTP verified successfully");
+      ApiResponseHandler.success(
+        res,
+        {
+          token,
+          user: serializeAuthUser(updatedUser, user_type),
+        },
+        "OTP verified successfully",
+      );
     } catch (err: any) {
       ApiResponseHandler.unexpectedError(res, err, 500);
     }
@@ -415,23 +639,40 @@ export class AuthController {
     const { email, phone_number, channel = "email" } = req.body;
 
     if (!email && !phone_number) {
-      return ApiResponseHandler.customError(res, "Email or phone number is required", 400, "MISSING_IDENTIFIER");
+      return ApiResponseHandler.customError(
+        res,
+        "Email or phone number is required",
+        400,
+        "MISSING_IDENTIFIER",
+      );
     }
 
     const identifier = email || phone_number;
 
     try {
       // Use OTPManager to resend OTP
-      const newOtp = await otpManager.resendOTP(identifier, channel as 'email' | 'sms');
+      const newOtp = await otpManager.resendOTP(
+        identifier,
+        channel as "email" | "sms",
+      );
 
-      ApiResponseHandler.success(res, {
-        channel,
-        expires_in: "10 minutes",
-        otp: newOtp // Include OTP in response for testing
-      }, `OTP resent successfully via ${channel}`);
+      ApiResponseHandler.success(
+        res,
+        {
+          channel,
+          expires_in: "10 minutes",
+          otp: newOtp, // Include OTP in response for testing
+        },
+        `OTP resent successfully via ${channel}`,
+      );
     } catch (err: any) {
-      if (err.message.includes('Rate limit exceeded')) {
-        return ApiResponseHandler.customError(res, "Too many OTP requests. Please try again later.", 429, "RATE_LIMIT_EXCEEDED");
+      if (err.message.includes("Rate limit exceeded")) {
+        return ApiResponseHandler.customError(
+          res,
+          "Too many OTP requests. Please try again later.",
+          429,
+          "RATE_LIMIT_EXCEEDED",
+        );
       }
       ApiResponseHandler.unexpectedError(res, err, 500);
     }
@@ -445,15 +686,21 @@ export class AuthController {
       const hasValidOTP = await otpManager.hasValidOTP(identifier);
       const otpData = await otpManager.getOTPData(identifier);
 
-      ApiResponseHandler.success(res, {
-        has_valid_otp: hasValidOTP,
-        otp_data: otpData ? {
-          attempts: otpData.attempts,
-          created_at: otpData.createdAt,
-          verified: otpData.verified,
-          channel: otpData.channel
-        } : null
-      }, "OTP status retrieved successfully");
+      ApiResponseHandler.success(
+        res,
+        {
+          has_valid_otp: hasValidOTP,
+          otp_data: otpData
+            ? {
+                attempts: otpData.attempts,
+                created_at: otpData.createdAt,
+                verified: otpData.verified,
+                channel: otpData.channel,
+              }
+            : null,
+        },
+        "OTP status retrieved successfully",
+      );
     } catch (err: any) {
       ApiResponseHandler.unexpectedError(res, err, 500);
     }
@@ -464,7 +711,12 @@ export class AuthController {
     const { email, phone_number } = req.body;
 
     if (!email && !phone_number) {
-      return ApiResponseHandler.customError(res, "Email or phone number is required", 400, "MISSING_IDENTIFIER");
+      return ApiResponseHandler.customError(
+        res,
+        "Email or phone number is required",
+        400,
+        "MISSING_IDENTIFIER",
+      );
     }
 
     const identifier = email || phone_number;
@@ -483,11 +735,15 @@ export class AuthController {
     try {
       const stats = await otpManager.getStats();
 
-      ApiResponseHandler.success(res, {
-        active_otps: stats.activeOTPs,
-        redis_enabled: stats.redisEnabled,
-        timestamp: new Date().toISOString()
-      }, "OTP statistics retrieved successfully");
+      ApiResponseHandler.success(
+        res,
+        {
+          active_otps: stats.activeOTPs,
+          redis_enabled: stats.redisEnabled,
+          timestamp: new Date().toISOString(),
+        },
+        "OTP statistics retrieved successfully",
+      );
     } catch (err: any) {
       ApiResponseHandler.unexpectedError(res, err, 500);
     }
@@ -495,21 +751,35 @@ export class AuthController {
 
   // 9. Update User Profile (Protected)
   static async updateProfile(req: any, res: Response) {
-    const { name, phone_number, user_type, profile_image, dob, fcm_token, instagram_link, linkedin_link, youtube_link, facebook_link } = req.body;
+    const {
+      name,
+      phone_number,
+      user_type,
+      role,
+      companyName,
+      company_name,
+      profile_image,
+      dob,
+      fcm_token,
+      instagram_link,
+      linkedin_link,
+      youtube_link,
+      facebook_link,
+    } = req.body;
     const { user } = req;
 
     // Validate and process user_type if provided
     let userTypesArray: UserType[] | undefined = undefined;
-    if (user_type) {
+    if (role || user_type) {
       try {
-        const newTypes = AuthController.normalizeUserTypes(user_type);
+        const newTypes = AuthController.normalizeUserTypes(role || user_type);
 
         if (newTypes.length === 0) {
           return ApiResponseHandler.customError(
             res,
-            "Invalid user type(s). Must be USER, CREATOR, or ADMIN",
+            "Invalid user type(s). Must be USER, STUDENT, CREATOR, BRAND, AGENCY, or ADMIN",
             400,
-            "INVALID_USER_TYPE"
+            "INVALID_USER_TYPE",
           );
         }
 
@@ -518,9 +788,9 @@ export class AuthController {
       } catch (error) {
         return ApiResponseHandler.customError(
           res,
-          "Invalid user type(s). Must be USER, CREATOR, or ADMIN",
+          "Invalid user type(s). Must be USER, CREATOR, BRAND, AGENCY, or ADMIN",
           400,
-          "INVALID_USER_TYPE"
+          "INVALID_USER_TYPE",
         );
       }
     }
@@ -535,27 +805,34 @@ export class AuthController {
         instagram_link,
         linkedin_link,
         youtube_link,
-        facebook_link
+        facebook_link,
+        ...(companyName !== undefined || company_name !== undefined
+          ? {
+              companyName:
+                typeof (company_name ?? companyName) === "string"
+                  ? String(company_name ?? companyName).trim()
+                  : null,
+            }
+          : {}),
       };
-      
+
       if (userTypesArray !== undefined) {
         updateData.user_type = userTypesArray;
       }
 
       const userData = await prisma.users.update({
         where: { id: user.userId },
-        data: updateData
+        data: updateData,
+        select: AUTH_USER_SELECT,
       });
 
-      const { ...userWithoutSensitive } = userData;
-
-      ApiResponseHandler.success(res, {
-        user: {
-          ...userWithoutSensitive,
-          user_type: user_type || (Array.isArray(userWithoutSensitive.user_type) ? userWithoutSensitive.user_type[0] : userWithoutSensitive.user_type),
-          is_profile_image: userWithoutSensitive.profile_image || null
-        }
-      }, "Profile updated successfully");
+      ApiResponseHandler.success(
+        res,
+        {
+          user: serializeAuthUser(userData, user_type || role),
+        },
+        "Profile updated successfully",
+      );
     } catch (err: any) {
       ApiResponseHandler.unexpectedError(res, err, 500);
     }
@@ -566,33 +843,25 @@ export class AuthController {
     try {
       const user = await prisma.users.findUnique({
         where: { id: req.user.userId },
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          phone: true,
-          profile_image: true,
-          user_type: true,
-          created_at: true,
-          last_login: true,
-          fcm_token: true,
-          instagram_link: true,
-          linkedin_link: true,
-          youtube_link: true,
-          facebook_link: true
-        }
+        select: AUTH_USER_SELECT,
       });
 
       if (!user) {
-        return ApiResponseHandler.customError(res, "User not found", 404, "USER_NOT_FOUND");
+        return ApiResponseHandler.customError(
+          res,
+          "User not found",
+          404,
+          "USER_NOT_FOUND",
+        );
       }
 
-      ApiResponseHandler.success(res, {
-        user: {
-          ...user,
-          user_type: Array.isArray(user.user_type) ? user.user_type[0] : user.user_type
-        }
-      }, "User data retrieved successfully");
+      ApiResponseHandler.success(
+        res,
+        {
+          user: serializeAuthUser(user),
+        },
+        "User data retrieved successfully",
+      );
     } catch (err: any) {
       ApiResponseHandler.unexpectedError(res, err, 500);
     }
@@ -606,18 +875,15 @@ export class AuthController {
         res,
         "Email or phone number is required",
         400,
-        "MISSING_IDENTIFIER"
+        "MISSING_IDENTIFIER",
       );
     }
 
     try {
       const whereClause: any = {};
-      
+
       if (email && phone) {
-        whereClause.OR = [
-          { email },
-          { phone }
-        ];
+        whereClause.OR = [{ email }, { phone }];
       } else if (email) {
         whereClause.email = email;
       } else if (phone) {
@@ -632,8 +898,8 @@ export class AuthController {
           phone: true,
           name: true,
           user_type: true,
-          created_at: true
-        }
+          created_at: true,
+        },
       });
 
       if (user) {
@@ -646,21 +912,21 @@ export class AuthController {
               email: user.email,
               phone: user.phone,
               name: user.name,
-              user_type: user.user_type
-            }
+              user_type: user.user_type,
+            },
           },
           "User found",
-          200
+          200,
         );
       } else {
         return ApiResponseHandler.success(
           res,
           {
             exists: false,
-            user: null
+            user: null,
           },
           "User not found",
-          200
+          200,
         );
       }
     } catch (err: any) {
@@ -682,14 +948,18 @@ export class AuthController {
       console.warn("[health] otp stats unavailable:", note);
     }
 
-    ApiResponseHandler.success(res, {
-      status: stats.redisEnabled ? "healthy" : "degraded",
-      otp_manager: {
-        active_otps: stats.activeOTPs,
-        redis_enabled: stats.redisEnabled,
-        ...(note ? { note } : {}),
+    ApiResponseHandler.success(
+      res,
+      {
+        status: stats.redisEnabled ? "healthy" : "degraded",
+        otp_manager: {
+          active_otps: stats.activeOTPs,
+          redis_enabled: stats.redisEnabled,
+          ...(note ? { note } : {}),
+        },
+        timestamp: new Date().toISOString(),
       },
-      timestamp: new Date().toISOString()
-    }, "Service is healthy");
+      "Service is healthy",
+    );
   }
 }

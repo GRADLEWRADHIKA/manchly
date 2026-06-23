@@ -7,6 +7,7 @@ import { notificationService } from "../services/NotificationService";
 import { cashfreePG } from "../services/cashfreeService";
 import { NotificationController } from "./notificationController";
 import { processTelegramPaymentSuccess, processTelegramPaymentFailed } from "./telegramController";
+import { processPremiumPaymentSuccess, processPremiumPaymentFailed } from "./subscriptionController";
 import crypto from "crypto";
 import dotenv from "dotenv";
 
@@ -539,6 +540,11 @@ export class PaymentController {
         return;
       }
 
+      if (typeof orderId === "string" && orderId.startsWith("premium_")) {
+        await processPremiumPaymentSuccess(orderId, cfPaymentId);
+        return;
+      }
+
       const transaction = await prisma.transactions.findUnique({
         where: { cashfree_order_id: orderId },
         include: {
@@ -662,6 +668,11 @@ export class PaymentController {
       // Handle webinar payment failures
       if (typeof orderId === "string" && orderId.startsWith("webinar_")) {
         await PaymentController.handleWebinarPaymentFailed(orderId, data);
+        return;
+      }
+
+      if (typeof orderId === "string" && orderId.startsWith("premium_")) {
+        await processPremiumPaymentFailed(orderId);
         return;
       }
 

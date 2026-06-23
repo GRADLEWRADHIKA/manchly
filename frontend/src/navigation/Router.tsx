@@ -1,8 +1,7 @@
 import { Linking } from 'react-native';
-import React, { useEffect, useRef, createRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   NavigationContainer,
-  NavigationContainerRef,
 } from '@react-navigation/native';
 import AuthStack from './AuthStack';
 import { useSelector } from 'react-redux';
@@ -12,8 +11,7 @@ import CreatorMainStack from './CreatorMainStack';
 import { getAppLinkDataFromUrl } from 'react-native-chottulink-sdk';
 import NotificationService from '../services/NotificationService';
 import { store } from '../store/Store';
-
-export const navigationRef = createRef<NavigationContainerRef<any>>();
+import { navigationRef } from './navigationRef';
 
 const PREFIXES = ['https://manchly.chottu.link', 'http://manchly.chottu.link', 'manchly://'];
 
@@ -118,6 +116,7 @@ const linking = {
 const Router = () => {
   const { token } = useSelector((state: any) => state.userReducer);
   const { user } = useSelector((state: any) => state.userReducer);
+  const userRole = String(user?.user_type || '').toUpperCase();
   const pendingDeepLink = useRef<{
     screen: 'CourseDetailsScreen' | 'WebinarDetails';
     id: string;
@@ -216,10 +215,10 @@ const Router = () => {
       <NavigationContainer ref={navigationRef} linking={linking}>
         {token ? (
           user ? (
-            user.user_type.includes('USER') ? (
-              <UserMainStack />
-            ) : (
+            userRole.includes('CREATOR') ? (
               <CreatorMainStack />
+            ) : (
+              <UserMainStack />
             )
           ) : null
         ) : (

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   FlatList,
   Linking,
@@ -27,13 +27,22 @@ import {
   Instagram,
   MessageCircle,
   UserCircle,
-  Bell,
+  Lock,
 } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { ThunkDispatch } from '@reduxjs/toolkit';
 import colors from '../../../../utils/colors';
 import { fp, hp, wp } from '../../../../utils/responsive';
+import PaywallModal from '../../../../components/PaywallModal';
+import { incrementProfileView } from '../../../../store/UserSlice';
+import {
+  getProfileViewsUsed,
+  hasReachedProfileViewLimit,
+  isPremiumUser,
+  shouldLockContactActions,
+} from '../../../../utils/marketplaceUtils';
 
 type AudienceRow = [string, string];
 type PackageRow = [string, string];
@@ -67,6 +76,15 @@ type NativeTableProps = {
 type InspectorDrawerProps = {
   creator: Creator | null;
   onClose: () => void;
+};
+
+type CreatorCardProps = {
+  creator: Creator;
+  user: any;
+  onInspect: (creator: Creator) => void;
+  onShowPaywall: () => void;
+  onOpenWhatsApp: (creator: Creator) => void;
+  onOpenInstagram: (creator: Creator) => void;
 };
 
 const NICHES: string[] = ['Finance', 'AI', 'Beauty', 'Fitness', 'SaaS'];
@@ -206,6 +224,120 @@ const NativeTable: React.FC<NativeTableProps> = ({ title, rows }) => (
   </View>
 );
 
+const CreatorCard: React.FC<CreatorCardProps> = ({
+  creator,
+  user,
+  onInspect,
+  onShowPaywall,
+  onOpenWhatsApp,
+  onOpenInstagram,
+}) => {
+  const contactsLocked = shouldLockContactActions(creator.followers, user);
+
+  const handleWhatsAppPress = () => {
+    if (contactsLocked) {
+      onShowPaywall();
+      return;
+    }
+
+    onOpenWhatsApp(creator);
+  };
+
+  const handleInstagramPress = () => {
+    if (contactsLocked) {
+      onShowPaywall();
+      return;
+    }
+
+    onOpenInstagram(creator);
+  };
+
+  return (
+    <TouchableOpacity
+      style={s.creatorCard}
+      onPress={() => onInspect(creator)}
+      activeOpacity={0.9}
+    >
+      <View style={s.creatorHeader}>
+        <Text style={s.creatorName}>{creator.name}</Text>
+        {creator.sebiRegistered && (
+          <View style={s.sebiBadge}>
+            <ShieldCheck size={wp(12)} color="#16A34A" />
+            <Text style={s.sebiText}>SEBI Registered</Text>
+          </View>
+        )}
+      </View>
+      <Text style={s.creatorNiche}>
+        {creator.niche} • {creator.city}
+      </Text>
+      <Text style={s.creatorBio} numberOfLines={2}>
+        {creator.bio}
+      </Text>
+
+      <View style={s.metricsRow}>
+        <View style={s.cardMetric}>
+          <Text style={s.cardMetricVal}>{creator.followers}</Text>
+          <Text style={s.cardMetricLabel}>Followers</Text>
+        </View>
+        <View style={s.cardMetric}>
+          <Text style={s.cardMetricVal}>{creator.er}</Text>
+          <Text style={s.cardMetricLabel}>Engagement</Text>
+        </View>
+        <View style={s.cardMetric}>
+          <Text style={s.cardMetricVal}>{creator.views}</Text>
+          <Text style={s.cardMetricLabel}>Avg Views</Text>
+        </View>
+      </View>
+
+      <View style={s.actionRow}>
+        <TouchableOpacity
+          style={[
+            s.actionBtn,
+            contactsLocked ? s.actionBtnLocked : s.waBtn,
+          ]}
+          onPress={handleWhatsAppPress}
+          activeOpacity={0.8}
+        >
+          {contactsLocked ? (
+            <Lock size={16} color="#71717A" />
+          ) : (
+            <MessageCircle size={16} color="#16A34A" />
+          )}
+          <Text
+            style={[
+              contactsLocked ? s.actionBtnLockedText : s.waBtnText,
+            ]}
+          >
+            WhatsApp
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[
+            s.actionBtn,
+            contactsLocked ? s.actionBtnLocked : s.igBtn,
+          ]}
+          onPress={handleInstagramPress}
+          activeOpacity={0.8}
+        >
+          {contactsLocked ? (
+            <Lock size={16} color="#71717A" />
+          ) : (
+            <Instagram size={16} color="#DB2777" />
+          )}
+          <Text
+            style={[
+              contactsLocked ? s.actionBtnLockedText : s.igBtnText,
+            ]}
+          >
+            Instagram
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </TouchableOpacity>
+  );
+};
+
 const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
   creator,
   onClose,
@@ -270,13 +402,19 @@ const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
 export default function BrandMarketplace() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
+  const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
   const { user } = useSelector((state: any) => state.userReducer);
+  const isPremium = isPremiumUser(user);
 
   const [query, setQuery] = useState<string>('');
   const [activeNiche, setActiveNiche] = useState<string>('Finance');
   const [sebiOnly, setSebiOnly] = useState<boolean>(false);
   const [selectedCreator, setSelectedCreator] = useState<Creator | null>(
     null,
+  );
+  const [paywallVisible, setPaywallVisible] = useState(false);
+  const [viewedCreatorIds, setViewedCreatorIds] = useState<Set<string>>(
+    () => new Set(),
   );
 
   const openWhatsApp = async (creator: Creator) => {
@@ -294,6 +432,42 @@ export default function BrandMarketplace() {
   const openInstagram = (creator: Creator) => {
     Linking.openURL(`instagram://user?username=${creator.instagram}`);
   };
+
+  const handleShowPaywall = useCallback(() => {
+    setPaywallVisible(true);
+  }, []);
+
+  const handleClosePaywall = useCallback(() => {
+    setPaywallVisible(false);
+  }, []);
+
+  const handleUpgrade = useCallback(() => {
+    setPaywallVisible(false);
+    navigation.navigate('UserSetting');
+  }, [navigation]);
+
+  const handleInspect = useCallback(
+    (creator: Creator) => {
+      const alreadyViewed = viewedCreatorIds.has(creator.id);
+      const profileViewsUsed = getProfileViewsUsed(user);
+      const limitReached =
+        hasReachedProfileViewLimit(user) ||
+        (!isPremium && !alreadyViewed && profileViewsUsed >= 5);
+
+      if (limitReached && !alreadyViewed) {
+        handleShowPaywall();
+        return;
+      }
+
+      if (!isPremium && !alreadyViewed) {
+        dispatch(incrementProfileView());
+        setViewedCreatorIds(prev => new Set(prev).add(creator.id));
+      }
+
+      setSelectedCreator(creator);
+    },
+    [dispatch, handleShowPaywall, isPremium, user, viewedCreatorIds],
+  );
 
   const filtered = useMemo(() => {
     return CREATORS.filter((c) => {
@@ -407,62 +581,14 @@ export default function BrandMarketplace() {
           </View>
         }
         renderItem={({ item }) => (
-          <TouchableOpacity
-            style={s.creatorCard}
-            onPress={() => setSelectedCreator(item)}
-            activeOpacity={0.9}
-          >
-            <View style={s.creatorHeader}>
-              <Text style={s.creatorName}>{item.name}</Text>
-              {item.sebiRegistered && (
-                <View style={s.sebiBadge}>
-                  <ShieldCheck size={wp(12)} color="#16A34A" />
-                  <Text style={s.sebiText}>SEBI Registered</Text>
-                </View>
-              )}
-            </View>
-            <Text style={s.creatorNiche}>{item.niche} • {item.city}</Text>
-            <Text style={s.creatorBio} numberOfLines={2}>
-              {item.bio}
-            </Text>
-
-            {/* Micro metrics */}
-            <View style={s.metricsRow}>
-              <View style={s.cardMetric}>
-                <Text style={s.cardMetricVal}>{item.followers}</Text>
-                <Text style={s.cardMetricLabel}>Followers</Text>
-              </View>
-              <View style={s.cardMetric}>
-                <Text style={s.cardMetricVal}>{item.er}</Text>
-                <Text style={s.cardMetricLabel}>Engagement</Text>
-              </View>
-              <View style={s.cardMetric}>
-                <Text style={s.cardMetricVal}>{item.views}</Text>
-                <Text style={s.cardMetricLabel}>Avg Views</Text>
-              </View>
-            </View>
-
-            {/* Premium Action Row */}
-            <View style={s.actionRow}>
-              <TouchableOpacity
-                style={[s.actionBtn, s.waBtn]}
-                onPress={() => openWhatsApp(item)}
-                activeOpacity={0.8}
-              >
-                <MessageCircle size={16} color="#16A34A" />
-                <Text style={s.waBtnText}>WhatsApp</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[s.actionBtn, s.igBtn]}
-                onPress={() => openInstagram(item)}
-                activeOpacity={0.8}
-              >
-                <Instagram size={16} color="#DB2777" />
-                <Text style={s.igBtnText}>Instagram</Text>
-              </TouchableOpacity>
-            </View>
-          </TouchableOpacity>
+          <CreatorCard
+            creator={item}
+            user={user}
+            onInspect={handleInspect}
+            onShowPaywall={handleShowPaywall}
+            onOpenWhatsApp={openWhatsApp}
+            onOpenInstagram={openInstagram}
+          />
         )}
         ListEmptyComponent={
           <View style={s.emptyState}>
@@ -477,13 +603,15 @@ export default function BrandMarketplace() {
         creator={selectedCreator}
         onClose={() => setSelectedCreator(null)}
       />
+
+      <PaywallModal
+        visible={paywallVisible}
+        onClose={handleClosePaywall}
+        onUpgrade={handleUpgrade}
+      />
     </View>
   );
 }
-
-/* ─────────────────────────────────────────
-   STYLES
-───────────────────────────────────────── */
 
 const s = StyleSheet.create({
   container: {
@@ -739,6 +867,14 @@ const s = StyleSheet.create({
   },
   igBtnText: {
     color: '#DB2777',
+    fontSize: fp(12),
+    fontWeight: '700',
+  },
+  actionBtnLocked: {
+    backgroundColor: '#181818',
+  },
+  actionBtnLockedText: {
+    color: '#71717A',
     fontSize: fp(12),
     fontWeight: '700',
   },

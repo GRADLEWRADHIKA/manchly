@@ -24,14 +24,23 @@ import {
 import UserHome from '../screens/Auth/User/Home/UserHome';
 import UserChat from '../screens/Auth/User/Chat/UserChat';
 import UserSetting from '../screens/Auth/User/Settings/UserSetting';
-import BrandMarketplace from '../screens/Auth/User/Marketplace/BrandMarketplace';import { Profile } from 'react-native-fbsdk-next';
-
+import BrandMarketplace from '../screens/Auth/User/Marketplace/BrandMarketplace';
+import MarketplaceRouteGuard from '../components/MarketplaceRouteGuard';
+import { canAccessMarketplace } from '../utils/marketplaceUtils';
+import { useSelector } from 'react-redux';
 
 const Tab = createBottomTabNavigator();
 
 const ACTIVE_COLOR = colors.secPrimary;
 const INACTIVE_COLOR = '#94a3b8';
 const ACTIVE_BG = '#1E3A5F12';
+
+const GuardedBrandMarketplace = () => (
+  <MarketplaceRouteGuard>
+    <BrandMarketplace />
+  </MarketplaceRouteGuard>
+);
+
 
 const tabs = [
   { name: 'Home', component: UserHome, label: 'Home', Icon: House },
@@ -55,7 +64,7 @@ const tabs = [
   },
   {
     name: 'BrandMarketplace',
-    component: BrandMarketplace,
+    component: GuardedBrandMarketplace,
     label: 'Market',
     Icon: Store,
   },
@@ -156,9 +165,12 @@ const TabItem = ({ isFocused, icon: Icon, label, onPress }: any) => {
   );
 };
 
-const CustomTabBar = ({ state, navigation }: any) => {
+const CustomTabBar = ({ state, navigation, canShowMarketplace }: any) => {
   const insets = useSafeAreaInsets();
   const bottomPadding = Math.max(insets.bottom, hp(8));
+  const visibleRoutes = state.routes.filter(
+    (route: any) => route.name !== 'BrandMarketplace' || canShowMarketplace,
+  );
 
   return (
     <View
@@ -168,8 +180,11 @@ const CustomTabBar = ({ state, navigation }: any) => {
       ]}
     >
       <View style={styles.tabContainer}>
-        {state.routes.map((route: any, index: number) => {
-          const isFocused = state.index === index;
+        {visibleRoutes.map((route: any) => {
+          const routeIndex = state.routes.findIndex(
+            (stateRoute: any) => stateRoute.key === route.key,
+          );
+          const isFocused = state.index === routeIndex;
           const tabInfo = tabs.find(t => t.name === route.name);
           const Icon = tabInfo?.Icon ?? MessageCircle;
 
@@ -195,11 +210,19 @@ const CustomTabBar = ({ state, navigation }: any) => {
 };
 
 const UserBottomTab = () => {
+  const { user } = useSelector((state: any) => state.userReducer);
+  const canShowMarketplace = canAccessMarketplace(user);
+
   return (
     <Tab.Navigator
       initialRouteName="Home"
       screenOptions={{ headerShown: false, tabBarStyle: { display: 'none' } }}
-      tabBar={props => <CustomTabBar {...props} />}
+      tabBar={props => (
+        <CustomTabBar
+          {...props}
+          canShowMarketplace={canShowMarketplace}
+        />
+      )}
     >
       {tabs.map(t => (
         <Tab.Screen

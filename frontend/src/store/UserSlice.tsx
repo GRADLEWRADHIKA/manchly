@@ -188,6 +188,29 @@ export const UserSlice = createSlice({
     clearJustLoggedIn: state => {
       state.justLoggedIn = false;
     },
+    incrementProfileView: state => {
+      const current =
+        state.user?.profile_views_used ??
+        state.user?.profileViewsUsed ??
+        state.user?.marketplace_profile_views ??
+        0;
+
+      const nextCount = Number(current) + 1;
+
+      state.user = {
+        ...state.user,
+        profile_views_used: nextCount,
+        profileViewsUsed: nextCount,
+        marketplace_profile_views: nextCount,
+      };
+    },
+    setPremiumStatus: (state, action) => {
+      state.user = {
+        ...state.user,
+        is_premium: action.payload,
+        isPremium: action.payload,
+      };
+    },
   },
   extraReducers: builder => {
     builder
@@ -199,6 +222,18 @@ export const UserSlice = createSlice({
         state.token = actions?.payload?.data?.data?.token;
         state.loading = false;
         state.justLoggedIn = true;
+      })
+      .addCase(signUp.fulfilled, (state, actions) => {
+        const data = actions?.payload?.data?.data;
+        if (data?.user) {
+          state.user = data.user;
+        }
+        if (data?.token) {
+          state.token = data.token;
+          state.isAuth = true;
+          state.justLoggedIn = true;
+        }
+        state.loading = false;
       })
       .addCase(updateProfile.fulfilled, (state, actions) => {
         state.user = actions?.payload?.data?.data?.user;
@@ -216,6 +251,7 @@ export const UserSlice = createSlice({
   },
 });
 
-export const { logout, clearJustLoggedIn } = UserSlice?.actions;
+export const { logout, clearJustLoggedIn, incrementProfileView, setPremiumStatus } =
+  UserSlice?.actions;
 
 export default UserSlice?.reducer;

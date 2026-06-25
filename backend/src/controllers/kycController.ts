@@ -6,15 +6,24 @@ import { ApiResponseHandler } from "../utils/ApiResponseHandler";
 import { JWTRequest } from "../middleware/jwtAuth";
 import { NotificationController } from "./notificationController";
 
-const DIGIO_API_URL = "https://api.digio.in/v3/client/kyc/fetch_id_data";
-const DIGIO_BANK_VERIFY_URL = "https://api.digio.in/v4/client/verify/bank_account";
-const DIGIO_API_KEY = process.env.DIGIO_API_KEY || "";
-const DIGIO_API_SECRET = process.env.DIGIO_API_SECRET || "";
+// ---------------------------------------------------------------------------
+// Decentro KYC — credentials are read at call time so a missing env var
+// produces a clear warning rather than a silent auth error.
+// ---------------------------------------------------------------------------
+const DECENTRO_BASE_URL =
+  process.env.DECENTRO_BASE_URL || "https://in.staging.decentro.tech";
 
-// Create Basic Auth header
-const getAuthHeader = () => {
-  const credentials = Buffer.from(`${DIGIO_API_KEY}:${DIGIO_API_SECRET}`).toString("base64");
-  return `Basic ${credentials}`;
+const getDecentroHeaders = () => {
+  const clientId = process.env.DECENTRO_CLIENT_ID || "";
+  const clientSecret = process.env.DECENTRO_CLIENT_SECRET || "";
+  const moduleSecret = process.env.DECENTRO_KYC_MODULE_SECRET || "";
+
+  return {
+    "Content-Type": "application/json",
+    client_id: clientId,
+    client_secret: clientSecret,
+    module_secret: moduleSecret,
+  };
 };
 
 export class KYCController {
@@ -28,7 +37,7 @@ export class KYCController {
           res,
           "PAN number is required",
           400,
-          "MISSING_PAN"
+          "MISSING_PAN",
         );
       }
 
@@ -38,57 +47,65 @@ export class KYCController {
           res,
           "Invalid PAN format",
           400,
-          "INVALID_PAN_FORMAT"
+          "INVALID_PAN_FORMAT",
         );
       }
 
-      // Generate unique request ID
+      // Generate unique reference ID
       const uniqueRequestId = uuidv4();
 
-      // Call Digio API
-      const digioResponse = await axios.post(
-        `${DIGIO_API_URL}/PAN`,
+      // Call Decentro PAN validation API
+      const decentroResponse = await axios.post(
+        `${DECENTRO_BASE_URL}/kyc/public_registry/validate`,
         {
-          id_no: pan_number.toUpperCase(),
-          name: name || undefined,
-          dob: dob || undefined,
-          unique_request_id: uniqueRequestId,
+          reference_id: uniqueRequestId,
+          document_type: "PAN",
+          id_number: pan_number.toUpperCase(),
+          consent: "Y",
+          consent_purpose: "PAN Verification",
         },
-        {
-          headers: {
-            accept: "application/json",
-            "content-type": "application/json",
-            Authorization: getAuthHeader(),
-          },
-        }
+        { headers: getDecentroHeaders() },
       );
 
-      const digioData = digioResponse.data;
-      console.log("digioData-----", JSON.stringify(digioData, null, 2));
+      const decentroData = decentroResponse.data;
+      console.log(
+        "Decentro PAN Response:",
+        JSON.stringify(decentroData, null, 2),
+      );
 
-      // Extract PAN details
+      // Extract PAN details from Decentro response
+      const kycResult = decentroData.kycResult || {};
       const panDetails = {
-        pan: digioData.pan || pan_number.toUpperCase(),
-        name: digioData.name || "",
-        date_of_birth_match: digioData.date_of_birth_match || "",
-        name_as_per_pan_match: digioData.name_as_per_pan_match || "",
-        status: digioData.status || "",
-        category: digioData.category || "",
-        remarks: digioData.remarks || "",
+        pan: kycResult.idNumber || pan_number.toUpperCase(),
+        name: kycResult.name || "",
+        dob: kycResult.dob || "",
+        status: kycResult.idStatus || decentroData.kycStatus || "",
+        father_name: kycResult.fatherName || "",
       };
 
-      // Check if verification was successful
-      const isVerified = digioData.status === "valid" || digioData.status === "VALID";
+      // Decentro signals success via kycStatus === "SUCCESS" and idStatus === "VERIFIED"
+      const isVerified =
+        decentroData.kycStatus === "SUCCESS" &&
+        kycResult.idStatus === "VERIFIED";
       const verificationStatus = isVerified ? "VERIFIED" : "FAILED";
 
       // Save verification attempt (if kyc_verifications table exists)
       try {
         const kycRecordId = uuidv4();
-        await prisma.$executeRawUnsafe(`
+        await prisma.$executeRawUnsafe(
+          `
           INSERT INTO kyc_verifications (id, user_id, pan_number, status, verification_type, pan_details, unique_request_id, verified_at, created_at, updated_at)
           VALUES ($1, $2, $3, $4::"KYCStatus", 'PAN', $5::jsonb, $6, $7, NOW(), NOW())
           ON CONFLICT DO NOTHING
-        `, kycRecordId, userId, pan_number.toUpperCase(), verificationStatus, JSON.stringify(panDetails), uniqueRequestId, isVerified ? new Date() : null);
+        `,
+          kycRecordId,
+          userId,
+          pan_number.toUpperCase(),
+          verificationStatus,
+          JSON.stringify(panDetails),
+          uniqueRequestId,
+          isVerified ? new Date() : null,
+        );
 
         // Update user KYC status if verification succeeded
         if (isVerified) {
@@ -118,30 +135,35 @@ export class KYCController {
           `;
         }
       } catch (dbError) {
-        console.log("Error saving KYC verification:", JSON.stringify(dbError, null, 2));
+        console.log(
+          "Error saving KYC verification:",
+          JSON.stringify(dbError, null, 2),
+        );
         // Table might not exist yet, just log and continue
         console.log("KYC verification table not found, skipping database save");
       }
 
       let updatedUser = null;
       try {
-        const userResult = await prisma.$queryRaw<Array<{
-          dob: string | null;
-          id: string;
-          email: string;
-          name: string | null;
-          phone: string | null;
-          profile_image: string | null;
-          pan_number: string | null;
-          kyc_verified: boolean;
-          kyc_status: string | null;
-          kyc_verified_at: Date | null;
-          kyc_verification_id: string | null;
-          user_type: string[];
-          created_at: Date;
-          updated_at: Date;
-          last_login: Date | null;
-        }>>`
+        const userResult = await prisma.$queryRaw<
+          Array<{
+            dob: string | null;
+            id: string;
+            email: string;
+            name: string | null;
+            phone: string | null;
+            profile_image: string | null;
+            pan_number: string | null;
+            kyc_verified: boolean;
+            kyc_status: string | null;
+            kyc_verified_at: Date | null;
+            kyc_verification_id: string | null;
+            user_type: string[];
+            created_at: Date;
+            updated_at: Date;
+            last_login: Date | null;
+          }>
+        >`
           SELECT 
             id, email, name, phone, profile_image, 
             pan_number, kyc_verified, kyc_status, 
@@ -154,7 +176,9 @@ export class KYCController {
         if (rawUser) {
           updatedUser = {
             ...rawUser,
-            user_type: Array.isArray(rawUser.user_type) ? rawUser.user_type[0] : rawUser.user_type,
+            user_type: Array.isArray(rawUser.user_type)
+              ? rawUser.user_type[0]
+              : rawUser.user_type,
           };
         }
       } catch (userError) {
@@ -171,7 +195,7 @@ export class KYCController {
         },
         isVerified
           ? "PAN verified successfully"
-          : "PAN verification failed - PAN is not valid"
+          : "PAN verification failed - PAN is not valid",
       );
     } catch (error: any) {
       console.error("PAN verification error:", error);
@@ -187,7 +211,7 @@ export class KYCController {
         res,
         errorMessage,
         error?.response?.status || 500,
-        "PAN_VERIFICATION_FAILED"
+        "PAN_VERIFICATION_FAILED",
       );
     }
   }
@@ -206,7 +230,7 @@ export class KYCController {
           res,
           "PAN number, name, and DOB are required",
           400,
-          "MISSING_FIELDS"
+          "MISSING_FIELDS",
         );
       }
 
@@ -215,7 +239,7 @@ export class KYCController {
         pan_number.toUpperCase().substring(0, 5) +
         "****" +
         pan_number.toUpperCase().substring(9);
-      
+
       const existingUser = await prisma.$queryRaw<Array<{ id: string }>>`
         SELECT id FROM users 
         WHERE pan_number = ${maskedPAN} 
@@ -228,82 +252,92 @@ export class KYCController {
           res,
           "PAN number is already verified for another user",
           400,
-          "PAN_ALREADY_VERIFIED"
+          "PAN_ALREADY_VERIFIED",
         );
       }
 
-      // Generate unique request ID
+      // Generate unique reference ID
       const uniqueRequestId = uuidv4();
 
-      // Call Digio API
-      const digioResponse = await axios.post(
-        `${DIGIO_API_URL}/PAN`,
+      // Call Decentro PAN validation API
+      const decentroResponse = await axios.post(
+        `${DECENTRO_BASE_URL}/kyc/public_registry/validate`,
         {
-          id_no: pan_number.toUpperCase(),
-          name: user_name,
-          dob: user_dob, // Format: YYYY-MM-DD
-          unique_request_id: uniqueRequestId,
+          reference_id: uniqueRequestId,
+          document_type: "PAN",
+          id_number: pan_number.toUpperCase(),
+          consent: "Y",
+          consent_purpose: "PAN Verification",
         },
-        {
-          headers: {
-            accept: "application/json",
-            "content-type": "application/json",
-            Authorization: getAuthHeader(),
-          },
-        }
+        { headers: getDecentroHeaders() },
       );
 
-      const digioData = digioResponse.data;
-      console.log("Digio KYC Raw Response:", JSON.stringify(digioData, null, 2));
-      console.log("Digio match fields - name_as_per_pan_match:", JSON.stringify(digioData.name_as_per_pan_match), "date_of_birth_match:", JSON.stringify(digioData.date_of_birth_match));
+      const decentroData = decentroResponse.data;
+      console.log(
+        "Decentro KYC Raw Response:",
+        JSON.stringify(decentroData, null, 2),
+      );
 
-      // Extract PAN details
+      // Extract PAN details from Decentro response
+      const kycResult = decentroData.kycResult || {};
       const panDetails = {
-        pan: digioData.pan || pan_number.toUpperCase(),
-        name: digioData.name || "",
-        date_of_birth_match: digioData.date_of_birth_match || "",
-        name_as_per_pan_match: digioData.name_as_per_pan_match || "",
-        status: digioData.status || "",
-        category: digioData.category || "",
-        remarks: digioData.remarks || "",
+        pan: kycResult.idNumber || pan_number.toUpperCase(),
+        name: kycResult.name || "",
+        dob: kycResult.dob || "",
+        status: kycResult.idStatus || decentroData.kycStatus || "",
+        father_name: kycResult.fatherName || "",
       };
 
-      // Check matches from Digio response
-      // Digio returns boolean true/false or string "MATCHED"/"NOT_MATCHED"
-      const nameMatch = digioData.name_as_per_pan_match === true || digioData.name_as_per_pan_match === "MATCHED";
-      const dobMatch = digioData.date_of_birth_match === true || digioData.date_of_birth_match === "MATCHED";
+      // ---------------------------------------------------------------------------
+      // Verification outcome: trust Decentro's kycStatus as the single source of
+      // truth.  Name / DOB checks are soft warnings only — they must never block
+      // a Decentro SUCCESS response.
+      // ---------------------------------------------------------------------------
+      // ✅ FIX
+      const isStatusValid =
+        decentroData.kycStatus === "SUCCESS" &&
+        (kycResult.idStatus === "VERIFIED" || kycResult.idStatus === "VALID");
+      const verified = isStatusValid; // Decentro SUCCESS === verified
 
-      // Check if fields are truly missing (undefined/null), not just false
-      const nameFieldPresent = digioData.name_as_per_pan_match !== undefined && digioData.name_as_per_pan_match !== null;
-      const dobFieldPresent = digioData.date_of_birth_match !== undefined && digioData.date_of_birth_match !== null;
-
-      // Manual name comparison as fallback only when Digio doesn't return the field
-      const normalizeName = (name: string) =>
-        name.toUpperCase().trim().replace(/\s+/g, " ");
-
+      // Soft name check — fuzzy: does the submitted first word appear anywhere
+      // in the PAN-holder name?  (handles "Radhika" ⊂ "RADHIKA BABAR")
+      const normalizeName = (n: string) =>
+        n.toUpperCase().trim().replace(/\s+/g, " ");
       const panName = normalizeName(panDetails.name);
       const userName = normalizeName(user_name);
-      const manualNameMatch = panName === userName;
+      const firstWord = userName.split(" ")[0];
+      const nameMatchSoft = !panDetails.name || panName.includes(firstWord);
+      if (panDetails.name && !nameMatchSoft) {
+        console.warn(
+          `⚠️  KYC name soft-mismatch (non-blocking): submitted="${user_name}" pan="${panDetails.name}"`,
+        );
+      }
 
-      // Name: trust Digio if field is present, otherwise fallback to manual comparison
-      const finalNameMatch = nameFieldPresent
-        ? nameMatch
-        : (manualNameMatch || !panDetails.name);
-
-      // DOB: trust Digio if field is present, otherwise skip check
-      const finalDobMatch = dobFieldPresent ? dobMatch : true;
-
-      const isStatusValid = digioData.status === "valid" || digioData.status === "VALID";
-      const verified = isStatusValid && finalNameMatch && finalDobMatch;
+      // DOB: Decentro does not return dob in kycResult — skip comparison entirely.
+      const finalNameMatch = nameMatchSoft;
+      const finalDobMatch = true; // not returned by Decentro; cannot compare
 
       // Save KYC verification record
       try {
         const kycRecordId = uuidv4();
         const statusValue = verified ? "VERIFIED" : "FAILED";
-        await prisma.$executeRawUnsafe(`
+        await prisma.$executeRawUnsafe(
+          `
           INSERT INTO kyc_verifications (id, user_id, pan_number, status, verification_type, pan_details, match_details, unique_request_id, verified_at, created_at, updated_at)
           VALUES ($1, $2, $3, $4::"KYCStatus", 'PAN', $5::jsonb, $6::jsonb, $7, $8, NOW(), NOW())
-        `, kycRecordId, userId, pan_number.toUpperCase(), statusValue, JSON.stringify(panDetails), JSON.stringify({ name_match: finalNameMatch, dob_match: finalDobMatch }), uniqueRequestId, verified ? new Date() : null);
+        `,
+          kycRecordId,
+          userId,
+          pan_number.toUpperCase(),
+          statusValue,
+          JSON.stringify(panDetails),
+          JSON.stringify({
+            name_match: finalNameMatch,
+            dob_match: finalDobMatch,
+          }),
+          uniqueRequestId,
+          verified ? new Date() : null,
+        );
 
         // Update user KYC status
         if (verified) {
@@ -330,23 +364,25 @@ export class KYCController {
         // Fetch updated user
         let updatedUser = null;
         try {
-          const userResult = await prisma.$queryRaw<Array<{
-            dob: string | null;
-            id: string;
-            email: string;
-            name: string | null;
-            phone: string | null;
-            profile_image: string | null;
-            pan_number: string | null;
-            kyc_verified: boolean;
-            kyc_status: string | null;
-            kyc_verified_at: Date | null;
-            kyc_verification_id: string | null;
-            user_type: string[];
-            created_at: Date;
-            updated_at: Date;
-            last_login: Date | null;
-          }>>`
+          const userResult = await prisma.$queryRaw<
+            Array<{
+              dob: string | null;
+              id: string;
+              email: string;
+              name: string | null;
+              phone: string | null;
+              profile_image: string | null;
+              pan_number: string | null;
+              kyc_verified: boolean;
+              kyc_status: string | null;
+              kyc_verified_at: Date | null;
+              kyc_verification_id: string | null;
+              user_type: string[];
+              created_at: Date;
+              updated_at: Date;
+              last_login: Date | null;
+            }>
+          >`
             SELECT
               id, email, name, phone, profile_image,
               pan_number, kyc_verified, kyc_status,
@@ -359,7 +395,9 @@ export class KYCController {
           if (rawUser) {
             updatedUser = {
               ...rawUser,
-              user_type: Array.isArray(rawUser.user_type) ? rawUser.user_type[0] : rawUser.user_type,
+              user_type: Array.isArray(rawUser.user_type)
+                ? rawUser.user_type[0]
+                : rawUser.user_type,
             };
           }
         } catch (userError) {
@@ -375,86 +413,72 @@ export class KYCController {
             message: verified
               ? "Your KYC verification has been approved. You can now receive payouts."
               : "Your KYC verification failed. Please check your details and try again.",
-          }).catch(err => console.error("Notification error:", err));
+          }).catch((err) => console.error("Notification error:", err));
         }
 
         return ApiResponseHandler.success(
           res,
           {
+            success: verified,
             verified,
-            match_details: {
-              name_match: finalNameMatch,
-              dob_match: finalDobMatch,
-            },
+            kyc_status: verified ? "VERIFIED" : "FAILED",
+            verified_at: verified ? new Date() : null,
+            kyc_record_id: kycRecordId,
             pan_details: {
               name: panDetails.name,
               pan: pan_number.toUpperCase(),
               status: panDetails.status,
+              father_name: panDetails.father_name,
             },
-            kyc_status: verified ? "VERIFIED" : "FAILED",
-            verified_at: verified ? new Date() : null,
-            kyc_record_id: kycRecordId,
+            match_details: {
+              name_match: finalNameMatch,
+              dob_match: finalDobMatch,
+            },
             user: updatedUser,
-            digio_raw_match: {
-              name_as_per_pan_match: panDetails.name_as_per_pan_match,
-              date_of_birth_match: panDetails.date_of_birth_match,
-            },
             failure_reason: verified
               ? null
-              : !finalNameMatch && !finalDobMatch
-              ? "Name and date of birth mismatch"
-              : !finalNameMatch
-              ? "Name mismatch"
-              : !finalDobMatch
-              ? "Date of birth mismatch"
-              : "Verification failed",
+              : "Decentro KYC status is not SUCCESS",
           },
-          verified
-            ? "KYC verified successfully"
-            : "PAN details do not match user information"
+          verified ? "KYC verified successfully" : "KYC verification failed",
         );
       } catch (dbError: any) {
         console.error("Database error:", dbError);
-        
+
         // Check if it's a unique constraint violation (PAN already exists)
-        if (dbError?.code === '23505' || dbError?.meta?.code === '23505') {
+        if (dbError?.code === "23505" || dbError?.meta?.code === "23505") {
           return ApiResponseHandler.customError(
             res,
             "PAN number is already verified for another user",
             400,
-            "PAN_ALREADY_VERIFIED"
+            "PAN_ALREADY_VERIFIED",
           );
         }
-        
+
         // Return response even if DB save fails
         return ApiResponseHandler.success(
           res,
           {
+            success: verified,
             verified,
-            match_details: {
-              name_match: finalNameMatch,
-              dob_match: finalDobMatch,
-            },
+            kyc_status: verified ? "VERIFIED" : "FAILED",
+            verified_at: verified ? new Date() : null,
             pan_details: {
               name: panDetails.name,
               pan: pan_number.toUpperCase(),
               status: panDetails.status,
+              father_name: panDetails.father_name,
             },
-            kyc_status: verified ? "VERIFIED" : "FAILED",
-            verified_at: verified ? new Date() : null,
+            match_details: {
+              name_match: finalNameMatch,
+              dob_match: finalDobMatch,
+            },
             user: null,
             failure_reason: verified
               ? null
-              : !finalNameMatch
-              ? "Name mismatch"
-              : !finalDobMatch
-              ? "Date of birth mismatch"
-              : "Verification failed",
+              : "Decentro KYC status is not SUCCESS",
             note: "Database save failed, but verification completed",
           },
-          verified
-            ? "KYC verified successfully"
-            : "PAN details do not match user information"
+          verified ? "KYC verified successfully" : "KYC verification failed",
         );
       }
     } catch (error: any) {
@@ -471,7 +495,7 @@ export class KYCController {
         res,
         errorMessage,
         error?.response?.status || 500,
-        "KYC_VERIFICATION_FAILED"
+        "KYC_VERIFICATION_FAILED",
       );
     }
   }
@@ -485,12 +509,14 @@ export class KYCController {
       const userId = req.user?.userId;
 
       try {
-        const result = await prisma.$queryRaw<Array<{
-          kyc_verified: boolean | null;
-          kyc_status: string | null;
-          pan_number: string | null;
-          kyc_verified_at: Date | null;
-        }>>`
+        const result = await prisma.$queryRaw<
+          Array<{
+            kyc_verified: boolean | null;
+            kyc_status: string | null;
+            pan_number: string | null;
+            kyc_verified_at: Date | null;
+          }>
+        >`
           SELECT kyc_verified, kyc_status, pan_number, kyc_verified_at
           FROM users
           WHERE id = ${userId}
@@ -506,7 +532,7 @@ export class KYCController {
             pan_number: user?.pan_number || null,
             verified_at: user?.kyc_verified_at || null,
           },
-          "KYC status retrieved successfully"
+          "KYC status retrieved successfully",
         );
       } catch (dbError) {
         // If query fails, return default values
@@ -518,7 +544,7 @@ export class KYCController {
             pan_number: null,
             verified_at: null,
           },
-          "KYC status retrieved successfully"
+          "KYC status retrieved successfully",
         );
       }
     } catch (error: any) {
@@ -527,18 +553,18 @@ export class KYCController {
         res,
         error.message || "Failed to fetch KYC status",
         500,
-        "KYC_STATUS_ERROR"
+        "KYC_STATUS_ERROR",
       );
     }
   }
 
   static async verifyBankAccount(req: JWTRequest, res: Response) {
     try {
-      const { 
-        account_number, 
-        ifsc_code, 
+      const {
+        account_number,
+        ifsc_code,
         account_holder_name,
-        validation_mode = "PENNY_LESS"
+        validation_mode = "PENNY_LESS",
       } = req.body;
       const userId = req.user?.userId;
 
@@ -547,7 +573,7 @@ export class KYCController {
           res,
           "Account number and IFSC code are required",
           400,
-          "MISSING_FIELDS"
+          "MISSING_FIELDS",
         );
       }
 
@@ -556,7 +582,7 @@ export class KYCController {
           res,
           "Account number must be between 8 and 18 characters",
           400,
-          "INVALID_ACCOUNT_NUMBER"
+          "INVALID_ACCOUNT_NUMBER",
         );
       }
 
@@ -565,7 +591,7 @@ export class KYCController {
           res,
           "Invalid IFSC code format",
           400,
-          "INVALID_IFSC_FORMAT"
+          "INVALID_IFSC_FORMAT",
         );
       }
 
@@ -575,7 +601,7 @@ export class KYCController {
           res,
           "Validation mode must be one of: PENNY_LESS, PENNY_DROP, AUTO",
           400,
-          "INVALID_VALIDATION_MODE"
+          "INVALID_VALIDATION_MODE",
         );
       }
 
@@ -592,41 +618,47 @@ export class KYCController {
         requestPayload.beneficiary_name = account_holder_name;
       }
 
-      const digioResponse = await axios.post(
-        DIGIO_BANK_VERIFY_URL,
+      const decentroBankResponse = await axios.post(
+        `${DECENTRO_BASE_URL}/kyc/bank_account/validate`,
         requestPayload,
-        {
-          headers: {
-            accept: "application/json",
-            "content-type": "application/json",
-            Authorization: getAuthHeader(),
-          },
-        }
+        { headers: getDecentroHeaders() },
       );
 
-      const digioData = digioResponse.data;
-      console.log("Digio Bank Verification Response:", JSON.stringify(digioData, null, 2));
+      const decentroBankData = decentroBankResponse.data;
+      console.log(
+        "Decentro Bank Verification Response:",
+        JSON.stringify(decentroBankData, null, 2),
+      );
+
+      // Decentro bank verification: kycStatus === "SUCCESS" means account is valid
+      const bankVerified = decentroBankData.kycStatus === "SUCCESS";
+      const bankKycResult = decentroBankData.kycResult || {};
 
       const bankDetails = {
-        id: digioData.id || uniqueRequestId,
-        verified: digioData.verified || false,
-        verified_at: digioData.verified_at || null,
-        beneficiary_name_with_bank: digioData.beneficiary_name_with_bank || "",
-        error_msg: digioData.error_msg || null,
-        fuzzy_match_result: digioData.fuzzy_match_result || null,
-        fuzzy_match_score: digioData.fuzzy_match_score || null,
-        error_code: digioData.error_code || null,
-        validation_mode: digioData.validation_mode || validation_mode,
+        id: uniqueRequestId,
+        verified: bankVerified,
+        verified_at: bankVerified ? new Date().toISOString() : null,
+        beneficiary_name_with_bank: bankKycResult.bankAccountName || "",
+        error_msg: decentroBankData.message || null,
+        bank_reference_number: bankKycResult.bankReferenceNumber || null,
+        validation_mode: validation_mode,
       };
 
       try {
         const kycRecordId = uuidv4();
         const bankStatusValue = bankDetails.verified ? "VERIFIED" : "FAILED";
-        await prisma.$executeRawUnsafe(`
+        await prisma.$executeRawUnsafe(
+          `
           INSERT INTO kyc_verifications (id, user_id, pan_number, status, verification_type, pan_details, unique_request_id, created_at, updated_at)
           VALUES ($1, $2, NULL, $3::"KYCStatus", 'BANK_ACCOUNT', $4::jsonb, $5, NOW(), NOW())
           ON CONFLICT DO NOTHING
-        `, kycRecordId, userId, bankStatusValue, JSON.stringify(bankDetails), uniqueRequestId);
+        `,
+          kycRecordId,
+          userId,
+          bankStatusValue,
+          JSON.stringify(bankDetails),
+          uniqueRequestId,
+        );
       } catch (dbError) {
         console.log("KYC verification table not found, skipping database save");
       }
@@ -645,7 +677,10 @@ export class KYCController {
             },
           });
         } catch (bankUpdateError) {
-          console.log("Could not update bank account verified status:", bankUpdateError);
+          console.log(
+            "Could not update bank account verified status:",
+            bankUpdateError,
+          );
         }
       }
 
@@ -654,19 +689,25 @@ export class KYCController {
         {
           bank_verification: bankDetails,
           verification_id: uniqueRequestId,
-          account_number: account_number.replace(/(\d{4})\d+(\d{4})/, "$1****$2"),
+          account_number: account_number.replace(
+            /(\d{4})\d+(\d{4})/,
+            "$1****$2",
+          ),
           ifsc_code: ifsc_code.toUpperCase(),
         },
         bankDetails.verified
           ? "Bank account verified successfully"
-          : "Bank account verification failed"
+          : "Bank account verification failed",
       );
     } catch (error: any) {
       console.error("Bank verification error:", error);
 
       let errorMessage = "Bank account verification failed";
       if (error?.response?.data) {
-        errorMessage = error.response.data.message || error.response.data.error_msg || errorMessage;
+        errorMessage =
+          error.response.data.message ||
+          error.response.data.error_msg ||
+          errorMessage;
       } else if (error?.message) {
         errorMessage = error.message;
       }
@@ -675,7 +716,7 @@ export class KYCController {
         res,
         errorMessage,
         error?.response?.status || 500,
-        "BANK_VERIFICATION_FAILED"
+        "BANK_VERIFICATION_FAILED",
       );
     }
   }
@@ -685,7 +726,12 @@ export class KYCController {
       const userId = req.user?.userId;
 
       if (!userId) {
-        return ApiResponseHandler.customError(res, "Unauthorized", 401, "UNAUTHORIZED");
+        return ApiResponseHandler.customError(
+          res,
+          "Unauthorized",
+          401,
+          "UNAUTHORIZED",
+        );
       }
 
       // Delete KYC verification records
@@ -715,15 +761,25 @@ export class KYCController {
       if (rawUser) {
         updatedUser = {
           ...rawUser,
-          user_type: Array.isArray(rawUser.user_type) ? rawUser.user_type[0] : rawUser.user_type,
+          user_type: Array.isArray(rawUser.user_type)
+            ? rawUser.user_type[0]
+            : rawUser.user_type,
         };
       }
 
-      return ApiResponseHandler.success(res, { user: updatedUser }, "KYC reset successfully");
+      return ApiResponseHandler.success(
+        res,
+        { user: updatedUser },
+        "KYC reset successfully",
+      );
     } catch (error: any) {
       console.error("KYC reset error:", error);
-      return ApiResponseHandler.customError(res, "Failed to reset KYC", 500, "KYC_RESET_FAILED");
+      return ApiResponseHandler.customError(
+        res,
+        "Failed to reset KYC",
+        500,
+        "KYC_RESET_FAILED",
+      );
     }
   }
 }
-

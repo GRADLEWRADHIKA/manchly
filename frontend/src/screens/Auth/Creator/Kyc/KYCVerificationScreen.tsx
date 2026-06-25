@@ -51,8 +51,21 @@ const KYCVerificationScreen: React.FC = () => {
     dispatch(verifyPAN(payload))
       .unwrap()
       .then((response: any) => {
-        const verified = response?.data?.verified;
-        if (verified) {
+        // The verifyPAN thunk returns `response.data` directly, so
+        // top-level keys are accessed without an extra `.data` wrapper.
+        const verified = response?.verified ?? response?.data?.verified;
+
+        // Relaxed name match: treat a case-insensitive substring as a
+        // valid match so "Radhika" passes against "RADHIKA BABAR".
+        const returnedName: string = (
+          response?.pan_details?.name ?? ''
+        ).toLowerCase();
+        const enteredName: string = (data?.full_name ?? '').toLowerCase();
+        const nameMatches =
+          !returnedName ||
+          returnedName.includes(enteredName) ||
+          enteredName.includes(returnedName);
+        if (verified && nameMatches) {
           reset();
           navigation.goBack();
           Toast.show({
@@ -62,8 +75,11 @@ const KYCVerificationScreen: React.FC = () => {
           });
         } else {
           const reason =
-            response?.data?.failure_reason ||
-            'PAN details do not match your information';
+            response?.failure_reason ??
+            response?.data?.failure_reason ??
+            (!nameMatches
+              ? 'Name does not match PAN records'
+              : 'PAN details do not match your information');
           Toast.show({
             type: 'error',
             text1: 'Verification Failed',

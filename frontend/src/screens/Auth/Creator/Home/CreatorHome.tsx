@@ -29,7 +29,7 @@ import {
   Circle,
   Star,
   HelpCircle,
-  Instagram,
+  AtSign,
 } from 'lucide-react-native';
 import Svg, { Circle as SvgCircle } from 'react-native-svg';
 import colors from '../../../../utils/colors';
@@ -250,7 +250,7 @@ const CreatorHome = () => {
               style={styles.bellBtn}
               onPress={() => Linking.openURL('https://www.instagram.com/manchly_app')}
             >
-              <Instagram size={wp(20)} color={colors.white} />
+              <AtSign size={wp(20)} color={colors.white} />
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.bellBtn}

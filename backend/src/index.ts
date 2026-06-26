@@ -28,6 +28,8 @@ import sessionsRouter from "./routes/sessions";
 import telegramRouter from "./routes/telegram";
 import aiRouter from "./routes/ai";
 import notificationsRouter from "./routes/notifications";
+import creatorProfileRouter from "./routes/creatorProfile";
+import brandMarketplaceRouter from "./routes/brandMarketplace";
 import { initTelegramBot } from "./controllers/telegramController";
 import morgan from "morgan";
 import { webinarCleanupService } from "./utils/webinarCleanup";
@@ -112,6 +114,22 @@ app.use("/sessions", sessionsRouter);
 app.use("/telegram", telegramRouter);
 app.use("/ai", aiRouter);
 app.use("/notifications", notificationsRouter);
+
+// ── CreatorCenter & BrandMarketplace ──────────────────────────────────────────
+app.use("/api/creator", creatorProfileRouter);
+app.use("/api/marketplace", brandMarketplaceRouter);
+
+// ── Global error handler ──────────────────────────────────────────────────────
+app.use((err: any, _req: any, res: any, _next: any) => {
+  if (err?.code === "P2002") {
+    return res.status(409).json({ success: false, error: "CONFLICT" });
+  }
+  if (err?.code === "P2025") {
+    return res.status(404).json({ success: false, error: "NOT_FOUND" });
+  }
+  console.error(err);
+  return res.status(500).json({ success: false, error: "INTERNAL_SERVER_ERROR" });
+});
 
 const listenPort = useHttps ? HTTPS_PORT : PORT;
 

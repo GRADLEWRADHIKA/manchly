@@ -1,17 +1,27 @@
 const colors = {
+
+  //new
+  bg: '#0F0F0F',
+  surface: '#1C1C1E',
+  inputBg: '#242426',
+  border: '#2A2A2C',
+  gold: '#F0C040',
+  goldDim: '#F0C04018',
+  textPrimary: '#FFFFFF',
+  textSecondary: '#888888',
+  textMuted: '#555558',
+  overlay: 'rgba(0,0,0,0.55)',
+
+  //old
   primary: '#000000',
   secPrimary: '#692626',
   secondary: '#F97316',
   accent: '#10B981',
-  surface: '#f8fafc',
   text: '#000000',
-  textSecondary: '#64748b',
   textTertiary: '#555555',
-  textMuted: '#888888',
   heading: '#333333',
   subtext: '#666666',
   muted: '#b2b4b7ff',
-  border: '#ccd0d6ff',
   borderLight: '#eeeeee',
   error: '#EF4444',
   success: '#10B981',
@@ -38,6 +48,6 @@ const colors = {
   faaAiBg: '#0F0F1A',
   faaAiCard: '#1A1040',
   faaAiBlue: '#60A5FA',
-};
+}
 
 export default colors;

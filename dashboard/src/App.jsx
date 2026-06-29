@@ -13,9 +13,10 @@ import SessionHubCreator from "./SessionHubCreator.jsx";
 import TelegramChannels from "./TelegramChannels.jsx";
 import ChatPanel from "./ChatPanel.jsx";
 import StudentSessionBooking from "./StudentSessionBooking.jsx";
-import AdminPanel from "./AdminPanel.jsx";
+import AdminDashboard from "./AdminDasboard.jsx";
 import GroupsPanel from "./GroupsPanel.jsx";
 import CreatorOverview from "./CreatorOverview.jsx";
+import CreatorDashboard from "./CreatorDashboard.jsx";
 import NotificationsPanel, { NotificationBell } from "./NotificationsPanel.jsx";
 import CoursePlayer from "./CoursePlayer.jsx";
 import AIAssistant from "./AIAssistant.jsx";
@@ -23,6 +24,7 @@ import HelpCenter from "./HelpCenter.jsx";
 //import CreatorEngineBrandMarketplace from "./CreatorMarketplace.jsx";
 import BrandMarketplace from "./BrandMarketplace.jsx";
 import CreatorCenter from "./CreatorCenter.jsx";
+
 
 export default function App() {
   // USER STATE — restored from localStorage
@@ -441,7 +443,7 @@ export default function App() {
       <div style={{ padding: "0 24px 24px" }}>
         {/* CREATOR OVERVIEW / HOME */}
         {activePage === "overview" && role === "CREATOR" && (
-          <CreatorOverview user={user} onNavigate={setActivePage} />
+          <CreatorDashboard user={user} onNavigate={setActivePage} />
         )}
         {activePage === "brand-marketplace" &&
           (role === "USER" || role === "ADMIN") && <BrandMarketplace />}
@@ -505,7 +507,7 @@ export default function App() {
           <StudentSessionBooking currentUser={user} />
         )}
         {/* ADMIN PANEL — ADMIN ONLY */}
-        {activePage === "admin" && role === "ADMIN" && <AdminPanel />}
+        {activePage === "admin" && role === "ADMIN" && <AdminDashboard />}
         {/* GROUPS — all roles */}
         {activePage === "groups" && <GroupsPanel currentUser={user} />}
         {/* HELP & LEGAL — all roles */}

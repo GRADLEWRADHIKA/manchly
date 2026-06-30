@@ -1,0 +1,203 @@
+import React, { useState, useMemo } from "react";
+import { Plus } from "lucide-react";
+import { T, formatINR } from "./types";
+
+function StatCard({ accent, value, label }) {
+  return (
+    <div
+      className="relative rounded-xl p-4 overflow-hidden transition-colors"
+      style={{ backgroundColor: T.card, border: `1px solid ${T.border}` }}
+      onMouseEnter={(e) => (e.currentTarget.style.borderColor = T.borderHi)}
+      onMouseLeave={(e) => (e.currentTarget.style.borderColor = T.border)}
+    >
+      <span className="absolute top-0 left-0 right-0 h-[3px]" style={{ backgroundColor: accent }} />
+      <div className="text-2xl font-bold leading-none" style={{ color: T.textPri }}>
+        {value}
+      </div>
+      <div className="text-[11px] mt-1 font-medium uppercase tracking-wide" style={{ color: T.textMut }}>
+        {label}
+      </div>
+    </div>
+  );
+}
+
+function Badge({ children, color }) {
+  return (
+    <span
+      className="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide"
+      style={{ backgroundColor: `${color}21`, color, border: `1px solid ${color}4D` }}
+    >
+      {children}
+    </span>
+  );
+}
+
+function THead({ cols }) {
+  return (
+    <thead>
+      <tr style={{ backgroundColor: T.elevated }}>
+        {cols.map((c) => (
+          <th
+            key={c}
+            className="text-left text-[10px] font-semibold uppercase tracking-wide px-[18px] py-2.5"
+            style={{ color: T.textMut, borderBottom: `1px solid ${T.border}` }}
+          >
+            {c}
+          </th>
+        ))}
+      </tr>
+    </thead>
+  );
+}
+
+function SegmentedTabs({ options, active, onChange }) {
+  return (
+    <div className="flex rounded-lg p-[3px] gap-0.5" style={{ backgroundColor: T.elevated }}>
+      {options.map((opt) => (
+        <button
+          key={opt}
+          type="button"
+          onClick={() => onChange(opt)}
+          className="px-3 py-1.5 rounded-md text-[11px] font-medium transition-colors"
+          style={{
+            backgroundColor: active === opt ? T.card : "transparent",
+            color: active === opt ? T.textPri : T.textMut,
+            boxShadow: active === opt ? "0 1px 4px rgba(0,0,0,0.3)" : "none",
+          }}
+        >
+          {opt}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+const STATUS_COLOR = { Published: T.green, Draft: T.textMut };
+
+// Mock Data
+const COURSE_STATS = [
+  { id: "total",    accent: T.blue,    value: "8",  label: "Total Courses" },
+  { id: "published",accent: T.green,   value: "6",  label: "Published" },
+  { id: "draft",    accent: T.textMut, value: "2",  label: "Draft" },
+  { id: "students", accent: T.purple,  value: "34", label: "Total Students" },
+];
+
+const COURSES = [
+  { id: "c1", title: "TypeScript for React Native Devs",     status: "Published", price: 0,   students: 12, revenue: 0,    videos: 24, created: "14 Jun", action: "Manage" },
+  { id: "c2", title: "React Native New Architecture",         status: "Published", price: 299, students: 8,  revenue: 2392, videos: 18, created: "10 Jun", action: "Manage" },
+  { id: "c3", title: "Advanced State Management",             status: "Published", price: 499, students: 6,  revenue: 2994, videos: 32, created: "5 Jun",  action: "Manage" },
+  { id: "c4", title: "React Native Animations Deep Dive",     status: "Draft",     price: 399, students: 0,  revenue: 0,    videos: 8,  created: "22 Jun", action: "Edit" },
+];
+
+const FILTERS = ["All", "Published", "Draft"];
+
+// Page
+export default function CoursePage() {
+  const [filter, setFilter] = useState("All");
+
+  const rows = useMemo(
+    () => (filter === "All" ? COURSES : COURSES.filter((c) => c.status === filter)),
+    [filter]
+  );
+
+  return (
+    <div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 mb-5">
+        {COURSE_STATS.map((s) => (
+          <StatCard key={s.id} {...s} />
+        ))}
+      </div>
+
+      <div className="rounded-xl overflow-hidden" style={{ backgroundColor: T.card, border: `1px solid ${T.border}` }}>
+        <div
+          className="flex items-center justify-between px-[18px] py-3.5 flex-wrap gap-2.5"
+          style={{ borderBottom: `1px solid ${T.border}` }}
+        >
+          <span className="text-sm font-semibold" style={{ color: T.textPri }}>
+            My Courses
+          </span>
+          <div className="flex items-center gap-2">
+            <SegmentedTabs options={FILTERS} active={filter} onChange={setFilter} />
+            <button
+              type="button"
+              className="flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-bold transition-colors"
+              style={{ backgroundColor: T.orange, color: T.bg }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = T.orangeD)}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = T.orange)}
+            >
+              <Plus size={13} />
+              New Course
+            </button>
+          </div>
+        </div>
+
+        <table className="w-full border-collapse">
+          <THead cols={["Title", "Status", "Price (₹)", "Students", "Revenue", "Videos", "Created", "Action"]} />
+          <tbody>
+            {rows.map((c) => (
+              <tr key={c.id} className="group">
+                <td
+                  className="px-[18px] py-2.5 text-xs font-semibold group-hover:bg-white/[0.02]"
+                  style={{ color: T.textPri, borderBottom: `1px solid ${T.border}` }}
+                >
+                  {c.title}
+                </td>
+                <td className="px-[18px] py-2.5 text-xs group-hover:bg-white/[0.02]" style={{ borderBottom: `1px solid ${T.border}` }}>
+                  <Badge color={STATUS_COLOR[c.status]}>{c.status}</Badge>
+                </td>
+                <td
+                  className="px-[18px] py-2.5 text-xs group-hover:bg-white/[0.02]"
+                  style={{ color: T.textSec, borderBottom: `1px solid ${T.border}` }}
+                >
+                  {formatINR(c.price)}
+                </td>
+                <td
+                  className="px-[18px] py-2.5 text-xs group-hover:bg-white/[0.02]"
+                  style={{ color: T.textSec, borderBottom: `1px solid ${T.border}` }}
+                >
+                  {c.students}
+                </td>
+                <td
+                  className="px-[18px] py-2.5 text-xs font-semibold group-hover:bg-white/[0.02]"
+                  style={{ color: c.revenue > 0 ? T.green : T.textMut, borderBottom: `1px solid ${T.border}` }}
+                >
+                  {formatINR(c.revenue)}
+                </td>
+                <td
+                  className="px-[18px] py-2.5 text-xs group-hover:bg-white/[0.02]"
+                  style={{ color: T.textSec, borderBottom: `1px solid ${T.border}` }}
+                >
+                  {c.videos}
+                </td>
+                <td
+                  className="px-[18px] py-2.5 text-xs group-hover:bg-white/[0.02]"
+                  style={{ color: T.textMut, borderBottom: `1px solid ${T.border}` }}
+                >
+                  {c.created}
+                </td>
+                <td className="px-[18px] py-2.5 text-xs group-hover:bg-white/[0.02]" style={{ borderBottom: `1px solid ${T.border}` }}>
+                  <button
+                    type="button"
+                    className="rounded-md px-2.5 py-1 text-[11px] font-semibold transition-colors"
+                    style={{ backgroundColor: T.elevated, border: `1px solid ${T.border}`, color: T.textMut }}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = T.textPri)}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = T.textMut)}
+                  >
+                    {c.action}
+                  </button>
+                </td>
+              </tr>
+            ))}
+            {rows.length === 0 && (
+              <tr>
+                <td colSpan={8} className="px-[18px] py-8 text-center text-xs" style={{ color: T.textMut }}>
+                  No courses in "{filter}".
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}

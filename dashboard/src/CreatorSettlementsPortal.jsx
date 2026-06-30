@@ -15,9 +15,6 @@ import {
   XCircle,
 } from "lucide-react";
 
-/* ═══════════════════════════════════════════════
-   DESIGN TOKENS
-═══════════════════════════════════════════════ */
 
 const T = {
   bg: "#000000",
@@ -127,31 +124,35 @@ export default function CreatorSettlementPortal() {
         earningsRes,
         bankRes,
         settlementsRes,
-      ] = await Promise.all([
-        apiCall("/settlements/wallet"),
-        apiCall(
-          "/settlements/earnings-breakdown"
-        ),
-        apiCall("/settlements/bank-account"),
-        apiCall(
-          "/settlements/my-settlements"
-        ),
-      ]);
+      ] = await Promise.allSettled([
+      apiCall("/settlements/wallet"),
+      apiCall("/settlements/earnings-breakdown"),
+      apiCall("/settlements/bank-account"),
+      apiCall("/settlements/my-settlements"),
+    ]);
 
       setWallet(
-        walletRes?.data || {
-          available_balance: 0,
-        }
+       walletRes.status === "fulfilled"
+        ? walletRes.value.data.wallet || { available_balance: 0 }
+        : { available_balance: 0 }
       );
 
       setEarnings(
-        earningsRes?.data || {}
+          earningsRes.status === "fulfilled"
+        ? earningsRes.value?.data || {}
+        : {}
       );
 
-      setBank(bankRes?.data || null);
+      setBank(
+        bankRes.status === "fulfilled"
+    ? bankRes.value.data.bankAccount || null
+    : null
+      );
 
       setSettlements(
-        settlementsRes?.data || []
+       settlementsRes.status === "fulfilled"
+    ? settlementsRes.value.data.settlements || []
+    : []
       );
     } catch (err) {
       console.error(err);

@@ -210,10 +210,10 @@ const VerifyLogin: React.FC<VerifyLoginProps> = ({
                 focusColor={colors.primary}
                 theme={{
                   containerStyle: styles.otpWrapper,
-                  pinCodeContainerStyle: [
-                    styles.otpBox,
-                    { borderColor: error ? 'red' : colors.borderColor },
-                  ],
+                  pinCodeContainerStyle: {
+                    ...styles.otpBox,
+                    borderColor: error ? 'red' : colors.borderColor,
+                  },
                   pinCodeTextStyle: styles.otpText,
                 }}
               />

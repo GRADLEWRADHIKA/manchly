@@ -2,6 +2,7 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import Toast from 'react-native-toast-message';
 import { instance } from '../utils/AxiosInstance';
 import NotificationService from '../services/NotificationService';
+import { getApiErrorMessage } from '../utils/apiError';
 
 export interface taskState {
   user: any;
@@ -18,11 +19,10 @@ export const sendOtpSms = createAsyncThunk(
       const response = await instance.post(url, requestBody);
       return response;
     } catch (error) {
-      const response = JSON.parse(error?.request?._response || '{}');
       Toast.show({
         type: 'error',
         text1: 'Error',
-        text2: response?.error?.message,
+        text2: getApiErrorMessage(error, 'Failed to send OTP'),
         position: 'bottom',
       });
       throw error;
@@ -39,12 +39,10 @@ export const sendOtpEmail = createAsyncThunk(
       const response = await instance.post(url, requestBody);
       return response;
     } catch (error) {
-      const response = JSON.parse(error?.request?._response || '{}');
-      console.log('---response---', response)
       Toast.show({
         type: 'error',
         text1: 'Error',
-        text2: response?.error?.message,
+        text2: getApiErrorMessage(error, 'Failed to send OTP'),
         position: 'bottom',
       });
       throw error;
@@ -59,11 +57,10 @@ export const verifyOtp = createAsyncThunk('verifyOtp', async (data: object) => {
     const response = await instance.post(url, requestBody);
     return response;
   } catch (error) {
-    const err = error?.request?._response;
-    const parsedError = JSON.parse(err);
     Toast.show({
       type: 'error',
-      text1: parsedError?.error?.message,
+      text1: 'Verification Failed',
+      text2: getApiErrorMessage(error, 'Invalid OTP'),
       position: 'bottom',
     });
     throw error;
@@ -95,23 +92,10 @@ export const signUp = createAsyncThunk('signUp', async (data: object) => {
 
     return response;
   } catch (error: any) {
-    let errorMessage = 'Signup failed';
-    try {
-      if (error?.request?._response) {
-        const err = JSON.parse(error.request._response);
-        errorMessage = err?.msg || err?.error?.message || errorMessage;
-      } else if (error?.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      } else if (error?.message) {
-        errorMessage = error.message;
-      }
-    } catch (parseError) {
-    }
-
     Toast.show({
       type: 'error',
       text1: 'Error',
-      text2: errorMessage,
+      text2: getApiErrorMessage(error, 'Signup failed'),
       position: 'bottom',
     });
     throw error;
@@ -125,11 +109,10 @@ export const checkAuthData = createAsyncThunk('checkAuthData', async (data: obje
     const response = await instance.post(url, requestBody);
     return response;
   } catch (error) {
-    const err = JSON.parse(error?.request?._response);
     Toast.show({
       type: 'error',
       text1: 'Error',
-      text2: err?.msg || err?.error?.message,
+      text2: getApiErrorMessage(error, 'Unable to verify account'),
       position: 'bottom',
     });
     throw error;
@@ -142,21 +125,10 @@ export const verifyPAN = createAsyncThunk('verifyPAN', async (data: object) => {
     const response = await instance.post(url, data);
     return response.data;
   } catch (error: any) {
-    let errorMessage = 'PAN verification failed';
-    try {
-      if (error?.request?._response) {
-        const err = JSON.parse(error.request._response);
-        errorMessage = err?.message || err?.error?.message || errorMessage;
-      } else if (error?.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      } else if (error?.message) {
-        errorMessage = error.message;
-      }
-    } catch (parseError) {}
     Toast.show({
       type: 'error',
       text1: 'Verification Failed',
-      text2: errorMessage,
+      text2: getApiErrorMessage(error, 'PAN verification failed'),
       position: 'bottom',
     });
     throw error;
@@ -188,6 +160,29 @@ export const UserSlice = createSlice({
     clearJustLoggedIn: state => {
       state.justLoggedIn = false;
     },
+    incrementProfileView: state => {
+      const current =
+        state.user?.profile_views_used ??
+        state.user?.profileViewsUsed ??
+        state.user?.marketplace_profile_views ??
+        0;
+
+      const nextCount = Number(current) + 1;
+
+      state.user = {
+        ...state.user,
+        profile_views_used: nextCount,
+        profileViewsUsed: nextCount,
+        marketplace_profile_views: nextCount,
+      };
+    },
+    setPremiumStatus: (state, action) => {
+      state.user = {
+        ...state.user,
+        is_premium: action.payload,
+        isPremium: action.payload,
+      };
+    },
   },
   extraReducers: builder => {
     builder
@@ -199,6 +194,18 @@ export const UserSlice = createSlice({
         state.token = actions?.payload?.data?.data?.token;
         state.loading = false;
         state.justLoggedIn = true;
+      })
+      .addCase(signUp.fulfilled, (state, actions) => {
+        const data = actions?.payload?.data?.data;
+        if (data?.user) {
+          state.user = data.user;
+        }
+        if (data?.token) {
+          state.token = data.token;
+          state.isAuth = true;
+          state.justLoggedIn = true;
+        }
+        state.loading = false;
       })
       .addCase(updateProfile.fulfilled, (state, actions) => {
         const updatedUser = actions?.payload?.data?.data?.user;
@@ -219,6 +226,7 @@ export const UserSlice = createSlice({
   },
 });
 
-export const { logout, clearJustLoggedIn } = UserSlice?.actions;
+export const { logout, clearJustLoggedIn, incrementProfileView, setPremiumStatus } =
+  UserSlice?.actions;
 
 export default UserSlice?.reducer;

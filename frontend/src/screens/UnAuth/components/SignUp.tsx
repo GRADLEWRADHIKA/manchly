@@ -15,14 +15,22 @@ import { signUp } from '../../../store/UserSlice';
 import { useDispatch } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
 import Toast from 'react-native-toast-message';
-import { MoveRight, AlertTriangle } from 'lucide-react-native';
+import { MoveRight, AlertTriangle, Check } from 'lucide-react-native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useFocusEffect } from '@react-navigation/native';
+import { Dropdown } from 'react-native-element-dropdown';
+import { navigationRef } from '../../../navigation/navigationRef';
+
+const BUSINESS_ROLE_OPTIONS = [
+  { label: 'Brand', value: 'BRAND' },
+  { label: 'Agency', value: 'AGENCY' },
+];
 
 const SignUp = ({ selectedType, setActive }) => {
   const [loading, setLoading] = useState(false);
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const [isBusinessAccount, setIsBusinessAccount] = useState(false);
 
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
 
@@ -37,6 +45,8 @@ const SignUp = ({ selectedType, setActive }) => {
       email: '',
       phone: '',
       dob: '',
+      businessRole: 'BRAND',
+      companyName: '',
     },
   });
 
@@ -45,25 +55,37 @@ const SignUp = ({ selectedType, setActive }) => {
 
   const onSubmit = data => {
     setLoading(true);
+    const effectiveRole = isBusinessAccount ? data.businessRole : selectedType;
 
     const payload = {
       name: data.name,
       email: data.email,
       phone: data.phone,
       dob: data.dob,
-      user_type: selectedType,
+      user_type: effectiveRole,
+      ...(isBusinessAccount ? { company_name: data.companyName } : {}),
     };
 
     dispatch(signUp(payload))
       .unwrap()
       .then(() => {
         reset();
-        setActive(1);
         Toast.show({
           type: 'success',
           text1: 'Account created successfully',
           position: 'bottom',
         });
+
+        if (['BRAND', 'AGENCY'].includes(effectiveRole)) {
+          setTimeout(() => {
+            navigationRef.current?.navigate('UserBottomTab', {
+              screen: 'BrandMarketplace',
+            });
+          }, 250);
+          return;
+        }
+
+        setActive(1);
       })
       .catch(err => {
         Toast.show({
@@ -214,6 +236,73 @@ const SignUp = ({ selectedType, setActive }) => {
         )}
       />
 
+      <TouchableOpacity
+        style={styles.checkboxRow}
+        activeOpacity={0.85}
+        onPress={() => setIsBusinessAccount(prev => !prev)}
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked: isBusinessAccount }}
+      >
+        <View
+          style={[
+            styles.checkbox,
+            isBusinessAccount && styles.checkboxChecked,
+          ]}
+        >
+          {isBusinessAccount ? (
+            <Check size={wp(14)} color={colors.primary} strokeWidth={3} />
+          ) : null}
+        </View>
+        <Text style={styles.checkboxLabel}>Are you a Brand or Agency?</Text>
+      </TouchableOpacity>
+
+      {isBusinessAccount ? (
+        <>
+          <Text style={styles.label}>Business Role</Text>
+          <Controller
+            control={control}
+            name="businessRole"
+            rules={{ required: 'Select Brand or Agency' }}
+            render={({ field: { onChange, value }, fieldState: { error } }) => (
+              <Dropdown
+                style={[styles.dropdown, error && styles.errorBorder]}
+                placeholderStyle={styles.dropdownPlaceholder}
+                selectedTextStyle={styles.dropdownSelected}
+                itemTextStyle={styles.dropdownItem}
+                containerStyle={styles.dropdownContainer}
+                data={BUSINESS_ROLE_OPTIONS}
+                labelField="label"
+                valueField="value"
+                value={value}
+                placeholder="Select role"
+                onChange={item => onChange(item.value)}
+              />
+            )}
+          />
+
+          <Text style={styles.label}>Company Name</Text>
+          <Controller
+            name="companyName"
+            control={control}
+            rules={{
+              validate: value =>
+                !isBusinessAccount || value?.trim()?.length > 0
+                  ? true
+                  : 'Company name is required',
+            }}
+            render={({ field: { onChange, value }, fieldState: { error } }) => (
+              <TextInput
+                placeholder="Enter company name"
+                placeholderTextColor={colors.white}
+                value={value}
+                onChangeText={onChange}
+                style={[styles.input, error && styles.errorBorder]}
+              />
+            )}
+          />
+        </>
+      ) : null}
+
       {/* Button */}
       <TouchableOpacity
         style={styles.btnHeader}
@@ -286,6 +375,71 @@ const styles = StyleSheet.create({
     marginBottom: hp(4),
     borderColor: colors.white,
     color: colors.white,
+  },
+
+  checkboxRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(12),
+    marginTop: hp(10),
+  },
+
+  checkbox: {
+    width: wp(22),
+    height: wp(22),
+    borderRadius: wp(6),
+    borderWidth: wp(1.5),
+    borderColor: colors.white,
+    backgroundColor: 'grey',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  checkboxChecked: {
+    backgroundColor: colors.white,
+    borderColor: colors.white,
+  },
+
+  checkboxLabel: {
+    flex: 1,
+    color: colors.white,
+    fontSize: fp(14),
+    fontWeight: '500',
+  },
+
+  dropdown: {
+    height: hp(44),
+    borderRadius: wp(8),
+    paddingHorizontal: wp(10),
+    backgroundColor: 'grey',
+    borderWidth: wp(1.5),
+    borderColor: colors.white,
+    marginBottom: hp(4),
+  },
+
+  dropdownContainer: {
+    backgroundColor: '#2A2A2A',
+    borderColor: colors.white,
+    borderRadius: wp(8),
+  },
+
+  dropdownPlaceholder: {
+    color: colors.white,
+    fontSize: fp(14),
+  },
+
+  dropdownSelected: {
+    color: colors.white,
+    fontSize: fp(14),
+  },
+
+  dropdownItem: {
+    color: colors.white,
+    fontSize: fp(14),
+  },
+
+  errorBorder: {
+    borderColor: colors.error,
   },
 
   btnHeader: {

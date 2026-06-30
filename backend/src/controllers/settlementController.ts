@@ -335,20 +335,21 @@ export class SettlementController {
 
       let totalUnsettledGross = 0;
       const items = [];
+      const commissionPct = SettlementService.getCommissionPercent(userId);
 
       for (const tx of unsettledCourses) {
-        const d = SettlementService.calculateDeductions(tx.course.price);
+        const d = SettlementService.calculateDeductions(tx.course.price, commissionPct);
         totalUnsettledGross += tx.course.price;
         items.push({ type: "COURSE", title: tx.course.title, ...d, completed_at: tx.completed_at });
       }
 
       for (const tx of unsettledWebinars) {
-        const d = SettlementService.calculateDeductions(tx.webinar.price);
+        const d = SettlementService.calculateDeductions(tx.webinar.price, commissionPct);
         totalUnsettledGross += tx.webinar.price;
         items.push({ type: "WEBINAR", title: tx.webinar.title, ...d, completed_at: tx.completed_at });
       }
 
-      const totalDeductions = SettlementService.calculateDeductions(totalUnsettledGross);
+      const totalDeductions = SettlementService.calculateDeductions(totalUnsettledGross, commissionPct);
 
       ApiResponseHandler.success(res, {
         unsettled_count: items.length,

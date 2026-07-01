@@ -51,12 +51,7 @@ const KYCVerificationScreen: React.FC = () => {
     dispatch(verifyPAN(payload))
       .unwrap()
       .then((response: any) => {
-        // The verifyPAN thunk returns `response.data` directly, so
-        // top-level keys are accessed without an extra `.data` wrapper.
         const verified = response?.verified ?? response?.data?.verified;
-
-        // Relaxed name match: treat a case-insensitive substring as a
-        // valid match so "Radhika" passes against "RADHIKA BABAR".
         const returnedName: string = (
           response?.pan_details?.name ?? ''
         ).toLowerCase();
@@ -123,7 +118,7 @@ const KYCVerificationScreen: React.FC = () => {
             style={styles.headerCard}
           >
             <View style={styles.shieldIconWrapper}>
-              <Shield size={wp(28)} color={colors.white} />
+              <Shield size={wp(28)} color={colors.gold} />
             </View>
             <Text style={styles.headerTitle}>Verify Your Identity</Text>
             <Text style={styles.headerSubtitle}>
@@ -160,7 +155,7 @@ const KYCVerificationScreen: React.FC = () => {
               }) => (
                 <View style={styles.fieldWrapper}>
                   <View style={styles.labelRow}>
-                    <User size={wp(14)} color={'#64748B'} />
+                    <User size={wp(14)} color={colors.textSecondary} />
                     <Text style={styles.inputLabel}>Full Name</Text>
                     <Text style={styles.labelHint}>(as per PAN card)</Text>
                   </View>
@@ -206,7 +201,7 @@ const KYCVerificationScreen: React.FC = () => {
                 return (
                   <View style={styles.fieldWrapper}>
                     <View style={styles.labelRow}>
-                      <Calendar size={wp(14)} color={'#64748B'} />
+                      <Calendar size={wp(14)} color={colors.textSecondary} />
                       <Text style={styles.inputLabel}>Date of Birth</Text>
                       <Text style={styles.labelHint}>(as per PAN card)</Text>
                     </View>
@@ -271,7 +266,7 @@ const KYCVerificationScreen: React.FC = () => {
               }) => (
                 <View style={styles.fieldWrapper}>
                   <View style={styles.labelRow}>
-                    <CreditCard size={wp(14)} color={'#64748B'} />
+                    <CreditCard size={wp(14)} color={colors.textSecondary} />
                     <Text style={styles.inputLabel}>PAN Number</Text>
                   </View>
                   <CustomTextInput
@@ -327,7 +322,7 @@ const KYCVerificationScreen: React.FC = () => {
 
           {/* Footer Note */}
           <View style={styles.footerNote}>
-            <Shield size={wp(12)} color={'#64748B'} />
+            <Shield size={wp(12)} color={colors.textSecondary} />
             <Text style={styles.footerText}>
               Your data is encrypted and securely processed. We do not store
               your PAN details beyond verification.
@@ -344,7 +339,7 @@ export default KYCVerificationScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: colors.bg,
   },
   scrollView: {
     flex: 1,
@@ -403,18 +398,18 @@ const styles = StyleSheet.create({
   },
   // Form
   formSection: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     marginHorizontal: wp(16),
     marginTop: hp(16),
     borderRadius: wp(16),
     padding: wp(20),
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
+    borderColor: colors.border,
+    //shadowColor: '#000',
+    //shadowOffset: { width//: 0, height: 2 },
+    //shadowOpacity: 0.04,
+    //shadowRadius: 8,
+    //elevation: 2,
   },
   fieldWrapper: {
     marginBottom: hp(16),
@@ -427,24 +422,25 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: fp(14),
     fontWeight: '600',
-    color: '#1A1A2E',
+    color: colors.textPrimary,
     marginLeft: wp(6),
   },
   labelHint: {
     fontSize: fp(12),
-    color: '#64748B',
+    color: colors.textSecondary,
     marginLeft: wp(4),
   },
   input: {
     borderRadius: wp(10),
     paddingHorizontal: wp(14),
     height: hp(48),
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.inputBg,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.border,
   },
   disabledInput: {
-    backgroundColor: '#F1F5F9',
+    backgroundColor: colors.inputBg,
+    opacity: 0.7,
   },
   inputError: {
     borderColor: colors.error,
@@ -458,7 +454,7 @@ const styles = StyleSheet.create({
   },
   charCount: {
     fontSize: fp(11),
-    color: '#64748B',
+    color: colors.textSecondary,
     textAlign: 'right',
     marginTop: hp(4),
   },
@@ -468,10 +464,10 @@ const styles = StyleSheet.create({
   },
   datePickerText: {
     fontSize: fp(14),
-    color: '#1A1A2E',
+    color: colors.textPrimary,
   },
   placeholderText: {
-    color: '#94A3B8',
+    color: colors.textMuted,
   },
   // Button
   buttonContainer: {
@@ -479,12 +475,12 @@ const styles = StyleSheet.create({
     marginTop: hp(20),
   },
   verifyButton: {
-    backgroundColor: colors.cAccent,
+    backgroundColor: colors.gold,
     borderRadius: wp(12),
     paddingVertical: hp(16),
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: colors.cAccent,
+    shadowColor: colors.gold,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -494,7 +490,7 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   verifyButtonText: {
-    color: colors.white,
+    color: '#000000',
     fontSize: fp(16),
     fontWeight: '700',
   },
@@ -512,7 +508,7 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: fp(11),
-    color: '#64748B',
+    color: colors.textSecondary,
     marginLeft: wp(6),
     flex: 1,
     lineHeight: fp(16),

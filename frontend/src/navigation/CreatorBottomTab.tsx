@@ -14,7 +14,7 @@ import { wp, hp, fp } from '../utils/responsive';
 import CreatorHome from '../screens/Auth/Creator/Home/CreatorHome';
 import CreatorView from '../screens/Auth/Creator/Products/Course/CreatorView';
 import CreatorSetting from '../screens/Auth/Creator/Settings/CreatorSetting';
-import CreatorWebinar from '../screens/Auth/Creator/Webinar/CreatorWebinar';
+import StatsScreen from '../screens/Auth/Creator/Stats/StatsScreen';
 import CreatorCenter from '../screens/Auth/Creator/CreatorCenter/CreatorCenter';
 
 const Tab = createBottomTabNavigator();
@@ -40,7 +40,7 @@ const tabs = [
   },
   {
     name: 'CreatorWebinar',
-    component: CreatorWebinar,
+    component: StatsScreen,
     label: 'Stats',
     Icon: BarChart2,
   },

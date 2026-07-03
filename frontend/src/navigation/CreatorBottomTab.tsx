@@ -12,11 +12,12 @@ import {
 import colors from '../utils/colors';
 import { wp, hp, fp } from '../utils/responsive';
 import CreatorHome from '../screens/Auth/Creator/Home/CreatorHome';
-import CreatorView from '../screens/Auth/Creator/Products/Course/CreatorView';
+//import CreatorView from '../screens/Auth/Creator/Products/Course/CreatorView';
 import CreatorSetting from '../screens/Auth/Creator/Settings/CreatorSetting';
 import StatsScreen from '../screens/Auth/Creator/Stats/StatsScreen';
-import CreatorCenter from '../screens/Auth/Creator/CreatorCenter/CreatorCenter';
-
+import AskManchlyAI from '../screens/Auth/Creator/Ai/CreatorAI';
+//import CreateCourse  from '../screens/Auth/Creator/Products/Course/CreateCourse';
+import ProductsHub from '../screens/Auth/Creator/ProductHub/ProductHub';
 const Tab = createBottomTabNavigator();
 
 const tabs = [
@@ -27,14 +28,14 @@ const tabs = [
     Icon: House,
   },
   {
-    name: 'ProductsScreen',
-    component: CreatorView,
+    name: 'ProductsHub',
+    component: ProductsHub,
     label: 'Products',
     Icon: BookOpen,
   },
   {
-    name: 'CreatorCenter',
-    component: CreatorCenter,
+    name: 'AskManchkyAI',
+    component: AskManchlyAI,
     label: 'AI',
     Icon: Sparkles,
   },

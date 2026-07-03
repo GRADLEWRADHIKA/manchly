@@ -1,228 +1,264 @@
-import React, {useState, memo} from 'react';
+import React, { useState, memo } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
-  TextInput,
   TouchableOpacity,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  ScrollView,
   Platform,
 } from 'react-native';
-import {useNavigation, useRoute} from '@react-navigation/native';
-import {useDispatch, useSelector} from 'react-redux';
-import {Video, Clock, IndianRupee} from 'lucide-react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { useDispatch } from 'react-redux';
+import { Coins, Gift } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 import colors from '../../../../utils/colors';
-import {wp, hp, fp} from '../../../../utils/responsive';
+import { wp, hp, fp } from '../../../../utils/responsive';
 import AppHeaderWithBack from '../../../../components/AppHeaderWithBack';
-import {createSessionProduct} from '../../../../store/SessionSlice';
-import AiButton from '../../../../components/AiButton';
-import ProductSuggestionsModal from '../../../../components/ai/ProductSuggestionsModal';
+import { createSessionProduct } from '../../../../store/SessionSlice';
+import CustomTextInput from '../../../../components/CustomInput';
+import { Dropdown } from 'react-native-element-dropdown';
 
-const CreateSessionProduct: React.FC = () => {
+const CreateSessionProduct: React.FC<{ embedded?: boolean }> = ({ embedded = false }) => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const dispatch = useDispatch<any>();
   const prefill = route.params?.prefill;
-  const {expertProfile} = useSelector((state: any) => state.sessionReducer);
 
-  const [title, setTitle] = useState(prefill?.title || '');
+  const [title, setTitle] = useState(prefill?.title || '1:1 Expert Consulting');
   const [description, setDescription] = useState(prefill?.blurb || '');
-  const [duration, setDuration] = useState(prefill?.duration_min ? String(prefill.duration_min) : '');
-  const [price, setPrice] = useState(prefill?.suggested_price_inr ? String(prefill.suggested_price_inr) : '');
-  const mode = 'video';
+  const [duration, setDuration] = useState(
+    prefill?.duration_min ? String(prefill.duration_min) : '30',
+  );
+  const [price, setPrice] = useState(
+    prefill?.suggested_price_inr ? String(prefill.suggested_price_inr) : '',
+  );
+  const [platform, setPlatform] = useState('Zoom');
+  const [availability, setAvailability] = useState(
+    'Available Mon-Fri, 9 AM - 5 PM EST. Please book at least 24 hours in advance.',
+  );
+  const [pricingModel, setPricingModel] = useState<'paid' | 'free'>(
+    prefill?.suggested_price_inr && Number(prefill.suggested_price_inr) > 0 ? 'paid' : 'free',
+  );
   const [loading, setLoading] = useState(false);
-  const [showProductSuggestions, setShowProductSuggestions] = useState(false);
 
   const handleCreate = () => {
-    if (!title.trim() || !duration || !price) {
-      Toast.show({type: 'error', text1: 'Please fill all required fields', position: 'bottom'});
+    if (!title.trim() || !duration) {
+      Toast.show({
+        type: 'error',
+        text1: 'Please fill in all details',
+        position: 'bottom',
+      });
       return;
     }
+
+    const finalPrice = pricingModel === 'free' ? 0 : parseFloat(price) || 0;
 
     setLoading(true);
     dispatch(
       createSessionProduct({
         title: title.trim(),
-        description: description.trim() || undefined,
+        description: `${description.trim()}\nPlatform: ${platform}\nAvailability: ${availability}`,
         duration: parseInt(duration),
-        price: parseFloat(price),
-        mode,
+        price: finalPrice,
+        mode: 'video',
       }),
     )
       .unwrap()
       .then(() => {
-        Toast.show({type: 'success', text1: 'Session product created!', position: 'bottom'});
+        Toast.show({ type: 'success', text1: 'Session created!', position: 'bottom' });
         navigation.goBack();
+      })
+      .catch(() => {
+        Toast.show({
+          type: 'error',
+          text1: 'Failed to create session product',
+          position: 'bottom',
+        });
       })
       .finally(() => setLoading(false));
   };
 
+  const renderDropdownItem = (item: any, selectedValue: any) => {
+    const isSelected = item.value === selectedValue;
+    return (
+      <View style={[styles.dropdownItem, isSelected && styles.dropdownItemSelected]}>
+        <Text style={[styles.dropdownItemText, isSelected && styles.dropdownItemTextSelected]}>
+          {item.label}
+        </Text>
+      </View>
+    );
+  };
+
   return (
-    <View style={styles.container}>
-      <AppHeaderWithBack title="Create Session" />
+    <View style={styles.root}>
+      {!embedded && <AppHeaderWithBack title="1:1 Session Details" />}
 
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}>
-        <AiButton
-          label="Suggest Products"
-          onPress={() => setShowProductSuggestions(true)}
-          style={{alignSelf: 'flex-start', marginBottom: hp(8)}}
-        />
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={80}
+      >
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Session Details Card */}
+          <View style={styles.formCard}>
+            <Text style={styles.cardHeaderTitle}>1:1 Session Details</Text>
+            <Text style={styles.cardHeaderSubtitle}>
+              Configure the specifics for your personalized coaching sessions.
+            </Text>
 
-        {/* Title */}
-        <Text style={styles.label}>Session Title *</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="e.g. Strategy Session, Quick Audit"
-          placeholderTextColor={'#94A3B8'}
-          value={title}
-          onChangeText={setTitle}
-        />
-
-        {/* Description */}
-        <Text style={styles.label}>Description</Text>
-        <TextInput
-          style={[styles.input, styles.textArea]}
-          placeholder="What will you cover in this session?"
-          placeholderTextColor={'#94A3B8'}
-          value={description}
-          onChangeText={setDescription}
-          multiline
-          numberOfLines={3}
-          textAlignVertical="top"
-        />
-
-        {/* Mode */}
-        <Text style={styles.label}>Call Mode</Text>
-        <View style={[styles.modeBtn, styles.modeBtnActiveGreen]}>
-          <Video size={wp(20)} color={colors.white} strokeWidth={1.8} />
-          <Text style={[styles.modeBtnText, styles.modeBtnTextActive]}>
-            Video Call
-          </Text>
-        </View>
-
-        {/* Duration */}
-        <Text style={styles.label}>Duration (minutes) *</Text>
-        <View style={styles.inputRow}>
-          <Clock size={wp(18)} color={'#94A3B8'} strokeWidth={1.5} />
-          <TextInput
-            style={styles.inputInner}
-            placeholder="e.g. 30"
-            placeholderTextColor={'#94A3B8'}
-            value={duration}
-            onChangeText={setDuration}
-            keyboardType="numeric"
-          />
-        </View>
-
-        {/* Quick Duration Chips */}
-        <View style={styles.chipRow}>
-          {[15, 30, 45, 60].map(d => (
-            <TouchableOpacity
-              key={d}
-              style={[
-                styles.chip,
-                duration === String(d) && styles.chipActive,
+            <Text style={styles.inputLabel}>SESSION DURATION</Text>
+            <Dropdown
+              style={styles.dropdown}
+              placeholderStyle={styles.placeholderText}
+              selectedTextStyle={styles.selectedText}
+              containerStyle={styles.dropdownContainer}
+              activeColor={colors.inputBg}
+              data={[
+                { label: '15 mins', value: '15' },
+                { label: '30 mins', value: '30' },
+                { label: '45 mins', value: '45' },
+                { label: '60 mins', value: '60' },
               ]}
-              onPress={() => setDuration(String(d))}>
-              <Text
-                style={[
-                  styles.chipText,
-                  duration === String(d) && styles.chipTextActive,
-                ]}>
-                {d} min
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+              labelField="label"
+              valueField="value"
+              placeholder="Select Duration"
+              value={duration}
+              onChange={item => setDuration(item.value)}
+              renderItem={item => renderDropdownItem(item, duration)}
+            />
 
-        {/* Price */}
-        <Text style={styles.label}>Price (₹) *</Text>
-        <View style={styles.inputRow}>
-          <IndianRupee size={wp(18)} color={'#94A3B8'} strokeWidth={1.5} />
-          <TextInput
-            style={styles.inputInner}
-            placeholder="e.g. 499"
-            placeholderTextColor={'#94A3B8'}
-            value={price}
-            onChangeText={setPrice}
-            keyboardType="numeric"
-          />
-        </View>
-
-        {/* Quick Price Chips */}
-        <View style={styles.chipRow}>
-          {[199, 499, 999, 1999].map(p => (
-            <TouchableOpacity
-              key={p}
-              style={[
-                styles.chip,
-                price === String(p) && styles.chipActive,
+            <Text style={styles.inputLabel}>MEETING PLATFORM</Text>
+            <Dropdown
+              style={styles.dropdown}
+              placeholderStyle={styles.placeholderText}
+              selectedTextStyle={styles.selectedText}
+              containerStyle={styles.dropdownContainer}
+              activeColor={colors.inputBg}
+              data={[
+                { label: 'Zoom', value: 'Zoom' },
+                { label: 'Google Meet', value: 'Google Meet' },
+                { label: 'Manchly Live', value: 'Manchly Live' },
               ]}
-              onPress={() => setPrice(String(p))}>
-              <Text
-                style={[
-                  styles.chipText,
-                  price === String(p) && styles.chipTextActive,
-                ]}>
-                ₹{p}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+              labelField="label"
+              valueField="value"
+              placeholder="Select Platform"
+              value={platform}
+              onChange={item => setPlatform(item.value)}
+              renderItem={item => renderDropdownItem(item, platform)}
+            />
 
-        {/* Summary */}
-        {duration && price ? (
-          <View style={styles.summaryCard}>
-            <Text style={styles.summaryTitle}>Summary</Text>
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Rate per minute</Text>
-              <Text style={styles.summaryValue}>
-                ₹{(parseFloat(price) / parseInt(duration)).toFixed(1)}/min
-              </Text>
-            </View>
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Duration</Text>
-              <Text style={styles.summaryValue}>{duration} min</Text>
-            </View>
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Total Price</Text>
-              <Text style={[styles.summaryValue, {color: colors.cAccentLight, fontWeight: '800'}]}>
-                ₹{price}
-              </Text>
-            </View>
+            <Text style={styles.inputLabel}>AVAILABILITY</Text>
+            <CustomTextInput
+              inputContainerStyle={[styles.input, styles.textArea]}
+              inputStyle={[styles.inputText, { textAlignVertical: 'top' }]}
+              placeholder="e.g. Available Mon-Fri, 9 AM - 5 PM EST. Please book at least 24 hours in advance."
+              placeholderTextColor={colors.textMuted}
+              value={availability}
+              onChange={setAvailability}
+              multiline
+              numberOfLines={3}
+            />
           </View>
-        ) : null}
 
-        {/* Create Button */}
-        <TouchableOpacity
-          style={[styles.createBtn, loading && {opacity: 0.6}]}
-          activeOpacity={0.8}
-          onPress={handleCreate}
-          disabled={loading}>
-          <Text style={styles.createBtnText}>
-            {loading ? 'Creating...' : 'Create Session Product'}
-          </Text>
-        </TouchableOpacity>
-      </ScrollView>
+          {/* Pricing Model Card */}
+          <View style={styles.formCard}>
+            <Text style={styles.cardHeaderTitle}>Pricing Model</Text>
+            <Text style={styles.pricingSubtitle}>Set the value for your knowledge.</Text>
 
-      <ProductSuggestionsModal
-        visible={showProductSuggestions}
-        onClose={() => setShowProductSuggestions(false)}
-        expertHeadline={expertProfile?.profession || ''}
-        expertBio={expertProfile?.bio}
-        category={expertProfile?.categories?.[0] || ''}
-        onSelect={(product: any) => {
-          setShowProductSuggestions(false);
-          setTitle(product.title || '');
-          setDescription(product.blurb || '');
-          setDuration(product.duration_min ? String(product.duration_min) : '');
-          setPrice(product.suggested_price_inr ? String(product.suggested_price_inr) : '');
-        }}
-      />
+            <View style={styles.pricingPillRow}>
+              <TouchableOpacity
+                style={[
+                  styles.pricingPill,
+                  pricingModel === 'paid' ? styles.pricingPillActive : styles.pricingPillInactive,
+                ]}
+                onPress={() => setPricingModel('paid')}
+                activeOpacity={0.9}
+              >
+                <Coins size={16} color={pricingModel === 'paid' ? '#000000' : colors.white} />
+                <Text
+                  style={[
+                    styles.pricingPillText,
+                    pricingModel === 'paid'
+                      ? styles.pricingPillTextActive
+                      : styles.pricingPillTextInactive,
+                  ]}
+                >
+                  Paid
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.pricingPill,
+                  pricingModel === 'free' ? styles.pricingPillActive : styles.pricingPillInactive,
+                ]}
+                onPress={() => {
+                  setPricingModel('free');
+                  setPrice('0');
+                }}
+                activeOpacity={0.9}
+              >
+                <Gift size={16} color={pricingModel === 'free' ? '#000000' : colors.white} />
+                <Text
+                  style={[
+                    styles.pricingPillText,
+                    pricingModel === 'free'
+                      ? styles.pricingPillTextActive
+                      : styles.pricingPillTextInactive,
+                  ]}
+                >
+                  Free
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {pricingModel === 'paid' && (
+              <View style={{ marginTop: hp(12) }}>
+                <Text style={styles.inputLabel}>PRICE (INR)</Text>
+                <CustomTextInput
+                  inputContainerStyle={styles.input}
+                  inputStyle={styles.inputText}
+                  keyboardType="numeric"
+                  placeholder="e.g. 1500"
+                  placeholderTextColor={colors.textMuted}
+                  value={price}
+                  onChange={setPrice}
+                />
+              </View>
+            )}
+          </View>
+        </ScrollView>
+
+        {/* Sticky Footer */}
+        <View style={styles.actions}>
+          <TouchableOpacity
+            style={styles.cancelBtn}
+            onPress={() => navigation.goBack()}
+            disabled={loading}
+          >
+            <Text style={styles.cancelText}>Save Draft</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.primaryBtn, loading && { opacity: 0.7 }]}
+            onPress={handleCreate}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator size="small" color="#000000" />
+            ) : (
+              <Text style={styles.primaryText}>Create 1:1 Session</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
     </View>
   );
 };
@@ -230,150 +266,178 @@ const CreateSessionProduct: React.FC = () => {
 export default memo(CreateSessionProduct);
 
 const styles = StyleSheet.create({
-  container: {
+  root: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: colors.bg,
   },
-  scroll: {flex: 1},
+  flex: {
+    flex: 1,
+  },
+  scroll: {
+    flex: 1,
+  },
   scrollContent: {
     paddingHorizontal: wp(16),
     paddingTop: hp(16),
     paddingBottom: hp(40),
   },
-  label: {
-    fontSize: fp(13),
-    fontWeight: '600',
-    color: '#1A1A2E',
+  formCard: {
+    backgroundColor: colors.surface,
+    borderRadius: 14,
+    padding: wp(16),
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginBottom: hp(12),
+  },
+  cardHeaderTitle: {
+    fontSize: fp(16),
+    fontWeight: '700',
+    color: colors.white,
+    marginBottom: hp(4),
+  },
+  cardHeaderSubtitle: {
+    fontSize: fp(11),
+    color: colors.textSecondary,
+    marginBottom: hp(14),
+  },
+  inputLabel: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: colors.textMuted,
+    letterSpacing: 0.6,
     marginBottom: hp(6),
-    marginTop: hp(14),
+    marginTop: hp(6),
   },
   input: {
-    backgroundColor: '#F8FAFC',
-    borderRadius: wp(12),
-    paddingHorizontal: wp(14),
-    paddingVertical: hp(12),
-    fontSize: fp(14),
-    color: '#1A1A2E',
+    borderRadius: 10,
+    paddingHorizontal: wp(12),
+    height: hp(44),
+    width: '100%',
+    backgroundColor: colors.inputBg,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.border,
+    marginBottom: hp(10),
+  },
+  inputText: {
+    color: colors.white,
+    fontSize: fp(14),
   },
   textArea: {
-    minHeight: hp(80),
-    paddingTop: hp(12),
+    height: hp(88),
   },
-  inputRow: {
-    backgroundColor: '#F8FAFC',
-    borderRadius: wp(12),
-    paddingHorizontal: wp(14),
-    paddingVertical: Platform.OS === 'ios' ? hp(12) : 0,
-    flexDirection: 'row',
-    alignItems: 'center',
+  dropdown: {
+    height: hp(44),
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.border,
+    borderRadius: 10,
+    paddingHorizontal: wp(12),
+    justifyContent: 'center',
+    backgroundColor: colors.inputBg,
+    marginBottom: hp(10),
   },
-  inputInner: {
-    flex: 1,
+  dropdownContainer: {
+    borderRadius: 10,
+    overflow: 'hidden',
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  dropdownItem: {
+    paddingHorizontal: wp(12),
+    paddingVertical: hp(10),
+    marginHorizontal: wp(4),
+    marginVertical: hp(2),
+    borderRadius: 8,
+  },
+  dropdownItemSelected: {
+    backgroundColor: colors.inputBg,
+  },
+  dropdownItemText: {
+    color: colors.textSecondary,
+    fontSize: fp(13),
+  },
+  dropdownItemTextSelected: {
+    color: colors.gold,
+    fontWeight: '600',
+  },
+  placeholderText: {
     fontSize: fp(14),
-    color: '#1A1A2E',
-    marginLeft: wp(8),
-    paddingVertical: Platform.OS === 'ios' ? 0 : hp(12),
+    color: colors.textMuted,
   },
-  modeRow: {
+  selectedText: {
+    fontSize: fp(14),
+    color: colors.white,
+  },
+  pricingSubtitle: {
+    fontSize: fp(11),
+    color: colors.textSecondary,
+    marginBottom: hp(12),
+  },
+  pricingPillRow: {
     flexDirection: 'row',
-    gap: wp(12),
+    gap: wp(10),
   },
-  modeBtn: {
+  pricingPill: {
     flex: 1,
+    height: hp(44),
+    borderRadius: 10,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: wp(8),
+  },
+  pricingPillActive: {
+    backgroundColor: colors.gold,
+  },
+  pricingPillInactive: {
+    backgroundColor: colors.inputBg,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  pricingPillText: {
+    fontSize: fp(13),
+    fontWeight: '700',
+  },
+  pricingPillTextActive: {
+    color: '#000000',
+  },
+  pricingPillTextInactive: {
+    color: colors.white,
+  },
+  actions: {
+    flexDirection: 'row',
+    gap: wp(10),
+    paddingHorizontal: wp(16),
     paddingVertical: hp(14),
-    borderRadius: wp(12),
-    backgroundColor: colors.white,
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    backgroundColor: colors.bg,
   },
-  modeBtnActive: {
-    backgroundColor: colors.cAccent,
-    borderColor: colors.cAccent,
-  },
-  modeBtnActiveGreen: {
-    backgroundColor: colors.success,
-    borderColor: colors.success,
-  },
-  modeBtnText: {
-    fontSize: fp(14),
-    fontWeight: '600',
-    color: '#1A1A2E',
-  },
-  modeBtnTextActive: {
-    color: colors.white,
-  },
-  chipRow: {
-    flexDirection: 'row',
-    gap: wp(8),
-    marginTop: hp(8),
-  },
-  chip: {
-    paddingHorizontal: wp(14),
-    paddingVertical: hp(8),
-    borderRadius: wp(10),
-    backgroundColor: colors.white,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  chipActive: {
-    backgroundColor: colors.cAccent,
-    borderColor: colors.cAccent,
-  },
-  chipText: {
-    fontSize: fp(12),
-    fontWeight: '500',
-    color: '#1A1A2E',
-  },
-  chipTextActive: {
-    color: colors.white,
-    fontWeight: '600',
-  },
-  summaryCard: {
-    backgroundColor: colors.white,
-    borderRadius: wp(14),
-    padding: wp(16),
-    marginTop: hp(20),
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  summaryTitle: {
-    fontSize: fp(14),
-    fontWeight: '700',
-    color: '#1A1A2E',
-    marginBottom: hp(10),
-  },
-  summaryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: hp(6),
-  },
-  summaryLabel: {
-    fontSize: fp(13),
-    color: '#64748B',
-  },
-  summaryValue: {
-    fontSize: fp(13),
-    fontWeight: '600',
-    color: '#1A1A2E',
-  },
-  createBtn: {
-    backgroundColor: colors.cAccent,
-    borderRadius: wp(14),
-    paddingVertical: hp(16),
+  cancelBtn: {
+    flex: 1,
+    height: hp(44),
+    borderRadius: 22,
     alignItems: 'center',
-    marginTop: hp(24),
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
   },
-  createBtnText: {
-    fontSize: fp(16),
-    fontWeight: '700',
+  cancelText: {
     color: colors.white,
+    fontWeight: '600',
+    fontSize: fp(14),
+  },
+  primaryBtn: {
+    flex: 1.5,
+    backgroundColor: colors.gold,
+    height: hp(44),
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  primaryText: {
+    color: '#000000',
+    fontWeight: '700',
+    fontSize: fp(14),
   },
 });

@@ -46,22 +46,30 @@ import Toast from 'react-native-toast-message';
 import LinearGradient from 'react-native-linear-gradient';
 import Video from 'react-native-video';
 import { getCreatorSales } from '../../../../store/PaymentSlice';
-import { fetchCourses, getCreatorCourseStats } from '../../../../store/CourseSlice';
-import { getAllWebinar, getCreatorWebinarStats } from '../../../../store/WebinarSlice';
+import {
+  fetchCourses,
+  getCreatorCourseStats,
+} from '../../../../store/CourseSlice';
+import {
+  getAllWebinar,
+  getCreatorWebinarStats,
+} from '../../../../store/WebinarSlice';
 import { instance } from '../../../../utils/AxiosInstance';
 import { wp, hp, fp } from '../../../../utils/responsive';
 import colors from '../../../../utils/colors';
+import KycCard from './KeyCard';
 
 const INTRO_VIDEO_URL =
   'https://stream.mux.com/aiFSECiPT501KG02eutUYBTKc8aPPOz27ikxTnTHaKJJ00.m3u8';
-
 
 const CreatorHome = () => {
   const navigation = useNavigation<any>();
   const dispatch = useDispatch<any>();
   const { user } = useSelector((state: any) => state.userReducer);
   const { creatorStats } = useSelector((state: any) => state.coursesReducer);
-  const { creatorWebinarStats } = useSelector((state: any) => state.webinarReducer);
+  const { creatorWebinarStats } = useSelector(
+    (state: any) => state.webinarReducer,
+  );
   const insets = useSafeAreaInsets();
   const focus = useIsFocused();
 
@@ -73,7 +81,9 @@ const CreatorHome = () => {
   const fetchWallet = async () => {
     try {
       setWalletLoading(true);
-      const walletRes = await instance.get('settlements/wallet').catch(() => null);
+      const walletRes = await instance
+        .get('settlements/wallet')
+        .catch(() => null);
       setWalletData(walletRes?.data?.data?.wallet || null);
     } catch (error) {
       console.log('Error fetching wallet:', error);
@@ -113,10 +123,14 @@ const CreatorHome = () => {
 
       {/* Top Bar Navigation */}
       <View style={[styles.topBar, { paddingTop: insets.top }]}>
-        <TouchableOpacity style={styles.iconButton} activeOpacity={0.75} onPress={() => navigation.navigate('CreatorSetting')}>
+        <TouchableOpacity
+          style={styles.iconButton}
+          activeOpacity={0.75}
+          onPress={() => navigation.navigate('CreatorSetting')}
+        >
           <Menu size={22} color={colors.textPrimary} />
         </TouchableOpacity>
-        <Text style={styles.brandTitle}>Create. Teach. Grow</Text>
+        <Text style={styles.brandTitle}>Manchly</Text>
         <TouchableOpacity
           style={styles.iconButton}
           activeOpacity={0.75}
@@ -151,8 +165,32 @@ const CreatorHome = () => {
 
         {/* Welcome Line */}
         <Text style={styles.welcomeText}>
-          Welcome back, {displayName}! Your content performance is up 12% this week.
+          Welcome back, {displayName}! Your content performance is up 12% this
+          week.
         </Text>
+
+        {/* KYC Verification Card */}
+        {!user?.kyc_verified && (
+          <View style={styles.kycCard}>
+            <View style={styles.kycIconRow}>
+              <View style={styles.kycShieldWrap}>
+                <Shield size={wp(22)} color={colors.gold} />
+              </View>
+            </View>
+            <Text style={styles.kycTitle}>Verify Your Identity</Text>
+            <Text style={styles.kycSubtitle}>
+              Complete your KYC to unlock higher withdrawal limits and premium
+              features.
+            </Text>
+            <TouchableOpacity
+              style={styles.kycButton}
+              activeOpacity={0.75}
+              onPress={() => navigation.navigate('KYCVerificationScreen')}
+            >
+              <Text style={styles.kycButtonText}>Verification Complete</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Revenue Overview Card */}
         <View style={styles.card}>
@@ -168,7 +206,10 @@ const CreatorHome = () => {
                 </View>
               </View>
             </View>
-            <TouchableOpacity style={styles.calendarButton} activeOpacity={0.75}>
+            <TouchableOpacity
+              style={styles.calendarButton}
+              activeOpacity={0.75}
+            >
               <Calendar size={18} color={colors.textSecondary} />
             </TouchableOpacity>
           </View>
@@ -184,7 +225,7 @@ const CreatorHome = () => {
               />
             </Svg>
             <View style={styles.chartXLabels}>
-              {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
+              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
                 <Text key={day} style={styles.chartLabelText}>
                   {day}
                 </Text>
@@ -199,7 +240,7 @@ const CreatorHome = () => {
             <View style={styles.launchLeft}>
               <Text style={styles.launchHeading}>Launch Your Course</Text>
               <Text style={styles.launchStatus}>
-                Complete account setup to publish content.
+                You're 75% ready to go live with "Mastering the Art".
               </Text>
               <View style={styles.progressContainer}>
                 <View style={styles.progressBarTrack}>
@@ -218,7 +259,9 @@ const CreatorHome = () => {
                   }
                 }}
               >
-                <Text style={styles.outlinedGoldButtonText}>Complete Checklist →</Text>
+                <Text style={styles.outlinedGoldButtonText}>
+                  Complete Checklist →
+                </Text>
               </TouchableOpacity>
             </View>
             <View style={styles.launchRight}>
@@ -233,7 +276,7 @@ const CreatorHome = () => {
         <View style={styles.gridContainer}>
           {[
             {
-              label: 'Go Live',
+              label: 'Webinar',
               icon: Zap,
               action: () => {
                 if (user?.kyc_verified) {
@@ -249,20 +292,9 @@ const CreatorHome = () => {
               action: () => navigation.navigate('CreatorWebinar'),
             },
             {
-              label: 'Insights',
+              label: 'Courses',
               icon: BarChart2,
               action: () => navigation.navigate('ProductsScreen'),
-            },
-            {
-              label: 'Upload',
-              icon: Upload,
-              action: () => {
-                if (user?.kyc_verified) {
-                  navigation.navigate('CreateCourse');
-                } else {
-                  navigation.navigate('KYCVerificationScreen');
-                }
-              },
             },
           ].map((item, idx) => (
             <TouchableOpacity
@@ -282,7 +314,10 @@ const CreatorHome = () => {
         {/* Top Performing Content */}
         <View style={styles.sectionHeaderRow}>
           <Text style={styles.sectionHeading}>Top Performing Content</Text>
-          <TouchableOpacity activeOpacity={0.75} onPress={() => navigation.navigate('ProductsScreen')}>
+          <TouchableOpacity
+            activeOpacity={0.75}
+            onPress={() => navigation.navigate('ProductsScreen')}
+          >
             <Text style={styles.viewAllText}>View All ›</Text>
           </TouchableOpacity>
         </View>
@@ -290,25 +325,31 @@ const CreatorHome = () => {
         <View style={styles.performingCard}>
           {[
             {
-              title: 'Equity Trading Foundations',
+              title: 'Intro To Lighting',
               category: 'Premium Course',
-              revenue: '₹4,82,000',
-              image: 'https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?auto=format&fit=crop&w=120&q=80',
+              revenue: '₹2,104',
+              image:
+                'https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?auto=format&fit=crop&w=120&q=80',
             },
             {
               title: 'Options Strategy Bootcamp',
               category: 'Live Webinar',
               revenue: '₹2,10,000',
-              image: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=120&q=80',
+              image:
+                'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=120&q=80',
             },
             {
               title: 'Passive Income Blueprints',
               category: 'Video Bundle',
               revenue: '₹95,000',
-              image: 'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?auto=format&fit=crop&w=120&q=80',
+              image:
+                'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?auto=format&fit=crop&w=120&q=80',
             },
           ].map((item, index) => (
-            <View key={index} style={[styles.contentRow, index > 0 && styles.rowDivider]}>
+            <View
+              key={index}
+              style={[styles.contentRow, index > 0 && styles.rowDivider]}
+            >
               <Image source={{ uri: item.image }} style={styles.thumbnail} />
               <View style={styles.contentMeta}>
                 <Text style={styles.contentTitle} numberOfLines={1}>
@@ -324,9 +365,9 @@ const CreatorHome = () => {
         {/* AI Content Assistant Card */}
         <View style={styles.aiCard}>
           <Text style={styles.aiLabel}>✦ AI CONTENT ASSISTANT</Text>
-          <Text style={styles.aiHeading}>Trend Alert: Algorithmic Systems</Text>
+          <Text style={styles.aiHeading}>Suggested: Host a Live Q&A</Text>
           <Text style={styles.aiDescription}>
-            AI Agent workflows are trending high in tech education. Consider scheduling a webinar to showcase how you configure dev servers.
+          Based on your recent engagement spikes on Thursday evenings, a live session could increase your retention by up to 16%. Your subscribers are asking about "Color Grading Workflow"
           </Text>
           <View style={styles.aiActionsRow}>
             <TouchableOpacity
@@ -345,7 +386,12 @@ const CreatorHome = () => {
             <TouchableOpacity
               style={styles.aiDraftButton}
               activeOpacity={0.75}
-              onPress={() => Toast.show({ type: 'success', text1: 'Saved draft to templates!' })}
+              onPress={() =>
+                Toast.show({
+                  type: 'success',
+                  text1: 'Saved draft to templates!',
+                })
+              }
             >
               <Text style={styles.aiDraftText}>Draft Post</Text>
             </TouchableOpacity>
@@ -355,8 +401,18 @@ const CreatorHome = () => {
 
       {/* Intro Video Overlay if active */}
       {showIntroVideo ? (
-        <View style={isFullScreen ? styles.fullScreenVideoContainer : styles.floatingVideoContainer}>
-          <View style={isFullScreen ? styles.expandedVideoWrap : styles.miniVideoWrap}>
+        <View
+          style={
+            isFullScreen
+              ? styles.fullScreenVideoContainer
+              : styles.floatingVideoContainer
+          }
+        >
+          <View
+            style={
+              isFullScreen ? styles.expandedVideoWrap : styles.miniVideoWrap
+            }
+          >
             <View style={styles.videoButtonsRow}>
               <TouchableOpacity
                 style={styles.videoActionButton}
@@ -437,7 +493,7 @@ const styles = StyleSheet.create({
   brandTitle: {
     fontSize: fp(18),
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: colors.gold,
     letterSpacing: -0.5,
   },
 
@@ -817,6 +873,54 @@ const styles = StyleSheet.create({
   floatingVideo: {
     width: '100%',
     height: '100%',
+  },
+  KycCard: {
+   backgroundColor: colors.surface,
+   borderRadius: 14,
+   borderWidth: 1,
+   borderColor: colors.border,
+   padding: wp(16),
+   marginBottom: hp(16),
+   alignItems: 'center',
+  },
+  kycIconRow: {
+    marginBottom: hp(18),
+  },
+  kycShiledWrap: {
+    width: wp(48),
+    height: wp(48),
+    borderRadius: 99,
+    backgroundColor: colors.goldDim,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  kycTitle: {
+    fontSize: fp(16),
+    fontWeight: '700',
+    color: colors.textPrimary,
+    marginBottom: hp(6),
+    textAlign: 'center',
+  },
+  kycSubtitle: {
+    fontSize: fp(12),
+    color: colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: fp(17),
+    marginBottom: hp(14),
+    paddingHorizontal: wp(8),
+  },
+  kycButton: {
+   width: '100%',
+   height: hp(46),
+   backgroundColor: colors.gold,
+   borderRadius: 99,
+   alignItems: 'center',
+   justifyContent: 'center',
+  },
+  kycButtonText: {
+    color: '#000000',
+    fontSize: fp(14),
+    fontWeight: '700',
   },
 });
 

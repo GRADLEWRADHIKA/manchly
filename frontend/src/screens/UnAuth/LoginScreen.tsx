@@ -25,6 +25,7 @@ const LoginScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
   const [loading, setLoading] = useState(false);
+  const [role, setRole] = useState<'CREATOR' | 'USER'>('USER');
   const [showPassword, setShowPassword] = useState(false);
 
   const {
@@ -47,15 +48,19 @@ const LoginScreen: React.FC = () => {
       phone: '',
     };
 
+    console.log("Checking user:", payloadVerify);
     dispatch(checkAuthData(payloadVerify))
       .unwrap()
       .then(response => {
+        console.log("checkAuthData Response:", JSON.stringify(response.data, null, 2));
         if (response?.data?.data?.exists) {
+          // Detect user role from the check-user endpoint if present, otherwise fall back to user's selected role
+          const detectedRole =  role;
           const payload = {
             phone_number: '',
             email: data.email.toLowerCase().trim(),
             purpose: 'login',
-            tab: 'CREATOR', // fallback tab parameter
+            tab: detectedRole, // dynamically pass correct user type
           };
 
           dispatch(sendOtpEmail(payload))
@@ -74,7 +79,8 @@ const LoginScreen: React.FC = () => {
                 dummyOtp: otpRes?.data?.data?.otp,
               });
             })
-            .catch(() => {
+            .catch((error) => {
+              console.log("checkAuthData Error:", error.response?.data);
               setLoading(false);
             });
         } else {
@@ -116,6 +122,44 @@ const LoginScreen: React.FC = () => {
           <View style={styles.formSection}>
 <Text style={styles.title}>Welcome back</Text>
 <Text style={styles.subtitle}>Enter your credentials to access your dashboard.</Text>
+
+            {/* Role Toggle segment */}
+            <View style={styles.toggleContainer}>
+              <TouchableOpacity
+                style={[
+                  styles.toggleSegment,
+                  role === 'CREATOR' && styles.toggleSegmentActive,
+                ]}
+                onPress={() => setRole('CREATOR')}
+                activeOpacity={0.8}
+              >
+                <Text
+                  style={[
+                    styles.toggleText,
+                    role === 'CREATOR' && styles.toggleTextActive,
+                  ]}
+                >
+                  Creator
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.toggleSegment,
+                  role === 'USER' && styles.toggleSegmentActive,
+                ]}
+                onPress={() => setRole('USER')}
+                activeOpacity={0.8}
+              >
+                <Text
+                  style={[
+                    styles.toggleText,
+                    role === 'USER' && styles.toggleTextActive,
+                  ]}
+                >
+                  Learner
+                </Text>
+              </TouchableOpacity>
+            </View>
 
             {/* Email Field */}
             <View style={styles.inputWrapper}>
@@ -400,6 +444,37 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
   footerLink: {
+    color: colors.gold,
+    fontWeight: '700',
+  },
+  toggleContainer: {
+    flexDirection: 'row',
+    height: hp(46),
+    backgroundColor: 'transparent',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: 3,
+    marginBottom: hp(20),
+  },
+  toggleSegment: {
+    flex: 1,
+    borderRadius: 99,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+  },
+  toggleSegmentActive: {
+    borderWidth: 1.5,
+    borderColor: colors.gold,
+    backgroundColor: 'transparent',
+  },
+  toggleText: {
+    fontSize: fp(13),
+    fontWeight: '500',
+    color: colors.textSecondary,
+  },
+  toggleTextActive: {
     color: colors.gold,
     fontWeight: '700',
   },

@@ -22,12 +22,13 @@ import {
   Store,
 } from 'lucide-react-native';
 import UserHome from '../screens/Auth/User/Home/UserHome';
-import UserSessions from '../screens/Auth/User/Sessions/UserSessions';
+//import UserSessions from '../screens/Auth/User/Sessions/UserSessions';
 import UserSetting from '../screens/Auth/User/Settings/UserSetting';
 import BrandMarketplace from '../screens/Auth/User/Marketplace/BrandMarketplace';
 import MarketplaceRouteGuard from '../components/MarketplaceRouteGuard';
 import { canAccessMarketplace } from '../utils/marketplaceUtils';
 import { useSelector } from 'react-redux';
+//import UserHome from '../screens/Auth/User/Home/UserHome';
 
 const Tab = createBottomTabNavigator();
 
@@ -49,12 +50,6 @@ const tabs = [
     component: ProductsScreen,
     label: 'Explore',
     Icon: ShoppingCart,
-  },
-  {
-    name: 'UserSessions',
-    component: UserSessions,
-    label: 'Sessions',
-    Icon: PhoneCall,
   },
   {
     name: 'PurchasesScreen',

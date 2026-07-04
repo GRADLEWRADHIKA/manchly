@@ -7,17 +7,13 @@ import {
   ActivityIndicator,
   FlatList,
   RefreshControl,
-  Animated,
-  LayoutAnimation,
   Platform,
   UIManager,
-  Linking,
 } from 'react-native';
 import {
   ShoppingBag,
-  GraduationCap,
-  Video,
-  Instagram,
+  Menu,
+  Bell,
 } from 'lucide-react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -26,7 +22,6 @@ import colors from '../../../../utils/colors';
 import { getEnrolledCourses } from '../../../../store/EnrollmentSlice';
 import { getMyTransactions } from '../../../../store/PaymentSlice';
 import PurchaseCoursCard from './component/PurchaseCoursCard';
-import PurchaseWebinarCard from './component/PurchaseWebinarCard';
 import { getEnrolledWebinar } from '../../../../store/WebinarSlice';
 import { wp, hp, fp } from '../../../../utils/responsive';
 
@@ -37,244 +32,254 @@ if (
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-const TAB_OPTIONS = [
-  { key: 'courses', label: 'Courses', Icon: GraduationCap },
-  { key: 'webinar', label: 'Webinars', Icon: Video },
+// ── Mock Data (remove once API is fully wired) ──────────────────────────────
+const MOCK_COURSES = [
+  {
+    id: 'm1',
+    archived: false,
+    progress: 32,
+    time_spent: '4h',
+    total_duration: '12h 40m',
+    course: {
+      title: 'Advanced Quantum Computing Architectures',
+      thumbnail: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=800',
+      modules: [
+        { title: 'Module 3: Qubit Entanglement', completed: true },
+        { title: 'Current Module 4/12 - Error Correction Protocols', completed: false },
+        { title: 'Module 5: Quantum Gates', completed: false },
+      ],
+    },
+  },
+  {
+    id: 'm2',
+    archived: false,
+    progress: 68,
+    time_spent: '5h',
+    total_duration: '8h 10m',
+    course: {
+      title: 'Efficient Data Structures in C++',
+      thumbnail: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800',
+      modules: [
+        { title: 'Best-Fit Binary Tree Balancing', completed: true },
+        { title: 'Heaps & Priority Queues', completed: false },
+      ],
+    },
+  },
+  {
+    id: 'm3',
+    archived: false,
+    progress: 15,
+    time_spent: '1h',
+    total_duration: '6h 30m',
+    course: {
+      title: 'Cinematic Lighting Theory',
+      thumbnail: 'https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=800',
+      modules: [
+        { title: 'Three-Point Setup', completed: false },
+        { title: 'Color Temperature Basics', completed: false },
+      ],
+    },
+  },
+  {
+    id: 'm4',
+    archived: false,
+    progress: 5,
+    time_spent: '20m',
+    total_duration: '5h 45m',
+    course: {
+      title: 'Neural Network Optimization',
+      thumbnail: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=800',
+      modules: [
+        { title: 'Gradient Descent Variants', completed: false },
+      ],
+    },
+  },
+  {
+    id: 'm5',
+    archived: true,
+    progress: 62,
+    time_spent: '5h 30m',
+    total_duration: '10h',
+    course: {
+      title: 'Legacy Data Science 1.0',
+      thumbnail: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=800',
+      modules: [],
+    },
+  },
+  {
+    id: 'm6',
+    archived: true,
+    progress: 18,
+    time_spent: '2h 15m',
+    total_duration: '12h',
+    course: {
+      title: 'Introduction to Web3',
+      thumbnail: 'https://images.unsplash.com/photo-1639762681057-408e52192e55?w=800',
+      modules: [],
+    },
+  },
+  {
+    id: 'm7',
+    archived: true,
+    progress: 91,
+    time_spent: '7h 45m',
+    total_duration: '8h 30m',
+    course: {
+      title: 'Strategic Thinking 101',
+      thumbnail: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800',
+      modules: [],
+    },
+  },
+  {
+    id: 'm8',
+    archived: false,
+    progress: 100,
+    completed_at: '2026-06-13',
+    total_duration: '12h 40m',
+    course: {
+      title: 'Mastering Lit Motion Design',
+      thumbnail: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800',
+      modules: [],
+    },
+  },
+  {
+    id: 'm9',
+    archived: false,
+    progress: 100,
+    completed_at: '2026-05-28',
+    total_duration: '24h 10m',
+    course: {
+      title: 'Advanced Python Analytics',
+      thumbnail: 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?w=800',
+      modules: [],
+    },
+  },
+  {
+    id: 'm10',
+    archived: false,
+    progress: 100,
+    completed_at: '2026-05-10',
+    total_duration: '9h 30m',
+    course: {
+      title: 'Generative AI for Product Teams',
+      thumbnail: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=800',
+      modules: [],
+    },
+  },
+  {
+    id: 'm11',
+    archived: false,
+    progress: 100,
+    completed_at: '2026-04-22',
+    total_duration: '13h 20m',
+    course: {
+      title: 'Cognitive Design Principles',
+      thumbnail: 'https://images.unsplash.com/photo-1558655146-d09347e92766?w=800',
+      modules: [],
+    },
+  },
 ];
 
-/* ──────────────── Segmented Tab Control ──────────────── */
-const SegmentedTabs = ({
-  active,
-  setActive,
-  courseCount,
-  webinarCount,
-}: any) => {
-  const slideAnim = useRef(new Animated.Value(active === 'courses' ? 0 : 1))
-    .current;
+const TAB_OPTIONS = [
+  { key: 'ongoing', label: 'Ongoing' },
+  { key: 'archived', label: 'Archived' },
+  { key: 'completed', label: 'Completed' },
+];
 
-  useEffect(() => {
-    Animated.spring(slideAnim, {
-      toValue: active === 'courses' ? 0 : 1,
-      useNativeDriver: true,
-      friction: 10,
-      tension: 140,
-    }).start();
-  }, [active]);
-
-  const counts: Record<string, number> = {
-    courses: courseCount,
-    webinar: webinarCount,
-  };
-
-  const translateX = slideAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, wp(164)],
-  });
-
-  return (
-    <View style={tabStyles.wrapper}>
-      <View style={tabStyles.track}>
-        {/* Sliding indicator */}
-        <Animated.View
-          style={[tabStyles.indicator, { transform: [{ translateX }] }]}
-        />
-
-        {TAB_OPTIONS.map(tab => {
-          const isActive = active === tab.key;
-          const count = counts[tab.key] || 0;
-          return (
-            <Pressable
-              key={tab.key}
-              onPress={() => {
-                LayoutAnimation.configureNext(
-                  LayoutAnimation.Presets.easeInEaseOut,
-                );
-                setActive(tab.key);
-              }}
-              style={tabStyles.tab}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: isActive }}
-            >
-              <tab.Icon
-                size={wp(16)}
-                color={isActive ? colors.white : colors.textSecondary}
-                strokeWidth={isActive ? 2.2 : 1.6}
-              />
-              <Text
-                style={[tabStyles.label, isActive && tabStyles.labelActive]}
-              >
-                {tab.label}
-              </Text>
-              {count > 0 && (
-                <View
-                  style={[
-                    tabStyles.countBadge,
-                    isActive && tabStyles.countBadgeActive,
-                  ]}
-                >
-                  <Text
-                    style={[
-                      tabStyles.countText,
-                      isActive && tabStyles.countTextActive,
-                    ]}
-                  >
-                    {count}
-                  </Text>
-                </View>
-              )}
-            </Pressable>
-          );
-        })}
-      </View>
+const SegmentedTabs = ({ active, setActive }: any) => (
+  <View style={tabStyles.wrapper}>
+    <View style={tabStyles.track}>
+      {TAB_OPTIONS.map(tab => {
+        const isActive = active === tab.key;
+        return (
+          <Pressable
+            key={tab.key}
+            onPress={() => setActive(tab.key)}
+            style={tabStyles.tab}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: isActive }}
+          >
+            <Text style={[tabStyles.label, isActive && tabStyles.labelActive]}>
+              {tab.label}
+            </Text>
+            {isActive && <View style={tabStyles.underline} />}
+          </Pressable>
+        );
+      })}
     </View>
-  );
-};
+  </View>
+);
 
 const tabStyles = StyleSheet.create({
   wrapper: {
     paddingHorizontal: wp(16),
-    paddingTop: hp(14),
-    paddingBottom: hp(6),
+    paddingTop: hp(12),
+    paddingBottom: 0,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
   track: {
     flexDirection: 'row',
-    backgroundColor: '#f1f5f9',
-    borderRadius: wp(14),
-    padding: wp(4),
-    position: 'relative',
-  },
-  indicator: {
-    position: 'absolute',
-    top: wp(4),
-    left: wp(4),
-    width: wp(160),
-    height: '100%',
-    backgroundColor: colors.secPrimary,
-    borderRadius: wp(11),
-    shadowColor: colors.secPrimary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 6,
-    elevation: 4,
   },
   tab: {
     flex: 1,
-    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
     paddingVertical: hp(10),
-    gap: wp(6),
-    zIndex: 1,
+    position: 'relative',
   },
   label: {
-    fontSize: fp(13.5),
+    fontSize: fp(14),
     fontWeight: '500',
     color: colors.textSecondary,
   },
   labelActive: {
-    color: colors.white,
-    fontWeight: '600',
-  },
-  countBadge: {
-    backgroundColor: '#e2e8f0',
-    borderRadius: wp(10),
-    paddingHorizontal: wp(7),
-    paddingVertical: hp(1),
-    minWidth: wp(22),
-    alignItems: 'center',
-  },
-  countBadgeActive: {
-    backgroundColor: 'rgba(255,255,255,0.25)',
-  },
-  countText: {
-    fontSize: fp(11),
+    color: colors.textPrimary,
     fontWeight: '700',
-    color: colors.textSecondary,
   },
-  countTextActive: {
-    color: colors.white,
+  underline: {
+    position: 'absolute',
+    bottom: 0,
+    left: '20%',
+    right: '20%',
+    height: 2,
+    backgroundColor: colors.gold,
+    borderRadius: 2,
   },
 });
 
-/* ──────────────── Empty State ──────────────── */
 const EmptyState = ({ type }: { type: string }) => (
   <View style={styles.emptyContainer}>
     <View style={styles.emptyIconCircle}>
-      <ShoppingBag size={wp(32)} color={colors.secPrimary} strokeWidth={1.5} />
+      <ShoppingBag size={wp(32)} color={colors.gold} strokeWidth={1.5} />
     </View>
     <Text style={styles.emptyText}>
-      No {type === 'courses' ? 'Courses' : 'Webinars'} Yet
+      {type === 'ongoing'
+        ? 'No Active Courses'
+        : type === 'archived'
+        ? 'No Archived Courses'
+        : 'No Completed Courses'}
     </Text>
     <Text style={styles.emptySubtext}>
-      {type === 'courses'
-        ? 'Courses you purchase will appear here'
-        : 'Webinars you enroll in will appear here'}
+      {type === 'ongoing'
+        ? 'Your enrolled courses will appear here'
+        : type === 'archived'
+        ? 'Archived courses will appear here'
+        : 'Completed courses will appear here'}
     </Text>
   </View>
 );
 
-/* ──────────────── Skeleton Loader ──────────────── */
-const SkeletonCard = () => {
-  const pulse = useRef(new Animated.Value(0.4)).current;
-
-  useEffect(() => {
-    const animation = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulse, {
-          toValue: 1,
-          duration: 800,
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulse, {
-          toValue: 0.4,
-          duration: 800,
-          useNativeDriver: true,
-        }),
-      ]),
-    );
-    animation.start();
-    return () => animation.stop();
-  }, []);
-
-  return (
-    <Animated.View style={[styles.skeletonCard, { opacity: pulse }]}>
-      <View style={styles.skeletonRow}>
-        <View style={styles.skeletonIcon} />
-        <View style={styles.skeletonTextGroup}>
-          <View style={styles.skeletonTitle} />
-          <View style={styles.skeletonSubtitle} />
-        </View>
-      </View>
-      <View style={styles.skeletonBar} />
-      <View style={styles.skeletonFooter}>
-        <View style={styles.skeletonBadge} />
-        <View style={styles.skeletonButton} />
-      </View>
-    </Animated.View>
-  );
-};
-
-const SkeletonList = () => (
-  <View style={styles.listContent}>
-    {[1, 2, 3].map(i => (
-      <SkeletonCard key={i} />
-    ))}
-  </View>
-);
-
-/* ──────────────── Main Screen ──────────────── */
 const PurchasesScreen = () => {
   const dispatch = useDispatch<any>();
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
+
   const { list: enrolledCourses, loading: enrolledLoading } = useSelector(
     (state: any) => state.enrollmentsReducer,
   );
   const { transactions } = useSelector((state: any) => state.paymentReducer);
 
-  const [active, setActive] = useState('courses');
-
-  // Pagination states
+  const [active, setActive] = useState('ongoing');
   const [webinarData, setWebinarData] = useState([]);
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
@@ -284,9 +289,6 @@ const PurchasesScreen = () => {
 
   useEffect(() => {
     loadData();
-  }, []);
-
-  useEffect(() => {
     funEnrolledAllWebinar(1, limit, true);
   }, []);
 
@@ -295,44 +297,26 @@ const PurchasesScreen = () => {
     dataLimit: number,
     isRefresh = false,
   ) => {
-    const payload = {
-      page: pageNum,
-      limit: dataLimit,
-      upcoming: true,
-    };
-
+    const payload = { page: pageNum, limit: dataLimit, upcoming: true };
     dispatch(getEnrolledWebinar(payload))
       .unwrap()
-      .then(response => {
+      .then((response: any) => {
         const newData = response?.data?.data?.enrollments || [];
-
         if (isRefresh) {
           setWebinarData(newData);
         } else {
           setWebinarData(prev => [...prev, ...newData]);
         }
-
         setHasMore(newData.length >= dataLimit);
         setLoadingMore(false);
         setRefreshing(false);
       });
   };
 
-  const loadMoreWebinars = () => {
-    if (loadingMore || !hasMore) return;
-
-    setLoadingMore(true);
-    const nextPage = page + 1;
-    setPage(nextPage);
-    funEnrolledAllWebinar(nextPage, limit);
+  const loadData = () => {
+    dispatch(getEnrolledCourses({}));
+    dispatch(getMyTransactions({ status: 'SUCCESS' }));
   };
-
-  const onRefreshWebinars = useCallback(() => {
-    setRefreshing(true);
-    setPage(1);
-    setHasMore(true);
-    funEnrolledAllWebinar(1, limit, true);
-  }, []);
 
   const onRefreshCourses = useCallback(() => {
     setRefreshing(true);
@@ -340,114 +324,106 @@ const PurchasesScreen = () => {
     setTimeout(() => setRefreshing(false), 800);
   }, []);
 
-  const loadData = () => {
-    dispatch(getEnrolledCourses({}));
-    dispatch(getMyTransactions({ status: 'SUCCESS' }));
-  };
+  // Fall back to mock data when the store has nothing yet.
+  // TODO: remove the MOCK_COURSES fallback once the API reliably returns data.
+  const courseData = enrolledCourses?.enrollments?.length
+    ? enrolledCourses.enrollments
+    : MOCK_COURSES;
 
-  const courseData = enrolledCourses?.enrollments || [];
-  const showCourseLoading = enrolledLoading && courseData.length === 0;
+  const ongoingCourses = courseData.filter((item: any) => !item.archived && item.progress < 100);
+  const archivedCourses = courseData.filter((item: any) => item.archived);
+  const completedCourses = courseData.filter((item: any) => item.progress === 100);
 
   return (
     <View style={styles.container}>
-      <View
-        style={[
-          styles.headerBar,
-          { paddingTop: insets.top + hp(4) },
-        ]}>
-        <Text style={styles.headerTitle}>My Purchases</Text>
-        <Pressable
-          style={({ pressed }) => [
-            styles.instaBtn,
-            pressed && styles.instaBtnPressed,
-          ]}
-          onPress={() => Linking.openURL('https://www.instagram.com/manchly_app')}
-          accessibilityLabel="Instagram">
-          <Instagram size={wp(18)} color={colors.white} strokeWidth={2} />
-        </Pressable>
+      <View style={[styles.headerBar, { paddingTop: insets.top }]}>
+        <Menu size={22} color={colors.textPrimary} />
+        <Text style={styles.headerTitle}>Manchly</Text>
+        <Bell size={22} color={colors.textPrimary} />
       </View>
-      <View style={styles.headerEdge} />
 
-      {/* Segmented Tabs */}
-      <SegmentedTabs
-        active={active}
-        setActive={setActive}
-        courseCount={courseData.length}
-        webinarCount={webinarData.length}
-      />
+      <SegmentedTabs active={active} setActive={setActive} />
 
-      {/* Content */}
-      {active === 'courses' ? (
-        showCourseLoading ? (
-          <SkeletonList />
-        ) : (
-          <FlatList
-            data={courseData}
-            keyExtractor={item =>
-              item?.id?.toString() || Math.random().toString()
-            }
-            contentContainerStyle={[
-              styles.listContent,
-              courseData.length === 0 && styles.listContentEmpty,
-            ]}
-            showsVerticalScrollIndicator={false}
-            ListEmptyComponent={<EmptyState type="courses" />}
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={onRefreshCourses}
-                colors={[colors.secPrimary]}
-                tintColor={colors.secPrimary}
-              />
-            }
-            renderItem={({ item }) => {
-              const transaction = transactions?.find(
-                (t: any) =>
-                  t?.course_id === item?.id || t?.enrollment_id === item?.id,
-              );
-
-              return (
-                <PurchaseCoursCard
-                  item={item}
-                  transaction={transaction}
-                  onPress={() =>
-                    navigation.navigate('UserVideoList', { item })
-                  }
-                />
-              );
-            }}
-          />
-        )
-      ) : (
+      {active === 'ongoing' && (
         <FlatList
-          data={webinarData}
-          keyExtractor={item => item?.id?.toString()}
-          contentContainerStyle={[
-            styles.listContent,
-            webinarData.length === 0 && styles.listContentEmpty,
-          ]}
+          data={ongoingCourses}
+          keyExtractor={item => item?.id?.toString() || Math.random().toString()}
+          contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
-          ListEmptyComponent={<EmptyState type="webinar" />}
-          renderItem={({ item }) => <PurchaseWebinarCard item={item} />}
-          onEndReached={loadMoreWebinars}
-          onEndReachedThreshold={0.4}
-          ListFooterComponent={
-            loadingMore ? (
-              <ActivityIndicator
-                size="small"
-                color={colors.secPrimary}
-                style={styles.footerLoader}
-              />
-            ) : null
-          }
+          ListEmptyComponent={<EmptyState type="ongoing" />}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
-              onRefresh={onRefreshWebinars}
-              colors={[colors.secPrimary]}
-              tintColor={colors.secPrimary}
+              onRefresh={onRefreshCourses}
+              colors={[colors.gold]}
+              tintColor={colors.gold}
             />
           }
+          renderItem={({ item, index }) => {
+            const transaction = transactions?.find(
+              (t: any) =>
+                t?.course_id === item?.id || t?.enrollment_id === item?.id,
+            );
+            return (
+              <PurchaseCoursCard
+                item={item}
+                transaction={transaction}
+                variant="ongoing"
+                isFeatured={index === 0}
+                onPress={() => navigation.navigate('UserVideoList', { item })}
+              />
+            );
+          }}
+        />
+      )}
+
+      {active === 'archived' && (
+        <FlatList
+          data={archivedCourses}
+          keyExtractor={item => item?.id?.toString() || Math.random().toString()}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={<EmptyState type="archived" />}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefreshCourses}
+              colors={[colors.gold]}
+              tintColor={colors.gold}
+            />
+          }
+          renderItem={({ item }) => (
+            <PurchaseCoursCard
+              item={item}
+              variant="archived"
+              onPress={() => navigation.navigate('UserVideoList', { item })}
+            />
+          )}
+        />
+      )}
+
+      {active === 'completed' && (
+        <FlatList
+          data={completedCourses}
+          keyExtractor={item => item?.id?.toString() || Math.random().toString()}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={<EmptyState type="completed" />}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefreshCourses}
+              colors={[colors.gold]}
+              tintColor={colors.gold}
+            />
+          }
+          renderItem={({ item }) => (
+            <PurchaseCoursCard
+              item={item}
+              variant="completed"
+              onPress={() => navigation.navigate('UserVideoList', { item })}
+            />
+          )}
         />
       )}
     </View>
@@ -457,84 +433,49 @@ const PurchasesScreen = () => {
 export default PurchasesScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.surface },
-
+  container: {
+    flex: 1,
+    backgroundColor: colors.bg,
+  },
   headerBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: wp(20),
-    paddingBottom: hp(10),
-    backgroundColor: colors.secPrimary,
-    zIndex: 10,
+    paddingHorizontal: wp(16),
+    paddingBottom: hp(12),
+    backgroundColor: colors.bg,
   },
   headerTitle: {
-    color: colors.white,
-    fontSize: fp(20),
+    color: colors.gold,
+    fontSize: fp(18),
     fontWeight: '700',
-    letterSpacing: 0.3,
   },
-  headerEdge: {
-    backgroundColor: colors.secPrimary,
-    height: hp(16),
-    borderBottomLeftRadius: wp(18),
-    borderBottomRightRadius: wp(18),
-    zIndex: 10,
-  },
-  instaBtn: {
-    width: wp(40),
-    height: wp(40),
-    borderRadius: wp(14),
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
-  },
-  instaBtnPressed: {
-    backgroundColor: 'rgba(255,255,255,0.25)',
-    transform: [{ scale: 0.93 }],
-  },
-
   listContent: {
     padding: wp(16),
     paddingBottom: hp(120),
   },
-  listContentEmpty: {
-    flexGrow: 1,
-  },
-
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
-  footerLoader: {
-    paddingVertical: hp(20),
-  },
-
   emptyContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: wp(40),
+    paddingTop: hp(80),
   },
   emptyIconCircle: {
     width: wp(72),
     height: wp(72),
     borderRadius: wp(36),
-    backgroundColor: '#1E3A5F0A',
+    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: hp(16),
     borderWidth: 1,
-    borderColor: '#1E3A5F15',
+    borderColor: colors.border,
   },
   emptyText: {
     fontSize: fp(17),
     fontWeight: '600',
-    color: colors.text,
+    color: colors.textPrimary,
     textAlign: 'center',
   },
   emptySubtext: {
@@ -543,65 +484,5 @@ const styles = StyleSheet.create({
     marginTop: hp(6),
     textAlign: 'center',
     lineHeight: fp(19),
-  },
-
-  // Skeleton styles
-  skeletonCard: {
-    backgroundColor: colors.white,
-    borderRadius: wp(14),
-    padding: wp(16),
-    marginBottom: hp(12),
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#e8ecf0',
-  },
-  skeletonRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: hp(14),
-  },
-  skeletonIcon: {
-    width: wp(40),
-    height: wp(40),
-    borderRadius: wp(12),
-    backgroundColor: '#f1f5f9',
-  },
-  skeletonTextGroup: {
-    flex: 1,
-    marginLeft: wp(12),
-    gap: hp(6),
-  },
-  skeletonTitle: {
-    height: hp(14),
-    width: '75%',
-    borderRadius: wp(6),
-    backgroundColor: '#f1f5f9',
-  },
-  skeletonSubtitle: {
-    height: hp(10),
-    width: '50%',
-    borderRadius: wp(4),
-    backgroundColor: '#f1f5f9',
-  },
-  skeletonBar: {
-    height: hp(6),
-    borderRadius: wp(3),
-    backgroundColor: '#f1f5f9',
-    marginBottom: hp(14),
-  },
-  skeletonFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  skeletonBadge: {
-    width: wp(80),
-    height: hp(24),
-    borderRadius: wp(6),
-    backgroundColor: '#f1f5f9',
-  },
-  skeletonButton: {
-    width: wp(70),
-    height: hp(24),
-    borderRadius: wp(6),
-    backgroundColor: '#f1f5f9',
   },
 });

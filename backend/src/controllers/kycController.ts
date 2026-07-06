@@ -6,10 +6,6 @@ import { ApiResponseHandler } from "../utils/ApiResponseHandler";
 import { JWTRequest } from "../middleware/jwtAuth";
 import { NotificationController } from "./notificationController";
 
-// ---------------------------------------------------------------------------
-// Decentro KYC — credentials are read at call time so a missing env var
-// produces a clear warning rather than a silent auth error.
-// ---------------------------------------------------------------------------
 const DECENTRO_BASE_URL =
   process.env.DECENTRO_BASE_URL || "https://in.staging.decentro.tech";
 
@@ -216,10 +212,6 @@ export class KYCController {
     }
   }
 
-  /**
-   * Verify KYC - Match PAN with User Details
-   * POST /kyc/verify
-   */
   static async verifyKYC(req: JWTRequest, res: Response) {
     try {
       const { pan_number, user_name, user_dob } = req.body;
@@ -288,12 +280,7 @@ export class KYCController {
         father_name: kycResult.fatherName || "",
       };
 
-      // ---------------------------------------------------------------------------
-      // Verification outcome: trust Decentro's kycStatus as the single source of
-      // truth.  Name / DOB checks are soft warnings only — they must never block
-      // a Decentro SUCCESS response.
-      // ---------------------------------------------------------------------------
-      // ✅ FIX
+      //  FIX
       const isStatusValid =
         decentroData.kycStatus === "SUCCESS" &&
         (kycResult.idStatus === "VERIFIED" || kycResult.idStatus === "VALID");

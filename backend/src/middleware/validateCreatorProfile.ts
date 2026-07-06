@@ -25,10 +25,10 @@ const validateCreatorProfile = (
 
   // instagram
   if (
-    typeof body.instagram !== "string" ||
-    body.instagram.includes("@") ||
-    body.instagram.includes(" ") ||
-    body.instagram.toLowerCase().includes("http")
+    typeof body.instagram !== "string" 
+    //body.instagram.includes("@") ||
+    //body.instagram.includes(" ") ||
+    //body.instagram.toLowerCase().includes("http")
   ) {
     fields.instagram = "Must be a bare handle — no @, spaces, or URL prefix";
   }

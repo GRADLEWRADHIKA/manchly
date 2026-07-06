@@ -11,6 +11,7 @@ model users {
   email                     String                        @unique
   name                      String?
   phone                     String?                       @unique
+  password                  String?                       // bcrypt hash; null for pre-migration accounts
   created_at                DateTime                      @default(now())
   updated_at                DateTime                      @updatedAt
   last_login                DateTime?
@@ -35,6 +36,7 @@ model users {
   conversation_participants conversation_participants[]
   courses                   courses[]
   bank_account              creator_bank_accounts?
+  creatorProfile            creator_profiles?
   enrollments               enrollments[]
   group_members             group_members[]
   created_groups            groups[]
@@ -42,12 +44,11 @@ model users {
   marketplaceCreatorProfile marketplace_creator_profiles?
   marketplaceCreatorViews   marketplace_profile_views[]   @relation("MarketplaceCreatorViews")
   marketplaceProfileViews   marketplace_profile_views[]   @relation("MarketplaceProfileViews")
-  creatorProfile            creator_profiles?
-  brandProfileViews         profile_views[]               @relation("BrandProfileViews")
-  sessionExpert             session_experts?
   messages                  messages[]
   notifications             notifications[]
   premiumSubscriptions      premium_subscriptions[]
+  brandProfileViews         profile_views[]               @relation("BrandProfileViews")
+  sessionExpert             session_experts?
   settlements               settlements[]
   transactions              transactions[]
   webinar_enrollments       webinar_enrollments[]
@@ -582,7 +583,7 @@ model creator_profiles {
   metaPermissions Json?           @map("meta_permissions")
   isPublished     Boolean         @default(false) @map("is_published")
   created_at      DateTime        @default(now()) @map("created_at")
-  updated_at      DateTime        @updatedAt @map("updated_at")
+  updated_at      DateTime        @default(now()) @updatedAt @map("updated_at")
   user            users           @relation(fields: [userId], references: [id], onDelete: Cascade)
   profileViews    profile_views[]
 

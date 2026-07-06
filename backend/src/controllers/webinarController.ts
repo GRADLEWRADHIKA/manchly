@@ -1,7 +1,10 @@
 import { Request, Response } from "express";
 import prisma from "../prismaClient";
 import { ApiResponseHandler } from "../utils/ApiResponseHandler";
-import ZoomMeetingManager from "../utils/zoomManager";
+import ZoomMeetingManager, {
+  createZoomMeetingManager,
+  getZoomConfigurationStatus,
+} from "../utils/zoomManager";
 import { isCreator, isUser } from "../utils/userTypeHelper";
 import { SettlementService } from "../services/settlementService";
 import { notificationService } from "../services/NotificationService";
@@ -12,13 +15,26 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const zoomManager = new ZoomMeetingManager({
-  apiKey: process.env.ZOOM_API_KEY || '',
-  apiSecret: process.env.ZOOM_API_SECRET || '',
-  accountId: process.env.ZOOM_ACCOUNT_ID,
-  oauthClientId: process.env.ZOOM_OAUTH_CLIENT_ID,
-  oauthClientSecret: process.env.ZOOM_OAUTH_CLIENT_SECRET
-});
+const zoomManager = createZoomMeetingManager();
+
+function ensureZoomConfigured(res: Response): boolean {
+  const status = getZoomConfigurationStatus();
+  if (status.isConfigured) {
+    return true;
+  }
+
+  console.error(
+    `[Zoom] Webinar publish blocked — missing configuration: ${status.missing.join(", ")}`
+  );
+  ApiResponseHandler.customError(
+    res,
+    `Zoom is not configured. Missing: ${status.missing.join(", ")}. ${"Set ZOOM_ACCOUNT_ID, ZOOM_CLIENT_ID, and ZOOM_CLIENT_SECRET in your environment."}`,
+    503,
+    "ZOOM_NOT_CONFIGURED",
+    { missing: status.missing }
+  );
+  return false;
+}
 
 /** Validates time string in "HH:MM" or "HH:MM:SS" format (e.g. "15:00", "09:30"). Returns trimmed string or null if invalid. */
 function parseTimeString(value: unknown): string | null {
@@ -126,6 +142,10 @@ export class WebinarController {
       // Create Zoom meeting if status is PUBLISHED
       let zoomMeetingData: any = {};
       if (status === "PUBLISHED") {
+        if (!ensureZoomConfigured(res)) {
+          return;
+        }
+
         try {
           const meeting = await zoomManager.createMeeting('me', {
             topic: title,
@@ -498,6 +518,10 @@ export class WebinarController {
 
         // Create Zoom meeting if not exists
         if (!existingWebinar.zoom_meeting_id) {
+          if (!ensureZoomConfigured(res)) {
+            return;
+          }
+
           try {
             const meeting = await zoomManager.createMeeting('me', {
               topic: title || existingWebinar.title,

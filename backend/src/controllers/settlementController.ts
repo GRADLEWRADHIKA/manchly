@@ -5,9 +5,6 @@ import { isCreator, isAdmin } from "../utils/userTypeHelper";
 import { SettlementService } from "../services/settlementService";
 
 export class SettlementController {
-  /**
-   * Creator: Add/update bank account details
-   */
   static async addBankAccount(req: any, res: Response) {
     const userId = req.user.userId;
     const { account_number, ifsc_code, beneficiary_name, bank_name, account_type } = req.body;
@@ -42,7 +39,6 @@ export class SettlementController {
           bank_name: bank_name || null,
           account_type: account_type || "savings",
           is_verified: false,
-          // Reset Cashfree beneficiary ID since account details changed
           cashfree_beneficiary_id: null,
         },
         create: {
@@ -62,9 +58,6 @@ export class SettlementController {
     }
   }
 
-  /**
-   * Creator: Get bank account details
-   */
   static async getBankAccount(req: any, res: Response) {
     const userId = req.user.userId;
 
@@ -89,10 +82,11 @@ export class SettlementController {
     }
   }
 
-  /**
-   * Creator: Get wallet overview with available balance
-   */
   static async getWallet(req: any, res: Response) {
+    console.log("===== GET WALLET =====");
+    console.log("req.user:", req.user);
+    console.log("req.user.userId:", req.user?.userId);
+    console.log("req.user.id:", req.user?.id);
     const userId = req.user.userId;
     const { page = 1, limit = 20 } = req.query;
 
@@ -160,9 +154,6 @@ export class SettlementController {
     }
   }
 
-  /**
-   * Creator: Request withdrawal — instant payout to bank account
-   */
   static async requestWithdrawal(req: any, res: Response) {
     const userId = req.user.userId;
     const { amount } = req.body; // optional — if not provided, withdraw all

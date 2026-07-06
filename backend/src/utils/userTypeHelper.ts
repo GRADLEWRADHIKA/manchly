@@ -24,6 +24,13 @@ export function isCreator(userTypes: UserType | UserType[] | null | undefined): 
 }
 
 /**
+ * Helper function to check if a user can browse the creator marketplace
+ */
+export function canAccessCreatorMarketplace(userTypes: UserType | UserType[] | null | undefined): boolean {
+  return hasUserType(userTypes, UserType.BRAND) || hasUserType(userTypes, UserType.AGENCY);
+}
+
+/**
  * Helper function to check if a user is a regular user
  */
 export function isUser(userTypes: UserType | UserType[] | null | undefined): boolean {

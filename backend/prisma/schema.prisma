@@ -8,19 +8,20 @@ datasource db {
 }
 
 model users {
-  email                     String                      @unique
+  email                     String                        @unique
   name                      String?
-  phone                     String?                     @unique
-  created_at                DateTime                    @default(now())
-  updated_at                DateTime                    @updatedAt
+  phone                     String?                       @unique
+  password                  String?                       // bcrypt hash; null for pre-migration accounts
+  created_at                DateTime                      @default(now())
+  updated_at                DateTime                      @updatedAt
   last_login                DateTime?
-  id                        String                      @id @default(uuid())
+  id                        String                        @id @default(uuid())
   profile_image             String?
-  user_type                 UserType[]                  @default([USER])
-  dob                       String?                     @db.VarChar(10)
-  pan_number                String?                     @db.VarChar(20)
-  kyc_verified              Boolean                     @default(false)
-  kyc_status                String?                     @db.VarChar(20)
+  user_type                 UserType[]                    @default([USER])
+  dob                       String?                       @db.VarChar(10)
+  pan_number                String?                       @db.VarChar(20)
+  kyc_verified              Boolean                       @default(false)
+  kyc_status                String?                       @db.VarChar(20)
   kyc_verified_at           DateTime?
   kyc_verification_id       String?
   fcm_token                 String?
@@ -28,20 +29,31 @@ model users {
   linkedin_link             String?
   youtube_link              String?
   facebook_link             String?
+  companyName               String?                       @map("company_name")
+  isPremium                 Boolean                       @default(false) @map("is_premium")
+  freeViewsCount            Int                           @default(0) @map("free_views_count")
+  premiumExpiresAt          DateTime?                     @map("premium_expires_at")
   conversation_participants conversation_participants[]
   courses                   courses[]
   bank_account              creator_bank_accounts?
+  creatorProfile            creator_profiles?
   enrollments               enrollments[]
   group_members             group_members[]
   created_groups            groups[]
   kyc_verifications         kyc_verifications[]
+  marketplaceCreatorProfile marketplace_creator_profiles?
+  marketplaceCreatorViews   marketplace_profile_views[]   @relation("MarketplaceCreatorViews")
+  marketplaceProfileViews   marketplace_profile_views[]   @relation("MarketplaceProfileViews")
   messages                  messages[]
+  notifications             notifications[]
+  premiumSubscriptions      premium_subscriptions[]
+  brandProfileViews         profile_views[]               @relation("BrandProfileViews")
+  sessionExpert             session_experts?
   settlements               settlements[]
   transactions              transactions[]
   webinar_enrollments       webinar_enrollments[]
   webinar_transactions      webinar_transactions[]
   webinars                  webinars[]
-  notifications             notifications[]
 
   @@map("users")
 }
@@ -480,6 +492,7 @@ model session_experts {
   review_count   Int      @default(0)
   created_at     DateTime @default(now())
   updated_at     DateTime @updatedAt
+  user           users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@index([is_active, is_available], map: "session_experts_active_avail_idx")
   @@map("session_experts")
@@ -516,10 +529,173 @@ model expert_availability {
   @@map("expert_availability")
 }
 
+model notifications {
+  id         String           @id @default(uuid())
+  user_id    String
+  type       NotificationType
+  title      String
+  message    String
+  is_read    Boolean          @default(false)
+  data       Json?
+  created_at DateTime         @default(now())
+  updated_at DateTime         @updatedAt
+  user       users            @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([user_id, is_read])
+  @@index([created_at])
+  @@map("notifications")
+}
+
+model marketplace_profile_views {
+  id         String   @id @default(uuid())
+  user_id    String   @map("user_id")
+  creator_id String   @map("creator_id")
+  viewed_at  DateTime @default(now()) @map("viewed_at")
+  creator    users    @relation("MarketplaceCreatorViews", fields: [creator_id], references: [id], onDelete: Cascade)
+  viewer     users    @relation("MarketplaceProfileViews", fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, creator_id])
+  @@index([user_id])
+  @@index([creator_id])
+  @@map("marketplace_profile_views")
+}
+
+model creator_profiles {
+  id              String          @id @default(uuid())
+  userId          String          @unique @map("user_id")
+  name            String
+  bio             String          @default("")
+  niche           Niche
+  city            String          @default("")
+  phone           String          @default("")
+  instagram       String          @default("")
+  sebiRegistered  Boolean         @default(false) @map("sebi_registered")
+  followers       String          @default("")
+  engagementRate  String          @default("") @map("engagement_rate")
+  avgViews        String          @default("") @map("avg_views")
+  linkEducation   String          @default("") @map("link_education")
+  linkCollabs     String          @default("") @map("link_collabs")
+  linkConsulting  String          @default("") @map("link_consulting")
+  linkUgc         String          @default("") @map("link_ugc")
+  audience        Json            @default("[]")
+  packages        Json            @default("[]")
+  metaPermissions Json?           @map("meta_permissions")
+  isPublished     Boolean         @default(false) @map("is_published")
+  created_at      DateTime        @default(now()) @map("created_at")
+  updated_at      DateTime        @default(now()) @updatedAt @map("updated_at")
+  user            users           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profileViews    profile_views[]
+
+  @@index([niche])
+  @@index([city])
+  @@index([isPublished])
+  @@map("creator_profiles")
+}
+
+model profile_views {
+  id               String           @id @default(uuid())
+  brandUserId      String           @map("brand_user_id")
+  creatorProfileId String           @map("creator_profile_id")
+  viewedAt         DateTime         @default(now()) @map("viewed_at")
+  brandUser        users            @relation("BrandProfileViews", fields: [brandUserId], references: [id], onDelete: Cascade)
+  creatorProfile   creator_profiles @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([brandUserId, creatorProfileId])
+  @@index([brandUserId])
+  @@index([creatorProfileId])
+  @@map("profile_views")
+}
+
+model marketplace_creator_profiles {
+  id               String   @id @default(uuid())
+  user_id          String   @unique @map("user_id")
+  niche            String
+  city             String?
+  bio              String?
+  instagram_handle String?  @map("instagram_handle")
+  sebi_registered  Boolean  @default(false) @map("sebi_registered")
+  followers_count  Int      @default(0) @map("followers_count")
+  engagement_rate  String?  @map("engagement_rate")
+  views_display    String?  @map("views_display")
+  audience         Json     @default("[]")
+  packages         Json     @default("[]")
+  is_listed        Boolean  @default(true) @map("is_listed")
+  created_at       DateTime @default(now()) @map("created_at")
+  updated_at       DateTime @default(now()) @updatedAt @map("updated_at")
+  user             users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([niche])
+  @@index([city])
+  @@index([is_listed])
+  @@map("marketplace_creator_profiles")
+}
+
+model premium_subscriptions {
+  id                String                    @id @default(uuid())
+  user_id           String                    @map("user_id")
+  plan              String                    @default("premium")
+  status            PremiumSubscriptionStatus @default(PENDING)
+  amount            Float
+  currency          String                    @default("INR")
+  cashfree_order_id String?                   @unique @map("cashfree_order_id")
+  cf_payment_id     String?                   @unique @map("cf_payment_id")
+  expires_at        DateTime?                 @map("expires_at")
+  created_at        DateTime                  @default(now()) @map("created_at")
+  updated_at        DateTime                  @default(now()) @updatedAt @map("updated_at")
+  user              users                     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([status])
+  @@map("premium_subscriptions")
+}
+
+model telegram_channels {
+  id                  String                   @id @default(uuid())
+  channel_id          String                   @unique
+  channel_title       String
+  creator_telegram_id String
+  creator_username    String?
+  price_inr           Float
+  description         String?
+  status              String                   @default("ACTIVE")
+  created_at          DateTime                 @default(now())
+  updated_at          DateTime                 @updatedAt
+  subscriptions       telegram_subscriptions[]
+
+  @@index([creator_telegram_id])
+  @@index([status])
+  @@map("telegram_channels")
+}
+
+model telegram_subscriptions {
+  id                String            @id @default(uuid())
+  channel_id        String
+  buyer_telegram_id String
+  buyer_username    String?
+  invite_link       String?
+  amount_inr        Float
+  payment_method    String            @default("MOCK")
+  payment_reference String?
+  status            String            @default("ACTIVE")
+  expires_at        DateTime?
+  created_at        DateTime          @default(now())
+  updated_at        DateTime          @updatedAt
+  channel           telegram_channels @relation(fields: [channel_id], references: [id], onDelete: Cascade)
+
+  @@index([channel_id])
+  @@index([buyer_telegram_id])
+  @@index([status])
+  @@map("telegram_subscriptions")
+}
+
 enum UserType {
   USER
   CREATOR
   ADMIN
+  STUDENT
+  BRAND
+  AGENCY
 }
 
 enum CourseStatus {
@@ -614,24 +790,6 @@ enum SessionMode {
   VIDEO
 }
 
-model notifications {
-  id         String           @id @default(uuid())
-  user_id    String
-  type       NotificationType
-  title      String
-  message    String
-  is_read    Boolean          @default(false)
-  data       Json?
-  created_at DateTime         @default(now())
-  updated_at DateTime         @updatedAt
-  user       users            @relation(fields: [user_id], references: [id], onDelete: Cascade)
-
-  @@index([user_id])
-  @@index([user_id, is_read])
-  @@index([created_at])
-  @@map("notifications")
-}
-
 enum NotificationType {
   SALE
   SESSION
@@ -641,41 +799,17 @@ enum NotificationType {
   SYSTEM
 }
 
-model telegram_channels {
-  id                  String                    @id @default(uuid())
-  channel_id          String                    @unique
-  channel_title       String
-  creator_telegram_id String
-  creator_username    String?
-  price_inr           Float
-  description         String?
-  status              String                    @default("ACTIVE")
-  created_at          DateTime                  @default(now())
-  updated_at          DateTime                  @updatedAt
-  subscriptions       telegram_subscriptions[]
-
-  @@index([creator_telegram_id])
-  @@index([status])
-  @@map("telegram_channels")
+enum PremiumSubscriptionStatus {
+  PENDING
+  ACTIVE
+  EXPIRED
+  FAILED
 }
 
-model telegram_subscriptions {
-  id                 String            @id @default(uuid())
-  channel_id         String
-  buyer_telegram_id  String
-  buyer_username     String?
-  invite_link        String?
-  amount_inr         Float
-  payment_method     String            @default("MOCK")
-  payment_reference  String?
-  status             String            @default("ACTIVE")
-  expires_at         DateTime?
-  created_at         DateTime          @default(now())
-  updated_at         DateTime          @updatedAt
-  channel            telegram_channels @relation(fields: [channel_id], references: [id], onDelete: Cascade)
-
-  @@index([channel_id])
-  @@index([buyer_telegram_id])
-  @@index([status])
-  @@map("telegram_subscriptions")
+enum Niche {
+  Finance
+  AI
+  Beauty
+  Fitness
+  SaaS
 }

@@ -79,15 +79,21 @@ class OTPManager {
 
     // Initialize Email Transporter
     if (emailConfig && this.defaultConfig.emailEnabled) {
-      this.emailTransporter = nodemailer.createTransport({
-        host: emailConfig.host,
-        port: emailConfig.port,
-        secure: emailConfig.secure,
-        auth: {
-          user: emailConfig.auth.user,
-          pass: emailConfig.auth.pass,
-        },
-      });
+      if (!emailConfig.auth.user || !emailConfig.auth.pass) {
+        console.warn(
+          '⚠️  Email credentials not set (EMAIL_USER / EMAIL_PASSWORD) — email sending disabled'
+        );
+      } else {
+        this.emailTransporter = nodemailer.createTransport({
+          host: emailConfig.host,
+          port: emailConfig.port,
+          secure: emailConfig.secure,
+          auth: {
+            user: emailConfig.auth.user,
+            pass: emailConfig.auth.pass,
+          },
+        });
+      }
     }
 
     // Initialize AWS SNS Client
@@ -332,7 +338,11 @@ class OTPManager {
    */
   private async sendEmailOTP(email: string, otp: string): Promise<void> {
     if (!this.emailTransporter) {
-      throw new Error('Email transporter not configured');
+      console.warn(
+        `⚠️  Email transporter not configured — skipping OTP email to ${email}. ` +
+        'Set EMAIL_USER and EMAIL_PASSWORD in your environment.'
+      );
+      return;
     }
 
     console.log("email",email);

@@ -55,10 +55,13 @@ const SignUpScreen: React.FC = () => {
     const payload = {
       name: data.name,
       email: data.email.toLowerCase().trim(),
+      password: data.password,
       phone: data.phone,
       dob: '2000-01-01', // default DOB required by backend
       user_type: role,
     };
+
+    console.log(payload)
 
     dispatch(signUp(payload))
       .unwrap()
@@ -70,10 +73,12 @@ const SignUpScreen: React.FC = () => {
           position: 'bottom',
         });
         setLoading(false);
+        
         navigation.navigate('LoginScreen');
       })
       .catch(err => {
         setLoading(false);
+        console.log(err);
         Toast.show({
           type: 'error',
           text1: err?.message || 'Registration failed',
@@ -81,6 +86,7 @@ const SignUpScreen: React.FC = () => {
         });
       });
   };
+
 
   return (
     <SafeAreaView style={styles.container}>
@@ -348,7 +354,6 @@ const SignUpScreen: React.FC = () => {
                 <Text style={styles.errorText}>{errors.phone.message}</Text>
               )}
             </View>
-
             {/* Continue CTA */}
             <TouchableOpacity
               style={[
@@ -605,3 +610,4 @@ const styles = StyleSheet.create({
     lineHeight: fp(20),
   },
 });
+console.log()

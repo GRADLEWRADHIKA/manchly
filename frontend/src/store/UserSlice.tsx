@@ -89,13 +89,32 @@ export const signUp = createAsyncThunk('signUp', async (data: object) => {
     const url = 'auth/signup';
     const requestBody = data;
     const response = await instance.post(url, requestBody);
+    console.log('-----RESPOSE----', response);
 
     return response;
   } catch (error: any) {
+    console.log('------ERROR-----', JSON.parse(error));
     Toast.show({
       type: 'error',
       text1: 'Error',
       text2: getApiErrorMessage(error, 'Signup failed'),
+      position: 'bottom',
+    });
+    throw error;
+  }
+});
+
+export const login = createAsyncThunk('login', async (data: object) => {
+  try {
+    const url = 'auth/login';
+    const requestBody = data;
+    const response = await instance.post(url, requestBody);
+    return response;
+  } catch (error: any) {
+    Toast.show({
+      type: 'error',
+      text1: 'Login Failed',
+      text2: getApiErrorMessage(error, 'Invalid credentials'),
       position: 'bottom',
     });
     throw error;
@@ -194,6 +213,24 @@ export const UserSlice = createSlice({
         state.token = actions?.payload?.data?.data?.token;
         state.loading = false;
         state.justLoggedIn = true;
+      })
+      .addCase(login.pending, state => {
+        state.loading = true;
+      })
+      .addCase(login.fulfilled, (state, actions) => {
+        const data = actions?.payload?.data?.data;
+        if (data?.user) {
+          state.user = data.user;
+        }
+        if (data?.token) {
+          state.token = data.token;
+          state.isAuth = true;
+          state.justLoggedIn = true;
+        }
+        state.loading = false;
+      })
+      .addCase(login.rejected, state => {
+        state.loading = false;
       })
       .addCase(signUp.fulfilled, (state, actions) => {
         const data = actions?.payload?.data?.data;

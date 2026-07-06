@@ -67,8 +67,55 @@ const WebinarDetails = () => {
   const platformFee = (price * 2) / 100;
   const total = price + gst + platformFee;
 
+  const [timeLeft, setTimeLeft] = useState<string>('');
+
+  useEffect(() => {
+    if (!data?.scheduled_at) return;
+
+    const targetDate = new Date(data.scheduled_at).getTime();
+
+    const updateTimer = () => {
+      const now = new Date().getTime();
+      const difference = targetDate - now;
+
+      if (difference <= 0) {
+        setTimeLeft('Started');
+        return;
+      }
+
+      const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+      let timeString = '';
+      if (days > 0) timeString += `${days}d `;
+      if (hours > 0 || days > 0) timeString += `${hours}h `;
+      timeString += `${minutes}m ${seconds}s`;
+
+      setTimeLeft(timeString);
+    };
+
+    updateTimer();
+    const intervalId = setInterval(updateTimer, 1000);
+
+    return () => clearInterval(intervalId);
+  }, [data?.scheduled_at]);
+
   // Store the pending order ID in a ref so the Cashfree callback can access it
   const pendingOrderRef = useRef<string | null>(null);
+
+  const pollPaymentVerify = async (orderId: string, retries = 5, delay = 2000) => {
+    for (let i = 0; i < retries; i++) {
+      try {
+        const res = await dispatch(createWebinarVerify({ order_id: orderId })).unwrap();
+        return res;
+      } catch (err) {
+        if (i === retries - 1) throw err;
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+  };
 
   // Register Cashfree callbacks once, clean up on unmount
   useEffect(() => {
@@ -85,7 +132,7 @@ const WebinarDetails = () => {
         });
 
         try {
-          await dispatch(createWebinarVerify({ order_id: orderId })).unwrap();
+          await pollPaymentVerify(orderId);
 
           NotificationService.displayNotification(
             'Webinar Booked Successfully',
@@ -232,6 +279,13 @@ const WebinarDetails = () => {
           </Text>
         </View>
 
+        {timeLeft ? (
+          <View style={styles.countdownContainer}>
+            <Clock size={wp(18)} color={colors.gold} />
+            <Text style={styles.countdownText}>Starts in: {timeLeft}</Text>
+          </View>
+        ) : null}
+
         <View style={styles.row}>
           <Calendar size={wp(18)} color={colors.textSecondary} />
           <Text style={styles.detailText}>
@@ -357,6 +411,24 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  countdownContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.goldDim,
+    paddingVertical: hp(8),
+    borderRadius: wp(8),
+    marginHorizontal: wp(15),
+    paddingHorizontal: wp(12),
+    marginTop: hp(10),
+    borderWidth: 1,
+    borderColor: colors.gold,
+    gap: wp(6),
+  },
+  countdownText: {
+    color: colors.gold,
+    fontSize: fp(14),
+    fontWeight: '700',
   },
 
   thumbnailWrapper: {

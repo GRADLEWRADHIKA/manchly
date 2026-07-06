@@ -31,7 +31,7 @@ import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
 import AppHeaderWithBack from '../../../../components/AppHeaderWithBack';
 import { instance } from '../../../../utils/AxiosInstance';
-import { getExpertDetail, bookSession, verifySessionPayment } from '../../../../store/SessionSlice';
+import { getExpertDetail, bookSession, verifySessionPayment, getExpertAvailability } from '../../../../store/SessionSlice';
 import SocketService from '../../../../services/SocketService';
 import BookingConfirmModal from './BookingConfirmModal';
 
@@ -53,6 +53,18 @@ const ExpertDetail: React.FC = () => {
   } | null>(null);
   const [bookedSlots, setBookedSlots] = useState<Set<string>>(new Set());
   const pendingOrderRef = useRef<string | null>(null);
+  const [availability, setAvailability] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!expert?.id) return;
+    dispatch(getExpertAvailability(expert.id))
+      .unwrap()
+      .then((res: any) => {
+        const slots = res?.data || res || [];
+        setAvailability(slots);
+      })
+      .catch(() => {});
+  }, [expert?.id]);
 
   const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const MONTH_NAMES = [
@@ -88,15 +100,49 @@ const ExpertDetail: React.FC = () => {
   }, []);
 
   const timeSlots = useMemo(() => {
-    const slots: { label: string; hour: number; minute: number }[] = [];
-    for (let h = 10; h < 18; h++) {
-      const displayH = h > 12 ? h - 12 : h;
-      const ampm = h >= 12 ? 'PM' : 'AM';
-      slots.push({ label: `${displayH}:00 ${ampm}`, hour: h, minute: 0 });
-      slots.push({ label: `${displayH}:30 ${ampm}`, hour: h, minute: 30 });
+    const selectedDayOfWeek = next7Days[selectedDate]?.date.getDay();
+    const dailySlots = availability.filter((slot: any) => Number(slot.day_of_week) === selectedDayOfWeek);
+
+    if (dailySlots.length === 0) {
+      // Fallback default slots
+      const slots: { label: string; hour: number; minute: number }[] = [];
+      for (let h = 10; h < 18; h++) {
+        const displayH = h > 12 ? h - 12 : h;
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        slots.push({ label: `${displayH}:00 ${ampm}`, hour: h, minute: 0 });
+        slots.push({ label: `${displayH}:30 ${ampm}`, hour: h, minute: 30 });
+      }
+      return slots;
     }
-    return slots;
-  }, []);
+
+    const generatedSlots: { label: string; hour: number; minute: number }[] = [];
+    dailySlots.forEach((slot: any) => {
+      if (!slot.start || !slot.end) return;
+      const [startH, startM] = slot.start.split(':').map(Number);
+      const [endH, endM] = slot.end.split(':').map(Number);
+
+      let currentH = startH;
+      let currentM = startM;
+
+      while (currentH < endH || (currentH === endH && currentM < endM)) {
+        const displayH = currentH > 12 ? currentH - 12 : currentH === 0 ? 12 : currentH;
+        const ampm = currentH >= 12 ? 'PM' : 'AM';
+        generatedSlots.push({
+          label: `${displayH}:${currentM === 0 ? '00' : '30'} ${ampm}`,
+          hour: currentH,
+          minute: currentM,
+        });
+
+        currentM += 30;
+        if (currentM >= 60) {
+          currentM = 0;
+          currentH += 1;
+        }
+      }
+    });
+
+    return generatedSlots.sort((a, b) => (a.hour * 60 + a.minute) - (b.hour * 60 + b.minute));
+  }, [availability, selectedDate, next7Days]);
 
   useEffect(() => {
     if (expertParam?.id) {
@@ -149,6 +195,18 @@ const ExpertDetail: React.FC = () => {
     return () => { SocketService.off('expert_availability_updated', handler); };
   }, [expert?.id, expert?.user_id]);
 
+  const pollSessionPaymentVerify = async (orderId: string, retries = 5, delay = 2000) => {
+    for (let i = 0; i < retries; i++) {
+      try {
+        const res = await dispatch(verifySessionPayment({ order_id: orderId })).unwrap();
+        return res;
+      } catch (err) {
+        if (i === retries - 1) throw err;
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+  };
+
   // Register Cashfree payment callbacks
   useEffect(() => {
     CFPaymentGatewayService.setCallback({
@@ -158,7 +216,7 @@ const ExpertDetail: React.FC = () => {
         pendingOrderRef.current = null;
 
         try {
-          await dispatch(verifySessionPayment({ order_id: orderId })).unwrap();
+          await pollSessionPaymentVerify(orderId);
           setShowConfirm(false);
           navigation.navigate('UserBottomTab', { screen: 'UserSessions' });
         } catch (e) {

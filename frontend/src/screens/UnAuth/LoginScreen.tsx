@@ -16,7 +16,7 @@ import { Controller, useForm } from 'react-hook-form';
 import Toast from 'react-native-toast-message';
 import { useDispatch } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
-import { checkAuthData, sendOtpEmail } from '../../store/UserSlice';
+import { login } from '../../store/UserSlice';
 import CustomTextInput from '../../components/CustomInput';
 import colors from '../../utils/colors';
 import { wp, hp, fp } from '../../utils/responsive';
@@ -43,57 +43,25 @@ const LoginScreen: React.FC = () => {
   const onSubmit = (data: any) => {
     setLoading(true);
 
-    const payloadVerify = {
+    const payload = {
       email: data.email.toLowerCase().trim(),
-      phone: '',
+      password: data.password,
     };
 
-    console.log("Checking user:", payloadVerify);
-    dispatch(checkAuthData(payloadVerify))
+    console.log("Logging in:", payload.email);
+    dispatch(login(payload))
       .unwrap()
-      .then(response => {
-        console.log("checkAuthData Response:", JSON.stringify(response.data, null, 2));
-        if (response?.data?.data?.exists) {
-          // Detect user role from the check-user endpoint if present, otherwise fall back to user's selected role
-          const detectedRole =  role;
-          const payload = {
-            phone_number: '',
-            email: data.email.toLowerCase().trim(),
-            purpose: 'login',
-            tab: detectedRole, // dynamically pass correct user type
-          };
-
-          dispatch(sendOtpEmail(payload))
-            .unwrap()
-            .then(otpRes => {
-              Toast.show({
-                type: 'success',
-                text1: 'Verification code sent',
-                text2: `Use dummy code: ${otpRes?.data?.data?.otp}`,
-                position: 'top',
-              });
-              reset();
-              setLoading(false);
-              navigation.navigate('OTPScreen', {
-                payload,
-                dummyOtp: otpRes?.data?.data?.otp,
-              });
-            })
-            .catch((error) => {
-              console.log("checkAuthData Error:", error.response?.data);
-              setLoading(false);
-            });
-        } else {
-          setLoading(false);
-          Toast.show({
-            type: 'error',
-            text1: 'Account not found',
-            text2: 'Please create an account first.',
-            position: 'top',
-          });
-        }
+      .then(() => {
+        Toast.show({
+          type: 'success',
+          text1: 'Logged in successfully',
+          position: 'top',
+        });
+        reset();
+        setLoading(false);
       })
-      .catch(() => {
+      .catch((error) => {
+        console.log("Login Error:", error);
         setLoading(false);
       });
   };

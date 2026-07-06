@@ -9,6 +9,7 @@ import paymentReducer from './PaymentSlice'
 import webinarReducer from './WebinarSlice'
 import sessionReducer from './SessionSlice'
 import notificationReducer from './NotificationSlice'
+import settlementReducer from './SettlementSlice'
 
 const rootReducer = combineReducers({
   userReducer,
@@ -19,6 +20,7 @@ const rootReducer = combineReducers({
   webinarReducer,
   sessionReducer,
   notificationReducer,
+  settlementReducer,
 });
 const resetJustLoggedIn = createTransform(
   (inboundState: any) => ({ ...inboundState, justLoggedIn: false }),

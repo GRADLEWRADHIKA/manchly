@@ -17,6 +17,20 @@ export const fetchCourses = createAsyncThunk(
   },
 );
 
+// get public courses -----
+export const fetchPublicCourses = createAsyncThunk(
+  'fetchPublicCourses',
+  async (data: object) => {
+    try {
+      const url = 'courses/public';
+      const response = await instance.get(url, { params: data });
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
+);
+
 // get couse by id ---------
 export const getCourseById = createAsyncThunk(
   'courses/getById',
@@ -130,6 +144,16 @@ const slice = createSlice({
         state.list = payload?.data?.courses ?? payload?.courses ?? payload?.data ?? payload ?? [];
       })
       .addCase(fetchCourses.rejected, state => {
+        state.loading = false;
+      })
+      .addCase(fetchPublicCourses.pending, state => {
+        state.loading = true;
+      })
+      .addCase(fetchPublicCourses.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.list = payload?.data?.courses ?? payload?.courses ?? payload?.data ?? payload ?? [];
+      })
+      .addCase(fetchPublicCourses.rejected, state => {
         state.loading = false;
       })
       .addCase(getCourseById.fulfilled, (state, { payload }) => {

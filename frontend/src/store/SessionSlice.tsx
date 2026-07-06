@@ -136,6 +136,30 @@ export const getExpertDetail = createAsyncThunk(
   },
 );
 
+export const getExpertAvailability = createAsyncThunk(
+  'session/getAvailability',
+  async (expertId: string, { rejectWithValue }) => {
+    try {
+      const response = await instance.get(`sessions/availability/${expertId}`);
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error?.response?.data || error?.message);
+    }
+  },
+);
+
+export const getExpertBookedSlots = createAsyncThunk(
+  'session/getBookedSlots',
+  async (expertId: string, { rejectWithValue }) => {
+    try {
+      const response = await instance.get(`sessions/experts/${expertId}/booked-slots`);
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error?.response?.data || error?.message);
+    }
+  },
+);
+
 // Session Products
 export const createSessionProduct = createAsyncThunk(
   'session/createProduct',

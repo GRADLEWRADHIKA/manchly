@@ -22,7 +22,7 @@ import colors from '../../../../utils/colors';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { fetchCourses } from '../../../../store/CourseSlice';
+import { fetchCourses, fetchPublicCourses } from '../../../../store/CourseSlice';
 import { getEnrolledCourses } from '../../../../store/EnrollmentSlice';
 import CustomTextInput from '../../../../components/CustomInput';
 import CourseCard from './component/CourseCard';
@@ -77,7 +77,7 @@ const UserView: React.FC = () => {
     const payload: any = { page: pageNum, limit: LIMIT };
     if (search.trim()) payload.search = search.trim();
 
-    dispatch(fetchCourses(payload))
+    dispatch(fetchPublicCourses(payload))
       .unwrap()
       .then((response: any) => {
         const list = response?.data?.data?.courses || response?.data?.courses || [];

@@ -37,68 +37,64 @@ const MOCK_COURSES = [
   {
     id: 'm1',
     archived: false,
-    progress: 32,
+    progress: 33,
     time_spent: '4h',
-    total_duration: '12h 40m',
+    total_duration: '16h 20m total space',
+    modules_remaining: '8 modules remaining',
+    time_left: '24h left',
     course: {
       title: 'Advanced Quantum Computing Architectures',
       thumbnail: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=800',
       modules: [
-        { title: 'Module 3: Qubit Entanglement', completed: true },
-        { title: 'Current Module 4/12 - Error Correction Protocols', completed: false },
-        { title: 'Module 5: Quantum Gates', completed: false },
+        { title: 'Module 3: Qubit Entanglement [Completed]', completed: true },
+        { title: 'Current: Module 4/12 - Error Correction Protocols', completed: false },
       ],
     },
   },
   {
     id: 'm2',
     archived: false,
-    progress: 68,
-    time_spent: '5h',
-    total_duration: '8h 10m',
+    progress: 92,
+    time_left: '2h 30m left',
+    next_step: 'Next: Red-Black Tree Balancing',
+    lessons_text: '2 of 5 lessons completed',
     course: {
       title: 'Efficient Data Structures in C++',
       thumbnail: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800',
-      modules: [
-        { title: 'Best-Fit Binary Tree Balancing', completed: true },
-        { title: 'Heaps & Priority Queues', completed: false },
-      ],
+      modules: [],
     },
   },
   {
     id: 'm3',
     archived: false,
-    progress: 15,
-    time_spent: '1h',
-    total_duration: '6h 30m',
+    progress: 33,
+    time_left: '1h 45m left',
+    next_step: 'Next: Three-Point Setup',
+    lessons_text: '3 of 9 lessons completed',
     course: {
       title: 'Cinematic Lighting Theory',
       thumbnail: 'https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=800',
-      modules: [
-        { title: 'Three-Point Setup', completed: false },
-        { title: 'Color Temperature Basics', completed: false },
-      ],
+      modules: [],
     },
   },
   {
     id: 'm4',
     archived: false,
-    progress: 5,
-    time_spent: '20m',
-    total_duration: '5h 45m',
+    progress: 49,
+    time_left: '3h 15m left',
+    next_step: 'Next: Gradient Descent Tuning',
+    lessons_text: '4 of 9 lessons completed',
     course: {
       title: 'Neural Network Optimization',
       thumbnail: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=800',
-      modules: [
-        { title: 'Gradient Descent Variants', completed: false },
-      ],
+      modules: [],
     },
   },
   {
     id: 'm5',
     archived: true,
-    progress: 62,
-    time_spent: '5h 30m',
+    progress: 52,
+    time_spent: '5h 20m',
     total_duration: '10h',
     course: {
       title: 'Legacy Data Science 1.0',
@@ -121,9 +117,9 @@ const MOCK_COURSES = [
   {
     id: 'm7',
     archived: true,
-    progress: 91,
+    progress: 96,
     time_spent: '7h 45m',
-    total_duration: '8h 30m',
+    total_duration: '8h',
     course: {
       title: 'Strategic Thinking 101',
       thumbnail: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800',
@@ -134,10 +130,10 @@ const MOCK_COURSES = [
     id: 'm8',
     archived: false,
     progress: 100,
-    completed_at: '2026-06-13',
-    total_duration: '12h 40m',
+    completed_at: '2023-10-12',
+    total_duration: '12h 45m',
     course: {
-      title: 'Mastering Lit Motion Design',
+      title: 'Mastering UI Motion Design',
       thumbnail: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800',
       modules: [],
     },
@@ -146,7 +142,7 @@ const MOCK_COURSES = [
     id: 'm9',
     archived: false,
     progress: 100,
-    completed_at: '2026-05-28',
+    completed_at: '2023-09-28',
     total_duration: '24h 10m',
     course: {
       title: 'Advanced Python Analytics',
@@ -158,8 +154,8 @@ const MOCK_COURSES = [
     id: 'm10',
     archived: false,
     progress: 100,
-    completed_at: '2026-05-10',
-    total_duration: '9h 30m',
+    completed_at: '2023-08-15',
+    total_duration: '8h 30m',
     course: {
       title: 'Generative AI for Product Teams',
       thumbnail: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=800',
@@ -170,8 +166,8 @@ const MOCK_COURSES = [
     id: 'm11',
     archived: false,
     progress: 100,
-    completed_at: '2026-04-22',
-    total_duration: '13h 20m',
+    completed_at: '2023-07-22',
+    total_duration: '15h 20m',
     course: {
       title: 'Cognitive Design Principles',
       thumbnail: 'https://images.unsplash.com/photo-1558655146-d09347e92766?w=800',
@@ -216,7 +212,7 @@ const tabStyles = StyleSheet.create({
     paddingTop: hp(12),
     paddingBottom: 0,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: colors.cBorder,
   },
   track: {
     flexDirection: 'row',
@@ -230,10 +226,10 @@ const tabStyles = StyleSheet.create({
   label: {
     fontSize: fp(14),
     fontWeight: '500',
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
   },
   labelActive: {
-    color: colors.textPrimary,
+    color: colors.cText,
     fontWeight: '700',
   },
   underline: {
@@ -242,7 +238,7 @@ const tabStyles = StyleSheet.create({
     left: '20%',
     right: '20%',
     height: 2,
-    backgroundColor: colors.gold,
+    backgroundColor: colors.cAccentLight,
     borderRadius: 2,
   },
 });
@@ -337,9 +333,9 @@ const PurchasesScreen = () => {
   return (
     <View style={styles.container}>
       <View style={[styles.headerBar, { paddingTop: insets.top }]}>
-        <Menu size={22} color={colors.textPrimary} />
+        <Menu size={22} color={colors.cText} />
         <Text style={styles.headerTitle}>Manchly</Text>
-        <Bell size={22} color={colors.textPrimary} />
+        <Bell size={22} color={colors.cText} />
       </View>
 
       <SegmentedTabs active={active} setActive={setActive} />
@@ -435,7 +431,7 @@ export default PurchasesScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.bg,
+    backgroundColor: colors.cBg,
   },
   headerBar: {
     flexDirection: 'row',
@@ -443,10 +439,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: wp(16),
     paddingBottom: hp(12),
-    backgroundColor: colors.bg,
+    backgroundColor: colors.cBg,
   },
   headerTitle: {
-    color: colors.gold,
+    color: colors.cText,
     fontSize: fp(18),
     fontWeight: '700',
   },
@@ -465,22 +461,22 @@ const styles = StyleSheet.create({
     width: wp(72),
     height: wp(72),
     borderRadius: wp(36),
-    backgroundColor: colors.surface,
+    backgroundColor: colors.cCard,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: hp(16),
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.cBorder,
   },
   emptyText: {
     fontSize: fp(17),
     fontWeight: '600',
-    color: colors.textPrimary,
+    color: colors.cText,
     textAlign: 'center',
   },
   emptySubtext: {
     fontSize: fp(13),
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
     marginTop: hp(6),
     textAlign: 'center',
     lineHeight: fp(19),

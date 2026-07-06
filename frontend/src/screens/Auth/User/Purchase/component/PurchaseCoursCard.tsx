@@ -13,6 +13,12 @@ import {
   CheckCircle2,
   Play,
   Award,
+  CircleDot,
+  Zap,
+  BookOpen,
+  Clock,
+  RotateCcw,
+  Edit3,
 } from 'lucide-react-native';
 import { wp, hp, fp } from '../../../../../utils/responsive';
 
@@ -56,76 +62,149 @@ const PurchaseCoursCard = ({
 
   // ── ONGOING VARIANT ─────────────────────────────────────────────────────────
   if (variant === 'ongoing') {
-    return (
-      <Pressable
-        onPress={onPress}
-        style={({ pressed }) => [styles.ongoingCard, pressed && styles.cardPressed]}
-      >
-        {/* Course Image */}
-        <View style={styles.imageWrap}>
-          {item?.course?.thumbnail ? (
-            <Image
-              source={{ uri: item.course.thumbnail }}
-              style={styles.courseImage}
-              resizeMode="cover"
-            />
-          ) : (
-            <View style={[styles.courseImage, styles.imageFallback]} />
-          )}
+    if (isFeatured) {
+      return (
+        <Pressable
+          onPress={onPress}
+          style={({ pressed }) => [styles.ongoingCard, pressed && styles.cardPressed]}
+        >
+          {/* Course Image */}
+          <View style={styles.imageWrap}>
+            {item?.course?.thumbnail ? (
+              <Image
+                source={{ uri: item.course.thumbnail }}
+                style={styles.courseImage}
+                resizeMode="cover"
+              />
+            ) : (
+              <View style={[styles.courseImage, styles.imageFallback]} />
+            )}
 
-          {/* Featured Badge */}
-          {isFeatured && (
+            {/* Featured Badge */}
             <View style={styles.featuredBadge}>
-              <Text style={styles.featuredBadgeText}>✦ FEATURED COURSE</Text>
+              <Text style={styles.featuredBadgeText}>FEATURED COURSE</Text>
             </View>
-          )}
-
-          {/* Priority Badge */}
-          <View style={styles.priorityBadge}>
-            <Text style={styles.priorityBadgeText}>⬆ HIGH PRIORITY</Text>
           </View>
-        </View>
 
-        {/* Title */}
-        <Text style={styles.ongoingTitle}>{courseTitle}</Text>
-
-        {/* Module Checklist */}
-        {modules.slice(0, 2).map((mod: any, i: number) => (
-          <View key={i} style={styles.moduleRow}>
-            <CheckCircle2
-              size={wp(14)}
-              color={mod.completed ? '#22C55E' : colors.textMuted}
-              fill={mod.completed ? '#22C55E' : 'transparent'}
-            />
-            <Text style={styles.moduleText} numberOfLines={1}>
-              {mod.title || `Module ${i + 1}`}
+          {/* Priority & Total Duration Row */}
+          <View style={styles.priorityRow}>
+            <View style={styles.priorityLeft}>
+              <Zap size={wp(13)} color={colors.cAccentLight} fill={colors.cAccentMuted} />
+              <Text style={styles.priorityText}>HIGH PRIORITY</Text>
+            </View>
+            <Text style={styles.priorityRightText}>
+              {item?.total_duration || '—'}
             </Text>
           </View>
-        ))}
 
-        {/* Progress */}
-        <View style={styles.progressLabelRow}>
-          <Text style={styles.progressLabel}>Overall Progress</Text>
-          <Text style={styles.progressPercent}>{progress}%</Text>
-        </View>
-        <View style={{ paddingHorizontal: wp(14), marginBottom: hp(6) }}>
-          <AnimatedProgressBar progress={progress} color={colors.gold} />
-        </View>
+          {/* Title */}
+          <Text style={styles.ongoingTitle}>{courseTitle}</Text>
 
-        {/* Meta */}
-        <View style={styles.metaRow}>
-          <Text style={styles.metaText}>{completedModules.length} lessons</Text>
-          <Text style={styles.metaText}>•</Text>
-          <Text style={styles.metaText}>{item?.total_duration || '—'}</Text>
-        </View>
+          {/* Module Checklist */}
+          {modules.slice(0, 2).map((mod: any, i: number) => (
+            <View key={i} style={styles.moduleRow}>
+              {mod.completed ? (
+                <CheckCircle2
+                  size={wp(15)}
+                  color={colors.cAccentLight}
+                  fill={colors.cAccentMuted}
+                />
+              ) : (
+                <CircleDot
+                  size={wp(15)}
+                  color={colors.cAccentLight}
+                />
+              )}
+              <Text style={styles.moduleText} numberOfLines={1}>
+                {mod.title || `Module ${i + 1}`}
+              </Text>
+            </View>
+          ))}
 
-        {/* CTA Button */}
-        <TouchableOpacity style={styles.resumeBtn} onPress={onPress} activeOpacity={0.8}>
-          <Play size={12} color="#000" fill="#000" />
-          <Text style={styles.resumeBtnText}>RESUME LESSON</Text>
-        </TouchableOpacity>
-      </Pressable>
-    );
+          {/* Progress */}
+          <View style={styles.progressLabelRow}>
+            <Text style={styles.progressLabel}>Overall Progress</Text>
+            <Text style={styles.progressPercent}>{progress}%</Text>
+          </View>
+          <View style={{ paddingHorizontal: wp(14), marginBottom: hp(6) }}>
+            <AnimatedProgressBar progress={progress} color={colors.cAccentLight} />
+          </View>
+
+          {/* Meta Row: Remaining modules and left hours */}
+          <View style={styles.ongoingMetaRow}>
+            <Text style={styles.ongoingMetaText}>
+              {item?.modules_remaining || '8 modules remaining'}
+            </Text>
+            <Text style={styles.ongoingMetaText}>
+              {item?.time_left || '24h left'}
+            </Text>
+          </View>
+
+          {/* CTA Button */}
+          <TouchableOpacity style={styles.resumeBtn} onPress={onPress} activeOpacity={0.8}>
+            <Play size={12} color="#FFFFFF" fill="#FFFFFF" />
+            <Text style={styles.resumeBtnText}>RESUME LESSON</Text>
+          </TouchableOpacity>
+        </Pressable>
+      );
+    } else {
+      // ── Ongoing Variant - Non-Featured ──
+      return (
+        <Pressable
+          onPress={onPress}
+          style={({ pressed }) => [styles.ongoingCard, pressed && styles.cardPressed]}
+        >
+          {/* Course Image */}
+          <View style={styles.imageWrap}>
+            {item?.course?.thumbnail ? (
+              <Image
+                source={{ uri: item.course.thumbnail }}
+                style={styles.nonFeaturedImage}
+                resizeMode="cover"
+              />
+            ) : (
+              <View style={[styles.nonFeaturedImage, styles.imageFallback]} />
+            )}
+
+            {/* Time Left Badge (Top Right) */}
+            {item?.time_left && (
+              <View style={styles.timeLeftBadge}>
+                <Text style={styles.timeLeftBadgeText}>{item.time_left}</Text>
+              </View>
+            )}
+          </View>
+
+          {/* Content Area */}
+          <View style={styles.nonFeaturedContent}>
+            {/* Title */}
+            <Text style={styles.nonFeaturedTitle}>{courseTitle}</Text>
+
+            {/* Next Module/Step Row */}
+            {item?.next_step && (
+              <View style={styles.nextStepRow}>
+                <BookOpen size={wp(13)} color={colors.cTextSecondary} />
+                <Text style={styles.nextStepText} numberOfLines={1}>
+                  {item.next_step}
+                </Text>
+              </View>
+            )}
+
+            {/* Progress Label Row */}
+            <View style={styles.progressLabelRowNonFeatured}>
+              <Text style={styles.progressLabel}>
+                {item?.lessons_text || `${completedModules.length} lessons completed`}
+              </Text>
+              <Text style={styles.progressPercent}>{progress}%</Text>
+            </View>
+
+            {/* Progress Bar */}
+            <View style={{ paddingHorizontal: wp(14), marginBottom: hp(14) }}>
+              <AnimatedProgressBar progress={progress} color={colors.cAccentLight} />
+            </View>
+          </View>
+        </Pressable>
+      );
+    }
   }
 
   // ── ARCHIVED VARIANT ────────────────────────────────────────────────────────
@@ -153,19 +232,24 @@ const PurchaseCoursCard = ({
 
         {/* Info */}
         <Text style={styles.archivedTitle}>{courseTitle}</Text>
-        <Text style={styles.archivedMeta}>
-          Spent {item?.time_spent || '0h'} out of {item?.total_duration || '—'}
-        </Text>
 
-        {/* Progress */}
-        <View style={{ paddingHorizontal: wp(14), marginBottom: hp(4) }}>
-          <AnimatedProgressBar progress={progress} color="#8B5CF6" />
+        {/* Progress Info Row */}
+        <View style={styles.progressLabelRow}>
+          <Text style={styles.progressLabel}>
+            Spent {item?.time_spent || '0h'} out of {item?.total_duration || '—'}
+          </Text>
+          <Text style={styles.progressPercent}>{progress}%</Text>
         </View>
-        <Text style={styles.archivedPercent}>{progress}%</Text>
+
+        {/* Progress Bar */}
+        <View style={{ paddingHorizontal: wp(14), marginBottom: hp(14) }}>
+          <AnimatedProgressBar progress={progress} color={colors.cAccentLight} />
+        </View>
 
         {/* Buttons */}
         <View style={styles.archivedBtnRow}>
           <TouchableOpacity style={styles.restoreBtn} activeOpacity={0.8}>
+            <RotateCcw size={14} color={colors.white} />
             <Text style={styles.restoreBtnText}>Restore</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.syllabusBtn} activeOpacity={0.8}>
@@ -195,7 +279,7 @@ const PurchaseCoursCard = ({
             <View style={[styles.courseImage, styles.imageFallback]} />
           )}
           <View style={styles.completedBadge}>
-            <Text style={styles.completedBadgeText}>✓ COURSE COMPLETED</Text>
+            <Text style={styles.completedBadgeText}>● COURSE COMPLETED</Text>
           </View>
         </View>
 
@@ -204,16 +288,21 @@ const PurchaseCoursCard = ({
         <Text style={styles.completedDate}>
           Completed on{' '}
           {item?.completed_at
-            ? new Date(item.completed_at).toLocaleDateString('en-IN', {
+            ? new Date(item.completed_at).toLocaleDateString('en-US', {
                 day: 'numeric',
-                month: 'long',
+                month: 'short',
                 year: 'numeric',
               })
             : '—'}
         </Text>
-        <Text style={styles.completedDuration}>
-          ⏱ {item?.total_duration || '—'} total
-        </Text>
+
+        {/* Duration Row */}
+        <View style={styles.completedDurationRow}>
+          <Clock size={wp(13)} color={colors.cTextSecondary} />
+          <Text style={styles.completedDurationText}>
+            {item?.total_duration || '—'} total
+          </Text>
+        </View>
 
         {/* Certificate Button */}
         <TouchableOpacity style={styles.certificateBtn} activeOpacity={0.8}>
@@ -222,8 +311,9 @@ const PurchaseCoursCard = ({
         </TouchableOpacity>
 
         {/* Review Button */}
-        <TouchableOpacity style={styles.reviewBtn} onPress={onPress} activeOpacity={0.8}>
-          <Text style={styles.reviewBtnText}>Review Course</Text>
+        <TouchableOpacity style={styles.reviewBtnStacked} onPress={onPress} activeOpacity={0.8}>
+          <Edit3 size={14} color={colors.white} />
+          <Text style={styles.reviewBtnStackedText}>Review Course</Text>
         </TouchableOpacity>
       </Pressable>
     );
@@ -249,11 +339,11 @@ const styles = StyleSheet.create({
     height: hp(180),
   },
   imageFallback: {
-    backgroundColor: colors.inputBg,
+    backgroundColor: colors.cCardLight,
   },
   progressTrack: {
     height: hp(4),
-    backgroundColor: colors.border,
+    backgroundColor: colors.cBorder,
     borderRadius: 99,
     overflow: 'hidden',
   },
@@ -264,52 +354,59 @@ const styles = StyleSheet.create({
 
   // ── Ongoing ─────────────────────────────────────────────────────────────────
   ongoingCard: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.cSurface,
     borderRadius: wp(16),
     marginBottom: hp(16),
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.cBorder,
   },
   featuredBadge: {
     position: 'absolute',
-    top: hp(10),
-    left: wp(10),
-    backgroundColor: colors.goldDim,
+    bottom: hp(12),
+    left: wp(12),
+    backgroundColor: colors.cAccentMuted,
     borderWidth: 1,
-    borderColor: colors.gold,
+    borderColor: colors.cAccentLight,
     borderRadius: 99,
     paddingHorizontal: wp(10),
     paddingVertical: hp(4),
   },
   featuredBadgeText: {
     fontSize: fp(9),
-    color: colors.gold,
+    color: colors.cText,
     fontWeight: '700',
     letterSpacing: 0.5,
   },
-  priorityBadge: {
-    position: 'absolute',
-    top: hp(10),
-    right: wp(10),
-    backgroundColor: 'rgba(239,68,68,0.15)',
-    borderWidth: 1,
-    borderColor: '#EF4444',
-    borderRadius: 99,
-    paddingHorizontal: wp(10),
-    paddingVertical: hp(4),
+  priorityRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: wp(14),
+    marginTop: hp(12),
   },
-  priorityBadgeText: {
-    fontSize: fp(9),
-    color: '#EF4444',
+  priorityLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(4),
+  },
+  priorityText: {
+    fontSize: fp(10),
     fontWeight: '700',
+    color: colors.cAccentLight,
+    letterSpacing: 0.5,
+  },
+  priorityRightText: {
+    fontSize: fp(11),
+    color: colors.cTextMuted,
   },
   ongoingTitle: {
     fontSize: fp(20),
     fontWeight: '700',
     color: colors.textPrimary,
     padding: wp(14),
-    paddingBottom: hp(8),
+    paddingTop: hp(8),
+    paddingBottom: hp(12),
     lineHeight: fp(26),
   },
   moduleRow: {
@@ -317,11 +414,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: wp(8),
     paddingHorizontal: wp(14),
-    marginBottom: hp(6),
+    marginBottom: hp(8),
   },
   moduleText: {
-    fontSize: fp(12),
-    color: colors.textSecondary,
+    fontSize: fp(13),
+    color: colors.cTextSecondary,
     flex: 1,
   },
   progressLabelRow: {
@@ -333,89 +430,126 @@ const styles = StyleSheet.create({
   },
   progressLabel: {
     fontSize: fp(11),
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
   },
   progressPercent: {
     fontSize: fp(11),
     fontWeight: '700',
-    color: colors.gold,
+    color: colors.cText,
   },
-  metaRow: {
+  ongoingMetaRow: {
     flexDirection: 'row',
-    gap: wp(6),
+    justifyContent: 'space-between',
     paddingHorizontal: wp(14),
-    marginTop: hp(8),
+    marginTop: hp(4),
     marginBottom: hp(12),
   },
-  metaText: {
+  ongoingMetaText: {
     fontSize: fp(11),
-    color: colors.textMuted,
+    color: colors.cTextMuted,
   },
   resumeBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: wp(8),
-    backgroundColor: colors.gold,
+    backgroundColor: colors.cAccentLight,
     marginHorizontal: wp(14),
     marginBottom: hp(14),
     borderRadius: 8,
     paddingVertical: hp(12),
   },
   resumeBtnText: {
-    color: '#000000',
+    color: colors.white,
     fontWeight: '700',
     fontSize: fp(13),
     letterSpacing: 0.5,
   },
 
+  // Non-featured Ongoing Styles
+  nonFeaturedImage: {
+    width: '100%',
+    height: hp(120),
+  },
+  timeLeftBadge: {
+    position: 'absolute',
+    top: hp(10),
+    right: wp(10),
+    backgroundColor: 'rgba(15, 23, 42, 0.75)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: 99,
+    paddingHorizontal: wp(8),
+    paddingVertical: hp(3),
+  },
+  timeLeftBadgeText: {
+    fontSize: fp(9),
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
+  nonFeaturedContent: {
+    paddingTop: hp(4),
+  },
+  nonFeaturedTitle: {
+    fontSize: fp(16),
+    fontWeight: '700',
+    color: colors.cText,
+    paddingHorizontal: wp(14),
+    paddingTop: wp(10),
+    paddingBottom: hp(4),
+  },
+  nextStepRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(6),
+    paddingHorizontal: wp(14),
+    marginBottom: hp(8),
+  },
+  nextStepText: {
+    fontSize: fp(12),
+    color: colors.cTextSecondary,
+    flex: 1,
+  },
+  progressLabelRowNonFeatured: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: wp(14),
+    marginTop: hp(4),
+    marginBottom: hp(6),
+  },
+
   // ── Archived ─────────────────────────────────────────────────────────────────
   archivedCard: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.cSurface,
     borderRadius: wp(16),
     marginBottom: hp(16),
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.cBorder,
   },
   archivedBadge: {
     position: 'absolute',
     top: hp(10),
     left: wp(10),
-    backgroundColor: 'rgba(139,92,246,0.2)',
+    backgroundColor: 'rgba(240, 192, 64, 0.15)',
     borderWidth: 1,
-    borderColor: '#8B5CF6',
-    borderRadius: 6,
+    borderColor: '#F0C040',
+    borderRadius: 99,
     paddingHorizontal: wp(10),
     paddingVertical: hp(4),
   },
   archivedBadgeText: {
     fontSize: fp(9),
-    color: '#8B5CF6',
+    color: '#F0C040',
     fontWeight: '700',
     letterSpacing: 0.5,
   },
   archivedTitle: {
     fontSize: fp(17),
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: colors.cText,
     padding: wp(14),
-    paddingBottom: hp(4),
-  },
-  archivedMeta: {
-    fontSize: fp(12),
-    color: colors.textMuted,
-    paddingHorizontal: wp(14),
-    marginBottom: hp(8),
-  },
-  archivedPercent: {
-    fontSize: fp(11),
-    color: colors.textSecondary,
-    fontWeight: '600',
-    paddingHorizontal: wp(14),
-    marginTop: hp(4),
-    marginBottom: hp(12),
-    textAlign: 'right',
+    paddingBottom: hp(10),
   },
   archivedBtnRow: {
     flexDirection: 'row',
@@ -425,10 +559,13 @@ const styles = StyleSheet.create({
   },
   restoreBtn: {
     flex: 1,
-    backgroundColor: '#4F46E5',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: wp(6),
+    backgroundColor: colors.cAccentLight,
     borderRadius: 8,
     paddingVertical: hp(10),
-    alignItems: 'center',
   },
   restoreBtnText: {
     color: colors.white,
@@ -441,66 +578,72 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingVertical: hp(10),
     alignItems: 'center',
+    justifyContent: 'center',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.cBorder,
   },
   syllabusBtnText: {
-    color: colors.textPrimary,
+    color: colors.cText,
     fontWeight: '600',
     fontSize: fp(13),
   },
 
   // ── Completed ────────────────────────────────────────────────────────────────
   completedCard: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.cSurface,
     borderRadius: wp(16),
     marginBottom: hp(16),
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.cBorder,
   },
   completedBadge: {
     position: 'absolute',
     top: hp(10),
     left: wp(10),
-    backgroundColor: 'rgba(34,197,94,0.15)',
+    backgroundColor: 'rgba(240, 192, 64, 0.15)',
     borderWidth: 1,
-    borderColor: '#22C55E',
-    borderRadius: 6,
+    borderColor: '#F0C040',
+    borderRadius: 99,
     paddingHorizontal: wp(10),
     paddingVertical: hp(4),
   },
   completedBadgeText: {
     fontSize: fp(9),
-    color: '#22C55E',
+    color: '#F0C040',
     fontWeight: '700',
     letterSpacing: 0.5,
   },
   completedTitle: {
     fontSize: fp(17),
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: colors.cText,
     padding: wp(14),
     paddingBottom: hp(4),
   },
   completedDate: {
     fontSize: fp(12),
-    color: colors.textSecondary,
+    color: colors.cTextSecondary,
     paddingHorizontal: wp(14),
     marginBottom: hp(4),
   },
-  completedDuration: {
-    fontSize: fp(12),
-    color: colors.textMuted,
+  completedDurationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(6),
     paddingHorizontal: wp(14),
-    marginBottom: hp(12),
+    marginBottom: hp(14),
+  },
+  completedDurationText: {
+    fontSize: fp(12),
+    color: colors.cTextMuted,
   },
   certificateBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: wp(8),
-    backgroundColor: '#4F46E5',
+    backgroundColor: colors.cAccentLight,
     marginHorizontal: wp(14),
     marginBottom: hp(8),
     borderRadius: 8,
@@ -511,14 +654,22 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: fp(13),
   },
-  reviewBtn: {
+  reviewBtnStacked: {
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: hp(10),
+    justifyContent: 'center',
+    gap: wp(8),
+    backgroundColor: 'transparent',
+    marginHorizontal: wp(14),
     marginBottom: hp(14),
+    borderRadius: 8,
+    paddingVertical: hp(12),
+    borderWidth: 1,
+    borderColor: colors.cBorder,
   },
-  reviewBtnText: {
-    color: colors.textSecondary,
-    fontWeight: '600',
+  reviewBtnStackedText: {
+    color: colors.white,
+    fontWeight: '700',
     fontSize: fp(13),
   },
 });

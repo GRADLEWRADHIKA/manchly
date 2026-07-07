@@ -5,7 +5,10 @@ import { isAdmin } from "../utils/userTypeHelper";
 import { AdminController } from "../controllers/adminController";
 
 const router = express.Router();
-const JWT_SECRET = process.env.JWT_SECRET || "changeme";
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error("JWT_SECRET environment variable is required");
+}
 
 const authenticateToken = (req: any, res: any, next: any) => {
   const authHeader = req.headers["authorization"];

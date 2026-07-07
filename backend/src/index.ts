@@ -68,7 +68,12 @@ const io = initializeSocketIO(server);
 // Trust proxy for rate limiting and IP detection
 app.set('trust proxy', 1);
 
-app.use(cors());
+app.use(cors({
+  origin: process.env.CORS_ORIGINS
+    ? process.env.CORS_ORIGINS.split(',')
+    : ['https://manchly.com', 'https://server.manchly.com', 'http://localhost:8081'],
+  credentials: true,
+}));
 app.use(morgan('dev'));
 
 // Cashfree webhooks need raw body preserved for signature verification
@@ -82,8 +87,17 @@ const webhookJsonParser = bodyParser.json({
 app.use("/payments/webhook", webhookJsonParser, paymentsRouter);
 app.use("/settlements/webhook/payout", webhookJsonParser, settlementsRouter);
 
-// Regular JSON parsing for other routes
-app.use(bodyParser.json({ limit: "10mb" }));
+// Regular JSON parsing with size limit + malformed JSON handling
+app.use(bodyParser.json({ limit: "1mb" }));
+app.use((err: any, _req: any, res: any, next: any) => {
+  if (err.type === 'entity.parse.failed') {
+    return res.status(400).json({ success: false, error: 'Invalid JSON in request body' });
+  }
+  if (err.type === 'entity.too.large') {
+    return res.status(413).json({ success: false, error: 'Request body too large' });
+  }
+  next(err);
+});
 
 // Serve static files from public folder (frontend)
 const publicDir = path.join(process.cwd(), "public");
@@ -119,6 +133,11 @@ app.use("/notifications", notificationsRouter);
 app.use("/api/creator", creatorProfileRouter);
 app.use("/api/marketplace", brandMarketplaceRouter);
 
+// ── 404 handler for unknown routes ────────────────────────────────────────────
+app.use((_req: any, res: any) => {
+  res.status(404).json({ success: false, error: "Route not found" });
+});
+
 // ── Global error handler ──────────────────────────────────────────────────────
 app.use((err: any, _req: any, res: any, _next: any) => {
   if (err?.code === "P2002") {
@@ -127,7 +146,12 @@ app.use((err: any, _req: any, res: any, _next: any) => {
   if (err?.code === "P2025") {
     return res.status(404).json({ success: false, error: "NOT_FOUND" });
   }
-  console.error(err);
+  // Prisma query errors — sanitize, never expose file paths or schema
+  if (err?.code?.startsWith?.("P")) {
+    console.error("Prisma error:", err.code, err.meta);
+    return res.status(400).json({ success: false, error: "Invalid request parameters" });
+  }
+  console.error("Unhandled error:", err.message);
   return res.status(500).json({ success: false, error: "INTERNAL_SERVER_ERROR" });
 });
 

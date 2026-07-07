@@ -528,10 +528,16 @@ export class SessionController {
     }
   }
 
-  // Creator: update a session product
+  // Creator: update a session product (with ownership check)
   static async updateProduct(req: JWTRequest, res: Response) {
     try {
       const { product_id } = req.params;
+      const creatorId = req.user!.userId;
+
+      const existing = await prisma.session_products.findUnique({ where: { id: product_id } });
+      if (!existing) return res.status(404).json({ error: "Product not found" });
+      if (existing.creator_id !== creatorId) return res.status(403).json({ error: "You can only update your own products" });
+
       const { title, description, duration, price, mode, is_active } = req.body;
 
       const data: any = {};
@@ -549,19 +555,25 @@ export class SessionController {
 
       return res.json({ data: product });
     } catch (err: any) {
-      console.error("updateProduct error:", err);
+      console.error("updateProduct error:", err.message);
       return res.status(500).json({ error: "Failed to update product" });
     }
   }
 
-  // Creator: delete a session product
+  // Creator: delete a session product (with ownership check)
   static async deleteProduct(req: JWTRequest, res: Response) {
     try {
       const { product_id } = req.params;
+      const creatorId = req.user!.userId;
+
+      const existing = await prisma.session_products.findUnique({ where: { id: product_id } });
+      if (!existing) return res.status(404).json({ error: "Product not found" });
+      if (existing.creator_id !== creatorId) return res.status(403).json({ error: "You can only delete your own products" });
+
       await prisma.session_products.delete({ where: { id: product_id } });
       return res.json({ message: "Deleted" });
     } catch (err: any) {
-      console.error("deleteProduct error:", err);
+      console.error("deleteProduct error:", err.message);
       return res.status(500).json({ error: "Failed to delete product" });
     }
   }

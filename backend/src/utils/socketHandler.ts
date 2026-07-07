@@ -18,8 +18,11 @@ export const getIO = (): SocketIOServer | null => ioInstance;
 export const initializeSocketIO = (httpServer: HTTPServer | HTTPSServer) => {
     const io = new SocketIOServer(httpServer, {
         cors: {
-            origin: "*", // Configure this based on your frontend URL
+            origin: process.env.CORS_ORIGINS
+                ? process.env.CORS_ORIGINS.split(',')
+                : ['https://manchly.com', 'https://server.manchly.com', 'http://localhost:8081'],
             methods: ["GET", "POST"],
+            credentials: true,
         },
     });
 
@@ -32,7 +35,11 @@ export const initializeSocketIO = (httpServer: HTTPServer | HTTPSServer) => {
                 return next(new Error("Authentication token required"));
             }
 
-            const decoded = jwt.verify(token, process.env.JWT_SECRET || "your-secret-key") as any;
+            const jwtSecret = process.env.JWT_SECRET;
+            if (!jwtSecret) {
+                return next(new Error("JWT_SECRET not configured"));
+            }
+            const decoded = jwt.verify(token, jwtSecret) as any;
             socket.userId = decoded.userId;
             socket.userType = decoded.userType;
 

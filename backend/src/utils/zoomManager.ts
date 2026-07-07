@@ -531,10 +531,7 @@ class ZoomMeetingManager {
       
       // In a real implementation, you would integrate with your email service
       // This is a placeholder for the email sending logic
-      console.log(`Sending invitation email to: ${registrantEmail}`);
-      console.log(`Meeting Topic: ${meeting.topic}`);
-      console.log(`Join URL: ${meeting.join_url}`);
-      console.log(`Password: ${meeting.password}`);
+      // Email invitation placeholder — integrate with email service
       
       // Example integration with nodemailer or other email service
       // await emailService.send({

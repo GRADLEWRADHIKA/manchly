@@ -4,7 +4,10 @@ import { users } from "@prisma/client";
 
 dotenv.config();
 
-const JWT_SECRET = process.env.JWT_SECRET || "changeme";
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error("JWT_SECRET environment variable is required");
+}
 
 type AuthUserSource = Pick<
   users,
@@ -35,7 +38,7 @@ export function issueAccessToken(userId: string, email?: string | null): string 
       type: "access"
     },
     JWT_SECRET,
-    { expiresIn: "365d" }
+    { expiresIn: "7d" }
   );
 }
 

@@ -382,12 +382,14 @@ export class WebinarController {
         return ApiResponseHandler.customError(res, "Webinar not found", 404, "WEBINAR_NOT_FOUND");
       }
 
-      // Check access permissions
-      if (isCreator(user.user_type) && webinar.creator_id !== userId) {
+      // Check access permissions — webinar creator always has full access
+      const isOwner = webinar.creator_id === userId;
+
+      if (!isOwner && isCreator(user.user_type)) {
         return ApiResponseHandler.customError(res, "You don't have access to this webinar", 403, "FORBIDDEN");
       }
 
-      if (isUser(user.user_type) && webinar.status !== "PUBLISHED") {
+      if (!isOwner && webinar.status !== "PUBLISHED") {
         return ApiResponseHandler.customError(res, "Webinar not available", 403, "WEBINAR_NOT_AVAILABLE");
       }
 

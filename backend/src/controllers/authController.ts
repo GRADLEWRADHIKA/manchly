@@ -10,7 +10,10 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const JWT_SECRET = process.env.JWT_SECRET || "changeme";
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error("JWT_SECRET environment variable is required");
+}
 const BCRYPT_ROUNDS = 12;
 
 // ─── AUTH_USER_SELECT ──────────────────────────────────────────────────────────
@@ -375,8 +378,8 @@ export class AuthController {
         }
       }
 
-      const otp = await otpManager.sendOTP(email, 6, "email");
-      ApiResponseHandler.success(res, { purpose, expires_in: "10 minutes", otp }, "OTP sent successfully to your email");
+      await otpManager.sendOTP(email, 6, "email");
+      ApiResponseHandler.success(res, { purpose, expires_in: "10 minutes" }, "OTP sent successfully to your email");
     } catch (err: any) {
       if (err.message.includes("Rate limit exceeded")) return ApiResponseHandler.customError(res, "Too many OTP requests. Please try again later.", 429, "RATE_LIMIT_EXCEEDED");
       if (err.message.includes("OTP already sent")) return ApiResponseHandler.customError(res, "OTP already sent. Please wait for it to expire or use the existing one.", 400, "OTP_ALREADY_SENT");
@@ -399,15 +402,13 @@ export class AuthController {
         const user = await prisma.users.findFirst({ where: { phone: phone_number } });
         if (!user) return ApiResponseHandler.customError(res, "User not found. Please sign up first.", 404, "USER_NOT_FOUND");
         const userTypes = Array.isArray(user.user_type) ? user.user_type : [user.user_type];
-        console.log("tab:", tab);
-        console.log("user.user_type:", user.user_type);
         if (!validateTabAgainstUserTypes(tab, userTypes as string[])) {
           return ApiResponseHandler.customError(res, "Invalid user type", 400, "INVALID_USER_TYPE");
         }
       }
 
-      const otp = await otpManager.sendOTP(phone_number, 6, "sms");
-      ApiResponseHandler.success(res, { purpose, expires_in: "10 minutes", otp }, "OTP sent successfully to your phone");
+      await otpManager.sendOTP(phone_number, 6, "sms");
+      ApiResponseHandler.success(res, { purpose, expires_in: "10 minutes" }, "OTP sent successfully to your phone");
     } catch (err: any) {
       if (err.message.includes("Rate limit exceeded")) return ApiResponseHandler.customError(res, "Too many OTP requests. Please try again later.", 429, "RATE_LIMIT_EXCEEDED");
       if (err.message.includes("OTP already sent")) return ApiResponseHandler.customError(res, "OTP already sent. Please wait for it to expire or use the existing one.", 400, "OTP_ALREADY_SENT");
@@ -434,13 +435,11 @@ export class AuthController {
       let user;
       if (email) {
         user = await prisma.users.findUnique({ where: { email } });
-        if (!user) user = await prisma.users.create({ data: { email } });
       } else if (phone_number) {
         user = await prisma.users.findFirst({ where: { phone: phone_number } });
-        if (!user) user = await prisma.users.create({ data: { phone: phone_number, email: "" } });
       }
 
-      if (!user) return ApiResponseHandler.customError(res, "Failed to retrieve or create user", 500, "USER_CREATION_FAILED");
+      if (!user) return ApiResponseHandler.customError(res, "User not found. Please sign up first.", 404, "USER_NOT_FOUND");
 
       if (purpose === "password_reset") {
         const resetToken = jwt.sign(
@@ -470,36 +469,13 @@ export class AuthController {
     if (!email && !phone_number) return ApiResponseHandler.customError(res, "Email or phone number is required", 400, "MISSING_IDENTIFIER");
     const identifier = email || phone_number;
     try {
-      const newOtp = await otpManager.resendOTP(identifier, channel as "email" | "sms");
-      ApiResponseHandler.success(res, { channel, expires_in: "10 minutes", otp: newOtp }, `OTP resent successfully via ${channel}`);
+      await otpManager.resendOTP(identifier, channel as "email" | "sms");
+      ApiResponseHandler.success(res, { channel, expires_in: "10 minutes" }, `OTP resent successfully via ${channel}`);
     } catch (err: any) {
       if (err.message.includes("Rate limit exceeded")) return ApiResponseHandler.customError(res, "Too many OTP requests. Please try again later.", 429, "RATE_LIMIT_EXCEEDED");
       ApiResponseHandler.unexpectedError(res, err, 500);
     }
   }
-static async signup(req: Request, res: Response) {
-  try {
-    console.log("========== SIGNUP REQUEST ==========");
-    console.log("Request Body:", req.body);
-
-    console.log("Name:", req.body.name);
-    console.log("Email:", req.body.email);
-    console.log("Phone:", req.body.phone);
-    console.log("Role:", req.body.role);
-
-    const { name, email, phone, role } = req.body;
-
-    // Rest of your signup logic...
-
-  } catch (err: any) {
-    console.error("========== SIGNUP ERROR ==========");
-    console.error(err);
-    console.error(err.stack);
-
-    ApiResponseHandler.unexpectedError(res, err, 500);
-  }
-}
-
   // ── 8. Check OTP Status ──────────────────────────────────────────────────────
   static async checkOTPStatus(req: Request, res: Response) {
     const { identifier } = req.params;

@@ -9,7 +9,10 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const JWT_SECRET = process.env.JWT_SECRET || "changeme";
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error("JWT_SECRET environment variable is required");
+}
 
 // Redis for device session tracking
 let redis: Redis | null = null;

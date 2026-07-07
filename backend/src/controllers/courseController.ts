@@ -37,8 +37,6 @@ export class CourseController {
       status = "DRAFT"
     } = req.body;
 
-    console.log("req.user" , req.user );
-
     const userId = req.user.userId;
 
     // Validate required fields
@@ -435,13 +433,14 @@ export class CourseController {
         return ApiResponseHandler.customError(res, "Course not found", 404, "COURSE_NOT_FOUND");
       }
 
-      // Check access permissions
-      console.log('getCourseById debug:', { userId, user_type: user.user_type, isCreator: isCreator(user.user_type), isUser: isUser(user.user_type), course_status: course.status, creator_id: course.creator_id });
-      if (isCreator(user.user_type) && !isUser(user.user_type) && course.creator_id !== userId) {
+      // Check access permissions — course creator always has full access
+      const isOwner = course.creator_id === userId;
+
+      if (!isOwner && isCreator(user.user_type) && !isUser(user.user_type)) {
         return ApiResponseHandler.customError(res, "You don't have access to this course", 403, "FORBIDDEN");
       }
 
-      if (isUser(user.user_type) && course.status !== "PUBLISHED") {
+      if (!isOwner && course.status !== "PUBLISHED") {
         return ApiResponseHandler.customError(res, "Course not available", 403, "COURSE_NOT_AVAILABLE");
       }
 
@@ -460,7 +459,6 @@ export class CourseController {
         videosToShow = course.videos.filter(v => v.is_free);
       }
 
-      console.log('Course found:', course.id, 'Videos count:', course.videos.length, 'Videos to show:', videosToShow.length);
 
       ApiResponseHandler.success(res, {
         course: {

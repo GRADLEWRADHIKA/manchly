@@ -7,14 +7,17 @@ import { AuthController } from "../controllers/authController";
 dotenv.config();
 const router = express.Router();
 
-const JWT_SECRET = process.env.JWT_SECRET || "changeme";
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error("JWT_SECRET environment variable is required");
+}
 
 // ─── Rate Limiters ─────────────────────────────────────────────────────────────
 
-// OTP send/resend — high limit (effectively advisory in dev, tighten in prod)
+// OTP send/resend — strict limit to prevent abuse
 const otpRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 1000,
+  max: 5,
   handler: (req, res) => {
     res.status(429).json({
       success: false,
@@ -26,10 +29,10 @@ const otpRateLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// OTP verify — same
+// OTP verify — strict limit to prevent brute-force
 const verifyRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 1000,
+  max: 5,
   handler: (req, res) => {
     res.status(429).json({
       success: false,

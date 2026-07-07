@@ -7,7 +7,10 @@ export interface JWTRequest extends Request {
   user?: { userId: string; email?: string };
 }
 
-const JWT_SECRET = process.env.JWT_SECRET || "changeme";
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error("JWT_SECRET environment variable is required");
+}
 
 export function jwtAuth(req: JWTRequest, res: Response, next: NextFunction) {
   const auth = req.headers["authorization"];

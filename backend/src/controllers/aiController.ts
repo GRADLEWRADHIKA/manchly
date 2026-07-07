@@ -659,26 +659,27 @@ Return JSON: {
   // session_id (if provided) overrides the other fields by DB lookup.
   static async sessionFollowUpMessage(req: Request, res: Response) {
     const started = Date.now();
-    let { session_id, learner_name, product_title, action_items = [], tone = "warm" } = req.body || {};
+    try {
+      let { session_id, learner_name, product_title, action_items = [], tone = "warm" } = req.body || {};
 
-    if (session_id) {
-      const s = await prisma.sessions.findUnique({ where: { id: session_id } });
-      if (s) {
-        const caller = await prisma.users.findUnique({
-          where: { id: s.caller_id }, select: { name: true },
-        });
-        learner_name = learner_name || caller?.name;
-        product_title = product_title || `${s.mode} session`;
+      if (session_id) {
+        const s = await prisma.sessions.findUnique({ where: { id: session_id } });
+        if (s) {
+          const caller = await prisma.users.findUnique({
+            where: { id: s.caller_id }, select: { name: true },
+          });
+          learner_name = learner_name || caller?.name;
+          product_title = product_title || `${s.mode} session`;
+        }
       }
-    }
 
-    if (!learner_name) return res.status(400).json({ error: "learner_name (or a valid session_id) is required" });
+      if (!learner_name) return res.status(400).json({ error: "learner_name (or a valid session_id) is required" });
 
-    const items = Array.isArray(action_items) ? action_items.filter(Boolean) : [];
+      const items = Array.isArray(action_items) ? action_items.filter(Boolean) : [];
 
-    const result = await generate({
-      system: "You write post-session follow-up messages for expert mentors. Specific, no boilerplate. Return only JSON.",
-      user: `Learner name: ${learner_name}
+      const result = await generate({
+        system: "You write post-session follow-up messages for expert mentors. Specific, no boilerplate. Return only JSON.",
+        user: `Learner name: ${learner_name}
 Product: ${product_title || "1-on-1 session"}
 Action items discussed: ${items.length ? items.map((x: string) => "- " + x).join("\n") : "(none provided)"}
 Tone: ${tone}
@@ -689,20 +690,24 @@ Return JSON: {
   "signoff": "<<short signoff line>>",
   "next_step_cta": "<<one-line invite to book again or share work>>"
 }`,
-      jsonOnly: true,
-      maxTokens: 700,
-      fallback: {
-        subject: `Following up on our call, ${learner_name}`,
-        body: `Hey ${learner_name},\n\nQuick note after our session — here's what we landed on:${
-          items.length
-            ? "\n\n" + items.map((x: string) => "• " + x).join("\n")
-            : "\n\n• The next step is to ship the smallest version of what we discussed and bring it back for review."
-        }\n\nDon't overthink the next move. Pick the smallest one and ship it this week.\n\nReply to this and tell me what you ended up doing — I read every reply.`,
-        signoff: "Cheering you on,",
-        next_step_cta: "Book a follow-up once you've shipped — first review on that work is on me.",
-      },
-    });
-    return reply(res, result.provider, result.data, started);
+        jsonOnly: true,
+        maxTokens: 700,
+        fallback: {
+          subject: `Following up on our call, ${learner_name}`,
+          body: `Hey ${learner_name},\n\nQuick note after our session — here's what we landed on:${
+            items.length
+              ? "\n\n" + items.map((x: string) => "• " + x).join("\n")
+              : "\n\n• The next step is to ship the smallest version of what we discussed and bring it back for review."
+          }\n\nDon't overthink the next move. Pick the smallest one and ship it this week.\n\nReply to this and tell me what you ended up doing — I read every reply.`,
+          signoff: "Cheering you on,",
+          next_step_cta: "Book a follow-up once you've shipped — first review on that work is on me.",
+        },
+      });
+      return reply(res, result.provider, result.data, started);
+    } catch (err: any) {
+      console.error("sessionFollowUpMessage error:", err.message);
+      return res.status(500).json({ error: "Failed to generate follow-up message" });
+    }
   }
 
   // ════════════════════════════════════════════════════════════════

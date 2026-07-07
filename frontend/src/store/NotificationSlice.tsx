@@ -88,7 +88,12 @@ const initialState: NotificationState = {
 const notificationSlice = createSlice({
   name: 'notifications',
   initialState,
-  reducers: {},
+  reducers: {
+    addRealtimeNotification: (state, action) => {
+      state.notifications.unshift(action.payload);
+      state.unreadCount += 1;
+    },
+  },
   extraReducers: builder => {
     builder
       .addCase(getCreatorNotifications.pending, state => {
@@ -132,4 +137,5 @@ const notificationSlice = createSlice({
   },
 });
 
+export const { addRealtimeNotification } = notificationSlice.actions;
 export default notificationSlice.reducer;

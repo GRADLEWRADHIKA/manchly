@@ -8,6 +8,7 @@ import {
   Sparkles,
   BarChart2,
   User,
+  MessageCircle,
 } from 'lucide-react-native';
 import colors from '../utils/colors';
 import { wp, hp, fp } from '../utils/responsive';
@@ -16,8 +17,8 @@ import CreatorHome from '../screens/Auth/Creator/Home/CreatorHome';
 import CreatorSetting from '../screens/Auth/Creator/Settings/CreatorSetting';
 import StatsScreen from '../screens/Auth/Creator/Stats/StatsScreen';
 import AskManchlyAI from '../screens/Auth/Creator/Ai/CreatorAI';
-//import CreateCourse  from '../screens/Auth/Creator/Products/Course/CreateCourse';
 import ProductsHub from '../screens/Auth/Creator/ProductHub/ProductHub';
+import CreatorChat from '../screens/Auth/Creator/Chat/CreatorChat';
 const Tab = createBottomTabNavigator();
 
 const tabs = [
@@ -40,10 +41,10 @@ const tabs = [
     Icon: Sparkles,
   },
   {
-    name: 'CreatorWebinar',
-    component: StatsScreen,
-    label: 'Stats',
-    Icon: BarChart2,
+    name: 'CreatorChat',
+    component: CreatorChat,
+    label: 'Chats',
+    Icon: MessageCircle,
   },
   {
     name: 'CreatorSetting',

@@ -21,59 +21,123 @@ import {
   Lightbulb,
   Wand2,
   Type,
+  BookOpen,
+  Tv,
+  Sparkles,
+  UserCircle2,
+  ShieldCheck,
+  ScrollText,
 } from 'lucide-react-native';
 import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
 
+// AI Modal components
+import LessonScriptModal from '../../../../components/ai/LessonScriptModal';
+import QuizModal from '../../../../components/ai/QuizModal';
+import SocialPostsModal from '../../../../components/ai/SocialPostsModal';
+import EmailSeriesModal from '../../../../components/ai/EmailSeriesModal';
+import PrepChecklistModal from '../../../../components/ai/PrepChecklistModal';
+import ProductSuggestionsModal from '../../../../components/ai/ProductSuggestionsModal';
+import LandingCopyModal from '../../../../components/ai/LandingCopyModal';
+import TitleSuggestionsModal from '../../../../components/ai/TitleSuggestionsModal';
+import CourseMetaModal from '../../../../components/ai/CourseMetaModal';
+import WebinarDescribeModal from '../../../../components/ai/WebinarDescribeModal';
+import EnhanceTextModal from '../../../../components/ai/EnhanceTextModal';
+import ExpertBioModal from '../../../../components/ai/ExpertBioModal';
+import ModerateModal from '../../../../components/ai/ModerateModal';
+import LessonSummaryModal from '../../../../components/ai/LessonSummaryModal';
+
 // ── Tool cards data ──────────────────────────────────────────────────────────
 const AI_TOOLS = [
   {
-    id: '1',
+    id: 'lesson-script',
     icon: FileText,
     title: 'Lesson Script Writer',
     description: 'Generate structured educational scripts with clear learning outcomes.',
   },
   {
-    id: '2',
+    id: 'quiz',
     icon: HelpCircle,
     title: 'Quiz Generator',
     description: 'Turn any content into engaging assessments and interactive quizzes.',
   },
   {
-    id: '3',
+    id: 'social-posts',
     icon: Share2,
     title: 'Social Posts',
     description: 'Create viral-ready content for LinkedIn, X, and Instagram in seconds.',
   },
   {
-    id: '4',
+    id: 'email-series',
     icon: Mail,
     title: 'Email Series',
     description: 'Draft high-converting nurture sequences and newsletters.',
   },
   {
-    id: '5',
+    id: 'session-prep',
     icon: Calendar,
     title: 'Session Prep',
     description: 'Organize agendas and talking points for your next workshop.',
   },
   {
-    id: '6',
+    id: 'product-suggestion',
     icon: Lightbulb,
     title: 'Product Suggestion',
     description: 'Discover digital product ideas based on your audience needs.',
   },
   {
-    id: '7',
+    id: 'content-enhancer',
     icon: Wand2,
     title: 'Content Enhancer',
     description: 'Refine and polish your existing drafts for maximum impact.',
   },
   {
-    id: '8',
+    id: 'landing-copy',
     icon: Type,
     title: 'Landing Copy',
     description: 'Write persuasive headlines and copy for landing pages that sell.',
+  },
+  {
+    id: 'course-meta',
+    icon: BookOpen,
+    title: 'Course Meta Generator',
+    description: 'Generate title, description, curriculum, and learning outcomes for a course.',
+  },
+  {
+    id: 'webinar-describe',
+    icon: Tv,
+    title: 'Webinar Description',
+    description: 'Create a compelling description, tagline, and takeaways for webinars.',
+  },
+  {
+    id: 'webinar-enhance',
+    icon: Sparkles,
+    title: 'Webinar Enhancer',
+    description: 'Polish webinar titles, descriptions, and outcomes for better conversions.',
+  },
+  {
+    id: 'expert-bio',
+    icon: UserCircle2,
+    title: 'Expert Bio Writer',
+    description: 'Generate a professional short and full bio for your expert profile.',
+  },
+  {
+    id: 'session-enhance',
+    icon: Wand2,
+    title: 'Session Enhancer',
+    description: 'Enhance session headlines, bios, and product descriptions.',
+  },
+  {
+    id: 'moderate',
+    icon: ShieldCheck,
+    title: 'Content Moderator',
+    description: 'Check if your content is safe to publish — detects hate, spam, and more.',
+  },
+  {
+    id: 'lesson-summary',
+    icon: ScrollText,
+    title: 'Lesson Summarizer',
+    description: 'Condense long lesson content into key points and action items.',
   },
 ];
 
@@ -99,12 +163,15 @@ const AskManchlyAI = () => {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeModal, setActiveModal] = useState<string | null>(null);
 
   const filteredTools = AI_TOOLS.filter(
     tool =>
       tool.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       tool.description.toLowerCase().includes(searchQuery.toLowerCase()),
   );
+
+  const closeModal = () => setActiveModal(null);
 
   return (
     <View style={styles.container}>
@@ -139,7 +206,7 @@ const AskManchlyAI = () => {
       >
         {/* Badge */}
         <View style={styles.badgeRow}>
-          <Text style={styles.badgeText}>✦  CREATIVE INTELLIGENCE</Text>
+          <Text style={styles.badgeText}>{'\u2726'}  CREATIVE INTELLIGENCE</Text>
         </View>
 
         {/* Hero Heading */}
@@ -170,9 +237,7 @@ const AskManchlyAI = () => {
               icon={tool.icon}
               title={tool.title}
               description={tool.description}
-              onPress={() => {
-                // navigation.navigate('AIToolScreen', { tool });
-              }}
+              onPress={() => setActiveModal(tool.id)}
             />
           ))
         ) : (
@@ -181,6 +246,26 @@ const AskManchlyAI = () => {
           </View>
         )}
       </ScrollView>
+
+      {/* ── AI Modals ──────────────────────────────────────────────────── */}
+      <LessonScriptModal visible={activeModal === 'lesson-script'} onClose={closeModal} topic="" />
+      <QuizModal visible={activeModal === 'quiz'} onClose={closeModal} topic="" />
+      <SocialPostsModal visible={activeModal === 'social-posts'} onClose={closeModal} webinarTitle="" />
+      <EmailSeriesModal visible={activeModal === 'email-series'} onClose={closeModal} webinarTitle="" />
+      <PrepChecklistModal visible={activeModal === 'session-prep'} onClose={closeModal} productTitle="" />
+      <ProductSuggestionsModal visible={activeModal === 'product-suggestion'} onClose={closeModal} expertise="" />
+      <LandingCopyModal visible={activeModal === 'content-enhancer'} onClose={closeModal} title="" description="" price={0} />
+      <LandingCopyModal visible={activeModal === 'landing-copy'} onClose={closeModal} title="" description="" price={0} />
+      <TitleSuggestionsModal visible={activeModal === 'title-suggestions'} onClose={closeModal} topic="" type="webinar" />
+
+      {/* New modals */}
+      <CourseMetaModal visible={activeModal === 'course-meta'} onClose={closeModal} />
+      <WebinarDescribeModal visible={activeModal === 'webinar-describe'} onClose={closeModal} />
+      <EnhanceTextModal visible={activeModal === 'webinar-enhance'} onClose={closeModal} endpoint="/ai/webinar/enhance" label="Webinar Enhancer" />
+      <ExpertBioModal visible={activeModal === 'expert-bio'} onClose={closeModal} />
+      <EnhanceTextModal visible={activeModal === 'session-enhance'} onClose={closeModal} endpoint="/ai/session/enhance" label="Session Enhancer" />
+      <ModerateModal visible={activeModal === 'moderate'} onClose={closeModal} />
+      <LessonSummaryModal visible={activeModal === 'lesson-summary'} onClose={closeModal} />
     </View>
   );
 };

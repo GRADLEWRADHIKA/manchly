@@ -43,14 +43,14 @@ const addTokenInterceptor = (axiosInstance: any) => {
     (error: any) => {
       const status = error?.response?.status;
 
-      if (status === 401) {
+      if (status === 401 || status === 403) {
         const currentToken = store?.getState()?.userReducer?.token;
         if (currentToken) {
-          // Token is expired or invalid — log the user out
+          // Token is expired, invalid, or forbidden — log the user out
           store?.dispatch({ type: 'User/logout' });
           Toast.show({
             type: 'error',
-            text1: 'Session Expired',
+            text1: status === 401 ? 'Session Expired' : 'Access Denied',
             text2: 'Please login again',
             position: 'top',
           });

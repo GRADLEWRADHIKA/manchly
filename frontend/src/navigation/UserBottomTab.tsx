@@ -19,10 +19,12 @@ import {
   BookOpen,
   Tv,
   User,
+  MessageCircle,
 } from 'lucide-react-native';
 import UserHome from '../screens/Auth/User/Home/UserHome';
 import UserSessions from '../screens/Auth/User/Sessions/UserSessions';
 import UserSetting from '../screens/Auth/User/Settings/UserSetting';
+import UserChat from '../screens/Auth/User/Chat/UserChat';
 //import BrandMarketplace from '../screens/Auth/User/Marketplace/BrandMarketplace';
 //import MarketplaceRouteGuard from '../components/MarketplaceRouteGuard';
 import { canAccessMarketplace } from '../utils/marketplaceUtils';
@@ -55,6 +57,12 @@ const tabs = [
     component: UserSessions,
     label: 'SESSIONS',
     Icon: Tv,
+  },
+  {
+    name: 'UserChat',
+    component: UserChat,
+    label: 'CHATS',
+    Icon: MessageCircle,
   },
   {
     name: 'UserSetting',

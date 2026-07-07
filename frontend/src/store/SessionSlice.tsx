@@ -160,6 +160,70 @@ export const getExpertBookedSlots = createAsyncThunk(
   },
 );
 
+// Availability Management
+export const setAvailability = createAsyncThunk(
+  'session/setAvailability',
+  async (data: any) => {
+    try {
+      const response = await instance.post('sessions/availability', data);
+      Toast.show({type: 'success', text1: 'Availability updated!', position: 'bottom'});
+      return response.data;
+    } catch (error: any) {
+      const msg = JSON.parse(error?.request?._response || '{}');
+      Toast.show({type: 'error', text1: 'Error', text2: msg?.error, position: 'bottom'});
+      throw error;
+    }
+  },
+);
+
+export const addAvailabilitySlot = createAsyncThunk(
+  'session/addSlot',
+  async (data: {day: string; start_time: string; end_time: string}) => {
+    try {
+      const response = await instance.post('sessions/availability/slot', data);
+      Toast.show({type: 'success', text1: 'Slot added!', position: 'bottom'});
+      return response.data;
+    } catch (error: any) {
+      const msg = JSON.parse(error?.request?._response || '{}');
+      Toast.show({type: 'error', text1: 'Error', text2: msg?.error, position: 'bottom'});
+      throw error;
+    }
+  },
+);
+
+export const getMyAvailability = createAsyncThunk(
+  'session/getMyAvailability',
+  async () => {
+    const response = await instance.get('sessions/availability/me');
+    return response.data;
+  },
+);
+
+export const removeAvailabilitySlot = createAsyncThunk(
+  'session/removeSlot',
+  async (slotId: string) => {
+    await instance.delete(`sessions/availability/${slotId}`);
+    Toast.show({type: 'success', text1: 'Slot removed', position: 'bottom'});
+    return slotId;
+  },
+);
+
+// Update Session Product
+export const updateSessionProduct = createAsyncThunk(
+  'session/updateProduct',
+  async ({productId, data}: {productId: string; data: any}) => {
+    try {
+      const response = await instance.patch(`sessions/products/${productId}`, data);
+      Toast.show({type: 'success', text1: 'Product updated!', position: 'bottom'});
+      return response.data;
+    } catch (error: any) {
+      const msg = JSON.parse(error?.request?._response || '{}');
+      Toast.show({type: 'error', text1: 'Error', text2: msg?.error, position: 'bottom'});
+      throw error;
+    }
+  },
+);
+
 // Session Products
 export const createSessionProduct = createAsyncThunk(
   'session/createProduct',
@@ -276,6 +340,7 @@ const sessionSlice = createSlice({
     products: [] as any[],
     expertProfile: null as any,
     experts: [] as any[],
+    availability: [] as any[],
     loading: false,
   },
   reducers: {},
@@ -314,6 +379,18 @@ const sessionSlice = createSlice({
       })
       .addCase(listExperts.fulfilled, (state, action) => {
         state.experts = action.payload?.data?.experts || [];
+      })
+      .addCase(getMyAvailability.fulfilled, (state, action) => {
+        state.availability = action.payload?.data || [];
+      })
+      .addCase(removeAvailabilitySlot.fulfilled, (state, action) => {
+        state.availability = state.availability.filter((s: any) => s.id !== action.payload);
+      })
+      .addCase(updateSessionProduct.fulfilled, (state, action) => {
+        const updated = action.payload?.data;
+        if (updated) {
+          state.products = state.products.map((p: any) => p.id === updated.id ? updated : p);
+        }
       });
   },
 });

@@ -328,6 +328,16 @@ const WalletCreator: React.FC = () => {
           })}
         </View>
 
+        {/* Settlement History Link */}
+        <TouchableOpacity
+          style={styles.settlementLink}
+          onPress={() => navigation.navigate('SettlementHistory')}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.settlementLinkText}>View Settlement History</Text>
+          <ArrowUp size={16} color={colors.gold || '#F0C040'} style={{transform: [{rotate: '90deg'}]}} />
+        </TouchableOpacity>
+
         {/* Recent Transactions List */}
         <View style={styles.transactionsCard}>
           <Text style={styles.cardHeaderTitle}>Sales & Revenue Logs</Text>
@@ -691,6 +701,24 @@ const styles = StyleSheet.create({
     marginHorizontal: wp(16),
     borderWidth: 1,
     borderColor: colors.border || '#2A2A2C',
+  },
+  settlementLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: wp(6),
+    paddingVertical: hp(14),
+    marginHorizontal: wp(20),
+    marginBottom: hp(8),
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.gold + '40',
+    backgroundColor: colors.gold + '10',
+  },
+  settlementLinkText: {
+    color: colors.gold || '#F0C040',
+    fontSize: fp(14),
+    fontWeight: '700',
   },
   emptyText: {
     color: colors.textSecondary,

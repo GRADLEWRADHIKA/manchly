@@ -57,6 +57,35 @@ export const getEarningsBreakdown = createAsyncThunk('settlement/getEarningsBrea
   return res.data?.data;
 });
 
+// Get Settlement History
+export const getSettlementHistory = createAsyncThunk(
+  'settlement/getHistory',
+  async (params: {page?: number; limit?: number} = {}, { rejectWithValue }) => {
+    try {
+      const query = new URLSearchParams();
+      if (params.page) query.append('page', String(params.page));
+      if (params.limit) query.append('limit', String(params.limit));
+      const res = await instance.get(`settlements/my-settlements?${query.toString()}`);
+      return res.data?.data;
+    } catch (error: any) {
+      return rejectWithValue(error?.response?.data?.message || 'Failed to fetch settlements');
+    }
+  },
+);
+
+// Get Settlement Detail
+export const getSettlementDetail = createAsyncThunk(
+  'settlement/getDetail',
+  async (settlementId: string, { rejectWithValue }) => {
+    try {
+      const res = await instance.get(`settlements/${settlementId}`);
+      return res.data?.data;
+    } catch (error: any) {
+      return rejectWithValue(error?.response?.data?.message || 'Failed to fetch settlement detail');
+    }
+  },
+);
+
 // Request Withdrawal
 export const requestWithdrawal = createAsyncThunk('settlement/withdraw', async (amount: number, { rejectWithValue }) => {
   try {
@@ -77,6 +106,8 @@ const slice = createSlice({
     wallet: null as any,
     bankAccount: null as any,
     earningsBreakdown: null as any,
+    settlements: [] as any[],
+    settlementDetail: null as any,
     loading: false,
   },
   reducers: {},
@@ -93,6 +124,19 @@ const slice = createSlice({
       })
       .addCase(getEarningsBreakdown.fulfilled, (state, { payload }) => {
         state.earningsBreakdown = payload;
+      })
+      .addCase(getSettlementHistory.pending, state => {
+        state.loading = true;
+      })
+      .addCase(getSettlementHistory.fulfilled, (state, { payload }) => {
+        state.settlements = payload || [];
+        state.loading = false;
+      })
+      .addCase(getSettlementHistory.rejected, state => {
+        state.loading = false;
+      })
+      .addCase(getSettlementDetail.fulfilled, (state, { payload }) => {
+        state.settlementDetail = payload;
       });
   },
 });

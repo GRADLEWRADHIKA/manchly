@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -8,77 +8,74 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
-import { Mail, Lock, Eye, EyeOff, Shield } from 'lucide-react-native';
-import { Controller, useForm } from 'react-hook-form';
-import Toast from 'react-native-toast-message';
-import { useDispatch } from 'react-redux';
-import { ThunkDispatch } from '@reduxjs/toolkit';
-import { login } from '../../store/UserSlice';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import {useNavigation} from '@react-navigation/native';
+import {Phone, Shield} from 'lucide-react-native';
+import {Controller, useForm} from 'react-hook-form';
+import {useDispatch} from 'react-redux';
+import {ThunkDispatch} from '@reduxjs/toolkit';
+import {sendOtpSms} from '../../store/UserSlice';
 import CustomTextInput from '../../components/CustomInput';
 import colors from '../../utils/colors';
-import { wp, hp, fp } from '../../utils/responsive';
+import {wp, hp, fp} from '../../utils/responsive';
 
 const LoginScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
   const [loading, setLoading] = useState(false);
   const [role, setRole] = useState<'CREATOR' | 'USER'>('USER');
-  const [showPassword, setShowPassword] = useState(false);
 
   const {
     control,
     handleSubmit,
-    reset,
-    formState: { errors },
+    formState: {errors},
   } = useForm({
     defaultValues: {
-      email: '',
-      password: '',
+      phone: '',
     },
   });
 
   const onSubmit = (data: any) => {
+    const phone = data.phone.trim();
+    if (phone.length < 10) return;
+
     setLoading(true);
 
     const payload = {
-      email: data.email.toLowerCase().trim(),
-      password: data.password,
+      phone_number: phone,
+      purpose: 'login',
+      tab: role,
     };
 
-    console.log("Logging in:", payload.email);
-    dispatch(login(payload))
+    dispatch(sendOtpSms(payload))
       .unwrap()
-      .then(() => {
-        Toast.show({
-          type: 'success',
-          text1: 'Logged in successfully',
-          position: 'top',
+      .then((res: any) => {
+        navigation.navigate('OTPScreen', {
+          payload: {
+            phone_number: phone,
+            purpose: 'login',
+            tab: role,
+          },
+          dummyOtp: res?.data?.data?.otp,
         });
-        reset();
-        setLoading(false);
       })
-      .catch((error) => {
-        console.log("Login Error:", error);
-        setLoading(false);
-      });
+      .catch(() => {})
+      .finally(() => setLoading(false));
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={colors.bg} />
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
+        style={{flex: 1}}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContainer}
-          keyboardShouldPersistTaps="handled"
-        >
-          {/* Logo / App Name */}
+          keyboardShouldPersistTaps="handled">
+          {/* Logo */}
           <View style={styles.logoSection}>
             <View style={styles.logoBadge}>
               <Shield size={wp(20)} color={colors.gold} />
@@ -88,10 +85,12 @@ const LoginScreen: React.FC = () => {
 
           {/* Form */}
           <View style={styles.formSection}>
-<Text style={styles.title}>Welcome back</Text>
-<Text style={styles.subtitle}>Enter your credentials to access your dashboard.</Text>
+            <Text style={styles.title}>Welcome back</Text>
+            <Text style={styles.subtitle}>
+              Enter your phone number to receive a verification code.
+            </Text>
 
-            {/* Role Toggle segment */}
+            {/* Role Toggle */}
             <View style={styles.toggleContainer}>
               <TouchableOpacity
                 style={[
@@ -99,14 +98,12 @@ const LoginScreen: React.FC = () => {
                   role === 'CREATOR' && styles.toggleSegmentActive,
                 ]}
                 onPress={() => setRole('CREATOR')}
-                activeOpacity={0.8}
-              >
+                activeOpacity={0.8}>
                 <Text
                   style={[
                     styles.toggleText,
                     role === 'CREATOR' && styles.toggleTextActive,
-                  ]}
-                >
+                  ]}>
                   Creator
                 </Text>
               </TouchableOpacity>
@@ -116,52 +113,49 @@ const LoginScreen: React.FC = () => {
                   role === 'USER' && styles.toggleSegmentActive,
                 ]}
                 onPress={() => setRole('USER')}
-                activeOpacity={0.8}
-              >
+                activeOpacity={0.8}>
                 <Text
                   style={[
                     styles.toggleText,
                     role === 'USER' && styles.toggleTextActive,
-                  ]}
-                >
+                  ]}>
                   Learner
                 </Text>
               </TouchableOpacity>
             </View>
 
-            {/* Email Field */}
+            {/* Phone Number Field */}
             <View style={styles.inputWrapper}>
-              <Text style={styles.inputLabel}>Email Address</Text>
+              <Text style={styles.inputLabel}>Phone Number</Text>
               <Controller
-                name="email"
+                name="phone"
                 control={control}
                 rules={{
-                  required: 'Please enter your email',
+                  required: 'Please enter your phone number',
                   pattern: {
-                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                    message: 'Please enter a valid email address',
+                    value: /^[6-9]\d{9}$/,
+                    message: 'Please enter a valid 10-digit phone number',
                   },
                 }}
                 render={({
-                  field: { onChange, onBlur, value },
-                  fieldState: { error },
+                  field: {onChange, onBlur, value},
+                  fieldState: {error},
                 }) => (
                   <View
                     style={[
                       styles.fieldContainer,
                       error && styles.fieldContainerError,
-                    ]}
-                  >
-                    <Mail
+                    ]}>
+                    <Phone
                       size={18}
                       color={colors.textMuted}
                       style={styles.fieldIconLeft}
                     />
                     <CustomTextInput
-                      placeholder="Enter Email Address"
+                      placeholder="Enter 10-digit phone number"
                       placeholderTextColor={colors.textMuted}
-                      keyboardType="email-address"
-                      autoCapitalize="none"
+                      keyboardType="phone-pad"
+                      maxLength={10}
                       onChange={onChange}
                       onBlur={onBlur}
                       value={value}
@@ -171,77 +165,10 @@ const LoginScreen: React.FC = () => {
                   </View>
                 )}
               />
-              {errors.email && (
-                <Text style={styles.errorText}>{errors.email.message}</Text>
+              {errors.phone && (
+                <Text style={styles.errorText}>{errors.phone.message}</Text>
               )}
             </View>
-
-            {/* Password Field */}
-            <View style={styles.inputWrapper}>
-              <Text style={styles.inputLabel}>Password</Text>
-              <Controller
-                name="password"
-                control={control}
-                rules={{
-                  required: 'Please enter your password',
-                }}
-                render={({
-                  field: { onChange, onBlur, value },
-                  fieldState: { error },
-                }) => (
-                  <View
-                    style={[
-                      styles.fieldContainer,
-                      error && styles.fieldContainerError,
-                    ]}
-                  >
-                    <Lock
-                      size={18}
-                      color={colors.textMuted}
-                      style={styles.fieldIconLeft}
-                    />
-                    <CustomTextInput
-                      placeholder="Enter Password"
-                      placeholderTextColor={colors.textMuted}
-                      secureTextEntry={!showPassword}
-                      onChange={onChange}
-                      onBlur={onBlur}
-                      value={value}
-                      inputContainerStyle={styles.textInputContainer}
-                      inputStyle={styles.textInput}
-                    />
-                    <TouchableOpacity
-                      onPress={() => setShowPassword(!showPassword)}
-                      activeOpacity={0.75}
-                      style={styles.fieldIconRight}
-                    >
-                      {showPassword ? (
-                        <EyeOff size={18} color={colors.textMuted} />
-                      ) : (
-                        <Eye size={18} color={colors.textMuted} />
-                      )}
-                    </TouchableOpacity>
-                  </View>
-                )}
-              />
-              {errors.password && (
-                <Text style={styles.errorText}>{errors.password.message}</Text>
-              )}
-            </View>
-
-            {/* Forgot Password */}
-            <TouchableOpacity
-              onPress={() =>
-                Toast.show({
-                  type: 'info',
-                  text1: 'Password reset coming soon',
-                })
-              }
-              activeOpacity={0.75}
-              style={styles.forgotPassword}
-            >
-              <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-            </TouchableOpacity>
 
             {/* Submit CTA */}
             <TouchableOpacity
@@ -251,11 +178,12 @@ const LoginScreen: React.FC = () => {
               ]}
               onPress={handleSubmit(onSubmit)}
               activeOpacity={0.75}
-              disabled={loading}
-            >
-              <Text style={styles.primaryButtonText}>
-                {loading ? 'Logging in...' : 'Login →'}
-              </Text>
+              disabled={loading}>
+              {loading ? (
+                <ActivityIndicator color="#000" />
+              ) : (
+                <Text style={styles.primaryButtonText}>Send OTP →</Text>
+              )}
             </TouchableOpacity>
           </View>
 
@@ -265,8 +193,7 @@ const LoginScreen: React.FC = () => {
               Don't have an account?{' '}
               <Text
                 style={styles.footerLink}
-                onPress={() => navigation.navigate('SignupScreen')}
-              >
+                onPress={() => navigation.navigate('SignupScreen')}>
                 Sign up
               </Text>
             </Text>
@@ -305,17 +232,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.goldDim,
     alignItems: 'center',
     justifyContent: 'center',
-    //marginBottom: hp(12),
   },
   logoText: {
     fontSize: fp(18),
     fontWeight: '700',
     color: colors.textPrimary,
-  },
-  tagline: {
-    fontSize: fp(12),
-    color: colors.textSecondary,
-    marginTop: hp(4),
   },
   formSection: {
     flex: 1,
@@ -334,7 +255,7 @@ const styles = StyleSheet.create({
     marginBottom: hp(24),
   },
   inputWrapper: {
-    marginBottom: hp(16),
+    marginBottom: hp(24),
   },
   inputLabel: {
     fontSize: fp(11),
@@ -359,9 +280,6 @@ const styles = StyleSheet.create({
   fieldIconLeft: {
     marginRight: wp(10),
   },
-  fieldIconRight: {
-    marginLeft: wp(10),
-  },
   textInputContainer: {
     flex: 1,
     height: '100%',
@@ -378,15 +296,6 @@ const styles = StyleSheet.create({
     color: '#EF4444',
     fontSize: fp(12),
     marginTop: hp(4),
-  },
-  forgotPassword: {
-    alignSelf: 'flex-end',
-    marginBottom: hp(24),
-  },
-  forgotPasswordText: {
-    color: colors.gold,
-    fontSize: fp(13),
-    fontWeight: '500',
   },
   primaryButton: {
     height: hp(54),

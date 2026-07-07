@@ -12,8 +12,10 @@ import { getAppLinkDataFromUrl } from 'react-native-chottulink-sdk';
 import NotificationService from '../services/NotificationService';
 import notifee, { EventType } from '@notifee/react-native';
 import { store } from '../store/Store';
-import { updateProfile } from '../store/UserSlice';
-import { getUnreadCount } from '../store/NotificationSlice';
+import { updateProfile, getCurrentUser } from '../store/UserSlice';
+import { getUnreadCount, addRealtimeNotification } from '../store/NotificationSlice';
+import { addSocketMessage } from '../store/ChatSlice';
+import SocketService from '../services/SocketService';
 import CallListener, { setNavigationRef } from '../components/CallListener';
 import { useDispatch } from 'react-redux';
 import { navigationRef } from './navigationRef';
@@ -162,9 +164,50 @@ const Router = () => {
   const pendingCallData = useRef<any>(null);
   const pendingNotificationData = useRef<any>(null);
 
-  // Keep module-level auth flag in sync
+  // Keep module-level auth flag in sync + refresh user data on app open
   useEffect(() => {
     isAuthenticated = !!token;
+    if (token) {
+      dispatch(getCurrentUser());
+      dispatch(getUnreadCount());
+    }
+  }, [token]);
+
+  // Socket listeners for real-time events
+  useEffect(() => {
+    if (!token) return;
+
+    const handleNewNotification = (notification: any) => {
+      dispatch(addRealtimeNotification(notification));
+    };
+
+    const handleUserStatus = (data: { userId: string; status: string }) => {
+      if (data.status === 'online') {
+        SocketService.setUserOnline(data.userId);
+      } else {
+        SocketService.setUserOffline(data.userId);
+      }
+    };
+
+    const handleSocketError = (data: { message: string }) => {
+      console.warn('Socket error:', data.message);
+    };
+
+    const handleNewMessage = (msg: any) => {
+      dispatch(addSocketMessage(msg));
+    };
+
+    SocketService.on('new_notification', handleNewNotification);
+    SocketService.on('user_status', handleUserStatus);
+    SocketService.on('error', handleSocketError);
+    SocketService.on('new_message', handleNewMessage);
+
+    return () => {
+      SocketService.off('new_notification', handleNewNotification);
+      SocketService.off('user_status', handleUserStatus);
+      SocketService.off('error', handleSocketError);
+      SocketService.off('new_message', handleNewMessage);
+    };
   }, [token]);
 
   // Setup FCM notifications

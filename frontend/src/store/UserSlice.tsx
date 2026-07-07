@@ -104,23 +104,6 @@ export const signUp = createAsyncThunk('signUp', async (data: object) => {
   }
 });
 
-export const login = createAsyncThunk('login', async (data: object) => {
-  try {
-    const url = 'auth/login';
-    const requestBody = data;
-    const response = await instance.post(url, requestBody);
-    return response;
-  } catch (error: any) {
-    Toast.show({
-      type: 'error',
-      text1: 'Login Failed',
-      text2: getApiErrorMessage(error, 'Invalid credentials'),
-      position: 'bottom',
-    });
-    throw error;
-  }
-});
-
 export const checkAuthData = createAsyncThunk('checkAuthData', async (data: object) => {
   try {
     const url = 'auth/check-user';
@@ -137,6 +120,72 @@ export const checkAuthData = createAsyncThunk('checkAuthData', async (data: obje
     throw error;
   }
 });
+
+// Refresh current user data from backend
+export const getCurrentUser = createAsyncThunk('getCurrentUser', async () => {
+  const response = await instance.get('auth/me');
+  return response;
+});
+
+// Resend OTP
+export const resendOtp = createAsyncThunk('resendOtp', async (data: object) => {
+  try {
+    const response = await instance.post('auth/resend-otp', data);
+    Toast.show({type: 'success', text1: 'OTP Resent', position: 'bottom'});
+    return response;
+  } catch (error) {
+    Toast.show({
+      type: 'error',
+      text1: 'Error',
+      text2: getApiErrorMessage(error, 'Failed to resend OTP'),
+      position: 'bottom',
+    });
+    throw error;
+  }
+});
+
+// Subscription Management
+export const getMySubscription = createAsyncThunk('getMySubscription', async () => {
+  const response = await instance.get('subscriptions/me');
+  return response.data;
+});
+
+export const createSubscriptionCheckout = createAsyncThunk(
+  'createSubscriptionCheckout',
+  async (data: object) => {
+    try {
+      const response = await instance.post('subscriptions/checkout', data);
+      return response.data;
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: getApiErrorMessage(error, 'Failed to create checkout'),
+        position: 'bottom',
+      });
+      throw error;
+    }
+  },
+);
+
+export const verifySubscription = createAsyncThunk(
+  'verifySubscription',
+  async (data: object) => {
+    try {
+      const response = await instance.post('subscriptions/verify', data);
+      Toast.show({type: 'success', text1: 'Premium activated!', position: 'bottom'});
+      return response.data;
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: getApiErrorMessage(error, 'Verification failed'),
+        position: 'bottom',
+      });
+      throw error;
+    }
+  },
+);
 
 export const verifyPAN = createAsyncThunk('verifyPAN', async (data: object) => {
   try {
@@ -214,24 +263,6 @@ export const UserSlice = createSlice({
         state.loading = false;
         state.justLoggedIn = true;
       })
-      .addCase(login.pending, state => {
-        state.loading = true;
-      })
-      .addCase(login.fulfilled, (state, actions) => {
-        const data = actions?.payload?.data?.data;
-        if (data?.user) {
-          state.user = data.user;
-        }
-        if (data?.token) {
-          state.token = data.token;
-          state.isAuth = true;
-          state.justLoggedIn = true;
-        }
-        state.loading = false;
-      })
-      .addCase(login.rejected, state => {
-        state.loading = false;
-      })
       .addCase(signUp.fulfilled, (state, actions) => {
         const data = actions?.payload?.data?.data;
         if (data?.user) {
@@ -256,6 +287,30 @@ export const UserSlice = createSlice({
           state.user = actions.payload.data.user;
         }
         state.loading = false;
+      })
+      .addCase(getMySubscription.fulfilled, (state, actions) => {
+        const sub = actions?.payload?.data;
+        if (sub) {
+          state.user = {
+            ...state.user,
+            is_premium: sub.is_premium,
+            isPremium: sub.is_premium,
+          };
+        }
+      })
+      .addCase(verifySubscription.fulfilled, (state) => {
+        state.user = {
+          ...state.user,
+          is_premium: true,
+          isPremium: true,
+        };
+      })
+      .addCase(getCurrentUser.fulfilled, (state, actions) => {
+        const updatedUser = actions?.payload?.data?.data?.user;
+        if (updatedUser) {
+          const currentUserType = state.user?.user_type;
+          state.user = { ...updatedUser, user_type: currentUserType || updatedUser?.user_type };
+        }
       })
       .addCase(verifyOtp.rejected, state => {
         state.loading = false;

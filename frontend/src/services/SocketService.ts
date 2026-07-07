@@ -4,6 +4,7 @@ import {BASE_URL} from '../utils/Urls';
 class SocketService {
   private socket: Socket | null = null;
   private listeners: Map<string, Set<Function>> = new Map();
+  private onlineUsers: Set<string> = new Set();
 
   connect(token: string) {
     if (this.socket?.connected) return;
@@ -19,6 +20,8 @@ class SocketService {
 
     this.socket.on('connect', () => {
       console.log('Socket connected:', this.socket?.id);
+      // Tell backend we're online
+      this.socket?.emit('user_online');
       // Re-attach all registered listeners on reconnect
       this.listeners.forEach((callbacks, event) => {
         callbacks.forEach(cb => {
@@ -73,6 +76,22 @@ class SocketService {
 
   isConnected() {
     return this.socket?.connected || false;
+  }
+
+  setUserOnline(userId: string) {
+    this.onlineUsers.add(userId);
+  }
+
+  setUserOffline(userId: string) {
+    this.onlineUsers.delete(userId);
+  }
+
+  isUserOnline(userId: string) {
+    return this.onlineUsers.has(userId);
+  }
+
+  getOnlineUsers() {
+    return this.onlineUsers;
   }
 }
 

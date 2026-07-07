@@ -23,6 +23,8 @@ import ExpertList from '../screens/Auth/User/Sessions/ExpertList';
 import ExpertDetail from '../screens/Auth/User/Sessions/ExpertDetail';
 import SessionRatingScreen from '../screens/Auth/User/Sessions/SessionRatingScreen';
 import UserNotification from '../screens/Auth/User/Notifications/UserNotification';
+import ChatThread from '../screens/Auth/User/Chat/ChatThread';
+import SettlementHistory from '../screens/Auth/Creator/Wallet/SettlementHistory';
 
 const Stack = createNativeStackNavigator();
 
@@ -61,6 +63,8 @@ const UserMainStack = () => {
       <Stack.Screen name="CallScreen" component={CallScreen} />
       <Stack.Screen name="SessionRatingScreen" component={SessionRatingScreen} />
       <Stack.Screen name="UserNotification" component={UserNotification} />
+      <Stack.Screen name="SettlementHistory" component={SettlementHistory} />
+      <Stack.Screen name="ChatThread" component={ChatThread} />
     </Stack.Navigator>
   );
 };

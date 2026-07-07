@@ -23,6 +23,9 @@ import IncomingCallScreen from '../screens/Auth/Creator/Astrologer/IncomingCallS
 import CallScreen from '../screens/Auth/User/Astrologer/CallScreen';
 import ExpertRegistration from '../screens/Auth/Creator/Products/ExpertRegistration';
 import AllSessions from '../screens/Auth/Creator/Products/AllSessions';
+import AvailabilityManager from '../screens/Auth/Creator/Sessions/AvailabilityManager';
+import ChatThread from '../screens/Auth/User/Chat/ChatThread';
+import SettlementHistory from '../screens/Auth/Creator/Wallet/SettlementHistory';
 
 import CreatorDashboardOverview from '../screens/Auth/Creator/CreatorDashboardOverview';
 
@@ -73,6 +76,9 @@ const CreatorMainStack = () => {
         <Stack.Screen name="IncomingCallScreen" component={IncomingCallScreen} />
         <Stack.Screen name="CallScreen" component={CallScreen} />
         <Stack.Screen name="CreatorDashboardOverview" component={CreatorDashboardOverview} />
+        <Stack.Screen name="AvailabilityManager" component={AvailabilityManager} />
+        <Stack.Screen name="SettlementHistory" component={SettlementHistory} />
+        <Stack.Screen name="ChatThread" component={ChatThread} />
     </Stack.Navigator>
   );
 };

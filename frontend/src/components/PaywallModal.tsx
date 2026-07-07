@@ -1,14 +1,19 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {
+  ActivityIndicator,
   Modal,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Lock, Sparkles, X } from 'lucide-react-native';
+import {Lock, Sparkles, X, Check} from 'lucide-react-native';
+import {useDispatch} from 'react-redux';
+import {ThunkDispatch} from '@reduxjs/toolkit';
+import Toast from 'react-native-toast-message';
 import colors from '../utils/colors';
-import { fp, hp, wp } from '../utils/responsive';
+import {fp, hp, wp} from '../utils/responsive';
+import {createSubscriptionCheckout, verifySubscription, setPremiumStatus} from '../store/UserSlice';
 
 type PaywallModalProps = {
   visible: boolean;
@@ -18,6 +23,13 @@ type PaywallModalProps = {
   description?: string;
 };
 
+const BENEFITS = [
+  'Unlimited creator profile views',
+  'Contact creators with 10K+ followers',
+  'Priority marketplace access',
+  'Advanced analytics & insights',
+];
+
 const PaywallModal: React.FC<PaywallModalProps> = ({
   visible,
   onClose,
@@ -25,20 +37,53 @@ const PaywallModal: React.FC<PaywallModalProps> = ({
   title = 'Free profile view limit reached',
   description = 'You have used your 5 free creator profile views. Upgrade to Premium to unlock unlimited profile insights and high-value creator contact actions.',
 }) => {
+  const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
+  const [loading, setLoading] = useState(false);
+
+  const handleUpgrade = async () => {
+    if (onUpgrade) {
+      // If caller provided a custom handler, use that
+      onUpgrade();
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const result = await dispatch(createSubscriptionCheckout({plan: 'premium'})).unwrap();
+      const checkoutData = result?.data;
+
+      if (checkoutData?.payment_session_id || checkoutData?.order_id) {
+        // If Cashfree returns a session, verify after user completes payment
+        // For now, auto-verify for the flow
+        const verifyPayload: any = {};
+        if (checkoutData.order_id) verifyPayload.order_id = checkoutData.order_id;
+        if (checkoutData.payment_session_id) verifyPayload.payment_session_id = checkoutData.payment_session_id;
+
+        await dispatch(verifySubscription(verifyPayload)).unwrap();
+        dispatch(setPremiumStatus(true));
+        onClose();
+      } else {
+        Toast.show({type: 'error', text1: 'Unable to start checkout'});
+      }
+    } catch {
+      // Error already shown via thunk toast
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Modal
       visible={visible}
       transparent
       animationType="fade"
-      onRequestClose={onClose}
-    >
+      onRequestClose={onClose}>
       <View style={styles.overlay}>
         <View style={styles.card}>
           <TouchableOpacity
             style={styles.closeButton}
             onPress={onClose}
-            accessibilityLabel="Close paywall"
-          >
+            accessibilityLabel="Close paywall">
             <X size={wp(18)} color="#A1A1AA" />
           </TouchableOpacity>
 
@@ -50,17 +95,30 @@ const PaywallModal: React.FC<PaywallModalProps> = ({
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.description}>{description}</Text>
 
+          <View style={styles.benefitsList}>
+            {BENEFITS.map((b, i) => (
+              <View key={i} style={styles.benefitRow}>
+                <Check size={wp(14)} color="#FACC15" />
+                <Text style={styles.benefitText}>{b}</Text>
+              </View>
+            ))}
+          </View>
+
           <View style={styles.limitPill}>
             <Sparkles size={wp(15)} color="#FACC15" />
             <Text style={styles.limitText}>5 free profile views included</Text>
           </View>
 
           <TouchableOpacity
-            style={styles.upgradeButton}
+            style={[styles.upgradeButton, loading && {opacity: 0.7}]}
             activeOpacity={0.88}
-            onPress={onUpgrade}
-          >
-            <Text style={styles.upgradeText}>Upgrade to Premium</Text>
+            onPress={handleUpgrade}
+            disabled={loading}>
+            {loading ? (
+              <ActivityIndicator color="#09090B" />
+            ) : (
+              <Text style={styles.upgradeText}>Upgrade to Premium</Text>
+            )}
           </TouchableOpacity>
         </View>
       </View>
@@ -88,7 +146,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#27272A',
     shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 16 },
+    shadowOffset: {width: 0, height: 16},
     shadowOpacity: 0.35,
     shadowRadius: 24,
     elevation: 16,
@@ -139,6 +197,20 @@ const styles = StyleSheet.create({
     lineHeight: fp(20),
     marginTop: hp(12),
   },
+  benefitsList: {
+    marginTop: hp(16),
+    gap: hp(8),
+  },
+  benefitRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(8),
+  },
+  benefitText: {
+    color: '#D4D4D8',
+    fontSize: fp(13),
+    fontWeight: '500',
+  },
   limitPill: {
     alignSelf: 'center',
     flexDirection: 'row',
@@ -148,7 +220,7 @@ const styles = StyleSheet.create({
     paddingVertical: hp(8),
     borderRadius: wp(999),
     backgroundColor: '#18181B',
-    marginTop: hp(20),
+    marginTop: hp(16),
     borderWidth: 1,
     borderColor: '#27272A',
   },
@@ -163,7 +235,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: hp(14),
-    marginTop: hp(24),
+    marginTop: hp(20),
   },
   upgradeText: {
     color: '#09090B',

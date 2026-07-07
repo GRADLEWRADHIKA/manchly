@@ -16,6 +16,7 @@ import {
   TrendingUp,
   PhoneCall,
   Settings,
+  Calendar,
 } from 'lucide-react-native';
 import {useDispatch, useSelector} from 'react-redux';
 import {useIsFocused, useNavigation} from '@react-navigation/native';
@@ -23,7 +24,7 @@ import {PhoneOutgoing} from 'lucide-react-native';
 import SocketService from '../../../../services/SocketService';
 import colors from '../../../../utils/colors';
 import {wp, hp, fp} from '../../../../utils/responsive';
-import {getMySessions, getSessionStats, getMyExpertProfile, updateExpertProfile} from '../../../../store/SessionSlice';
+import {getMySessions, getSessionStats, getMyExpertProfile, updateExpertProfile, getMySessionProducts, updateSessionProduct, deleteSessionProduct} from '../../../../store/SessionSlice';
 import AiButton from '../../../../components/AiButton';
 import PrepChecklistModal from '../../../../components/ai/PrepChecklistModal';
 
@@ -152,6 +153,15 @@ const CreatorSessions: React.FC = () => {
         }>
         <Settings size={wp(16)} color={colors.cAccentLight} strokeWidth={1.8} />
         <Text style={styles.editBtnText}>Edit Session Profile</Text>
+      </TouchableOpacity>
+
+      {/* Manage Availability */}
+      <TouchableOpacity
+        style={styles.editBtn}
+        activeOpacity={0.7}
+        onPress={() => navigation.navigate('AvailabilityManager')}>
+        <Calendar size={wp(16)} color={colors.cAccentLight} strokeWidth={1.8} />
+        <Text style={styles.editBtnText}>Manage Availability</Text>
       </TouchableOpacity>
 
       {/* Stats Row */}

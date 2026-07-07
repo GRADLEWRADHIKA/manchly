@@ -6,16 +6,15 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
-  SafeAreaView,
   StatusBar,
   TouchableWithoutFeedback,
   Dimensions,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
 import {
-  Menu,
   Bell,
   Check,
   User,
@@ -27,6 +26,7 @@ import {
   Linkedin,
   Instagram,
   Star,
+  Settings,
 } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 import colors from '../../../../utils/colors';
@@ -56,6 +56,7 @@ const CreatorSetting: React.FC = () => {
   const navigation = useNavigation<any>();
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
   const { user } = useSelector((state: any) => state.userReducer);
+  const insets = useSafeAreaInsets();
 
   // States
   const [showDropdown, setShowDropdown] = useState(false);
@@ -114,25 +115,45 @@ const CreatorSetting: React.FC = () => {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={colors.bg || '#0F0F0F'} />
 
-      <SafeAreaView style={styles.safeArea}>
-        {/* Top Bar Header */}
-        <View style={styles.topBar}>
-          <TouchableOpacity
-            style={styles.iconButton}
-            onPress={() => Toast.show({ type: 'info', text1: 'Settings Menu' })}
-            activeOpacity={0.75}
-          >
-            <Menu size={22} color={colors.white || '#FFFFFF'} />
-          </TouchableOpacity>
-          <Text style={styles.brandTitle}>Manchly</Text>
-          <TouchableOpacity
-            style={styles.iconButton}
-            onPress={() => navigation.navigate('CreatorNotification')}
-            activeOpacity={0.75}
-          >
-            <Bell size={22} color={colors.white || '#FFFFFF'} />
-            <View style={styles.bellDot} />
-          </TouchableOpacity>
+      <View style={styles.safeArea}>
+        {/* Top Bar — same as Home */}
+        <View style={[styles.topBar, { paddingTop: insets.top + hp(8) }]}>
+          <View style={styles.topBarLeft}>
+            <TouchableOpacity activeOpacity={0.75} onPress={() => navigation.navigate('CreatorProfile')}>
+              {user?.profile_image ? (
+                <Image source={{ uri: user.profile_image }} style={styles.headerAvatar} />
+              ) : (
+                <View style={styles.headerAvatarFallback}>
+                  <Text style={styles.headerAvatarText}>
+                    {(user?.name || 'C').charAt(0).toUpperCase()}
+                  </Text>
+                </View>
+              )}
+            </TouchableOpacity>
+            <View>
+              <Text style={styles.greetingSmall}>Settings</Text>
+              <Text style={styles.greetingName}>
+                {user?.name ? user.name.charAt(0).toUpperCase() + user.name.slice(1) : 'Creator'}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.topBarRight}>
+            <TouchableOpacity
+              style={styles.settingsBtn}
+              activeOpacity={0.75}
+              onPress={() => navigation.navigate('CreatorSettingsDetails')}
+            >
+              <Settings size={18} color={colors.textPrimary} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.iconButton}
+              activeOpacity={0.75}
+              onPress={() => navigation.navigate('CreatorNotification')}
+            >
+              <Bell size={22} color={colors.textPrimary} />
+              <View style={styles.bellDot} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         <ScrollView
@@ -346,7 +367,7 @@ const CreatorSetting: React.FC = () => {
             ))}
           </View>
         </ScrollView>
-      </SafeAreaView>
+      </View>
 
       {/* Screen 10 Dropdown Logout Overlay */}
       {showDropdown && (
@@ -430,9 +451,62 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: wp(16),
-    paddingVertical: hp(12),
+    paddingVertical: hp(10),
     borderBottomWidth: 0.5,
     borderBottomColor: colors.border || '#2A2A2C',
+  },
+  topBarLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(10),
+  },
+  topBarRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(8),
+  },
+  headerAvatar: {
+    width: wp(38),
+    height: wp(38),
+    borderRadius: wp(12),
+    borderWidth: 1.5,
+    borderColor: (colors.gold || '#F0C040') + '40',
+  },
+  headerAvatarFallback: {
+    width: wp(38),
+    height: wp(38),
+    borderRadius: wp(12),
+    backgroundColor: (colors.gold || '#F0C040') + '20',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: (colors.gold || '#F0C040') + '40',
+  },
+  headerAvatarText: {
+    fontSize: fp(16),
+    fontWeight: '800',
+    color: colors.gold || '#F0C040',
+  },
+  greetingSmall: {
+    fontSize: fp(11),
+    color: colors.textSecondary || '#888888',
+    fontWeight: '500',
+  },
+  greetingName: {
+    fontSize: fp(16),
+    fontWeight: '700',
+    color: colors.textPrimary || '#FFFFFF',
+    marginTop: hp(1),
+  },
+  settingsBtn: {
+    width: wp(34),
+    height: wp(34),
+    borderRadius: wp(10),
+    backgroundColor: colors.surface || '#1C1C1E',
+    borderWidth: 1,
+    borderColor: colors.border || '#2A2A2C',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   iconButton: {
     padding: wp(6),
@@ -446,12 +520,6 @@ const styles = StyleSheet.create({
     height: wp(6),
     borderRadius: wp(3),
     backgroundColor: colors.gold || '#F0C040',
-  },
-  brandTitle: {
-    fontSize: fp(18),
-    fontWeight: '700',
-    color: colors.gold || '#F0C040',
-    letterSpacing: 0.5,
   },
   scrollContent: {
     paddingBottom: hp(40),

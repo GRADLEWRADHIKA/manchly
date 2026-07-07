@@ -121,35 +121,31 @@ const CreatorHome = () => {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={colors.bg} />
 
-      {/* Top Bar Navigation */}
+      {/* Top Bar with Profile */}
       <View style={[styles.topBar, { paddingTop: insets.top }]}>
-        <TouchableOpacity
-          style={styles.iconButton}
-          activeOpacity={0.75}
-          onPress={() => navigation.navigate('CreatorSetting')}
-        >
-          <Menu size={22} color={colors.textPrimary} />
-        </TouchableOpacity>
-        <Text style={styles.brandTitle}>Manchly</Text>
-        <TouchableOpacity
-          style={styles.iconButton}
-          activeOpacity={0.75}
-          onPress={() => navigation.navigate('CreatorNotification')}
-        >
-          <Bell size={22} color={colors.textPrimary} />
-          <View style={styles.bellDot} />
-        </TouchableOpacity>
-      </View>
-
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {/* Header Row */}
-        <View style={styles.headerRow}>
-          <Text style={styles.headerTitle}>Creator Hub</Text>
+        <View style={styles.topBarLeft}>
           <TouchableOpacity
-            style={styles.goldPill}
+            activeOpacity={0.75}
+            onPress={() => navigation.navigate('CreatorSetting')}
+          >
+            {user?.profile_image ? (
+              <Image source={{ uri: user.profile_image }} style={styles.headerAvatar} />
+            ) : (
+              <View style={styles.headerAvatarFallback}>
+                <Text style={styles.headerAvatarText}>
+                  {(user?.name || 'C').charAt(0).toUpperCase()}
+                </Text>
+              </View>
+            )}
+          </TouchableOpacity>
+          <View>
+            <Text style={styles.greetingSmall}>Good {new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 17 ? 'afternoon' : 'evening'},</Text>
+            <Text style={styles.greetingName}>{displayName}</Text>
+          </View>
+        </View>
+        <View style={styles.topBarRight}>
+          <TouchableOpacity
+            style={styles.createBtn}
             activeOpacity={0.75}
             onPress={() => {
               if (user?.kyc_verified) {
@@ -159,37 +155,34 @@ const CreatorHome = () => {
               }
             }}
           >
-            <Text style={styles.goldPillText}>+ Create New</Text>
+            <Plus size={16} color={colors.bg} strokeWidth={3} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.iconButton}
+            activeOpacity={0.75}
+            onPress={() => navigation.navigate('CreatorNotification')}
+          >
+            <Bell size={22} color={colors.textPrimary} />
+            <View style={styles.bellDot} />
           </TouchableOpacity>
         </View>
+      </View>
 
-        {/* Welcome Line */}
-        <Text style={styles.welcomeText}>
-          Welcome back, {displayName}! Your content performance is up 12% this
-          week.
-        </Text>
-
-        {/* KYC Verification Card */}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* KYC Banner (compact) */}
         {!user?.kyc_verified && (
-          <View style={styles.kycCard}>
-            <View style={styles.kycIconRow}>
-              <View style={styles.kycShieldWrap}>
-                <Shield size={wp(22)} color={colors.gold} />
-              </View>
-            </View>
-            <Text style={styles.kycTitle}>Verify Your Identity</Text>
-            <Text style={styles.kycSubtitle}>
-              Complete your KYC to unlock higher withdrawal limits and premium
-              features.
-            </Text>
-            <TouchableOpacity
-              style={styles.kycButton}
-              activeOpacity={0.75}
-              onPress={() => navigation.navigate('KYCVerificationScreen')}
-            >
-              <Text style={styles.kycButtonText}>Verification Complete</Text>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity
+            style={styles.kycBanner}
+            activeOpacity={0.75}
+            onPress={() => navigation.navigate('KYCVerificationScreen')}
+          >
+            <Shield size={wp(18)} color={colors.gold} />
+            <Text style={styles.kycBannerText}>Complete KYC to unlock withdrawals</Text>
+            <ChevronRight size={wp(16)} color={colors.gold} />
+          </TouchableOpacity>
         )}
 
         {/* Revenue Overview Card */}
@@ -466,16 +459,67 @@ const styles = StyleSheet.create({
     paddingBottom: hp(110),
   },
 
-  // Top Bar Styles
+  // Top Bar
   topBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: wp(16),
-    paddingVertical: hp(12),
+    paddingVertical: hp(10),
     backgroundColor: colors.bg,
     borderBottomWidth: 0.5,
     borderBottomColor: colors.border,
+  },
+  topBarLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(10),
+  },
+  topBarRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(8),
+  },
+  headerAvatar: {
+    width: wp(38),
+    height: wp(38),
+    borderRadius: wp(12),
+    borderWidth: 1.5,
+    borderColor: colors.gold + '40',
+  },
+  headerAvatarFallback: {
+    width: wp(38),
+    height: wp(38),
+    borderRadius: wp(12),
+    backgroundColor: colors.gold + '20',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: colors.gold + '40',
+  },
+  headerAvatarText: {
+    fontSize: fp(16),
+    fontWeight: '800',
+    color: colors.gold,
+  },
+  greetingSmall: {
+    fontSize: fp(11),
+    color: colors.textSecondary,
+    fontWeight: '500',
+  },
+  greetingName: {
+    fontSize: fp(16),
+    fontWeight: '700',
+    color: colors.textPrimary,
+    marginTop: hp(1),
+  },
+  createBtn: {
+    width: wp(34),
+    height: wp(34),
+    borderRadius: wp(10),
+    backgroundColor: colors.gold,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   iconButton: {
     padding: wp(6),
@@ -490,43 +534,26 @@ const styles = StyleSheet.create({
     borderRadius: wp(3),
     backgroundColor: colors.gold,
   },
-  brandTitle: {
-    fontSize: fp(18),
-    fontWeight: '700',
-    color: colors.gold,
-    letterSpacing: -0.5,
-  },
 
-  // Header Row
-  headerRow: {
+  // KYC Banner (compact)
+  kycBanner: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: hp(18),
-    marginBottom: hp(6),
-  },
-  headerTitle: {
-    fontSize: fp(22),
-    fontWeight: '700',
-    color: colors.textPrimary,
-  },
-  goldPill: {
+    gap: wp(8),
+    backgroundColor: colors.gold + '12',
+    borderWidth: 1,
+    borderColor: colors.gold + '30',
+    borderRadius: 10,
     paddingHorizontal: wp(14),
-    paddingVertical: hp(6),
-    borderRadius: 99,
-    backgroundColor: colors.gold,
-    alignItems: 'center',
-    justifyContent: 'center',
+    paddingVertical: hp(10),
+    marginBottom: hp(14),
+    marginTop: hp(4),
   },
-  goldPillText: {
-    color: '#000000',
-    fontSize: fp(11),
-    fontWeight: '700',
-  },
-  welcomeText: {
-    fontSize: fp(13),
-    color: colors.textSecondary,
-    marginBottom: hp(16),
+  kycBannerText: {
+    flex: 1,
+    fontSize: fp(12),
+    fontWeight: '600',
+    color: colors.gold,
   },
 
   // Cards General
@@ -873,54 +900,6 @@ const styles = StyleSheet.create({
   floatingVideo: {
     width: '100%',
     height: '100%',
-  },
-  KycCard: {
-   backgroundColor: colors.surface,
-   borderRadius: 14,
-   borderWidth: 1,
-   borderColor: colors.border,
-   padding: wp(16),
-   marginBottom: hp(16),
-   alignItems: 'center',
-  },
-  kycIconRow: {
-    marginBottom: hp(18),
-  },
-  kycShiledWrap: {
-    width: wp(48),
-    height: wp(48),
-    borderRadius: 99,
-    backgroundColor: colors.goldDim,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  kycTitle: {
-    fontSize: fp(16),
-    fontWeight: '700',
-    color: colors.textPrimary,
-    marginBottom: hp(6),
-    textAlign: 'center',
-  },
-  kycSubtitle: {
-    fontSize: fp(12),
-    color: colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: fp(17),
-    marginBottom: hp(14),
-    paddingHorizontal: wp(8),
-  },
-  kycButton: {
-   width: '100%',
-   height: hp(46),
-   backgroundColor: colors.gold,
-   borderRadius: 99,
-   alignItems: 'center',
-   justifyContent: 'center',
-  },
-  kycButtonText: {
-    color: '#000000',
-    fontSize: fp(14),
-    fontWeight: '700',
   },
 });
 

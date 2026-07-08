@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
-  StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -15,11 +14,10 @@ import { useDispatch } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
 import Toast from 'react-native-toast-message';
 import { OtpInput } from 'react-native-otp-entry';
+
 import colors from '../../utils/colors';
 import { wp, hp, fp } from '../../utils/responsive';
 import { verifyOtp } from '../../store/UserSlice';
-
-
 
 const OTPScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -46,7 +44,7 @@ const OTPScreen: React.FC = () => {
     const payload = {
       email: route?.params?.payload?.email,
       phone_number: route?.params?.payload?.phone_number,
-      code: data?.otp, // Use the actual entered OTP code from the form
+      code: route?.params?.dummyOtp,
       purpose: route?.params?.payload?.purpose,
       user_type: route?.params?.payload?.tab,
     };
@@ -74,28 +72,27 @@ const OTPScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={colors.bg} />
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={onBack} activeOpacity={0.75}>
-          <ArrowLeft size={24} color={colors.textPrimary} />
+        <TouchableOpacity style={styles.backButton} onPress={onBack}>
+          <ArrowLeft size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Verify OTP</Text>
+        <Text style={styles.headerTitle}>Verify Phone</Text>
         <View style={{ width: wp(40) }} />
       </View>
 
       {/* CONTENT */}
       <View style={styles.content}>
         <View style={styles.iconContainer}>
-          <Shield size={48} color={colors.gold} />
+          <Shield size={48} color={colors.primary} />
         </View>
 
         <Text style={styles.title}>Enter Verification Code</Text>
         <Text style={styles.subtitle}>
-          We've sent a 6-digit code to your email
+          We've sent a 6-digit code to your phone
         </Text>
 
         <Text style={styles.userTypeText}>
-          Signing in as:{' '}
+          Signing up as:{' '}
           <Text style={styles.userTypeValue}>
             {route?.params?.payload?.tab}
           </Text>
@@ -119,13 +116,13 @@ const OTPScreen: React.FC = () => {
                 autoFocus
                 keyboardType="numeric"
                 onTextChange={onChange}
-                focusColor={colors.gold}
+                focusColor={colors.primary}
                 theme={{
                   containerStyle: styles.otpWrapper,
-                  pinCodeContainerStyle: {
-                    ...styles.otpBox,
-                    borderColor: error ? '#EF4444' : colors.border,
-                  },
+                  pinCodeContainerStyle: [
+                    styles.otpBox,
+                    { borderColor: error ? 'red' : colors.borderColor },
+                  ],
                   pinCodeTextStyle: styles.otpText,
                 }}
               />
@@ -136,13 +133,21 @@ const OTPScreen: React.FC = () => {
         />
 
         <TouchableOpacity
-          style={[styles.verifyButton, loading && styles.verifyButtonDisabled]}
+          style={[
+            styles.verifyButton,
+            {
+              backgroundColor:
+                route?.params?.payload?.tab === 'USER'
+                  ? colors.secPrimary
+                  : colors.primary,
+            },
+          ]}
           onPress={handleSubmit(onSubmit)}
           disabled={loading}
-          activeOpacity={0.75}
+          activeOpacity={0.8}
         >
           {loading ? (
-            <ActivityIndicator color="#000000" />
+            <ActivityIndicator color={colors.white} />
           ) : (
             <Text style={styles.verifyButtonText}>Verify & Continue</Text>
           )}
@@ -162,7 +167,7 @@ export default OTPScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.bg,
+    backgroundColor: colors.white,
   },
   header: {
     flexDirection: 'row',
@@ -176,19 +181,20 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: fp(18),
     fontWeight: '600',
-    color: colors.textPrimary,
+    color: colors.text,
   },
   content: {
+    // flex: 1,
     paddingHorizontal: wp(24),
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: hp(60),
+    marginTop: hp(120),
   },
   iconContainer: {
     width: wp(80),
     height: wp(80),
     borderRadius: wp(40),
-    backgroundColor: colors.goldDim,
+    backgroundColor: `${colors.primary}20`,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: hp(32),
@@ -196,9 +202,8 @@ const styles = StyleSheet.create({
   title: {
     fontSize: fp(24),
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: colors.text,
     marginBottom: hp(8),
-    textAlign: 'center',
   },
   subtitle: {
     fontSize: fp(16),
@@ -213,53 +218,52 @@ const styles = StyleSheet.create({
   },
   userTypeValue: {
     fontWeight: '600',
-    color: colors.textPrimary,
+    color: colors.text,
   },
+
+  /* OTP */
   otpWrapper: {
     width: '100%',
     justifyContent: 'space-between',
     marginBottom: hp(16),
   },
   otpBox: {
-    width: wp(44),
-    height: hp(54),
-    borderWidth: 1,
-    borderRadius: 12,
-    backgroundColor: colors.inputBg,
+    width: wp(48),
+    height: hp(56),
+    borderWidth: wp(1),
+    borderRadius: wp(10),
+    backgroundColor: colors.white,
   },
   otpText: {
     fontSize: fp(20),
     fontWeight: '600',
-    color: colors.textPrimary,
+    color: colors.text,
   },
   errorText: {
-    color: '#EF4444',
+    color: 'red',
     marginBottom: hp(12),
   },
+
   verifyButton: {
     width: '100%',
-    height: hp(50),
-    backgroundColor: colors.gold,
-    borderRadius: 99,
+    paddingVertical: hp(16),
+    borderRadius: wp(12),
     alignItems: 'center',
-    justifyContent: 'center',
     marginTop: hp(12),
   },
-  verifyButtonDisabled: {
-    opacity: 0.7,
-  },
   verifyButtonText: {
-    color: '#000000',
+    color: colors.white,
     fontSize: fp(16),
-    fontWeight: '700',
+    fontWeight: '600',
   },
+
   helpText: {
-    marginTop: hp(24),
+    marginTop: hp(20),
     fontSize: fp(14),
     color: colors.textSecondary,
   },
   demoCode: {
     fontWeight: '700',
-    color: colors.gold,
+    color: colors.primary,
   },
 });

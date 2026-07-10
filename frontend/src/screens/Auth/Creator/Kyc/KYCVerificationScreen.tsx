@@ -51,12 +51,7 @@ const KYCVerificationScreen: React.FC = () => {
     dispatch(verifyPAN(payload))
       .unwrap()
       .then((response: any) => {
-        // The verifyPAN thunk returns `response.data` directly, so
-        // top-level keys are accessed without an extra `.data` wrapper.
         const verified = response?.verified ?? response?.data?.verified;
-
-        // Relaxed name match: treat a case-insensitive substring as a
-        // valid match so "Radhika" passes against "RADHIKA BABAR".
         const returnedName: string = (
           response?.pan_details?.name ?? ''
         ).toLowerCase();

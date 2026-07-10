@@ -1,318 +1,240 @@
-import React, { useState, useEffect, useMemo } from 'react';
+// CreateWebinar.tsx (new, matching right screenshot)
+import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  FlatList,
-  ActivityIndicator,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
-  Linking,
+  View, Text, StyleSheet, ScrollView,
+  TouchableOpacity, ActivityIndicator,
+  KeyboardAvoidingView, Platform,
 } from 'react-native';
+import AppHeaderWithBack from '../../../../components/AppHeaderWithBack';
+import CustomTextInput from '../../../../components/CustomInput';
+import { Coins, Gift } from 'lucide-react-native';
+import Toast from 'react-native-toast-message';
 import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
-import { useIsFocused, useNavigation } from '@react-navigation/native';
-import { useDispatch, useSelector } from 'react-redux';
-import { ThunkDispatch } from '@reduxjs/toolkit';
-import { getAllWebinar } from '../../../../store/WebinarSlice';
-import WebinarCard from '../Products/Webinar/WebinarCard';
-import { Plus, Search, Presentation, UserCircle, Bell, Instagram } from 'lucide-react-native';
-import { FAB } from 'react-native-paper';
-import CustomTextInput from '../../../../components/CustomInput';
-import Toast from 'react-native-toast-message';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import { useDispatch } from 'react-redux';
 
-const CreatorWebinar = () => {
+const CreateWebinar = ({ embedded = false }: { embedded?: boolean }) => {
   const navigation = useNavigation<any>();
-  const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
-  const focus = useIsFocused();
-  const { user } = useSelector((state: any) => state.userReducer);
-  const insets = useSafeAreaInsets();
+  const dispatch = useDispatch<any>();
 
-  const [webinarData, setWebinarData] = useState<any[]>([]);
+  const [headline, setHeadline] = useState('');
+  const [dateTime, setDateTime] = useState('');
+  const [description, setDescription] = useState('');
+  const [duration, setDuration] = useState('');
+  const [participants, setParticipants] = useState('');
+  const [pricingModel, setPricingModel] = useState<'paid' | 'free'>('paid');
+  const [price, setPrice] = useState('');
   const [loading, setLoading] = useState(false);
-  const [refreshWebinar, setRefreshWebinar] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
 
-  const displayName = user?.name
-    ? user.name.charAt(0).toUpperCase() + user.name.slice(1)
-    : 'Creator';
-
-  useEffect(() => {
-    fetchWebinars();
-  }, [focus, refreshWebinar]);
-
-  const fetchWebinars = () => {
-    setLoading(true);
-    const payload = { page: 1, limit: 50, upcoming: true, title: '', my_webinars: true };
-    dispatch(getAllWebinar(payload))
-      .unwrap()
-      .then(response => {
-        setWebinarData(response?.data?.data?.webinars || []);
-      })
-      .finally(() => setLoading(false));
-  };
-
-  const filteredWebinars = useMemo(() => {
-    if (!searchQuery.trim()) return webinarData;
-    return webinarData.filter(item =>
-      item?.title?.toLowerCase().includes(searchQuery.toLowerCase()),
-    );
-  }, [searchQuery, webinarData]);
-
-  const handleCreateWebinar = () => {
-    if (user?.kyc_verified) {
-      navigation.navigate('CreateWebinar');
-    } else {
-      Toast.show({
-        type: 'error',
-        text1: 'KYC Required',
-        text2: 'Please complete your KYC first',
-        position: 'top',
-      });
+  const handleCreate = () => {
+    if (!headline.trim()) {
+      Toast.show({ type: 'error', text1: 'Please enter a webinar headline', position: 'bottom' });
+      return;
     }
+    setLoading(true);
+    // dispatch(createWebinar({...}))
+    setTimeout(() => {
+      setLoading(false);
+      Toast.show({ type: 'success', text1: 'Webinar created!', position: 'bottom' });
+      navigation.goBack();
+    }, 1000);
   };
-
-  const renderEmptyState = () => (
-    <View style={styles.emptyState}>
-      <View style={styles.emptyIcon}>
-        <Presentation size={wp(48)} color={colors.primary} />
-      </View>
-      <Text style={styles.emptyTitle}>No Webinars Yet</Text>
-    </View>
-  );
 
   return (
-    <View style={styles.container}>
-      <View style={[styles.headerWrapper, { paddingTop: insets.top }]}>
-        <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            {user?.profile_image ? (
-              <Image
-                source={{ uri: user.profile_image }}
-                style={styles.avatar}
-              />
-            ) : (
-              <View style={styles.avatarFallback}>
-                <UserCircle size={wp(28)} color={colors.white} />
+    <View style={styles.root}>
+      {!embedded && <AppHeaderWithBack title="Create Webinar" />}
+
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Webinar Details Card */}
+          <View style={styles.formCard}>
+            <Text style={styles.cardHeaderTitle}>Webinar Details</Text>
+            <Text style={styles.cardHeaderSubtitle}>Configure your live group sessions.</Text>
+
+            <Text style={styles.inputLabel}>WEBINAR HEADLINE</Text>
+            <CustomTextInput
+              inputContainerStyle={styles.input}
+              inputStyle={styles.inputText}
+              placeholder="e.g. Learn Smarter, Work Better"
+              placeholderTextColor={colors.textMuted}
+              value={headline}
+              onChange={setHeadline}
+            />
+
+            <Text style={styles.inputLabel}>WEBINAR DATE & TIME</Text>
+            <CustomTextInput
+              inputContainerStyle={styles.input}
+              inputStyle={styles.inputText}
+              placeholder="Select date and time"
+              placeholderTextColor={colors.textMuted}
+              value={dateTime}
+              onChange={setDateTime}
+            />
+
+            <Text style={styles.inputLabel}>WEBINAR DESCRIPTION</Text>
+            <CustomTextInput
+              inputContainerStyle={[styles.input, styles.textArea]}
+              inputStyle={[styles.inputText, { textAlignVertical: 'top' }]}
+              placeholder="Enter the Description"
+              placeholderTextColor={colors.textMuted}
+              value={description}
+              onChange={setDescription}
+              multiline
+              numberOfLines={4}
+            />
+
+            <Text style={styles.inputLabel}>WEBINAR DURATION</Text>
+            <CustomTextInput
+              inputContainerStyle={styles.input}
+              inputStyle={styles.inputText}
+              placeholder="e.g. 60 mins"
+              placeholderTextColor={colors.textMuted}
+              value={duration}
+              onChange={setDuration}
+            />
+
+            <Text style={styles.inputLabel}>TOTAL PARTICIPANTS</Text>
+            <CustomTextInput
+              inputContainerStyle={styles.input}
+              inputStyle={styles.inputText}
+              placeholder="e.g. 100"
+              placeholderTextColor={colors.textMuted}
+              keyboardType="numeric"
+              value={participants}
+              onChange={setParticipants}
+            />
+          </View>
+
+          {/* Pricing Model Card */}
+          <View style={styles.formCard}>
+            <Text style={styles.cardHeaderTitle}>Pricing Model</Text>
+            <Text style={styles.pricingSubtitle}>Set the value for your knowledge.</Text>
+
+            <View style={styles.pricingPillRow}>
+              <TouchableOpacity
+                style={[styles.pricingPill, pricingModel === 'paid' && styles.pricingPillActive]}
+                onPress={() => setPricingModel('paid')}
+                activeOpacity={0.9}
+              >
+                <Coins size={16} color={pricingModel === 'paid' ? '#000000' : colors.white} />
+                <Text style={[styles.pricingPillText, pricingModel === 'paid' ? styles.pricingPillTextActive : styles.pricingPillTextInactive]}>
+                  Paid
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.pricingPill, pricingModel === 'free' && styles.pricingPillActive]}
+                onPress={() => { setPricingModel('free'); setPrice('0'); }}
+                activeOpacity={0.9}
+              >
+                <Gift size={16} color={pricingModel === 'free' ? '#000000' : colors.white} />
+                <Text style={[styles.pricingPillText, pricingModel === 'free' ? styles.pricingPillTextActive : styles.pricingPillTextInactive]}>
+                  Free
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {pricingModel === 'paid' && (
+              <View style={{ marginTop: hp(12) }}>
+                <Text style={styles.inputLabel}>PRICE (INR)</Text>
+                <CustomTextInput
+                  inputContainerStyle={styles.input}
+                  inputStyle={styles.inputText}
+                  keyboardType="numeric"
+                  placeholder="e.g. 999"
+                  placeholderTextColor={colors.textMuted}
+                  value={price}
+                  onChange={setPrice}
+                />
               </View>
             )}
-            <View>
-              <Text style={styles.headerSubtitle}>My Webinars</Text>
-              <Text style={styles.headerTitle}>
-                {webinarData.length} webinar{webinarData.length !== 1 ? 's' : ''}
-              </Text>
-            </View>
           </View>
-          <View
-            style={{ flexDirection: 'row', alignItems: 'center', gap: wp(4) }}
+        </ScrollView>
+
+        {/* Sticky Footer */}
+        <View style={styles.actions}>
+          <TouchableOpacity style={styles.cancelBtn} onPress={() => navigation.goBack()} disabled={loading}>
+            <Text style={styles.cancelText}>Save Draft</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.primaryBtn, loading && { opacity: 0.7 }]}
+            onPress={handleCreate}
+            disabled={loading}
           >
-            <TouchableOpacity
-              style={styles.bellBtn}
-              onPress={() =>
-                Linking.openURL('https://www.instagram.com/manchly_app')
-              }
-            >
-              <Instagram size={wp(20)} color={colors.white} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.bellBtn}
-              onPress={() => navigation.navigate('CreatorNotification')}
-            >
-              <Bell size={wp(20)} color={colors.white} />
-            </TouchableOpacity>
-          </View>
+            {loading
+              ? <ActivityIndicator size="small" color="#000000" />
+              : <Text style={styles.primaryText}>Create Webinar</Text>
+            }
+          </TouchableOpacity>
         </View>
-      </View>
-
-      <View style={styles.searchContainer}>
-        <Search size={wp(18)} color={colors.textSecondary} />
-        <CustomTextInput
-          inputContainerStyle={styles.searchInput}
-          inputStyle={{ fontSize: fp(14), color: colors.black }}
-          placeholderTextColor={colors.borderColor}
-          placeholder="Search webinars..."
-          onChange={setSearchQuery as any}
-          value={searchQuery}
-        />
-      </View>
-
-      {loading ? (
-        <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={styles.loadingText}>Loading webinars...</Text>
-        </View>
-      ) : filteredWebinars.length > 0 ? (
-        <FlatList
-          data={filteredWebinars}
-          keyExtractor={item => item.id}
-          renderItem={({ item }) => (
-            <WebinarCard data={item} setRefreshWebinar={setRefreshWebinar} />
-          )}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-        />
-      ) : (
-        renderEmptyState()
-      )}
-
-      <View style={styles.fabContainer}>
-        <FAB
-          icon={({ size, color }) => <Plus size={size} color={color} />}
-          style={styles.fab}
-          onPress={handleCreateWebinar}
-          color={colors.white}
-        />
-      </View>
+      </KeyboardAvoidingView>
     </View>
   );
 };
 
-export default CreatorWebinar;
+export default CreateWebinar;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  root: { flex: 1, backgroundColor: colors.bg },
+  flex: { flex: 1 },
+  scrollContent: { paddingHorizontal: wp(16), paddingTop: hp(16), paddingBottom: hp(40) },
+  formCard: {
     backgroundColor: colors.surface,
-  },
-  headerWrapper: {
-    backgroundColor: '#111111',
-     borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: wp(16),
-    paddingVertical: hp(14),
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(12),
-  },
-  avatar: {
-    width: wp(46),
-    height: wp(46),
-    borderRadius: wp(23),
-    borderWidth: 2,
-    borderColor: '#2c2c2e',
-  },
-  avatarFallback: {
-    width: wp(46),
-    height: wp(46),
-    borderRadius: wp(23),
-    backgroundColor: '#1c1c1e',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#2c2c2e',
-  },
-  headerTitle: {
-    fontSize: fp(18),
-    fontWeight: '800',
-    color: colors.white,
-    marginTop: hp(1),
-  },
-  headerSubtitle: {
-    fontSize: fp(12),
-    color: '#999999',
-    fontWeight: '500',
-  },
-  bellBtn: {
-    width: wp(40),
-    height: wp(40),
-    borderRadius: wp(20),
-    backgroundColor: '#1c1c1e',
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderRadius: 14,
+    padding: wp(16),
     borderWidth: 1,
-    borderColor: '#2c2c2e',
+    borderColor: colors.border,
+    marginBottom: hp(12),
   },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginHorizontal: wp(16),
-    marginVertical: hp(12),
-    borderWidth: wp(1),
-    borderColor: colors.borderColor,
-    borderRadius: wp(12),
-    paddingHorizontal: wp(12),
-    backgroundColor: colors.white,
-    elevation: 2,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
+  cardHeaderTitle: { fontSize: fp(16), fontWeight: '700', color: colors.white, marginBottom: hp(4) },
+  cardHeaderSubtitle: { fontSize: fp(11), color: colors.textSecondary, marginBottom: hp(14) },
+  inputLabel: {
+    fontSize: 9, fontWeight: '700', color: colors.textMuted,
+    letterSpacing: 0.6, marginBottom: hp(6), marginTop: hp(6),
   },
-  searchInput: {
-    height: hp(42),
-    width: '92%',
-    borderRadius: wp(12),
+  input: {
+    borderRadius: 10, paddingHorizontal: wp(12), height: hp(44),
+    width: '100%', backgroundColor: colors.inputBg,
+    borderWidth: 1, borderColor: colors.border, marginBottom: hp(10),
   },
-  loaderContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: wp(12),
+  inputText: { color: colors.white, fontSize: fp(14) },
+  textArea: { height: hp(88) },
+  pricingSubtitle: { fontSize: fp(11), color: colors.textSecondary, marginBottom: hp(12) },
+  pricingPillRow: { flexDirection: 'row', gap: wp(10) },
+  pricingPill: {
+    flex: 1, height: hp(44), borderRadius: 10,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: wp(8), backgroundColor: colors.inputBg,
+    borderWidth: 1, borderColor: colors.border,
   },
-  loadingText: {
-    color: colors.textSecondary,
-    fontSize: fp(14),
-    fontWeight: '500',
+  pricingPillActive: { backgroundColor: colors.gold, borderColor: colors.gold },
+  pricingPillText: { fontSize: fp(13), fontWeight: '700' },
+  pricingPillTextActive: { color: '#000000' },
+  pricingPillTextInactive: { color: colors.white },
+  actions: {
+    flexDirection: 'row', gap: wp(10),
+    paddingHorizontal: wp(16), paddingVertical: hp(14),
+    borderTopWidth: 1, borderTopColor: colors.border,
+    backgroundColor: colors.bg,
   },
-  listContent: {
-    paddingHorizontal: wp(16),
-    paddingVertical: hp(8),
-    paddingBottom: hp(80),
+  cancelBtn: {
+    flex: 1, height: hp(44), borderRadius: 22,
+    alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1, borderColor: colors.border,
   },
-  emptyState: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+  cancelText: { color: colors.white, fontWeight: '600', fontSize: fp(14) },
+  primaryBtn: {
+    flex: 1.5, backgroundColor: colors.gold,
+    height: hp(44), borderRadius: 22,
+    alignItems: 'center', justifyContent: 'center',
   },
-  emptyIcon: {
-    backgroundColor: colors.lightGrey,
-    width: wp(96),
-    height: wp(96),
-    borderRadius: wp(48),
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: hp(20),
-  },
-  emptyTitle: {
-    fontSize: fp(20),
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: hp(8),
-    textAlign: 'center',
-  },
-  emptySubtitle: {
-    fontSize: fp(14),
-    color: colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: fp(20),
-    marginBottom: hp(24),
-  },
-  emptyCreateBtn: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: wp(24),
-    paddingVertical: hp(12),
-    borderRadius: wp(12),
-  },
-  emptyCreateBtnText: {
-    color: colors.white,
-    fontSize: fp(15),
-    fontWeight: '700',
-  },
-  fabContainer: {
-    position: 'absolute',
-    right: wp(16),
-    bottom: hp(16),
-  },
-  fab: {
-    backgroundColor: colors.primary,
-    borderRadius: wp(50),
-  },
+  primaryText: { color: '#000000', fontWeight: '700', fontSize: fp(14) },
 });

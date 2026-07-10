@@ -30,8 +30,13 @@ import {
 import { wp, hp, fp } from '../../../../../utils/responsive';
 import { getWebinarById } from '../../../../../store/WebinarSlice';
 import { createDynamicLink } from 'react-native-chottulink-sdk';
+import AiButton from '../../../../../components/AiButton';
+import EmailSeriesModal from '../../../../../components/ai/EmailSeriesModal';
+import SocialPostsModal from '../../../../../components/ai/SocialPostsModal';
 
 const WebinarDetails = () => {
+  const [showEmails, setShowEmails] = React.useState(false);
+  const [showSocialPosts, setShowSocialPosts] = React.useState(false);
   const { params } = useRoute<any>();
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
   const webinarFromStore = useSelector(
@@ -87,7 +92,7 @@ const WebinarDetails = () => {
       <View style={styles.container}>
         <AppHeaderWithBack title="Webinar Details" />
         <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
+          <ActivityIndicator size="large" color={colors.cBg} />
         </View>
       </View>
     );
@@ -106,7 +111,7 @@ const WebinarDetails = () => {
             />
           ) : (
             <View style={styles.thumbnailPlaceholder}>
-              <ImageOff size={wp(60)} color={colors.textSecondary} />
+              <ImageOff size={wp(60)} color={'#64748B'} />
               <Text style={styles.noImageText}>No Thumbnail Available</Text>
             </View>
           )}
@@ -134,22 +139,27 @@ const WebinarDetails = () => {
           </TouchableOpacity>
         </View>
 
+        <View style={styles.linkActionRow}>
+          <AiButton label="Generate Emails" onPress={() => setShowEmails(true)} />
+          <AiButton label="Social Posts" onPress={() => setShowSocialPosts(true)} />
+        </View>
+
         <View style={styles.row}>
-          <User size={wp(18)} color={colors.textSecondary} />
+          <User size={wp(18)} color={'#64748B'} />
           <Text style={styles.host}>
             Hosted by {data?.creator?.name || 'Unknown'}
           </Text>
         </View>
 
         <View style={styles.row}>
-          <Calendar size={wp(18)} color={colors.textSecondary} />
+          <Calendar size={wp(18)} color={'#64748B'} />
           <Text style={styles.detailText}>
             {new Date(data?.scheduled_at).toDateString()}
           </Text>
         </View>
 
         <View style={styles.row}>
-          <Clock size={wp(18)} color={colors.textSecondary} />
+          <Clock size={wp(18)} color={'#64748B'} />
           <Text style={styles.detailText}>
             {new Date(data?.scheduled_at).toLocaleTimeString([], {
               hour: '2-digit',
@@ -160,12 +170,12 @@ const WebinarDetails = () => {
         </View>
 
         <View style={styles.row}>
-          <Video size={wp(18)} color={colors.textSecondary} />
+          <Video size={wp(18)} color={'#64748B'} />
           <Text style={styles.detailText}>Zoom Meeting</Text>
         </View>
 
         <View style={styles.row}>
-          <Users size={wp(18)} color={colors.textSecondary} />
+          <Users size={wp(18)} color={'#64748B'} />
           <Text style={styles.detailText}>
             Max Participants: {data?.max_participants}
           </Text>
@@ -203,7 +213,21 @@ const WebinarDetails = () => {
           </View>
         </View>
       </ScrollView>
-      
+
+      <EmailSeriesModal
+        visible={showEmails}
+        onClose={() => setShowEmails(false)}
+        title={data?.title || ''}
+        scheduledAt={data?.scheduled_at}
+      />
+
+      <SocialPostsModal
+        visible={showSocialPosts}
+        onClose={() => setShowSocialPosts(false)}
+        title={data?.title || ''}
+        description={data?.description}
+        scheduledAt={data?.scheduled_at}
+      />
     </View>
   );
 };
@@ -231,7 +255,7 @@ const styles = StyleSheet.create({
   thumbnailWrapper: {
     width: '100%',
     height: hp(220),
-    backgroundColor: colors.lightGrey,
+    backgroundColor: '#F1F5F9',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -246,7 +270,7 @@ const styles = StyleSheet.create({
   },
   noImageText: {
     marginTop: hp(8),
-    color: colors.textSecondary,
+    color: '#64748B',
     fontSize: fp(14),
   },
 
@@ -255,7 +279,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginTop: hp(15),
     paddingHorizontal: wp(15),
-    color: colors.text,
+    color: '#1A1A2E',
   },
 
   row: {
@@ -266,11 +290,11 @@ const styles = StyleSheet.create({
     gap: wp(6),
   },
   host: {
-    color: colors.textSecondary,
+    color: '#64748B',
     fontSize: fp(14),
   },
   detailText: {
-    color: colors.textSecondary,
+    color: '#64748B',
     fontSize: fp(14),
   },
   linkActionRow: {
@@ -283,7 +307,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(6),
-    backgroundColor: colors.primary,
+    backgroundColor: colors.cAccent,
     paddingVertical: hp(9),
     paddingHorizontal: wp(12),
     borderRadius: wp(20),
@@ -305,7 +329,7 @@ const styles = StyleSheet.create({
   tag: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.primary,
+    backgroundColor: colors.cAccent,
     paddingVertical: hp(5),
     paddingHorizontal: wp(10),
     borderRadius: wp(20),
@@ -318,10 +342,12 @@ const styles = StyleSheet.create({
   },
 
   priceBox: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.white,
     padding: wp(16),
     borderRadius: wp(12),
     marginHorizontal: wp(15),
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
   priceRow: {
     flexDirection: 'row',
@@ -329,14 +355,15 @@ const styles = StyleSheet.create({
     marginVertical: hp(6),
   },
   priceLabel: {
-    color: colors.textSecondary,
+    color: '#64748B',
   },
   priceValue: {
     fontWeight: '600',
+    color: '#1A1A2E',
   },
   totalRow: {
     borderTopWidth: wp(1),
-    borderColor: colors.border,
+    borderColor: '#E2E8F0',
     marginTop: hp(10),
     paddingTop: hp(10),
     flexDirection: 'row',
@@ -345,15 +372,16 @@ const styles = StyleSheet.create({
   totalLabel: {
     fontSize: fp(16),
     fontWeight: '700',
+    color: '#1A1A2E',
   },
   totalValue: {
     fontSize: fp(18),
     fontWeight: '800',
-    color: colors.primary,
+    color: colors.cAccentLight,
   },
   participants: {
     fontSize: fp(14),
-    color: colors.textSecondary,
+    color: '#64748B',
     marginTop: hp(10),
   },
 
@@ -361,11 +389,11 @@ const styles = StyleSheet.create({
     fontSize: fp(18),
     fontWeight: '600',
     paddingHorizontal: wp(15),
-    color: colors.text,
+    color: '#1A1A2E',
   },
   description: {
     fontSize: fp(14),
-    color: colors.textSecondary,
+    color: '#64748B',
     marginTop: hp(8),
     paddingHorizontal: wp(15),
     lineHeight: fp(20),
@@ -377,9 +405,9 @@ const styles = StyleSheet.create({
     bottom: 0,
     width: '100%',
     padding: wp(15),
-    backgroundColor: colors.white,
+    backgroundColor: '#F1F5F9',
     borderTopWidth: wp(1),
-    borderColor: colors.border,
+    borderColor: '#E2E8F0',
     marginBottom: hp(10),
   },
   buyButton: {

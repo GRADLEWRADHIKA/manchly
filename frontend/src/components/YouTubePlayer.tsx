@@ -40,6 +40,7 @@ interface YouTubePlayerProps {
   isFullscreenDefault?: boolean;
   style?: any;
   showCloseButton?: boolean;
+  onProgressChange?: (currentTime: number, duration: number) => void;
 }
 
 const formatTime = (seconds: number): string => {
@@ -57,6 +58,7 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({
   isFullscreenDefault = false,
   style,
   showCloseButton = true,
+  onProgressChange,
 }) => {
   const videoRef = useRef<any>(null);
   const controlsTimeout = useRef<any>(null);
@@ -125,6 +127,9 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({
   const onProgress = (data: OnProgressData) => {
     if (!isSeeking) {
       setCurrentTime(data.currentTime);
+      if (onProgressChange) {
+        onProgressChange(data.currentTime, duration || data.seekableDuration || 1);
+      }
     }
   };
 

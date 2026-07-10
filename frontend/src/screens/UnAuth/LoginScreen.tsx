@@ -88,8 +88,7 @@ const LoginScreen: React.FC = () => {
   const {
     control,
     handleSubmit,
-    reset,
-    formState: { errors },
+    formState: {errors},
   } = useForm({
     defaultValues: {
       phoneEmail: '',
@@ -97,6 +96,9 @@ const LoginScreen: React.FC = () => {
   });
 
   const onSubmit = (data: any) => {
+    const phone = data.phone.trim();
+    if (phone.length < 10) return;
+
     setLoading(true);
 
     const isPhoneNumber = /^\d+$/.test(data?.phoneEmail);

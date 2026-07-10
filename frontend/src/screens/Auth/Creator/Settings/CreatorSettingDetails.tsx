@@ -24,25 +24,25 @@ const settingsItems = [
   {
     title: 'Lock Direct Message',
     subtitle: 'Make your direct message locked',
-    icon: <Lock size={wp(22)} color={colors.black} />,
+    icon: <Lock size={wp(22)} color="#1A1A2E" />,
     onPress: () => {},
   },
   {
     title: 'FAQs',
     subtitle: 'Have a doubt about Manchly? Use our FAQ guide to solve them',
-    icon: <HelpCircle size={wp(22)} color={colors.black} />,
+    icon: <HelpCircle size={wp(22)} color="#1A1A2E" />,
     onPress: () => {},
   },
   {
     title: 'Upload your Invoice Details',
     subtitle: 'Sign and enter GST details.',
-    icon: <FileText size={wp(22)} color={colors.black} />,
+    icon: <FileText size={wp(22)} color="#1A1A2E" />,
     onPress: () => {},
   },
   {
     title: 'Need help?',
     subtitle: 'Get in touch with team Manchly',
-    icon: <MessageCircleQuestion size={wp(22)} color={colors.black} />,
+    icon: <MessageCircleQuestion size={wp(22)} color="#1A1A2E" />,
     onPress: () => {},
   }
 ];
@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
     paddingVertical: hp(16),
     paddingHorizontal: wp(20),
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
+    borderBottomColor: '#E2E8F0',
   },
   icon: {
     marginRight: wp(16),
@@ -97,11 +97,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: fp(16),
     fontWeight: '600',
-    color: colors.black,
+    color: '#1A1A2E',
   },
   subtitle: {
     fontSize: fp(13),
-    color: colors.muted,
+    color: '#94A3B8',
     marginTop: hp(2),
   },
 });

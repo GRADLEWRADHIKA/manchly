@@ -78,9 +78,7 @@ const SignUp = ({ selectedType, setActive }) => {
 
         if (['BRAND', 'AGENCY'].includes(effectiveRole)) {
           setTimeout(() => {
-            navigationRef.current?.navigate('UserBottomTab', {
-              screen: 'BrandMarketplace',
-            });
+            navigationRef.current?.navigate('LoginScreen');
           }, 250);
           return;
         }

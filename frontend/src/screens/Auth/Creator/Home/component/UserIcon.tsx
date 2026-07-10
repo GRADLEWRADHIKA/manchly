@@ -16,14 +16,14 @@ function UserIcon(props: React.JSX.IntrinsicAttributes & React.JSX.IntrinsicClas
         cx={18.0003}
         cy={14.9525}
         r={5.33333}
-        stroke="black"
+        stroke="white"
         strokeWidth={2.66667}
         strokeLinecap="round"
       />
-      <Circle cx={18} cy={18} r={16} stroke="#002D4E" strokeWidth={4} />
+      <Circle cx={18} cy={18} r={16} stroke="#7C3AED" strokeWidth={4} />
       <Path
         d="M27.905 29.428c-.63-1.748-2.016-3.294-3.945-4.396-1.928-1.102-4.291-1.699-6.722-1.699s-4.794.597-6.723 1.7C8.587 26.133 7.2 27.68 6.571 29.427"
-        stroke="black"
+        stroke="white"
         strokeWidth={2.66667}
         strokeLinecap="round"
       />
@@ -32,9 +32,9 @@ function UserIcon(props: React.JSX.IntrinsicAttributes & React.JSX.IntrinsicClas
         cy={28.9297}
         rx={10.509}
         ry={4.5977}
-        fill="black"
+        fill="white"
       />
-      <Circle cx={18.2369} cy={15.1364} r={5.25452} fill="black" />
+      <Circle cx={18.2369} cy={15.1364} r={5.25452} fill="white" />
     </Svg>
   )
 }

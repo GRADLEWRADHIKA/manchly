@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -6,20 +6,21 @@ import {
   Animated,
   Image,
   StyleSheet,
-  Dimensions,
   Share,
 } from 'react-native';
 import {
   Edit3,
   Trash2,
   Share2,
-  Eye,
   BarChart3,
   BookOpen,
-  Play,
   IndianRupee,
+  PlayCircle,
+  MoreVertical,
+  Eye,
 } from 'lucide-react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import { Menu } from 'react-native-paper';
 import colors from '../../../../../utils/colors';
 import { wp, hp, fp } from '../../../../../utils/responsive';
 import { useNavigation } from '@react-navigation/native';
@@ -35,10 +36,19 @@ interface Props {
 const CourseCard: React.FC<Props> = ({ item, onEdit, onDelete, onView }) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const navigation = useNavigation<any>();
+  const hasThumbnail = !!(item.thumbnail_url || item.thumbnail);
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [menuKey, setMenuKey] = useState(0);
+
+  const openMenu = () => setMenuVisible(true);
+  const closeMenu = () => {
+    setMenuVisible(false);
+    setMenuKey(k => k + 1);
+  };
 
   const handlePressIn = () => {
     Animated.spring(scaleAnim, {
-      toValue: 0.96,
+      toValue: 0.97,
       useNativeDriver: true,
     }).start();
   };
@@ -74,166 +84,143 @@ const CourseCard: React.FC<Props> = ({ item, onEdit, onDelete, onView }) => {
   return (
     <Animated.View style={[styles.card, { transform: [{ scale: scaleAnim }] }]}>
       <LinearGradient
-        colors={['#2A2A4A', '#22335A', '#1A4A7A']}
+        colors={['#1A1A2E', '#16213E', '#0F3460']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.gradient}
       >
         <TouchableOpacity
-          activeOpacity={0.95}
+          activeOpacity={0.85}
           onPressIn={handlePressIn}
           onPressOut={handlePressOut}
           onPress={onView}
-          style={styles.touchable}
         >
-          {/* Thumbnail with overlay */}
-          <View style={styles.thumbnailWrap}>
-            <Image
-              source={{
-                uri:
-                  item.thumbnail ||
-                  'https://cdn-icons-png.flaticon.com/512/4149/4149650.png',
-              }}
-              style={styles.thumbnail}
-            />
-            {/* Dark overlay on image */}
-            <View style={styles.thumbnailOverlay} />
-
-            {/* Play icon center */}
-            <View style={styles.playButton}>
-              <Play size={wp(14)} color={colors.white} fill={colors.white} />
-            </View>
-
-            {/* Price badge */}
-            <LinearGradient
-              colors={
-                item.price ? ['#F97316', '#FB923C'] : ['#10B981', '#34D399']
-              }
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.priceBadge}
-            >
-              {item.price ? (
-                <IndianRupee
-                  size={wp(10)}
-                  color={colors.white}
-                  strokeWidth={3}
-                />
-              ) : null}
-              <Text style={styles.priceText}>
-                {item.price ? `${item.price}` : 'Free'}
-              </Text>
-            </LinearGradient>
-
-            {/* Level badge */}
-            {item.level && (
-              <View style={styles.levelBadge}>
-                <BarChart3 size={wp(10)} color={'#60A5FA'} />
-                <Text style={styles.levelText}>{item.level}</Text>
+          {hasThumbnail ? (
+            <View style={styles.thumbnailWrap}>
+              <Image
+                source={{ uri: item.thumbnail_url || item.thumbnail }}
+                style={styles.thumbnail}
+              />
+              <View style={styles.thumbnailOverlay} />
+              <View style={styles.thumbnailPriceBadge}>
+                <LinearGradient
+                  colors={item.price ? ['#F97316', '#FB923C'] : ['#10B981', '#34D399']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.priceBadge}
+                >
+                  {item.price ? (
+                    <IndianRupee size={wp(9)} color={colors.white} strokeWidth={3} />
+                  ) : null}
+                  <Text style={styles.priceText}>
+                    {item.price ? `${item.price}` : 'Free'}
+                  </Text>
+                </LinearGradient>
               </View>
-            )}
-          </View>
+              {item.level && (
+                <View style={styles.thumbnailLevelBadge}>
+                  <BarChart3 size={wp(10)} color={'#60A5FA'} />
+                  <Text style={styles.levelText}>{item.level}</Text>
+                </View>
+              )}
+            </View>
+          ) : (
+            <View style={styles.headerRow}>
+              <View style={styles.headerLeft}>
+                <View style={styles.iconCircle}>
+                  <PlayCircle size={wp(20)} color={'#60A5FA'} strokeWidth={1.5} />
+                </View>
+                <View style={styles.headerInfo}>
+                  {item.category && (
+                    <Text style={styles.categoryText}>{item.category}</Text>
+                  )}
+                  {item.level && (
+                    <View style={styles.levelRow}>
+                      <BarChart3 size={wp(9)} color={'#60A5FA'} />
+                      <Text style={styles.levelText}>{item.level}</Text>
+                    </View>
+                  )}
+                </View>
+              </View>
+              <LinearGradient
+                colors={item.price ? ['#F97316', '#FB923C'] : ['#10B981', '#34D399']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.priceBadge}
+              >
+                {item.price ? (
+                  <IndianRupee size={wp(9)} color={colors.white} strokeWidth={3} />
+                ) : null}
+                <Text style={styles.priceText}>
+                  {item.price ? `${item.price}` : 'Free'}
+                </Text>
+              </LinearGradient>
+            </View>
+          )}
 
           {/* Content */}
           <View style={styles.content}>
-            {/* Category chip */}
-            {item.category && (
-              <View style={styles.categoryChip}>
-                <Text style={styles.categoryText}>{item.category}</Text>
-              </View>
-            )}
-
-            {/* Title */}
             <Text style={styles.title} numberOfLines={2}>
               {item?.title}
             </Text>
-
-            {/* Description */}
             {item.description ? (
               <Text style={styles.description} numberOfLines={2}>
                 {item.description}
               </Text>
             ) : null}
 
-            {/* Stats row */}
             <View style={styles.statsRow}>
+              {hasThumbnail && item.category ? (
+                <View style={styles.statItem}>
+                  <Text style={styles.categoryChipText}>{item.category}</Text>
+                </View>
+              ) : null}
               <View style={styles.statItem}>
-                <BookOpen size={wp(13)} color={'#60A5FA'} />
+                <BookOpen size={wp(11)} color={'#60A5FA'} />
                 <Text style={styles.statText}>
                   {videoCount} {videoCount === 1 ? 'video' : 'videos'}
                 </Text>
               </View>
-
-              <TouchableOpacity
-                style={styles.detailsBtn}
-                onPress={() =>
-                  navigation.navigate('CourseDetailsScreen', {
-                    courseId: item?.id,
-                  })
-                }
-                activeOpacity={0.7}
-              >
-                <Eye size={wp(13)} color={colors.white} />
-                <Text style={styles.detailsBtnText}>View Details</Text>
-              </TouchableOpacity>
             </View>
           </View>
-
-          {/* Separator line with glow */}
-          <View style={styles.separator} />
-
-          {/* Actions */}
-          <View style={styles.actionsRow}>
-            <TouchableOpacity
-              style={styles.actionBtn}
-              onPress={onEdit}
-              activeOpacity={0.7}
-            >
-              <View style={styles.actionIconWrap}>
-                <Edit3 size={wp(14)} color={'#60A5FA'} />
-              </View>
-              <Text style={[styles.actionText, { color: '#60A5FA' }]}>
-                Edit
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.actionBtn}
-              onPress={handleShare}
-              activeOpacity={0.7}
-            >
-              <View
-                style={[
-                  styles.actionIconWrap,
-                  { backgroundColor: 'rgba(16,185,129,0.15)' },
-                ]}
-              >
-                <Share2 size={wp(14)} color={'#10B981'} />
-              </View>
-              <Text style={[styles.actionText, { color: '#10B981' }]}>
-                Share
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.actionBtn}
-              onPress={onDelete}
-              activeOpacity={0.7}
-            >
-              <View
-                style={[
-                  styles.actionIconWrap,
-                  { backgroundColor: 'rgba(239,68,68,0.15)' },
-                ]}
-              >
-                <Trash2 size={wp(14)} color={colors.error} />
-              </View>
-              <Text style={[styles.actionText, { color: colors.error }]}>
-                Delete
-              </Text>
-            </TouchableOpacity>
-          </View>
         </TouchableOpacity>
+
+        {/* 3-dot menu */}
+        <View style={styles.menuAnchor}>
+          <Menu
+            key={menuKey}
+            visible={menuVisible}
+            onDismiss={closeMenu}
+            contentStyle={styles.menuContent}
+            anchor={
+              <TouchableOpacity
+                style={styles.moreBtn}
+                onPress={openMenu}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <MoreVertical size={wp(18)} color={'#94A3B8'} />
+              </TouchableOpacity>
+            }
+          >
+            <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); setTimeout(onView, 350); }}>
+              <Eye size={wp(16)} color={'#60A5FA'} />
+              <Text style={[styles.menuItemText, { color: '#60A5FA' }]}>Details</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); setTimeout(onEdit, 350); }}>
+              <Edit3 size={wp(16)} color={'#60A5FA'} />
+              <Text style={[styles.menuItemText, { color: '#60A5FA' }]}>Edit</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); setTimeout(handleShare, 350); }}>
+              <Share2 size={wp(16)} color={'#10B981'} />
+              <Text style={[styles.menuItemText, { color: '#10B981' }]}>Share</Text>
+            </TouchableOpacity>
+            <View style={styles.menuDivider} />
+            <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); setTimeout(onDelete, 350); }}>
+              <Trash2 size={wp(16)} color={colors.error} />
+              <Text style={[styles.menuItemText, { color: colors.error }]}>Delete</Text>
+            </TouchableOpacity>
+          </Menu>
+        </View>
       </LinearGradient>
     </Animated.View>
   );
@@ -243,187 +230,202 @@ export default CourseCard;
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: wp(16),
+    borderRadius: wp(14),
     marginHorizontal: wp(8),
-    marginBottom: hp(14),
+    marginBottom: hp(12),
     overflow: 'hidden',
-    elevation: 8,
-    shadowColor: '#0F3460',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.3,
-    shadowRadius: 14,
+    elevation: 4,
+    shadowColor: '#1A1A2E',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(96,165,250,0.12)',
   },
   gradient: {
     flex: 1,
-    borderRadius: wp(16),
-  },
-  touchable: {
-    flex: 1,
+    borderRadius: wp(14),
   },
 
+  // Thumbnail
   thumbnailWrap: {
     position: 'relative',
   },
   thumbnail: {
     width: '100%',
     height: hp(120),
-    backgroundColor: '#0D1B2A',
+    borderTopLeftRadius: wp(14),
+    borderTopRightRadius: wp(14),
+    backgroundColor: colors.cBg,
   },
   thumbnailOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(15,52,96,0.3)',
+    backgroundColor: 'rgba(30,32,56,0.25)',
+    borderTopLeftRadius: wp(14),
+    borderTopRightRadius: wp(14),
   },
-  playButton: {
+  thumbnailPriceBadge: {
     position: 'absolute',
-    top: '50%',
-    left: '50%',
-    marginTop: -wp(16),
-    marginLeft: -wp(16),
-    width: wp(32),
-    height: wp(32),
-    borderRadius: wp(16),
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.4)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingLeft: wp(2),
+    top: hp(8),
+    right: wp(8),
   },
-  priceBadge: {
+  thumbnailLevelBadge: {
     position: 'absolute',
-    top: hp(12),
-    right: wp(12),
+    bottom: hp(8),
+    left: wp(8),
+    backgroundColor: 'rgba(30,32,56,0.9)',
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: wp(12),
-    paddingVertical: hp(5),
-    borderRadius: wp(20),
+    gap: wp(4),
+    paddingHorizontal: wp(8),
+    paddingVertical: hp(3),
+    borderRadius: wp(8),
+    borderWidth: 1,
+    borderColor: 'rgba(15,52,96,0.6)',
+  },
+
+  // Icon header
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: wp(14),
+    paddingTop: hp(12),
+    paddingBottom: hp(2),
+    paddingRight: wp(44),
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(10),
+  },
+  iconCircle: {
+    width: wp(38),
+    height: wp(38),
+    borderRadius: wp(10),
+    backgroundColor: 'rgba(96,165,250,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerInfo: {
+    gap: hp(2),
+  },
+  categoryText: {
+    color: '#60A5FA',
+    fontSize: fp(10),
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
+  levelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(3),
+  },
+  levelText: {
+    color: 'rgba(255,255,255,0.6)',
+    fontSize: fp(10),
+    fontWeight: '600',
+  },
+
+  // Shared
+  priceBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: wp(9),
+    paddingVertical: hp(3),
+    borderRadius: wp(16),
     gap: wp(2),
   },
   priceText: {
     color: colors.white,
-    fontSize: fp(12),
+    fontSize: fp(11),
     fontWeight: '800',
-  },
-  levelBadge: {
-    position: 'absolute',
-    bottom: hp(12),
-    left: wp(12),
-    backgroundColor: 'rgba(26,26,46,0.85)',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(4),
-    paddingHorizontal: wp(10),
-    paddingVertical: hp(4),
-    borderRadius: wp(12),
-    borderWidth: 1,
-    borderColor: 'rgba(96,165,250,0.3)',
-  },
-  levelText: {
-    color: colors.white,
-    fontSize: fp(10),
-    fontWeight: '700',
   },
 
   content: {
-    padding: wp(12),
-    flex: 1,
-  },
-  categoryChip: {
-    alignSelf: 'flex-start',
-    backgroundColor: 'rgba(96,165,250,0.15)',
-    paddingHorizontal: wp(10),
-    paddingVertical: hp(3),
-    borderRadius: wp(12),
-    borderWidth: 1,
-    borderColor: 'rgba(96,165,250,0.25)',
-    marginBottom: hp(5),
-  },
-  categoryText: {
-    color: '#60A5FA',
-    fontSize: fp(9),
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
+    paddingHorizontal: wp(14),
+    paddingTop: hp(8),
+    paddingBottom: hp(12),
+    paddingRight: wp(44),
   },
   title: {
     fontSize: fp(14),
-    fontWeight: '800',
+    fontWeight: '700',
     color: colors.white,
-    lineHeight: fp(19),
-    marginBottom: hp(4),
+    marginBottom: hp(2),
   },
   description: {
-    color: colors.white,
+    color: 'rgba(255,255,255,0.45)',
     fontSize: fp(11),
-    lineHeight: fp(16),
     marginBottom: hp(8),
   },
-
   statsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: wp(6),
+    marginTop: hp(4),
   },
   statItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(4),
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    paddingHorizontal: wp(10),
+    backgroundColor: 'rgba(15,52,96,0.4)',
+    paddingHorizontal: wp(8),
     paddingVertical: hp(4),
-    borderRadius: wp(8),
+    borderRadius: wp(6),
   },
   statText: {
-    color: '#94A3B8',
+    color: 'rgba(255,255,255,0.55)',
     fontSize: fp(10),
     fontWeight: '600',
   },
-  detailsBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(4),
-    backgroundColor: 'rgba(96,165,250,0.2)',
-    paddingHorizontal: wp(10),
-    paddingVertical: hp(5),
-    borderRadius: wp(8),
-    borderWidth: 1,
-    borderColor: 'rgba(96,165,250,0.3)',
-  },
-  detailsBtnText: {
-    color: colors.white,
-    fontSize: fp(10),
+  categoryChipText: {
+    color: '#60A5FA',
+    fontSize: fp(9),
     fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
 
-  separator: {
+  // 3-dot menu
+  menuAnchor: {
+    position: 'absolute',
+    bottom: hp(10),
+    right: wp(10),
+    zIndex: 100,
+    elevation: 100,
+  },
+  moreBtn: {
+    width: wp(34),
+    height: wp(34),
+    borderRadius: wp(17),
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  menuContent: {
+    backgroundColor: '#16213E',
+    borderRadius: wp(12),
+    borderWidth: 1,
+    borderColor: 'rgba(96,165,250,0.15)',
+    paddingVertical: hp(4),
+    minWidth: wp(160),
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(10),
+    paddingHorizontal: wp(16),
+    paddingVertical: hp(10),
+  },
+  menuItemText: {
+    fontSize: fp(13),
+    fontWeight: '600',
+  },
+  menuDivider: {
     height: 1,
     marginHorizontal: wp(12),
     backgroundColor: 'rgba(255,255,255,0.08)',
-  },
-
-  actionsRow: {
-    flexDirection: 'row',
-    paddingVertical: hp(6),
-    paddingHorizontal: wp(6),
-  },
-  actionBtn: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: wp(3),
-    paddingVertical: hp(3),
-  },
-  actionIconWrap: {
-    width: wp(28),
-    height: wp(28),
-    borderRadius: wp(14),
-    backgroundColor: 'rgba(96,165,250,0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  actionText: {
-    fontSize: fp(10),
-    fontWeight: '600',
   },
 });

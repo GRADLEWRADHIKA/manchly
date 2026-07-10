@@ -1,416 +1,498 @@
-import React, { useCallback, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  ActivityIndicator,
+  SafeAreaView,
+  StatusBar,
   Modal,
-  FlatList,
+  TextInput,
+  ActivityIndicator,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { useDispatch, useSelector } from 'react-redux';
+import { ThunkDispatch } from '@reduxjs/toolkit';
 import {
-  Wallet,
-  TrendingUp,
-  Users,
-  BookOpen,
-  Presentation,
-  ArrowDownToLine,
-  ChevronRight,
-  IndianRupee,
-  Clock,
-  Landmark,
-  Info,
-  CheckCircle2,
-  ArrowUpRight,
-  ArrowDownLeft,
+  ArrowLeft,
+  Settings,
+  Coins,
+  BarChart3,
+  ArrowUp,
+  AlertTriangle,
+  CreditCard,
+  X,
+  Check,
 } from 'lucide-react-native';
+import Toast from 'react-native-toast-message';
 import colors from '../../../utils/colors';
 import { wp, hp, fp } from '../../../utils/responsive';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import LinearGradient from 'react-native-linear-gradient';
-import AppHeaderWithBack from '../../../components/AppHeaderWithBack';
-import { instance } from '../../../utils/AxiosInstance';
-import Toast from 'react-native-toast-message';
+import { formatINR } from '../../../components/FormField';
+import ListRow from '../Creator/Stats/components/ListRow';
+import {
+  getKycStatus,
+  getWallet,
+  getBankAccount,
+  getEarningsBreakdown,
+  addBankAccount,
+  requestWithdrawal,
+  verifyKycComplete,
+} from '../../../store/SettlementSlice';
+import { getCreatorSales } from '../../../store/PaymentSlice';
 
-const WalletCreator = () => {
+const WalletCreator: React.FC = () => {
   const navigation = useNavigation<any>();
-  const [walletData, setWalletData] = useState<any>(null);
-  const [transactions, setTransactions] = useState<any[]>([]);
-  const [bankAccount, setBankAccount] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
+
+  const { kycStatus, wallet, bankAccount, earningsBreakdown } = useSelector(
+    (state: any) => state.settlementReducer,
+  );
+  const { sales } = useSelector((state: any) => state.paymentReducer);
+
+  const [loading, setLoading] = useState(false);
+
+  // Modals state
+  const [showKycModal, setShowKycModal] = useState(false);
+  const [showBankModal, setShowBankModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
 
-  const fetchWalletData = async () => {
-    try {
-      setLoading(true);
-      const [walletRes, bankRes] = await Promise.all([
-        instance.get('settlements/wallet'),
-        instance.get('settlements/bank-account').catch(() => null),
-      ]);
-      const data = walletRes?.data?.data;
-      setWalletData(data?.wallet || null);
-      setTransactions(data?.transactions || []);
-      setBankAccount(bankRes?.data?.data?.bankAccount || null);
-    } catch (error) {
-      console.log('Error fetching wallet:', error);
-    } finally {
-      setLoading(false);
-    }
+  // Form states
+  const [pan, setPan] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [dob, setDob] = useState('');
+
+  const [bankName, setBankName] = useState('');
+  const [accountHolder, setAccountHolder] = useState('');
+  const [accountNumber, setAccountNumber] = useState('');
+  const [ifsc, setIfsc] = useState('');
+
+  const [withdrawAmount, setWithdrawAmount] = useState('');
+
+  const loadData = () => {
+    setLoading(true);
+    Promise.all([
+      dispatch(getKycStatus()),
+      dispatch(getWallet()),
+      dispatch(getBankAccount()),
+      dispatch(getEarningsBreakdown()),
+      dispatch(getCreatorSales()),
+    ]).finally(() => setLoading(false));
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchWalletData();
-    }, []),
-  );
+  useEffect(() => {
+    loadData();
+  }, []);
 
-  const formatAmount = (amount: number) => {
-    return amount.toLocaleString('en-IN', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
-    });
-  };
-
-  const getT2Date = () => {
-    const eta = new Date();
-    let businessDays = 0;
-    while (businessDays < 2) {
-      eta.setDate(eta.getDate() + 1);
-      const day = eta.getDay();
-      if (day !== 0 && day !== 6) businessDays++;
-    }
-    return eta.toLocaleDateString('en-IN', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-    });
-  };
-
-  const pendingBalance = walletData?.available_balance || 0;
-  const settledBalance = walletData?.withdrawn_amount || 0;
-  const totalEarnings = walletData?.total_earnings || 0;
-  const totalNetEarnings = walletData?.total_net_earnings || 0;
+  const kycVerified = kycStatus?.status === 'COMPLETED';
 
   const handleWithdraw = () => {
+    if (!kycVerified) {
+      Toast.show({
+        type: 'error',
+        text1: 'KYC Required',
+        text2: 'Please complete your KYC verification first.',
+      });
+      return;
+    }
     if (!bankAccount) {
       Toast.show({
         type: 'error',
-        text1: 'No Bank Account',
-        text2: 'Please add and verify your bank account first',
-        position: 'bottom',
-      });
-      navigation.navigate('BankDetails');
-      return;
-    }
-    if (!bankAccount.is_verified) {
-      Toast.show({
-        type: 'error',
-        text1: 'Bank Not Verified',
-        text2: 'Please verify your bank account first',
-        position: 'bottom',
-      });
-      navigation.navigate('BankDetails');
-      return;
-    }
-    if (pendingBalance <= 0) {
-      Toast.show({
-        type: 'info',
-        text1: 'No Balance',
-        text2: 'You have no withdrawable balance at the moment',
-        position: 'bottom',
+        text1: 'Bank Details Required',
+        text2: 'Please link your bank account first.',
       });
       return;
     }
     setShowWithdrawModal(true);
   };
 
-  const formatDate = (dateStr: string) => {
-    const d = new Date(dateStr);
-    return d.toLocaleDateString('en-IN', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-    });
+  const submitWithdrawal = () => {
+    const amt = Number(withdrawAmount);
+    if (!amt || amt <= 0) {
+      Toast.show({ type: 'error', text1: 'Please enter a valid amount' });
+      return;
+    }
+    if (amt > (wallet?.balance || 0)) {
+      Toast.show({ type: 'error', text1: 'Insufficient balance' });
+      return;
+    }
+
+    setLoading(true);
+    dispatch(requestWithdrawal(amt))
+      .unwrap()
+      .then(() => {
+        setShowWithdrawModal(false);
+        setWithdrawAmount('');
+        dispatch(getWallet());
+      })
+      .finally(() => setLoading(false));
   };
 
-  const renderTransaction = ({ item }: { item: any }) => {
-    const isCredit = item.type === 'CREDIT';
-    return (
-      <View style={styles.txRow}>
-        <View
-          style={[
-            styles.txIcon,
-            {
-              backgroundColor: isCredit
-                ? colors.success + '12'
-                : colors.error + '12',
-            },
-          ]}
-        >
-          {isCredit ? (
-            <ArrowDownLeft size={wp(16)} color={colors.success} />
-          ) : (
-            <ArrowUpRight size={wp(16)} color={colors.error} />
-          )}
-        </View>
-        <View style={styles.txContent}>
-          <Text style={styles.txTitle} numberOfLines={1}>
-            {item.title}
-          </Text>
-          <Text style={styles.txDate}>{formatDate(item.created_at)}</Text>
-          <Text
-            style={[
-              styles.txStatus,
-              {
-                color:
-                  item.status === 'SETTLED'
-                    ? colors.success
-                    : item.status === 'FAILED'
-                    ? colors.error
-                    : colors.secondary,
-              },
-            ]}
-          >
-            {item.status_label}
-          </Text>
-        </View>
-        <View style={styles.txAmountWrap}>
-          <Text
-            style={[
-              styles.txAmount,
-              { color: isCredit ? colors.success : colors.error },
-            ]}
-          >
-            {isCredit ? '+' : '-'}₹{formatAmount(item.net_amount)}
-          </Text>
-          <Text style={styles.txGross}>
-            Gross: ₹{formatAmount(item.amount)}
-          </Text>
-        </View>
-      </View>
-    );
+  const submitKyc = () => {
+    if (!pan || !fullName || !dob) {
+      Toast.show({ type: 'error', text1: 'All KYC fields are required' });
+      return;
+    }
+
+    setLoading(true);
+    dispatch(
+      verifyKycComplete({
+        pan_number: pan,
+        name: fullName,
+        dob: dob,
+      }),
+    )
+      .unwrap()
+      .then(() => {
+        setShowKycModal(false);
+        setPan('');
+        setFullName('');
+        setDob('');
+        dispatch(getKycStatus());
+      })
+      .catch((err: any) => {
+        Toast.show({
+          type: 'error',
+          text1: 'Verification Failed',
+          text2: err?.message || 'Invalid PAN details',
+        });
+      })
+      .finally(() => setLoading(false));
   };
 
-  if (loading) {
-    return (
-      <View style={styles.container}>
-        <AppHeaderWithBack title="My Wallet" />
-        <View style={styles.loaderWrap}>
-          <ActivityIndicator size="large" color={colors.primary} />
-        </View>
-      </View>
-    );
-  }
+  const submitBank = () => {
+    if (!bankName || !accountHolder || !accountNumber || !ifsc) {
+      Toast.show({ type: 'error', text1: 'All bank fields are required' });
+      return;
+    }
+
+    setLoading(true);
+    dispatch(
+      addBankAccount({
+        bank_name: bankName,
+        account_holder: accountHolder,
+        account_number: accountNumber,
+        ifsc: ifsc,
+      }),
+    )
+      .unwrap()
+      .then(() => {
+        setShowBankModal(false);
+        setBankName('');
+        setAccountHolder('');
+        setAccountNumber('');
+        setIfsc('');
+        dispatch(getBankAccount());
+      })
+      .finally(() => setLoading(false));
+  };
+
+  // Earning details from server or fallback
+  const earningsData = [
+    {
+      id: 'net_earnings',
+      icon: Coins,
+      label: 'Net Earnings',
+      subLabel: 'This month',
+      amount: earningsBreakdown?.net_earnings || 0,
+    },
+    {
+      id: 'total_earnings',
+      icon: BarChart3,
+      label: 'Total Earnings',
+      subLabel: 'All time',
+      amount: earningsBreakdown?.total_earnings || 0,
+    },
+    {
+      id: 'last_payout',
+      icon: ArrowUp,
+      label: 'Last Payout',
+      subLabel: 'Previous',
+      amount: earningsBreakdown?.last_payout || 0,
+    },
+  ];
 
   return (
-    <View style={styles.container}>
-      <AppHeaderWithBack title="My Wallet" />
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor={colors.bg || '#0F0F0F'} />
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {/* Balance Card */}
-        <View style={styles.balanceCard}>
-          <LinearGradient
-            colors={['#1A1A2E', '#16213E', '#0F3460']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.balanceGradient}
-          >
-            <View style={styles.balanceHeader}>
-              <View style={styles.balanceIconWrap}>
-                <Wallet size={wp(20)} color={colors.white} />
-              </View>
-              <Text style={styles.balanceLabel}>Pending Settlement</Text>
-            </View>
-            <Text style={styles.balanceAmount}>
-              ₹ {formatAmount(pendingBalance)}
-            </Text>
-            <Text style={styles.balanceHint}>
-              Will be settled to your bank after T+2
-            </Text>
+      {/* Navigation Header */}
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.8}
+        >
+          <ArrowLeft size={22} color={colors.white || '#FFFFFF'} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Wallet & Settlements</Text>
+        <TouchableOpacity
+          style={styles.settingsButton}
+          onPress={loadData}
+          activeOpacity={0.8}
+        >
+          <Settings size={20} color={colors.white || '#FFFFFF'} />
+        </TouchableOpacity>
+      </View>
 
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+        {/* Total Balance Block */}
+        <View style={styles.balanceBlock}>
+          <Text style={styles.balanceLabel}>TOTAL BALANCE AVAILABLE</Text>
+          <Text style={styles.balanceAmount}>{formatINR(wallet?.balance || 0)}</Text>
+
+          {/* Action Pills */}
+          <View style={styles.actionPillsContainer}>
             <TouchableOpacity
-              style={styles.withdrawBtn}
-              activeOpacity={0.8}
+              style={[styles.actionPill, styles.withdrawPill]}
               onPress={handleWithdraw}
+              activeOpacity={0.8}
             >
-              <ArrowDownToLine size={wp(16)} color={colors.primary} />
-              <Text style={styles.withdrawBtnText}>Withdraw</Text>
+              <Text style={styles.withdrawText}>Request Payout</Text>
             </TouchableOpacity>
-          </LinearGradient>
-        </View>
-
-        {/* Quick Stats */}
-        <Text style={styles.sectionTitle}>Earnings Overview</Text>
-        <View style={styles.statsGrid}>
-          <View style={styles.statCard}>
-            <View style={[styles.statIconWrap, { backgroundColor: '#EEF2FF' }]}>
-              <TrendingUp size={wp(18)} color={colors.info} />
-            </View>
-            <Text style={styles.statValue}>
-              ₹ {formatAmount(totalEarnings)}
-            </Text>
-            <Text style={styles.statLabel}>Total Earnings</Text>
-          </View>
-
-          <View style={styles.statCard}>
-            <View style={[styles.statIconWrap, { backgroundColor: '#ECFDF5' }]}>
-              <CheckCircle2 size={wp(18)} color={colors.accent} />
-            </View>
-            <Text style={styles.statValue}>
-              ₹ {formatAmount(settledBalance)}
-            </Text>
-            <Text style={styles.statLabel}>Total Settled</Text>
-          </View>
-
-          <View style={styles.statCard}>
-            <View style={[styles.statIconWrap, { backgroundColor: '#FEF3C7' }]}>
-              <Clock size={wp(18)} color={colors.golden} />
-            </View>
-            <Text style={styles.statValue}>
-              ₹ {formatAmount(pendingBalance)}
-            </Text>
-            <Text style={styles.statLabel}>Pending</Text>
-          </View>
-
-          <View style={styles.statCard}>
-            <View style={[styles.statIconWrap, { backgroundColor: '#FDF2F8' }]}>
-              <IndianRupee size={wp(18)} color={colors.secondary} />
-            </View>
-            <Text style={styles.statValue}>
-              ₹ {formatAmount(totalNetEarnings)}
-            </Text>
-            <Text style={styles.statLabel}>Net Earnings</Text>
           </View>
         </View>
 
-        {/* Recent Transactions */}
-        <View style={styles.txHeader}>
-          <Text style={styles.sectionTitleOne}>Recent Transactions</Text>
-        </View>
-
-        {transactions.length > 0 ? (
-          <View style={styles.txSection}>
-            {transactions.slice(0, 10).map((item: any, index: number) => (
-              <View key={item.id || index}>{renderTransaction({ item })}</View>
-            ))}
-          </View>
-        ) : (
-          <View style={styles.txSection}>
-            <View style={styles.txEmptyCard}>
-              <IndianRupee size={wp(32)} color={colors.muted} />
-              <Text style={styles.txEmptyTitle}>No transactions yet</Text>
-              <Text style={styles.txEmptyDesc}>
-                Your earnings from courses and webinars will appear here
+        {/* Compliance warnings */}
+        {!kycVerified && (
+          <View style={styles.complianceCard}>
+            <AlertTriangle size={20} color={colors.gold || '#F0C040'} />
+            <View style={styles.complianceInfo}>
+              <Text style={styles.complianceTitle}>KYC Verification Required</Text>
+              <Text style={styles.complianceText}>
+                Verify your PAN to enable withdrawal transfers.
               </Text>
             </View>
+            <TouchableOpacity
+              style={styles.complianceBtn}
+              onPress={() => setShowKycModal(true)}
+            >
+              <Text style={styles.complianceBtnText}>Verify</Text>
+            </TouchableOpacity>
           </View>
         )}
 
-        {/* Quick Actions */}
-        <Text style={[styles.sectionTitle, { marginTop: hp(20) }]}>
-          Quick Actions
-        </Text>
-        <TouchableOpacity
-          style={styles.actionRow}
-          activeOpacity={0.7}
-          onPress={() => navigation.navigate('BankDetails')}
-        >
-          <View style={styles.actionLeft}>
-            <View style={[styles.actionIcon, { backgroundColor: '#EEF2FF' }]}>
-              <Landmark size={wp(18)} color={colors.info} />
+        {/* Bank Account registration */}
+        {!bankAccount ? (
+          <View style={styles.complianceCard}>
+            <CreditCard size={20} color={colors.white || '#FFFFFF'} />
+            <View style={styles.complianceInfo}>
+              <Text style={styles.complianceTitle}>Bank Account Missing</Text>
+              <Text style={styles.complianceText}>
+                Add a destination bank account to withdraw earnings.
+              </Text>
             </View>
-            <View>
-              <Text style={styles.actionTitle}>Bank Account</Text>
-              <Text style={styles.actionDesc}>Manage bank details</Text>
-            </View>
+            <TouchableOpacity
+              style={styles.complianceBtn}
+              onPress={() => setShowBankModal(true)}
+            >
+              <Text style={styles.complianceBtnText}>Link Bank</Text>
+            </TouchableOpacity>
           </View>
-          <ChevronRight size={wp(18)} color={colors.muted} />
+        ) : (
+          <View style={styles.bankDetailsCard}>
+            <View style={styles.bankHeaderRow}>
+              <CreditCard size={16} color={colors.gold || '#F0C040'} />
+              <Text style={styles.bankTitle}>Linked Bank Details</Text>
+            </View>
+            <Text style={styles.bankName}>{bankAccount.bank_name}</Text>
+            <Text style={styles.bankNumber}>
+              Account: ****{bankAccount.account_number?.slice(-4)} ({bankAccount.account_holder})
+            </Text>
+            <Text style={styles.bankIfsc}>IFSC: {bankAccount.ifsc}</Text>
+          </View>
+        )}
+
+        {/* Earnings Breakdown */}
+        <View style={styles.earningsCard}>
+          <Text style={styles.cardHeaderTitle}>Earnings Summary</Text>
+          {earningsData.map((item, index) => {
+            const IconComponent = item.icon;
+            return (
+              <View key={item.id} style={styles.earningRowContainer}>
+                <View style={styles.earningRow}>
+                  <View style={styles.iconCircle}>
+                    <IconComponent size={16} color={colors.gold || '#F0C040'} />
+                  </View>
+
+                  <View style={styles.labelCol}>
+                    <Text style={styles.earningLabel}>{item.label}</Text>
+                    <Text style={styles.earningSubLabel}>{item.subLabel}</Text>
+                  </View>
+
+                  <Text style={styles.earningAmount}>{formatINR(item.amount)}</Text>
+                </View>
+                {index < earningsData.length - 1 && <View style={styles.divider} />}
+              </View>
+            );
+          })}
+        </View>
+
+        {/* Settlement History Link */}
+        <TouchableOpacity
+          style={styles.settlementLink}
+          onPress={() => navigation.navigate('SettlementHistory')}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.settlementLinkText}>View Settlement History</Text>
+          <ArrowUp size={16} color={colors.gold || '#F0C040'} style={{transform: [{rotate: '90deg'}]}} />
         </TouchableOpacity>
+
+        {/* Recent Transactions List */}
+        <View style={styles.transactionsCard}>
+          <Text style={styles.cardHeaderTitle}>Sales & Revenue Logs</Text>
+
+          {sales && sales.length > 0 ? (
+            sales.map((tx: any, index: number) => (
+              <ListRow
+                key={tx.id || index.toString()}
+                title={tx.course?.title || tx.webinar?.title || tx.title || 'Product Sale'}
+                meta={new Date(tx.created_at).toLocaleDateString()}
+                avatarInitials="TX"
+                trailingType="percentage"
+                trailingText={`+${formatINR(tx.amount || 0)}`}
+                showDivider={index < sales.length - 1}
+              />
+            ))
+          ) : (
+            <Text style={styles.emptyText}>No sales recorded yet.</Text>
+          )}
+        </View>
       </ScrollView>
 
-      {/* Withdraw Modal */}
-      <Modal
-        visible={showWithdrawModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowWithdrawModal(false)}
-      >
+      {/* KYC MODAL */}
+      <Modal visible={showKycModal} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <View style={styles.modalIconWrap}>
-              <Wallet size={wp(28)} color={colors.primary} />
-            </View>
-            <Text style={styles.modalTitle}>Withdraw Funds</Text>
-
-            <View style={styles.modalAmountCard}>
-              <Text style={styles.modalAmountLabel}>Amount to be settled</Text>
-              <Text style={styles.modalAmountValue}>
-                ₹ {formatAmount(pendingBalance)}
-              </Text>
-            </View>
-
-            <View style={styles.modalInfoRow}>
-              <Clock size={wp(16)} color={colors.info} />
-              <Text style={styles.modalInfoText}>
-                Your money will be credited to your bank account by{' '}
-                <Text style={{ fontWeight: '700' }}>{getT2Date()}</Text> (T+2
-                settlement period).
-              </Text>
-            </View>
-
-            {bankAccount && (
-              <View style={styles.modalBankRow}>
-                <Landmark size={wp(16)} color={colors.textSecondary} />
-                <Text style={styles.modalBankText}>
-                  Crediting to: {bankAccount.account_number} (
-                  {bankAccount.ifsc_code})
-                </Text>
-              </View>
-            )}
-
-            <View style={styles.modalNoteRow}>
-              <Info size={wp(14)} color={colors.secondary} />
-              <Text style={styles.modalNoteText}>
-                Settlements are processed automatically. Your earnings will be
-                transferred after the T+2 settlement period.
-              </Text>
-            </View>
-
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={styles.modalCancelBtn}
-                onPress={() => setShowWithdrawModal(false)}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.modalCancelText}>Close</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.modalConfirmBtn}
-                onPress={() => {
-                  setShowWithdrawModal(false);
-                  Toast.show({
-                    type: 'success',
-                    text1: 'Settlement Scheduled',
-                    text2: `₹${formatAmount(
-                      pendingBalance,
-                    )} will be credited by ${getT2Date()}`,
-                    position: 'bottom',
-                  });
-                }}
-                activeOpacity={0.8}
-              >
-                <CheckCircle2 size={wp(16)} color={colors.white} />
-                <Text style={styles.modalConfirmText}>Got It</Text>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>PAN KYC Compliance</Text>
+              <TouchableOpacity onPress={() => setShowKycModal(false)}>
+                <X size={20} color={colors.white} />
               </TouchableOpacity>
             </View>
+
+            <TextInput
+              placeholder="PAN Number"
+              placeholderTextColor={colors.textSecondary}
+              style={styles.modalInput}
+              value={pan}
+              onChangeText={setPan}
+              autoCapitalize="characters"
+            />
+            <TextInput
+              placeholder="Full Name as per PAN"
+              placeholderTextColor={colors.textSecondary}
+              style={styles.modalInput}
+              value={fullName}
+              onChangeText={setFullName}
+            />
+            <TextInput
+              placeholder="DOB (YYYY-MM-DD)"
+              placeholderTextColor={colors.textSecondary}
+              style={styles.modalInput}
+              value={dob}
+              onChangeText={setDob}
+            />
+
+            <TouchableOpacity style={styles.modalBtn} onPress={submitKyc}>
+              {loading ? (
+                <ActivityIndicator color={colors.bg} />
+              ) : (
+                <Text style={styles.modalBtnText}>Submit Details</Text>
+              )}
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
-    </View>
+
+      {/* LINK BANK MODAL */}
+      <Modal visible={showBankModal} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Register Bank Credentials</Text>
+              <TouchableOpacity onPress={() => setShowBankModal(false)}>
+                <X size={20} color={colors.white} />
+              </TouchableOpacity>
+            </View>
+
+            <TextInput
+              placeholder="Bank Name"
+              placeholderTextColor={colors.textSecondary}
+              style={styles.modalInput}
+              value={bankName}
+              onChangeText={setBankName}
+            />
+            <TextInput
+              placeholder="Account Holder Name"
+              placeholderTextColor={colors.textSecondary}
+              style={styles.modalInput}
+              value={accountHolder}
+              onChangeText={setAccountHolder}
+            />
+            <TextInput
+              placeholder="Account Number"
+              placeholderTextColor={colors.textSecondary}
+              style={styles.modalInput}
+              value={accountNumber}
+              onChangeText={setAccountNumber}
+              keyboardType="numeric"
+            />
+            <TextInput
+              placeholder="IFSC Code"
+              placeholderTextColor={colors.textSecondary}
+              style={styles.modalInput}
+              value={ifsc}
+              onChangeText={setIfsc}
+              autoCapitalize="characters"
+            />
+
+            <TouchableOpacity style={styles.modalBtn} onPress={submitBank}>
+              {loading ? (
+                <ActivityIndicator color={colors.bg} />
+              ) : (
+                <Text style={styles.modalBtnText}>Register Account</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* WITHDRAW MODAL */}
+      <Modal visible={showWithdrawModal} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Request Payout Withdrawal</Text>
+              <TouchableOpacity onPress={() => setShowWithdrawModal(false)}>
+                <X size={20} color={colors.white} />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.modalSub}>
+              Available balance: {formatINR(wallet?.balance || 0)}
+            </Text>
+
+            <TextInput
+              placeholder="Enter Payout Amount (INR)"
+              placeholderTextColor={colors.textSecondary}
+              style={styles.modalInput}
+              value={withdrawAmount}
+              onChangeText={setWithdrawAmount}
+              keyboardType="numeric"
+            />
+
+            <TouchableOpacity style={styles.modalBtn} onPress={submitWithdrawal}>
+              {loading ? (
+                <ActivityIndicator color={colors.bg} />
+              ) : (
+                <Text style={styles.modalBtnText}>Confirm Withdrawal</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    </SafeAreaView>
   );
 };
 
@@ -419,390 +501,283 @@ export default WalletCreator;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.bg || '#0F0F0F',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: wp(16),
+    paddingVertical: hp(12),
+    borderBottomWidth: 0.5,
+    borderBottomColor: colors.border || '#2A2A2C',
+  },
+  backButton: {
+    padding: wp(4),
+  },
+  headerTitle: {
+    fontSize: fp(16),
+    fontWeight: '600',
+    color: colors.white || '#FFFFFF',
+  },
+  settingsButton: {
+    padding: wp(4),
   },
   scrollContent: {
-    paddingBottom: hp(30),
+    flexGrow: 1,
+    paddingBottom: hp(24),
   },
-  loaderWrap: {
-    flex: 1,
-    justifyContent: 'center',
+  balanceBlock: {
     alignItems: 'center',
-  },
-
-  // Balance Card
-  balanceCard: {
-    marginHorizontal: wp(16),
-    marginTop: hp(16),
-    borderRadius: wp(20),
-    overflow: 'hidden',
-    elevation: 6,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-  },
-  balanceGradient: {
-    padding: wp(20),
-    paddingBottom: wp(16),
-  },
-  balanceHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: hp(12),
-  },
-  balanceIconWrap: {
-    width: wp(36),
-    height: wp(36),
-    borderRadius: wp(18),
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: wp(10),
+    paddingVertical: hp(24),
   },
   balanceLabel: {
-    color: 'rgba(255,255,255,0.7)',
-    fontSize: fp(14),
-    fontWeight: '500',
+    fontSize: fp(10),
+    fontWeight: '700',
+    color: colors.textMuted || '#555558',
+    letterSpacing: 0.8,
+    marginBottom: hp(6),
   },
   balanceAmount: {
-    color: colors.white,
     fontSize: fp(32),
-    fontWeight: '900',
-    letterSpacing: 1,
-    marginBottom: hp(4),
-  },
-  balanceHint: {
-    color: 'rgba(255,255,255,0.5)',
-    fontSize: fp(12),
-    marginBottom: hp(16),
-  },
-  withdrawBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.white,
-    paddingVertical: hp(12),
-    borderRadius: wp(12),
-    gap: wp(8),
-  },
-  withdrawBtnText: {
-    fontWeight: '800',
-    color: colors.primary,
-    fontSize: fp(15),
-  },
-
-  // Section
-  sectionTitle: {
-    fontSize: fp(16),
     fontWeight: '700',
-    color: colors.text,
-    marginHorizontal: wp(16),
-    marginTop: hp(24),
-    marginBottom: hp(12),
-  },
-  sectionTitleOne: {
-    fontSize: fp(16),
-    fontWeight: '700',
-    color: colors.text,
-    marginVertical: hp(15),
-  },
-
-  // Stats Grid
-  statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingHorizontal: wp(12),
-    gap: wp(10),
-  },
-  statCard: {
-    width: '47%',
-    backgroundColor: colors.white,
-    borderRadius: wp(16),
-    padding: wp(14),
-    elevation: 2,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-  },
-  statIconWrap: {
-    width: wp(38),
-    height: wp(38),
-    borderRadius: wp(12),
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: hp(10),
-  },
-  statValue: {
-    fontSize: fp(18),
-    fontWeight: '800',
-    color: colors.text,
-    marginBottom: hp(2),
-  },
-  statLabel: {
-    fontSize: fp(12),
-    color: colors.textSecondary,
-    fontWeight: '500',
-  },
-
-  // Transactions
-  txSection: {
-    marginTop: hp(4),
-  },
-  txHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginHorizontal: wp(15),
-  },
-  txRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.white,
-    marginHorizontal: wp(16),
-    marginBottom: hp(8),
-    padding: wp(14),
-    borderRadius: wp(14),
-    elevation: 1,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 4,
-  },
-  txIcon: {
-    width: wp(40),
-    height: wp(40),
-    borderRadius: wp(12),
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: wp(12),
-  },
-  txContent: {
-    flex: 1,
-  },
-  txTitle: {
-    fontSize: fp(13),
-    fontWeight: '600',
-    color: colors.text,
-  },
-  txDate: {
-    fontSize: fp(11),
-    color: colors.muted,
-    marginTop: hp(2),
-  },
-  txStatus: {
-    fontSize: fp(10),
-    fontWeight: '600',
-    marginTop: hp(2),
-  },
-  txAmountWrap: {
-    alignItems: 'flex-end',
-  },
-  txAmount: {
-    fontSize: fp(14),
-    fontWeight: '700',
-  },
-  txGross: {
-    fontSize: fp(10),
-    color: colors.muted,
-    marginTop: hp(2),
-  },
-  txEmptyCard: {
-    backgroundColor: colors.white,
-    marginHorizontal: wp(16),
-    borderRadius: wp(16),
-    padding: wp(24),
-    alignItems: 'center',
-    elevation: 1,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 4,
-  },
-  txEmptyTitle: {
-    fontSize: fp(15),
-    fontWeight: '700',
-    color: colors.text,
-    marginTop: hp(10),
-  },
-  txEmptyDesc: {
-    fontSize: fp(13),
-    color: colors.textSecondary,
+    color: colors.white || '#FFFFFF',
     textAlign: 'center',
-    marginTop: hp(4),
-    lineHeight: fp(18),
   },
-
-  // Quick Actions
-  actionRow: {
+  actionPillsContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: colors.white,
-    marginHorizontal: wp(16),
-    marginBottom: hp(10),
-    padding: wp(14),
-    borderRadius: wp(14),
-    elevation: 2,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-  },
-  actionLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    marginTop: hp(16),
+    width: '100%',
+    paddingHorizontal: wp(16),
     gap: wp(12),
   },
-  actionIcon: {
-    width: wp(40),
-    height: wp(40),
-    borderRadius: wp(12),
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  actionTitle: {
-    fontSize: fp(14),
-    fontWeight: '600',
-    color: colors.text,
-  },
-  actionDesc: {
-    fontSize: fp(12),
-    color: colors.textSecondary,
-    marginTop: hp(1),
-  },
-
-  // Modal
-  modalOverlay: {
+  actionPill: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    height: hp(44),
+    borderRadius: 22,
+    alignItems: 'center',
     justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: wp(20),
   },
-  modalContainer: {
-    backgroundColor: colors.white,
-    borderRadius: wp(20),
-    paddingVertical: hp(24),
-    paddingHorizontal: wp(20),
-    width: '100%',
-    alignItems: 'center',
+  withdrawPill: {
+    backgroundColor: colors.gold || '#F0C040',
   },
-  modalIconWrap: {
-    width: wp(56),
-    height: wp(56),
-    borderRadius: wp(28),
-    backgroundColor: '#f0f0f0',
-    justifyContent: 'center',
+  withdrawText: {
+    color: '#000000',
+    fontSize: fp(14),
+    fontWeight: '700',
+  },
+  complianceCard: {
+    flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: colors.surface || '#1C1C1E',
+    borderRadius: 14,
+    padding: wp(14),
+    marginHorizontal: wp(16),
+    borderWidth: 1,
+    borderColor: '#EF444430',
     marginBottom: hp(12),
   },
-  modalTitle: {
-    fontSize: fp(18),
+  complianceInfo: {
+    flex: 1,
+    marginLeft: wp(10),
+    marginRight: wp(6),
+  },
+  complianceTitle: {
+    fontSize: fp(13),
     fontWeight: '700',
-    color: colors.text,
-    marginBottom: hp(16),
+    color: colors.white,
   },
-  modalAmountCard: {
-    backgroundColor: '#f8f9fa',
-    borderRadius: wp(14),
-    paddingVertical: hp(16),
-    paddingHorizontal: wp(20),
-    width: '100%',
-    alignItems: 'center',
-    marginBottom: hp(16),
-  },
-  modalAmountLabel: {
-    fontSize: fp(12),
-    color: colors.textSecondary,
-    fontWeight: '500',
-    marginBottom: hp(4),
-  },
-  modalAmountValue: {
-    fontSize: fp(28),
-    fontWeight: '900',
-    color: colors.text,
-  },
-  modalInfoRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: wp(10),
-    backgroundColor: colors.info + '10',
-    padding: wp(12),
-    borderRadius: wp(12),
-    width: '100%',
-    marginBottom: hp(10),
-  },
-  modalInfoText: {
-    flex: 1,
-    fontSize: fp(12),
-    color: colors.info,
-    lineHeight: fp(17),
-    fontWeight: '500',
-  },
-  modalBankRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(8),
-    backgroundColor: '#f8f9fa',
-    padding: wp(12),
-    borderRadius: wp(10),
-    width: '100%',
-    marginBottom: hp(10),
-  },
-  modalBankText: {
-    flex: 1,
-    fontSize: fp(12),
-    color: colors.textSecondary,
-    fontWeight: '500',
-  },
-  modalNoteRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: wp(8),
-    padding: wp(12),
-    width: '100%',
-    marginBottom: hp(16),
-  },
-  modalNoteText: {
-    flex: 1,
+  complianceText: {
     fontSize: fp(11),
     color: colors.textSecondary,
-    lineHeight: fp(16),
+    marginTop: hp(2),
   },
-  modalButtons: {
+  complianceBtn: {
+    backgroundColor: colors.gold,
+    paddingHorizontal: wp(12),
+    paddingVertical: hp(6),
+    borderRadius: 15,
+  },
+  complianceBtnText: {
+    color: '#000',
+    fontWeight: '700',
+    fontSize: fp(11),
+  },
+  bankDetailsCard: {
+    backgroundColor: colors.surface || '#1C1C1E',
+    borderRadius: 14,
+    padding: wp(16),
+    marginHorizontal: wp(16),
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginBottom: hp(12),
+  },
+  bankHeaderRow: {
     flexDirection: 'row',
-    gap: wp(10),
+    alignItems: 'center',
+    gap: wp(8),
+    marginBottom: hp(8),
+  },
+  bankTitle: {
+    fontSize: fp(13),
+    fontWeight: '700',
+    color: colors.white,
+  },
+  bankName: {
+    fontSize: fp(14),
+    color: colors.white,
+    fontWeight: '600',
+  },
+  bankNumber: {
+    fontSize: fp(12),
+    color: colors.textSecondary,
+    marginTop: hp(2),
+  },
+  bankIfsc: {
+    fontSize: fp(11),
+    color: colors.textMuted,
+    marginTop: hp(2),
+  },
+  earningsCard: {
+    backgroundColor: colors.surface || '#1C1C1E',
+    borderRadius: 14,
+    padding: wp(16),
+    marginHorizontal: wp(16),
+    borderWidth: 1,
+    borderColor: colors.border || '#2A2A2C',
+    marginBottom: hp(12),
+  },
+  cardHeaderTitle: {
+    fontSize: fp(14),
+    fontWeight: '700',
+    color: colors.white,
+    marginBottom: hp(10),
+  },
+  earningRowContainer: {
     width: '100%',
   },
-  modalCancelBtn: {
-    flex: 1,
-    height: hp(46),
-    borderRadius: wp(12),
+  earningRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: hp(12),
+  },
+  iconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.goldDim || 'rgba(240, 192, 64, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f4f4f5',
-    borderWidth: 1,
-    borderColor: '#eaecef',
+    marginRight: wp(12),
   },
-  modalCancelText: {
-    color: colors.text,
-    fontWeight: '600',
-    fontSize: fp(14),
-  },
-  modalConfirmBtn: {
+  labelCol: {
     flex: 1,
-    height: hp(46),
-    borderRadius: wp(12),
+    justifyContent: 'center',
+  },
+  earningLabel: {
+    fontSize: fp(13),
+    fontWeight: '600',
+    color: colors.white || '#FFFFFF',
+    marginBottom: hp(2),
+  },
+  earningSubLabel: {
+    fontSize: fp(11),
+    color: colors.textSecondary || '#888888',
+  },
+  earningAmount: {
+    fontSize: fp(14),
+    fontWeight: '600',
+    color: colors.white || '#FFFFFF',
+  },
+  divider: {
+    height: 0.5,
+    backgroundColor: colors.border || '#2A2A2C',
+    width: '100%',
+  },
+  transactionsCard: {
+    backgroundColor: colors.surface || '#1C1C1E',
+    borderRadius: 14,
+    padding: wp(16),
+    marginHorizontal: wp(16),
+    borderWidth: 1,
+    borderColor: colors.border || '#2A2A2C',
+  },
+  settlementLink: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.primary,
     gap: wp(6),
+    paddingVertical: hp(14),
+    marginHorizontal: wp(20),
+    marginBottom: hp(8),
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.gold + '40',
+    backgroundColor: colors.gold + '10',
   },
-  modalConfirmText: {
+  settlementLinkText: {
+    color: colors.gold || '#F0C040',
+    fontSize: fp(14),
+    fontWeight: '700',
+  },
+  emptyText: {
+    color: colors.textSecondary,
+    fontSize: fp(13),
+    textAlign: 'center',
+    marginVertical: hp(20),
+  },
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: '88%',
+    backgroundColor: colors.surface,
+    borderRadius: 16,
+    padding: wp(20),
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: hp(16),
+  },
+  modalTitle: {
+    fontSize: fp(16),
+    fontWeight: '700',
     color: colors.white,
+  },
+  modalSub: {
+    fontSize: fp(13),
+    color: colors.textSecondary,
+    marginBottom: hp(12),
+  },
+  modalInput: {
+    height: hp(48),
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 8,
+    paddingHorizontal: wp(12),
+    color: colors.white,
+    backgroundColor: colors.inputBg,
+    marginBottom: hp(12),
+    fontSize: fp(14),
+  },
+  modalBtn: {
+    height: hp(46),
+    backgroundColor: colors.gold,
+    borderRadius: 23,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: hp(6),
+  },
+  modalBtnText: {
+    color: colors.primary,
     fontWeight: '700',
     fontSize: fp(14),
   },

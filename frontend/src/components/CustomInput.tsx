@@ -9,6 +9,7 @@ import {
   ViewStyle,
 } from 'react-native';
 import React, { useState } from 'react';
+import { useSelector } from 'react-redux';
 import colors from '../utils/colors';
 import { wp, hp, fp } from '../utils/responsive';
 
@@ -56,6 +57,8 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
   disabled = false,
   ...restProps
 }) => {
+  const { user } = useSelector((state: any) => state.userReducer);
+  const isCreator = user?.user_type !== 'USER';
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [leftData, setLeftData] = useState(false)
 
@@ -68,9 +71,10 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
           underlineColorAndroid={'transparent'}
           style={[
             styles.textInput,
+            isCreator && { color: '#1A1A2E' },
             inputStyle,
             showFullHeight ? { height: '100%' } : {},
-            { width: passwordFild === true ? '90%' : '100%' }
+            { width: passwordFild === true ? '90%' : '100%' },
           ]}
           placeholder={placeholder}
           {...restProps}
@@ -81,7 +85,7 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
           value={value}
           secureTextEntry={passwordFild ? !isPasswordVisible : false}
           editable={!disabled}
-          placeholderTextColor={'grey'}
+          placeholderTextColor={restProps.placeholderTextColor || (isCreator ? '#94A3B8' : 'grey')}
         />
 
       </View>

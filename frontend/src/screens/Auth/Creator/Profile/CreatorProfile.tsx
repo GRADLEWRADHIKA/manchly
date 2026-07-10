@@ -6,10 +6,10 @@ import {
   TouchableOpacity,
   Image,
   ActivityIndicator,
-  ScrollView,
   Modal,
   Platform,
 } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
 import AppHeaderWithBack from '../../../../components/AppHeaderWithBack';
@@ -56,6 +56,21 @@ const CreatorProfile = () => {
   const displayName = user?.name
     ? user.name.charAt(0).toUpperCase() + user.name.slice(1)
     : 'Creator';
+
+  const profileFields = [
+    { filled: !!user?.name },
+    { filled: !!user?.dob },
+    { filled: !!user?.email },
+    { filled: !!user?.phone },
+    { filled: !!(user?.profile_image || imageAdd) },
+    { filled: !!user?.instagram_link },
+    { filled: !!user?.linkedin_link },
+    { filled: !!user?.youtube_link },
+    { filled: !!user?.facebook_link },
+    { filled: !!user?.kyc_verified },
+  ];
+  const filledCount = profileFields.filter(f => f.filled).length;
+  const profilePercent = Math.round((filledCount / profileFields.length) * 100);
 
   const openLink = async (url: string) => {
     let finalUrl = url.trim();
@@ -260,10 +275,12 @@ const CreatorProfile = () => {
     <View style={styles.container}>
       <AppHeaderWithBack title="My Profile" />
 
-      <ScrollView
+      <KeyboardAwareScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        enableOnAndroid
+        extraScrollHeight={hp(20)}
       >
         {/* Profile Card */}
         <LinearGradient
@@ -322,6 +339,35 @@ const CreatorProfile = () => {
             </Text>
           </View>
 
+          {/* Profile Completion */}
+          <View style={styles.completionWrap}>
+            <View style={styles.completionHeader}>
+              <Text style={styles.completionLabel}>Profile Completion</Text>
+              <Text style={styles.completionPercent}>{profilePercent}%</Text>
+            </View>
+            <View style={styles.completionBarBg}>
+              <View
+                style={[
+                  styles.completionBarFill,
+                  {
+                    width: `${profilePercent}%`,
+                    backgroundColor:
+                      profilePercent === 100
+                        ? colors.success
+                        : profilePercent >= 60
+                        ? '#F59E0B'
+                        : colors.error,
+                  },
+                ]}
+              />
+            </View>
+            {profilePercent < 100 && (
+              <Text style={styles.completionHint}>
+                Complete all fields to reach 100%
+              </Text>
+            )}
+          </View>
+
           {/* Social Links Icons */}
           {(user?.instagram_link || user?.linkedin_link || user?.youtube_link || user?.facebook_link) && (
             <View style={styles.socialRow}>
@@ -372,7 +418,7 @@ const CreatorProfile = () => {
           {/* NAME */}
           <View style={styles.fieldRow}>
             <View style={styles.fieldIcon}>
-              <Pen size={wp(16)} color={colors.info} />
+              <Pen size={wp(16)} color={'#60A5FA'} />
             </View>
             <View style={styles.fieldContent}>
               <Text style={styles.fieldLabel}>Full Name</Text>
@@ -398,7 +444,7 @@ const CreatorProfile = () => {
           {/* DOB */}
           <View style={styles.fieldRow}>
             <View style={styles.fieldIcon}>
-              <Calendar size={wp(16)} color={colors.info} />
+              <Calendar size={wp(16)} color={'#60A5FA'} />
             </View>
             <View style={styles.fieldContent}>
               <Text style={styles.fieldLabel}>Date of Birth</Text>
@@ -415,7 +461,7 @@ const CreatorProfile = () => {
                       <Text
                         style={[
                           styles.inputText,
-                          !value && { color: colors.muted },
+                          !value && { color: '#94A3B8' },
                         ]}
                       >
                         {value ? formatDisplayDate(value) : 'Select Date of Birth'}
@@ -449,13 +495,13 @@ const CreatorProfile = () => {
           {/* EMAIL */}
           <View style={styles.fieldRow}>
             <View style={styles.fieldIcon}>
-              <Mail size={wp(16)} color={colors.muted} />
+              <Mail size={wp(16)} color="#94A3B8" />
             </View>
             <View style={styles.fieldContent}>
               <View style={styles.fieldLabelRow}>
                 <Text style={styles.fieldLabel}>Email</Text>
                 <View style={styles.lockedBadge}>
-                  <Lock size={wp(10)} color={colors.muted} />
+                  <Lock size={wp(10)} color="#94A3B8" />
                   <Text style={styles.lockedText}>Locked</Text>
                 </View>
               </View>
@@ -479,13 +525,13 @@ const CreatorProfile = () => {
           {/* PHONE */}
           <View style={styles.fieldRow}>
             <View style={styles.fieldIcon}>
-              <Phone size={wp(16)} color={colors.muted} />
+              <Phone size={wp(16)} color="#94A3B8" />
             </View>
             <View style={styles.fieldContent}>
               <View style={styles.fieldLabelRow}>
                 <Text style={styles.fieldLabel}>Phone</Text>
                 <View style={styles.lockedBadge}>
-                  <Lock size={wp(10)} color={colors.muted} />
+                  <Lock size={wp(10)} color="#94A3B8" />
                   <Text style={styles.lockedText}>Locked</Text>
                 </View>
               </View>
@@ -631,7 +677,7 @@ const CreatorProfile = () => {
             )}
           </TouchableOpacity>
         </View>
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
       {/* KYC Warning Modal */}
       <Modal
@@ -686,7 +732,7 @@ export default CreatorProfile;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.white,
   },
   scrollView: {
     flex: 1,
@@ -718,11 +764,11 @@ const styles = StyleSheet.create({
     width: wp(100),
     height: wp(100),
     borderRadius: wp(50),
-    backgroundColor: colors.primary,
+    backgroundColor: '#0F3460',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 3,
-    borderColor: 'rgba(96,165,250,0.5)',
+    borderColor: '#0F346050',
   },
   profileImage: {
     width: wp(100),
@@ -736,11 +782,11 @@ const styles = StyleSheet.create({
     width: wp(30),
     height: wp(30),
     borderRadius: wp(15),
-    backgroundColor: colors.info,
+    backgroundColor: '#0F3460',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: colors.white,
+    borderColor: colors.cCard,
   },
   profileName: {
     fontSize: fp(20),
@@ -765,6 +811,44 @@ const styles = StyleSheet.create({
   kycBadgeText: {
     fontSize: fp(12),
     fontWeight: '700',
+  },
+  completionWrap: {
+    width: '100%',
+    marginTop: hp(16),
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: wp(12),
+    padding: wp(12),
+  },
+  completionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: hp(6),
+  },
+  completionLabel: {
+    fontSize: fp(11),
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.7)',
+  },
+  completionPercent: {
+    fontSize: fp(13),
+    fontWeight: '800',
+    color: colors.white,
+  },
+  completionBarBg: {
+    height: hp(6),
+    borderRadius: hp(3),
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    overflow: 'hidden',
+  },
+  completionBarFill: {
+    height: '100%',
+    borderRadius: hp(3),
+  },
+  completionHint: {
+    fontSize: fp(10),
+    color: 'rgba(255,255,255,0.45)',
+    marginTop: hp(5),
   },
   socialRow: {
     flexDirection: 'row',
@@ -805,23 +889,23 @@ const styles = StyleSheet.create({
     backgroundColor: '#1877F225',
   },
   igFieldIcon: {
-    backgroundColor: '#fce4ec',
+    backgroundColor: '#E1306C20',
   },
   liFieldIcon: {
-    backgroundColor: '#e3f2fd',
+    backgroundColor: '#0077B520',
   },
   ytFieldIcon: {
-    backgroundColor: '#ffebee',
+    backgroundColor: '#FF000020',
   },
   fbFieldIcon: {
-    backgroundColor: '#e8eaf6',
+    backgroundColor: '#1877F220',
   },
 
   // Section
   sectionTitle: {
     fontSize: fp(16),
     fontWeight: '700',
-    color: colors.text,
+    color: '#1A1A2E',
     marginHorizontal: wp(20),
     marginTop: hp(24),
     marginBottom: hp(10),
@@ -838,6 +922,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.04,
     shadowRadius: 6,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
   fieldRow: {
     flexDirection: 'row',
@@ -849,7 +935,7 @@ const styles = StyleSheet.create({
     width: wp(36),
     height: wp(36),
     borderRadius: wp(10),
-    backgroundColor: colors.surface,
+    backgroundColor: '#F1F5F9',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: wp(12),
@@ -861,7 +947,7 @@ const styles = StyleSheet.create({
   fieldLabel: {
     fontSize: fp(12),
     fontWeight: '600',
-    color: colors.textSecondary,
+    color: '#64748B',
     marginBottom: hp(4),
   },
   fieldLabelRow: {
@@ -874,40 +960,40 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(3),
-    backgroundColor: colors.surface,
+    backgroundColor: '#F1F5F9',
     paddingHorizontal: wp(8),
     paddingVertical: hp(2),
     borderRadius: wp(6),
   },
   lockedText: {
     fontSize: fp(10),
-    color: colors.muted,
+    color: '#94A3B8',
     fontWeight: '500',
   },
   input: {
     height: hp(42),
     borderWidth: 1,
-    borderColor: colors.borderColor,
+    borderColor: '#E2E8F0',
     borderRadius: wp(10),
     paddingHorizontal: wp(12),
     justifyContent: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: '#F8FAFC',
   },
   inputText: {
     fontSize: fp(14),
-    color: colors.text,
+    color: '#1A1A2E',
   },
   disabledInput: {
-    backgroundColor: colors.surface,
-    borderColor: colors.surface,
+    backgroundColor: '#F1F5F9',
+    borderColor: '#F1F5F9',
   },
   disabledText: {
     fontSize: fp(14),
-    color: colors.textSecondary,
+    color: '#64748B',
   },
   divider: {
     height: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: '#E2E8F0',
     marginHorizontal: wp(16),
   },
 
@@ -926,10 +1012,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: colors.white,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: '#E2E8F0',
   },
   backButtonText: {
-    color: colors.text,
+    color: '#1A1A2E',
     fontWeight: '600',
     fontSize: fp(15),
   },
@@ -939,7 +1025,7 @@ const styles = StyleSheet.create({
     borderRadius: wp(12),
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.primary,
+    backgroundColor: '#0F3460',
   },
   updateButtonText: {
     color: colors.white,
@@ -950,7 +1036,7 @@ const styles = StyleSheet.create({
   // Modal
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.7)',
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: wp(24),
@@ -962,6 +1048,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(24),
     width: '100%',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
   modalIconWrap: {
     width: wp(60),
@@ -975,12 +1063,12 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: fp(18),
     fontWeight: '700',
-    color: colors.text,
+    color: '#1A1A2E',
     marginBottom: hp(8),
   },
   modalMessage: {
     fontSize: fp(14),
-    color: colors.textSecondary,
+    color: '#64748B',
     textAlign: 'center',
     lineHeight: fp(20),
     marginBottom: hp(24),
@@ -996,12 +1084,12 @@ const styles = StyleSheet.create({
     borderRadius: wp(12),
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.surface,
+    backgroundColor: '#F1F5F9',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: '#E2E8F0',
   },
   modalCancelText: {
-    color: colors.text,
+    color: '#1A1A2E',
     fontWeight: '600',
     fontSize: fp(14),
   },

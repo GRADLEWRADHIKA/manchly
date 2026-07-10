@@ -17,7 +17,7 @@ import { OtpInput } from 'react-native-otp-entry';
 
 import colors from '../../utils/colors';
 import { wp, hp, fp } from '../../utils/responsive';
-import { verifyOtp } from '../../store/UserSlice';
+import { verifyOtp, resendOtp } from '../../store/UserSlice';
 
 const OTPScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -157,6 +157,24 @@ const OTPScreen: React.FC = () => {
           For demo use:{' '}
           <Text style={styles.demoCode}>{route?.params?.dummyOtp}</Text>
         </Text>
+
+        <TouchableOpacity
+          style={styles.resendButton}
+          onPress={() => {
+            const payload: any = {};
+            if (route?.params?.payload?.email) {
+              payload.email = route.params.payload.email;
+              payload.channel = 'email';
+            } else if (route?.params?.payload?.phone_number) {
+              payload.phone_number = route.params.payload.phone_number;
+              payload.channel = 'sms';
+            }
+            dispatch(resendOtp(payload));
+          }}
+          activeOpacity={0.75}
+        >
+          <Text style={styles.resendText}>Didn't receive the code? Resend OTP</Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
@@ -265,5 +283,13 @@ const styles = StyleSheet.create({
   demoCode: {
     fontWeight: '700',
     color: colors.primary,
+  },
+  resendButton: {
+    marginTop: hp(20),
+  },
+  resendText: {
+    fontSize: fp(14),
+    fontWeight: '600',
+    color: colors.gold,
   },
 });

@@ -89,9 +89,11 @@ export const signUp = createAsyncThunk('signUp', async (data: object) => {
     const url = 'auth/signup';
     const requestBody = data;
     const response = await instance.post(url, requestBody);
+    console.log('-----RESPOSE----', response);
 
     return response;
   } catch (error: any) {
+    console.log('------ERROR-----', JSON.parse(error));
     Toast.show({
       type: 'error',
       text1: 'Error',
@@ -118,6 +120,72 @@ export const checkAuthData = createAsyncThunk('checkAuthData', async (data: obje
     throw error;
   }
 });
+
+// Refresh current user data from backend
+export const getCurrentUser = createAsyncThunk('getCurrentUser', async () => {
+  const response = await instance.get('auth/me');
+  return response;
+});
+
+// Resend OTP
+export const resendOtp = createAsyncThunk('resendOtp', async (data: object) => {
+  try {
+    const response = await instance.post('auth/resend-otp', data);
+    Toast.show({type: 'success', text1: 'OTP Resent', position: 'bottom'});
+    return response;
+  } catch (error) {
+    Toast.show({
+      type: 'error',
+      text1: 'Error',
+      text2: getApiErrorMessage(error, 'Failed to resend OTP'),
+      position: 'bottom',
+    });
+    throw error;
+  }
+});
+
+// Subscription Management
+export const getMySubscription = createAsyncThunk('getMySubscription', async () => {
+  const response = await instance.get('subscriptions/me');
+  return response.data;
+});
+
+export const createSubscriptionCheckout = createAsyncThunk(
+  'createSubscriptionCheckout',
+  async (data: object) => {
+    try {
+      const response = await instance.post('subscriptions/checkout', data);
+      return response.data;
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: getApiErrorMessage(error, 'Failed to create checkout'),
+        position: 'bottom',
+      });
+      throw error;
+    }
+  },
+);
+
+export const verifySubscription = createAsyncThunk(
+  'verifySubscription',
+  async (data: object) => {
+    try {
+      const response = await instance.post('subscriptions/verify', data);
+      Toast.show({type: 'success', text1: 'Premium activated!', position: 'bottom'});
+      return response.data;
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: getApiErrorMessage(error, 'Verification failed'),
+        position: 'bottom',
+      });
+      throw error;
+    }
+  },
+);
 
 export const verifyPAN = createAsyncThunk('verifyPAN', async (data: object) => {
   try {
@@ -208,7 +276,10 @@ export const UserSlice = createSlice({
         state.loading = false;
       })
       .addCase(updateProfile.fulfilled, (state, actions) => {
-        state.user = actions?.payload?.data?.data?.user;
+        const updatedUser = actions?.payload?.data?.data?.user;
+        // Always preserve the user_type from login — never let updateProfile overwrite it
+        const currentUserType = state.user?.user_type;
+        state.user = { ...updatedUser, user_type: currentUserType || updatedUser?.user_type };
         state.loading = false;
       })
       .addCase(verifyPAN.fulfilled, (state, actions) => {
@@ -216,6 +287,30 @@ export const UserSlice = createSlice({
           state.user = actions.payload.data.user;
         }
         state.loading = false;
+      })
+      .addCase(getMySubscription.fulfilled, (state, actions) => {
+        const sub = actions?.payload?.data;
+        if (sub) {
+          state.user = {
+            ...state.user,
+            is_premium: sub.is_premium,
+            isPremium: sub.is_premium,
+          };
+        }
+      })
+      .addCase(verifySubscription.fulfilled, (state) => {
+        state.user = {
+          ...state.user,
+          is_premium: true,
+          isPremium: true,
+        };
+      })
+      .addCase(getCurrentUser.fulfilled, (state, actions) => {
+        const updatedUser = actions?.payload?.data?.data?.user;
+        if (updatedUser) {
+          const currentUserType = state.user?.user_type;
+          state.user = { ...updatedUser, user_type: currentUserType || updatedUser?.user_type };
+        }
       })
       .addCase(verifyOtp.rejected, state => {
         state.loading = false;

@@ -268,6 +268,7 @@ const CreatorHome = () => {
         <View style={styles.sectionPadding}>
           <KycCard />
         </View>
+      </View>
 
         {/* Revenue + Performance split row */}
         <View style={[styles.sectionPadding, styles.splitRow]}>
@@ -482,8 +483,18 @@ const CreatorHome = () => {
       </ScrollView>
 
       {showIntroVideo ? (
-        <View style={isFullScreen ? styles.fullScreenVideoContainer : styles.floatingVideoContainer}>
-          <View style={isFullScreen ? styles.expandedVideoWrap : styles.miniVideoWrap}>
+        <View
+          style={
+            isFullScreen
+              ? styles.fullScreenVideoContainer
+              : styles.floatingVideoContainer
+          }
+        >
+          <View
+            style={
+              isFullScreen ? styles.expandedVideoWrap : styles.miniVideoWrap
+            }
+          >
             <View style={styles.videoButtonsRow}>
               <TouchableOpacity
                 style={styles.videoActionButton}

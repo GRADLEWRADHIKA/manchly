@@ -1,39 +1,110 @@
-import React from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Image } from 'react-native';
+import React, {useEffect, useCallback} from 'react';
 import {
-  MessageCircle,
-  Search,
-  Send,
-  Users,
-  Sparkles,
-  UserCircle,
-  Bell,
-} from 'lucide-react-native';
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  Image,
+  ActivityIndicator,
+} from 'react-native';
+import {useNavigation, useIsFocused} from '@react-navigation/native';
+import {useDispatch, useSelector} from 'react-redux';
+import {ThunkDispatch} from '@reduxjs/toolkit';
+import {MessageCircle, Bell, UserCircle} from 'lucide-react-native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import colors from '../../../../utils/colors';
-import { wp, hp, fp } from '../../../../utils/responsive';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
+import {wp, hp, fp} from '../../../../utils/responsive';
+import {getConversations} from '../../../../store/ChatSlice';
+import SocketService from '../../../../services/SocketService';
 
 const CreatorChat = () => {
-  const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
-  const { user } = useSelector((state: any) => state.userReducer);
+  const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
+  const isFocused = useIsFocused();
+  const insets = useSafeAreaInsets();
+  const {conversations, loading} = useSelector((s: any) => s.chatReducer);
+  const {user} = useSelector((s: any) => s.userReducer);
 
-  const displayName = user?.name
-    ? user.name.charAt(0).toUpperCase() + user.name.slice(1)
-    : 'Creator';
+  useEffect(() => {
+    if (isFocused) dispatch(getConversations());
+  }, [isFocused]);
+
+  const getOtherParticipant = useCallback(
+    (conv: any) => {
+      const participants = conv.participants || conv.conversation_participants || [];
+      const other = participants.find((p: any) => {
+        const uid = p.user_id || p.userId || p.user?.id;
+        return uid !== user?.id;
+      });
+      return other?.user || other || {};
+    },
+    [user?.id],
+  );
+
+  const formatTime = (dateStr: string) => {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    const now = new Date();
+    const diffDays = Math.floor((now.getTime() - d.getTime()) / 86400000);
+    if (diffDays === 0) return d.toLocaleTimeString('en-IN', {hour: '2-digit', minute: '2-digit'});
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) return d.toLocaleDateString('en-IN', {weekday: 'short'});
+    return d.toLocaleDateString('en-IN', {day: 'numeric', month: 'short'});
+  };
+
+  const renderItem = ({item}: {item: any}) => {
+    const other = getOtherParticipant(item);
+    const name = other.name || 'Student';
+    const initials = name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase();
+    const isOnline = SocketService.isUserOnline(other.id);
+    const unread = item.unread_count || 0;
+
+    return (
+      <TouchableOpacity
+        style={styles.convCard}
+        activeOpacity={0.7}
+        onPress={() => navigation.navigate('ChatThread', {conversation: item, otherUser: other})}>
+        <View style={styles.avatarWrap}>
+          {other.profile_image ? (
+            <Image source={{uri: other.profile_image}} style={styles.avatar} />
+          ) : (
+            <View style={styles.avatarPlaceholder}>
+              <Text style={styles.avatarText}>{initials}</Text>
+            </View>
+          )}
+          <View style={[styles.onlineDot, {backgroundColor: isOnline ? colors.cSuccess : colors.cTextMuted}]} />
+        </View>
+
+        <View style={styles.convInfo}>
+          <Text style={styles.convName} numberOfLines={1}>{name}</Text>
+          <Text style={styles.convLastMsg} numberOfLines={1}>
+            {item.last_message || 'Start chatting'}
+          </Text>
+        </View>
+
+        <View style={styles.convRight}>
+          <Text style={styles.convTime}>{formatTime(item.last_message_at || item.updated_at)}</Text>
+          {unread > 0 && (
+            <View style={styles.unreadBadge}>
+              <Text style={styles.unreadText}>{unread > 99 ? '99+' : unread}</Text>
+            </View>
+          )}
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View style={styles.container}>
       {/* Header */}
-      <View style={[styles.headerWrapper, { paddingTop: insets.top }]}>
+      <View style={[styles.headerWrapper, {paddingTop: insets.top}]}>
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             {user?.profile_image ? (
-              <Image source={{ uri: user.profile_image }} style={styles.avatar} />
+              <Image source={{uri: user.profile_image}} style={styles.headerAvatar} />
             ) : (
-              <View style={styles.avatarFallback}>
+              <View style={styles.headerAvatarFallback}>
                 <UserCircle size={wp(28)} color={colors.white} />
               </View>
             )}
@@ -42,77 +113,32 @@ const CreatorChat = () => {
               <Text style={styles.headerTitle}>Chats</Text>
             </View>
           </View>
-          <TouchableOpacity
-            style={styles.bellBtn}
-            onPress={() => navigation.navigate('CreatorNotification')}
-          >
+          <TouchableOpacity style={styles.bellBtn} onPress={() => navigation.navigate('CreatorNotification')}>
             <Bell size={wp(20)} color={colors.white} />
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* Coming Soon Content */}
-      <View style={styles.content}>
-        {/* Illustration area */}
-        <View style={styles.illustrationWrap}>
-          <View style={styles.iconCircleOuter}>
-            <View style={styles.iconCircleInner}>
-              <MessageCircle size={wp(40)} color={colors.primary} />
-            </View>
-          </View>
-          <View style={styles.floatingBadge1}>
-            <Send size={wp(14)} color={colors.info} />
-          </View>
-          <View style={styles.floatingBadge2}>
-            <Sparkles size={wp(14)} color={colors.golden} />
-          </View>
+      {loading && conversations.length === 0 ? (
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color={colors.cAccentLight} />
         </View>
-
-        <Text style={styles.comingTitle}>Chat is Coming Soon</Text>
-        <Text style={styles.comingDesc}>
-          Connect directly with your students, answer questions, and build your
-          community — all within the app.
-        </Text>
-
-        {/* Feature preview cards */}
-        <View style={styles.featureList}>
-          <View style={styles.featureCard}>
-            <View style={[styles.featureIcon, { backgroundColor: '#EEF2FF' }]}>
-              <MessageCircle size={wp(18)} color={colors.info} />
-            </View>
-            <View style={styles.featureText}>
-              <Text style={styles.featureTitle}>Direct Messaging</Text>
-              <Text style={styles.featureDesc}>
-                1-on-1 chat with your enrolled students
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.featureCard}>
-            <View style={[styles.featureIcon, { backgroundColor: '#ECFDF5' }]}>
-              <Users size={wp(18)} color={colors.accent} />
-            </View>
-            <View style={styles.featureText}>
-              <Text style={styles.featureTitle}>Group Discussions</Text>
-              <Text style={styles.featureDesc}>
-                Create course-specific group chats
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.featureCard}>
-            <View style={[styles.featureIcon, { backgroundColor: '#FEF3C7' }]}>
-              <Send size={wp(18)} color={colors.golden} />
-            </View>
-            <View style={styles.featureText}>
-              <Text style={styles.featureTitle}>Broadcast Updates</Text>
-              <Text style={styles.featureDesc}>
-                Send announcements to all your students
-              </Text>
-            </View>
-          </View>
+      ) : conversations.length === 0 ? (
+        <View style={styles.centered}>
+          <MessageCircle size={wp(48)} color={colors.cTextMuted} strokeWidth={1.2} />
+          <Text style={styles.emptyTitle}>No conversations yet</Text>
+          <Text style={styles.emptySub}>
+            When students book sessions or enroll in your courses, conversations will appear here.
+          </Text>
         </View>
-      </View>
+      ) : (
+        <FlatList
+          data={conversations}
+          keyExtractor={(item: any) => item.id}
+          renderItem={renderItem}
+          contentContainerStyle={styles.listContent}
+        />
+      )}
     </View>
   );
 };
@@ -120,13 +146,8 @@ const CreatorChat = () => {
 export default CreatorChat;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.surface,
-  },
-  headerWrapper: {
-    backgroundColor: '#111111',
-  },
+  container: {flex: 1, backgroundColor: colors.white},
+  headerWrapper: {backgroundColor: colors.cBg},
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -134,169 +155,53 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(16),
     paddingVertical: hp(14),
   },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(12),
+  headerLeft: {flexDirection: 'row', alignItems: 'center', gap: wp(12)},
+  headerAvatar: {width: wp(46), height: wp(46), borderRadius: wp(23), borderWidth: 2, borderColor: '#E2E8F0'},
+  headerAvatarFallback: {
+    width: wp(46), height: wp(46), borderRadius: wp(23),
+    backgroundColor: colors.white, justifyContent: 'center', alignItems: 'center',
+    borderWidth: 2, borderColor: '#E2E8F0',
   },
-  avatar: {
-    width: wp(46),
-    height: wp(46),
-    borderRadius: wp(23),
-    borderWidth: 2,
-    borderColor: '#2c2c2e',
-  },
-  avatarFallback: {
-    width: wp(46),
-    height: wp(46),
-    borderRadius: wp(23),
-    backgroundColor: '#1c1c1e',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#2c2c2e',
-  },
-  greetingSub: {
-    fontSize: fp(12),
-    color: '#999999',
-    fontWeight: '500',
-  },
-  headerTitle: {
-    fontSize: fp(18),
-    fontWeight: '800',
-    color: colors.white,
-    marginTop: hp(1),
-  },
+  greetingSub: {fontSize: fp(12), color: colors.cTextSecondary, fontWeight: '500'},
+  headerTitle: {fontSize: fp(18), fontWeight: '800', color: colors.white, marginTop: hp(1)},
   bellBtn: {
-    width: wp(40),
-    height: wp(40),
-    borderRadius: wp(20),
-    backgroundColor: '#1c1c1e',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#2c2c2e',
+    width: wp(40), height: wp(40), borderRadius: wp(20),
+    backgroundColor: colors.white, justifyContent: 'center', alignItems: 'center',
+    borderWidth: 1, borderColor: '#E2E8F0',
   },
-
-  // Content
-  content: {
-    flex: 1,
-    alignItems: 'center',
-    paddingHorizontal: wp(24),
-    paddingTop: hp(36),
-  },
-
-  // Illustration
-  illustrationWrap: {
-    position: 'relative',
-    marginBottom: hp(24),
-  },
-  iconCircleOuter: {
-    width: wp(100),
-    height: wp(100),
-    borderRadius: wp(50),
-    backgroundColor: colors.lightGrey,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  iconCircleInner: {
-    width: wp(72),
-    height: wp(72),
-    borderRadius: wp(36),
-    backgroundColor: colors.white,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 3,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-  },
-  floatingBadge1: {
-    position: 'absolute',
-    top: hp(2),
-    right: -wp(6),
-    width: wp(32),
-    height: wp(32),
-    borderRadius: wp(16),
-    backgroundColor: colors.white,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 4,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  floatingBadge2: {
-    position: 'absolute',
-    bottom: hp(2),
-    left: -wp(6),
-    width: wp(32),
-    height: wp(32),
-    borderRadius: wp(16),
-    backgroundColor: colors.white,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 4,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-
-  comingTitle: {
-    fontSize: fp(22),
-    fontWeight: '800',
-    color: colors.text,
-    textAlign: 'center',
-    marginBottom: hp(8),
-  },
-  comingDesc: {
-    fontSize: fp(14),
-    color: colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: fp(20),
-    marginBottom: hp(28),
-    paddingHorizontal: wp(8),
-  },
-
-  // Feature cards
-  featureList: {
-    width: '100%',
-    gap: hp(10),
-  },
-  featureCard: {
+  centered: {flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: wp(32)},
+  emptyTitle: {fontSize: fp(18), fontWeight: '700', color: '#1A1A2E', marginTop: hp(16)},
+  emptySub: {fontSize: fp(13), color: '#64748B', textAlign: 'center', marginTop: hp(8), lineHeight: fp(20)},
+  listContent: {paddingTop: hp(4)},
+  convCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.white,
-    borderRadius: wp(14),
-    padding: wp(14),
-    elevation: 2,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
+    paddingHorizontal: wp(16),
+    paddingVertical: hp(12),
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#E8ECF0',
   },
-  featureIcon: {
-    width: wp(42),
-    height: wp(42),
-    borderRadius: wp(12),
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: wp(14),
+  avatarWrap: {position: 'relative'},
+  avatar: {width: wp(48), height: wp(48), borderRadius: wp(16)},
+  avatarPlaceholder: {
+    width: wp(48), height: wp(48), borderRadius: wp(16),
+    backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center',
   },
-  featureText: {
-    flex: 1,
+  avatarText: {fontSize: fp(14), fontWeight: '700', color: colors.cAccentLight},
+  onlineDot: {
+    position: 'absolute', bottom: 0, right: 0,
+    width: wp(12), height: wp(12), borderRadius: wp(6),
+    borderWidth: 2, borderColor: colors.white,
   },
-  featureTitle: {
-    fontSize: fp(14),
-    fontWeight: '700',
-    color: colors.text,
+  convInfo: {flex: 1, marginLeft: wp(12)},
+  convName: {fontSize: fp(15), fontWeight: '600', color: '#1A1A2E'},
+  convLastMsg: {fontSize: fp(13), color: '#64748B', marginTop: hp(2)},
+  convRight: {alignItems: 'flex-end', gap: hp(4)},
+  convTime: {fontSize: fp(11), color: '#94A3B8'},
+  unreadBadge: {
+    backgroundColor: colors.cAccentLight, borderRadius: wp(10),
+    minWidth: wp(20), height: wp(20), alignItems: 'center', justifyContent: 'center',
+    paddingHorizontal: wp(6),
   },
-  featureDesc: {
-    fontSize: fp(12),
-    color: colors.textSecondary,
-    marginTop: hp(2),
-  },
+  unreadText: {fontSize: fp(10), fontWeight: '800', color: colors.white},
 });

@@ -11,7 +11,7 @@ import {
   User,
 } from "lucide-react-native";
 import CreatorHome from '../screens/Auth/Creator/Home/CreatorHome';
-import CreatorView from '../screens/Auth/Creator/Products/Course/CreatorView';
+//import CreatorView from '../screens/Auth/Creator/Products/Course/CreatorView';
 import CreatorSetting from '../screens/Auth/Creator/Settings/CreatorSetting';
 import CreatorWebinar from '../screens/Auth/Creator/Webinar/CreatorWebinar';
 import CreateProducts from '../screens/Auth/Creator/Products/Course/CreateProducts';
@@ -28,8 +28,8 @@ const tabs = [
     Icon: House,
   },
   {
-    name: 'ProductsScreen',
-    component: CreatorView,
+    name: 'ProductsHub',
+    component: ProductsHub,
     label: 'Products',
     Icon: ShoppingBag,
   },

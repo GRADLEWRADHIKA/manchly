@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   RefreshControl,
   Pressable,
   Linking,
+  ActivityIndicator,
 } from 'react-native';
 import {
   Search,
@@ -19,9 +20,9 @@ import {
 } from 'lucide-react-native';
 import colors from '../../../../utils/colors';
 import { useSelector, useDispatch } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { fetchCourses } from '../../../../store/CourseSlice';
+import { fetchCourses, fetchPublicCourses } from '../../../../store/CourseSlice';
 import { getEnrolledCourses } from '../../../../store/EnrollmentSlice';
 import CustomTextInput from '../../../../components/CustomInput';
 import CourseCard from './component/CourseCard';
@@ -34,64 +35,160 @@ const TAB_OPTIONS = [
   { key: 'webinar', label: 'Webinars', icon: Presentation },
 ];
 
+const LIMIT = 10;
+
 const UserView: React.FC = () => {
   const dispatch = useDispatch<any>();
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
-  const [searchQuery, setSearchQuery] = useState('');
+  const isFocused = useIsFocused();
   const { user } = useSelector((state: any) => state.userReducer);
-  const { list: allCourses } = useSelector(
-    (state: any) => state.coursesReducer,
-  );
   const { list: enrolledCourses } = useSelector(
     (state: any) => state.enrollmentsReducer,
   );
+
   const [active, setActive] = useState('courses');
-  const [webinarData, setWebinarData] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const searchTimer = useRef<any>(null);
+
+  // Course state
+  const [courses, setCourses] = useState<any[]>([]);
+  const [coursePage, setCoursePage] = useState(1);
+  const [courseHasMore, setCourseHasMore] = useState(true);
+  const [courseLoading, setCourseLoading] = useState(false);
+  const [courseLoadingMore, setCourseLoadingMore] = useState(false);
+  const [courseTotal, setCourseTotal] = useState(0);
+
+  // Webinar state
+  const [webinars, setWebinars] = useState<any[]>([]);
+  const [webinarPage, setWebinarPage] = useState(1);
+  const [webinarHasMore, setWebinarHasMore] = useState(true);
+  const [webinarLoading, setWebinarLoading] = useState(false);
+  const [webinarLoadingMore, setWebinarLoadingMore] = useState(false);
+  const [webinarTotal, setWebinarTotal] = useState(0);
+
   const [refreshing, setRefreshing] = useState(false);
 
-  const fetchData = () => {
-    dispatch(fetchCourses({}));
-    dispatch(getEnrolledCourses({}));
-    funGetAllWebinar(1, 10);
+  // ---- Courses fetch ----
+  const fetchCourseData = useCallback((pageNum: number, search: string, refresh = false) => {
+    if (refresh) setCourseLoading(true);
+    else setCourseLoadingMore(true);
+
+    const payload: any = { page: pageNum, limit: LIMIT };
+    if (search.trim()) payload.search = search.trim();
+
+    dispatch(fetchPublicCourses(payload))
+      .unwrap()
+      .then((response: any) => {
+        const list = response?.data?.data?.courses || response?.data?.courses || [];
+        const total = response?.data?.data?.pagination?.total || list.length;
+        if (refresh) setCourses(list);
+        else setCourses(prev => [...prev, ...list]);
+        setCourseTotal(total);
+        setCourseHasMore(list.length >= LIMIT);
+        setCoursePage(pageNum);
+      })
+      .finally(() => {
+        setCourseLoading(false);
+        setCourseLoadingMore(false);
+      });
+  }, [dispatch]);
+
+  // ---- Webinars fetch ----
+  const fetchWebinarData = useCallback((pageNum: number, search: string, refresh = false) => {
+    if (refresh) setWebinarLoading(true);
+    else setWebinarLoadingMore(true);
+
+    const payload: any = { page: pageNum, limit: LIMIT, upcoming: true };
+    if (search.trim()) payload.title = search.trim();
+
+    dispatch(getAllWebinar(payload))
+      .unwrap()
+      .then((response: any) => {
+        const list = response?.data?.data?.webinars || [];
+        const total = response?.data?.data?.pagination?.total || list.length;
+        if (refresh) setWebinars(list);
+        else setWebinars(prev => [...prev, ...list]);
+        setWebinarTotal(total);
+        setWebinarHasMore(list.length >= LIMIT);
+        setWebinarPage(pageNum);
+      })
+      .finally(() => {
+        setWebinarLoading(false);
+        setWebinarLoadingMore(false);
+      });
+  }, [dispatch]);
+
+  // Initial load
+  useEffect(() => {
+    if (isFocused) {
+      fetchCourseData(1, searchQuery, true);
+      fetchWebinarData(1, searchQuery, true);
+      dispatch(getEnrolledCourses({}));
+    }
+  }, [isFocused]);
+
+  // Debounced search
+  const handleSearch = (text: string) => {
+    setSearchQuery(text);
+    if (searchTimer.current) clearTimeout(searchTimer.current);
+    searchTimer.current = setTimeout(() => {
+      if (active === 'courses') {
+        fetchCourseData(1, text, true);
+      } else {
+        fetchWebinarData(1, text, true);
+      }
+    }, 500);
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  const clearSearch = () => {
+    setSearchQuery('');
+    if (active === 'courses') fetchCourseData(1, '', true);
+    else fetchWebinarData(1, '', true);
+  };
 
-  const onRefresh = async () => {
+  // Tab change
+  const handleTabChange = (tab: string) => {
+    if (tab === active) return;
+    setActive(tab);
+    setSearchQuery('');
+    // Refresh the target tab data
+    if (tab === 'courses') fetchCourseData(1, '', true);
+    else fetchWebinarData(1, '', true);
+  };
+
+  // Pull to refresh
+  const onRefresh = () => {
     setRefreshing(true);
-    fetchData();
-    setTimeout(() => setRefreshing(false), 1000);
+    const cb = () => setRefreshing(false);
+    if (active === 'courses') {
+      fetchCourseData(1, searchQuery, true);
+      dispatch(getEnrolledCourses({}));
+    } else {
+      fetchWebinarData(1, searchQuery, true);
+    }
+    setTimeout(cb, 1000);
+  };
+
+  // Load more
+  const handleCourseLoadMore = () => {
+    if (!courseLoadingMore && courseHasMore && !courseLoading) {
+      fetchCourseData(coursePage + 1, searchQuery, false);
+    }
+  };
+
+  const handleWebinarLoadMore = () => {
+    if (!webinarLoadingMore && webinarHasMore && !webinarLoading) {
+      fetchWebinarData(webinarPage + 1, searchQuery, false);
+    }
   };
 
   const enrolledCourseIds = (enrolledCourses.enrollments || []).map(
     (e: any) => e.course_id,
   );
 
-  const browseCourses = allCourses?.data?.courses || [];
-
-  const filteredCourses = browseCourses.filter((course: any) =>
-    course.title?.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
-
   const handleCoursePress = (courseId: string) => {
     navigation.navigate('CourseDetailsScreen', { courseId });
-  };
-
-  const funGetAllWebinar = (pageNum: number, dataLimit: number) => {
-    const payload = {
-      page: pageNum,
-      limit: dataLimit,
-      upcoming: true,
-      title: '',
-    };
-    dispatch(getAllWebinar(payload))
-      .unwrap()
-      .then((response: any) => {
-        setWebinarData(response?.data?.data?.webinars);
-      });
   };
 
   const displayName = user?.name
@@ -108,31 +205,52 @@ const UserView: React.FC = () => {
       </Text>
       <Text style={styles.sectionCount}>
         {active === 'courses'
-          ? `${filteredCourses.length} courses`
-          : `${webinarData?.length || 0} webinars`}
+          ? `${courseTotal} courses`
+          : `${webinarTotal} webinars`}
       </Text>
     </View>
   );
 
-  const renderEmpty = () => (
-    <View style={styles.emptyState}>
-      {active === 'courses' ? (
-        <BookOpen size={wp(40)} color={colors.muted} />
-      ) : (
-        <Presentation size={wp(40)} color={colors.muted} />
-      )}
-      <Text style={styles.emptyTitle}>
-        {active === 'courses' ? 'No courses found' : 'No webinars available'}
-      </Text>
-      <Text style={styles.emptyText}>
-        {searchQuery
-          ? 'Try a different search term'
-          : active === 'courses'
-          ? 'New courses will appear here'
-          : 'Upcoming webinars will be listed here'}
-      </Text>
-    </View>
-  );
+  const renderFooter = () => {
+    const isLoadingMore = active === 'courses' ? courseLoadingMore : webinarLoadingMore;
+    if (!isLoadingMore) return null;
+    return (
+      <View style={styles.footerLoader}>
+        <ActivityIndicator size="small" color={colors.secPrimary} />
+        <Text style={styles.loadingMoreText}>Loading more...</Text>
+      </View>
+    );
+  };
+
+  const renderEmpty = () => {
+    const isLoading = active === 'courses' ? courseLoading : webinarLoading;
+    if (isLoading) {
+      return (
+        <View style={styles.emptyState}>
+          <ActivityIndicator size="large" color={colors.secPrimary} />
+        </View>
+      );
+    }
+    return (
+      <View style={styles.emptyState}>
+        {active === 'courses' ? (
+          <BookOpen size={wp(40)} color={colors.muted} />
+        ) : (
+          <Presentation size={wp(40)} color={colors.muted} />
+        )}
+        <Text style={styles.emptyTitle}>
+          {active === 'courses' ? 'No courses found' : 'No webinars available'}
+        </Text>
+        <Text style={styles.emptyText}>
+          {searchQuery
+            ? 'Try a different search term'
+            : active === 'courses'
+            ? 'New courses will appear here'
+            : 'Upcoming webinars will be listed here'}
+        </Text>
+      </View>
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -172,7 +290,7 @@ const UserView: React.FC = () => {
             <View style={styles.statItem}>
               <BookOpen size={wp(14)} color="#34D399" />
               <Text style={styles.statText}>
-                {browseCourses.length} Available
+                {courseTotal} Available
               </Text>
             </View>
           </View>
@@ -187,11 +305,11 @@ const UserView: React.FC = () => {
           placeholder={
             active === 'courses' ? 'Search courses...' : 'Search webinars...'
           }
-          onChange={setSearchQuery}
+          onChange={handleSearch as any}
           value={searchQuery}
         />
         {searchQuery.length > 0 && (
-          <TouchableOpacity onPress={() => setSearchQuery('')}>
+          <TouchableOpacity onPress={clearSearch}>
             <X size={wp(18)} color={colors.muted} />
           </TouchableOpacity>
         )}
@@ -205,7 +323,7 @@ const UserView: React.FC = () => {
           return (
             <TouchableOpacity
               key={tab.key}
-              onPress={() => setActive(tab.key)}
+              onPress={() => handleTabChange(tab.key)}
               style={[styles.tabBtn, isActive && styles.activeTabBtn]}
               activeOpacity={0.7}
             >
@@ -226,13 +344,11 @@ const UserView: React.FC = () => {
       {/* Scrollable List */}
       {active === 'courses' ? (
         <FlatList
-          data={filteredCourses}
+          data={courseLoading ? [] : courses}
           keyExtractor={i => i.id || i._id}
           ListHeaderComponent={renderListHeader}
           renderItem={({ item }) => {
-            const isEnrolled = enrolledCourseIds.includes(
-              item.id || item._id,
-            );
+            const isEnrolled = enrolledCourseIds.includes(item.id || item._id);
             return (
               <View style={styles.cardWrap}>
                 <CourseCard
@@ -247,13 +363,16 @@ const UserView: React.FC = () => {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listContent}
           ListEmptyComponent={renderEmpty}
+          ListFooterComponent={renderFooter}
+          onEndReached={handleCourseLoadMore}
+          onEndReachedThreshold={0.3}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
         />
       ) : (
         <FlatList
-          data={webinarData}
+          data={webinarLoading ? [] : webinars}
           keyExtractor={(item: any) => item?.id}
           ListHeaderComponent={renderListHeader}
           renderItem={({ item }) => (
@@ -264,6 +383,9 @@ const UserView: React.FC = () => {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listContent}
           ListEmptyComponent={renderEmpty}
+          ListFooterComponent={renderFooter}
+          onEndReached={handleWebinarLoadMore}
+          onEndReachedThreshold={0.3}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
@@ -282,6 +404,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingBottom: hp(100),
+    flexGrow: 1,
   },
 
   // Hero
@@ -432,6 +555,20 @@ const styles = StyleSheet.create({
   // Cards
   cardWrap: {
     paddingHorizontal: wp(16),
+  },
+
+  // Footer loader
+  footerLoader: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: wp(16),
+    gap: wp(8),
+  },
+  loadingMoreText: {
+    color: colors.textSecondary,
+    fontSize: fp(13),
+    fontWeight: '500',
   },
 
   // Empty State

@@ -14,65 +14,61 @@ import { wp, hp, fp } from '../utils/responsive';
 import ProductsScreen from '../screens/Auth/User/Products/ProductsScreen';
 import PurchasesScreen from '../screens/Auth/User/Purchase/PurchasesScreen';
 import {
-  MessageCircle,
-  ShoppingCart,
-  ShoppingBag,
   House,
-  UserPen,
-  Store,
+  Compass,
+  BookOpen,
+  Tv,
+  User,
+  MessageCircle,
 } from 'lucide-react-native';
 import UserHome from '../screens/Auth/User/Home/UserHome';
-import UserChat from '../screens/Auth/User/Chat/UserChat';
+import UserSessions from '../screens/Auth/User/Sessions/UserSessions';
 import UserSetting from '../screens/Auth/User/Settings/UserSetting';
-import BrandMarketplace from '../screens/Auth/User/Marketplace/BrandMarketplace';
-import MarketplaceRouteGuard from '../components/MarketplaceRouteGuard';
+import UserChat from '../screens/Auth/User/Chat/UserChat';
+//import BrandMarketplace from '../screens/Auth/User/Marketplace/BrandMarketplace';
+//import MarketplaceRouteGuard from '../components/MarketplaceRouteGuard';
 import { canAccessMarketplace } from '../utils/marketplaceUtils';
 import { useSelector } from 'react-redux';
 
+//import UserHome from '../screens/Auth/User/Home/UserHome';
+
 const Tab = createBottomTabNavigator();
 
-const ACTIVE_COLOR = colors.secPrimary;
-const INACTIVE_COLOR = '#94a3b8';
-const ACTIVE_BG = '#1E3A5F12';
-
-const GuardedBrandMarketplace = () => (
-  <MarketplaceRouteGuard>
-    <BrandMarketplace />
-  </MarketplaceRouteGuard>
-);
-
+const ACTIVE_COLOR = '#241ade';
+const INACTIVE_COLOR = '#6B6B80';
+const ACTIVE_BG = 'transparent';
 
 const tabs = [
-  { name: 'Home', component: UserHome, label: 'Home', Icon: House },
+  { name: 'Home', component: UserHome, label: 'HOME', Icon: House },
   {
     name: 'ProductsScreen',
     component: ProductsScreen,
-    label: 'Explore',
-    Icon: ShoppingCart,
+    label: 'EXPLORE',
+    Icon: Compass,
   },
-  // {
-  //   name: 'UserChat',
-  //   component: UserChat,
-  //   label: 'Chats',
-  //   Icon: MessageCircle,
-  // },
   {
     name: 'PurchasesScreen',
     component: PurchasesScreen,
-    label: 'My Learning',
-    Icon: ShoppingBag,
+    label: 'LEARNING',
+    Icon: BookOpen,
   },
   {
-    name: 'BrandMarketplace',
-    component: GuardedBrandMarketplace,
-    label: 'Market',
-    Icon: Store,
+    name: 'UserSession',
+    component: UserSessions,
+    label: 'SESSIONS',
+    Icon: Tv,
+  },
+  {
+    name: 'UserChat',
+    component: UserChat,
+    label: 'CHATS',
+    Icon: MessageCircle,
   },
   {
     name: 'UserSetting',
     component: UserSetting,
-    label: 'Profile',
-    Icon: UserPen,
+    label: 'PROFILE',
+    Icon: User,
   },
 ];
 
@@ -125,16 +121,7 @@ const TabItem = ({ isFocused, icon: Icon, label, onPress }: any) => {
       accessibilityState={{ selected: isFocused }}
       accessibilityLabel={label}
     >
-      {/* Active pill background */}
-      <Animated.View
-        style={[
-          styles.activePill,
-          {
-            opacity: pillOpacity,
-            transform: [{ scaleX: pillScaleX }, { scaleY: pillScaleY }],
-          },
-        ]}
-      />
+      {/* Active pill background (removed to match mockup) */}
 
       <Animated.View
         style={{
@@ -186,7 +173,7 @@ const CustomTabBar = ({ state, navigation, canShowMarketplace }: any) => {
           );
           const isFocused = state.index === routeIndex;
           const tabInfo = tabs.find(t => t.name === route.name);
-          const Icon = tabInfo?.Icon ?? MessageCircle;
+          const Icon = tabInfo?.Icon ?? House;
 
           const onPress = () => {
             if (!isFocused) {
@@ -240,14 +227,9 @@ export default UserBottomTab;
 
 const styles = StyleSheet.create({
   tabBarOuter: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.cBg,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#e2e8f0',
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 12,
+    borderTopColor: colors.cBorder,
   },
   tabContainer: {
     flexDirection: 'row',
@@ -273,11 +255,12 @@ const styles = StyleSheet.create({
     width: wp(52),
     height: hp(34),
     borderRadius: wp(16),
-    backgroundColor: ACTIVE_BG,
+    backgroundColor: 'transparent',
   },
   tabLabel: {
-    fontSize: fp(10.5),
-    marginTop: hp(2),
-    letterSpacing: 0.1,
+    fontSize: fp(9),
+    fontWeight: '700',
+    marginTop: hp(4),
+    letterSpacing: 0.5,
   },
 });

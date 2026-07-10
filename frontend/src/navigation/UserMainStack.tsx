@@ -17,6 +17,14 @@ import UserVideoList from '../screens/Auth/User/Home/UserVideoList';
 import WebinarDetails from '../screens/Auth/User/Home/WebinarDetails';
 import KYCVerificationScreen from '../screens/Auth/Creator/Kyc/KYCVerificationScreen';
 import CreatorPublicProfile from '../screens/Auth/Creator/Profile/CreatorPublicProfile';
+import CallScreen from '../screens/Auth/User/Astrologer/CallScreen';
+import IncomingCallScreen from '../screens/Auth/Creator/Astrologer/IncomingCallScreen';
+import ExpertList from '../screens/Auth/User/Sessions/ExpertList';
+import ExpertDetail from '../screens/Auth/User/Sessions/ExpertDetail';
+import SessionRatingScreen from '../screens/Auth/User/Sessions/SessionRatingScreen';
+import UserNotification from '../screens/Auth/User/Notifications/UserNotification';
+import ChatThread from '../screens/Auth/User/Chat/ChatThread';
+import SettlementHistory from '../screens/Auth/Creator/Wallet/SettlementHistory';
 
 const Stack = createNativeStackNavigator();
 
@@ -49,6 +57,14 @@ const UserMainStack = () => {
       <Stack.Screen name="WebinarDetails" component={WebinarDetails} />
       <Stack.Screen name="KYCVerificationScreen" component={KYCVerificationScreen} />
       <Stack.Screen name="CreatorPublicProfile" component={CreatorPublicProfile} />
+      <Stack.Screen name="ExpertList" component={ExpertList} />
+      <Stack.Screen name="ExpertDetail" component={ExpertDetail} />
+      <Stack.Screen name="IncomingCallScreen" component={IncomingCallScreen} />
+      <Stack.Screen name="CallScreen" component={CallScreen} />
+      <Stack.Screen name="SessionRatingScreen" component={SessionRatingScreen} />
+      <Stack.Screen name="UserNotification" component={UserNotification} />
+      <Stack.Screen name="SettlementHistory" component={SettlementHistory} />
+      <Stack.Screen name="ChatThread" component={ChatThread} />
     </Stack.Navigator>
   );
 };

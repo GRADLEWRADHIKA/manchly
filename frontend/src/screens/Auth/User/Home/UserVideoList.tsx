@@ -17,6 +17,7 @@ import { useRoute } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
 import { getCourseById } from '../../../../store/CourseSlice';
+import { updateCourseProgress } from '../../../../store/EnrollmentSlice';
 import YouTubePlayer from '../../../../components/YouTubePlayer';
 import { Play, Clock } from 'lucide-react-native';
 import LinearGradient from 'react-native-linear-gradient';
@@ -28,7 +29,19 @@ const UserVideoList = () => {
   const [loading, setLoading] = useState(false);
   const [videoList, setVideoList] = useState<any[]>([]);
   const [selectedVideo, setSelectedVideo] = useState<any>(null);
+  const [lastSavedProgress, setLastSavedProgress] = useState(-1);
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
+
+  const handleProgressChange = (currentTime: number, totalDuration: number) => {
+    const courseId = data?.id;
+    if (!courseId) return;
+
+    const pct = Math.min(100, Math.max(0, Math.round((currentTime / totalDuration) * 100)));
+    if (pct !== lastSavedProgress) {
+      setLastSavedProgress(pct);
+      dispatch(updateCourseProgress({ courseId, progress: pct }));
+    }
+  };
 
   const formatDuration = (seconds: number) => {
     const s = Number(seconds) || 0;
@@ -126,6 +139,7 @@ const UserVideoList = () => {
                 title={selectedVideo.title}
                 onClose={() => setSelectedVideo(null)}
                 autoPlay
+                onProgressChange={handleProgressChange}
               />
             </View>
           )}

@@ -3,14 +3,21 @@ import { View, Text, StyleSheet, Image, Pressable, Linking } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import colors from '../../../../../utils/colors';
 import { Search, Bell, Instagram } from 'lucide-react-native';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { wp, hp, fp } from '../../../../../utils/responsive';
+import { getUnreadCount } from '../../../../../store/NotificationSlice';
 
 const HomeHeader = () => {
   const { user } = useSelector((state: any) => state.userReducer);
+  const { unreadCount } = useSelector((state: any) => state.notificationReducer);
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
+  const dispatch = useDispatch<any>();
+
+  React.useEffect(() => {
+    dispatch(getUnreadCount());
+  }, [dispatch]);
 
   const displayName = user?.name
     ? user.name.charAt(0).toUpperCase() + user.name.slice(1)
@@ -70,6 +77,22 @@ const HomeHeader = () => {
             onPress={() => navigation.navigate('ProductsScreen')}
             accessibilityLabel="Search courses">
             <Search size={wp(18)} color={colors.white} strokeWidth={2} />
+          </Pressable>
+          <Pressable
+            style={({ pressed }) => [
+              styles.iconBtn,
+              pressed && styles.iconBtnPressed,
+            ]}
+            onPress={() => navigation.navigate('UserNotification')}
+            accessibilityLabel="Notifications">
+            <Bell size={wp(18)} color={colors.white} strokeWidth={2} />
+            {unreadCount > 0 && (
+              <View style={styles.bellBadge}>
+                <Text style={styles.bellBadgeText}>
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </Text>
+              </View>
+            )}
           </Pressable>
         </View>
       </View>
@@ -153,5 +176,24 @@ const styles = StyleSheet.create({
   iconBtnPressed: {
     backgroundColor: 'rgba(255,255,255,0.25)',
     transform: [{ scale: 0.93 }],
+  },
+  bellBadge: {
+    position: 'absolute',
+    top: wp(4),
+    right: wp(4),
+    minWidth: wp(16),
+    height: wp(16),
+    borderRadius: wp(8),
+    backgroundColor: '#EF4444',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: wp(3),
+    borderWidth: 1.5,
+    borderColor: colors.secPrimary,
+  },
+  bellBadgeText: {
+    fontSize: fp(8),
+    fontWeight: '700',
+    color: colors.white,
   },
 });

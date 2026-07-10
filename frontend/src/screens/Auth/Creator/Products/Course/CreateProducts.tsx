@@ -23,6 +23,57 @@ import { useNavigation } from '@react-navigation/native';
 
 const HORIZONTAL_PAD = wp(16);
 
+const AI_FEATURES = [
+  {
+    icon: FileText,
+    label: 'AI Lesson Script Writer',
+    desc: 'Generate full lesson scripts with key points, examples, and speaker notes.',
+    color: '#A78BFA',
+  },
+  {
+    icon: HelpCircle,
+    label: 'AI Quiz Generator',
+    desc: 'Create quizzes from your lesson content with multiple-choice questions and explanations.',
+    color: '#F472B6',
+  },
+  {
+    icon: Share2,
+    label: 'AI Social Posts',
+    desc: 'Generate ready-to-post content for Twitter, LinkedIn, Instagram & WhatsApp.',
+    color: '#34D399',
+  },
+  {
+    icon: Mail,
+    label: 'AI Email Series',
+    desc: 'Auto-generate confirmation, reminder, and post-event email sequences.',
+    color: '#FBBF24',
+  },
+  {
+    icon: ClipboardCheck,
+    label: 'AI Session Prep',
+    desc: 'Get a prep checklist, questions to ask, potential directions & red flags before sessions.',
+    color: '#FB923C',
+  },
+  {
+    icon: Lightbulb,
+    label: 'AI Product Suggestions',
+    desc: 'Get AI-powered ideas for new courses, webinars, and sessions based on your expertise.',
+    color: '#2DD4BF',
+  },
+  {
+    icon: Sparkles,
+    label: 'AI Content Enhancer',
+    desc: 'Improve your existing descriptions and content with AI-powered suggestions.',
+    color: '#E879F9',
+  },
+  {
+    icon: FileText,
+    label: 'AI Landing Copy',
+    desc: 'Generate compelling landing page copy that converts visitors into students.',
+    color: '#38BDF8',
+  },
+];
+
 const CreateProducts = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();

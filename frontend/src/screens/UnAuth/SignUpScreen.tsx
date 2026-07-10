@@ -109,6 +109,7 @@ const SignupScreen: React.FC = () => {
       });
   };
 
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
@@ -481,3 +482,4 @@ const styles = StyleSheet.create({
     color: colors.borderColor,
   },
 });
+console.log()

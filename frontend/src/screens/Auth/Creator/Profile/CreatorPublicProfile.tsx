@@ -19,7 +19,7 @@ import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
 import AppHeaderWithBack from '../../../../components/AppHeaderWithBack';
 import { InstagramIcon, LinkedinIcon, YoutubeIcon, FacebookIcon } from '../../../../components/SocialIcons';
-
+import CreatorCenter from '../CreatorCenter/CreatorCenter';
 const CreatorPublicProfile = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
@@ -97,14 +97,14 @@ const CreatorPublicProfile = () => {
             ]}
           >
             {creator?.kyc_verified ? (
-              <ShieldCheck size={wp(14)} color={colors.success} />
+              <ShieldCheck size={wp(12)} color={colors.golden} />
             ) : (
-              <ShieldX size={wp(14)} color={colors.error} />
+              <ShieldX size={wp(12)} color="rgba(255,255,255,0.4)" />
             )}
             <Text
               style={[
                 styles.kycText,
-                { color: creator?.kyc_verified ? colors.success : colors.error },
+                { color: creator?.kyc_verified ? colors.golden : 'rgba(255,255,255,0.4)' },
               ]}
             >
               {creator?.kyc_verified ? 'KYC Verified' : 'KYC Not Verified'}
@@ -115,7 +115,6 @@ const CreatorPublicProfile = () => {
           {hasSocialLinks && (
             <>
               <View style={styles.divider} />
-              <Text style={styles.connectTitle}>Connect</Text>
               <View style={styles.socialGrid}>
                 {creator?.instagram_link ? (
                   <TouchableOpacity
@@ -123,10 +122,9 @@ const CreatorPublicProfile = () => {
                     onPress={() => openLink(creator.instagram_link)}
                     activeOpacity={0.7}
                   >
-                    <View style={[styles.socialIconWrap, { backgroundColor: '#E1306C15' }]}>
-                      <InstagramIcon size={wp(22)} color="#E1306C" />
+                    <View style={[styles.socialIconWrap, { backgroundColor: '#E1306C20' }]}>
+                      <InstagramIcon size={wp(20)} color="#E1306C" />
                     </View>
-                    <Text style={styles.socialLabel}>Instagram</Text>
                   </TouchableOpacity>
                 ) : null}
                 {creator?.linkedin_link ? (
@@ -135,10 +133,9 @@ const CreatorPublicProfile = () => {
                     onPress={() => openLink(creator.linkedin_link)}
                     activeOpacity={0.7}
                   >
-                    <View style={[styles.socialIconWrap, { backgroundColor: '#0077B515' }]}>
-                      <LinkedinIcon size={wp(22)} color="#0077B5" />
+                    <View style={[styles.socialIconWrap, { backgroundColor: '#0077B520' }]}>
+                      <LinkedinIcon size={wp(20)} color="#0077B5" />
                     </View>
-                    <Text style={styles.socialLabel}>LinkedIn</Text>
                   </TouchableOpacity>
                 ) : null}
                 {creator?.youtube_link ? (
@@ -147,10 +144,9 @@ const CreatorPublicProfile = () => {
                     onPress={() => openLink(creator.youtube_link)}
                     activeOpacity={0.7}
                   >
-                    <View style={[styles.socialIconWrap, { backgroundColor: '#FF000015' }]}>
-                      <YoutubeIcon size={wp(22)} color="#FF0000" />
+                    <View style={[styles.socialIconWrap, { backgroundColor: '#FF000020' }]}>
+                      <YoutubeIcon size={wp(20)} color="#FF0000" />
                     </View>
-                    <Text style={styles.socialLabel}>YouTube</Text>
                   </TouchableOpacity>
                 ) : null}
                 {creator?.facebook_link ? (
@@ -159,10 +155,9 @@ const CreatorPublicProfile = () => {
                     onPress={() => openLink(creator.facebook_link)}
                     activeOpacity={0.7}
                   >
-                    <View style={[styles.socialIconWrap, { backgroundColor: '#1877F215' }]}>
-                      <FacebookIcon size={wp(22)} color="#1877F2" />
+                    <View style={[styles.socialIconWrap, { backgroundColor: '#1877F220' }]}>
+                      <FacebookIcon size={wp(20)} color="#1877F2" />
                     </View>
-                    <Text style={styles.socialLabel}>Facebook</Text>
                   </TouchableOpacity>
                 ) : null}
               </View>
@@ -179,24 +174,21 @@ export default CreatorPublicProfile;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.primary,
   },
   scrollContent: {
     paddingBottom: hp(40),
   },
   profileCard: {
-    backgroundColor: colors.white,
+    backgroundColor: '#14141F',
     marginHorizontal: wp(16),
     marginTop: hp(20),
     borderRadius: wp(20),
     paddingVertical: hp(30),
     paddingHorizontal: wp(20),
     alignItems: 'center',
-    elevation: 3,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
   },
   avatarContainer: {
     marginBottom: hp(16),
@@ -205,11 +197,11 @@ const styles = StyleSheet.create({
     width: wp(110),
     height: wp(110),
     borderRadius: wp(55),
-    backgroundColor: colors.secPrimary,
+    backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 3,
-    borderColor: colors.secPrimary + '40',
+    borderColor: 'rgba(255,182,6,0.4)',
   },
   profileImage: {
     width: wp(110),
@@ -219,7 +211,7 @@ const styles = StyleSheet.create({
   profileName: {
     fontSize: fp(24),
     fontWeight: '800',
-    color: colors.text,
+    color: colors.white,
     marginBottom: hp(12),
   },
   kycBadge: {
@@ -232,52 +224,40 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   kycVerified: {
-    backgroundColor: colors.success + '10',
-    borderColor: colors.success + '30',
+    backgroundColor: 'rgba(255,182,6,0.08)',
+    borderColor: 'rgba(255,182,6,0.35)',
   },
   kycNotVerified: {
-    backgroundColor: colors.error + '10',
-    borderColor: colors.error + '30',
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderColor: 'rgba(255,255,255,0.15)',
   },
   kycText: {
-    fontSize: fp(12),
+    fontSize: fp(11),
     fontWeight: '700',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
   },
   divider: {
     width: '80%',
     height: 1,
-    backgroundColor: colors.borderLight,
+    backgroundColor: 'rgba(255,255,255,0.08)',
     marginVertical: hp(20),
-  },
-  connectTitle: {
-    fontSize: fp(14),
-    fontWeight: '700',
-    color: colors.textSecondary,
-    marginBottom: hp(14),
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
   },
   socialGrid: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     justifyContent: 'center',
-    gap: wp(12),
+    alignItems: 'center',
+    gap: wp(14),
   },
   socialBtn: {
     alignItems: 'center',
-    gap: hp(8),
-    width: wp(80),
+    justifyContent: 'center',
   },
   socialIconWrap: {
-    width: wp(52),
-    height: wp(52),
-    borderRadius: wp(16),
+    width: wp(48),
+    height: wp(48),
+    borderRadius: wp(24),
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  socialLabel: {
-    fontSize: fp(11),
-    color: colors.textSecondary,
-    fontWeight: '600',
   },
 });

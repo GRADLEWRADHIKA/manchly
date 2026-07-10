@@ -183,12 +183,12 @@ const BankDetails = () => {
     }
   };
 
-  if (fetchLoading) {
+ if (fetchLoading) {
     return (
       <View style={styles.container}>
         <AppHeaderWithBack title="Bank Details" />
         <View style={styles.loaderWrap}>
-          <ActivityIndicator size="large" color={colors.primary} />
+          <ActivityIndicator size="large" color={colors.golden} />
         </View>
       </View>
     );
@@ -208,22 +208,10 @@ const BankDetails = () => {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Header Card */}
-          <LinearGradient
-            colors={['#1A1A2E', '#16213E', '#0F3460']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.headerCard}
-          >
-            <View style={styles.headerIconWrap}>
-              <Landmark size={wp(28)} color={colors.white} />
-            </View>
-            <Text style={styles.headerTitle}>Bank Account</Text>
-            <Text style={styles.headerSubtitle}>
-              Add and verify your bank account to receive payouts directly to
-              your bank.
-            </Text>
-          </LinearGradient>
+          {/* Subtitle */}
+          <Text style={styles.headerSubtitle}>
+            Securely manage your withdrawal settings and bank information.
+          </Text>
 
           {/* Existing Bank Account Display */}
           {bankAccount && !isEditing ? (
@@ -265,7 +253,7 @@ const BankDetails = () => {
 
               <View style={styles.bankInfoRow}>
                 <View style={styles.bankInfoIcon}>
-                  <CreditCard size={wp(16)} color={colors.info} />
+                  <CreditCard size={wp(16)} color={colors.golden} />
                 </View>
                 <View style={styles.bankInfoContent}>
                   <Text style={styles.bankInfoLabel}>Account Number</Text>
@@ -279,7 +267,7 @@ const BankDetails = () => {
 
               <View style={styles.bankInfoRow}>
                 <View style={styles.bankInfoIcon}>
-                  <Building2 size={wp(16)} color={colors.info} />
+                  <Building2 size={wp(16)} color={colors.golden} />
                 </View>
                 <View style={styles.bankInfoContent}>
                   <Text style={styles.bankInfoLabel}>IFSC Code</Text>
@@ -293,7 +281,7 @@ const BankDetails = () => {
 
               <View style={styles.bankInfoRow}>
                 <View style={styles.bankInfoIcon}>
-                  <User size={wp(16)} color={colors.info} />
+                  <User size={wp(16)} color={colors.golden} />
                 </View>
                 <View style={styles.bankInfoContent}>
                   <Text style={styles.bankInfoLabel}>Beneficiary Name</Text>
@@ -324,10 +312,10 @@ const BankDetails = () => {
                     activeOpacity={0.7}
                   >
                     {verifying ? (
-                      <ActivityIndicator size="small" color={colors.white} />
+                      <ActivityIndicator size="small" color={colors.black} />
                     ) : (
                       <>
-                        <ShieldCheck size={wp(16)} color={colors.white} />
+                        <ShieldCheck size={wp(16)} color={colors.black} />
                         <Text style={styles.verifyBtnText}>Verify Account</Text>
                       </>
                     )}
@@ -339,7 +327,7 @@ const BankDetails = () => {
             <>
               {/* Info Banner */}
               <View style={styles.infoBanner}>
-                <Info size={wp(16)} color={colors.info} />
+                <Info size={wp(16)} color={colors.faaAiBlue} />
                 <Text style={styles.infoBannerText}>
                   Enter your bank account details carefully. The account must be
                   in your name for verification.
@@ -372,13 +360,7 @@ const BankDetails = () => {
                     fieldState: { error },
                   }) => (
                     <View style={styles.fieldWrapper}>
-                      <View style={styles.labelRow}>
-                        <CreditCard
-                          size={wp(14)}
-                          color={colors.textSecondary}
-                        />
-                        <Text style={styles.inputLabel}>Account Number</Text>
-                      </View>
+                      <Text style={styles.inputLabel}>ACCOUNT NUMBER</Text>
                       <CustomTextInput
                         placeholder="Enter Account Number"
                         value={value}
@@ -417,15 +399,9 @@ const BankDetails = () => {
                     fieldState: { error },
                   }) => (
                     <View style={styles.fieldWrapper}>
-                      <View style={styles.labelRow}>
-                        <CreditCard
-                          size={wp(14)}
-                          color={colors.textSecondary}
-                        />
-                        <Text style={styles.inputLabel}>
-                          Confirm Account Number
-                        </Text>
-                      </View>
+                      <Text style={styles.inputLabel}>
+                        CONFIRM ACCOUNT NUMBER
+                      </Text>
                       <CustomTextInput
                         placeholder="Re-enter Account Number"
                         value={value}
@@ -466,13 +442,7 @@ const BankDetails = () => {
                     fieldState: { error },
                   }) => (
                     <View style={styles.fieldWrapper}>
-                      <View style={styles.labelRow}>
-                        <Building2
-                          size={wp(14)}
-                          color={colors.textSecondary}
-                        />
-                        <Text style={styles.inputLabel}>IFSC Code</Text>
-                      </View>
+                      <Text style={styles.inputLabel}>IFSC CODE</Text>
                       <CustomTextInput
                         placeholder="e.g. SBIN0001234"
                         value={value}
@@ -514,10 +484,7 @@ const BankDetails = () => {
                     fieldState: { error },
                   }) => (
                     <View style={styles.fieldWrapper}>
-                      <View style={styles.labelRow}>
-                        <User size={wp(14)} color={colors.textSecondary} />
-                        <Text style={styles.inputLabel}>Beneficiary Name</Text>
-                      </View>
+                      <Text style={styles.inputLabel}>ACCOUNT HOLDER NAME</Text>
                       <CustomTextInput
                         placeholder="Account holder name"
                         value={value}
@@ -559,7 +526,7 @@ const BankDetails = () => {
                     activeOpacity={0.8}
                   >
                     {saving ? (
-                      <ActivityIndicator size="small" color={colors.white} />
+                      <ActivityIndicator size="small" color={colors.black} />
                     ) : (
                       <Text style={styles.saveBtnText}>
                         {bankAccount ? 'Update Account' : 'Save Account'}
@@ -585,10 +552,10 @@ const BankDetails = () => {
             <View
               style={[
                 styles.modalIconWrap,
-                { backgroundColor: colors.info + '15' },
+                { backgroundColor: 'rgba(96,165,250,0.12)' },
               ]}
             >
-              <ShieldCheck size={wp(32)} color={colors.info} />
+              <ShieldCheck size={wp(32)} color={colors.faaAiBlue} />
             </View>
             <Text style={styles.modalTitle}>Verify Bank Account</Text>
             <Text style={styles.modalMessage}>
@@ -699,13 +666,22 @@ const BankDetails = () => {
                   backgroundColor: verificationResult?.bank_verification
                     ?.verified
                     ? colors.success
-                    : colors.primary,
+                    : colors.golden,
                 },
               ]}
               onPress={() => setShowResultModal(false)}
               activeOpacity={0.8}
             >
-              <Text style={styles.modalCloseBtnText}>Done</Text>
+              <Text
+                style={[
+                  styles.modalCloseBtnText,
+                  !verificationResult?.bank_verification?.verified && {
+                    color: colors.black,
+                  },
+                ]}
+              >
+                Done
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -719,7 +695,7 @@ export default BankDetails;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.primary,
   },
   scrollView: {
     flex: 1,
@@ -733,48 +709,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
-  // Header
-  headerCard: {
-    marginHorizontal: wp(16),
-    marginTop: hp(16),
-    borderRadius: wp(16),
-    padding: wp(20),
-    alignItems: 'center',
-  },
-  headerIconWrap: {
-    width: wp(52),
-    height: wp(52),
-    borderRadius: wp(26),
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: hp(12),
-  },
-  headerTitle: {
-    fontSize: fp(20),
-    fontWeight: '800',
-    color: colors.white,
-    marginBottom: hp(6),
-  },
+  // Header subtitle (replaces old gradient header card)
   headerSubtitle: {
     fontSize: fp(13),
-    color: 'rgba(255,255,255,0.7)',
+    color: colors.micButtonGolden,
     textAlign: 'center',
     lineHeight: fp(18),
+    marginHorizontal: wp(24),
+    marginTop: hp(16),
+    marginBottom: hp(4),
   },
 
   // Bank Card
   bankCard: {
-    backgroundColor: colors.white,
+    backgroundColor: '#14141F',
     marginHorizontal: wp(16),
     marginTop: hp(16),
     borderRadius: wp(16),
     padding: wp(16),
-    elevation: 2,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
   },
   bankCardHeader: {
     flexDirection: 'row',
@@ -785,7 +739,7 @@ const styles = StyleSheet.create({
   bankCardTitle: {
     fontSize: fp(16),
     fontWeight: '700',
-    color: colors.text,
+    color: colors.white,
   },
   verifiedBadge: {
     flexDirection: 'row',
@@ -809,7 +763,7 @@ const styles = StyleSheet.create({
     width: wp(36),
     height: wp(36),
     borderRadius: wp(10),
-    backgroundColor: colors.surface,
+    backgroundColor: 'rgba(255,182,6,0.1)',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: wp(12),
@@ -819,18 +773,19 @@ const styles = StyleSheet.create({
   },
   bankInfoLabel: {
     fontSize: fp(11),
-    color: colors.textSecondary,
-    fontWeight: '500',
+    color: colors.micButtonGolden,
+    fontWeight: '600',
+    letterSpacing: 0.5,
     marginBottom: hp(2),
   },
   bankInfoValue: {
     fontSize: fp(15),
-    color: colors.text,
+    color: colors.white,
     fontWeight: '600',
   },
   bankDivider: {
     height: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: 'rgba(255,255,255,0.06)',
     marginLeft: wp(48),
   },
   bankActions: {
@@ -839,7 +794,7 @@ const styles = StyleSheet.create({
     marginTop: hp(18),
     paddingTop: hp(16),
     borderTopWidth: 1,
-    borderTopColor: colors.surface,
+    borderTopColor: 'rgba(255,255,255,0.06)',
   },
   editBtn: {
     flex: 1,
@@ -847,12 +802,12 @@ const styles = StyleSheet.create({
     borderRadius: wp(12),
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.surface,
+    backgroundColor: colors.primary,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.golden,
   },
   editBtnText: {
-    color: colors.text,
+    color: colors.golden,
     fontWeight: '600',
     fontSize: fp(14),
   },
@@ -863,11 +818,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.primary,
+    backgroundColor: colors.golden,
     gap: wp(6),
   },
   verifyBtnText: {
-    color: colors.white,
+    color: colors.black,
     fontWeight: '700',
     fontSize: fp(14),
   },
@@ -877,18 +832,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: wp(10),
-    backgroundColor: colors.info + '10',
+    backgroundColor: 'rgba(96,165,250,0.1)',
     marginHorizontal: wp(16),
     marginTop: hp(16),
     padding: wp(14),
     borderRadius: wp(12),
     borderWidth: 1,
-    borderColor: colors.info + '20',
+    borderColor: 'rgba(96,165,250,0.2)',
   },
   infoBannerText: {
     flex: 1,
     fontSize: fp(12),
-    color: colors.info,
+    color: colors.faaAiBlue,
     lineHeight: fp(17),
     fontWeight: '500',
   },
@@ -897,41 +852,34 @@ const styles = StyleSheet.create({
   formSection: {
     marginHorizontal: wp(16),
     marginTop: hp(16),
-    backgroundColor: colors.white,
+    backgroundColor: '#14141F',
     borderRadius: wp(16),
     padding: wp(16),
-    elevation: 2,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
   },
   fieldWrapper: {
     marginBottom: hp(16),
   },
-  labelRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(6),
-    marginBottom: hp(6),
-  },
   inputLabel: {
-    fontSize: fp(13),
-    fontWeight: '600',
-    color: colors.text,
+    fontSize: fp(11),
+    fontWeight: '700',
+    color: colors.micButtonGolden,
+    letterSpacing: 0.6,
+    marginBottom: hp(6),
   },
   input: {
     height: hp(48),
     borderWidth: 1,
-    borderColor: colors.borderColor,
+    borderColor: 'rgba(255,255,255,0.08)',
     borderRadius: wp(12),
     paddingHorizontal: wp(14),
     justifyContent: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: colors.primary,
   },
   disabledInput: {
-    backgroundColor: colors.surface,
-    borderColor: colors.surface,
+    backgroundColor: '#0a0a0f',
+    borderColor: 'rgba(255,255,255,0.04)',
   },
   inputError: {
     borderColor: colors.error,
@@ -953,12 +901,12 @@ const styles = StyleSheet.create({
     borderRadius: wp(12),
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.surface,
+    backgroundColor: colors.primary,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: 'rgba(255,255,255,0.12)',
   },
   cancelBtnText: {
-    color: colors.text,
+    color: colors.white,
     fontWeight: '600',
     fontSize: fp(14),
   },
@@ -968,10 +916,10 @@ const styles = StyleSheet.create({
     borderRadius: wp(12),
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.primary,
+    backgroundColor: colors.golden,
   },
   saveBtnText: {
-    color: colors.white,
+    color: colors.black,
     fontWeight: '700',
     fontSize: fp(15),
   },
@@ -979,18 +927,20 @@ const styles = StyleSheet.create({
   // Modal
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: wp(24),
   },
   modalContainer: {
-    backgroundColor: colors.white,
+    backgroundColor: '#14141F',
     borderRadius: wp(20),
     paddingVertical: hp(28),
     paddingHorizontal: wp(24),
     width: '100%',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
   },
   modalIconWrap: {
     width: wp(68),
@@ -1003,33 +953,35 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: fp(18),
     fontWeight: '700',
-    color: colors.text,
+    color: colors.white,
     marginBottom: hp(8),
   },
   modalMessage: {
     fontSize: fp(14),
-    color: colors.textSecondary,
+    color: 'rgba(255,255,255,0.55)',
     textAlign: 'center',
     lineHeight: fp(20),
     marginBottom: hp(20),
   },
   modalDetail: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.primary,
     borderRadius: wp(10),
     paddingHorizontal: wp(16),
     paddingVertical: hp(10),
     width: '100%',
     marginBottom: hp(20),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
   },
   modalDetailLabel: {
     fontSize: fp(11),
-    color: colors.textSecondary,
+    color: 'rgba(255,255,255,0.45)',
     fontWeight: '500',
     marginBottom: hp(2),
   },
   modalDetailValue: {
     fontSize: fp(15),
-    color: colors.text,
+    color: colors.white,
     fontWeight: '700',
   },
   verifyInputWrap: {

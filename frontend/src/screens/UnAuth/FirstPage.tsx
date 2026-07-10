@@ -9,7 +9,7 @@ import React from 'react';
 import colors from '../../utils/colors';
 import { wp, hp, fp } from '../../utils/responsive';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { MoveRight } from 'lucide-react-native';
+import { MoveRight, BadgeCheck } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 
 const FirstPage = () => {
@@ -31,9 +31,29 @@ const FirstPage = () => {
           }}
         >
           <Text style={styles.mainTop}>Get Started</Text>
-          <MoveRight color={colors.white} />
         </TouchableOpacity>
-        <Text style={styles.botPara}>A Manch for every Creator</Text>
+
+        <View style={styles.trustRow}>
+          <View style={styles.avatarStack}>
+            <View style={[styles.avatar, { marginLeft: 0 }]} />
+            <View style={[styles.avatar, { marginLeft: -wp(10) }]} />
+            <View style={[styles.avatarCount, { marginLeft: -wp(10) }]}>
+              <Text style={styles.avatarCountText}>+1M</Text>
+            </View>
+          </View>
+          <Text style={styles.trustText}>TRUSTED BY 10,000+ CREATOR</Text>
+        </View>
+
+        <View style={styles.badgeRow}>
+          <View style={styles.badgeItem}>
+            <Text style={styles.flagEmoji}>🇮🇳</Text>
+            <Text style={styles.badgeText}>Made in India</Text>
+          </View>
+          <View style={styles.badgeItem}>
+            <BadgeCheck size={wp(14)} color={colors.info} />
+            <Text style={styles.badgeText}>100% Free & Secure</Text>
+          </View>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -44,38 +64,90 @@ export default FirstPage;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.black,
   },
   firstHalf: {
-    height: '80%',
+    height: '65%',
     alignItems: 'center',
     justifyContent: 'center',
   },
   secHalf: {
-    height: '20%',
+    height: '35%',
+    paddingHorizontal: wp(20),
   },
   mainHeader: {
-    borderWidth: wp(1),
-    borderColor: colors.white,
-    paddingHorizontal: wp(20),
-    paddingVertical: hp(15),
-    marginHorizontal: wp(20),
-    borderRadius: wp(20),
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    backgroundColor: colors.golden,
+    paddingVertical: hp(16),
+    borderRadius: wp(30),
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
+    elevation: 3,
   },
   mainTop: {
     fontSize: fp(16),
-    color: colors.white,
+    color: colors.black,
+    fontWeight: '700',
+  },
+  trustRow: {
+    alignItems: 'center',
+    marginTop: hp(24),
+  },
+  avatarStack: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: hp(8),
+  },
+  avatar: {
+    width: wp(26),
+    height: wp(26),
+    borderRadius: wp(13),
+    backgroundColor: colors.textMuted,
+    borderWidth: wp(1.5),
+    borderColor: colors.black,
+  },
+  avatarCount: {
+    width: wp(26),
+    height: wp(26),
+    borderRadius: wp(13),
+    backgroundColor: colors.golden,
+    borderWidth: wp(1.5),
+    borderColor: colors.black,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarCountText: {
+    fontSize: fp(8),
+    fontWeight: '700',
+    color: colors.black,
+  },
+  trustText: {
+    fontSize: fp(11),
+    fontWeight: '700',
+    color: colors.golden,
+    letterSpacing: 0.5,
+  },
+  badgeRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: wp(24),
+    marginTop: hp(20),
+  },
+  badgeItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(6),
+  },
+  badgeText: {
+    fontSize: fp(11),
+    color: colors.textMuted,
     fontWeight: '500',
   },
-  botPara: {
-    fontSize: fp(20),
-    color: colors.white,
-    marginHorizontal: wp(20),
-    marginTop: hp(20),
-    textAlign: 'center',
-    fontWeight: '500',
+  flagEmoji: {
+    fontSize: fp(14),
   },
   imageMain: { height: '95%', width: '95%' },
 });

@@ -18,20 +18,15 @@ import {
   Bell,
   ChevronRight,
   Sparkles,
-  Lightbulb,
-  PenLine,
-  Rocket,
-  TrendingUp,
   BookOpen,
   Users,
   Award,
-  Check,
-  Circle,
-  Star,
-  HelpCircle,
   AtSign,
+  Video as VideoIcon,
+  Phone,
+  MessageSquare,
 } from 'lucide-react-native';
-import Svg, { Circle as SvgCircle } from 'react-native-svg';
+import Svg, { Circle as SvgCircle, Path as SvgPath } from 'react-native-svg';
 import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
 import KycCard from './KeyCard';
@@ -233,8 +228,10 @@ const CreatorHome = () => {
               </View>
             )}
             <View>
+              <Text style={styles.greeting}>
+                Hello {displayName?.split(' ')[0]},
+              </Text>
               <Text style={styles.greetingSub}>{getGreeting()}</Text>
-              <Text style={styles.greeting}>{displayName?.split(' ')[0]}</Text>
             </View>
           </View>
           <View
@@ -267,140 +264,101 @@ const CreatorHome = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Total Revenue Card */}
+        {/* KYC Card */}
         <View style={styles.sectionPadding}>
-          <LinearGradient
-            colors={['#1A1A2E', '#16213E', '#0F3460']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.revenueCard}
-          >
-            <View style={styles.revenueHeader}>
-              <View>
-                <Text style={styles.revenueLabel}>TOTAL REVENUE</Text>
-                <Text style={styles.revenueAmount}>
-                  <Text style={styles.rupeeSymbol}>₹</Text>
-                  {walletLoading
-                    ? '...'
-                    : `${formatAmount(totalRevenueAmount)}`}
-                </Text>
-              </View>
-              <View style={styles.growingBadge}>
-                <TrendingUp size={wp(14)} color={colors.white} />
-                <Text style={styles.growingText}>Growing</Text>
-              </View>
-            </View>
-
-            <View style={styles.revenueDivider} />
-
-            <View style={styles.statsRow}>
-              <View style={styles.statItem}>
-                <View style={styles.statIconWrap}>
-                  <BookOpen size={wp(16)} color={colors.white} />
-                </View>
-                <Text style={styles.statValue}>
-                  {creatorStats?.statistics?.courses_sold ?? 0}
-                </Text>
-                <Text style={styles.statLabel}>Courses Sold</Text>
-              </View>
-              <View style={styles.statDivider} />
-              <View style={styles.statItem}>
-                <View style={styles.statIconWrap}>
-                  <Users size={wp(16)} color={colors.white} />
-                </View>
-                <Text style={styles.statValue}>
-                  {creatorStats?.statistics?.total_enrollments ?? 0}
-                </Text>
-                <Text style={styles.statLabel}>Students</Text>
-              </View>
-              <View style={styles.statDivider} />
-              <View style={styles.statItem}>
-                <View style={styles.statIconWrap}>
-                  <Award size={wp(16)} color={colors.white} />
-                </View>
-                <Text style={styles.statValue}>
-                  {creatorWebinarStats?.statistics?.webinars_sold ?? 0}
-                </Text>
-                <Text style={styles.statLabel}>Webinars Sold</Text>
-              </View>
-            </View>
-          </LinearGradient>
+          <KycCard />
         </View>
 
-        {/* Launch Your First Course Card */}
+        {/* Revenue + Performance split row */}
+        <View style={[styles.sectionPadding, styles.splitRow]}>
+          {/* Revenue mini card */}
+          <View style={styles.revenueMiniCard}>
+            <Text style={styles.miniLabel}>REVENUE</Text>
+            <Text style={styles.revenueMiniAmount}>
+              <Text style={styles.rupeeSymbol}>₹</Text>
+              {walletLoading ? '...' : formatAmount(totalRevenueAmount)}
+            </Text>
+            <Svg
+              width={wp(150)}
+              height={hp(38)}
+              viewBox="0 0 150 38"
+              style={styles.sparkline}
+            >
+              <SvgPath
+                d="M0 28 C 15 30, 25 10, 40 14 C 55 18, 60 32, 78 24 C 95 16, 100 4, 118 8 C 130 11, 138 2, 150 6"
+                stroke={colors.golden}
+                strokeWidth={2.2}
+                fill="none"
+                strokeLinecap="round"
+              />
+            </Svg>
+          </View>
+
+          {/* Performance mini card */}
+          <View style={styles.performanceMiniCard}>
+            <Text style={styles.miniLabel}>PERFORMANCE</Text>
+            <View style={styles.perfRow}>
+              <BookOpen size={wp(13)} color={colors.golden} />
+              <Text style={styles.perfLabel}>Courses</Text>
+              <Text style={styles.perfValue}>{courses.length}</Text>
+            </View>
+            <View style={styles.perfRow}>
+              <Users size={wp(13)} color={colors.golden} />
+              <Text style={styles.perfLabel}>Students</Text>
+              <Text style={styles.perfValue}>
+                {creatorStats?.statistics?.total_enrollments ?? 0}
+              </Text>
+            </View>
+            <View style={styles.perfRow}>
+              <VideoIcon size={wp(13)} color={colors.golden} />
+              <Text style={styles.perfLabel}>Webinars</Text>
+              <Text style={styles.perfValue}>{webiniarData.length}</Text>
+            </View>
+            <View style={styles.perfRow}>
+              <Award size={wp(13)} color={colors.golden} />
+              <Text style={styles.perfLabel}>Sessions</Text>
+              <Text style={styles.perfValue}>
+                {creatorWebinarStats?.statistics?.webinars_sold ?? 0}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Launch / Course Progress Card */}
         <View style={styles.sectionPadding}>
           <LinearGradient
             colors={['#1A1A2E', '#16213E', '#0F3460']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={styles.courseCard}
+            style={styles.launchCard}
           >
-            {/* Header */}
-            <View style={styles.courseHeaderRow}>
+            <View style={styles.launchHeaderRow}>
               <View style={{ flex: 1 }}>
-                <View style={styles.startBadge}>
-                  <Sparkles size={wp(12)} color={colors.secondary} />
-                  <Text style={styles.startBadgeText}>START CREATING</Text>
-                </View>
-                <Text style={styles.courseTitle}>
-                  Launch Your{'\n'}
-                  {creatorStats?.statistics?.courses_sold
-                    ? 'Next'
-                    : 'First'}{' '}
+                <Text style={styles.launchTitle}>
+                  Launch Your{' '}
+                  {creatorStats?.statistics?.courses_sold ? 'Next' : 'First'}{' '}
                   Course
                 </Text>
-                <Text style={styles.courseSubtitle}>
-                  Turn expertise into income.{'\n'}Ready in under 10 mins.
+                <Text style={styles.launchSubtitle}>
+                  You're {progressPercent}% ready to go live.{'\n'}Turn
+                  expertise into income.
                 </Text>
               </View>
-              <Text style={styles.courseEmoji}>📚</Text>
+              <Text style={styles.launchEmoji}>📚</Text>
             </View>
 
-            {/* Horizontal Stepper with connected line */}
-            <View style={styles.stepperWrap}>
-              {/* Connecting line behind circles */}
-              <View style={styles.stepperLine} />
-
-              <View style={styles.stepsRow}>
-                <View style={styles.stepItem}>
-                  <View
-                    style={[
-                      styles.stepCircle,
-                      { backgroundColor: colors.secondary },
-                    ]}
-                  >
-                    <Lightbulb size={wp(16)} color={colors.white} />
-                  </View>
-                  <Text style={styles.stepTitle}>Pick Topic</Text>
-                </View>
-
-                <View style={styles.stepItem}>
-                  <View
-                    style={[
-                      styles.stepCircle,
-                      { backgroundColor: colors.info },
-                    ]}
-                  >
-                    <PenLine size={wp(16)} color={colors.white} />
-                  </View>
-                  <Text style={styles.stepTitle}>Add Content</Text>
-                </View>
-
-                <View style={styles.stepItem}>
-                  <View
-                    style={[
-                      styles.stepCircle,
-                      { backgroundColor: colors.accent },
-                    ]}
-                  >
-                    <Rocket size={wp(16)} color={colors.white} />
-                  </View>
-                  <Text style={styles.stepTitle}>Publish</Text>
-                </View>
-              </View>
+            <View style={styles.progressBarTrack}>
+              <View
+                style={[
+                  styles.progressBarFill,
+                  { width: `${progressPercent}%` },
+                ]}
+              />
             </View>
+            <Text style={styles.progressBarLabel}>
+              {progressPercent}% Complete
+            </Text>
 
-            {/* CTA Button */}
             <TouchableOpacity
               activeOpacity={0.85}
               onPress={() => {
@@ -412,196 +370,114 @@ const CreatorHome = () => {
               }}
               style={styles.ctaButton}
             >
-              <Text style={styles.ctaText}>Create Course Now</Text>
+              <Text style={styles.ctaText}>Complete Checklist</Text>
               <ChevronRight size={wp(18)} color={colors.primary} />
             </TouchableOpacity>
           </LinearGradient>
         </View>
 
-        {/* Go Live Card */}
+        {/* Quick Actions */}
+        <View style={styles.sectionPadding}>
+          <Text style={styles.sectionTitle}>Quick Actions</Text>
+          <View style={styles.quickActionsRow}>
+            <TouchableOpacity
+              activeOpacity={0.85}
+              style={styles.quickActionCard}
+              onPress={() => {
+                if (user?.kyc_verified) {
+                  navigation.navigate('CreateWebinar');
+                } else {
+                  navigation.navigate('KYCVerificationScreen');
+                }
+              }}
+            >
+              <View style={styles.quickActionIconWrap}>
+                <VideoIcon size={wp(20)} color={colors.golden} />
+              </View>
+              <Text style={styles.quickActionText}>Go live</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              activeOpacity={0.85}
+              style={styles.quickActionCard}
+              onPress={() => {
+                Toast.show({
+                  type: 'info',
+                  text1: '1:1 Sessions coming soon',
+                });
+              }}
+            >
+              <View style={styles.quickActionIconWrap}>
+                <Phone size={wp(20)} color={colors.golden} />
+              </View>
+              <Text style={styles.quickActionText}>1:1 Sessions</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Creator Center Banner */}
         <View style={styles.sectionPadding}>
           <TouchableOpacity
             activeOpacity={0.85}
+            style={styles.creatorCenterRow}
             onPress={() => {
-              if (user?.kyc_verified) {
-                navigation.navigate('CreateWebinar');
-              } else {
-                navigation.navigate('KYCVerificationScreen');
-              }
+              Toast.show({ type: 'info', text1: 'Creator Center coming soon' });
             }}
           >
-            <LinearGradient
-              colors={['#1A1A2E', '#16213E', '#0F3460']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.liveCard}
-            >
-              <View style={styles.liveLeft}>
-                <View style={styles.liveIconWrap}>
-                  <Text style={{ fontSize: fp(24) }}>📡</Text>
-                </View>
-                <View style={{ flex: 1 }}>
-                  <View style={styles.liveBadge}>
-                    <View style={styles.greenDot} />
-                    <Text style={styles.liveBadgeText}>GO LIVE</Text>
-                  </View>
-                  <Text style={styles.liveTitle}>Start a Live Session</Text>
-                  <Text style={styles.liveSubtitle}>
-                    Connect with your audience in real time
-                  </Text>
-                </View>
-              </View>
-              <ChevronRight size={wp(20)} color="rgba(255,255,255,0.5)" />
-            </LinearGradient>
+            <View style={styles.creatorCenterIconWrap}>
+              <MessageSquare size={wp(18)} color={colors.golden} />
+            </View>
+            <Text style={styles.creatorCenterText}>Creator Center</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: wp(2) }}>
+              <Text style={styles.creatorCenterLink}>Go to Hub</Text>
+              <ChevronRight size={wp(16)} color="rgba(255,255,255,0.5)" />
+            </View>
           </TouchableOpacity>
         </View>
 
-        {/* Creator Score */}
+        {/* AI Content Assistant */}
         <View style={styles.sectionPadding}>
-          {allCompleted ? (
-            <LinearGradient
-              colors={['#1A1A2E', '#16213E', '#0F3460']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.scoreCard}
-            >
-              {/* Trophy */}
-              <View style={styles.trophyWrap}>
-                <Text style={styles.trophyEmoji}>🏆</Text>
-              </View>
-
-              {/* Title */}
-              <Text style={styles.proTitle}>You're a Manchly Pro!</Text>
-
-              {/* Description */}
-              <Text style={styles.proDescription}>
-                All starter tasks done. You've earned{' '}
-                <Text style={styles.proPointsHighlight}>{earnedPts} pts</Text>{' '}
-                and{'\n'}unlocked the{' '}
-                <Text style={styles.proBadgeHighlight}>Rising Star </Text>
-                <Star
-                  size={wp(14)}
-                  color={colors.golden}
-                  fill={colors.golden}
-                />{' '}
-                badge.
-              </Text>
-
-              {/* Task Icons Row */}
-              <View style={styles.taskIconsRow}>
-                {['🎓', '📡', '💰', '👥', '✅'].map((emoji, index) => (
-                  <View key={index} style={styles.taskIconBox}>
-                    <Text style={styles.taskIconEmoji}>{emoji}</Text>
-                  </View>
-                ))}
-              </View>
-
-              {/* Keep Growing CTA */}
+          <LinearGradient
+            colors={['#1A1A2E', '#16213E', '#0F3460']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.aiCard}
+          >
+            <View style={styles.aiBadge}>
+              <Sparkles size={wp(12)} color={colors.golden} />
+              <Text style={styles.aiBadgeText}>AI CONTENT ASSISTANT</Text>
+            </View>
+            <Text style={styles.aiTitle}>Suggested: Host a Live Q&A</Text>
+            <Text style={styles.aiDescription}>
+              Based on your recent engagement spikes on Thursday evenings, a
+              live session could increase your retention by up to 15%. Your
+              subscribers are asking about "Color Grading Workflow".
+            </Text>
+            <View style={styles.aiButtonsRow}>
               <TouchableOpacity
                 activeOpacity={0.85}
-                onPress={() => navigation.navigate('CreateProducts')}
-                style={styles.keepGrowingBtn}
+                style={styles.aiScheduleBtn}
+                onPress={() => {
+                  if (user?.kyc_verified) {
+                    navigation.navigate('CreateWebinar');
+                  } else {
+                    navigation.navigate('KYCVerificationScreen');
+                  }
+                }}
               >
-                <Text style={styles.keepGrowingText}>
-                  🚀 Keep Growing on Manchly →
-                </Text>
+                <Text style={styles.aiScheduleText}>Schedule Now</Text>
               </TouchableOpacity>
-            </LinearGradient>
-          ) : (
-            <LinearGradient
-              colors={['#1A1A2E', '#16213E', '#0F3460']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.scoreCard}
-            >
-              {/* Score and Progress Ring */}
-              <View style={styles.scoreTopRow}>
-                <View>
-                  <Text style={styles.scoreLabel}>CREATOR SCORE</Text>
-                  <Text style={styles.scoreValue}>{earnedPts}</Text>
-                </View>
-                <View style={styles.progressRingWrap}>
-                  <Svg width={wp(70)} height={wp(70)}>
-                    <SvgCircle
-                      cx={wp(35)}
-                      cy={wp(35)}
-                      r={wp(28)}
-                      stroke="rgba(255,255,255,0.15)"
-                      strokeWidth={wp(5)}
-                      fill="none"
-                    />
-                    <SvgCircle
-                      cx={wp(35)}
-                      cy={wp(35)}
-                      r={wp(28)}
-                      stroke="#9B59B6"
-                      strokeWidth={wp(5)}
-                      fill="none"
-                      strokeDasharray={`${circumference}`}
-                      strokeDashoffset={`${progressOffset}`}
-                      strokeLinecap="round"
-                      rotation="-90"
-                      origin={`${wp(35)}, ${wp(35)}`}
-                    />
-                  </Svg>
-                  <View style={styles.progressRingText}>
-                    <Text style={styles.progressPercent}>
-                      {progressPercent}%
-                    </Text>
-                    <Text style={styles.progressDone}>done</Text>
-                  </View>
-                </View>
-              </View>
-
-              {/* Next Level */}
-              <View style={styles.nextLevelRow}>
-                <Text style={styles.nextLevelText}>Next: </Text>
-                <Text style={styles.nextLevelName}>Rising Star </Text>
-                <Star
-                  size={wp(16)}
-                  color={colors.golden}
-                  fill={colors.golden}
-                />
-              </View>
-
-              {/* Milestones */}
-              <View style={styles.milestonesWrap}>
-                {milestones.map((milestone, index) => (
-                  <View key={index} style={styles.milestoneItem}>
-                    <View
-                      style={[
-                        styles.milestoneCheck,
-                        milestone.completed && styles.milestoneCompleted,
-                      ]}
-                    >
-                      {milestone.completed ? (
-                        <Check
-                          size={wp(14)}
-                          color={colors.white}
-                          strokeWidth={3}
-                        />
-                      ) : (
-                        <Circle size={wp(14)} color="rgba(255,255,255,0.3)" />
-                      )}
-                    </View>
-                    <Text
-                      style={[
-                        styles.milestoneText,
-                        milestone.completed && styles.milestoneTextCompleted,
-                      ]}
-                    >
-                      {milestone.label}
-                    </Text>
-                    <View style={styles.milestonePts}>
-                      <Text style={styles.milestonePtsText}>
-                        +{milestone.pts} pts
-                      </Text>
-                    </View>
-                  </View>
-                ))}
-              </View>
-            </LinearGradient>
-          )}
+              <TouchableOpacity
+                activeOpacity={0.85}
+                style={styles.aiDraftBtn}
+                onPress={() => {
+                  Toast.show({ type: 'info', text1: 'Draft saved' });
+                }}
+              >
+                <Text style={styles.aiDraftText}>Draft Post</Text>
+              </TouchableOpacity>
+            </View>
+          </LinearGradient>
         </View>
       </ScrollView>
 
@@ -654,7 +530,7 @@ export default CreatorHome;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: colors.primary,
   },
 
   // Header
@@ -686,25 +562,25 @@ const styles = StyleSheet.create({
     width: wp(48),
     height: wp(48),
     borderRadius: wp(24),
-    backgroundColor: colors.secondary,
+    backgroundColor: colors.golden,
     justifyContent: 'center',
     alignItems: 'center',
   },
   avatarText: {
     fontSize: fp(20),
     fontWeight: '700',
+    color: colors.black,
+  },
+  greeting: {
+    fontSize: fp(17),
+    fontWeight: '800',
     color: colors.white,
   },
   greetingSub: {
     fontSize: fp(13),
     color: colors.muted,
     fontWeight: '500',
-  },
-  greeting: {
-    fontSize: fp(18),
-    fontWeight: '800',
-    color: colors.white,
-    marginTop: hp(1),
+    marginTop: hp(2),
   },
   bellBtn: {
     width: wp(44),
@@ -734,95 +610,69 @@ const styles = StyleSheet.create({
     marginTop: hp(14),
   },
 
-  // Revenue Card
-  revenueCard: {
-    borderRadius: wp(20),
-    padding: wp(20),
-    shadowColor: '#6C3CE1',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
-    shadowRadius: 14,
-    elevation: 6,
-  },
-  revenueHeader: {
+  // Split row: revenue + performance
+  splitRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: hp(6),
+    gap: wp(12),
   },
-  revenueLabel: {
-    fontSize: fp(12),
+  revenueMiniCard: {
+    flex: 1,
+    backgroundColor: '#14141F',
+    borderRadius: wp(18),
+    padding: wp(14),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
+    justifyContent: 'space-between',
+  },
+  performanceMiniCard: {
+    flex: 1,
+    backgroundColor: '#14141F',
+    borderRadius: wp(18),
+    padding: wp(14),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
+  },
+  miniLabel: {
+    fontSize: fp(10.5),
     fontWeight: '700',
-    color: 'rgba(255,255,255,0.65)',
+    color: 'rgba(255,255,255,0.5)',
     letterSpacing: 1,
     marginBottom: hp(6),
   },
-  growingBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(5),
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    paddingHorizontal: wp(12),
-    paddingVertical: hp(5),
-    borderRadius: wp(20),
-  },
-  growingText: {
-    fontSize: fp(12),
-    fontWeight: '700',
-    color: colors.white,
-  },
-  revenueAmount: {
-    fontSize: fp(40),
+  revenueMiniAmount: {
+    fontSize: fp(22),
     fontWeight: '800',
     color: colors.white,
   },
   rupeeSymbol: {
-    fontSize: fp(22),
+    fontSize: fp(15),
     fontWeight: '400',
     color: 'rgba(255,255,255,0.6)',
   },
-  revenueDivider: {
-    height: 1,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    marginVertical: hp(16),
+  sparkline: {
+    marginTop: hp(8),
+    alignSelf: 'center',
   },
-  statsRow: {
+  perfRow: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
     alignItems: 'center',
+    gap: wp(6),
+    marginBottom: hp(9),
   },
-  statItem: {
-    alignItems: 'center',
+  perfLabel: {
     flex: 1,
+    fontSize: fp(11.5),
+    color: 'rgba(255,255,255,0.65)',
+    fontWeight: '500',
   },
-  statIconWrap: {
-    width: wp(32),
-    height: wp(32),
-    borderRadius: wp(16),
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: hp(8),
-  },
-  statValue: {
-    fontSize: fp(20),
+  perfValue: {
+    fontSize: fp(13),
     fontWeight: '800',
     color: colors.white,
   },
-  statLabel: {
-    fontSize: fp(11),
-    color: 'rgba(255,255,255,0.6)',
-    marginTop: hp(3),
-    fontWeight: '500',
-  },
-  statDivider: {
-    width: 1,
-    height: hp(50),
-    backgroundColor: 'rgba(255,255,255,0.15)',
-  },
 
-  // Course Card
-  courseCard: {
+  // Launch Card
+  launchCard: {
     borderRadius: wp(20),
     padding: wp(20),
     shadowColor: colors.shadow,
@@ -831,90 +681,54 @@ const styles = StyleSheet.create({
     shadowRadius: 14,
     elevation: 5,
   },
-  courseHeaderRow: {
+  launchHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: hp(22),
+    marginBottom: hp(16),
   },
-  startBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    gap: wp(5),
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderRadius: wp(20),
-    paddingHorizontal: wp(12),
-    paddingVertical: hp(5),
-    marginBottom: hp(12),
-  },
-  startBadgeText: {
-    fontSize: fp(10),
-    fontWeight: '800',
-    color: colors.secondary,
-    letterSpacing: 1,
-  },
-  courseTitle: {
-    fontSize: fp(24),
+  launchTitle: {
+    fontSize: fp(19),
     fontWeight: '800',
     color: colors.white,
-    lineHeight: fp(30),
+    lineHeight: fp(25),
   },
-  courseSubtitle: {
+  launchSubtitle: {
     fontSize: fp(13),
     color: 'rgba(255,255,255,0.6)',
     lineHeight: fp(19),
-    marginTop: hp(8),
+    marginTop: hp(6),
   },
-  courseEmoji: {
-    fontSize: fp(42),
+  launchEmoji: {
+    fontSize: fp(36),
     marginLeft: wp(8),
-    marginTop: hp(10),
   },
-
-  // Stepper
-  stepperWrap: {
-    position: 'relative',
-    marginBottom: hp(22),
-  },
-  stepperLine: {
-    position: 'absolute',
-    top: wp(18),
-    left: wp(18),
-    right: wp(18),
-    height: 2,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-  },
-  stepsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  stepItem: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  stepCircle: {
-    width: wp(36),
-    height: wp(36),
-    borderRadius: wp(18),
-    justifyContent: 'center',
-    alignItems: 'center',
+  progressBarTrack: {
+    height: hp(10),
+    borderRadius: wp(6),
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    overflow: 'hidden',
     marginBottom: hp(8),
   },
-  stepTitle: {
+  progressBarFill: {
+    height: '100%',
+    borderRadius: wp(6),
+    backgroundColor: colors.golden,
+  },
+  progressBarLabel: {
     fontSize: fp(12),
-    fontWeight: '700',
-    color: 'rgba(255,255,255,0.85)',
-    textAlign: 'center',
+    color: 'rgba(255,255,255,0.6)',
+    fontWeight: '600',
+    marginBottom: hp(16),
   },
 
-  // CTA
+  // CTA (shared golden button style)
   ctaButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: wp(6),
-    backgroundColor: colors.white,
+    backgroundColor: colors.golden,
     borderRadius: wp(14),
     paddingVertical: hp(14),
   },
@@ -924,254 +738,138 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
 
-  // Go Live Card
-  liveCard: {
-    borderRadius: wp(18),
-    padding: wp(18),
-    flexDirection: 'row',
-    alignItems: 'center',
-    shadowColor: '#1A1A2E',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    elevation: 4,
-  },
-  liveLeft: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(12),
-  },
-  liveIconWrap: {
-    width: wp(48),
-    height: wp(48),
-    borderRadius: wp(14),
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  liveBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(5),
-    marginBottom: hp(4),
-  },
-  greenDot: {
-    width: wp(7),
-    height: wp(7),
-    borderRadius: wp(4),
-    backgroundColor: colors.accent,
-  },
-  liveBadgeText: {
-    fontSize: fp(11),
+  // Quick Actions
+  sectionTitle: {
+    fontSize: fp(17),
     fontWeight: '800',
-    color: colors.accent,
-    letterSpacing: 0.5,
-  },
-  liveTitle: {
-    fontSize: fp(15),
-    fontWeight: '700',
     color: colors.white,
-    marginBottom: hp(2),
-  },
-  liveSubtitle: {
-    fontSize: fp(12),
-    color: 'rgba(255,255,255,0.55)',
-  },
-
-  // Creator Score
-  scoreHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     marginBottom: hp(12),
   },
-  scoreHeaderTitle: {
-    fontSize: fp(20),
-    fontWeight: '800',
-    color: colors.primary,
-  },
-  scoreHeaderLink: {
-    fontSize: fp(14),
-    fontWeight: '600',
-    color: '#9B59B6',
-  },
-  scoreCard: {
-    borderRadius: wp(20),
-    padding: wp(20),
-    shadowColor: '#1A1A2E',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
-    shadowRadius: 14,
-    elevation: 6,
-  },
-  scoreTopRow: {
+  quickActionsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    gap: wp(12),
+  },
+  quickActionCard: {
+    flex: 1,
+    backgroundColor: '#14141F',
+    borderRadius: wp(16),
+    paddingVertical: hp(18),
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
+  },
+  quickActionIconWrap: {
+    width: wp(44),
+    height: wp(44),
+    borderRadius: wp(22),
+    backgroundColor: 'rgba(255,182,6,0.12)',
+    justifyContent: 'center',
     alignItems: 'center',
     marginBottom: hp(8),
   },
-  scoreLabel: {
-    fontSize: fp(16),
-    fontWeight: '700',
-    color: 'rgba(255,255,255,0.65)',
-    letterSpacing: 1,
-    marginBottom: hp(4),
-  },
-  scoreValue: {
-    fontSize: fp(48),
-    fontWeight: '800',
-    color: '#9B59B6',
-  },
-  progressRingWrap: {
-    width: wp(70),
-    height: wp(70),
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  progressRingText: {
-    position: 'absolute',
-    alignItems: 'center',
-  },
-  progressPercent: {
-    fontSize: fp(14),
+  quickActionText: {
+    fontSize: fp(13),
     fontWeight: '700',
     color: colors.white,
   },
-  progressDone: {
-    fontSize: fp(10),
-    color: 'rgba(255,255,255,0.6)',
-    fontWeight: '500',
-  },
-  nextLevelRow: {
+
+  // Creator Center
+  creatorCenterRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: hp(16),
+    backgroundColor: '#14141F',
+    borderRadius: wp(16),
+    paddingVertical: hp(16),
+    paddingHorizontal: wp(16),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
   },
-  nextLevelText: {
-    fontSize: fp(15),
-    color: colors.white,
-    fontWeight: '500',
-  },
-  nextLevelName: {
-    fontSize: fp(15),
-    fontWeight: '800',
-    color: colors.secondary,
-  },
-  milestonesWrap: {
-    gap: hp(10),
-  },
-  milestoneItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderRadius: wp(14),
-    paddingVertical: hp(14),
-    paddingHorizontal: wp(14),
-  },
-  milestoneCheck: {
-    width: wp(28),
-    height: wp(28),
-    borderRadius: wp(14),
-    backgroundColor: 'rgba(255,255,255,0.1)',
+  creatorCenterIconWrap: {
+    width: wp(36),
+    height: wp(36),
+    borderRadius: wp(10),
+    backgroundColor: 'rgba(255,182,6,0.12)',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: wp(12),
   },
-  milestoneCompleted: {
-    backgroundColor: colors.accent,
-  },
-  milestoneText: {
+  creatorCenterText: {
     flex: 1,
-    fontSize: fp(14),
-    fontWeight: '600',
+    fontSize: fp(14.5),
+    fontWeight: '700',
     color: colors.white,
   },
-  milestoneTextCompleted: {
-    textDecorationLine: 'line-through',
+  creatorCenterLink: {
+    fontSize: fp(12.5),
+    fontWeight: '600',
     color: 'rgba(255,255,255,0.5)',
   },
-  milestonePts: {
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    borderRadius: wp(12),
-    paddingHorizontal: wp(10),
-    paddingVertical: hp(4),
-  },
-  milestonePtsText: {
-    fontSize: fp(12),
-    fontWeight: '700',
-    color: colors.golden,
-  },
 
-  // Manchly Pro Card (all completed)
-  radialGlow: {
-    position: 'absolute',
-    top: '20%',
-    left: '15%',
-    right: '15%',
-    bottom: '30%',
-    borderRadius: wp(100),
-    backgroundColor: 'rgba(34, 139, 34, 0.15)',
+  // AI Content Assistant
+  aiCard: {
+    borderRadius: wp(20),
+    padding: wp(20),
+    borderWidth: 1,
+    borderColor: 'rgba(255,182,6,0.35)',
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.2,
+    shadowRadius: 14,
+    elevation: 5,
   },
-  trophyWrap: {
+  aiBadge: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: hp(16),
-    marginTop: hp(8),
-  },
-  trophyEmoji: {
-    fontSize: fp(64),
-  },
-  proTitle: {
-    fontSize: fp(26),
-    fontWeight: '800',
-    color: colors.white,
-    textAlign: 'center',
+    alignSelf: 'flex-start',
+    gap: wp(6),
     marginBottom: hp(12),
   },
-  proDescription: {
-    fontSize: fp(15),
-    color: 'rgba(255,255,255,0.7)',
-    textAlign: 'center',
-    lineHeight: fp(22),
-    marginBottom: hp(20),
-  },
-  proPointsHighlight: {
+  aiBadgeText: {
+    fontSize: fp(11),
     fontWeight: '800',
     color: colors.golden,
+    letterSpacing: 1,
   },
-  proBadgeHighlight: {
+  aiTitle: {
+    fontSize: fp(17),
     fontWeight: '800',
-    color: colors.secondary,
+    color: colors.white,
+    marginBottom: hp(8),
   },
-  taskIconsRow: {
+  aiDescription: {
+    fontSize: fp(12.5),
+    color: 'rgba(255,255,255,0.6)',
+    lineHeight: fp(18),
+    marginBottom: hp(18),
+  },
+  aiButtonsRow: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    gap: wp(12),
-    marginBottom: hp(22),
+    gap: wp(10),
   },
-  taskIconBox: {
-    width: wp(52),
-    height: wp(52),
-    borderRadius: wp(14),
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
-    justifyContent: 'center',
+  aiScheduleBtn: {
+    flex: 1,
+    backgroundColor: colors.golden,
+    borderRadius: wp(12),
+    paddingVertical: hp(13),
     alignItems: 'center',
   },
-  taskIconEmoji: {
-    fontSize: fp(24),
-  },
-  keepGrowingBtn: {
-    backgroundColor: '#2ECC71',
-    borderRadius: wp(16),
-    paddingVertical: hp(16),
-    alignItems: 'center',
-  },
-  keepGrowingText: {
-    fontSize: fp(16),
+  aiScheduleText: {
+    fontSize: fp(13.5),
     fontWeight: '700',
     color: colors.primary,
+  },
+  aiDraftBtn: {
+    flex: 1,
+    borderRadius: wp(12),
+    paddingVertical: hp(13),
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+  },
+  aiDraftText: {
+    fontSize: fp(13.5),
+    fontWeight: '700',
+    color: colors.white,
   },
 
   // Floating Intro Video

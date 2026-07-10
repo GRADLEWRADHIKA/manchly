@@ -252,7 +252,7 @@ const CreatorSetting: React.FC = () => {
     setShowWithdrawModal(true);
   };
 
-  return (
+ return (
     <View style={styles.container}>
       {/* ──────── Header ──────── */}
       <View style={[styles.headerWrapper, { paddingTop: insets.top }]}>
@@ -304,13 +304,13 @@ const CreatorSetting: React.FC = () => {
           <QuickAction
             icon={Headset}
             label="Help & Support"
-            color="#3B82F6"
+            color="#60A5FA"
             onPress={() => openWhatsApp('Hello, I am a Creator, I need help.')}
           />
           <QuickAction
             icon={Megaphone}
             label="Marketing"
-            color="#8B5CF6"
+            color="#A78BFA"
             onPress={() =>
               openWhatsApp('Hello, I am a Creator, I need help for marketing.')
             }
@@ -328,7 +328,7 @@ const CreatorSetting: React.FC = () => {
             <View style={styles.walletIconWrap}>
               <WalletMinimal
                 size={wp(20)}
-                color={colors.white}
+                color={colors.golden}
                 strokeWidth={2}
               />
             </View>
@@ -375,7 +375,7 @@ const CreatorSetting: React.FC = () => {
               </Text>
             </Text>
           </View>
-          <ChevronRight size={wp(18)} color="#c8ccd0" />
+          <ChevronRight size={wp(18)} color="rgba(255,255,255,0.4)" />
         </Pressable>
 
         {/* ──────── Account Section ──────── */}
@@ -383,15 +383,15 @@ const CreatorSetting: React.FC = () => {
         <View style={styles.section}>
           <MenuRow
             icon={User2}
-            iconBg="#f0f4ff"
-            iconColor="#3B82F6"
+            iconBg="rgba(59,130,246,0.15)"
+            iconColor="#b4d0f4"
             label="My Profile"
             subtitle="Manage your public profile"
             onPress={() => Nav.navigate('CreatorProfile')}
           />
           <MenuRow
             icon={WalletMinimal}
-            iconBg="#f0fdf4"
+            iconBg="rgba(16,185,129,0.15)"
             iconColor={colors.success}
             label="Wallet"
             subtitle="Earnings & transactions"
@@ -399,8 +399,8 @@ const CreatorSetting: React.FC = () => {
           />
           <MenuRow
             icon={Landmark}
-            iconBg="#f4f4f5"
-            iconColor={colors.textSecondary}
+            iconBg="rgba(255,255,255,0.08)"
+            iconColor="rgba(255,255,255,0.7)"
             label="Bank Details"
             subtitle="Manage your bank information"
             onPress={() => Nav.navigate('BankDetails')}
@@ -413,28 +413,28 @@ const CreatorSetting: React.FC = () => {
         <View style={styles.section}>
           <MenuRow
             icon={FileText}
-            iconBg="#f0f4ff"
-            iconColor="#3B82F6"
+            iconBg="rgba(59,130,246,0.15)"
+            iconColor="#60A5FA"
             label="Terms of Service"
             onPress={() => setShowTerms(true)}
           />
           <MenuRow
             icon={Shield}
-            iconBg="#f0fdf4"
+            iconBg="rgba(16,185,129,0.15)"
             iconColor="#10B981"
             label="Privacy Policy"
             onPress={() => setShowPrivacy(true)}
           />
           <MenuRow
             icon={ReceiptText}
-            iconBg="#fef3c7"
-            iconColor="#F59E0B"
+            iconBg="rgba(255,182,6,0.15)"
+            iconColor={colors.golden}
             label="Refund Policy"
             onPress={() => setShowRefund(true)}
           />
           <MenuRow
             icon={MessageCircle}
-            iconBg="#fce7f3"
+            iconBg="rgba(236,72,153,0.15)"
             iconColor="#EC4899"
             label="Contact Us"
             subtitle="Email & phone support"
@@ -447,7 +447,7 @@ const CreatorSetting: React.FC = () => {
         <View style={styles.logoutSection}>
           <MenuRow
             icon={LogOut}
-            iconBg="#fef2f2"
+            iconBg="rgba(239,68,68,0.15)"
             iconColor={colors.error}
             label="Logout"
             labelColor={colors.error}
@@ -469,7 +469,7 @@ const CreatorSetting: React.FC = () => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
             <View style={styles.modalIconWrap}>
-              <WalletMinimal size={wp(28)} color={colors.primary} />
+              <WalletMinimal size={wp(28)} color={colors.golden} />
             </View>
             <Text style={styles.modalTitle}>Withdraw Funds</Text>
 
@@ -483,7 +483,7 @@ const CreatorSetting: React.FC = () => {
 
             {/* T+2 Info */}
             <View style={styles.modalInfoRow}>
-              <Clock size={wp(16)} color={colors.info} />
+              <Clock size={wp(16)} color={colors.faaAiBlue} />
               <Text style={styles.modalInfoText}>
                 Your money will be credited to your bank account by{' '}
                 <Text style={{ fontWeight: '700' }}>{getT2Date()}</Text> (T+2
@@ -494,7 +494,7 @@ const CreatorSetting: React.FC = () => {
             {/* Bank Info */}
             {bankAccount && (
               <View style={styles.modalBankRow}>
-                <Landmark size={wp(16)} color={colors.textSecondary} />
+                <Landmark size={wp(16)} color="rgba(255,255,255,0.6)" />
                 <Text style={styles.modalBankText}>
                   Crediting to: {bankAccount.account_number} (
                   {bankAccount.ifsc_code})
@@ -504,7 +504,7 @@ const CreatorSetting: React.FC = () => {
 
             {/* Note */}
             <View style={styles.modalNoteRow}>
-              <Info size={wp(14)} color={colors.secondary} />
+              <Info size={wp(14)} color={colors.golden} />
               <Text style={styles.modalNoteText}>
                 Settlements are processed automatically. Your earnings will be
                 transferred after the T+2 settlement period.
@@ -535,7 +535,7 @@ const CreatorSetting: React.FC = () => {
                 }}
                 activeOpacity={0.8}
               >
-                <CheckCircle2 size={wp(16)} color={colors.white} />
+                <CheckCircle2 size={wp(16)} color={colors.black} />
                 <Text style={styles.modalConfirmText}>Got It</Text>
               </TouchableOpacity>
             </View>
@@ -591,7 +591,7 @@ const CreatorSetting: React.FC = () => {
                   <Text style={styles.splitLegendLabel}>Aapka (Creator)</Text>
                 </View>
                 <Text
-                  style={[styles.splitLegendValue, { color: colors.creatorGreenDark }]}
+                  style={[styles.splitLegendValue, { color: colors.creatorGreen }]}
                 >
                   {CREATOR_PCT}%
                 </Text>
@@ -602,12 +602,12 @@ const CreatorSetting: React.FC = () => {
                   <View
                     style={[
                       styles.splitDot,
-                      { backgroundColor: colors.secondary },
+                      { backgroundColor: colors.golden },
                     ]}
                   />
                 </View>
                 <Text
-                  style={[styles.splitLegendValue, { color: colors.secondary }]}
+                  style={[styles.splitLegendValue, { color: colors.golden }]}
                 >
                   {PLATFORM_PCT}%
                 </Text>
@@ -630,10 +630,10 @@ const CreatorSetting: React.FC = () => {
                 onSlidingComplete={syncFromSlider}
                 bubble={(v) => `₹${Math.round(v).toLocaleString('en-IN')}`}
                 theme={{
-                  minimumTrackTintColor: colors.creatorGreen,
+                  minimumTrackTintColor: colors.golden,
                   maximumTrackTintColor: colors.trackDark,
-                  bubbleBackgroundColor: colors.creatorGreen,
-                  bubbleTextColor: colors.white,
+                  bubbleBackgroundColor: colors.golden,
+                  bubbleTextColor: colors.black,
                 }}
                 sliderHeight={hp(10)}
                 thumbWidth={wp(26)}
@@ -650,13 +650,13 @@ const CreatorSetting: React.FC = () => {
             <View style={styles.resultRow}>
               <View style={[styles.resultBox, styles.resultCreator]}>
                 <Text style={styles.resultLabel}>😋 Aapko milega</Text>
-                <Text style={[styles.resultValue, { color: colors.creatorGreenDark }]}>
+                <Text style={[styles.resultValue, { color: colors.creatorGreen }]}>
                   ₹{hissaCreatorAmount.toLocaleString('en-IN')}
                 </Text>
               </View>
               <View style={[styles.resultBox, styles.resultPlatform]}>
                 <Text style={styles.resultLabel}>🏢 Manchly ka</Text>
-                <Text style={[styles.resultValue, { color: colors.secondary }]}>
+                <Text style={[styles.resultValue, { color: colors.golden }]}>
                   ₹{hissaPlatformAmount.toLocaleString('en-IN')}
                 </Text>
               </View>
@@ -697,11 +697,11 @@ export default CreatorSetting;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f7',
+    backgroundColor: colors.primary,
   },
 
   headerWrapper: {
-    backgroundColor: '#111111',
+    backgroundColor: colors.primary,
     zIndex: 10,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
@@ -714,7 +714,7 @@ const styles = StyleSheet.create({
     paddingVertical: hp(14),
   },
   headerCurve: {
-    backgroundColor: '#111111',
+    backgroundColor: colors.primary,
     height: hp(6),
     borderBottomLeftRadius: wp(20),
     borderBottomRightRadius: wp(20),
@@ -726,19 +726,21 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   avatar: {
-    width: wp(34),
-    height: wp(34),
-    borderRadius: wp(11),
-    borderWidth: 1.5,
-    borderColor: '#2a2a2e',
+    width: wp(48),
+    height: wp(48),
+    borderRadius: wp(24),
+    borderWidth: 2,
+    borderColor: 'rgba(255,182,6,0.4)',
   },
   avatarFallback: {
     width: wp(48),
     height: wp(48),
-    borderRadius: wp(16),
-    backgroundColor: '#2a2a2e',
+    borderRadius: wp(24),
+    backgroundColor: '#14141F',
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
   avatarInitials: {
     color: colors.white,
@@ -750,7 +752,7 @@ const styles = StyleSheet.create({
   },
   greetingLabel: {
     fontSize: fp(11),
-    color: '#808088',
+    color: 'rgba(255,255,255,0.5)',
     fontWeight: '500',
   },
   greetingText: {
@@ -760,15 +762,17 @@ const styles = StyleSheet.create({
     marginTop: 0,
   },
   bellBtn: {
-    width: wp(32),
-    height: wp(32),
-    borderRadius: wp(10),
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    width: wp(40),
+    height: wp(40),
+    borderRadius: wp(20),
+    backgroundColor: 'rgba(255,255,255,0.08)',
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
   },
   bellBtnPressed: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(255,255,255,0.16)',
     transform: [{ scale: 0.93 }],
   },
 
@@ -795,14 +799,9 @@ const styles = StyleSheet.create({
     borderRadius: wp(14),
     alignItems: 'center',
     gap: hp(8),
-    backgroundColor: colors.white,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#eaecef',
+    backgroundColor: '#14141F',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
   },
   topCardPressed: {
     opacity: 0.88,
@@ -816,7 +815,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   topCardText: {
-    color: colors.text,
+    color: colors.white,
     fontSize: fp(13),
     fontWeight: '600',
   },
@@ -831,9 +830,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: hp(22),
-    shadowColor: colors.black,
+    shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
+    shadowOpacity: 0.2,
     shadowRadius: 10,
     elevation: 5,
   },
@@ -846,7 +845,7 @@ const styles = StyleSheet.create({
     width: wp(40),
     height: wp(40),
     borderRadius: wp(12),
-    backgroundColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: 'rgba(255,182,6,0.12)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -855,7 +854,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   withdrawLabel: {
-    color: '#808088',
+    color: 'rgba(255,255,255,0.55)',
     fontWeight: '500',
     fontSize: fp(12),
   },
@@ -867,7 +866,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   withdrawBtn: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.golden,
     paddingVertical: hp(9),
     paddingHorizontal: wp(18),
     borderRadius: wp(10),
@@ -878,7 +877,7 @@ const styles = StyleSheet.create({
   },
   withdrawBtnText: {
     fontWeight: '700',
-    color: '#111111',
+    color: colors.black,
     fontSize: fp(13),
   },
 
@@ -886,37 +885,27 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: fp(13),
     fontWeight: '600',
-    color: colors.textSecondary,
+    color: 'rgba(255,255,255,0.45)',
     textTransform: 'uppercase',
     letterSpacing: 0.8,
     marginHorizontal: wp(20),
     marginBottom: hp(8),
   },
   section: {
-    backgroundColor: colors.white,
+    backgroundColor: '#14141F',
     marginHorizontal: wp(16),
     borderRadius: wp(16),
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 2,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#eaecef',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
     overflow: 'hidden',
   },
   logoutSection: {
-    backgroundColor: colors.white,
+    backgroundColor: '#14141F',
     marginHorizontal: wp(16),
     marginTop: hp(16),
     borderRadius: wp(16),
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 2,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#eaecef',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
     overflow: 'hidden',
   },
 
@@ -930,10 +919,10 @@ const styles = StyleSheet.create({
   },
   rowBorder: {
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#f0f2f5',
+    borderBottomColor: 'rgba(255,255,255,0.06)',
   },
   rowPressed: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: 'rgba(255,255,255,0.04)',
   },
   rowLeft: {
     flexDirection: 'row',
@@ -950,25 +939,25 @@ const styles = StyleSheet.create({
   },
   rowText: {
     fontSize: fp(15),
-    color: colors.text,
+    color: colors.white,
     fontWeight: '500',
   },
   rowSubtext: {
     fontSize: fp(12),
-    color: colors.textSecondary,
+    color: 'rgba(255,255,255,0.45)',
     marginTop: hp(1),
   },
 
   versionText: {
     textAlign: 'center',
     fontSize: fp(12),
-    color: colors.muted,
+    color: 'rgba(255,255,255,0.3)',
     marginTop: hp(24),
     fontWeight: '500',
   },
   headerSubtitle: {
     fontSize: fp(12),
-    color: '#999999',
+    color: 'rgba(255,255,255,0.5)',
     fontWeight: '500',
   },
   headerTitle: {
@@ -981,24 +970,26 @@ const styles = StyleSheet.create({
   /* ──── Withdraw Modal ──── */
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: wp(20),
   },
   modalContainer: {
-    backgroundColor: colors.white,
+    backgroundColor: '#14141F',
     borderRadius: wp(20),
     paddingVertical: hp(24),
     paddingHorizontal: wp(20),
     width: '100%',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
   },
   modalIconWrap: {
     width: wp(56),
     height: wp(56),
     borderRadius: wp(28),
-    backgroundColor: '#f0f0f0',
+    backgroundColor: 'rgba(255,182,6,0.1)',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: hp(12),
@@ -1006,34 +997,36 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: fp(18),
     fontWeight: '700',
-    color: colors.text,
+    color: colors.white,
     marginBottom: hp(16),
   },
   modalAmountCard: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: colors.primary,
     borderRadius: wp(14),
     paddingVertical: hp(16),
     paddingHorizontal: wp(20),
     width: '100%',
     alignItems: 'center',
     marginBottom: hp(16),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
   },
   modalAmountLabel: {
     fontSize: fp(12),
-    color: colors.textSecondary,
+    color: 'rgba(255,255,255,0.5)',
     fontWeight: '500',
     marginBottom: hp(4),
   },
   modalAmountValue: {
     fontSize: fp(28),
     fontWeight: '900',
-    color: colors.text,
+    color: colors.white,
   },
   modalInfoRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: wp(10),
-    backgroundColor: colors.info + '10',
+    backgroundColor: 'rgba(96,165,250,0.1)',
     padding: wp(12),
     borderRadius: wp(12),
     width: '100%',
@@ -1042,7 +1035,7 @@ const styles = StyleSheet.create({
   modalInfoText: {
     flex: 1,
     fontSize: fp(12),
-    color: colors.info,
+    color: colors.faaAiBlue,
     lineHeight: fp(17),
     fontWeight: '500',
   },
@@ -1050,16 +1043,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(8),
-    backgroundColor: '#f8f9fa',
+    backgroundColor: colors.primary,
     padding: wp(12),
     borderRadius: wp(10),
     width: '100%',
     marginBottom: hp(10),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
   },
   modalBankText: {
     flex: 1,
     fontSize: fp(12),
-    color: colors.textSecondary,
+    color: 'rgba(255,255,255,0.55)',
     fontWeight: '500',
   },
   modalNoteRow: {
@@ -1073,7 +1068,7 @@ const styles = StyleSheet.create({
   modalNoteText: {
     flex: 1,
     fontSize: fp(11),
-    color: colors.textSecondary,
+    color: 'rgba(255,255,255,0.45)',
     lineHeight: fp(16),
   },
   modalButtons: {
@@ -1087,12 +1082,12 @@ const styles = StyleSheet.create({
     borderRadius: wp(12),
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f4f4f5',
+    backgroundColor: colors.primary,
     borderWidth: 1,
-    borderColor: '#eaecef',
+    borderColor: 'rgba(255,255,255,0.12)',
   },
   modalCancelText: {
-    color: colors.text,
+    color: colors.white,
     fontWeight: '600',
     fontSize: fp(14),
   },
@@ -1103,11 +1098,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.primary,
+    backgroundColor: colors.golden,
     gap: wp(6),
   },
   modalConfirmText: {
-    color: colors.white,
+    color: colors.black,
     fontWeight: '700',
     fontSize: fp(14),
   },
@@ -1116,19 +1111,14 @@ const styles = StyleSheet.create({
   hissaCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: '#14141F',
     marginHorizontal: wp(16),
     marginBottom: hp(20),
     paddingVertical: hp(14),
     paddingHorizontal: wp(14),
     borderRadius: wp(16),
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#eaecef',
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
   },
   hissaCardPressed: {
     opacity: 0.9,
@@ -1138,15 +1128,10 @@ const styles = StyleSheet.create({
     width: wp(44),
     height: wp(44),
     borderRadius: wp(12),
-    backgroundColor: '#22C55E',
+    backgroundColor: colors.creatorGreen,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: wp(12),
-    shadowColor: '#22C55E',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 4,
   },
   hissaInfo: {
     flex: 1,
@@ -1154,22 +1139,22 @@ const styles = StyleSheet.create({
   hissaTitle: {
     fontSize: fp(15),
     fontWeight: '700',
-    color: colors.text,
+    color: colors.white,
   },
   hissaSubtitle: {
     fontSize: fp(12),
     marginTop: hp(2),
   },
   hissaCreator: {
-    color: colors.creatorGreenDark,
+    color: colors.creatorGreen,
     fontWeight: '700',
   },
   hissaDot: {
-    color: colors.muted,
+    color: 'rgba(255,255,255,0.4)',
     fontWeight: '700',
   },
   hissaPlatform: {
-    color: colors.secondary,
+    color: colors.golden,
     fontWeight: '700',
   },
 
@@ -1179,33 +1164,35 @@ const styles = StyleSheet.create({
   },
   sheetOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.45)',
+    backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'flex-end',
   },
   sheetContainer: {
-    backgroundColor: colors.white,
+    backgroundColor: '#14141F',
     borderTopLeftRadius: wp(24),
     borderTopRightRadius: wp(24),
     paddingHorizontal: wp(20),
     paddingTop: hp(10),
     paddingBottom: hp(28),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
   },
   sheetHandle: {
     width: wp(40),
     height: hp(4),
     borderRadius: wp(2),
-    backgroundColor: colors.handle,
+    backgroundColor: 'rgba(255,255,255,0.2)',
     alignSelf: 'center',
     marginBottom: hp(16),
   },
   sheetTitle: {
     fontSize: fp(18),
     fontWeight: '800',
-    color: colors.text,
+    color: colors.white,
   },
   sheetSubtitle: {
     fontSize: fp(13),
-    color: colors.textSecondary,
+    color: 'rgba(255,255,255,0.5)',
     marginTop: hp(4),
     marginBottom: hp(18),
   },
@@ -1214,13 +1201,13 @@ const styles = StyleSheet.create({
     height: hp(14),
     borderRadius: wp(20),
     overflow: 'hidden',
-    backgroundColor: colors.splitBarBg,
+    backgroundColor: 'rgba(255,255,255,0.08)',
   },
   splitCreator: {
     backgroundColor: colors.creatorGreen,
   },
   splitPlatform: {
-    backgroundColor: colors.secondary,
+    backgroundColor: colors.golden,
   },
   splitLegendRow: {
     flexDirection: 'row',
@@ -1242,7 +1229,7 @@ const styles = StyleSheet.create({
   },
   splitLegendLabel: {
     fontSize: fp(12),
-    color: colors.textSecondary,
+    color: 'rgba(255,255,255,0.5)',
     fontWeight: '500',
   },
   splitLegendValue: {
@@ -1252,12 +1239,12 @@ const styles = StyleSheet.create({
   },
   sheetDivider: {
     height: 1,
-    backgroundColor: colors.divider,
+    backgroundColor: 'rgba(255,255,255,0.08)',
     marginVertical: hp(18),
   },
   calcLabel: {
     fontSize: fp(13),
-    color: colors.textSecondary,
+    color: 'rgba(255,255,255,0.5)',
     fontWeight: '500',
     marginBottom: hp(14),
   },
@@ -1272,7 +1259,7 @@ const styles = StyleSheet.create({
   saleAmountText: {
     fontSize: fp(22),
     fontWeight: '800',
-    color: colors.text,
+    color: colors.white,
     textAlign: 'center',
     marginVertical: hp(10),
   },
@@ -1289,14 +1276,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   resultCreator: {
-    backgroundColor: colors.creatorGreenLight,
+    backgroundColor: 'rgba(34,197,94,0.12)',
   },
   resultPlatform: {
-    backgroundColor: colors.platformLight,
+    backgroundColor: 'rgba(255,182,6,0.12)',
   },
   resultLabel: {
     fontSize: fp(12),
-    color: colors.textSecondary,
+    color: 'rgba(255,255,255,0.5)',
     fontWeight: '500',
     marginBottom: hp(4),
   },

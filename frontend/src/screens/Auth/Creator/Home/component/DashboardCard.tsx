@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
   iconWrapper: {
     width: wp(50),
     height: hp(50),
-    backgroundColor: colors.cCardLight,
+    backgroundColor: colors.golden,
     justifyContent: 'center',
     alignItems: 'center',
   },

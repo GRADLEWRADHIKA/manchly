@@ -1,242 +1,153 @@
-import React from 'react';
 import {
   StyleSheet,
   Text,
   View,
-  ImageBackground,
-  TouchableOpacity,
-  StatusBar,
   Image,
+  TouchableOpacity,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import React from 'react';
 import colors from '../../utils/colors';
 import { wp, hp, fp } from '../../utils/responsive';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { MoveRight, BadgeCheck } from 'lucide-react-native';
+import { useNavigation } from '@react-navigation/native';
 
 const FirstPage = () => {
-  const navigation = useNavigation<any>();
-
+  const Nav = useNavigation<any>();
   return (
-    <View style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor="#000000" translucent />
-      <ImageBackground
-        source={require('../../image/computer.jpg')}
-        style={styles.backgroundImage}
-        resizeMode="cover"
-      >
-        <View style={styles.overlay}>
-          <SafeAreaView style={styles.safeArea}>
-            {/* Top Badge */}
-            <View style={styles.badgeContainer}>
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>A MUNCH FOR EVERY CREATOR</Text>
-              </View>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.firstHalf}>
+        <Image
+          source={require('../../image/boarding.jpg')}
+          style={styles.imageMain}
+        />
+      </View>
+      <View style={styles.secHalf}>
+        <TouchableOpacity
+          activeOpacity={0.9}
+          style={styles.mainHeader}
+          onPress={() => {
+            Nav.navigate('NewLoginScreen');
+          }}
+        >
+          <Text style={styles.mainTop}>Get Started</Text>
+        </TouchableOpacity>
+
+        <View style={styles.trustRow}>
+          <View style={styles.avatarStack}>
+            <View style={[styles.avatar, { marginLeft: 0 }]} />
+            <View style={[styles.avatar, { marginLeft: -wp(10) }]} />
+            <View style={[styles.avatarCount, { marginLeft: -wp(10) }]}>
+              <Text style={styles.avatarCountText}>+1M</Text>
             </View>
-
-            {/* Hero Section */}
-            <View style={styles.heroContainer}>
-              {/* Logo + App Name */}
-              <View style={styles.logoRow}>
-                <Image
-                  source={require('../../image/Logo.jpg')}
-                  style={styles.logoIcon}
-                />
-                <Text style={styles.logoName}>Manchly</Text>
-              </View>
-
-              <Text style={styles.heroText}>India's #1 Creator App</Text>
-              <Text style={styles.subtitleText}>
-                Your Creator Studio in Your Pocket
-              </Text>
-            </View>
-
-            {/* Bottom Actions */}
-            <View style={styles.bottomContainer}>
-              <TouchableOpacity
-                style={styles.primaryButton}
-                activeOpacity={0.75}
-                onPress={() => navigation.navigate('LoginScreen')}
-              >
-                <Text style={styles.primaryButtonText}>Get Started</Text>
-              </TouchableOpacity>
-
-              {/* Trusted by Section */}
-              <View style={styles.trustedContainer}>
-                <View style={styles.avatarsRow}>
-                  <View style={[styles.avatarCircle, { backgroundColor: '#1a2536', zIndex: 4 }]} />
-                  <View style={[styles.avatarCircle, { backgroundColor: '#295748', zIndex: 3, marginLeft: -wp(10) }]} />
-                  <View style={[styles.avatarCircle, { backgroundColor: '#543143', zIndex: 2, marginLeft: -wp(10) }]} />
-                  <View style={[styles.avatarCircle, styles.plusBadge, { zIndex: 1, marginLeft: -wp(10) }]}>
-                    <Text style={styles.plusText}>+1M</Text>
-                  </View>
-                </View>
-                <Text style={styles.trustedText}>TRUSTED BY 10,000+ CREATORS</Text>
-              </View>
-
-              {/* Made in India + Free & Secure */}
-              <View style={styles.infoRow}>
-                <View style={styles.infoItem}>
-                  <Text style={styles.infoEmoji}>🇮🇳</Text>
-                  <Text style={styles.infoText}>Made{'\n'}In India</Text>
-                </View>
-                <View style={styles.infoItem}>
-                  <Text style={styles.infoEmoji}>✅</Text>
-                  <Text style={styles.infoText}>100%{'\n'}Free & Secure</Text>
-                </View>
-              </View>
-            </View>
-          </SafeAreaView>
+          </View>
+          <Text style={styles.trustText}>TRUSTED BY 10,000+ CREATOR</Text>
         </View>
-      </ImageBackground>
-    </View>
+
+        <View style={styles.badgeRow}>
+          <View style={styles.badgeItem}>
+            <Text style={styles.flagEmoji}>🇮🇳</Text>
+            <Text style={styles.badgeText}>Made in India</Text>
+          </View>
+          <View style={styles.badgeItem}>
+            <BadgeCheck size={wp(14)} color={colors.info} />
+            <Text style={styles.badgeText}>100% Free & Secure</Text>
+          </View>
+        </View>
+      </View>
+    </SafeAreaView>
   );
 };
 
 export default FirstPage;
 
 const styles = StyleSheet.create({
-  root: {
+  container: {
     flex: 1,
-    backgroundColor: colors.bg,
+    backgroundColor: colors.black,
   },
-  backgroundImage: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-  },
-  overlay: {
-    flex: 1,
-    backgroundColor: colors.overlay,
-  },
-  safeArea: {
-    flex: 1,
-    justifyContent: 'space-between',
-    paddingHorizontal: wp(24),
-    paddingVertical: hp(24),
-  },
-  badgeContainer: {
-    alignItems: 'center',
-    marginTop: hp(12),
-  },
-  badge: {
-    paddingHorizontal: wp(16),
-    paddingVertical: hp(6),
-    borderRadius: 99,
-    borderWidth: 1,
-    borderColor: colors.gold,
-    backgroundColor: colors.goldDim,
-  },
-  badgeText: {
-    color: colors.gold,
-    fontSize: fp(10),
-    fontWeight: '700',
-    letterSpacing: 0.8,
-  },
-  heroContainer: {
+  firstHalf: {
+    height: '65%',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: wp(12),
   },
-  logoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(10),
-    marginBottom: hp(16),
+  secHalf: {
+    height: '35%',
+    paddingHorizontal: wp(20),
   },
-  logoIcon: {
-    width: wp(40),
-    height: wp(40),
-    borderRadius: 8,
-  },
-  logoName: {
-    color: colors.textPrimary,
-    fontSize: fp(24),
-    fontWeight: '700',
-  },
-  heroText: {
-    color: colors.textPrimary,
-    fontSize: fp(34),
-    fontWeight: '700',
-    textAlign: 'center',
-    letterSpacing: -0.5,
-  },
-  subtitleText: {
-    color: colors.textSecondary,
-    fontSize: fp(14),
-    fontWeight: '400',
-    textAlign: 'center',
-    marginTop: hp(12),
-    lineHeight: fp(20),
-  },
-  bottomContainer: {
-    width: '100%',
-    marginBottom: hp(12),
-  },
-  primaryButton: {
-    width: '100%',
-    height: hp(54),
-    backgroundColor: colors.gold,
-    borderRadius: 99,
+  mainHeader: {
+    backgroundColor: colors.golden,
+    paddingVertical: hp(16),
+    borderRadius: wp(30),
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: hp(24),
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
+    elevation: 3,
   },
-  primaryButtonText: {
-    color: '#000000',
+  mainTop: {
     fontSize: fp(16),
+    color: colors.black,
     fontWeight: '700',
   },
-  trustedContainer: {
+  trustRow: {
+    alignItems: 'center',
+    marginTop: hp(24),
+  },
+  avatarStack: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: wp(8),
-    marginBottom: hp(16),
+    marginBottom: hp(8),
   },
-  avatarsRow: {
-    flexDirection: 'row',
+  avatar: {
+    width: wp(26),
+    height: wp(26),
+    borderRadius: wp(13),
+    backgroundColor: colors.textMuted,
+    borderWidth: wp(1.5),
+    borderColor: colors.black,
+  },
+  avatarCount: {
+    width: wp(26),
+    height: wp(26),
+    borderRadius: wp(13),
+    backgroundColor: colors.golden,
+    borderWidth: wp(1.5),
+    borderColor: colors.black,
     alignItems: 'center',
-  },
-  avatarCircle: {
-    width: wp(24),
-    height: wp(24),
-    borderRadius: wp(12),
-    borderWidth: 1.5,
-    borderColor: colors.bg,
-  },
-  plusBadge: {
-    backgroundColor: '#333333',
-    alignItems: 'center',
     justifyContent: 'center',
   },
-  plusText: {
-    color: colors.textPrimary,
-    fontSize: fp(7),
+  avatarCountText: {
+    fontSize: fp(8),
     fontWeight: '700',
+    color: colors.black,
   },
-  trustedText: {
-    color: colors.textSecondary,
+  trustText: {
     fontSize: fp(11),
-    fontWeight: '400',
+    fontWeight: '700',
+    color: colors.golden,
     letterSpacing: 0.5,
   },
-  infoRow: {
+  badgeRow: {
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: wp(32),
-    marginTop: hp(8),
+    gap: wp(24),
+    marginTop: hp(20),
   },
-  infoItem: {
+  badgeItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(6),
   },
-  infoEmoji: {
-    fontSize: fp(20),
-  },
-  infoText: {
-    color: colors.textSecondary,
+  badgeText: {
     fontSize: fp(11),
-    lineHeight: fp(16),
+    color: colors.textMuted,
+    fontWeight: '500',
   },
+  flagEmoji: {
+    fontSize: fp(14),
+  },
+  imageMain: { height: '95%', width: '95%' },
 });

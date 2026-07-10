@@ -111,7 +111,7 @@ const CreatorSetting: React.FC = () => {
     },
   ];
 
-  return (
+ return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={colors.bg || '#0F0F0F'} />
 
@@ -156,39 +156,137 @@ const CreatorSetting: React.FC = () => {
           </View>
         </View>
 
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
+      <ScrollView
+        style={styles.body}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* ──────── Quick Actions ──────── */}
+        <View style={styles.topCardWrapper}>
+          <QuickAction
+            icon={Headset}
+            label="Help & Support"
+            color="#60A5FA"
+            onPress={() => openWhatsApp('Hello, I am a Creator, I need help.')}
+          />
+          <QuickAction
+            icon={Megaphone}
+            label="Marketing"
+            color="#A78BFA"
+            onPress={() =>
+              openWhatsApp('Hello, I am a Creator, I need help for marketing.')
+            }
+          />
+        </View>
+
+        {/* ──────── Wallet Card ──────── */}
+        <LinearGradient
+          colors={['#1A1A2E', '#16213E', '#0F3460']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.withdrawCard}
         >
-          {/* Profile Header Card */}
-          <View style={styles.profileCard}>
-            <View style={styles.avatarContainer}>
-              {user?.profile_image ? (
-                <Image source={{ uri: user.profile_image }} style={styles.avatarImage} />
-              ) : (
-                <View style={styles.avatarFallback}>
-                  <Text style={styles.avatarInitials}>
-                    {user?.name ? user.name.substring(0, 2).toUpperCase() : 'CR'}
-                  </Text>
-                </View>
-              )}
-              {/* Overlapping Gold Verification Badge */}
-              <View style={styles.verifyBadge}>
-                <Check size={8} color="#000000" strokeWidth={4} />
-              </View>
+          <View style={styles.withdrawLeft}>
+            <View style={styles.walletIconWrap}>
+              <WalletMinimal
+                size={wp(20)}
+                color={colors.golden}
+                strokeWidth={2}
+              />
+            </View>
+            <View style={styles.withdrawInfo}>
+              <Text style={styles.withdrawLabel}>Withdrawable Balance</Text>
+              <Text style={styles.withdrawAmount}>
+                {walletLoading
+                  ? '₹ ...'
+                  : `₹ ${formatAmount(withdrawableBalance)}`}
+              </Text>
             </View>
 
             <Text style={styles.profileName}>
               {user?.name ? user.name.toUpperCase() : 'CREATOR'}
             </Text>
+          </View>
+          <ChevronRight size={wp(18)} color="rgba(255,255,255,0.4)" />
+        </Pressable>
 
-            <View style={styles.roleBadge}>
-              <Text style={styles.roleBadgeText}>PRESENTER</Text>
-            </View>
+        {/* ──────── Account Section ──────── */}
+        <Text style={styles.sectionTitle}>Account</Text>
+        <View style={styles.section}>
+          <MenuRow
+            icon={User2}
+            iconBg="rgba(59,130,246,0.15)"
+            iconColor="#b4d0f4"
+            label="My Profile"
+            subtitle="Manage your public profile"
+            onPress={() => Nav.navigate('CreatorProfile')}
+          />
+          <MenuRow
+            icon={WalletMinimal}
+            iconBg="rgba(16,185,129,0.15)"
+            iconColor={colors.success}
+            label="Wallet"
+            subtitle="Earnings & transactions"
+            onPress={() => Nav.navigate('WalletCreator')}
+          />
+          <MenuRow
+            icon={Landmark}
+            iconBg="rgba(255,255,255,0.08)"
+            iconColor="rgba(255,255,255,0.7)"
+            label="Bank Details"
+            subtitle="Manage your bank information"
+            onPress={() => Nav.navigate('BankDetails')}
+            isLast
+          />
+        </View>
 
-            <Text style={styles.bioText} numberOfLines={3}>
-              {user?.bio || 'Empowering creators worldwide. Hosting live workshops, custom webinars, and 1:1 business consultation sessions.'}
-            </Text>
+        {/* ──────── Legal Section ──────── */}
+        <Text style={[styles.sectionTitle, { marginTop: hp(20) }]}>Legal</Text>
+        <View style={styles.section}>
+          <MenuRow
+            icon={FileText}
+            iconBg="rgba(59,130,246,0.15)"
+            iconColor="#60A5FA"
+            label="Terms of Service"
+            onPress={() => setShowTerms(true)}
+          />
+          <MenuRow
+            icon={Shield}
+            iconBg="rgba(16,185,129,0.15)"
+            iconColor="#10B981"
+            label="Privacy Policy"
+            onPress={() => setShowPrivacy(true)}
+          />
+          <MenuRow
+            icon={ReceiptText}
+            iconBg="rgba(255,182,6,0.15)"
+            iconColor={colors.golden}
+            label="Refund Policy"
+            onPress={() => setShowRefund(true)}
+          />
+          <MenuRow
+            icon={MessageCircle}
+            iconBg="rgba(236,72,153,0.15)"
+            iconColor="#EC4899"
+            label="Contact Us"
+            subtitle="Email & phone support"
+            onPress={() => setShowContact(true)}
+            isLast
+          />
+        </View>
+
+        {/* ──────── Logout Section ──────── */}
+        <View style={styles.logoutSection}>
+          <MenuRow
+            icon={LogOut}
+            iconBg="rgba(239,68,68,0.15)"
+            iconColor={colors.error}
+            label="Logout"
+            labelColor={colors.error}
+            onPress={() => setLogoutVisible(true)}
+            isLast
+          />
+        </View>
 
             {/* Pill Buttons Row */}
             <View style={styles.pillButtonsRow}>
@@ -200,13 +298,17 @@ const CreatorSetting: React.FC = () => {
                 <Text style={styles.outlinedPillText}>Edit Profile</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity
-                style={styles.outlinedPill}
-                onPress={() => Toast.show({ type: 'success', text1: 'Link copied to clipboard' })}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.outlinedPillText}>Share Profile</Text>
-              </TouchableOpacity>
+      {/* ──────── Withdraw Modal ──────── */}
+      <Modal
+        visible={showWithdrawModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowWithdrawModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalIconWrap}>
+              <WalletMinimal size={wp(28)} color={colors.golden} />
             </View>
 
             {/* Social Icons Row */}
@@ -227,24 +329,23 @@ const CreatorSetting: React.FC = () => {
             </View>
           </View>
 
-          {/* Bestselling Product Card */}
-          <View style={styles.card}>
-            <Text style={styles.cardLabel}>BESTSELLING PRODUCT</Text>
-            <View style={styles.bestsellerRow}>
-              <View style={styles.productThumbnailContainer}>
-                {user?.profile_image ? (
-                  <Image source={{ uri: user.profile_image }} style={styles.productThumbnail} />
-                ) : (
-                  <View style={[styles.productThumbnail, styles.productThumbnailFallback]} />
-                )}
-              </View>
+            {/* T+2 Info */}
+            <View style={styles.modalInfoRow}>
+              <Clock size={wp(16)} color={colors.faaAiBlue} />
+              <Text style={styles.modalInfoText}>
+                Your money will be credited to your bank account by{' '}
+                <Text style={{ fontWeight: '700' }}>{getT2Date()}</Text> (T+2
+                settlement period).
+              </Text>
+            </View>
 
-              <View style={styles.productInfo}>
-                <View style={styles.mostLovedBadge}>
-                  <Text style={styles.mostLovedText}>MOST LOVED</Text>
-                </View>
-                <Text style={styles.productTitle} numberOfLines={2}>
-                  Mastering UI Design: Layout & Components
+            {/* Bank Info */}
+            {bankAccount && (
+              <View style={styles.modalBankRow}>
+                <Landmark size={wp(16)} color="rgba(255,255,255,0.6)" />
+                <Text style={styles.modalBankText}>
+                  Crediting to: {bankAccount.account_number} (
+                  {bankAccount.ifsc_code})
                 </Text>
                 <View style={styles.priceRow}>
                   <Text style={styles.productPrice}>{formatINR(199.0)}</Text>
@@ -259,25 +360,13 @@ const CreatorSetting: React.FC = () => {
               </View>
             </View>
 
-            {/* Metric Chips Row */}
-            <View style={styles.metricChipsRow}>
-              <View style={styles.metricChip}>
-                <Text style={styles.chipValue}>12.8k</Text>
-                <Text style={styles.chipLabel}>Students</Text>
-              </View>
-              <View style={styles.metricChip}>
-                <Text style={styles.chipValue}>24</Text>
-                <Text style={styles.chipLabel}>Courses</Text>
-              </View>
-            </View>
-
-            {/* Instructor Rating */}
-            <View style={styles.ratingRow}>
-              <Text style={styles.ratingLabel}>Instructor Rating</Text>
-              <View style={styles.ratingValueContainer}>
-                <Star size={12} color={colors.gold || '#F0C040'} fill={colors.gold || '#F0C040'} style={styles.starIcon} />
-                <Text style={styles.ratingValueText}>4.92 ★</Text>
-              </View>
+            {/* Note */}
+            <View style={styles.modalNoteRow}>
+              <Info size={wp(14)} color={colors.golden} />
+              <Text style={styles.modalNoteText}>
+                Settlements are processed automatically. Your earnings will be
+                transferred after the T+2 settlement period.
+              </Text>
             </View>
           </View>
 
@@ -289,7 +378,25 @@ const CreatorSetting: React.FC = () => {
                 onPress={() => navigation.navigate('ProductsScreen', { initialTab: 'Courses' })}
                 activeOpacity={0.7}
               >
-                <Text style={styles.viewAllText}>View All →</Text>
+                <Text style={styles.modalCancelText}>Close</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.modalConfirmBtn}
+                onPress={() => {
+                  setShowWithdrawModal(false);
+                  Toast.show({
+                    type: 'success',
+                    text1: 'Settlement Scheduled',
+                    text2: `₹${formatAmount(
+                      withdrawableBalance,
+                    )} will be credited by ${getT2Date()}`,
+                    position: 'bottom',
+                  });
+                }}
+                activeOpacity={0.8}
+              >
+                <CheckCircle2 size={wp(16)} color={colors.black} />
+                <Text style={styles.modalConfirmText}>Got It</Text>
               </TouchableOpacity>
             </View>
 
@@ -320,34 +427,51 @@ const CreatorSetting: React.FC = () => {
                     <Text style={styles.courseFollowText}>FOLLOW</Text>
                   </TouchableOpacity>
                 </View>
-
-                {/* Progress bar */}
-                <View style={styles.completionsContainer}>
-                  <View style={styles.completionsHeader}>
-                    <Text style={styles.completionsLabel}>All Learners</Text>
-                    <Text style={styles.completionsValue}>84%</Text>
-                  </View>
-                  <View style={styles.progressBarTrack}>
-                    <View style={[styles.progressBarFill, { width: '84%' }]} />
-                  </View>
+                <Text
+                  style={[styles.splitLegendValue, { color: colors.creatorGreen }]}
+                >
+                  {CREATOR_PCT}%
+                </Text>
+              </View>
+              <View style={[styles.splitLegendItem, { alignItems: 'flex-end' }]}>
+                <View style={styles.splitLegendRowTop}>
+                  <Text style={styles.splitLegendLabel}>Manchly</Text>
+                  <View
+                    style={[
+                      styles.splitDot,
+                      { backgroundColor: colors.golden },
+                    ]}
+                  />
                 </View>
+                <Text
+                  style={[styles.splitLegendValue, { color: colors.golden }]}
+                >
+                  {PLATFORM_PCT}%
+                </Text>
               </View>
             </View>
           </View>
 
-          {/* Account Section */}
-          <View style={styles.accountSection}>
-            <Text style={styles.accountSectionLabel}>ACCOUNT</Text>
-            {accountRows.map(row => (
-              <TouchableOpacity
-                key={row.id}
-                style={styles.accountRow}
-                onPress={() => {
-                  if (row.route) {
-                    navigation.navigate(row.route);
-                  } else if (row.action) {
-                    row.action();
-                  }
+            <View style={styles.sheetDivider} />
+
+            <Text style={styles.calcLabel}>
+              🧮 Apna amount daalo, result dekho
+            </Text>
+
+            {/* Slidable price indicator — drag the thumb/bubble to change price */}
+            <View style={styles.sliderWrapper}>
+              <Slider
+                progress={progress}
+                minimumValue={minSale}
+                maximumValue={maxSale}
+                onValueChange={(v) => runOnJS(syncFromSlider)(v)}
+                onSlidingComplete={syncFromSlider}
+                bubble={(v) => `₹${Math.round(v).toLocaleString('en-IN')}`}
+                theme={{
+                  minimumTrackTintColor: colors.golden,
+                  maximumTrackTintColor: colors.trackDark,
+                  bubbleBackgroundColor: colors.golden,
+                  bubbleTextColor: colors.black,
                 }}
                 activeOpacity={0.85}
               >
@@ -369,22 +493,17 @@ const CreatorSetting: React.FC = () => {
         </ScrollView>
       </View>
 
-      {/* Screen 10 Dropdown Logout Overlay */}
-      {showDropdown && (
-        <View style={styles.overlayContainer}>
-          {/* Scrim cover */}
-          <TouchableWithoutFeedback onPress={() => setShowDropdown(false)}>
-            <View style={styles.scrim} />
-          </TouchableWithoutFeedback>
-
-          {/* Floating Dropdown Card */}
-          <View style={styles.dropdownCard}>
-            <View style={styles.dropdownRow}>
-              <LogOut size={18} color="#EF4444" style={styles.dropdownIcon} />
-              <View style={styles.dropdownTextCol}>
-                <Text style={styles.dropdownTitle}>Log Out</Text>
-                <Text style={styles.dropdownMeta}>
-                  Are you sure you want to log out of the app?
+            <View style={styles.resultRow}>
+              <View style={[styles.resultBox, styles.resultCreator]}>
+                <Text style={styles.resultLabel}>😋 Aapko milega</Text>
+                <Text style={[styles.resultValue, { color: colors.creatorGreen }]}>
+                  ₹{hissaCreatorAmount.toLocaleString('en-IN')}
+                </Text>
+              </View>
+              <View style={[styles.resultBox, styles.resultPlatform]}>
+                <Text style={styles.resultLabel}>🏢 Manchly ka</Text>
+                <Text style={[styles.resultValue, { color: colors.golden }]}>
+                  ₹{hissaPlatformAmount.toLocaleString('en-IN')}
                 </Text>
               </View>
               <TouchableOpacity
@@ -441,10 +560,14 @@ export default CreatorSetting;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.bg || '#0F0F0F',
+    backgroundColor: colors.primary,
   },
-  safeArea: {
-    flex: 1,
+
+  headerWrapper: {
+    backgroundColor: colors.primary,
+    zIndex: 10,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
   },
   topBar: {
     flexDirection: 'row',
@@ -455,32 +578,33 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0.5,
     borderBottomColor: colors.border || '#2A2A2C',
   },
-  topBarLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(10),
+  headerCurve: {
+    backgroundColor: colors.primary,
+    height: hp(6),
+    borderBottomLeftRadius: wp(20),
+    borderBottomRightRadius: wp(20),
   },
   topBarRight: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(8),
   },
-  headerAvatar: {
-    width: wp(38),
-    height: wp(38),
-    borderRadius: wp(12),
-    borderWidth: 1.5,
-    borderColor: (colors.gold || '#F0C040') + '40',
+  avatar: {
+    width: wp(48),
+    height: wp(48),
+    borderRadius: wp(24),
+    borderWidth: 2,
+    borderColor: 'rgba(255,182,6,0.4)',
   },
-  headerAvatarFallback: {
-    width: wp(38),
-    height: wp(38),
-    borderRadius: wp(12),
-    backgroundColor: (colors.gold || '#F0C040') + '20',
-    alignItems: 'center',
+  avatarFallback: {
+    width: wp(48),
+    height: wp(48),
+    borderRadius: wp(24),
+    backgroundColor: '#14141F',
     justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: (colors.gold || '#F0C040') + '40',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
   headerAvatarText: {
     fontSize: fp(16),
@@ -489,7 +613,7 @@ const styles = StyleSheet.create({
   },
   greetingSmall: {
     fontSize: fp(11),
-    color: colors.textSecondary || '#888888',
+    color: 'rgba(255,255,255,0.5)',
     fontWeight: '500',
   },
   greetingName: {
@@ -498,19 +622,19 @@ const styles = StyleSheet.create({
     color: colors.textPrimary || '#FFFFFF',
     marginTop: hp(1),
   },
-  settingsBtn: {
-    width: wp(34),
-    height: wp(34),
-    borderRadius: wp(10),
-    backgroundColor: colors.surface || '#1C1C1E',
-    borderWidth: 1,
-    borderColor: colors.border || '#2A2A2C',
-    alignItems: 'center',
+  bellBtn: {
+    width: wp(40),
+    height: wp(40),
+    borderRadius: wp(20),
+    backgroundColor: 'rgba(255,255,255,0.08)',
     justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
   },
-  iconButton: {
-    padding: wp(6),
-    position: 'relative',
+  bellBtnPressed: {
+    backgroundColor: 'rgba(255,255,255,0.16)',
+    transform: [{ scale: 0.93 }],
   },
   bellDot: {
     position: 'absolute',
@@ -554,33 +678,28 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     backgroundColor: colors.goldDim || 'rgba(240, 192, 64, 0.1)',
     alignItems: 'center',
-    justifyContent: 'center',
+    gap: hp(8),
+    backgroundColor: '#14141F',
     borderWidth: 1,
-    borderColor: colors.border || '#2A2A2C',
+    borderColor: 'rgba(255,255,255,0.06)',
   },
-  avatarInitials: {
-    fontSize: fp(24),
-    fontWeight: '700',
-    color: colors.gold || '#F0C040',
+  topCardPressed: {
+    opacity: 0.88,
+    transform: [{ scale: 0.97 }],
   },
-  verifyBadge: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: colors.gold || '#F0C040',
+  topCardIcon: {
+    width: wp(42),
+    height: wp(42),
+    borderRadius: wp(13),
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,
     borderColor: colors.surface || '#1C1C1E',
   },
-  profileName: {
-    fontSize: fp(18),
-    fontWeight: '700',
-    color: colors.white || '#FFFFFF',
-    marginBottom: hp(4),
+  topCardText: {
+    color: colors.white,
+    fontSize: fp(13),
+    fontWeight: '600',
   },
   roleBadge: {
     backgroundColor: colors.goldDim || 'rgba(240, 192, 64, 0.1)',
@@ -616,23 +735,24 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border || '#2A2A2C',
     alignItems: 'center',
-    justifyContent: 'center',
-  },
-  outlinedPillText: {
-    fontSize: fp(12),
-    fontWeight: '600',
-    color: colors.white || '#FFFFFF',
+    justifyContent: 'space-between',
+    marginBottom: hp(22),
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 5,
   },
   socialRow: {
     flexDirection: 'row',
     justifyContent: 'center',
     gap: wp(16),
   },
-  socialCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: colors.inputBg || '#242426',
+  walletIconWrap: {
+    width: wp(40),
+    height: wp(40),
+    borderRadius: wp(12),
+    backgroundColor: 'rgba(255,182,6,0.12)',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 0.5,
@@ -649,24 +769,21 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border || '#2A2A2C',
   },
-  cardLabel: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: colors.gold || '#F0C040',
-    letterSpacing: 0.8,
-    marginBottom: hp(8),
+  withdrawLabel: {
+    color: 'rgba(255,255,255,0.55)',
+    fontWeight: '500',
+    fontSize: fp(12),
   },
 
   // Bestselling row
   bestsellerRow: {
     flexDirection: 'row',
   },
-  productThumbnailContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 8,
-    overflow: 'hidden',
-    marginRight: wp(12),
+  withdrawBtn: {
+    backgroundColor: colors.golden,
+    paddingVertical: hp(9),
+    paddingHorizontal: wp(18),
+    borderRadius: wp(10),
   },
   productThumbnail: {
     width: 60,
@@ -689,9 +806,7 @@ const styles = StyleSheet.create({
   mostLovedText: {
     fontSize: 8,
     fontWeight: '700',
-    color: colors.gold || '#F0C040',
-  },
-  productTitle: {
+    color: colors.black,
     fontSize: fp(13),
     fontWeight: '600',
     color: colors.white || '#FFFFFF',
@@ -705,18 +820,28 @@ const styles = StyleSheet.create({
   productPrice: {
     fontSize: fp(13),
     fontWeight: '600',
-    color: colors.gold || '#F0C040',
+    color: 'rgba(255,255,255,0.45)',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    marginHorizontal: wp(20),
+    marginBottom: hp(8),
   },
-  followButton: {
-    backgroundColor: colors.gold || '#F0C040',
-    paddingHorizontal: wp(8),
-    paddingVertical: hp(4),
-    borderRadius: 12,
+  section: {
+    backgroundColor: '#14141F',
+    marginHorizontal: wp(16),
+    borderRadius: wp(16),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
+    overflow: 'hidden',
   },
-  followButtonText: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: '#000000',
+  logoutSection: {
+    backgroundColor: '#14141F',
+    marginHorizontal: wp(16),
+    marginTop: hp(16),
+    borderRadius: wp(16),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
+    overflow: 'hidden',
   },
   metricChipsRow: {
     flexDirection: 'row',
@@ -733,15 +858,12 @@ const styles = StyleSheet.create({
     borderWidth: 0.5,
     borderColor: colors.border || '#2A2A2C',
   },
-  chipValue: {
-    fontSize: fp(13),
-    fontWeight: '700',
-    color: colors.white || '#FFFFFF',
+  rowBorder: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'rgba(255,255,255,0.06)',
   },
-  chipLabel: {
-    fontSize: fp(10),
-    color: colors.textSecondary || '#888888',
-    marginTop: hp(2),
+  rowPressed: {
+    backgroundColor: 'rgba(255,255,255,0.04)',
   },
   ratingRow: {
     flexDirection: 'row',
@@ -759,71 +881,125 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  starIcon: {
-    marginRight: wp(3),
+  rowText: {
+    fontSize: fp(15),
+    color: colors.white,
+    fontWeight: '500',
   },
-  ratingValueText: {
-    fontSize: fp(11),
-    fontWeight: '700',
-    color: colors.gold || '#F0C040',
+  rowSubtext: {
+    fontSize: fp(12),
+    color: 'rgba(255,255,255,0.45)',
+    marginTop: hp(1),
   },
 
-  // Published Courses Section
-  listHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: hp(10),
+  versionText: {
+    textAlign: 'center',
+    fontSize: fp(12),
+    color: 'rgba(255,255,255,0.3)',
+    marginTop: hp(24),
+    fontWeight: '500',
   },
-  listHeaderTitle: {
-    fontSize: fp(14),
-    fontWeight: '600',
-    color: colors.white || '#FFFFFF',
+  headerSubtitle: {
+    fontSize: fp(12),
+    color: 'rgba(255,255,255,0.5)',
+    fontWeight: '500',
   },
   viewAllText: {
     fontSize: fp(12),
     color: colors.gold || '#F0C040',
   },
-  courseCard: {
-    backgroundColor: colors.inputBg || '#242426',
-    borderRadius: 12,
-    overflow: 'hidden',
-    borderWidth: 0.5,
-    borderColor: colors.border || '#2A2A2C',
+
+  /* ──── Withdraw Modal ──── */
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: wp(20),
   },
-  courseThumbnailContainer: {
+  modalContainer: {
+    backgroundColor: '#14141F',
+    borderRadius: wp(20),
+    paddingVertical: hp(24),
+    paddingHorizontal: wp(20),
     width: '100%',
-    height: hp(100),
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
   },
-  courseImage: {
-    width: '100%',
-    height: '100%',
-  },
-  courseDetails: {
-    padding: wp(12),
-  },
-  courseTitle: {
-    fontSize: fp(13),
-    fontWeight: '600',
-    color: colors.white || '#FFFFFF',
-    marginBottom: hp(4),
-  },
-  courseDesc: {
-    fontSize: fp(10),
-    color: colors.textMuted || '#555558',
-    marginBottom: hp(10),
-    lineHeight: fp(14),
-  },
-  coursePriceRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  modalIconWrap: {
+    width: wp(56),
+    height: wp(56),
+    borderRadius: wp(28),
+    backgroundColor: 'rgba(255,182,6,0.1)',
+    justifyContent: 'center',
     alignItems: 'center',
     marginBottom: hp(12),
   },
-  coursePrice: {
-    fontSize: fp(13),
-    fontWeight: '600',
-    color: colors.gold || '#F0C040',
+  modalTitle: {
+    fontSize: fp(18),
+    fontWeight: '700',
+    color: colors.white,
+    marginBottom: hp(16),
+  },
+  modalAmountCard: {
+    backgroundColor: colors.primary,
+    borderRadius: wp(14),
+    paddingVertical: hp(16),
+    paddingHorizontal: wp(20),
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: hp(16),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
+  },
+  modalAmountLabel: {
+    fontSize: fp(12),
+    color: 'rgba(255,255,255,0.5)',
+    fontWeight: '500',
+    marginBottom: hp(4),
+  },
+  modalAmountValue: {
+    fontSize: fp(28),
+    fontWeight: '900',
+    color: colors.white,
+  },
+  modalInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: wp(10),
+    backgroundColor: 'rgba(96,165,250,0.1)',
+    padding: wp(12),
+    borderRadius: wp(12),
+    width: '100%',
+    marginBottom: hp(10),
+    lineHeight: fp(14),
+  },
+  modalInfoText: {
+    flex: 1,
+    fontSize: fp(12),
+    color: colors.faaAiBlue,
+    lineHeight: fp(17),
+    fontWeight: '500',
+  },
+  modalBankRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: wp(8),
+    backgroundColor: colors.primary,
+    padding: wp(12),
+    borderRadius: wp(10),
+    width: '100%',
+    marginBottom: hp(10),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
+  },
+  modalBankText: {
+    flex: 1,
+    fontSize: fp(12),
+    color: 'rgba(255,255,255,0.55)',
+    fontWeight: '500',
   },
   courseFollowButton: {
     backgroundColor: colors.gold || '#F0C040',
@@ -831,10 +1007,11 @@ const styles = StyleSheet.create({
     paddingVertical: hp(4),
     borderRadius: 12,
   },
-  courseFollowText: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: '#000000',
+  modalNoteText: {
+    flex: 1,
+    fontSize: fp(11),
+    color: 'rgba(255,255,255,0.45)',
+    lineHeight: fp(16),
   },
   completionsContainer: {
     borderTopWidth: 0.5,
@@ -846,25 +1023,35 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: hp(4),
   },
-  completionsLabel: {
-    fontSize: 9,
-    color: colors.textSecondary || '#888888',
+  modalCancelBtn: {
+    flex: 1,
+    height: hp(46),
+    borderRadius: wp(12),
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.primary,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
   },
-  completionsValue: {
-    fontSize: 9,
+  modalCancelText: {
+    color: colors.white,
     fontWeight: '600',
     color: colors.white || '#FFFFFF',
   },
-  progressBarTrack: {
-    height: 4,
-    backgroundColor: colors.border || '#2A2A2C',
-    borderRadius: 99,
-    overflow: 'hidden',
+  modalConfirmBtn: {
+    flex: 1,
+    height: hp(46),
+    borderRadius: wp(12),
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.golden,
+    gap: wp(6),
   },
-  progressBarFill: {
-    height: '100%',
-    backgroundColor: colors.gold || '#F0C040',
-    borderRadius: 99,
+  modalConfirmText: {
+    color: colors.black,
+    fontWeight: '700',
+    fontSize: fp(14),
   },
 
   // Account section
@@ -882,23 +1069,24 @@ const styles = StyleSheet.create({
   accountRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: colors.surface || '#1C1C1E',
-    borderRadius: 12,
-    padding: wp(14),
-    marginBottom: hp(6),
-    borderWidth: 0.5,
-    borderColor: colors.border || '#2A2A2C',
+    backgroundColor: '#14141F',
+    marginHorizontal: wp(16),
+    marginBottom: hp(20),
+    paddingVertical: hp(14),
+    paddingHorizontal: wp(14),
+    borderRadius: wp(16),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
   },
-  accountRowLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  hissaCardPressed: {
+    opacity: 0.9,
+    transform: [{ scale: 0.99 }],
   },
-  accountIconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 6,
-    backgroundColor: colors.inputBg || '#242426',
+  hissaIconWrap: {
+    width: wp(44),
+    height: wp(44),
+    borderRadius: wp(12),
+    backgroundColor: colors.creatorGreen,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: wp(12),
@@ -906,21 +1094,26 @@ const styles = StyleSheet.create({
   logoutIconBg: {
     backgroundColor: 'rgba(239, 68, 68, 0.1)',
   },
-  accountTextContainer: {
-    justifyContent: 'center',
+  hissaTitle: {
+    fontSize: fp(15),
+    fontWeight: '700',
+    color: colors.white,
   },
-  accountRowTitle: {
-    fontSize: fp(13),
-    fontWeight: '600',
-    color: colors.white || '#FFFFFF',
-    marginBottom: hp(2),
+  hissaSubtitle: {
+    fontSize: fp(12),
+    marginTop: hp(2),
   },
-  logoutTitleText: {
-    color: '#EF4444',
+  hissaCreator: {
+    color: colors.creatorGreen,
+    fontWeight: '700',
   },
-  accountRowMeta: {
-    fontSize: fp(10),
-    color: colors.textSecondary || '#888888',
+  hissaDot: {
+    color: 'rgba(255,255,255,0.4)',
+    fontWeight: '700',
+  },
+  hissaPlatform: {
+    color: colors.golden,
+    fontWeight: '700',
   },
 
   // Scrim Overlay
@@ -934,28 +1127,50 @@ const styles = StyleSheet.create({
   },
   scrim: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'flex-end',
   },
-  dropdownCard: {
-    position: 'absolute',
-    top: hp(54),
-    right: wp(16),
-    width: 240,
-    backgroundColor: '#1E1E1E',
-    borderRadius: 14,
-    padding: 4,
-    borderWidth: 0.5,
-    borderColor: '#303030',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 10,
+  sheetContainer: {
+    backgroundColor: '#14141F',
+    borderTopLeftRadius: wp(24),
+    borderTopRightRadius: wp(24),
+    paddingHorizontal: wp(20),
+    paddingTop: hp(10),
+    paddingBottom: hp(28),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+  },
+  sheetHandle: {
+    width: wp(40),
+    height: hp(4),
+    borderRadius: wp(2),
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignSelf: 'center',
+    marginBottom: hp(16),
+  },
+  sheetTitle: {
+    fontSize: fp(18),
+    fontWeight: '800',
+    color: colors.white,
+  },
+  sheetSubtitle: {
+    fontSize: fp(13),
+    color: 'rgba(255,255,255,0.5)',
+    marginTop: hp(4),
+    marginBottom: hp(18),
   },
   dropdownRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    padding: 10,
+    height: hp(14),
+    borderRadius: wp(20),
+    overflow: 'hidden',
+    backgroundColor: 'rgba(255,255,255,0.08)',
+  },
+  splitCreator: {
+    backgroundColor: colors.creatorGreen,
+  },
+  splitPlatform: {
+    backgroundColor: colors.golden,
   },
   dropdownIcon: {
     marginRight: wp(8),
@@ -984,38 +1199,52 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignSelf: 'center',
   },
-  confirmPillText: {
-    color: '#EF4444',
-    fontSize: 9,
-    fontWeight: '700',
+  splitLegendLabel: {
+    fontSize: fp(12),
+    color: 'rgba(255,255,255,0.5)',
+    fontWeight: '500',
   },
   dropdownDivider: {
     height: 0.5,
     backgroundColor: '#303030',
     marginHorizontal: 4,
   },
-  cancelRow: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 10,
+  sheetDivider: {
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    marginVertical: hp(18),
   },
   cancelText: {
     fontSize: fp(13),
+    color: 'rgba(255,255,255,0.5)',
     fontWeight: '500',
     color: colors.white || '#FFFFFF',
   },
-  quickLinkRow: {
+  sliderInner: {
+    borderRadius: hp(5),
+  },
+  saleAmountText: {
+    fontSize: fp(22),
+    fontWeight: '800',
+    color: colors.white,
+    textAlign: 'center',
+    marginVertical: hp(10),
+  },
+  resultRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: wp(12),
     paddingVertical: hp(10),
   },
-  quickLinkIcon: {
-    marginRight: wp(10),
+  resultCreator: {
+    backgroundColor: 'rgba(34,197,94,0.12)',
   },
-  quickLinkLabel: {
+  resultPlatform: {
+    backgroundColor: 'rgba(255,182,6,0.12)',
+  },
+  resultLabel: {
     fontSize: fp(12),
-    color: colors.white || '#FFFFFF',
+    color: 'rgba(255,255,255,0.5)',
     fontWeight: '500',
   },
 });

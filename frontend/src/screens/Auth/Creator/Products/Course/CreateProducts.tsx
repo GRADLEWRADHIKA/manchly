@@ -4,22 +4,22 @@ import {
   Text,
   StyleSheet,
   ScrollView,
+  TouchableOpacity,
+  TextInput,
 } from 'react-native';
 import colors from '../../../../../utils/colors';
 import { wp, hp, fp } from '../../../../../utils/responsive';
 import {
   Sparkles,
-  BrainCircuit,
+  ArrowLeft,
+  Search,
   FileText,
+  HelpCircle,
   Share2,
   Mail,
-  Lightbulb,
-  ClipboardCheck,
-  HelpCircle,
-  Zap,
 } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import LinearGradient from 'react-native-linear-gradient';
+import { useNavigation } from '@react-navigation/native';
 
 const HORIZONTAL_PAD = wp(16);
 
@@ -76,99 +76,98 @@ const AI_FEATURES = [
 
 const CreateProducts = () => {
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation<any>();
 
   return (
     <View style={styles.container}>
       {/* Header */}
-      <LinearGradient
-        colors={['#1A1A2E', '#16213E', '#0F3460']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={[styles.headerWrapper, { paddingTop: insets.top }]}
-      >
-        <View style={styles.header}>
-          <View style={styles.headerLogoWrap}>
-            <BrainCircuit size={wp(22)} color={colors.faaAiPrimary} />
-          </View>
-          <View>
-            <Text style={styles.headerTitle}>Manchly-AI</Text>
-            <Text style={styles.headerSub}>Your AI Creator Assistant</Text>
-          </View>
-        </View>
-        <View style={styles.headerAccentLine} />
-      </LinearGradient>
+      <View style={[styles.headerWrapper, { paddingTop: insets.top }]}>
+        <TouchableOpacity
+          style={styles.backBtn}
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.7}
+        >
+          <ArrowLeft size={wp(20)} color={colors.white} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Manchly AI</Text>
+        <View style={styles.headerSpacer} />
+      </View>
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Hero Banner */}
-        <LinearGradient
-          colors={['#1A1A2E', '#16213E', '#0F3460']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.heroBanner}
-        >
-          <View style={styles.heroGlow} />
-
+        {/* Hero Section */}
+        <View style={styles.heroSection}>
           <View style={styles.heroBadge}>
-            <Zap size={wp(12)} color={colors.faaAiPrimary} fill={colors.faaAiPrimary} />
-            <Text style={styles.heroBadgeText}>LIVE</Text>
+            <Sparkles size={wp(12)} color={colors.golden} />
+            <Text style={styles.heroBadgeText}>CREATIVE INTELLIGENCE</Text>
           </View>
+          <Text style={styles.heroTitle}>Ask Manchly AI</Text>
+          <Text style={styles.heroSubtitle}>
+            Ask Manchly AI to generate content, analyze data, or organize your
+            workflow.
+          </Text>
+        </View>
 
-          <View style={styles.heroContent}>
-            <View style={styles.heroBotIcon}>
-              <BrainCircuit size={wp(28)} color={colors.faaAiPrimary} />
+        {/* Search Bar */}
+        <View style={styles.searchBarRow}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search for a tool or task..."
+            placeholderTextColor="rgba(255,255,255,0.35)"
+          />
+          <TouchableOpacity style={styles.searchBtn} activeOpacity={0.85}>
+            <Search size={wp(18)} color={colors.black} />
+          </TouchableOpacity>
+        </View>
+
+        {/* AI Tool Cards */}
+        <View style={styles.toolListSection}>
+          <TouchableOpacity style={styles.toolCard} activeOpacity={0.85}>
+            <View style={styles.toolIconWrap}>
+              <FileText size={wp(20)} color={colors.golden} />
             </View>
-            <Text style={styles.heroTitle}>
-              AI-Powered{'\n'}Creator Tools
+            <Text style={styles.toolTitle}>Lesson Script Writer</Text>
+            <Text style={styles.toolDesc}>
+              Turn your topic into a structured, ready-to-record lesson
+              script.
             </Text>
-            <Text style={styles.heroSubtitle}>
-              8 AI features to help you create courses, prep for sessions, and grow your audience — all built in.
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.toolCard} activeOpacity={0.85}>
+            <View style={styles.toolIconWrap}>
+              <HelpCircle size={wp(20)} color={colors.golden} />
+            </View>
+            <Text style={styles.toolTitle}>Quiz Generator</Text>
+            <Text style={styles.toolDesc}>
+              Instantly create quizzes from your course content to test
+              student understanding.
             </Text>
-          </View>
+          </TouchableOpacity>
 
-          <View style={styles.statsRow}>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>8</Text>
-              <Text style={styles.statLabel}>AI Tools</Text>
+          <TouchableOpacity style={styles.toolCard} activeOpacity={0.85}>
+            <View style={styles.toolIconWrap}>
+              <Share2 size={wp(20)} color={colors.golden} />
             </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>Live</Text>
-              <Text style={styles.statLabel}>& Ready</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>0</Text>
-              <Text style={styles.statLabel}>Effort</Text>
-            </View>
-          </View>
-        </LinearGradient>
+            <Text style={styles.toolTitle}>Social Posts</Text>
+            <Text style={styles.toolDesc}>
+              Generate ready-to-share captions and posts to promote your
+              courses.
+            </Text>
+          </TouchableOpacity>
 
-        {/* Features List */}
-        <Text style={styles.featuresTitle}>What Manchly-AI does for you</Text>
-
-        {AI_FEATURES.map((feature, index) => {
-          const Icon = feature.icon;
-          return (
-            <View key={index} style={styles.featureCard}>
-              <LinearGradient
-                colors={['#1A1A2E', '#16213E', '#0F3460']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.featureInner}
-              >
-                <View style={[styles.featureIconWrap, { backgroundColor: feature.color + '20' }]}>
-                  <Icon size={wp(20)} color={feature.color} />
-                </View>
-                <View style={styles.featureContent}>
-                  <Text style={styles.featureLabel}>{feature.label}</Text>
-                  <Text style={styles.featureDesc}>{feature.desc}</Text>
-                </View>
-              </LinearGradient>
+          <TouchableOpacity style={styles.toolCard} activeOpacity={0.85}>
+            <View style={styles.toolIconWrap}>
+              <Mail size={wp(20)} color={colors.golden} />
             </View>
-          );
-        })}
+            <Text style={styles.toolTitle}>Email Series</Text>
+            <Text style={styles.toolDesc}>
+              Draft a multi-part email sequence to nurture and convert your
+              leads.
+            </Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </View>
   );
@@ -179,187 +178,120 @@ export default CreateProducts;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: colors.primary,
   },
   headerWrapper: {
-    borderBottomLeftRadius: wp(20),
-    borderBottomRightRadius: wp(20),
-  },
-  header: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: wp(16),
-    paddingVertical: hp(16),
-    gap: wp(12),
+    paddingBottom: hp(14),
   },
-  headerLogoWrap: {
-    width: wp(42),
-    height: wp(42),
-    borderRadius: wp(12),
-    backgroundColor: 'rgba(167, 139, 250, 0.15)',
+  backBtn: {
+    width: wp(38),
+    height: wp(38),
+    borderRadius: wp(19),
+    backgroundColor: 'rgba(255,255,255,0.08)',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(167, 139, 250, 0.25)',
   },
   headerTitle: {
-    fontSize: fp(20),
-    fontWeight: '800',
+    fontSize: fp(17),
+    fontWeight: '700',
     color: colors.white,
   },
-  headerSub: {
-    fontSize: fp(11),
-    fontWeight: '500',
-    color: 'rgba(255,255,255,0.5)',
-    marginTop: hp(1),
-  },
-  headerAccentLine: {
-    height: 2,
-    marginHorizontal: wp(16),
-    marginBottom: hp(4),
-    borderRadius: 1,
-    backgroundColor: 'rgba(167, 139, 250, 0.3)',
+  headerSpacer: {
+    width: wp(38),
   },
   scrollContent: {
     paddingHorizontal: HORIZONTAL_PAD,
-    paddingTop: hp(20),
+    paddingTop: hp(12),
     paddingBottom: hp(40),
   },
 
-  // Hero Banner
-  heroBanner: {
-    borderRadius: wp(20),
-    padding: wp(18),
-    overflow: 'hidden',
-  },
-  heroGlow: {
-    position: 'absolute',
-    top: -wp(40),
-    right: -wp(40),
-    width: wp(160),
-    height: wp(160),
-    borderRadius: wp(80),
-    backgroundColor: 'rgba(167, 139, 250, 0.08)',
+  // Hero
+  heroSection: {
+    marginBottom: hp(20),
   },
   heroBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
-    gap: wp(4),
-    backgroundColor: 'rgba(16, 185, 129, 0.15)',
-    paddingHorizontal: wp(10),
-    paddingVertical: hp(4),
-    borderRadius: wp(16),
-    borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.25)',
+    gap: wp(6),
     marginBottom: hp(12),
   },
   heroBadgeText: {
-    fontSize: fp(9),
+    fontSize: fp(11),
     fontWeight: '800',
-    color: colors.accent,
-    letterSpacing: 1.5,
-  },
-  heroContent: {
-    alignItems: 'center',
-    marginBottom: hp(16),
-  },
-  heroBotIcon: {
-    width: wp(52),
-    height: wp(52),
-    borderRadius: wp(26),
-    backgroundColor: 'rgba(167, 139, 250, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: hp(10),
-    borderWidth: 1,
-    borderColor: 'rgba(167, 139, 250, 0.2)',
+    color: colors.golden,
+    letterSpacing: 1.2,
   },
   heroTitle: {
-    fontSize: fp(22),
+    fontSize: fp(30),
     fontWeight: '800',
     color: colors.white,
-    textAlign: 'center',
-    lineHeight: fp(28),
-    marginBottom: hp(6),
+    marginBottom: hp(10),
   },
   heroSubtitle: {
-    fontSize: fp(11),
+    fontSize: fp(13.5),
     color: 'rgba(255,255,255,0.55)',
-    textAlign: 'center',
-    lineHeight: fp(17),
-    paddingHorizontal: wp(8),
-  },
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    borderRadius: wp(12),
-    paddingVertical: hp(10),
-  },
-  statItem: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  statValue: {
-    fontSize: fp(18),
-    fontWeight: '800',
-    color: colors.faaAiPrimary,
-  },
-  statLabel: {
-    fontSize: fp(9),
-    color: 'rgba(255,255,255,0.5)',
-    fontWeight: '600',
-    marginTop: hp(2),
-  },
-  statDivider: {
-    width: 1,
-    height: hp(32),
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    lineHeight: fp(20),
   },
 
-  // Features
-  featuresTitle: {
-    fontSize: fp(16),
-    fontWeight: '700',
-    color: '#1A1A2E',
-    marginTop: hp(24),
-    marginBottom: hp(14),
-  },
-  featureCard: {
-    marginBottom: hp(10),
-    borderRadius: wp(16),
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  featureInner: {
+  // Search bar
+  searchBarRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: wp(16),
-    padding: wp(16),
+    gap: wp(10),
+    marginBottom: hp(24),
   },
-  featureIconWrap: {
-    width: wp(48),
-    height: wp(48),
+  searchInput: {
+    flex: 1,
+    height: hp(50),
+    backgroundColor: '#14141F',
     borderRadius: wp(14),
+    paddingHorizontal: wp(16),
+    fontSize: fp(14),
+    color: colors.white,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+  },
+  searchBtn: {
+    width: wp(50),
+    height: hp(50),
+    borderRadius: wp(14),
+    backgroundColor: colors.golden,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: wp(14),
   },
-  featureContent: {
-    flex: 1,
+
+  // Tool list
+  toolListSection: {
+    gap: hp(12),
   },
-  featureLabel: {
-    fontSize: fp(14),
+  toolCard: {
+    backgroundColor: '#151515',
+    borderRadius: wp(16),
+    padding: wp(16),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
+  },
+  toolIconWrap: {
+    width: wp(40),
+    height: wp(40),
+    borderRadius: wp(12),
+    backgroundColor: 'rgba(255,182,6,0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: hp(10),
+  },
+  toolTitle: {
+    fontSize: fp(14.5),
     fontWeight: '700',
     color: colors.white,
     marginBottom: hp(4),
   },
-  featureDesc: {
+  toolDesc: {
     fontSize: fp(12),
     color: 'rgba(255,255,255,0.5)',
     lineHeight: fp(17),

@@ -4,610 +4,482 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  StatusBar,
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
+  ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
-import {
-  Shield,
-  User,
-  Mail,
-  Lock,
-  Phone,
-  Eye,
-  EyeOff,
-} from 'lucide-react-native';
-import { Controller, useForm } from 'react-hook-form';
-import Toast from 'react-native-toast-message';
-import { useDispatch } from 'react-redux';
-import { ThunkDispatch } from '@reduxjs/toolkit';
-import { signUp } from '../../store/UserSlice';
-import CustomTextInput from '../../components/CustomInput';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { ArrowRight } from 'lucide-react-native';
 import colors from '../../utils/colors';
 import { wp, hp, fp } from '../../utils/responsive';
+import { Controller, useForm } from 'react-hook-form';
+import CustomTextInput from '../../components/CustomInput';
+import { Dropdown } from 'react-native-element-dropdown';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { signUp } from '../../store/UserSlice';
+import { ThunkDispatch } from '@reduxjs/toolkit';
+import { useDispatch } from 'react-redux';
+import Toast from 'react-native-toast-message';
+import TermsModal from '../../components/TermsModal';
+import PrivacyModal from '../../components/PrivacyModal';
+import RefundPolicyModal from '../../components/RefundPolicyModal';
 
-const SignUpScreen: React.FC = () => {
-  const navigation = useNavigation<any>();
-  const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
+const USER_TYPES = [
+  { label: 'Creator', value: 'CREATOR' },
+  { label: 'User', value: 'USER' },
+];
+
+const SignupScreen: React.FC = () => {
+  const Nav = useNavigation<any>();
+  // const [userType, setUserType] = useState('Creator');
   const [loading, setLoading] = useState(false);
-  const [role, setRole] = useState<'CREATOR' | 'USER'>('CREATOR');
-  const [showPassword, setShowPassword] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
+  const [showRefund, setShowRefund] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
+  const route = useRoute();
+  const userType = route?.params?.type;
 
   const {
     control,
     handleSubmit,
     reset,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm({
     defaultValues: {
       name: '',
       email: '',
-      password: '',
       phone: '',
+      dob: new Date(),
     },
   });
+
+  const dob = watch('dob');
+
+  const formatDate = (date: Date) => {
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
+  const formatDateForAPI = (date: Date) => {
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${year}-${month}-${day}`;
+  };
+
+  const onDateChange = (event: any, selectedDate?: Date) => {
+    setShowDatePicker(Platform.OS === 'ios');
+    if (selectedDate) {
+      setValue('dob', selectedDate);
+    }
+  };
 
   const onSubmit = (data: any) => {
     setLoading(true);
     const payload = {
-      name: data.name,
-      email: data.email.toLowerCase().trim(),
-      password: data.password,
-      phone: data.phone,
-      dob: '2000-01-01', // default DOB required by backend
-      user_type: role,
+      email: data?.email,
+      phone: data?.phone,
+      name: data?.name,
+      dob: formatDateForAPI(data?.dob),
+      user_type: userType,
     };
-
-    console.log(payload)
-
     dispatch(signUp(payload))
       .unwrap()
-      .then(() => {
+      .then(response => {
         reset();
         Toast.show({
           type: 'success',
           text1: 'Account created successfully',
           position: 'bottom',
         });
+        Nav.goBack();
         setLoading(false);
-        
-        navigation.navigate('LoginScreen');
       })
-      .catch(err => {
+      .catch(error => {
+      })
+      .finally(() => {
         setLoading(false);
-        console.log(err);
-        Toast.show({
-          type: 'error',
-          text1: err?.message || 'Registration failed',
-          position: 'bottom',
-        });
       });
   };
 
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={colors.bg} />
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContainer}
       >
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContainer}
-          keyboardShouldPersistTaps="handled"
-        >
-          {/* Logo / App Name */}
-          <View style={styles.logoSection}>
-            <View style={styles.logoBadge}>
-              <Shield size={wp(22)} color={colors.gold} />
-            </View>
-            <Text style={styles.logoText}>Manchly</Text>
-          </View>
+        <View style={styles.header}>
+          <Text style={styles.title}>Create Account</Text>
+          <Text style={styles.subtitle}>Join Manchly today</Text>
+        </View>
 
-          {/* Welcome Heading */}
-          <View style={styles.welcomeSection}>
-            <Text style={styles.welcomeText}>Welcome</Text>
-            <Text style={styles.welcomeSubtitle}>
-              Enter your credentials to access your dashboard.
-            </Text>
-          </View>
-
-          {/* Role Toggle segment */}
-          <View style={styles.toggleContainer}>
-            <TouchableOpacity
-              style={[
-                styles.toggleSegment,
-                role === 'CREATOR' && styles.toggleSegmentActive,
+        {/* ===== Name Field ===== */}
+        <Text style={styles.label}>Full Name</Text>
+        <Controller
+          name="name"
+          control={control}
+          rules={{ required: 'Please enter your name' }}
+          render={({
+            field: { onChange, onBlur, value },
+            fieldState: { error },
+          }) => (
+            <CustomTextInput
+              placeholder="Enter Full Name"
+              inputContainerStyle={[
+                styles.input,
+                { borderColor: error ? 'red' : colors.borderColor },
               ]}
-              onPress={() => setRole('CREATOR')}
-              activeOpacity={0.8}
-            >
-              <User
-                size={fp(14)}
-                color={role === 'CREATOR' ? colors.gold : colors.textSecondary}
-                style={{ marginRight: wp(4) }}
-              />
-              <Text
-                style={[
-                  styles.toggleText,
-                  role === 'CREATOR' && styles.toggleTextActive,
-                ]}
-              >
-                Creator
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.toggleSegment,
-                role === 'USER' && styles.toggleSegmentActive,
+              onChange={onChange}
+              onBlur={onBlur}
+              value={value}
+            />
+          )}
+        />
+
+        {/* ===== Email Field ===== */}
+        <Text style={styles.label}>Email Address</Text>
+        <Controller
+          name="email"
+          control={control}
+          rules={{
+            required: 'Please enter your email',
+            pattern: {
+              value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+              message: 'Please enter a valid email address',
+            },
+          }}
+          render={({
+            field: { onChange, onBlur, value },
+            fieldState: { error },
+          }) => (
+            <CustomTextInput
+              placeholder="Enter Email Address"
+              keyboardType="email-address"
+              inputContainerStyle={[
+                styles.input,
+                { borderColor: error ? 'red' : colors.borderColor },
               ]}
-              onPress={() => setRole('USER')}
-              activeOpacity={0.8}
-            >
-              <User
-                size={fp(14)}
-                color={role === 'USER' ? colors.gold : colors.textSecondary}
-                style={{ marginRight: wp(4) }}
-              />
-              <Text
+              onChange={onChange}
+              onBlur={onBlur}
+              value={value}
+            />
+          )}
+        />
+
+        {/* ===== Phone Field ===== */}
+        <Text style={styles.label}>Phone Number</Text>
+        <Controller
+          name="phone"
+          control={control}
+          rules={{
+            required: 'Please enter your phone number',
+            pattern: {
+              value: /^[0-9]{10}$/,
+              message: 'Phone number must be 10 digits',
+            },
+          }}
+          render={({
+            field: { onChange, onBlur, value },
+            fieldState: { error },
+          }) => (
+            <CustomTextInput
+              placeholder="Enter Phone Number"
+              keyboardType="phone-pad"
+              inputContainerStyle={[
+                styles.input,
+                { borderColor: error ? 'red' : colors.borderColor },
+              ]}
+              onChange={onChange}
+              onBlur={onBlur}
+              value={value}
+            />
+          )}
+        />
+
+        <Text style={styles.label}>Date of Birth</Text>
+        <Controller
+          name="dob"
+          control={control}
+          rules={{
+            required: 'Please select your date of birth',
+            validate: (value) => {
+              const today = new Date();
+              const age = today.getFullYear() - value.getFullYear();
+              const monthDiff = today.getMonth() - value.getMonth();
+              if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < value.getDate())) {
+                return age - 1 >= 18 ? true : 'You must be at least 18 years old';
+              }
+              return age >= 18 ? true : 'You must be at least 18 years old';
+            },
+          }}
+          render={({ field: { value }, fieldState: { error } }) => (
+            <>
+              <TouchableOpacity
                 style={[
-                  styles.toggleText,
-                  role === 'USER' && styles.toggleTextActive,
+                  styles.datePickerButton,
+                  { borderColor: error ? 'red' : colors.borderColor },
                 ]}
+                onPress={() => setShowDatePicker(true)}
               >
-                Learner
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Form Fields */}
-          <View style={styles.formSection}>
-            {/* Full Name */}
-            <View style={styles.inputWrapper}>
-              <Text style={styles.inputLabel}>Full Name</Text>
-              <Controller
-                name="name"
-                control={control}
-                rules={{ required: 'Please enter your full name' }}
-                render={({
-                  field: { onChange, onBlur, value },
-                  fieldState: { error },
-                }) => (
-                  <View
-                    style={[
-                      styles.fieldContainer,
-                      error && styles.fieldContainerError,
-                    ]}
-                  >
-                    <User
-                      size={18}
-                      color={colors.textMuted}
-                      style={styles.fieldIconLeft}
-                    />
-                    <CustomTextInput
-                      placeholder="Enter Full Name"
-                      placeholderTextColor={colors.textMuted}
-                      onChange={onChange}
-                      onBlur={onBlur}
-                      value={value}
-                      inputContainerStyle={styles.textInputContainer}
-                      inputStyle={styles.textInput}
-                    />
-                  </View>
-                )}
-              />
-              {errors.name && (
-                <Text style={styles.errorText}>{errors.name.message}</Text>
+                <Text style={[styles.datePickerText, !value && styles.placeholderText]}>
+                  {value ? formatDate(value) : 'Select Date of Birth (DD/MM/YYYY)'}
+                </Text>
+              </TouchableOpacity>
+              {error && <Text style={styles.errorText}>{error.message}</Text>}
+              {showDatePicker && (
+                <DateTimePicker
+                  value={value || new Date()}
+                  mode="date"
+                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  onChange={onDateChange}
+                  maximumDate={new Date()}
+                  minimumDate={new Date(1900, 0, 1)}
+                />
               )}
-            </View>
+            </>
+          )}
+        />
 
-            {/* Email Address */}
-            <View style={styles.inputWrapper}>
-              <Text style={styles.inputLabel}>Email Address</Text>
-              <Controller
-                name="email"
-                control={control}
-                rules={{
-                  required: 'Please enter your email',
-                  pattern: {
-                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                    message: 'Please enter a valid email address',
-                  },
+        {/* ===== User Type Dropdown ===== */}
+        {/* <Text style={styles.label}>User Type</Text>
+        <Controller
+          control={control}
+          name="userType"
+          rules={{ required: 'Please select a user type' }}
+          render={({ field: { onChange, value }, fieldState: { error } }) => (
+            <>
+              <Dropdown
+                style={[styles.dropdown, error && styles.errorBorder]}
+                placeholderStyle={styles.placeholder}
+                selectedTextStyle={styles.selectedText}
+                containerStyle={{ borderRadius: 10 }}
+                data={USER_TYPES}
+                labelField="label"
+                valueField="value"
+                placeholder="Select User Type"
+                value={value}
+                onChange={item => {
+                  setUserType(item.value);
+                  onChange(item.value);
                 }}
-                render={({
-                  field: { onChange, onBlur, value },
-                  fieldState: { error },
-                }) => (
-                  <View
-                    style={[
-                      styles.fieldContainer,
-                      error && styles.fieldContainerError,
-                    ]}
-                  >
-                    <Mail
-                      size={18}
-                      color={colors.textMuted}
-                      style={styles.fieldIconLeft}
-                    />
-                    <CustomTextInput
-                      placeholder="Enter Email Address"
-                      placeholderTextColor={colors.textMuted}
-                      keyboardType="email-address"
-                      autoCapitalize="none"
-                      onChange={onChange}
-                      onBlur={onBlur}
-                      value={value}
-                      inputContainerStyle={styles.textInputContainer}
-                      inputStyle={styles.textInput}
-                    />
-                  </View>
-                )}
-              />
-              {errors.email && (
-                <Text style={styles.errorText}>{errors.email.message}</Text>
-              )}
-            </View>
-
-            {/* Password */}
-            <View style={styles.inputWrapper}>
-              <Text style={styles.inputLabel}>Password</Text>
-              <Controller
-                name="password"
-                control={control}
-                rules={{
-                  required: 'Please enter a password',
-                  minLength: {
-                    value: 6,
-                    message: 'Password must be at least 6 characters',
-                  },
-                }}
-                render={({
-                  field: { onChange, onBlur, value },
-                  fieldState: { error },
-                }) => (
-                  <View
-                    style={[
-                      styles.fieldContainer,
-                      error && styles.fieldContainerError,
-                    ]}
-                  >
-                    <Lock
-                      size={18}
-                      color={colors.textMuted}
-                      style={styles.fieldIconLeft}
-                    />
-                    <CustomTextInput
-                      placeholder="Enter Password"
-                      placeholderTextColor={colors.textMuted}
-                      secureTextEntry={!showPassword}
-                      onChange={onChange}
-                      onBlur={onBlur}
-                      value={value}
-                      inputContainerStyle={styles.textInputContainer}
-                      inputStyle={styles.textInput}
-                    />
-                    <TouchableOpacity
-                      onPress={() => setShowPassword(!showPassword)}
-                      activeOpacity={0.75}
-                      style={styles.fieldIconRight}
+                renderItem={item => {
+                  const isSelected = item.value === value;
+                  return (
+                    <View
+                      style={{
+                        paddingHorizontal: 10,
+                        paddingVertical: 5,
+                        margin: 10,
+                        backgroundColor: isSelected
+                          ? colors.primary
+                          : colors.white,
+                        borderRadius: 5,
+                      }}
                     >
-                      {showPassword ? (
-                        <EyeOff size={18} color={colors.textMuted} />
-                      ) : (
-                        <Eye size={18} color={colors.textMuted} />
-                      )}
-                    </TouchableOpacity>
-                  </View>
-                )}
-              />
-              {errors.password && (
-                <Text style={styles.errorText}>{errors.password.message}</Text>
-              )}
-            </View>
-
-            {/* Phone Number */}
-            <View style={styles.inputWrapper}>
-              <Text style={styles.inputLabel}>Phone Number</Text>
-              <Controller
-                name="phone"
-                control={control}
-                rules={{
-                  required: 'Please enter your phone number',
-                  pattern: {
-                    value: /^\d{10}$/,
-                    message: 'Please enter a valid 10-digit phone number',
-                  },
+                      <Text
+                        style={{
+                          color: isSelected
+                            ? colors.white
+                            : colors.textSecondary,
+                        }}
+                      >
+                        {item.label}
+                      </Text>
+                    </View>
+                  );
                 }}
-                render={({
-                  field: { onChange, onBlur, value },
-                  fieldState: { error },
-                }) => (
-                  <View
-                    style={[
-                      styles.fieldContainer,
-                      error && styles.fieldContainerError,
-                    ]}
-                  >
-                    <Phone
-                      size={18}
-                      color={colors.textMuted}
-                      style={styles.fieldIconLeft}
-                    />
-                    <CustomTextInput
-                      placeholder="Enter Phone Number"
-                      placeholderTextColor={colors.textMuted}
-                      keyboardType="phone-pad"
-                      onChange={onChange}
-                      onBlur={onBlur}
-                      value={value}
-                      inputContainerStyle={styles.textInputContainer}
-                      inputStyle={styles.textInput}
-                    />
-                  </View>
-                )}
               />
-              {errors.phone && (
-                <Text style={styles.errorText}>{errors.phone.message}</Text>
-              )}
-            </View>
-            {/* Continue CTA */}
-            <TouchableOpacity
-              style={[
-                styles.primaryButton,
-                loading && styles.primaryButtonDisabled,
-              ]}
-              onPress={handleSubmit(onSubmit)}
-              activeOpacity={0.75}
-              disabled={loading}
-            >
-              <Text style={styles.primaryButtonText}>
-                {loading ? 'Registering...' : 'Continue'}
-              </Text>
-            </TouchableOpacity>
-          </View>
+            </>
+          )}
+        /> */}
 
-          {/* Social Divider */}
-          <View style={styles.dividerRow}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>OR CONTINUE WITH</Text>
-            <View style={styles.dividerLine} />
-          </View>
-
-          {/* Social Buttons */}
-          <View style={styles.socialRow}>
-            <TouchableOpacity style={styles.socialButton} activeOpacity={0.75}>
-              <Text style={styles.socialIconDots}>G</Text>
-              <Text style={styles.socialButtonText}>Google</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.socialButton} activeOpacity={0.75}>
-              <Text style={styles.socialIconDots}>⊞</Text>
-              <Text style={styles.socialButtonText}>Apple</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Footer */}
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>
-              Already have an account?{' '}
+        {/* ===== Create Account Button ===== */}
+        <TouchableOpacity
+          style={[styles.continueButton, styles.continueButtonActive]}
+          onPress={handleSubmit(onSubmit)}
+          activeOpacity={0.8}
+        >
+          {loading ? (
+            <ActivityIndicator color={colors.white} size={'small'} />
+          ) : (
+            <>
               <Text
-                style={styles.footerLink}
-                onPress={() => navigation.navigate('LoginScreen')}
+                style={[
+                  styles.continueButtonText,
+                  styles.continueButtonTextActive,
+                ]}
               >
-                LOG IN
+                Create Account
               </Text>
-            </Text>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+              <ArrowRight size={20} color={colors.white} />
+            </>
+          )}
+        </TouchableOpacity>
+
+        {/* ===== Terms Section ===== */}
+        <Text style={styles.termsText}>
+          By creating an account, you agree to our{' '}
+          <Text style={styles.linkText} onPress={() => setShowTerms(true)}>Terms of Service</Text>,{' '}
+          <Text style={styles.linkText} onPress={() => setShowPrivacy(true)}>Privacy Policy</Text>
+          {' & '}
+          <Text style={styles.linkText} onPress={() => setShowRefund(true)}>Refund Policy</Text>.
+        </Text>
+        <TermsModal visible={showTerms} onClose={() => setShowTerms(false)} />
+        <PrivacyModal visible={showPrivacy} onClose={() => setShowPrivacy(false)} />
+        <RefundPolicyModal visible={showRefund} onClose={() => setShowRefund(false)} />
+
+        {/* ===== Login Link ===== */}
+        <View style={styles.loginTextContainer}>
+          <Text style={styles.alreadyAccount}>Already have an account? </Text>
+          <TouchableOpacity onPress={() => Nav.navigate('LoginScreen')}>
+            <Text style={styles.loginText}>Login</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };
 
-export default SignUpScreen;
+export default SignupScreen;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.bg,
+    backgroundColor: colors.white,
   },
   scrollContainer: {
-    flexGrow: 1,
     paddingHorizontal: wp(24),
-    paddingBottom: hp(24),
+    paddingVertical: hp(30),
   },
-  logoSection: {
-    flexDirection: 'row',
+  header: {
     alignItems: 'center',
-    gap: wp(8),
-    marginTop: hp(20),
-    marginBottom: hp(4),
-  },
-  logoBadge: {
-    width: wp(32),
-    height: wp(32),
-    borderRadius: 8,
-    backgroundColor: colors.goldDim,
-    alignItems: 'center',
-    justifyContent: 'center',
-    //marginBottom: hp(8),
-  },
-  logoText: {
-    fontSize: fp(18),
-    fontWeight: '700',
-    color: colors.textPrimary,
-  },
-  toggleContainer: {
-    flexDirection: 'row',
-    height: hp(46),
-    backgroundColor: 'transparent',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: 3,
-    marginBottom: hp(20),
-  },
-  toggleSegment: {
-    flex: 1,
-    borderRadius: 99,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row',
-  },
-  toggleSegmentActive: {
-    borderWidth: 1.5, // ← outlined, not filled
-    borderColor: colors.gold, // ← gold border
-    backgroundColor: 'transparent',
-  },
-  toggleText: {
-    fontSize: fp(13),
-    fontWeight: '500',
-    color: colors.textSecondary,
-  },
-  toggleTextActive: {
-    color: colors.gold,
-    fontWeight: '700',
-  },
-  formSection: {
-    marginBottom: hp(20),
-  },
-  inputWrapper: {
-    marginBottom: hp(10),
-  },
-  inputLabel: {
-    fontSize: fp(13),
-    fontWeight: '500',
-    color: colors.textSecondary,
-    marginBottom: hp(8),
-  },
-  fieldContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    height: hp(50),
-    backgroundColor: colors.inputBg,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: wp(14),
-  },
-  fieldContainerError: {
-    borderColor: '#EF4444',
-  },
-  fieldIconLeft: {
-    marginRight: wp(10),
-  },
-  fieldIconRight: {
-    marginLeft: wp(10),
-  },
-  textInputContainer: {
-    flex: 1,
-    height: '100%',
-    borderWidth: 0,
-    backgroundColor: 'transparent',
-    paddingHorizontal: 0,
-  },
-  textInput: {
-    color: colors.textPrimary,
-    fontSize: fp(14),
-    height: '100%',
-  },
-  errorText: {
-    color: '#EF4444',
-    fontSize: fp(12),
-    marginTop: hp(4),
-  },
-  primaryButton: {
-    height: hp(50),
-    backgroundColor: colors.gold,
-    borderRadius: 99,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: hp(10),
-  },
-  primaryButtonDisabled: {
-    opacity: 0.7,
-  },
-  primaryButtonText: {
-    color: '#000000',
-    fontSize: fp(16),
-    fontWeight: '700',
-  },
-  dividerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginVertical: hp(20),
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: colors.border,
-  },
-  dividerText: {
-    fontSize: fp(11),
-    fontWeight: '700',
-    color: colors.textMuted,
-    marginHorizontal: wp(10),
-    letterSpacing: 0.8,
-  },
-  socialRow: {
-    flexDirection: 'row',
-    gap: wp(12),
     marginBottom: hp(24),
   },
-  socialButton: {
-    flex: 1,
-    height: hp(46),
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row',
-    gap: wp(8),
+  title: {
+    fontSize: fp(24),
+    fontWeight: '700',
+    color: colors.text,
   },
-  socialButtonText: {
-    color: '#c4d3ea',
-    fontSize: fp(16),
-    fontWeight: '900',
-  },
-  socialIconDots: {
-    color: colors.textPrimary,
-    fontSize: fp(16),
-  },
-  footer: {
-    alignItems: 'center',
-    marginBottom: hp(10),
-  },
-  footerText: {
+  subtitle: {
     fontSize: fp(14),
     color: colors.textSecondary,
+    marginTop: hp(4),
   },
-  footerLink: {
-    color: colors.gold,
-    fontWeight: '700',
-  },
-
-  welcomeSection: {
-    alignItems: 'center',
-    marginBottom: hp(20),
-    marginTop: hp(8),
-  },
-  welcomeText: {
-    fontSize: fp(32),
-    fontWeight: '700',
-    color: colors.textPrimary,
-    marginBottom: hp(6),
-  },
-  welcomeSubtitle: {
+  label: {
     fontSize: fp(14),
+    fontWeight: '500',
+    color: colors.text,
+    marginBottom: hp(6),
+    marginTop: hp(10),
+  },
+  input: {
+    borderRadius: wp(8),
+    paddingHorizontal: wp(10),
+    height: hp(44),
+    backgroundColor: colors.white,
+    borderWidth: wp(1),
+    marginBottom: hp(4),
+  },
+  dropdown: {
+    height: hp(44),
+    borderWidth: wp(1),
+    borderColor: colors.borderColor,
+    borderRadius: wp(8),
+    paddingHorizontal: wp(20),
+    justifyContent: 'center',
+    marginBottom: hp(20),
+  },
+  continueButton: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: wp(12),
+    paddingVertical: hp(14),
+    marginTop: hp(10),
+    marginBottom: hp(16),
+  },
+  continueButtonActive: {
+    backgroundColor: colors.primary,
+    shadowColor: colors.primary,
+    shadowOpacity: 0.3,
+    shadowOffset: { width: 0, height: 3 },
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  continueButtonText: {
+    fontSize: fp(16),
+    fontWeight: '600',
+    color: colors.muted,
+    marginRight: wp(8),
+  },
+  continueButtonTextActive: {
+    color: colors.white,
+  },
+  termsText: {
+    fontSize: fp(13),
     color: colors.textSecondary,
     textAlign: 'center',
-    lineHeight: fp(20),
+    lineHeight: fp(18),
+    marginBottom: hp(8),
+  },
+  linkText: {
+    color: colors.primary,
+    fontWeight: '500',
+  },
+  loginTextContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: hp(30),
+  },
+  alreadyAccount: {
+    fontSize: fp(14),
+    color: colors.textSecondary,
+  },
+  loginText: {
+    fontSize: fp(14),
+    color: colors.primary,
+    fontWeight: '600',
+  },
+  errorText: {
+    color: 'red',
+    fontSize: fp(12),
+    marginBottom: hp(8),
+  },
+  errorBorder: {
+    borderColor: 'red',
+  },
+  placeholder: {
+    fontSize: fp(14),
+    color: colors.borderColor,
+  },
+  selectedText: {
+    fontSize: fp(14),
+    color: colors.text,
+  },
+  datePickerButton: {
+    height: hp(44),
+    borderWidth: wp(1),
+    borderRadius: wp(8),
+    paddingHorizontal: wp(10),
+    justifyContent: 'center',
+    backgroundColor: colors.white,
+    marginBottom: hp(4),
+  },
+  datePickerText: {
+    fontSize: fp(14),
+    color: colors.text,
+  },
+  placeholderText: {
+    color: colors.borderColor,
   },
 });
 console.log()

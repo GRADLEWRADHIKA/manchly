@@ -1,31 +1,89 @@
-import React, {useState} from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
-  StatusBar,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
+  Animated,
+  LayoutChangeEvent,
   ActivityIndicator,
+  Image,
+  BackHandler,
 } from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import {useNavigation} from '@react-navigation/native';
-import {Phone, Shield} from 'lucide-react-native';
-import {Controller, useForm} from 'react-hook-form';
-import {useDispatch} from 'react-redux';
-import {ThunkDispatch} from '@reduxjs/toolkit';
-import {sendOtpSms} from '../../store/UserSlice';
-import CustomTextInput from '../../components/CustomInput';
+import { useCallback } from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { ArrowRight } from 'lucide-react-native';
 import colors from '../../utils/colors';
-import {wp, hp, fp} from '../../utils/responsive';
+import { wp, hp, fp } from '../../utils/responsive';
+import { Controller, useForm } from 'react-hook-form';
+import CustomTextInput from '../../components/CustomInput';
+import { useDispatch } from 'react-redux';
+import { ThunkDispatch } from '@reduxjs/toolkit';
+import Toast from 'react-native-toast-message';
+import { checkAuthData, sendOtpEmail, sendOtpSms } from '../../store/UserSlice';
+import ChooseUserType from './ChooseUserType';
+import TermsModal from '../../components/TermsModal';
+import PrivacyModal from '../../components/PrivacyModal';
+import RefundPolicyModal from '../../components/RefundPolicyModal';
+
+const USER_TYPES = ['CREATOR', 'USER'] as const;
+type UserType = (typeof USER_TYPES)[number];
 
 const LoginScreen: React.FC = () => {
-  const navigation = useNavigation<any>();
+  const Nav = useNavigation<any>();
+  const [userType, setUserType] = useState<UserType>('CREATOR');
+  const indicatorX = useRef(new Animated.Value(0)).current;
+  const [buttonWidths, setButtonWidths] = useState<number[]>([0, 0]);
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
   const [loading, setLoading] = useState(false);
-  const [role, setRole] = useState<'CREATOR' | 'USER'>('USER');
+  const [openUserModal, setOpenUserModal] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
+  const [showRefund, setShowRefund] = useState(false);
+
+  useEffect(() => {
+    const idx = USER_TYPES.indexOf(userType);
+    const x = buttonWidths.slice(0, idx).reduce((a, b) => a + b, 0);
+
+    Animated.spring(indicatorX, {
+      toValue: x,
+      useNativeDriver: true,
+      stiffness: 180,
+      damping: 20,
+      mass: 0.8,
+    }).start();
+  }, [userType, buttonWidths, indicatorX]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        BackHandler.exitApp();
+        return true;
+      };
+
+      const subscription = BackHandler.addEventListener(
+        'hardwareBackPress',
+        onBackPress,
+      );
+
+      return () => {
+        subscription.remove();
+      };
+    }, []),
+  );
+
+  const onButtonLayout = (index: number) => (e: LayoutChangeEvent) => {
+    const w = e.nativeEvent.layout.width;
+    setButtonWidths(prev => {
+      const copy = [...prev];
+      copy[index] = w;
+      return copy;
+    });
+  };
+
+  const titleByUserType = (type: UserType) =>
+    type === 'CREATOR' ? 'Welcome Creator' : 'Welcome Back';
 
   const {
     control,
@@ -33,7 +91,7 @@ const LoginScreen: React.FC = () => {
     formState: {errors},
   } = useForm({
     defaultValues: {
-      phone: '',
+      phoneEmail: '',
     },
   });
 
@@ -43,316 +101,412 @@ const LoginScreen: React.FC = () => {
 
     setLoading(true);
 
-    const payload = {
-      phone_number: phone,
-      purpose: 'login',
-      tab: role,
-    };
+    const isPhoneNumber = /^\d+$/.test(data?.phoneEmail);
+    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data?.phoneEmail);
 
-    dispatch(sendOtpSms(payload))
+    const payloadVerify = {
+      email: isEmail ? data?.phoneEmail : '',
+      phone: isPhoneNumber ? data?.phoneEmail : '',
+    };
+    dispatch(checkAuthData(payloadVerify))
       .unwrap()
-      .then((res: any) => {
-        navigation.navigate('OTPScreen', {
-          payload: {
-            phone_number: phone,
+      .then(response => {
+        if (response?.data?.data?.exists) {
+          const payload = {
+            phone_number: isPhoneNumber ? data?.phoneEmail : '',
+            email: isEmail ? data?.phoneEmail : '',
             purpose: 'login',
-            tab: role,
-          },
-          dummyOtp: res?.data?.data?.otp,
-        });
+            tab: userType,
+          };
+
+          if (isPhoneNumber) {
+            dispatch(sendOtpSms(payload))
+              .unwrap()
+              .then(response => {
+                Toast.show({
+                  type: 'success',
+                  text1: `Login OTP is ${response?.data?.data?.otp}`,
+                  position: 'top',
+                });
+                reset();
+                setLoading(false);
+                Nav.navigate('OTPScreen', {
+                  payload,
+                  dummyOtp: response?.data?.data?.otp,
+                });
+              })
+              .catch(error => {
+              })
+              .finally(() => {
+                setLoading(false);
+              });
+          } else if (isEmail) {
+            dispatch(sendOtpEmail(payload))
+              .unwrap()
+              .then(response => {
+                Toast.show({
+                  type: 'success',
+                  text1: `Login OTP is ${response?.data?.data?.otp}`,
+                  position: 'top',
+                });
+                reset();
+                setLoading(false);
+                Nav.navigate('OTPScreen', {
+                  payload,
+                  dummyOtp: response?.data?.data?.otp,
+                });
+              })
+              .catch(error => {
+              })
+              .finally(() => {
+                setLoading(false);
+              });
+          } else {
+            setLoading(false);
+          }
+        } else {
+          setOpenUserModal(true);
+        }
       })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+      .catch(error => {
+        setLoading(false);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+    return;
+  };
+
+  const openModal = (type: string) => {
+    Nav.navigate('SignupScreen', { type: type });
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={colors.bg} />
-      <KeyboardAvoidingView
-        style={{flex: 1}}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContainer}
-          keyboardShouldPersistTaps="handled">
-          {/* Logo */}
-          <View style={styles.logoSection}>
-            <View style={styles.logoBadge}>
-              <Shield size={wp(20)} color={colors.gold} />
-            </View>
-            <Text style={styles.logoText}>Manchly</Text>
+      <View style={styles.content}>
+        <View style={styles.logoSection}>
+          <View>
+            <Image
+              source={require('../../image/Logo.jpg')}
+              style={styles.logoContainer}
+              resizeMode="contain"
+            />
           </View>
+          <Text style={styles.tagline}>Create. Connect. Grow.</Text>
+        </View>
 
-          {/* Form */}
-          <View style={styles.formSection}>
-            <Text style={styles.title}>Welcome back</Text>
-            <Text style={styles.subtitle}>
-              Enter your phone number to receive a verification code.
-            </Text>
+        <View style={styles.formSection}>
+          <Text style={styles.title}>{titleByUserType(userType)}</Text>
+          <Text style={styles.subtitle}>
+            Enter your phone number or email to get started
+          </Text>
 
-            {/* Role Toggle */}
-            <View style={styles.toggleContainer}>
-              <TouchableOpacity
+          <View style={styles.segmentWrapper}>
+            <View style={styles.segmentBackground}>
+              {USER_TYPES.map((type, idx) => {
+                const active = userType === type;
+                return (
+                  <TouchableOpacity
+                    key={type}
+                    activeOpacity={0.8}
+                    onPress={() => setUserType(type)}
+                    onLayout={onButtonLayout(idx)}
+                    style={styles.segmentButton}
+                    disabled={loading === true ? true : false}
+                  >
+                    <Text
+                      style={[
+                        styles.segmentText,
+                        active && styles.segmentTextActive,
+                      ]}
+                    >
+                      {type}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+
+              <Animated.View
+                pointerEvents="none"
                 style={[
-                  styles.toggleSegment,
-                  role === 'CREATOR' && styles.toggleSegmentActive,
-                ]}
-                onPress={() => setRole('CREATOR')}
-                activeOpacity={0.8}>
-                <Text
-                  style={[
-                    styles.toggleText,
-                    role === 'CREATOR' && styles.toggleTextActive,
-                  ]}>
-                  Creator
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.toggleSegment,
-                  role === 'USER' && styles.toggleSegmentActive,
-                ]}
-                onPress={() => setRole('USER')}
-                activeOpacity={0.8}>
-                <Text
-                  style={[
-                    styles.toggleText,
-                    role === 'USER' && styles.toggleTextActive,
-                  ]}>
-                  Learner
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Phone Number Field */}
-            <View style={styles.inputWrapper}>
-              <Text style={styles.inputLabel}>Phone Number</Text>
-              <Controller
-                name="phone"
-                control={control}
-                rules={{
-                  required: 'Please enter your phone number',
-                  pattern: {
-                    value: /^[6-9]\d{9}$/,
-                    message: 'Please enter a valid 10-digit phone number',
+                  styles.indicator,
+                  {
+                    transform: [{ translateX: indicatorX }],
+                    width:
+                      buttonWidths.reduce(
+                        (acc, w, i) => acc + (i === 0 ? w : 0),
+                        0,
+                      ) ||
+                      buttonWidths[0] ||
+                      0,
                   },
-                }}
-                render={({
-                  field: {onChange, onBlur, value},
-                  fieldState: {error},
-                }) => (
-                  <View
-                    style={[
-                      styles.fieldContainer,
-                      error && styles.fieldContainerError,
-                    ]}>
-                    <Phone
-                      size={18}
-                      color={colors.textMuted}
-                      style={styles.fieldIconLeft}
-                    />
-                    <CustomTextInput
-                      placeholder="Enter 10-digit phone number"
-                      placeholderTextColor={colors.textMuted}
-                      keyboardType="phone-pad"
-                      maxLength={10}
-                      onChange={onChange}
-                      onBlur={onBlur}
-                      value={value}
-                      inputContainerStyle={styles.textInputContainer}
-                      inputStyle={styles.textInput}
-                    />
-                  </View>
-                )}
+                ]}
               />
-              {errors.phone && (
-                <Text style={styles.errorText}>{errors.phone.message}</Text>
-              )}
             </View>
+          </View>
 
-            {/* Submit CTA */}
-            <TouchableOpacity
-              style={[
-                styles.primaryButton,
-                loading && styles.primaryButtonDisabled,
-              ]}
-              onPress={handleSubmit(onSubmit)}
-              activeOpacity={0.75}
-              disabled={loading}>
-              {loading ? (
-                <ActivityIndicator color="#000" />
-              ) : (
-                <Text style={styles.primaryButtonText}>Send OTP →</Text>
+          <View style={styles.inputContainer}>
+            <Controller
+              name="phoneEmail"
+              control={control}
+              rules={{
+                required: {
+                  value: true,
+                  message: 'Please enter phone number or email address',
+                },
+                pattern: {
+                  value: /^(\d{10}|[^\s@]+@[^\s@]+\.[^\s@]+)$/,
+                  message:
+                    'Please enter a valid 10-digit phone number or email address',
+                },
+              }}
+              render={({
+                field: { onChange, onBlur, value },
+                fieldState: { error },
+              }) => (
+                <CustomTextInput
+                  inputContainerStyle={[
+                    styles.nameFields,
+                    {
+                      borderColor: error ? 'red' : colors.borderColor,
+                    },
+                  ]}
+                  inputStyle={{
+                    fontSize: fp(16),
+                    color: colors.black,
+                  }}
+                  placeholderTextColor={colors.borderColor}
+                  placeholder="Enter Phone Number or Email"
+                  keyboardType="email-address"
+                  onChange={onChange}
+                  onBlur={onBlur}
+                  value={value}
+                />
               )}
-            </TouchableOpacity>
+            />
           </View>
 
-          {/* Footer */}
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>
-              Don't have an account?{' '}
-              <Text
-                style={styles.footerLink}
-                onPress={() => navigation.navigate('SignupScreen')}>
-                Sign up
-              </Text>
+          <TouchableOpacity
+            style={[
+              styles.continueButton,
+              styles.continueButtonActive,
+              {
+                backgroundColor:
+                  userType === 'CREATOR' ? colors.primary : colors.secPrimary,
+              },
+            ]}
+            onPress={handleSubmit(onSubmit)}
+            activeOpacity={0.8}
+            disabled={loading === true ? true : false}
+          >
+            {loading ? (
+              <ActivityIndicator color={colors.white} size={'small'} />
+            ) : (
+              <>
+                <Text
+                  style={[
+                    styles.continueButtonText,
+                    styles.continueButtonTextActive,
+                  ]}
+                >
+                  Send OTP
+                </Text>
+                <ArrowRight size={20} color={colors.white} />
+              </>
+            )}
+          </TouchableOpacity>
+
+          <Text style={styles.termsText}>
+            By continuing, you agree to our{' '}
+            <Text style={styles.linkText} onPress={() => setShowTerms(true)}>
+              Terms of Service
             </Text>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+            ,{' '}
+            <Text style={styles.linkText} onPress={() => setShowPrivacy(true)}>
+              Privacy Policy
+            </Text>
+            {' & '}
+            <Text style={styles.linkText} onPress={() => setShowRefund(true)}>
+              Refund Policy
+            </Text>
+          </Text>
+          <TermsModal visible={showTerms} onClose={() => setShowTerms(false)} />
+          <PrivacyModal visible={showPrivacy} onClose={() => setShowPrivacy(false)} />
+          <RefundPolicyModal visible={showRefund} onClose={() => setShowRefund(false)} />
+        </View>
+
+        <ChooseUserType
+          visible={openUserModal}
+          onClose={() => {
+            setOpenUserModal(false);
+          }}
+          onConfirm={type => {
+            openModal(type);
+          }}
+        />
+
+        <View style={styles.featuresSection} />
+      </View>
     </SafeAreaView>
   );
 };
 
-export default LoginScreen;
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.bg,
+    backgroundColor: colors.white,
   },
-  scrollContainer: {
-    flexGrow: 1,
-    justifyContent: 'space-between',
+  content: {
+    // flex: 1,
     paddingHorizontal: wp(24),
-    paddingBottom: hp(24),
+    justifyContent: 'space-between',
   },
   logoSection: {
-    flexDirection: 'row',
     alignItems: 'center',
-    gap: wp(8),
-    justifyContent: 'center',
-    marginTop: hp(30),
-    marginBottom: hp(20),
+    paddingTop: hp(40),
   },
-  logoBadge: {
-    width: wp(30),
-    height: wp(30),
-    borderRadius: 8,
-    backgroundColor: colors.goldDim,
-    alignItems: 'center',
+  logoContainer: {
+    width: wp(100),
+    height: wp(100),
+    borderRadius: wp(50),
     justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: hp(12),
+    shadowColor: colors.black,
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 4,
   },
   logoText: {
-    fontSize: fp(18),
+    fontSize: fp(20),
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: colors.white,
+  },
+  tagline: {
+    fontSize: fp(14),
+    color: colors.textSecondary,
+    textAlign: 'center',
+    fontWeight: '500',
   },
   formSection: {
-    flex: 1,
     justifyContent: 'center',
-    marginVertical: hp(20),
+    marginTop: hp(60),
   },
   title: {
-    fontSize: fp(30),
+    fontSize: fp(24),
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: colors.text,
+    textAlign: 'center',
     marginBottom: hp(6),
   },
   subtitle: {
     fontSize: fp(14),
     color: colors.textSecondary,
-    marginBottom: hp(24),
+    textAlign: 'center',
+    marginBottom: hp(18),
   },
-  inputWrapper: {
-    marginBottom: hp(24),
-  },
-  inputLabel: {
-    fontSize: fp(11),
-    fontWeight: '700',
-    color: colors.textSecondary,
-    marginBottom: hp(8),
-    letterSpacing: 1.2,
-  },
-  fieldContainer: {
-    flexDirection: 'row',
+  segmentWrapper: {
     alignItems: 'center',
-    height: hp(54),
-    backgroundColor: 'transparent',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: wp(14),
+    marginBottom: hp(18),
   },
-  fieldContainerError: {
-    borderColor: '#EF4444',
+  segmentBackground: {
+    width: '90%',
+    flexDirection: 'row',
+    backgroundColor: colors.surface,
+    borderRadius: wp(12),
+    overflow: 'hidden',
+    position: 'relative',
   },
-  fieldIconLeft: {
-    marginRight: wp(10),
-  },
-  textInputContainer: {
+  segmentButton: {
     flex: 1,
-    height: '100%',
-    borderWidth: 0,
-    backgroundColor: 'transparent',
-    paddingHorizontal: 0,
-  },
-  textInput: {
-    color: colors.textPrimary,
-    fontSize: fp(14),
-    height: '100%',
-  },
-  errorText: {
-    color: '#EF4444',
-    fontSize: fp(12),
-    marginTop: hp(4),
-  },
-  primaryButton: {
-    height: hp(54),
-    backgroundColor: colors.gold,
-    borderRadius: 99,
-    alignItems: 'center',
+    paddingVertical: hp(12),
     justifyContent: 'center',
-  },
-  primaryButtonDisabled: {
-    opacity: 0.7,
-  },
-  primaryButtonText: {
-    color: '#000000',
-    fontSize: fp(16),
-    fontWeight: '700',
-  },
-  footer: {
     alignItems: 'center',
-    marginTop: hp(20),
   },
-  footerText: {
+  segmentText: {
+    fontSize: fp(14),
+    color: colors.textSecondary,
+    fontWeight: '600',
+  },
+  segmentTextActive: {
+    color: colors.primary,
+  },
+  indicator: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    backgroundColor: colors.primary,
+    borderRadius: wp(12),
+    opacity: 0.12,
+  },
+  inputContainer: {
+    marginBottom: hp(24),
+  },
+  continueButton: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: wp(12),
+    paddingVertical: hp(14),
+    marginBottom: hp(16),
+  },
+  continueButtonActive: {
+    backgroundColor: colors.primary,
+    shadowColor: colors.primary,
+    shadowOpacity: 0.3,
+    shadowOffset: { width: 0, height: 3 },
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  continueButtonText: {
+    fontSize: fp(16),
+    fontWeight: '600',
+    color: colors.muted,
+    marginRight: wp(8),
+  },
+  continueButtonTextActive: {
+    color: colors.white,
+  },
+  termsText: {
+    fontSize: fp(13),
+    color: colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: fp(18),
+    marginBottom: hp(8),
+  },
+  linkText: {
+    color: colors.primary,
+    fontWeight: '500',
+  },
+  signupTextContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: hp(50),
+  },
+  dontHaveAccount: {
     fontSize: fp(14),
     color: colors.textSecondary,
   },
-  footerLink: {
-    color: colors.gold,
-    fontWeight: '700',
+  createAccountText: {
+    fontSize: fp(14),
+    color: colors.primary,
+    fontWeight: '600',
   },
-  toggleContainer: {
-    flexDirection: 'row',
-    height: hp(46),
-    backgroundColor: 'transparent',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: 3,
+  featuresSection: {
+    paddingBottom: hp(30),
+  },
+  nameFields: {
+    borderRadius: wp(12),
+    paddingHorizontal: wp(10),
+    height: hp(44),
+    width: '100%',
+    backgroundColor: colors.white,
+    borderWidth: wp(1),
     marginBottom: hp(20),
   },
-  toggleSegment: {
-    flex: 1,
-    borderRadius: 99,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row',
-  },
-  toggleSegmentActive: {
-    borderWidth: 1.5,
-    borderColor: colors.gold,
-    backgroundColor: 'transparent',
-  },
-  toggleText: {
-    fontSize: fp(13),
-    fontWeight: '500',
-    color: colors.textSecondary,
-  },
-  toggleTextActive: {
-    color: colors.gold,
-    fontWeight: '700',
-  },
+  image: {},
 });
+
+export default LoginScreen;

@@ -1,24 +1,23 @@
-import React, { useEffect, useRef } from 'react';
-import { View, TouchableOpacity, StyleSheet, Animated, Text } from 'react-native';
+import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-  House,
-  BookOpen,
-  Sparkles,
-  BarChart2,
-  User,
-  MessageCircle,
-} from 'lucide-react-native';
 import colors from '../utils/colors';
 import { wp, hp, fp } from '../utils/responsive';
+import {
+  House,
+  ShoppingBag,
+  Bot,
+  LayoutGrid,
+  User,
+} from "lucide-react-native";
 import CreatorHome from '../screens/Auth/Creator/Home/CreatorHome';
 //import CreatorView from '../screens/Auth/Creator/Products/Course/CreatorView';
 import CreatorSetting from '../screens/Auth/Creator/Settings/CreatorSetting';
-import StatsScreen from '../screens/Auth/Creator/Stats/StatsScreen';
-import AskManchlyAI from '../screens/Auth/Creator/Ai/CreatorAI';
-import ProductsHub from '../screens/Auth/Creator/ProductHub/ProductHub';
-import CreatorChat from '../screens/Auth/Creator/Chat/CreatorChat';
+import CreatorWebinar from '../screens/Auth/Creator/Webinar/CreatorWebinar';
+import CreateProducts from '../screens/Auth/Creator/Products/Course/CreateProducts';
+//import CreatorCenter from '../screens/Auth/Creator/CreatorCenter/CreatorCenter';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 const Tab = createBottomTabNavigator();
 
 const tabs = [
@@ -32,19 +31,19 @@ const tabs = [
     name: 'ProductsHub',
     component: ProductsHub,
     label: 'Products',
-    Icon: BookOpen,
+    Icon: ShoppingBag,
   },
   {
-    name: 'AskManchkyAI',
-    component: AskManchlyAI,
+    name: 'CreateProducts',
+    component: CreateProducts,
     label: 'AI',
-    Icon: Sparkles,
+    Icon: Bot,
   },
   {
-    name: 'CreatorChat',
-    component: CreatorChat,
-    label: 'Chats',
-    Icon: MessageCircle,
+    name: 'CreatorWebinar',
+    component: CreatorWebinar,
+    label: 'Stats',
+    Icon: LayoutGrid,
   },
   {
     name: 'CreatorSetting',
@@ -55,43 +54,21 @@ const tabs = [
 ];
 
 const TabItem = ({ isFocused, icon: Icon, label, onPress }: any) => {
-  const anim = useRef(new Animated.Value(isFocused ? 1 : 0)).current;
-
-  useEffect(() => {
-    Animated.spring(anim, {
-      toValue: isFocused ? 1 : 0,
-      useNativeDriver: true,
-      friction: 8,
-      tension: 100,
-    }).start();
-  }, [isFocused]);
-
-  const iconScale = anim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [1, 1.12],
-  });
-
   return (
     <TouchableOpacity
       onPress={onPress}
-      activeOpacity={0.75}
+      activeOpacity={0.7}
       style={styles.tabItem}
     >
-      <Animated.View style={{ transform: [{ scale: iconScale }] }}>
-        <Icon
-          size={22}
-          color={isFocused ? colors.gold : colors.textSecondary}
-          strokeWidth={isFocused ? 2.4 : 1.8}
-        />
-      </Animated.View>
-
+      <Icon
+        size={wp(22)}
+        color={isFocused ? colors.golden : colors.muted}
+        strokeWidth={isFocused ? 2.2 : 1.6}
+      />
       <Text
         style={[
           styles.tabLabel,
-          {
-            color: isFocused ? colors.gold : colors.textSecondary,
-            fontWeight: isFocused ? '500' : '400',
-          },
+          { color: isFocused ? colors.golden : colors.muted },
         ]}
         numberOfLines={1}
       >
@@ -103,14 +80,10 @@ const TabItem = ({ isFocused, icon: Icon, label, onPress }: any) => {
 
 const CustomTabBar = ({ state, navigation }: any) => {
   const insets = useSafeAreaInsets();
-  const bottomPadding = Math.max(insets.bottom, hp(8));
 
   return (
     <View
-      style={[
-        styles.tabBarOuter,
-        { paddingBottom: bottomPadding },
-      ]}
+      style={[styles.tabBarOuter, { paddingBottom: insets.bottom || hp(6) }]}
     >
       <View style={styles.tabContainer}>
         {state.routes.map((route: any, index: number) => {
@@ -161,26 +134,25 @@ export default CreatorBottomTab;
 
 const styles = StyleSheet.create({
   tabBarOuter: {
-    backgroundColor: colors.surface,
-    borderTopWidth: 0.5,
-    borderTopColor: colors.border,
+    backgroundColor: '#1A1A1A',
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(255,255,255,0.08)',
   },
   tabContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    height: hp(54),
+    height: hp(60),
+    paddingTop: hp(8),
   },
   tabItem: {
     alignItems: 'center',
     justifyContent: 'center',
     flex: 1,
-    height: '100%',
-    paddingTop: hp(4),
+    gap: hp(4),
   },
   tabLabel: {
-    fontSize: 10,
-    marginTop: hp(3),
-    letterSpacing: 0.1,
+    fontSize: fp(10),
+    letterSpacing: 0.2,
   },
 });

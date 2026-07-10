@@ -27,9 +27,7 @@ import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
 import AppHeaderWithBack from '../../../../components/AppHeaderWithBack';
 import { InstagramIcon, LinkedinIcon, YoutubeIcon, FacebookIcon } from '../../../../components/SocialIcons';
-import { getCreatorSessionProducts } from '../../../../store/SessionSlice';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
+import CreatorCenter from '../CreatorCenter/CreatorCenter';
 const CreatorPublicProfile = () => {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
@@ -219,14 +217,14 @@ const CreatorPublicProfile = () => {
             ]}
           >
             {creator?.kyc_verified ? (
-              <ShieldCheck size={wp(13)} color={'#34D399'} />
+              <ShieldCheck size={wp(12)} color={colors.golden} />
             ) : (
-              <ShieldX size={wp(13)} color={'#F87171'} />
+              <ShieldX size={wp(12)} color="rgba(255,255,255,0.4)" />
             )}
             <Text
               style={[
                 styles.kycText,
-                { color: creator?.kyc_verified ? '#34D399' : '#F87171' },
+                { color: creator?.kyc_verified ? colors.golden : 'rgba(255,255,255,0.4)' },
               ]}
             >
               {creator?.kyc_verified ? 'KYC Verified' : 'KYC Not Verified'}
@@ -234,60 +232,54 @@ const CreatorPublicProfile = () => {
           </View>
         </LinearGradient>
 
-        {/* Bio Section */}
-        {expert?.bio ? (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>About</Text>
-            <Text style={styles.bioText}>{expert.bio}</Text>
-          </View>
-        ) : null}
-
-        {/* Languages */}
-        {expert?.languages?.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Languages</Text>
-            <View style={styles.chipRow}>
-              {expert.languages.map((lang: string) => (
-                <View key={lang} style={styles.chip}>
-                  <Text style={styles.chipText}>{lang}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-        )}
-
-        {/* Categories */}
-        {expert?.categories?.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Expertise</Text>
-            <View style={styles.chipRow}>
-              {expert.categories.map((cat: string) => (
-                <View key={cat} style={[styles.chip, styles.chipAccent]}>
-                  <Text style={[styles.chipText, styles.chipTextAccent]}>{cat}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-        )}
-
-        {/* Social Links */}
-        {hasSocialLinks && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Connect</Text>
-            <View style={styles.socialRow}>
-              {socialLinks.map((s) => {
-                const Icon = s.icon;
-                return (
+          {/* Social Links */}
+          {hasSocialLinks && (
+            <>
+              <View style={styles.divider} />
+              <View style={styles.socialGrid}>
+                {creator?.instagram_link ? (
+                  <TouchableOpacity
+                    style={styles.socialBtn}
+                    onPress={() => openLink(creator.instagram_link)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={[styles.socialIconWrap, { backgroundColor: '#E1306C20' }]}>
+                      <InstagramIcon size={wp(20)} color="#E1306C" />
+                    </View>
+                  </TouchableOpacity>
+                ) : null}
+                {creator?.linkedin_link ? (
+                  <TouchableOpacity
+                    style={styles.socialBtn}
+                    onPress={() => openLink(creator.linkedin_link)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={[styles.socialIconWrap, { backgroundColor: '#0077B520' }]}>
+                      <LinkedinIcon size={wp(20)} color="#0077B5" />
+                    </View>
+                  </TouchableOpacity>
+                ) : null}
+                {creator?.youtube_link ? (
+                  <TouchableOpacity
+                    style={styles.socialBtn}
+                    onPress={() => openLink(creator.youtube_link)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={[styles.socialIconWrap, { backgroundColor: '#FF000020' }]}>
+                      <YoutubeIcon size={wp(20)} color="#FF0000" />
+                    </View>
+                  </TouchableOpacity>
+                ) : null}
+                {creator?.facebook_link ? (
                   <TouchableOpacity
                     key={s.key}
                     style={styles.socialBtn}
                     onPress={() => openLink(s.url)}
                     activeOpacity={0.7}
                   >
-                    <View style={[styles.socialIconWrap, { backgroundColor: s.color + '12' }]}>
-                      <Icon size={wp(22)} color={s.color} />
+                    <View style={[styles.socialIconWrap, { backgroundColor: '#1877F220' }]}>
+                      <FacebookIcon size={wp(20)} color="#1877F2" />
                     </View>
-                    <Text style={styles.socialLabel}>{s.label}</Text>
                   </TouchableOpacity>
                 );
               })}
@@ -304,50 +296,21 @@ export default CreatorPublicProfile;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: colors.primary,
   },
   scrollContent: {
     paddingBottom: hp(40),
   },
-
-  // Hero
-  heroGradient: {
-    paddingTop: hp(20),
-    paddingBottom: hp(24),
+  profileCard: {
+    backgroundColor: '#14141F',
+    marginHorizontal: wp(16),
+    marginTop: hp(20),
+    borderRadius: wp(20),
+    paddingVertical: hp(30),
     paddingHorizontal: wp(20),
     alignItems: 'center',
-    borderBottomLeftRadius: wp(28),
-    borderBottomRightRadius: wp(28),
-    overflow: 'hidden',
-  },
-  backBtn: {
-    position: 'absolute',
-    left: wp(16),
-    width: wp(38),
-    height: wp(38),
-    borderRadius: wp(12),
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 10,
-  },
-  decorCircle1: {
-    position: 'absolute',
-    top: -wp(60),
-    right: -wp(40),
-    width: wp(180),
-    height: wp(180),
-    borderRadius: wp(90),
-    backgroundColor: 'rgba(139, 58, 58, 0.15)',
-  },
-  decorCircle2: {
-    position: 'absolute',
-    bottom: -wp(30),
-    left: -wp(50),
-    width: wp(130),
-    height: wp(130),
-    borderRadius: wp(65),
-    backgroundColor: 'rgba(249, 115, 22, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
   },
 
   // Avatar
@@ -361,9 +324,11 @@ const styles = StyleSheet.create({
     width: wp(110),
     height: wp(110),
     borderRadius: wp(55),
-    overflow: 'hidden',
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
     borderWidth: 3,
-    borderColor: 'rgba(255,255,255,0.2)',
+    borderColor: 'rgba(255,182,6,0.4)',
   },
   profileImage: {
     width: '100%',
@@ -380,7 +345,7 @@ const styles = StyleSheet.create({
     fontSize: fp(24),
     fontWeight: '800',
     color: colors.white,
-    marginBottom: hp(4),
+    marginBottom: hp(12),
   },
   professionRow: {
     flexDirection: 'row',
@@ -431,136 +396,40 @@ const styles = StyleSheet.create({
     borderRadius: wp(20),
   },
   kycVerified: {
-    backgroundColor: 'rgba(52, 211, 153, 0.1)',
+    backgroundColor: 'rgba(255,182,6,0.08)',
+    borderColor: 'rgba(255,182,6,0.35)',
   },
   kycNotVerified: {
-    backgroundColor: 'rgba(248, 113, 113, 0.1)',
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderColor: 'rgba(255,255,255,0.15)',
   },
   kycText: {
     fontSize: fp(11),
     fontWeight: '700',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
   },
-
-  // Sections
-  section: {
-    marginHorizontal: wp(16),
-    marginTop: hp(18),
-    backgroundColor: colors.white,
-    borderRadius: wp(16),
-    padding: wp(16),
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 2,
+  divider: {
+    width: '80%',
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    marginVertical: hp(20),
   },
-  sectionTitle: {
-    fontSize: fp(14),
-    fontWeight: '700',
-    color: '#1A1A2E',
-    marginBottom: hp(12),
-    letterSpacing: 0.3,
-  },
-
-  // Bio
-  bioText: {
-    fontSize: fp(13),
-    color: '#475569',
-    lineHeight: fp(20),
-  },
-
-  // Chips
-  chipRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: wp(8),
-  },
-  chip: {
-    backgroundColor: '#F1F5F9',
-    paddingHorizontal: wp(12),
-    paddingVertical: hp(6),
-    borderRadius: wp(20),
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  chipText: {
-    fontSize: fp(12),
-    fontWeight: '600',
-    color: '#475569',
-  },
-  chipAccent: {
-    backgroundColor: colors.secPrimary + '10',
-    borderColor: colors.secPrimary + '25',
-  },
-  chipTextAccent: {
-    color: colors.secPrimary,
-  },
-
-  // Products
-  productCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F8FAFC',
-    borderRadius: wp(14),
-    padding: wp(12),
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  productIconWrap: {
-    width: wp(42),
-    height: wp(42),
-    borderRadius: wp(12),
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: wp(12),
-  },
-  productName: {
-    fontSize: fp(14),
-    fontWeight: '700',
-    color: '#1A1A2E',
-  },
-  productMeta: {
-    fontSize: fp(11),
-    color: '#94A3B8',
-    marginTop: hp(2),
-    fontWeight: '500',
-  },
-  priceTag: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    marginRight: wp(4),
-  },
-  priceSymbol: {
-    fontSize: fp(12),
-    fontWeight: '700',
-    color: colors.secPrimary,
-  },
-  priceValue: {
-    fontSize: fp(18),
-    fontWeight: '800',
-    color: colors.secPrimary,
-  },
-
-  // Social
-  socialRow: {
+  socialGrid: {
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: wp(16),
+    alignItems: 'center',
+    gap: wp(14),
   },
   socialBtn: {
     alignItems: 'center',
-    gap: hp(6),
+    justifyContent: 'center',
   },
   socialIconWrap: {
-    width: wp(50),
-    height: wp(50),
-    borderRadius: wp(15),
+    width: wp(48),
+    height: wp(48),
+    borderRadius: wp(24),
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  socialLabel: {
-    fontSize: fp(11),
-    color: '#64748B',
-    fontWeight: '600',
   },
 });

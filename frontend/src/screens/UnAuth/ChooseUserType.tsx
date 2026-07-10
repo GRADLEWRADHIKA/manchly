@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Modal, StyleSheet, Text, TouchableOpacity, View, Image } from 'react-native';
 import { User, Star, X, Check } from 'lucide-react-native';
 import colors from '../../utils/colors';
 import { wp, hp, fp } from '../../utils/responsive';

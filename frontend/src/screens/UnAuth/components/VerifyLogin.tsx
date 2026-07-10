@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   BackHandler,
+  Image,
 } from 'react-native';
 import colors from '../../../utils/colors';
 import { wp, hp, fp } from '../../../utils/responsive';
@@ -178,182 +179,226 @@ const VerifyLogin: React.FC<VerifyLoginProps> = ({
   );
 
   return (
-    <KeyboardAwareScrollView
-      contentContainerStyle={styles.container}
-      enableOnAndroid
-      keyboardShouldPersistTaps="handled"
-      showsVerticalScrollIndicator={false}
-    >
-      <View style={styles.mainHeader}>
-        <Text style={styles.title}>Welcome Back</Text>
-        <Text style={styles.subTitle}>Let’s Get Started</Text>
+    <View style={styles.wrapper}>
+      {/* Top Half - Image */}
+      <View style={styles.topHalf}>
+        <Image
+          source={require('../../../image/boarding.jpg')}
+          style={styles.heroImage}
+          resizeMode="contain"
+        />
       </View>
 
-      {otpSuccess ? (
-        <Controller
-          control={control}
-          name="otp"
-          rules={{
-            required: 'OTP is required',
-            minLength: {
-              value: 6,
-              message: 'OTP must be 6 digits',
-            },
-          }}
-          render={({ field: { onChange }, fieldState: { error } }) => (
-            <>
-              <OtpInput
-                numberOfDigits={6}
-                autoFocus
-                keyboardType="numeric"
-                onTextChange={onChange}
-                focusColor={colors.primary}
-                theme={{
-                  containerStyle: styles.otpWrapper,
-                  pinCodeContainerStyle: {
-                    ...styles.otpBox,
-                    borderColor: error ? 'red' : colors.borderColor,
-                  },
-                  pinCodeTextStyle: styles.otpText,
-                }}
-              />
-              {error && <Text style={styles.errorText}>{error.message}</Text>}
-            </>
-          )}
-        />
-      ) : (
-        <Controller
-          name="phoneEmail"
-          control={control}
-          rules={{
-            required: {
-              value: true,
-              message: 'Please enter phone number or email address',
-            },
-            pattern: {
-              value: /^(\d{10}|[^\s@]+@[^\s@]+\.[^\s@]+)$/,
-              message:
-                'Please enter a valid 10-digit phone number or email address',
-            },
-          }}
-          render={({ field: { onChange, value } }) => (
-            <TextInput
-              placeholder="Enter phone number or email"
-              placeholderTextColor={colors.white}
-              value={value}
-              onChangeText={onChange}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              style={styles.input}
+      {/* Bottom Sheet */}
+      <View style={styles.bottomSheet}>
+        <KeyboardAwareScrollView
+          contentContainerStyle={styles.container}
+          enableOnAndroid
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.mainHeader}>
+            <Text style={styles.title}>Welcome Back</Text>
+            <Text style={styles.subTitle}>Let’s Get Started</Text>
+          </View>
+
+          {otpSuccess ? (
+            <Controller
+              control={control}
+              name="otp"
+              rules={{
+                required: 'OTP is required',
+                minLength: {
+                  value: 6,
+                  message: 'OTP must be 6 digits',
+                },
+              }}
+              render={({ field: { onChange }, fieldState: { error } }) => (
+                <>
+                  <OtpInput
+                    numberOfDigits={6}
+                    autoFocus
+                    keyboardType="numeric"
+                    onTextChange={onChange}
+                    focusColor={colors.golden}
+                    theme={{
+                      containerStyle: styles.otpWrapper,
+                      pinCodeContainerStyle: [
+                        styles.otpBox,
+                        { borderColor: error ? 'red' : colors.golden },
+                      ],
+                      pinCodeTextStyle: styles.otpText,
+                    }}
+                  />
+                  {error && <Text style={styles.errorText}>{error.message}</Text>}
+                </>
+              )}
+            />
+          ) : (
+            <Controller
+              name="phoneEmail"
+              control={control}
+              rules={{
+                required: {
+                  value: true,
+                  message: 'Please enter phone number or email address',
+                },
+                pattern: {
+                  value: /^(\d{10}|[^\s@]+@[^\s@]+\.[^\s@]+)$/,
+                  message:
+                    'Please enter a valid 10-digit phone number or email address',
+                },
+              }}
+              render={({ field: { onChange, value } }) => (
+                <TextInput
+                  placeholder="Enter phone number or email"
+                  placeholderTextColor="rgba(255,214,102,0.6)"
+                  value={value}
+                  onChangeText={onChange}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  style={styles.input}
+                />
+              )}
             />
           )}
-        />
-      )}
 
-      <TouchableOpacity
-        style={styles.btnHeader}
-        onPress={
-          otpSuccess ? handleSubmit(onOtpSubmit) : handleSubmit(onSubmit)
-        }
-      >
-        {loading ? (
-          <ActivityIndicator color={colors.primary} />
-        ) : (
-          <Text style={styles.btnHeaderText}>
-            {otpSuccess ? 'Verify OTP' : 'Send Verification Code'}
+          <TouchableOpacity
+            style={styles.btnHeader}
+            onPress={
+              otpSuccess ? handleSubmit(onOtpSubmit) : handleSubmit(onSubmit)
+            }
+          >
+            {loading ? (
+              <ActivityIndicator color={colors.black} />
+            ) : (
+              <Text style={styles.btnHeaderText}>
+                {otpSuccess ? 'Verify OTP' : 'Send Verification Code'}
+              </Text>
+            )}
+          </TouchableOpacity>
+
+          <Text style={styles.termsText}>
+            By continuing, you agree to our{' '}
+            <Text style={styles.linkText} onPress={() => setShowTerms(true)}>Terms of Service</Text>,{' '}
+            <Text style={styles.linkText} onPress={() => setShowPrivacy(true)}>Privacy Policy</Text>
+            {' & '}
+            <Text style={styles.linkText} onPress={() => setShowRefund(true)}>Refund Policy</Text>
           </Text>
-        )}
-      </TouchableOpacity>
+          <TermsModal visible={showTerms} onClose={() => setShowTerms(false)} />
+          <PrivacyModal visible={showPrivacy} onClose={() => setShowPrivacy(false)} />
+          <RefundPolicyModal visible={showRefund} onClose={() => setShowRefund(false)} />
 
-      <Text style={styles.termsText}>
-        By continuing, you agree to our{' '}
-        <Text style={styles.linkText} onPress={() => setShowTerms(true)}>Terms of Service</Text>,{' '}
-        <Text style={styles.linkText} onPress={() => setShowPrivacy(true)}>Privacy Policy</Text>
-        {' & '}
-        <Text style={styles.linkText} onPress={() => setShowRefund(true)}>Refund Policy</Text>
-      </Text>
-      <TermsModal visible={showTerms} onClose={() => setShowTerms(false)} />
-      <PrivacyModal visible={showPrivacy} onClose={() => setShowPrivacy(false)} />
-      <RefundPolicyModal visible={showRefund} onClose={() => setShowRefund(false)} />
-
-      <TouchableOpacity
-        onPress={() => setActive(3)}
-        style={{ marginTop: hp(20), alignItems: 'center' }}
-      >
-        <Text style={{ color: colors.white }}>
-          Didn't have an account?{' '}
-          <Text style={{ color: colors.white, fontWeight: '600' }}>
-            Create one now
-          </Text>
-        </Text>
-      </TouchableOpacity>
-    </KeyboardAwareScrollView>
+          <TouchableOpacity
+            onPress={() => setActive(3)}
+            style={{ marginTop: hp(20), alignItems: 'center' }}
+          >
+            <Text style={{ color: 'rgba(255,255,255,0.5)' }}>
+              Didn't have an account?{' '}
+              <Text style={{ color: colors.golden, fontWeight: '600' }}>
+                Create one now
+              </Text>
+            </Text>
+          </TouchableOpacity>
+        </KeyboardAwareScrollView>
+      </View>
+    </View>
   );
 };
 
 export default VerifyLogin;
 
 const styles = StyleSheet.create({
+  wrapper: {
+    height: hp(812),
+    backgroundColor: colors.primary,
+  },
+
+  topHalf: {
+    flex: 1,
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  heroImage: {
+    width: wp(260),
+    height: wp(260),
+  },
+
+  bottomSheet: {
+    backgroundColor: '#141414',
+    borderTopLeftRadius: wp(28),
+    borderTopRightRadius: wp(28),
+    flexShrink: 0,
+  },
+
   container: {
-    paddingTop: hp(50),
-    paddingBottom: hp(40),
-    paddingHorizontal: wp(20),
-    flexGrow: 1,
+    paddingTop: hp(32),
+    paddingBottom: hp(30),
+    paddingHorizontal: wp(24),
   },
 
   mainHeader: {
     alignItems: 'center',
-    marginBottom: hp(30),
+    marginBottom: hp(24),
   },
 
   title: {
-    fontSize: fp(30),
-    fontWeight: '600',
+    fontSize: fp(26),
+    fontWeight: '700',
     color: colors.white,
+    letterSpacing: 0.2,
   },
 
   subTitle: {
-    fontSize: fp(16),
-    marginTop: hp(5),
-    color: colors.white,
+    fontSize: fp(13),
+    marginTop: hp(4),
+    color: 'rgba(255,255,255,0.5)',
   },
 
   input: {
-    height: hp(55),
+    height: hp(52),
     borderWidth: wp(1.5),
-    borderColor: colors.placeholder,
-    borderRadius: wp(12),
-    paddingHorizontal: wp(15),
-    fontSize: fp(16),
-    color: colors.white,
+    borderColor: colors.golden,
+    borderRadius: wp(14),
+    paddingHorizontal: wp(16),
+    fontSize: fp(14),
+    color: colors.golden,
+    backgroundColor: 'transparent',
   },
 
   btnHeader: {
-    borderWidth: wp(1),
-    marginTop: hp(20),
-    borderColor: colors.white,
-    backgroundColor: colors.white,
-    paddingVertical: hp(15),
-    borderRadius: wp(12),
+    marginTop: hp(14),
+    backgroundColor: colors.golden,
+    paddingVertical: hp(16),
+    borderRadius: wp(14),
     alignItems: 'center',
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
+    elevation: 3,
   },
 
   btnHeaderText: {
-    color: colors.primary,
-    fontSize: fp(16),
-    fontWeight: '600',
+    color: colors.black,
+    fontSize: fp(15),
+    fontWeight: '700',
   },
 
   termsText: {
-    fontSize: fp(14),
-    color: colors.white,
+    fontSize: fp(11),
+    fontWeight: '500',
+    color: 'rgba(255,255,255,0.35)',
     textAlign: 'center',
+    lineHeight: fp(17),
     marginTop: hp(20),
   },
 
   linkText: {
-    color: colors.white,
-    fontWeight: '600',
+    color: colors.golden,
+    fontWeight: '700',
   },
 
   otpWrapper: {
@@ -367,13 +412,13 @@ const styles = StyleSheet.create({
     height: hp(56),
     borderWidth: wp(1),
     borderRadius: wp(10),
-    backgroundColor: colors.white,
+    backgroundColor: 'transparent',
   },
 
   otpText: {
     fontSize: fp(20),
     fontWeight: '600',
-    color: colors.text,
+    color: colors.golden,
   },
 
   errorText: {

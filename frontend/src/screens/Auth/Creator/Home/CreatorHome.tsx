@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -8,8 +8,6 @@ import {
   Image,
   Linking,
   Dimensions,
-  ActivityIndicator,
-  StatusBar,
 } from 'react-native';
 import {
   useFocusEffect,
@@ -17,34 +15,25 @@ import {
   useNavigation,
 } from '@react-navigation/native';
 import {
-  Menu,
   Bell,
-  Plus,
-  Calendar,
   ChevronRight,
-  Rocket,
-  Zap,
-  BarChart2,
-  Upload,
-  Play,
   Sparkles,
-  HelpCircle,
-  Star,
-  Check,
-  Circle,
   BookOpen,
   Users,
   Award,
-  Shield,
-  X,
-  Maximize2,
+  AtSign,
+  Video as VideoIcon,
+  Phone,
+  MessageSquare,
 } from 'lucide-react-native';
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Circle as SvgCircle, Path as SvgPath } from 'react-native-svg';
+import colors from '../../../../utils/colors';
+import { wp, hp, fp } from '../../../../utils/responsive';
+import KycCard from './KeyCard';
 import { useSelector, useDispatch } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import LinearGradient from 'react-native-linear-gradient';
-import Video from 'react-native-video';
 import { getCreatorSales } from '../../../../store/PaymentSlice';
 import {
   fetchCourses,
@@ -55,36 +44,98 @@ import {
   getCreatorWebinarStats,
 } from '../../../../store/WebinarSlice';
 import { instance } from '../../../../utils/AxiosInstance';
-import { wp, hp, fp } from '../../../../utils/responsive';
-import colors from '../../../../utils/colors';
-import KycCard from './KeyCard';
+import Video from 'react-native-video';
+import { X, Play, Maximize2 } from 'lucide-react-native';
+import { clearJustLoggedIn } from '../../../../store/UserSlice';
 
 const INTRO_VIDEO_URL =
   'https://stream.mux.com/aiFSECiPT501KG02eutUYBTKc8aPPOz27ikxTnTHaKJJ00.m3u8';
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const CreatorHome = () => {
   const navigation = useNavigation<any>();
   const dispatch = useDispatch<any>();
   const { user } = useSelector((state: any) => state.userReducer);
+  const { totalRevenue } = useSelector((state: any) => state.paymentReducer);
   const { creatorStats } = useSelector((state: any) => state.coursesReducer);
   const { creatorWebinarStats } = useSelector(
     (state: any) => state.webinarReducer,
   );
   const insets = useSafeAreaInsets();
-  const focus = useIsFocused();
-
+  const [bankAccount, setBankAccount] = useState<any>(null);
   const [walletLoading, setWalletLoading] = useState(true);
   const [walletData, setWalletData] = useState<any>(null);
+  const { justLoggedIn } = useSelector((state: any) => state.userReducer);
+  const focus = useIsFocused();
+  const [courses, setCourses] = useState<any[]>([]);
+  const [webiniarData, setWebinarData] = useState<any[]>([]);
   const [showIntroVideo, setShowIntroVideo] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
+
+  useEffect(() => {
+    if (justLoggedIn) {
+      setShowIntroVideo(true);
+      dispatch(clearJustLoggedIn());
+    }
+  }, [justLoggedIn]);
+
+  useEffect(() => {
+    getTheCourse();
+    fetchWebinars();
+  }, [focus]);
+
+  const getTheCourse = () => {
+    const payload = {
+      page: 1,
+      limit: 10,
+      my_courses: true,
+    };
+
+    dispatch(fetchCourses(payload))
+      .unwrap()
+      .then(response => {
+        const newData = response?.data?.data?.courses || [];
+        setCourses(newData);
+        console.log(courses.length);
+      })
+      .finally(() => {});
+  };
+
+  const fetchWebinars = () => {
+    const payload = {
+      page: 1,
+      limit: 50,
+      upcoming: true,
+      title: '',
+      my_webinars: true,
+    };
+    dispatch(getAllWebinar(payload))
+      .unwrap()
+      .then(response => {
+        setWebinarData(response?.data?.data?.webinars || []);
+      })
+      .finally(() => setLoading(false));
+  };
 
   const fetchWallet = async () => {
     try {
       setWalletLoading(true);
-      const walletRes = await instance
-        .get('settlements/wallet')
-        .catch(() => null);
+      const [walletRes, bankRes] = await Promise.all([
+        instance.get('settlements/wallet').catch((e: any) => {
+          console.log(
+            'Wallet API error:',
+            e?.response?.status,
+            e?.response?.data,
+          );
+          return null;
+        }),
+        instance.get('settlements/bank-account').catch((e: any) => {
+          console.log('Bank API error:', e?.response?.status);
+          return null;
+        }),
+      ]);
       setWalletData(walletRes?.data?.data?.wallet || null);
+      setBankAccount(bankRes?.data?.data?.bankAccount || null);
     } catch (error) {
       console.log('Error fetching wallet:', error);
     } finally {
@@ -102,13 +153,56 @@ const CreatorHome = () => {
     dispatch(getCreatorSales({}));
     dispatch(getCreatorCourseStats());
     dispatch(getCreatorWebinarStats());
-  }, [focus]);
+  }, []);
 
   const displayName = user?.name
     ? user.name.charAt(0).toUpperCase() + user.name.slice(1)
     : 'Creator';
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    return 'Good evening';
+  };
+
+  const initials = user?.name ? user.name.charAt(0).toUpperCase() : 'C';
+
+  const withdrawableBalance = walletData?.available_balance || 0;
   const totalRevenueAmount = walletData?.total_net_earnings || 0;
+
+  const milestones = useMemo(
+    () => [
+      { label: 'Create your account', pts: 10, completed: true },
+      { label: 'Complete your profile', pts: 2, completed: true },
+      {
+        label: 'Publish your first course',
+        pts: 30,
+        completed: courses.length > 0,
+      },
+      {
+        label: 'Go Live once',
+        pts: 20,
+        completed: webiniarData.length > 0,
+      },
+      {
+        label: 'Get your first student',
+        pts: 40,
+        completed: !!creatorStats?.statistics?.total_enrollments,
+      },
+    ],
+    [creatorStats, creatorWebinarStats],
+  );
+
+  const totalPts = milestones.reduce((sum, m) => sum + m.pts, 0);
+  const earnedPts = milestones.reduce(
+    (sum, m) => sum + (m.completed ? m.pts : 0),
+    0,
+  );
+  const progressPercent = Math.round((earnedPts / totalPts) * 100);
+  const circumference = 2 * Math.PI * wp(28);
+  const progressOffset = circumference * (1 - progressPercent / 100);
+  const allCompleted = milestones.every(m => m.completed);
 
   const formatAmount = (amount: number) => {
     return amount.toLocaleString('en-IN', {
@@ -119,52 +213,50 @@ const CreatorHome = () => {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={colors.bg} />
-
-      {/* Top Bar with Profile */}
-      <View style={[styles.topBar, { paddingTop: insets.top }]}>
-        <View style={styles.topBarLeft}>
-          <TouchableOpacity
-            activeOpacity={0.75}
-            onPress={() => navigation.navigate('CreatorSetting')}
-          >
+      {/* Header */}
+      <View style={[styles.headerWrapper, { paddingTop: insets.top }]}>
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
             {user?.profile_image ? (
-              <Image source={{ uri: user.profile_image }} style={styles.headerAvatar} />
+              <Image
+                source={{ uri: user.profile_image }}
+                style={styles.avatar}
+              />
             ) : (
-              <View style={styles.headerAvatarFallback}>
-                <Text style={styles.headerAvatarText}>
-                  {(user?.name || 'C').charAt(0).toUpperCase()}
-                </Text>
+              <View style={styles.avatarFallback}>
+                <Text style={styles.avatarText}>{initials}</Text>
               </View>
             )}
-          </TouchableOpacity>
-          <View>
-            <Text style={styles.greetingSmall}>Good {new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 17 ? 'afternoon' : 'evening'},</Text>
-            <Text style={styles.greetingName}>{displayName}</Text>
+            <View>
+              <Text style={styles.greeting}>
+                Hello {displayName?.split(' ')[0]},
+              </Text>
+              <Text style={styles.greetingSub}>{getGreeting()}</Text>
+            </View>
           </View>
-        </View>
-        <View style={styles.topBarRight}>
-          <TouchableOpacity
-            style={styles.createBtn}
-            activeOpacity={0.75}
-            onPress={() => {
-              if (user?.kyc_verified) {
-                navigation.navigate('CreateCourse');
-              } else {
-                navigation.navigate('KYCVerificationScreen');
-              }
-            }}
+          <View
+            style={{ flexDirection: 'row', alignItems: 'center', gap: wp(4) }}
           >
-            <Plus size={16} color={colors.bg} strokeWidth={3} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.iconButton}
-            activeOpacity={0.75}
-            onPress={() => navigation.navigate('CreatorNotification')}
-          >
-            <Bell size={22} color={colors.textPrimary} />
-            <View style={styles.bellDot} />
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.bellBtn}
+              onPress={() => setShowIntroVideo(true)}
+            >
+              <Play size={wp(18)} color={colors.white} fill={colors.white} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.bellBtn}
+              onPress={() => Linking.openURL('https://www.instagram.com/manchly_app')}
+            >
+              <AtSign size={wp(20)} color={colors.white} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.bellBtn}
+              onPress={() => navigation.navigate('CreatorNotification')}
+            >
+              <Bell size={wp(20)} color={colors.white} />
+              <View style={styles.bellDot} />
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 
@@ -172,200 +264,126 @@ const CreatorHome = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* KYC Banner (compact) */}
-        {!user?.kyc_verified && (
-          <TouchableOpacity
-            style={styles.kycBanner}
-            activeOpacity={0.75}
-            onPress={() => navigation.navigate('KYCVerificationScreen')}
-          >
-            <Shield size={wp(18)} color={colors.gold} />
-            <Text style={styles.kycBannerText}>Complete KYC to unlock withdrawals</Text>
-            <ChevronRight size={wp(16)} color={colors.gold} />
-          </TouchableOpacity>
-        )}
+        {/* KYC Card */}
+        <View style={styles.sectionPadding}>
+          <KycCard />
+        </View>
+      </View>
 
-        {/* Revenue Overview Card */}
-        <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <View>
-              <Text style={styles.cardLabel}>REVENUE OVERVIEW</Text>
-              <View style={styles.revenueRow}>
-                <Text style={styles.revenueText}>
-                  ₹{walletLoading ? '...' : formatAmount(totalRevenueAmount)}
-                </Text>
-                <View style={styles.greenPill}>
-                  <Text style={styles.greenPillText}>+8.4% ↗</Text>
-                </View>
-              </View>
-            </View>
-            <TouchableOpacity
-              style={styles.calendarButton}
-              activeOpacity={0.75}
+        {/* Revenue + Performance split row */}
+        <View style={[styles.sectionPadding, styles.splitRow]}>
+          {/* Revenue mini card */}
+          <View style={styles.revenueMiniCard}>
+            <Text style={styles.miniLabel}>REVENUE</Text>
+            <Text style={styles.revenueMiniAmount}>
+              <Text style={styles.rupeeSymbol}>₹</Text>
+              {walletLoading ? '...' : formatAmount(totalRevenueAmount)}
+            </Text>
+            <Svg
+              width={wp(150)}
+              height={hp(38)}
+              viewBox="0 0 150 38"
+              style={styles.sparkline}
             >
-              <Calendar size={18} color={colors.textSecondary} />
-            </TouchableOpacity>
-          </View>
-
-          {/* Svg line chart mockup */}
-          <View style={styles.chartContainer}>
-            <Svg height={hp(60)} width="100%">
-              <Path
-                d="M 10 50 Q 80 10, 160 40 T 320 15"
+              <SvgPath
+                d="M0 28 C 15 30, 25 10, 40 14 C 55 18, 60 32, 78 24 C 95 16, 100 4, 118 8 C 130 11, 138 2, 150 6"
+                stroke={colors.golden}
+                strokeWidth={2.2}
                 fill="none"
-                stroke={colors.gold}
-                strokeWidth={3}
+                strokeLinecap="round"
               />
             </Svg>
-            <View style={styles.chartXLabels}>
-              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                <Text key={day} style={styles.chartLabelText}>
-                  {day}
-                </Text>
-              ))}
-            </View>
           </View>
-        </View>
 
-        {/* Launch Course Checklist Card */}
-        <View style={styles.card}>
-          <View style={styles.launchRow}>
-            <View style={styles.launchLeft}>
-              <Text style={styles.launchHeading}>Launch Your Course</Text>
-              <Text style={styles.launchStatus}>
-                You're 75% ready to go live with "Mastering the Art".
+          {/* Performance mini card */}
+          <View style={styles.performanceMiniCard}>
+            <Text style={styles.miniLabel}>PERFORMANCE</Text>
+            <View style={styles.perfRow}>
+              <BookOpen size={wp(13)} color={colors.golden} />
+              <Text style={styles.perfLabel}>Courses</Text>
+              <Text style={styles.perfValue}>{courses.length}</Text>
+            </View>
+            <View style={styles.perfRow}>
+              <Users size={wp(13)} color={colors.golden} />
+              <Text style={styles.perfLabel}>Students</Text>
+              <Text style={styles.perfValue}>
+                {creatorStats?.statistics?.total_enrollments ?? 0}
               </Text>
-              <View style={styles.progressContainer}>
-                <View style={styles.progressBarTrack}>
-                  <View style={[styles.progressBarFill, { width: '75%' }]} />
-                </View>
-                <Text style={styles.progressPercent}>75%</Text>
-              </View>
-              <TouchableOpacity
-                style={styles.outlinedGoldButton}
-                activeOpacity={0.75}
-                onPress={() => {
-                  if (!user?.kyc_verified) {
-                    navigation.navigate('KYCVerificationScreen');
-                  } else {
-                    navigation.navigate('CreateCourse');
-                  }
-                }}
-              >
-                <Text style={styles.outlinedGoldButtonText}>
-                  Complete Checklist →
-                </Text>
-              </TouchableOpacity>
             </View>
-            <View style={styles.launchRight}>
-              <View style={styles.rocketCircle}>
-                <Rocket size={42} color={colors.gold} />
-              </View>
+            <View style={styles.perfRow}>
+              <VideoIcon size={wp(13)} color={colors.golden} />
+              <Text style={styles.perfLabel}>Webinars</Text>
+              <Text style={styles.perfValue}>{webiniarData.length}</Text>
+            </View>
+            <View style={styles.perfRow}>
+              <Award size={wp(13)} color={colors.golden} />
+              <Text style={styles.perfLabel}>Sessions</Text>
+              <Text style={styles.perfValue}>
+                {creatorWebinarStats?.statistics?.webinars_sold ?? 0}
+              </Text>
             </View>
           </View>
         </View>
 
-        {/* Quick Actions — 4-column Grid */}
-        <View style={styles.gridContainer}>
-          {[
-            {
-              label: 'Webinar',
-              icon: Zap,
-              action: () => {
+        {/* Launch / Course Progress Card */}
+        <View style={styles.sectionPadding}>
+          <LinearGradient
+            colors={['#1A1A2E', '#16213E', '#0F3460']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.launchCard}
+          >
+            <View style={styles.launchHeaderRow}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.launchTitle}>
+                  Launch Your{' '}
+                  {creatorStats?.statistics?.courses_sold ? 'Next' : 'First'}{' '}
+                  Course
+                </Text>
+                <Text style={styles.launchSubtitle}>
+                  You're {progressPercent}% ready to go live.{'\n'}Turn
+                  expertise into income.
+                </Text>
+              </View>
+              <Text style={styles.launchEmoji}>📚</Text>
+            </View>
+
+            <View style={styles.progressBarTrack}>
+              <View
+                style={[
+                  styles.progressBarFill,
+                  { width: `${progressPercent}%` },
+                ]}
+              />
+            </View>
+            <Text style={styles.progressBarLabel}>
+              {progressPercent}% Complete
+            </Text>
+
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => {
                 if (user?.kyc_verified) {
-                  navigation.navigate('CreateWebinar');
+                  navigation.navigate('CreateCourse');
                 } else {
                   navigation.navigate('KYCVerificationScreen');
                 }
-              },
-            },
-            {
-              label: 'Sessions',
-              icon: BookOpen,
-              action: () => navigation.navigate('CreatorWebinar'),
-            },
-            {
-              label: 'Courses',
-              icon: BarChart2,
-              action: () => navigation.navigate('ProductsScreen'),
-            },
-          ].map((item, idx) => (
-            <TouchableOpacity
-              key={idx}
-              style={styles.gridCell}
-              activeOpacity={0.75}
-              onPress={item.action}
+              }}
+              style={styles.ctaButton}
             >
-              <View style={styles.gridIconTray}>
-                <item.icon size={20} color={colors.gold} />
-              </View>
-              <Text style={styles.gridLabel}>{item.label}</Text>
+              <Text style={styles.ctaText}>Complete Checklist</Text>
+              <ChevronRight size={wp(18)} color={colors.primary} />
             </TouchableOpacity>
-          ))}
+          </LinearGradient>
         </View>
 
-        {/* Top Performing Content */}
-        <View style={styles.sectionHeaderRow}>
-          <Text style={styles.sectionHeading}>Top Performing Content</Text>
-          <TouchableOpacity
-            activeOpacity={0.75}
-            onPress={() => navigation.navigate('ProductsScreen')}
-          >
-            <Text style={styles.viewAllText}>View All ›</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.performingCard}>
-          {[
-            {
-              title: 'Intro To Lighting',
-              category: 'Premium Course',
-              revenue: '₹2,104',
-              image:
-                'https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?auto=format&fit=crop&w=120&q=80',
-            },
-            {
-              title: 'Options Strategy Bootcamp',
-              category: 'Live Webinar',
-              revenue: '₹2,10,000',
-              image:
-                'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=120&q=80',
-            },
-            {
-              title: 'Passive Income Blueprints',
-              category: 'Video Bundle',
-              revenue: '₹95,000',
-              image:
-                'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?auto=format&fit=crop&w=120&q=80',
-            },
-          ].map((item, index) => (
-            <View
-              key={index}
-              style={[styles.contentRow, index > 0 && styles.rowDivider]}
-            >
-              <Image source={{ uri: item.image }} style={styles.thumbnail} />
-              <View style={styles.contentMeta}>
-                <Text style={styles.contentTitle} numberOfLines={1}>
-                  {item.title}
-                </Text>
-                <Text style={styles.contentCategory}>{item.category}</Text>
-              </View>
-              <Text style={styles.contentRevenue}>{item.revenue}</Text>
-            </View>
-          ))}
-        </View>
-
-        {/* AI Content Assistant Card */}
-        <View style={styles.aiCard}>
-          <Text style={styles.aiLabel}>✦ AI CONTENT ASSISTANT</Text>
-          <Text style={styles.aiHeading}>Suggested: Host a Live Q&A</Text>
-          <Text style={styles.aiDescription}>
-          Based on your recent engagement spikes on Thursday evenings, a live session could increase your retention by up to 16%. Your subscribers are asking about "Color Grading Workflow"
-          </Text>
-          <View style={styles.aiActionsRow}>
+        {/* Quick Actions */}
+        <View style={styles.sectionPadding}>
+          <Text style={styles.sectionTitle}>Quick Actions</Text>
+          <View style={styles.quickActionsRow}>
             <TouchableOpacity
-              style={styles.aiScheduleButton}
-              activeOpacity={0.75}
+              activeOpacity={0.85}
+              style={styles.quickActionCard}
               onPress={() => {
                 if (user?.kyc_verified) {
                   navigation.navigate('CreateWebinar');
@@ -374,25 +392,96 @@ const CreatorHome = () => {
                 }
               }}
             >
-              <Text style={styles.aiScheduleText}>Schedule Now</Text>
+              <View style={styles.quickActionIconWrap}>
+                <VideoIcon size={wp(20)} color={colors.golden} />
+              </View>
+              <Text style={styles.quickActionText}>Go live</Text>
             </TouchableOpacity>
+
             <TouchableOpacity
-              style={styles.aiDraftButton}
-              activeOpacity={0.75}
-              onPress={() =>
+              activeOpacity={0.85}
+              style={styles.quickActionCard}
+              onPress={() => {
                 Toast.show({
-                  type: 'success',
-                  text1: 'Saved draft to templates!',
-                })
-              }
+                  type: 'info',
+                  text1: '1:1 Sessions coming soon',
+                });
+              }}
             >
-              <Text style={styles.aiDraftText}>Draft Post</Text>
+              <View style={styles.quickActionIconWrap}>
+                <Phone size={wp(20)} color={colors.golden} />
+              </View>
+              <Text style={styles.quickActionText}>1:1 Sessions</Text>
             </TouchableOpacity>
           </View>
         </View>
+
+        {/* Creator Center Banner */}
+        <View style={styles.sectionPadding}>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            style={styles.creatorCenterRow}
+            onPress={() => {
+              Toast.show({ type: 'info', text1: 'Creator Center coming soon' });
+            }}
+          >
+            <View style={styles.creatorCenterIconWrap}>
+              <MessageSquare size={wp(18)} color={colors.golden} />
+            </View>
+            <Text style={styles.creatorCenterText}>Creator Center</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: wp(2) }}>
+              <Text style={styles.creatorCenterLink}>Go to Hub</Text>
+              <ChevronRight size={wp(16)} color="rgba(255,255,255,0.5)" />
+            </View>
+          </TouchableOpacity>
+        </View>
+
+        {/* AI Content Assistant */}
+        <View style={styles.sectionPadding}>
+          <LinearGradient
+            colors={['#1A1A2E', '#16213E', '#0F3460']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.aiCard}
+          >
+            <View style={styles.aiBadge}>
+              <Sparkles size={wp(12)} color={colors.golden} />
+              <Text style={styles.aiBadgeText}>AI CONTENT ASSISTANT</Text>
+            </View>
+            <Text style={styles.aiTitle}>Suggested: Host a Live Q&A</Text>
+            <Text style={styles.aiDescription}>
+              Based on your recent engagement spikes on Thursday evenings, a
+              live session could increase your retention by up to 15%. Your
+              subscribers are asking about "Color Grading Workflow".
+            </Text>
+            <View style={styles.aiButtonsRow}>
+              <TouchableOpacity
+                activeOpacity={0.85}
+                style={styles.aiScheduleBtn}
+                onPress={() => {
+                  if (user?.kyc_verified) {
+                    navigation.navigate('CreateWebinar');
+                  } else {
+                    navigation.navigate('KYCVerificationScreen');
+                  }
+                }}
+              >
+                <Text style={styles.aiScheduleText}>Schedule Now</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                activeOpacity={0.85}
+                style={styles.aiDraftBtn}
+                onPress={() => {
+                  Toast.show({ type: 'info', text1: 'Draft saved' });
+                }}
+              >
+                <Text style={styles.aiDraftText}>Draft Post</Text>
+              </TouchableOpacity>
+            </View>
+          </LinearGradient>
+        </View>
       </ScrollView>
 
-      {/* Intro Video Overlay if active */}
       {showIntroVideo ? (
         <View
           style={
@@ -412,7 +501,7 @@ const CreatorHome = () => {
                 onPress={() => setIsFullScreen(!isFullScreen)}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
-                <Maximize2 size={wp(14)} color={colors.textPrimary} />
+                <Maximize2 size={wp(14)} color={colors.white} />
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.videoActionButton}
@@ -422,7 +511,7 @@ const CreatorHome = () => {
                 }}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
-                <X size={wp(16)} color={colors.textPrimary} />
+                <X size={wp(16)} color={colors.white} />
               </TouchableOpacity>
             </View>
             <Video
@@ -452,455 +541,401 @@ export default CreatorHome;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.bg,
-  },
-  scrollContent: {
-    paddingHorizontal: wp(16),
-    paddingBottom: hp(110),
+    backgroundColor: colors.primary,
   },
 
-  // Top Bar
-  topBar: {
+  // Header
+  headerWrapper: {
+    backgroundColor: colors.primary,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+  },
+  header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: wp(16),
-    paddingVertical: hp(10),
-    backgroundColor: colors.bg,
-    borderBottomWidth: 0.5,
-    borderBottomColor: colors.border,
+    paddingVertical: hp(14),
   },
-  topBarLeft: {
+  headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: wp(10),
+    gap: wp(12),
   },
-  topBarRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(8),
+  avatar: {
+    width: wp(48),
+    height: wp(48),
+    borderRadius: wp(24),
+    borderWidth: 2,
+    borderColor: colors.border,
   },
-  headerAvatar: {
-    width: wp(38),
-    height: wp(38),
-    borderRadius: wp(12),
-    borderWidth: 1.5,
-    borderColor: colors.gold + '40',
-  },
-  headerAvatarFallback: {
-    width: wp(38),
-    height: wp(38),
-    borderRadius: wp(12),
-    backgroundColor: colors.gold + '20',
-    alignItems: 'center',
+  avatarFallback: {
+    width: wp(48),
+    height: wp(48),
+    borderRadius: wp(24),
+    backgroundColor: colors.golden,
     justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: colors.gold + '40',
+    alignItems: 'center',
   },
-  headerAvatarText: {
-    fontSize: fp(16),
-    fontWeight: '800',
-    color: colors.gold,
-  },
-  greetingSmall: {
-    fontSize: fp(11),
-    color: colors.textSecondary,
-    fontWeight: '500',
-  },
-  greetingName: {
-    fontSize: fp(16),
+  avatarText: {
+    fontSize: fp(20),
     fontWeight: '700',
-    color: colors.textPrimary,
-    marginTop: hp(1),
+    color: colors.black,
   },
-  createBtn: {
-    width: wp(34),
-    height: wp(34),
-    borderRadius: wp(10),
-    backgroundColor: colors.gold,
-    alignItems: 'center',
+  greeting: {
+    fontSize: fp(17),
+    fontWeight: '800',
+    color: colors.white,
+  },
+  greetingSub: {
+    fontSize: fp(13),
+    color: colors.muted,
+    fontWeight: '500',
+    marginTop: hp(2),
+  },
+  bellBtn: {
+    width: wp(44),
+    height: wp(44),
+    borderRadius: wp(22),
+    backgroundColor: 'rgba(255,255,255,0.1)',
     justifyContent: 'center',
-  },
-  iconButton: {
-    padding: wp(6),
-    position: 'relative',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.15)',
   },
   bellDot: {
     position: 'absolute',
-    top: hp(6),
-    right: wp(6),
-    width: wp(6),
-    height: wp(6),
-    borderRadius: wp(3),
-    backgroundColor: colors.gold,
+    top: wp(10),
+    right: wp(12),
+    width: wp(8),
+    height: wp(8),
+    borderRadius: wp(4),
+    backgroundColor: colors.error,
   },
 
-  // KYC Banner (compact)
-  kycBanner: {
+  scrollContent: {
+    paddingBottom: hp(30),
+  },
+  sectionPadding: {
+    paddingHorizontal: wp(16),
+    marginTop: hp(14),
+  },
+
+  // Split row: revenue + performance
+  splitRow: {
+    flexDirection: 'row',
+    gap: wp(12),
+  },
+  revenueMiniCard: {
+    flex: 1,
+    backgroundColor: '#14141F',
+    borderRadius: wp(18),
+    padding: wp(14),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
+    justifyContent: 'space-between',
+  },
+  performanceMiniCard: {
+    flex: 1,
+    backgroundColor: '#14141F',
+    borderRadius: wp(18),
+    padding: wp(14),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
+  },
+  miniLabel: {
+    fontSize: fp(10.5),
+    fontWeight: '700',
+    color: 'rgba(255,255,255,0.5)',
+    letterSpacing: 1,
+    marginBottom: hp(6),
+  },
+  revenueMiniAmount: {
+    fontSize: fp(22),
+    fontWeight: '800',
+    color: colors.white,
+  },
+  rupeeSymbol: {
+    fontSize: fp(15),
+    fontWeight: '400',
+    color: 'rgba(255,255,255,0.6)',
+  },
+  sparkline: {
+    marginTop: hp(8),
+    alignSelf: 'center',
+  },
+  perfRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: wp(8),
-    backgroundColor: colors.gold + '12',
-    borderWidth: 1,
-    borderColor: colors.gold + '30',
-    borderRadius: 10,
-    paddingHorizontal: wp(14),
-    paddingVertical: hp(10),
-    marginBottom: hp(14),
-    marginTop: hp(4),
+    gap: wp(6),
+    marginBottom: hp(9),
   },
-  kycBannerText: {
+  perfLabel: {
     flex: 1,
-    fontSize: fp(12),
-    fontWeight: '600',
-    color: colors.gold,
+    fontSize: fp(11.5),
+    color: 'rgba(255,255,255,0.65)',
+    fontWeight: '500',
+  },
+  perfValue: {
+    fontSize: fp(13),
+    fontWeight: '800',
+    color: colors.white,
   },
 
-  // Cards General
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: wp(16),
-    marginBottom: hp(16),
+  // Launch Card
+  launchCard: {
+    borderRadius: wp(20),
+    padding: wp(20),
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.2,
+    shadowRadius: 14,
+    elevation: 5,
   },
-  cardHeader: {
+  launchHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: hp(12),
-  },
-  cardLabel: {
-    fontSize: fp(10),
-    fontWeight: '700',
-    color: colors.textSecondary,
-    letterSpacing: 0.8,
-  },
-  revenueRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(10),
-    marginTop: hp(4),
-  },
-  revenueText: {
-    fontSize: fp(26),
-    fontWeight: '700',
-    color: colors.textPrimary,
-  },
-  greenPill: {
-    paddingHorizontal: wp(8),
-    paddingVertical: hp(2),
-    borderRadius: 99,
-    backgroundColor: '#10B98118',
-    borderWidth: 0.5,
-    borderColor: '#10B981',
-  },
-  greenPillText: {
-    color: '#10B981',
-    fontSize: fp(10),
-    fontWeight: '700',
-  },
-  calendarButton: {
-    padding: wp(6),
-    borderRadius: 8,
-    backgroundColor: colors.inputBg,
-  },
-
-  // Mock Line Chart
-  chartContainer: {
-    marginTop: hp(10),
-  },
-  chartXLabels: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: wp(10),
-    marginTop: hp(8),
-  },
-  chartLabelText: {
-    fontSize: fp(11),
-    color: colors.textSecondary,
-  },
-
-  // Launch Checklist Card
-  launchRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  launchLeft: {
-    flex: 1,
-    paddingRight: wp(12),
-  },
-  launchHeading: {
-    fontSize: fp(15),
-    fontWeight: '600',
-    color: colors.textPrimary,
-    marginBottom: hp(4),
-  },
-  launchStatus: {
-    fontSize: fp(13),
-    color: colors.textSecondary,
-    marginBottom: hp(12),
-    lineHeight: fp(17),
-  },
-  progressContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(10),
     marginBottom: hp(16),
   },
+  launchTitle: {
+    fontSize: fp(19),
+    fontWeight: '800',
+    color: colors.white,
+    lineHeight: fp(25),
+  },
+  launchSubtitle: {
+    fontSize: fp(13),
+    color: 'rgba(255,255,255,0.6)',
+    lineHeight: fp(19),
+    marginTop: hp(6),
+  },
+  launchEmoji: {
+    fontSize: fp(36),
+    marginLeft: wp(8),
+  },
   progressBarTrack: {
-    flex: 1,
-    height: 6,
-    borderRadius: 99,
-    backgroundColor: colors.border,
+    height: hp(10),
+    borderRadius: wp(6),
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    overflow: 'hidden',
+    marginBottom: hp(8),
   },
   progressBarFill: {
     height: '100%',
-    borderRadius: 99,
-    backgroundColor: colors.gold,
+    borderRadius: wp(6),
+    backgroundColor: colors.golden,
   },
-  progressPercent: {
+  progressBarLabel: {
     fontSize: fp(12),
-    fontWeight: '700',
-    color: colors.gold,
-  },
-  outlinedGoldButton: {
-    borderWidth: 1,
-    borderColor: colors.gold,
-    borderRadius: 99,
-    paddingVertical: hp(10),
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  outlinedGoldButtonText: {
-    color: colors.gold,
-    fontSize: fp(13),
-    fontWeight: '700',
-  },
-  launchRight: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  rocketCircle: {
-    width: wp(68),
-    height: wp(68),
-    borderRadius: 99,
-    backgroundColor: colors.goldDim,
-    alignItems: 'center',
-    justifyContent: 'center',
+    color: 'rgba(255,255,255,0.6)',
+    fontWeight: '600',
+    marginBottom: hp(16),
   },
 
-  // Quick Actions 4-column Grid
-  gridContainer: {
+  // CTA (shared golden button style)
+  ctaButton: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: wp(8),
-    marginBottom: hp(18),
-  },
-  gridCell: {
-    flex: 1,
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingVertical: hp(12),
     alignItems: 'center',
     justifyContent: 'center',
+    gap: wp(6),
+    backgroundColor: colors.golden,
+    borderRadius: wp(14),
+    paddingVertical: hp(14),
   },
-  gridIconTray: {
-    width: wp(40),
-    height: wp(40),
-    borderRadius: 99,
-    backgroundColor: colors.goldDim,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: hp(8),
-  },
-  gridLabel: {
-    fontSize: fp(11),
-    fontWeight: '500',
-    color: colors.textSecondary,
+  ctaText: {
+    fontSize: fp(15),
+    fontWeight: '700',
+    color: colors.primary,
   },
 
-  // Performing Content List
-  sectionHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: hp(6),
+  // Quick Actions
+  sectionTitle: {
+    fontSize: fp(17),
+    fontWeight: '800',
+    color: colors.white,
     marginBottom: hp(12),
   },
-  sectionHeading: {
-    fontSize: fp(15),
-    fontWeight: '600',
-    color: colors.textPrimary,
-  },
-  viewAllText: {
-    fontSize: fp(13),
-    color: colors.gold,
-    fontWeight: '500',
-  },
-  performingCard: {
-    backgroundColor: colors.surface,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: wp(16),
-    marginBottom: hp(16),
-  },
-  contentRow: {
+  quickActionsRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: hp(12),
+    gap: wp(12),
   },
-  rowDivider: {
-    borderTopWidth: 0.5,
-    borderTopColor: colors.border,
-  },
-  thumbnail: {
-    width: wp(40),
-    height: wp(40),
-    borderRadius: 8,
-  },
-  contentMeta: {
+  quickActionCard: {
     flex: 1,
-    marginLeft: wp(12),
-    paddingRight: wp(8),
+    backgroundColor: '#14141F',
+    borderRadius: wp(16),
+    paddingVertical: hp(18),
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
   },
-  contentTitle: {
-    fontSize: fp(13.5),
-    fontWeight: '500',
-    color: colors.textPrimary,
-  },
-  contentCategory: {
-    fontSize: fp(11.5),
-    color: colors.textSecondary,
-    marginTop: hp(2),
-  },
-  contentRevenue: {
-    fontSize: fp(13.5),
-    fontWeight: '700',
-    color: colors.gold,
-  },
-
-  // AI Assistant Card
-  aiCard: {
-    backgroundColor: colors.surface,
-    borderRadius: 14,
-    borderWidth: 1.5,
-    borderColor: 'rgba(240, 192, 64, 0.3)', // gold at 30% opacity
-    padding: wp(16),
-    marginBottom: hp(24),
-  },
-  aiLabel: {
-    fontSize: fp(11),
-    fontWeight: '700',
-    color: colors.gold,
-    letterSpacing: 0.5,
+  quickActionIconWrap: {
+    width: wp(44),
+    height: wp(44),
+    borderRadius: wp(22),
+    backgroundColor: 'rgba(255,182,6,0.12)',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: hp(8),
   },
-  aiHeading: {
-    fontSize: fp(15),
+  quickActionText: {
+    fontSize: fp(13),
+    fontWeight: '700',
+    color: colors.white,
+  },
+
+  // Creator Center
+  creatorCenterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#14141F',
+    borderRadius: wp(16),
+    paddingVertical: hp(16),
+    paddingHorizontal: wp(16),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
+  },
+  creatorCenterIconWrap: {
+    width: wp(36),
+    height: wp(36),
+    borderRadius: wp(10),
+    backgroundColor: 'rgba(255,182,6,0.12)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: wp(12),
+  },
+  creatorCenterText: {
+    flex: 1,
+    fontSize: fp(14.5),
+    fontWeight: '700',
+    color: colors.white,
+  },
+  creatorCenterLink: {
+    fontSize: fp(12.5),
     fontWeight: '600',
-    color: colors.textPrimary,
-    marginBottom: hp(6),
+    color: 'rgba(255,255,255,0.5)',
+  },
+
+  // AI Content Assistant
+  aiCard: {
+    borderRadius: wp(20),
+    padding: wp(20),
+    borderWidth: 1,
+    borderColor: 'rgba(255,182,6,0.35)',
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.2,
+    shadowRadius: 14,
+    elevation: 5,
+  },
+  aiBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: wp(6),
+    marginBottom: hp(12),
+  },
+  aiBadgeText: {
+    fontSize: fp(11),
+    fontWeight: '800',
+    color: colors.golden,
+    letterSpacing: 1,
+  },
+  aiTitle: {
+    fontSize: fp(17),
+    fontWeight: '800',
+    color: colors.white,
+    marginBottom: hp(8),
   },
   aiDescription: {
-    fontSize: fp(13),
-    color: colors.textSecondary,
+    fontSize: fp(12.5),
+    color: 'rgba(255,255,255,0.6)',
     lineHeight: fp(18),
-    marginBottom: hp(16),
+    marginBottom: hp(18),
   },
-  aiActionsRow: {
+  aiButtonsRow: {
     flexDirection: 'row',
     gap: wp(10),
   },
-  aiScheduleButton: {
-    flex: 1.2,
-    height: hp(42),
-    backgroundColor: colors.gold,
-    borderRadius: 12,
+  aiScheduleBtn: {
+    flex: 1,
+    backgroundColor: colors.golden,
+    borderRadius: wp(12),
+    paddingVertical: hp(13),
     alignItems: 'center',
-    justifyContent: 'center',
   },
   aiScheduleText: {
-    color: '#000000',
-    fontSize: fp(13),
+    fontSize: fp(13.5),
     fontWeight: '700',
+    color: colors.primary,
   },
-  aiDraftButton: {
+  aiDraftBtn: {
     flex: 1,
-    height: hp(42),
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 12,
+    borderRadius: wp(12),
+    paddingVertical: hp(13),
     alignItems: 'center',
-    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
   },
   aiDraftText: {
-    color: colors.textPrimary,
-    fontSize: fp(13),
-    fontWeight: '500',
+    fontSize: fp(13.5),
+    fontWeight: '700',
+    color: colors.white,
   },
 
-  // Video Overlay
+  // Floating Intro Video
   floatingVideoContainer: {
     position: 'absolute',
-    bottom: hp(90),
-    right: wp(16),
-    width: wp(150),
-    height: hp(220),
+    bottom: hp(16),
+    right: wp(12),
+    width: SCREEN_WIDTH * 0.35,
+    aspectRatio: 9 / 16,
     borderRadius: wp(12),
     overflow: 'hidden',
-    borderWidth: 2,
-    borderColor: colors.white,
     backgroundColor: colors.black,
-    zIndex: 9999,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
     elevation: 10,
   },
   fullScreenVideoContainer: {
     position: 'absolute',
     top: 0,
     left: 0,
-    width: SCREEN_WIDTH,
-    height: SCREEN_HEIGHT,
-    backgroundColor: colors.black,
-    zIndex: 9999,
-  },
-  miniVideoWrap: {
-    flex: 1,
-    position: 'relative',
-  },
-  expandedVideoWrap: {
-    flex: 1,
+    right: 0,
+    bottom: 0,
     justifyContent: 'center',
     alignItems: 'center',
-    position: 'relative',
+    backgroundColor: 'rgba(0,0,0,0.85)',
+    zIndex: 100,
+  },
+  expandedVideoWrap: {
+    width: SCREEN_WIDTH * 0.75,
+    aspectRatio: 9 / 16,
+    borderRadius: wp(16),
+    overflow: 'hidden',
+    backgroundColor: colors.black,
+  },
+  miniVideoWrap: {
+    width: '100%',
+    height: '100%',
   },
   videoButtonsRow: {
     position: 'absolute',
-    top: hp(8),
+    top: wp(8),
     right: wp(8),
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(6),
     zIndex: 10,
+    flexDirection: 'row',
+    gap: wp(8),
   },
   videoActionButton: {
-    width: wp(24),
-    height: wp(24),
-    borderRadius: wp(12),
     backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderRadius: wp(14),
+    padding: wp(6),
   },
   floatingVideo: {
     width: '100%',
     height: '100%',
   },
 });
-
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');

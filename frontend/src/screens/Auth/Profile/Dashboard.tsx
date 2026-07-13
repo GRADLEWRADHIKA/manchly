@@ -15,8 +15,8 @@ import colors from '../../../utils/colors';
 import {wp, hp, fp} from '../../../utils/responsive';
 import {getDashboardStats} from '../../../store/SessionSlice';
 
-const ACCENT = '#60A5FA';
-const GOLDEN = colors.golden;
+const ACCENT = colors.gold;
+const GOLDEN = colors.gold;
 
 const TABS = ['Course', 'Webinar', '1:1 Session'] as const;
 type Tab = (typeof TABS)[number];
@@ -99,7 +99,7 @@ const Dashboard = () => {
 
       {loading ? (
         <View style={styles.loader}>
-          <ActivityIndicator size="large" color={colors.cBg} />
+          <ActivityIndicator size="large" color={colors.gold} />
         </View>
       ) : (
         <ScrollView
@@ -170,7 +170,7 @@ const Dashboard = () => {
               <Text style={styles.sectionTitle}>PRODUCT OVERVIEW</Text>
             </View>
             <View style={styles.leaderRow}>
-              <View style={[styles.rankBadge, {backgroundColor: 'rgba(15,52,96,0.5)'}]}>
+              <View style={styles.rankBadge}>
                 <Text style={styles.rankText}>📚</Text>
               </View>
               <Text style={styles.leaderName}>Courses</Text>
@@ -179,7 +179,7 @@ const Dashboard = () => {
               </Text>
             </View>
             <View style={styles.leaderRow}>
-              <View style={[styles.rankBadge, {backgroundColor: 'rgba(15,52,96,0.5)'}]}>
+              <View style={styles.rankBadge}>
                 <Text style={styles.rankText}>🎥</Text>
               </View>
               <Text style={styles.leaderName}>Webinars</Text>
@@ -188,7 +188,7 @@ const Dashboard = () => {
               </Text>
             </View>
             <View style={styles.leaderRow}>
-              <View style={[styles.rankBadge, {backgroundColor: 'rgba(15,52,96,0.5)'}]}>
+              <View style={styles.rankBadge}>
                 <Text style={styles.rankText}>🤝</Text>
               </View>
               <Text style={styles.leaderName}>1:1 Sessions</Text>
@@ -208,10 +208,10 @@ export default memo(Dashboard);
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: colors.bg,
   },
   headerArea: {
-    backgroundColor: colors.cBg,
+    backgroundColor: colors.bg,
     paddingHorizontal: wp(18),
     paddingBottom: hp(18),
     borderBottomLeftRadius: wp(20),
@@ -229,27 +229,27 @@ const styles = StyleSheet.create({
   brand: {
     fontSize: fp(11),
     fontWeight: '600',
-    color: colors.cTextMuted,
+    color: colors.textMuted,
     letterSpacing: 2,
   },
   title: {
     fontSize: fp(28),
     fontWeight: '800',
-    color: colors.cText,
+    color: colors.textPrimary,
     marginTop: hp(4),
   },
   subtitle: {
     fontSize: fp(13),
-    color: colors.cTextMuted,
+    color: colors.textSecondary,
     marginTop: hp(2),
     marginBottom: hp(18),
   },
   overviewCard: {
     flexDirection: 'row',
-    backgroundColor: colors.cCard,
+    backgroundColor: colors.surface,
     borderRadius: wp(16),
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: colors.border,
     paddingVertical: hp(18),
     paddingHorizontal: wp(10),
   },
@@ -259,33 +259,33 @@ const styles = StyleSheet.create({
   },
   overviewDivider: {
     width: 1,
-    backgroundColor: colors.cBorder,
+    backgroundColor: colors.border,
   },
   overviewLabel: {
     fontSize: fp(9),
     fontWeight: '700',
-    color: colors.cTextMuted,
+    color: colors.textMuted,
     letterSpacing: 1,
     marginBottom: hp(6),
   },
   overviewValueAccent: {
     fontSize: fp(20),
     fontWeight: '800',
-    color: '#60A5FA',
+    color: colors.gold,
   },
   overviewValue: {
     fontSize: fp(20),
     fontWeight: '800',
-    color: colors.cText,
+    color: colors.textPrimary,
   },
   tabBar: {
     flexDirection: 'row',
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderRadius: wp(14),
     padding: wp(4),
     marginBottom: hp(16),
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.border,
   },
   tab: {
     flex: 1,
@@ -297,12 +297,9 @@ const styles = StyleSheet.create({
     gap: wp(4),
   },
   tabActive: {
-    backgroundColor: '#0F3460',
-    shadowColor: '#0F3460',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 3,
+    backgroundColor: colors.goldDim,
+    borderWidth: 1,
+    borderColor: colors.gold,
   },
   tabEmoji: {
     fontSize: fp(13),
@@ -310,10 +307,10 @@ const styles = StyleSheet.create({
   tabText: {
     fontSize: fp(12),
     fontWeight: '600',
-    color: '#64748B',
+    color: colors.textMuted,
   },
   tabTextActive: {
-    color: colors.white,
+    color: colors.gold,
     fontWeight: '700',
   },
   statsRow: {
@@ -323,51 +320,41 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderRadius: wp(16),
     padding: wp(16),
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 2,
+    borderColor: colors.border,
   },
   statLabel: {
     fontSize: fp(10),
     fontWeight: '700',
-    color: '#0F3460',
+    color: colors.textMuted,
     letterSpacing: 1,
     marginBottom: hp(6),
   },
   statValueLight: {
     fontSize: fp(28),
     fontWeight: '800',
-    color: '#1A1A2E',
+    color: colors.textPrimary,
   },
   statValueAccent: {
     fontSize: fp(28),
     fontWeight: '800',
-    color: '#0F3460',
+    color: colors.gold,
   },
   sectionCard: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderRadius: wp(16),
     padding: wp(16),
     marginBottom: hp(16),
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 2,
+    borderColor: colors.border,
   },
   sectionTitle: {
     fontSize: fp(10),
     fontWeight: '700',
-    color: '#64748B',
+    color: colors.textMuted,
     letterSpacing: 1.5,
     marginBottom: hp(14),
   },
@@ -382,13 +369,13 @@ const styles = StyleSheet.create({
   breakdownName: {
     fontSize: fp(14),
     fontWeight: '600',
-    color: '#1A1A2E',
+    color: colors.textSecondary,
     flex: 1,
   },
   breakdownPrice: {
     fontSize: fp(14),
     fontWeight: '700',
-    color: '#0F3460',
+    color: colors.textPrimary,
   },
   leaderboardHeader: {
     flexDirection: 'row',
@@ -401,7 +388,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: hp(10),
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#E2E8F0',
+    borderTopColor: colors.border,
   },
   rankBadge: {
     width: wp(28),
@@ -410,6 +397,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: wp(12),
+    backgroundColor: colors.goldDim,
   },
   rankText: {
     fontSize: fp(13),
@@ -417,12 +405,12 @@ const styles = StyleSheet.create({
   leaderName: {
     fontSize: fp(14),
     fontWeight: '600',
-    color: '#1A1A2E',
+    color: colors.textPrimary,
     flex: 1,
   },
   leaderRevenue: {
     fontSize: fp(14),
     fontWeight: '700',
-    color: '#0F3460',
+    color: colors.gold,
   },
 });

@@ -46,31 +46,31 @@ const TABS = [
 const ICON_CONFIG: Record<string, { icon: any; color: string; bg: string }> = {
   'New Course Purchase': {
     icon: ShoppingCart,
-    color: '#3B82F6',
-    bg: '#3B82F620',
+    color: colors.gold,
+    bg: colors.goldDim,
   },
-  'Webinar Enrollment': { icon: Users, color: '#8B5CF6', bg: '#8B5CF620' },
-  'Session Booked': { icon: Calendar, color: '#10B981', bg: '#10B98120' },
+  'Webinar Enrollment': { icon: Users, color: colors.gold, bg: colors.goldDim },
+  'Session Booked': { icon: Calendar, color: colors.gold, bg: colors.goldDim },
   'Webinar Starting Soon': {
     icon: AlertCircle,
-    color: '#F59E0B',
-    bg: '#F59E0B20',
+    color: colors.gold,
+    bg: colors.goldDim,
   },
-  'Payout Processed': { icon: CreditCard, color: '#22C55E', bg: '#22C55E20' },
-  'New Review': { icon: Star, color: '#FBBF24', bg: '#FBBF2420' },
-  'KYC Approved': { icon: CheckCheck, color: '#10B981', bg: '#10B98120' },
+  'Payout Processed': { icon: CreditCard, color: colors.gold, bg: colors.goldDim },
+  'New Review': { icon: Star, color: colors.gold, bg: colors.goldDim },
+  'KYC Approved': { icon: CheckCheck, color: colors.gold, bg: colors.goldDim },
   'New Feature Available': {
     icon: Megaphone,
-    color: '#EC4899',
-    bg: '#EC489920',
+    color: colors.gold,
+    bg: colors.goldDim,
   },
 };
 
 const TYPE_ICON: Record<string, { icon: any; color: string; bg: string }> = {
-  sale: { icon: TrendingUp, color: '#3B82F6', bg: '#3B82F620' },
-  session: { icon: Calendar, color: '#10B981', bg: '#10B98120' },
-  webinar: { icon: Video, color: '#8B5CF6', bg: '#8B5CF620' },
-  system: { icon: Info, color: '#64748B', bg: '#64748B20' },
+  sale: { icon: TrendingUp, color: colors.gold, bg: colors.goldDim },
+  session: { icon: Calendar, color: colors.gold, bg: colors.goldDim },
+  webinar: { icon: Video, color: colors.gold, bg: colors.goldDim },
+  system: { icon: Info, color: colors.textSecondary, bg: colors.surface },
 };
 
 function getTimeAgo(dateStr: string): string {
@@ -158,15 +158,17 @@ const CreatorNotification = () => {
           <Icon size={wp(20)} color={color} />
         </View>
         <View style={styles.cardContent}>
-          <Text
-            style={[styles.cardTitle, !item.is_read && styles.cardTitleUnread]}
-          >
-            {item.title}
-          </Text>
+          <View style={styles.cardTitleRow}>
+            <Text
+              style={[styles.cardTitle, !item.is_read && styles.cardTitleUnread]}
+            >
+              {item.title}
+            </Text>
+            <Text style={styles.cardTime}>{getTimeAgo(item.createdAt)}</Text>
+          </View>
           <Text style={styles.cardMessage} numberOfLines={2}>
             {item.message}
           </Text>
-          <Text style={styles.cardTime}>{getTimeAgo(item.createdAt)}</Text>
         </View>
       </TouchableOpacity>
     );
@@ -175,7 +177,7 @@ const CreatorNotification = () => {
   const renderEmpty = () => (
     <View style={styles.emptyWrap}>
       <View style={styles.emptyIconCircle}>
-        <Bell size={wp(32)} color={colors.cTextMuted} />
+        <Bell size={wp(32)} color={colors.gold} />
       </View>
       <Text style={styles.emptyTitle}>No notifications yet</Text>
       <Text style={styles.emptyDesc}>
@@ -221,7 +223,7 @@ const CreatorNotification = () => {
 
       {unreadCount > 0 && (
         <TouchableOpacity style={styles.markAllBtn} onPress={handleMarkAllRead}>
-          <CheckCheck size={wp(14)} color={'#3B82F6'} />
+          <CheckCheck size={wp(14)} color={colors.gold} />
           <Text style={styles.markAllText}>Mark all as read</Text>
         </TouchableOpacity>
       )}
@@ -229,7 +231,7 @@ const CreatorNotification = () => {
       {/* Notification List */}
       {loading && !refreshing ? (
         <View style={styles.loaderWrap}>
-          <ActivityIndicator size="large" color={'#3B82F6'} />
+          <ActivityIndicator size="large" color={colors.gold} />
         </View>
       ) : (
         <FlatList
@@ -246,7 +248,7 @@ const CreatorNotification = () => {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              tintColor={'#3B82F6'}
+              tintColor={colors.gold}
             />
           }
         />
@@ -260,7 +262,7 @@ export default CreatorNotification;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: colors.bg,
   },
 
   // Tabs
@@ -275,21 +277,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(16),
     paddingVertical: hp(7),
     borderRadius: wp(20),
-    backgroundColor: colors.white,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
+    backgroundColor: 'transparent',
   },
   tabActive: {
-    backgroundColor: '#1A1A2E',
-    borderColor: '#1A1A2E',
+    backgroundColor: colors.gold,
   },
   tabText: {
     fontSize: fp(13),
     fontWeight: '600',
-    color: '#64748B',
+    color: colors.gold,
   },
   tabTextActive: {
-    color: colors.white,
+    color: colors.bg,
   },
 
   // Mark all read
@@ -303,7 +302,7 @@ const styles = StyleSheet.create({
   },
   markAllText: {
     fontSize: fp(12),
-    color: '#3B82F6',
+    color: colors.gold,
     fontWeight: '600',
   },
 
@@ -323,20 +322,12 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderRadius: wp(14),
     padding: wp(14),
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    elevation: 1,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 3,
   },
   cardUnread: {
-    backgroundColor: '#EBF5FF',
-    borderColor: '#3B82F630',
+    backgroundColor: colors.surface,
   },
   unreadDot: {
     position: 'absolute',
@@ -345,7 +336,7 @@ const styles = StyleSheet.create({
     width: wp(6),
     height: wp(6),
     borderRadius: wp(3),
-    backgroundColor: '#3B82F6',
+    backgroundColor: colors.gold,
   },
   iconWrap: {
     width: wp(42),
@@ -359,25 +350,31 @@ const styles = StyleSheet.create({
   cardContent: {
     flex: 1,
   },
+  cardTitleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
   cardTitle: {
     fontSize: fp(14),
     fontWeight: '600',
-    color: '#1A1A2E',
+    color: colors.textPrimary,
+    flexShrink: 1,
   },
   cardTitleUnread: {
     fontWeight: '700',
   },
   cardMessage: {
     fontSize: fp(12),
-    color: '#64748B',
+    color: colors.textSecondary,
     marginTop: hp(3),
     lineHeight: fp(17),
   },
   cardTime: {
-    fontSize: fp(11),
-    color: '#94A3B8',
-    marginTop: hp(5),
+    fontSize: fp(10),
+    color: colors.textMuted,
     fontWeight: '500',
+    marginLeft: wp(8),
   },
 
   // Empty
@@ -389,7 +386,7 @@ const styles = StyleSheet.create({
     width: wp(72),
     height: wp(72),
     borderRadius: wp(36),
-    backgroundColor: '#E2E8F0',
+    backgroundColor: colors.goldDim,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: hp(16),
@@ -397,12 +394,12 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: fp(18),
     fontWeight: '700',
-    color: '#1A1A2E',
+    color: colors.textPrimary,
     marginBottom: hp(6),
   },
   emptyDesc: {
     fontSize: fp(13),
-    color: '#64748B',
+    color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: fp(19),
   },

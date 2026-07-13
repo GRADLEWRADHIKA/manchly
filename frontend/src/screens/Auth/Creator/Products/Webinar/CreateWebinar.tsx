@@ -20,19 +20,28 @@ import { Dropdown } from 'react-native-element-dropdown';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { useDispatch } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
-import { createWebinar, updateWebinar } from '../../../../../store/WebinarSlice';
+import {
+  createWebinar,
+  updateWebinar,
+} from '../../../../../store/WebinarSlice';
 import Toast from 'react-native-toast-message';
 import { pick, types } from '@react-native-documents/picker';
 import { uploadShipDoc } from '../../../../../store/Common';
 import moment from 'moment-timezone';
 import FacingIssues from '../Course/components/FacingIssues';
 import {
-  Coins,
-  Gift,
+  CirclePlus,
   Calendar,
   Clock,
-  Sparkles,
+  ImagePlus,
+  Timer,
+  Tag,
+  UsersRound,
+  ToggleLeft,
+  Type,
+  IndianRupee,
 } from 'lucide-react-native';
+import EnhanceSuggestionCard from '../../../../../components/ai/EnhanceSuggestionCard';
 
 const CreateWebinarScreen = () => {
   const navigation = useNavigation();
@@ -43,11 +52,9 @@ const CreateWebinarScreen = () => {
   const [timezones, setTimezones] = useState<any[]>([]);
   const route = useRoute<any>();
   const updatedata = route?.params?.data;
-
-  const [pricingModel, setPricingModel] = useState<'paid' | 'free'>(
-    updatedata?.price && Number(updatedata.price) > 0 ? 'paid' : 'free'
-  );
-
+  const [tagInput, setTagInput] = useState('');
+  const [tagList, setTagList] = useState<string[]>(updatedata?.tags || []);
+  const [isTimePickerVisible, setTimePickerVisibility] = useState(false);
   const showDatePicker = () => {
     setDatePickerVisibility(true);
   };
@@ -55,6 +62,9 @@ const CreateWebinarScreen = () => {
   const hideDatePicker = () => {
     setDatePickerVisibility(false);
   };
+
+  const showTimePicker = () => setTimePickerVisibility(true);
+  const hideTimePicker = () => setTimePickerVisibility(false);
 
   useEffect(() => {
     const zones = moment.tz.names().map(tz => ({
@@ -66,13 +76,22 @@ const CreateWebinarScreen = () => {
 
   const imagePicker = async (onChange: (val: string) => void) => {
     try {
-      const res = await pick({ type: [types.images] });
+      const res = await pick({
+        type: [types.images],
+      });
+
       if (!res || res.length === 0) return;
-      await pickImageUpload(
-        { uri: res[0].uri, type: res[0].type, name: res[0].name },
-        onChange,
-      );
+
+      const picked = {
+        uri: res[0].uri,
+        type: res[0].type,
+        name: res[0].name,
+        size: res[0].size,
+      };
+
+      await pickImageUpload(picked, onChange);
     } catch (err: any) {
+      console.error('Document Picker Error:', err);
       Toast.show({
         type: 'error',
         text1: 'Image Picker Error',
@@ -94,14 +113,18 @@ const CreateWebinarScreen = () => {
         type: file.type,
         name: file.name || 'upload.jpg',
       });
+
       const res: any = await dispatch(uploadShipDoc(formData)).unwrap();
-      onChange(res?.data?.url);
+      const newUrl = res?.data?.url;
+      onChange(newUrl);
+
       Toast.show({
         type: 'success',
         text1: 'Image uploaded successfully!',
         position: 'bottom',
       });
     } catch (err: any) {
+      console.error('Image Upload Error:', err);
       Toast.show({
         type: 'error',
         text1: 'Upload Failed',
@@ -113,40 +136,39 @@ const CreateWebinarScreen = () => {
     }
   };
 
-  const { control, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm({
+  const { control, handleSubmit, reset, setValue, watch } = useForm({
     defaultValues: {
-      title: updatedata?.title || '',
-      description: updatedata?.description || '',
-      thumbnail_url: updatedata?.thumbnail_url || '',
+      title: updatedata?.title,
+      description: updatedata?.description,
+      thumbnail_url: updatedata?.thumbnail_url,
       price: String(updatedata?.price ?? '') || '',
-      category: updatedata?.category || 'webinar',
-      tags: updatedata?.tags || [],
+      category: updatedata?.category,
+      tags: updatedata?.tags,
       scheduled_at: updatedata?.scheduled_at
         ? moment(updatedata.scheduled_at).format('YYYY-MM-DD')
         : '',
       start_time: updatedata?.start_time || '',
-      duration: String(updatedata?.duration ?? '') || '60',
-      timezone: updatedata?.timezone || moment.tz.guess() || 'Asia/Kolkata',
-      max_participants: String(updatedata?.max_participants ?? '') || '100',
-      status: updatedata?.status || 'PUBLISHED',
+      duration: String(updatedata?.duration ?? '') || '',
+      timezone: updatedata?.timezone,
+      max_participants: String(updatedata?.max_participants ?? '') || '',
+      status: updatedata?.status,
     },
   });
 
   const onSubmit = (data: any) => {
     setLoading(true);
-    const finalPrice = pricingModel === 'free' ? 0 : Number(data.price) || 0;
     const payload = {
       title: data?.title,
       description: data?.description,
       thumbnail_url: data?.thumbnail_url,
-      price: finalPrice,
+      price: Number(data?.price),
       category: 'webinar',
-      start_time: data?.start_time || moment(`${data.scheduled_at} ${moment().format('HH:mm')}`).format(),
+      start_time: data?.start_time,
       end_time: null,
       tags: data?.tags,
       scheduled_at: data?.scheduled_at,
       duration: Number(data?.duration),
-      timezone: data?.timezone,
+      timezone: moment.tz.guess() || 'Asia/Kolkata',
       max_participants: Number(data?.max_participants),
       status: data?.status,
     };
@@ -154,7 +176,6 @@ const CreateWebinarScreen = () => {
       .unwrap()
       .then(() => {
         reset();
-        Toast.show({ type: 'success', text1: 'Webinar created!' });
         navigation.goBack();
       })
       .catch(() => {})
@@ -163,23 +184,23 @@ const CreateWebinarScreen = () => {
       });
   };
 
+  // calling the update the webinar
   const onUpdateSubmit = (data: any) => {
     setLoading(true);
-    const finalPrice = pricingModel === 'free' ? 0 : Number(data.price) || 0;
     const payload = {
       webinar_id: updatedata?.id,
       body: {
         title: data?.title,
         description: data?.description,
         thumbnail_url: data?.thumbnail_url,
-        price: finalPrice,
+        price: Number(data?.price),
         category: 'webinar',
-        start_time: data?.start_time || moment(`${data.scheduled_at} ${moment().format('HH:mm')}`).format(),
+        start_time: data?.start_time,
         end_time: null,
         tags: data?.tags,
         scheduled_at: data?.scheduled_at,
         duration: Number(data?.duration),
-        timezone: data?.timezone,
+        timezone: data?.timezone || moment.tz.guess() || 'Asia/Kolkata',
         max_participants: Number(data?.max_participants),
         status: data?.status,
       },
@@ -188,7 +209,6 @@ const CreateWebinarScreen = () => {
       .unwrap()
       .then(() => {
         reset();
-        Toast.show({ type: 'success', text1: 'Webinar updated!' });
         navigation.goBack();
       })
       .catch(() => {})
@@ -197,53 +217,60 @@ const CreateWebinarScreen = () => {
       });
   };
 
-  const handleDateConfirm = (date: Date) => {
-    setValue('scheduled_at', moment(date).format('YYYY-MM-DD'));
-    setValue('start_time', moment(date).format('HH:mm'));
-    hideDatePicker();
-  };
-
-  const renderDropdownItem = (item: any, selectedValue: any) => {
-    const isSelected = item.value === selectedValue;
-    return (
-      <View style={[styles.dropdownItem, isSelected && styles.dropdownItemSelected]}>
-        <Text style={[styles.dropdownItemText, isSelected && styles.dropdownItemTextSelected]}>
-          {item.label}
-        </Text>
-      </View>
-    );
-  };
-
   return (
     <View style={styles.safe}>
-      <AppHeaderWithBack title={updatedata ? 'Update Webinar' : 'Webinar Details'} />
-      <KeyboardAvoidingView
-        style={styles.keyboardWrapper}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={80}
-      >
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.formScroll}
-          keyboardShouldPersistTaps="handled"
-        >
-          {/* Webinar Details Card */}
-          <View style={styles.formCard}>
-            <Text style={styles.cardHeaderTitle}>Webinar Details</Text>
-            <Text style={styles.cardHeaderSubtitle}>Configure your live group sessions.</Text>
+      <AppHeaderWithBack
+        title={updatedata ? 'Update Webinar' : 'Create Webinar'}
+      />
 
-            {/* Webinar Title */}
-            <Text style={styles.inputLabel}>WEBINAR HEADLINE</Text>
+      <View style={styles.container}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={styles.keyboardWrapper}
+        >
+          <ScrollView
+            contentContainerStyle={styles.formScroll}
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={[styles.labelRow, { marginTop: hp(10), justifyContent: 'space-between' }]}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: wp(6) }}>
+                <Type size={wp(14)} color={'#F0C040'} />
+                <Text style={styles.label}>Title</Text>
+              </View>
+              <EnhanceSuggestionCard
+                value={watch('title') || ''}
+                onAccept={(text) => setValue('title', text)}
+                endpoint="/ai/webinar/enhance"
+                kind="title"
+                tone="punchy"
+              />
+            </View>
             <Controller
               name="title"
               control={control}
-              rules={{ required: true }}
-              render={({ field: { onChange, onBlur, value } }) => (
+              rules={{
+                required: {
+                  value: true,
+                  message: 'This field is required',
+                },
+              }}
+              render={({
+                field: { onChange, onBlur, value },
+                fieldState: { error },
+              }) => (
                 <CustomTextInput
-                  inputContainerStyle={[styles.input, errors.title && styles.errorBorder]}
-                  inputStyle={styles.inputText}
-                  placeholder="e.g. Learn Smarter, Work Better"
-                  placeholderTextColor={colors.textMuted || '#555558'}
+                  inputContainerStyle={[
+                    styles.nameFields,
+                    {
+                      borderColor: error ? colors.cError : colors.border,
+                    },
+                  ]}
+                  inputStyle={{
+                    fontSize: fp(14),
+                    color: colors.textPrimary,
+                  }}
+                  placeholderTextColor={colors.textMuted}
+                  placeholder="Enter title for the webinar"
                   onChange={onChange}
                   onBlur={onBlur}
                   value={value}
@@ -251,186 +278,439 @@ const CreateWebinarScreen = () => {
               )}
             />
 
-            {/* Date and Time Picker */}
-            <Text style={styles.inputLabel}>WEBINAR DATE & TIME</Text>
+            <View style={styles.labelRow}>
+              <IndianRupee size={wp(14)} color={'#F0C040'} />
+              <Text style={styles.label}>Price</Text>
+            </View>
             <Controller
-              name="scheduled_at"
+              name="price"
               control={control}
+              rules={{
+                required: {
+                  value: true,
+                  message: 'This field is required',
+                },
+              }}
+              render={({
+                field: { onChange, onBlur, value },
+                fieldState: { error },
+              }) => (
+                <CustomTextInput
+                  inputContainerStyle={[
+                    styles.nameFields,
+                    {
+                      borderColor: error ? colors.cError : colors.border,
+                    },
+                  ]}
+                  inputStyle={{
+                    fontSize: fp(14),
+                    color: colors.textPrimary,
+                  }}
+                  placeholderTextColor={colors.textMuted}
+                  placeholder="Enter price for the webinar (₹499)"
+                  onChange={onChange}
+                  onBlur={onBlur}
+                  value={value}
+                />
+              )}
+            />
+
+            <View style={styles.labelRow}>
+              <Calendar size={wp(14)} color={'#F0C040'} />
+              <Text style={styles.label}>Date</Text>
+            </View>
+            <Controller
+              control={control}
+              name="scheduled_at"
               rules={{ required: true }}
-              render={({ field: { value } }) => (
+              render={({
+                field: { onChange, value },
+                fieldState: { error },
+              }) => (
                 <TouchableOpacity
-                  style={[styles.input, styles.dateRowButton, errors.scheduled_at && styles.errorBorder]}
+                  style={[styles.datePicker, error && styles.errorBorder]}
                   onPress={showDatePicker}
-                  activeOpacity={0.8}
                 >
-                  <Text style={[styles.inputText, !value && { color: colors.textMuted || '#555558' }]}>
-                    {value ? `${value}  ${watch('start_time') || ''}` : 'Select date and time'}
+                  <Text style={{ fontSize: fp(14), color: value ? '#FFFFFF' : '#555558' }}>
+                    {value ? value : 'Select Date'}
                   </Text>
-                  <Calendar size={18} color={colors.textSecondary || '#888888'} />
+
+                  <DateTimePickerModal
+                    isVisible={isDatePickerVisible}
+                    mode="date"
+                    onConfirm={date => {
+                      const formattedDate = moment(date).format('YYYY-MM-DD');
+                      onChange(formattedDate);
+                      hideDatePicker();
+                    }}
+                    onCancel={hideDatePicker}
+                  />
                 </TouchableOpacity>
               )}
             />
 
-            {/* Webinar Description */}
-            <Text style={styles.inputLabel}>WEBINAR DESCRIPTION</Text>
+            <View style={styles.labelRow}>
+              <Clock size={wp(14)} color={'#F0C040'} />
+              <Text style={styles.label}>Start Time</Text>
+            </View>
+
+            <Controller
+              control={control}
+              name="start_time"
+              rules={{ required: true }}
+              render={({
+                field: { onChange, value },
+                fieldState: { error },
+              }) => (
+                <>
+                  <TouchableOpacity
+                    style={[styles.datePicker, error && styles.errorBorder]}
+                    onPress={showTimePicker}
+                  >
+                    <Text style={{ fontSize: fp(14), color: value ? '#FFFFFF' : '#555558' }}>
+                      {value
+                        ? moment(value, 'HH:mm').format('hh:mm A')
+                        : 'Select start time '}
+                    </Text>
+                  </TouchableOpacity>
+
+                  <DateTimePickerModal
+                    isVisible={isTimePickerVisible}
+                    mode="time"
+                    is24Hour={false}
+                    onConfirm={date => {
+                      const formattedTime = moment(date).format('HH:mm'); // ✅ 24-hour format
+                      onChange(formattedTime);
+                      hideTimePicker();
+                    }}
+                    onCancel={hideTimePicker}
+                  />
+                </>
+              )}
+            />
+
+            <View style={styles.labelRow}>
+              <ImagePlus size={wp(14)} color={'#F0C040'} />
+              <Text style={styles.label}>Select Thumbnail</Text>
+            </View>
+            <Controller
+              name="thumbnail_url"
+              control={control}
+              render={({
+                field: { onChange, value },
+                fieldState: { error },
+              }) => (
+                <View>
+                  <TouchableOpacity
+                    onPress={() => imagePicker(onChange)}
+                    style={[styles.datePicker, error && styles.errorBorder]}
+                    disabled={uploading}
+                  >
+                    {uploading ? (
+                      <ActivityIndicator color={'#F0C040'} />
+                    ) : (
+                      <Text
+                        style={{ fontSize: fp(13.5), color: value ? '#FFFFFF' : '#555558' }}
+                      >
+                        {value ? 'Change Thumbnail' : 'Choose Thumbnail'}
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+
+                  {value ? (
+                    <Image
+                      source={{ uri: value }}
+                      style={styles.imagePreview}
+                      resizeMode="cover"
+                    />
+                  ) : null}
+                </View>
+              )}
+            />
+
+            <View style={styles.labelRow}>
+              <Timer size={wp(14)} color={'#F0C040'} />
+              <Text style={styles.label}>Duration</Text>
+            </View>
+            <Controller
+              name="duration"
+              control={control}
+              rules={{
+                required: {
+                  value: true,
+                  message: 'This field is required',
+                },
+              }}
+              render={({
+                field: { onChange, onBlur, value },
+                fieldState: { error },
+              }) => (
+                <CustomTextInput
+                  inputContainerStyle={[
+                    styles.nameFields,
+                    {
+                      borderColor: error ? colors.cError : colors.border,
+                    },
+                  ]}
+                  inputStyle={{
+                    fontSize: fp(14),
+                    color: colors.textPrimary,
+                  }}
+                  placeholderTextColor={colors.textMuted}
+                  placeholder="Enter duration for the webinar (in minutes)"
+                  onChange={onChange}
+                  onBlur={onBlur}
+                  value={value}
+                />
+              )}
+            />
+
+            <View style={styles.labelRow}>
+              <Tag size={wp(14)} color={'#F0C040'} />
+              <Text style={styles.label}>Categories</Text>
+            </View>
+            <Controller
+              control={control}
+              name="tags"
+              defaultValue={tagList}
+              render={({ field: { onChange }, fieldState: { error } }) => (
+                <>
+                  <View style={styles.customHeader}>
+                    <CustomTextInput
+                      inputContainerStyle={[
+                        styles.nameFields,
+                        {
+                          borderColor: error ? colors.cError : colors.border,
+                          width: '90%',
+                          marginBottom: 0,
+                        },
+                      ]}
+                      inputStyle={{
+                        fontSize: fp(14),
+                        color: colors.textPrimary,
+                      }}
+                      placeholderTextColor={colors.textMuted}
+                      placeholder="Enter tag"
+                      value={tagInput}
+                      onChange={setTagInput as any}
+                    />
+
+                    <TouchableOpacity
+                      style={styles.secHeader}
+                      onPress={() => {
+                        const trimmed = tagInput.trim();
+
+                        if (!trimmed) {
+                          Toast.show({
+                            type: 'error',
+                            text1: 'Please enter a tag',
+                          });
+                          return;
+                        }
+
+                        if (tagList.length >= 3) {
+                          Toast.show({
+                            type: 'error',
+                            text1: 'You can add only 3 tags',
+                          });
+                          return;
+                        }
+
+                        if (tagList.includes(trimmed)) {
+                          Toast.show({
+                            type: 'error',
+                            text1: 'Tag already added',
+                          });
+                          return;
+                        }
+
+                        const updatedTags = [...tagList, trimmed];
+                        setTagList(updatedTags);
+                        onChange(updatedTags);
+                        setTagInput('');
+                      }}
+                    >
+                      <CirclePlus
+                        size={wp(30)}
+                        color={'#F0C040'}
+                        strokeWidth={1.6}
+                      />
+                    </TouchableOpacity>
+                  </View>
+
+                  {tagList?.length > 0 && (
+                    <View style={styles.tagContainer}>
+                      {tagList?.map((tag, index) => (
+                        <View key={index} style={styles.tagItem}>
+                          <Text style={styles.tagText}>{tag}</Text>
+
+                          <TouchableOpacity
+                            onPress={() => {
+                              const updated = tagList.filter(
+                                (_, i) => i !== index,
+                              );
+                              setTagList(updated);
+                              onChange(updated);
+                            }}
+                          >
+                            <Text style={styles.removeTag}>✕</Text>
+                          </TouchableOpacity>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+                </>
+              )}
+            />
+
+            <View style={styles.labelRow}>
+              <UsersRound size={wp(14)} color={'#F0C040'} />
+              <Text style={styles.label}>Max Participants</Text>
+            </View>
+            <Controller
+              name="max_participants"
+              control={control}
+              rules={{
+                required: {
+                  value: true,
+                  message: 'This field is required',
+                },
+              }}
+              render={({
+                field: { onChange, onBlur, value },
+                fieldState: { error },
+              }) => (
+                <CustomTextInput
+                  inputContainerStyle={[
+                    styles.nameFields,
+                    {
+                      borderColor: error ? colors.cError : colors.border,
+                    },
+                  ]}
+                  inputStyle={{
+                    fontSize: fp(14),
+                    color: colors.textPrimary,
+                  }}
+                  placeholderTextColor={colors.textMuted}
+                  placeholder="Enter max participants for the webinar"
+                  onChange={onChange}
+                  onBlur={onBlur}
+                  value={value}
+                />
+              )}
+            />
+
+            <View style={styles.labelRow}>
+              <ToggleLeft size={wp(14)} color={'#F0C040'} />
+              <Text style={styles.label}>Status</Text>
+            </View>
+            <Controller
+              name="status"
+              control={control}
+              rules={{ required: true }}
+              render={({
+                field: { onChange, value },
+                fieldState: { error },
+              }) => (
+                <Dropdown
+                  style={[styles.dropdown, error && styles.errorBorder]}
+                  placeholderStyle={styles.placeholder}
+                  selectedTextStyle={styles.selectedText}
+                  containerStyle={styles.dropdownContainer}
+                  data={[
+                    { label: 'Published', value: 'PUBLISHED' },
+                    { label: 'Draft', value: 'DRAFT' },
+                  ]}
+                  labelField="label"
+                  valueField="value"
+                  placeholder="Select Status"
+                  value={value}
+                  dropdownPosition="top"
+                  onChange={item => onChange(item.value)}
+                  renderItem={item => {
+                    const isSelected = item.value === value;
+                    return (
+                      <View
+                        style={[styles.dropdownItem, isSelected && styles.dropdownItemSelected]}
+                      >
+                        <Text
+                          style={[styles.dropdownItemText, isSelected && styles.dropdownItemTextSelected]}
+                        >
+                          {item.label}
+                        </Text>
+                      </View>
+                    );
+                  }}
+                />
+              )}
+            />
+
+            <View style={[styles.labelRow, { justifyContent: 'space-between' }]}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: wp(6) }}>
+                <Type size={wp(14)} color={'#F0C040'} />
+                <Text style={styles.label}>Headline</Text>
+              </View>
+              <EnhanceSuggestionCard
+                value={watch('description') || ''}
+                onAccept={(text) => setValue('description', text)}
+                endpoint="/ai/webinar/enhance"
+                kind="description"
+                tone="punchy"
+              />
+            </View>
             <Controller
               name="description"
               control={control}
-              rules={{ required: true }}
-              render={({ field: { onChange, onBlur, value } }) => (
+              rules={{
+                required: true,
+                minLength: 5,
+                maxLength: 200,
+              }}
+              render={({
+                field: { onChange, onBlur, value },
+                fieldState: { error },
+              }) => (
                 <CustomTextInput
-                  inputContainerStyle={[styles.input, styles.textArea, errors.description && styles.errorBorder]}
-                  inputStyle={[styles.inputText, { textAlignVertical: 'top' }]}
-                  placeholder="Enter the Description"
-                  placeholderTextColor={colors.textMuted || '#555558'}
+                  inputContainerStyle={[
+                    styles.nameFields,
+                    styles.textArea,
+                    {
+                      borderColor: error ? colors.cError : colors.border,
+                    },
+                  ]}
+                  inputStyle={{
+                    fontSize: fp(14),
+                    color: colors.textPrimary,
+                  }}
+                  placeholderTextColor={colors.textMuted}
+                  placeholder="Write a headline"
                   onChange={onChange}
                   onBlur={onBlur}
                   value={value}
                   multiline
-                  numberOfLines={4}
                 />
               )}
             />
 
-            {/* Duration */}
-            <Text style={styles.inputLabel}>WEBINAR DURATION</Text>
-            <Controller
-              name="duration"
-              control={control}
-              rules={{ required: true }}
-              render={({ field: { onChange, onBlur, value } }) => (
-                <CustomTextInput
-                  inputContainerStyle={[styles.input, errors.duration && styles.errorBorder]}
-                  inputStyle={styles.inputText}
-                  placeholder="e.g. 60 mins"
-                  placeholderTextColor={colors.textMuted || '#555558'}
-                  keyboardType="numeric"
-                  onChange={onChange}
-                  onBlur={onBlur}
-                  value={value}
-                />
-              )}
-            />
-
-            {/* Max Participants */}
-            <Text style={styles.inputLabel}>TOTAL PARTICIPANTS</Text>
-            <Controller
-              name="max_participants"
-              control={control}
-              rules={{ required: true }}
-              render={({ field: { onChange, onBlur, value } }) => (
-                <CustomTextInput
-                  inputContainerStyle={[styles.input, errors.max_participants && styles.errorBorder]}
-                  inputStyle={styles.inputText}
-                  placeholder="e.g. 100"
-                  placeholderTextColor={colors.textMuted || '#555558'}
-                  keyboardType="numeric"
-                  onChange={onChange}
-                  onBlur={onBlur}
-                  value={value}
-                />
-              )}
-            />
-          </View>
-
-          {/* Pricing Model Card */}
-          <View style={styles.formCard}>
-            <Text style={styles.cardHeaderTitle}>Pricing Model</Text>
-            <Text style={styles.pricingSubtitle}>Set the value for your knowledge.</Text>
-
-            {/* Paid | Free side-by-side selection pills */}
-            <View style={styles.pricingPillRow}>
-              <TouchableOpacity
-                style={[
-                  styles.pricingPill,
-                  pricingModel === 'paid' ? styles.pricingPillActive : styles.pricingPillInactive,
-                ]}
-                onPress={() => setPricingModel('paid')}
-                activeOpacity={0.9}
-              >
-                <Coins size={16} color={pricingModel === 'paid' ? '#000000' : colors.white} />
-                <Text
-                  style={[
-                    styles.pricingPillText,
-                    pricingModel === 'paid' ? styles.pricingPillTextActive : styles.pricingPillTextInactive,
-                  ]}
-                >
-                  Paid
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[
-                  styles.pricingPill,
-                  pricingModel === 'free' ? styles.pricingPillActive : styles.pricingPillInactive,
-                ]}
-                onPress={() => {
-                  setPricingModel('free');
-                  setValue('price', '0');
-                }}
-                activeOpacity={0.9}
-              >
-                <Gift size={16} color={pricingModel === 'free' ? '#000000' : colors.white} />
-                <Text
-                  style={[
-                    styles.pricingPillText,
-                    pricingModel === 'free' ? styles.pricingPillTextActive : styles.pricingPillTextInactive,
-                  ]}
-                >
-                  Free
-                </Text>
-              </TouchableOpacity>
+            <View style={{ marginHorizontal: wp(5) }}>
+              <FacingIssues
+                title="facing issues in Webinar creation"
+                messgae="Hello, I need help with webinar creation."
+              />
             </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
 
-            {/* Price field conditionally shown */}
-            {pricingModel === 'paid' && (
-              <View style={{ marginTop: hp(12) }}>
-                <Text style={styles.inputLabel}>PRICE (INR)</Text>
-                <Controller
-                  name="price"
-                  control={control}
-                  rules={{ required: pricingModel === 'paid' }}
-                  render={({ field: { onChange, onBlur, value } }) => (
-                    <CustomTextInput
-                      inputContainerStyle={[styles.input, errors.price && styles.errorBorder]}
-                      inputStyle={styles.inputText}
-                      keyboardType="numeric"
-                      placeholder="e.g. 499"
-                      placeholderTextColor={colors.textMuted || '#555558'}
-                      onChange={onChange}
-                      onBlur={onBlur}
-                      value={value}
-                    />
-                  )}
-                />
-              </View>
-            )}
-          </View>
-
-          <DateTimePickerModal
-            isVisible={isDatePickerVisible}
-            mode="datetime"
-            onConfirm={handleDateConfirm}
-            onCancel={hideDatePicker}
-          />
-
-          <FacingIssues
-            title="facing issues in upload"
-            messgae="Hello, I need help with uploading."
-          />
-        </ScrollView>
-
-        {/* Sticky Actions Footer */}
         <View style={styles.actions}>
           <TouchableOpacity
+            disabled={loading}
             style={styles.cancelBtn}
             onPress={() => {
               navigation.goBack();
               reset();
             }}
-            disabled={loading}
           >
-            <Text style={styles.cancelText}>Save Draft</Text>
+            <Text style={styles.cancelText}>Cancel</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -439,7 +719,7 @@ const CreateWebinarScreen = () => {
             disabled={loading}
           >
             {loading ? (
-              <ActivityIndicator size="small" color="#000000" />
+              <ActivityIndicator color={colors.white} size="small" />
             ) : (
               <Text style={styles.primaryText}>
                 {updatedata ? 'Update Webinar' : 'Create Webinar'}
@@ -447,7 +727,7 @@ const CreateWebinarScreen = () => {
             )}
           </TouchableOpacity>
         </View>
-      </KeyboardAvoidingView>
+      </View>
     </View>
   );
 };
@@ -457,176 +737,184 @@ export default CreateWebinarScreen;
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: colors.bg || '#0F0F0F',
+    backgroundColor: colors.bg,
+  },
+  container: {
+    flex: 1,
+    paddingHorizontal: wp(16),
   },
   keyboardWrapper: {
     flex: 1,
   },
   formScroll: {
-    paddingHorizontal: wp(16),
-    paddingTop: hp(16),
-    paddingBottom: hp(40),
+    paddingBottom: hp(24),
   },
-
-  // Cards
-  formCard: {
-    backgroundColor: colors.surface || '#1C1C1E',
-    borderRadius: 14,
-    padding: wp(16),
-    borderWidth: 1,
-    borderColor: colors.border || '#2A2A2C',
-    marginBottom: hp(12),
-  },
-  cardHeaderTitle: {
-    fontSize: fp(16),
-    fontWeight: '700',
-    color: colors.white || '#FFFFFF',
-    marginBottom: hp(4),
-  },
-  cardHeaderSubtitle: {
-    fontSize: fp(11),
-    color: colors.textSecondary || '#888888',
-    marginBottom: hp(14),
-  },
-
-  // Input Labels
-  inputLabel: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: colors.textMuted || '#555558',
-    letterSpacing: 0.6,
+  labelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(6),
     marginBottom: hp(6),
-    marginTop: hp(6),
   },
-
-  // Inputs
-  input: {
-    borderRadius: 10,
-    paddingHorizontal: wp(12),
-    height: hp(44),
-    width: '100%',
-    backgroundColor: colors.inputBg || '#242426',
-    borderWidth: 1,
-    borderColor: colors.border || '#2A2A2C',
-    marginBottom: hp(10),
-  },
-  inputText: {
-    color: colors.white || '#FFFFFF',
-    fontSize: fp(14),
-  },
-  textArea: {
-    height: hp(88),
-  },
-  dateRowButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-
-  // Dropdown element styling
-  dropdownItem: {
-    paddingHorizontal: wp(12),
-    paddingVertical: hp(10),
-    marginHorizontal: wp(4),
-    marginVertical: hp(2),
-    borderRadius: 8,
-  },
-  dropdownItemSelected: {
-    backgroundColor: colors.inputBg || '#242426',
-  },
-  dropdownItemText: {
-    color: colors.textSecondary || '#888888',
+  label: {
     fontSize: fp(13),
-  },
-  dropdownItemTextSelected: {
-    color: colors.gold || '#F0C040',
+    color: colors.textPrimary,
     fontWeight: '600',
+    letterSpacing: 0.3,
   },
-  placeholderText: {
-    fontSize: fp(14),
-    color: colors.textMuted || '#555558',
-  },
-  selectedText: {
-    fontSize: fp(14),
-    color: colors.white || '#FFFFFF',
-  },
-
-  // Pricing Model Styling
-  pricingSubtitle: {
-    fontSize: fp(11),
-    color: colors.textSecondary || '#888888',
-    marginBottom: hp(12),
-  },
-  pricingPillRow: {
-    flexDirection: 'row',
-    gap: wp(10),
-  },
-  pricingPill: {
-    flex: 1,
-    height: hp(44),
-    borderRadius: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: wp(8),
-  },
-  pricingPillActive: {
-    backgroundColor: colors.gold || '#F0C040',
-  },
-  pricingPillInactive: {
-    backgroundColor: colors.inputBg || '#242426',
-    borderWidth: 1,
-    borderColor: colors.border || '#2A2A2C',
-  },
-  pricingPillText: {
-    fontSize: fp(13),
-    fontWeight: '700',
-  },
-  pricingPillTextActive: {
-    color: '#000000',
-  },
-  pricingPillTextInactive: {
-    color: colors.white || '#FFFFFF',
-  },
-
-  // Sticky bottom action buttons
   actions: {
     flexDirection: 'row',
-    gap: wp(10),
-    paddingHorizontal: wp(16),
-    paddingVertical: hp(14),
+    gap: wp(12),
+    paddingVertical: hp(16),
     borderTopWidth: 1,
-    borderTopColor: colors.border || '#2A2A2C',
-    backgroundColor: colors.bg || '#0F0F0F',
+    borderTopColor: colors.border,
+    backgroundColor: colors.surface,
   },
   cancelBtn: {
     flex: 1,
-    height: hp(44),
-    borderRadius: 22,
+    paddingVertical: hp(10),
+    borderRadius: wp(12),
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: colors.border || '#2A2A2C',
+    borderColor: colors.border,
   },
   cancelText: {
-    color: colors.white || '#FFFFFF',
+    color: colors.textSecondary,
     fontWeight: '600',
-    fontSize: fp(14),
+    fontSize: fp(15),
   },
   primaryButton: {
-    flex: 1.5,
-    backgroundColor: colors.gold || '#F0C040',
-    height: hp(44),
-    borderRadius: 22,
+    flex: 2,
+    backgroundColor: colors.gold,
+    paddingVertical: hp(10),
+    borderRadius: wp(12),
     alignItems: 'center',
     justifyContent: 'center',
   },
   primaryText: {
-    color: '#000000',
-    fontWeight: '700',
+    color: colors.bg,
+    fontWeight: '800',
+    fontSize: fp(15),
+  },
+  nameFields: {
+    borderRadius: wp(10),
+    paddingHorizontal: wp(10),
+    height: hp(46),
+    width: '100%',
+    borderWidth: wp(1),
+    marginBottom: hp(10),
+    backgroundColor: colors.inputBg,
+    borderColor: colors.border,
+    color: colors.textPrimary,
+  },
+  textArea: {
+    height: hp(90),
+    alignItems: 'flex-start',
+  },
+  dropdown: {
+    height: hp(46),
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: wp(12),
+    paddingHorizontal: wp(14),
+    justifyContent: 'center',
+    marginBottom: hp(10),
+    backgroundColor: colors.inputBg,
+  },
+  dropdownContainer: {
+    borderRadius: wp(12),
+    overflow: 'hidden',
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  dropdownItem: {
+    paddingHorizontal: wp(14),
+    paddingVertical: hp(10),
+    marginHorizontal: wp(6),
+    marginVertical: hp(3),
+    borderRadius: wp(8),
+  },
+  dropdownItemSelected: {
+    backgroundColor: colors.goldDim,
+  },
+  dropdownItemText: {
+    color: colors.textSecondary,
     fontSize: fp(14),
   },
+  dropdownItemTextSelected: {
+    color: colors.gold,
+    fontWeight: '600',
+  },
   errorBorder: {
-    borderColor: colors.error || '#EF4444',
+    borderColor: colors.cError,
+  },
+  placeholder: {
+    fontSize: fp(14),
+    color: colors.textMuted,
+  },
+  selectedText: {
+    fontSize: fp(14),
+    color: colors.textPrimary,
+  },
+  datePicker: {
+    flex: 1,
+    justifyContent: 'center',
+    borderWidth: wp(1),
+    borderRadius: wp(10),
+    height: hp(46),
+    borderColor: colors.border,
+    paddingLeft: wp(12),
+    marginBottom: hp(10),
+    backgroundColor: colors.inputBg,
+  },
+  imagePreview: {
+    width: '100%',
+    height: hp(150),
+    borderRadius: wp(8),
+    marginTop: hp(10),
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  customHeader: {
+    flexDirection: 'row',
+    marginBottom: hp(10),
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  secHeader: {
+    width: '10%',
+    alignItems: 'center',
+  },
+  tagContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: hp(10),
+  },
+
+  tagItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.goldDim,
+    borderWidth: 1,
+    borderColor: colors.gold,
+    paddingHorizontal: wp(10),
+    paddingVertical: hp(5),
+    borderRadius: wp(20),
+    marginRight: wp(8),
+    marginBottom: hp(8),
+  },
+
+  tagText: {
+    color: colors.gold,
+    fontSize: fp(13),
+    marginRight: wp(6),
+  },
+
+  removeTag: {
+    color: colors.gold,
+    fontSize: fp(14),
+    fontWeight: 'bold',
   },
 });

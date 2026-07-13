@@ -11,11 +11,10 @@ import {
   User,
 } from "lucide-react-native";
 import CreatorHome from '../screens/Auth/Creator/Home/CreatorHome';
-//import CreatorView from '../screens/Auth/Creator/Products/Course/CreatorView';
+import CreatorProducts from '../screens/Auth/Creator/Products/CreatorProducts';
 import CreatorSetting from '../screens/Auth/Creator/Settings/CreatorSetting';
-import CreatorWebinar from '../screens/Auth/Creator/Webinar/CreatorWebinar';
 import CreateProducts from '../screens/Auth/Creator/Products/Course/CreateProducts';
-//import CreatorCenter from '../screens/Auth/Creator/CreatorCenter/CreatorCenter';
+import Dashboard from '../screens/Auth/Profile/Dashboard';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const Tab = createBottomTabNavigator();
@@ -28,8 +27,8 @@ const tabs = [
     Icon: House,
   },
   {
-    name: 'ProductsHub',
-    component: ProductsHub,
+    name: 'ProductsScreen',
+    component: CreatorProducts,
     label: 'Products',
     Icon: ShoppingBag,
   },
@@ -40,8 +39,8 @@ const tabs = [
     Icon: Bot,
   },
   {
-    name: 'CreatorWebinar',
-    component: CreatorWebinar,
+    name: 'Dashboard',
+    component: Dashboard,
     label: 'Stats',
     Icon: LayoutGrid,
   },

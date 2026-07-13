@@ -16,6 +16,10 @@ import colors from '../../../../../utils/colors';
 import { wp, hp, fp } from '../../../../../utils/responsive';
 import { getEnrolledCourses } from '../../../../../store/EnrollmentSlice';
 
+const ACCENT = '#4F60FA';
+const CARD_BG = '#1E1B2E';
+const PLACEHOLDER_BG = '#2A2740';
+
 const LatestCourseItem = ({ item, onPress }: any) => {
   return (
     <Pressable
@@ -26,7 +30,7 @@ const LatestCourseItem = ({ item, onPress }: any) => {
         <Image source={{ uri: item?.thumbnail }} style={styles.thumb} />
       ) : (
         <View style={[styles.thumb, styles.thumbPlaceholder]}>
-          <BookOpen size={wp(22)} color={colors.secPrimary} strokeWidth={1.5} />
+          <BookOpen size={wp(22)} color={ACCENT} strokeWidth={1.5} />
         </View>
       )}
       <View style={styles.info}>
@@ -92,9 +96,9 @@ const styles = StyleSheet.create({
     paddingTop: hp(22),
   },
   sectionTitle: {
-    fontSize: fp(20),
+    fontSize: fp(18),
     fontWeight: '700',
-    color: '#1C1C1C',
+    color: colors.white,
     paddingHorizontal: wp(20),
     marginBottom: hp(14),
   },
@@ -107,14 +111,9 @@ const styles = StyleSheet.create({
   },
   card: {
     width: wp(160),
-    backgroundColor: colors.white,
+    backgroundColor: CARD_BG,
     borderRadius: wp(14),
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
     marginBottom: 5,
   },
   cardPressed: {
@@ -126,7 +125,7 @@ const styles = StyleSheet.create({
     height: hp(90),
   },
   thumbPlaceholder: {
-    backgroundColor: '#F7ECEC',
+    backgroundColor: PLACEHOLDER_BG,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -136,18 +135,18 @@ const styles = StyleSheet.create({
   title: {
     fontSize: fp(13),
     fontWeight: '600',
-    color: '#1C1C1C',
+    color: colors.white,
     lineHeight: fp(17),
     marginBottom: hp(4),
   },
   creator: {
     fontSize: fp(11),
-    color: '#6B6059',
+    color: '#9C98AE',
     marginBottom: hp(6),
   },
   price: {
-    fontSize: fp(14),
+    fontSize: fp(13),
     fontWeight: '700',
-    color: colors.secPrimary,
+    color: ACCENT,
   },
 });

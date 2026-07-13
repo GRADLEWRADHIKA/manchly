@@ -1,4 +1,7 @@
 const colors = {
+  PLACEHOLDER_BG :'#2A2740',
+  ACCENT : '#4F60FA',
+  CARD_BG : '#1E1B2E',
   primary: '#000000',
   secPrimary: '#692626',
   secondary: '#F97316',

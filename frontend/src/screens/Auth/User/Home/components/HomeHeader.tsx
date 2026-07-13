@@ -33,48 +33,45 @@ const HomeHeader = () => {
   };
 
   return (
-    <>
-      <View style={[styles.mainHeader, { paddingTop: insets.top + hp(4) }]}>
-        <Pressable
-          style={styles.headerLeft}
-          onPress={() => navigation.navigate('UserSetting')}>
-          {user?.profile_image ? (
-            <Image source={{ uri: user.profile_image }} style={styles.avatar} />
-          ) : (
-            <View style={styles.avatarFallback}>
-              <Text style={styles.avatarInitials}>{initials}</Text>
-            </View>
-          )}
-          <View>
-            <Text style={styles.greetingLabel}>{getGreeting()}</Text>
-            <Text style={styles.greetingName} numberOfLines={1}>
-              {displayName?.split(' ')[0]}
-            </Text>
+    <View style={[styles.mainHeader, { paddingTop: insets.top + hp(4) }]}>
+      <Pressable
+        style={styles.headerLeft}
+        onPress={() => navigation.navigate('UserSetting')}>
+        {user?.profile_image ? (
+          <Image source={{ uri: user.profile_image }} style={styles.avatar} />
+        ) : (
+          <View style={styles.avatarFallback}>
+            <Text style={styles.avatarInitials}>{initials}</Text>
           </View>
-        </Pressable>
-        <View style={styles.headerActions}>
-          <Pressable
-            style={({ pressed }) => [
-              styles.iconBtn,
-              pressed && styles.iconBtnPressed,
-            ]}
-            onPress={() => Linking.openURL('https://www.instagram.com/manchly_app')}
-            accessibilityLabel="Instagram">
-            <Instagram size={wp(18)} color={colors.white} strokeWidth={2} />
-          </Pressable>
-          <Pressable
-            style={({ pressed }) => [
-              styles.iconBtn,
-              pressed && styles.iconBtnPressed,
-            ]}
-            onPress={() => navigation.navigate('ProductsScreen')}
-            accessibilityLabel="Search courses">
-            <Search size={wp(18)} color={colors.white} strokeWidth={2} />
-          </Pressable>
+        )}
+        <View>
+          <Text style={styles.greetingName} numberOfLines={1}>
+            Hello {displayName?.split(' ')[0]},
+          </Text>
+          <Text style={styles.greetingLabel}>{getGreeting()}</Text>
         </View>
+      </Pressable>
+      <View style={styles.headerActions}>
+        <Pressable
+          style={({ pressed }) => [
+            styles.iconBtn,
+            pressed && styles.iconBtnPressed,
+          ]}
+          onPress={() => Linking.openURL('https://www.instagram.com/manchly_app')}
+          accessibilityLabel="Instagram">
+          <Instagram size={wp(20)} color={colors.white} strokeWidth={2} />
+        </Pressable>
+        <Pressable
+          style={({ pressed }) => [
+            styles.iconBtn,
+            pressed && styles.iconBtnPressed,
+          ]}
+          onPress={() => navigation.navigate('ProductsScreen')}
+          accessibilityLabel="Search courses">
+          <Search size={wp(20)} color={colors.white} strokeWidth={2} />
+        </Pressable>
       </View>
-      <View style={styles.headerCurve} />
-    </>
+    </View>
   );
 };
 
@@ -86,15 +83,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: wp(20),
-    paddingBottom: hp(14),
-    backgroundColor: colors.secPrimary,
-    zIndex: 10,
-  },
-  headerCurve: {
-    backgroundColor: colors.secPrimary,
-    height: hp(16),
-    borderBottomLeftRadius: wp(28),
-    borderBottomRightRadius: wp(28),
+    paddingBottom: hp(16),
+    backgroundColor:  colors.PLACEHOLDER_BG,
     zIndex: 10,
   },
   headerLeft: {
@@ -107,28 +97,19 @@ const styles = StyleSheet.create({
     width: wp(44),
     height: wp(44),
     borderRadius: wp(22),
-    borderWidth: 2.5,
-    borderColor: 'rgba(255,255,255,0.5)',
   },
   avatarFallback: {
     width: wp(44),
     height: wp(44),
     borderRadius: wp(22),
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: 'rgba(255,255,255,0.12)',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2.5,
-    borderColor: 'rgba(255,255,255,0.5)',
   },
   avatarInitials: {
     color: colors.white,
     fontSize: fp(18),
     fontWeight: '700',
-  },
-  greetingLabel: {
-    fontSize: fp(12),
-    color: 'rgba(255,255,255,0.75)',
-    fontWeight: '400',
   },
   greetingName: {
     fontSize: fp(17),
@@ -136,22 +117,21 @@ const styles = StyleSheet.create({
     color: colors.white,
     lineHeight: fp(22),
   },
+  greetingLabel: {
+    fontSize: fp(12),
+    color: 'rgba(255,255,255,0.55)',
+    fontWeight: '400',
+    marginTop: hp(1),
+  },
   headerActions: {
     flexDirection: 'row',
-    gap: wp(10),
+    gap: wp(18),
   },
   iconBtn: {
-    width: wp(40),
-    height: wp(40),
-    borderRadius: wp(14),
-    backgroundColor: 'rgba(255,255,255,0.15)',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
   },
   iconBtnPressed: {
-    backgroundColor: 'rgba(255,255,255,0.25)',
-    transform: [{ scale: 0.93 }],
+    opacity: 0.6,
   },
 });

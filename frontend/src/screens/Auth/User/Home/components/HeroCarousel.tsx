@@ -15,6 +15,8 @@ const HERO_CARD_GAP = wp(12);
 const HERO_CARD_WIDTH = SCREEN_WIDTH - wp(40);
 const HERO_SNAP_WIDTH = HERO_CARD_WIDTH + HERO_CARD_GAP;
 
+const ACCENT = '#1A1E38';
+
 const heroSlides = [
   {
     id: '1',
@@ -53,7 +55,7 @@ const DotIndicator = ({ count, activeIndex }: any) => (
           styles.dot,
           {
             width: i === activeIndex ? wp(22) : wp(6),
-            backgroundColor: i === activeIndex ? colors.secPrimary : '#B8ADA5',
+            backgroundColor: i === activeIndex ? ACCENT : '#3A3650',
           },
         ]}
       />
@@ -125,7 +127,7 @@ const HeroCarousel = () => {
 
   const renderItem = useCallback(({ item }: { item: typeof loopedSlides[0] }) => (
     <LinearGradient
-      colors={['#3D1515', '#7A2020', '#B54040']}
+      colors={['#221D3A', '#3D2F63', '#5A47A8']}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.heroCard}>
@@ -183,31 +185,32 @@ const styles = StyleSheet.create({
   },
   heroBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: 'rgba(255,255,255,0.18)',
+    backgroundColor: 'rgba(255,255,255,0.12)',
     borderWidth: 1,
-    borderColor: 'rgba(255,210,140,0.3)',
+    borderColor: 'rgba(140,130,255,0.35)',
     paddingHorizontal: wp(10),
     paddingVertical: hp(4),
     borderRadius: wp(20),
     marginBottom: hp(10),
   },
   heroBadgeText: {
-    color: '#FFD6A5',
+    color: '#A79CFF',
     fontSize: fp(10),
     fontWeight: '600',
     letterSpacing: 1.2,
     textTransform: 'uppercase',
   },
   heroTitle: {
-    fontSize: fp(24),
-    fontWeight: '900',
+    fontSize: fp(22),
+    fontWeight: '800',
     color: colors.white,
-    lineHeight: fp(30),
+    lineHeight: fp(28),
     marginBottom: hp(6),
   },
   heroSub: {
-    fontSize: fp(13),
-    color: 'rgba(255,255,255,0.7)',
+    fontSize: fp(12),
+    color: 'rgba(255,255,255,0.65)',
+    lineHeight: fp(17),
   },
   dotRow: {
     flexDirection: 'row',

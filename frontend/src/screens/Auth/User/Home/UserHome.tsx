@@ -29,7 +29,7 @@ export default memo(UserHome);
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#FDFAF6',
+    backgroundColor: '#1A1E38',
   },
   container: {
     flex: 1,

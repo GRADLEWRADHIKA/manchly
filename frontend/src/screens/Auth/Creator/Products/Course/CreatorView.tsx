@@ -142,7 +142,7 @@ const CreatorView: React.FC<{embedded?: boolean}> = ({embedded = false}) => {
     if (!loadingMore) return null;
     return (
       <View style={styles.footerLoader}>
-        <ActivityIndicator size="small" color={colors.cAccentLight} />
+        <ActivityIndicator size="small" color={colors.gold} />
         <Text style={styles.loadingText}>Loading more...</Text>
       </View>
     );
@@ -153,7 +153,7 @@ const CreatorView: React.FC<{embedded?: boolean}> = ({embedded = false}) => {
     return (
       <View style={styles.emptyState}>
         <View style={styles.emptyIcon}>
-          <BookOpen size={wp(30)} color={'#94A3B8'} />
+          <BookOpen size={wp(30)} color={colors.textMuted} />
         </View>
         <Text style={styles.emptyTitle}>No courses found</Text>
         <Text style={styles.emptySubtitle}>
@@ -169,18 +169,18 @@ const CreatorView: React.FC<{embedded?: boolean}> = ({embedded = false}) => {
     <>
       {/* Search */}
       <View style={styles.searchContainer}>
-        <Search size={wp(18)} color={'#64748B'} />
+        <Search size={wp(18)} color={colors.textSecondary} />
         <CustomTextInput
           inputContainerStyle={styles.searchInput}
-          inputStyle={{ fontSize: fp(14), color: '#1A1A2E' }}
-          placeholderTextColor={'#94A3B8'}
+          inputStyle={{ fontSize: fp(14), color: colors.textPrimary }}
+          placeholderTextColor={colors.textMuted}
           placeholder="Search courses..."
           onChange={handleSearch as any}
           value={searchQuery}
         />
         {searchQuery.length > 0 && (
           <TouchableOpacity onPress={clearSearch} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-            <X size={wp(18)} color={'#94A3B8'} />
+            <X size={wp(18)} color={colors.textMuted} />
           </TouchableOpacity>
         )}
       </View>
@@ -193,7 +193,7 @@ const CreatorView: React.FC<{embedded?: boolean}> = ({embedded = false}) => {
 
       {loading && (
         <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color={colors.cAccentLight} />
+          <ActivityIndicator size="large" color={colors.gold} />
         </View>
       )}
     </>
@@ -209,7 +209,7 @@ const CreatorView: React.FC<{embedded?: boolean}> = ({embedded = false}) => {
                 <Image source={{ uri: user?.profile_image }} style={styles.avatar} />
               ) : (
                 <View style={styles.avatarFallback}>
-                  <UserCircle size={wp(28)} color={colors.white} />
+                  <UserCircle size={wp(28)} color={colors.textPrimary} />
                 </View>
               )}
               <View>
@@ -224,13 +224,13 @@ const CreatorView: React.FC<{embedded?: boolean}> = ({embedded = false}) => {
                 style={styles.bellBtn}
                 onPress={() => Linking.openURL('https://www.instagram.com/manchly_app')}
               >
-                <Instagram size={wp(20)} color={colors.white} />
+                <Instagram size={wp(20)} color={colors.textPrimary} />
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.bellBtn}
                 onPress={() => navigation.navigate('CreatorNotification')}
               >
-                <Bell size={wp(20)} color={colors.white} />
+                <Bell size={wp(20)} color={colors.textPrimary} />
               </TouchableOpacity>
             </View>
           </View>
@@ -255,7 +255,7 @@ const CreatorView: React.FC<{embedded?: boolean}> = ({embedded = false}) => {
           icon={({ size, color }) => <Plus size={size} color={color} />}
           style={styles.fab}
           onPress={() => navigation.navigate('CreateCourse')}
-          color={colors.white}
+          color={colors.bg}
         />
       </View>
 
@@ -276,7 +276,7 @@ export default CreatorView;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: colors.bg,
   },
   listContent: {
     flexGrow: 1,
@@ -285,9 +285,9 @@ const styles = StyleSheet.create({
 
   // Header
   headerWrapper: {
-    backgroundColor: colors.cSurface,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
+    backgroundColor: colors.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
   header: {
     flexDirection: 'row',
@@ -306,38 +306,38 @@ const styles = StyleSheet.create({
     height: wp(46),
     borderRadius: wp(23),
     borderWidth: 2,
-    borderColor: '#E2E8F0',
+    borderColor: colors.border,
   },
   avatarFallback: {
     width: wp(46),
     height: wp(46),
     borderRadius: wp(23),
-    backgroundColor: colors.white,
+    backgroundColor: colors.inputBg,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#E2E8F0',
+    borderColor: colors.border,
   },
   headerSub: {
     fontSize: fp(12),
-    color: colors.cTextSecondary,
+    color: colors.textSecondary,
     fontWeight: '500',
   },
   headerTitle: {
     fontSize: fp(18),
     fontWeight: '800',
-    color: colors.cText,
+    color: colors.textPrimary,
     marginTop: hp(1),
   },
   bellBtn: {
     width: wp(40),
     height: wp(40),
     borderRadius: wp(20),
-    backgroundColor: colors.white,
+    backgroundColor: colors.inputBg,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.border,
   },
 
   // Search
@@ -347,20 +347,16 @@ const styles = StyleSheet.create({
     marginHorizontal: wp(16),
     marginTop: hp(14),
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.border,
     borderRadius: wp(14),
     paddingHorizontal: wp(12),
-    backgroundColor: '#F8FAFC',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
+    backgroundColor: colors.inputBg,
   },
   searchInput: {
     height: hp(44),
     width: '85%',
     borderRadius: wp(14),
+    backgroundColor: colors.inputBg,
   },
 
   // List header
@@ -375,11 +371,11 @@ const styles = StyleSheet.create({
   listTitle: {
     fontSize: fp(18),
     fontWeight: '700',
-    color: '#1A1A2E',
+    color: colors.textPrimary,
   },
   courseCount: {
     fontSize: fp(13),
-    color: '#64748B',
+    color: colors.textSecondary,
     fontWeight: '500',
   },
 
@@ -397,7 +393,7 @@ const styles = StyleSheet.create({
     gap: wp(8),
   },
   loadingText: {
-    color: '#64748B',
+    color: colors.textSecondary,
     fontSize: fp(13),
     fontWeight: '500',
   },
@@ -413,21 +409,23 @@ const styles = StyleSheet.create({
     width: wp(64),
     height: wp(64),
     borderRadius: wp(32),
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: hp(14),
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   emptyTitle: {
     fontSize: fp(17),
     fontWeight: '700',
-    color: '#1A1A2E',
+    color: colors.textPrimary,
     marginBottom: hp(6),
     textAlign: 'center',
   },
   emptySubtitle: {
     fontSize: fp(13),
-    color: '#64748B',
+    color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: fp(19),
   },
@@ -439,7 +437,7 @@ const styles = StyleSheet.create({
     bottom: hp(16),
   },
   fab: {
-    backgroundColor: '#0F3460',
+    backgroundColor: colors.gold,
     borderRadius: wp(50),
   },
 });

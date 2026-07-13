@@ -119,10 +119,20 @@ const CreateCourse = () => {
       }),
     )
       .unwrap()
-      .then(() => {
+      .then((res: any) => {
         reset();
         Toast.show({ type: 'success', text1: 'Course created!' });
-        Nav.goBack();
+        Nav.navigate('CourseDetailsScreen', {
+          courseId: res?.data?.id || res?.data?.data?.id,
+          fromCreate: true,
+          courseData: res?.data || res?.data?.data || {
+            title: data.courseTitle,
+            price: data.price,
+            status: data.status,
+            thumbnail: data.thumbnail,
+            level: data.level,
+          },
+        });
       })
       .catch(() =>
         Toast.show({ type: 'error', text1: 'Failed to create course' }),
@@ -196,7 +206,7 @@ const CreateCourse = () => {
             <View
               style={{ flexDirection: 'row', alignItems: 'center', gap: wp(6) }}
             >
-              <Type size={wp(14)} color={'#64748B'} />
+              <Type size={wp(14)} color={'#F0C040'} />
               <Text style={styles.label}>Course Title</Text>
             </View>
             <EnhanceSuggestionCard
@@ -227,7 +237,7 @@ const CreateCourse = () => {
 
           {/* Price */}
           <View style={styles.labelRow}>
-            <IndianRupee size={wp(14)} color={'#64748B'} />
+            <IndianRupee size={wp(14)} color={'#F0C040'} />
             <Text style={styles.label}>Price (INR)</Text>
           </View>
           <Controller
@@ -251,7 +261,7 @@ const CreateCourse = () => {
 
           {/* Thumbnail */}
           <View style={styles.labelRow}>
-            <ImagePlus size={wp(14)} color={'#64748B'} />
+            <ImagePlus size={wp(14)} color={'#F0C040'} />
             <Text style={styles.label}>Course Thumbnail</Text>
           </View>
           <Controller
@@ -266,10 +276,10 @@ const CreateCourse = () => {
                   activeOpacity={0.7}
                 >
                   {uploading ? (
-                    <ActivityIndicator color={'#60A5FA'} />
+                    <ActivityIndicator color={'#F0C040'} />
                   ) : (
                     <>
-                      <ImagePlus size={wp(18)} color={'#64748B'} />
+                      <ImagePlus size={wp(18)} color={'#F0C040'} />
                       <Text style={styles.thumbnailBtnText}>
                         {value ? 'Change Thumbnail' : 'Choose Thumbnail'}
                       </Text>
@@ -289,7 +299,7 @@ const CreateCourse = () => {
 
           {/* Level */}
           <View style={styles.labelRow}>
-            <BarChart3 size={wp(14)} color={'#64748B'} />
+            <BarChart3 size={wp(14)} color={'#F0C040'} />
             <Text style={styles.label}>Level</Text>
           </View>
           <Controller
@@ -319,7 +329,7 @@ const CreateCourse = () => {
 
           {/* Status */}
           <View style={styles.labelRow}>
-            <ToggleLeft size={wp(14)} color={'#64748B'} />
+            <ToggleLeft size={wp(14)} color={'#F0C040'} />
             <Text style={styles.label}>Status</Text>
           </View>
           <Controller
@@ -351,7 +361,7 @@ const CreateCourse = () => {
             <View
               style={{ flexDirection: 'row', alignItems: 'center', gap: wp(6) }}
             >
-              <FileText size={wp(14)} color={'#64748B'} />
+              <FileText size={wp(14)} color={'#F0C040'} />
               <Text style={styles.label}>Headline</Text>
             </View>
             <EnhanceSuggestionCard
@@ -432,14 +442,14 @@ export default CreateCourse;
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: colors.bg,
   },
   flex: {
     flex: 1,
   },
   scrollArea: {
     padding: wp(16),
-    paddingBottom: hp(20),
+    paddingBottom: hp(24),
   },
 
   // Labels
@@ -447,28 +457,29 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(6),
-    marginTop: hp(10),
-    marginBottom: hp(4),
+    marginTop: hp(12),
+    marginBottom: hp(6),
   },
   label: {
     fontSize: fp(13),
-    color: '#1A1A2E',
+    color: colors.textPrimary,
     fontWeight: '600',
+    letterSpacing: 0.3,
   },
 
   // Inputs
   input: {
     borderRadius: wp(12),
-    paddingHorizontal: wp(12),
-    height: hp(42),
+    paddingHorizontal: wp(14),
+    height: hp(46),
     width: '100%',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.inputBg,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.border,
+    color: colors.textPrimary,
   },
   textArea: {
-    height: hp(80),
-    // paddingTop: hp(8),
+    height: hp(88),
     alignItems: 'flex-start',
   },
   errorBorder: {
@@ -483,14 +494,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: wp(8),
     borderRadius: wp(12),
-    height: hp(42),
-    backgroundColor: '#F8FAFC',
+    height: hp(46),
+    backgroundColor: colors.inputBg,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.gold,
     borderStyle: 'dashed',
   },
   thumbnailBtnText: {
-    color: '#64748B',
+    color: colors.gold,
     fontSize: fp(14),
     fontWeight: '500',
   },
@@ -499,24 +510,26 @@ const styles = StyleSheet.create({
     height: hp(160),
     borderRadius: wp(12),
     marginTop: hp(10),
+    borderWidth: 1,
+    borderColor: colors.border,
   },
 
   // Dropdowns
   dropdown: {
-    height: hp(42),
+    height: hp(46),
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.border,
     borderRadius: wp(12),
     paddingHorizontal: wp(14),
     justifyContent: 'center',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.inputBg,
   },
   dropdownContainer: {
     borderRadius: wp(12),
     overflow: 'hidden',
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.border,
   },
   dropdownItem: {
     paddingHorizontal: wp(14),
@@ -526,23 +539,23 @@ const styles = StyleSheet.create({
     borderRadius: wp(8),
   },
   dropdownItemSelected: {
-    backgroundColor: '#EEF2FF',
+    backgroundColor: colors.goldDim,
   },
   dropdownItemText: {
-    color: '#64748B',
+    color: colors.textSecondary,
     fontSize: fp(14),
   },
   dropdownItemTextSelected: {
-    color: '#0F3460',
+    color: colors.gold,
     fontWeight: '600',
   },
   placeholderText: {
     fontSize: fp(14),
-    color: '#94A3B8',
+    color: colors.textMuted,
   },
   selectedText: {
     fontSize: fp(14),
-    color: '#1A1A2E',
+    color: colors.textPrimary,
   },
 
   // Bottom Actions
@@ -552,8 +565,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(16),
     paddingVertical: hp(14),
     borderTopWidth: 1,
-    borderTopColor: '#E2E8F0',
-    backgroundColor: colors.white,
+    borderTopColor: colors.border,
+    backgroundColor: colors.surface,
   },
   cancelBtn: {
     flex: 1,
@@ -561,26 +574,26 @@ const styles = StyleSheet.create({
     borderRadius: wp(12),
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.border,
   },
   cancelText: {
-    color: '#1A1A2E',
+    color: colors.textSecondary,
     fontWeight: '600',
     fontSize: fp(15),
   },
   primaryBtn: {
     flex: 2,
-    backgroundColor: '#0F3460',
+    backgroundColor: colors.gold,
     paddingVertical: hp(14),
     borderRadius: wp(12),
     alignItems: 'center',
     justifyContent: 'center',
   },
   primaryText: {
-    color: colors.white,
-    fontWeight: '700',
+    color: colors.bg,
+    fontWeight: '800',
     fontSize: fp(15),
   },
 });

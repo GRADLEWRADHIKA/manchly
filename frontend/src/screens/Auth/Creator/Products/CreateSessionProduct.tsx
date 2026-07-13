@@ -98,7 +98,7 @@ const CreateSessionProduct: React.FC = () => {
         {/* Mode */}
         <Text style={styles.label}>Call Mode</Text>
         <View style={[styles.modeBtn, styles.modeBtnActiveGreen]}>
-          <Video size={wp(20)} color={colors.white} strokeWidth={1.8} />
+          <Video size={wp(20)} color={colors.bg} strokeWidth={1.8} />
           <Text style={[styles.modeBtnText, styles.modeBtnTextActive]}>
             Video Call
           </Text>
@@ -107,7 +107,7 @@ const CreateSessionProduct: React.FC = () => {
         {/* Duration */}
         <Text style={styles.label}>Duration (minutes) *</Text>
         <View style={styles.inputRow}>
-          <Clock size={wp(18)} color={'#94A3B8'} strokeWidth={1.5} />
+          <Clock size={wp(18)} color={'#F0C040'} strokeWidth={1.5} />
           <TextInput
             style={styles.inputInner}
             placeholder="e.g. 30"
@@ -142,7 +142,7 @@ const CreateSessionProduct: React.FC = () => {
         {/* Price */}
         <Text style={styles.label}>Price (₹) *</Text>
         <View style={styles.inputRow}>
-          <IndianRupee size={wp(18)} color={'#94A3B8'} strokeWidth={1.5} />
+          <IndianRupee size={wp(18)} color={'#F0C040'} strokeWidth={1.5} />
           <TextInput
             style={styles.inputInner}
             placeholder="e.g. 499"
@@ -232,7 +232,7 @@ export default memo(CreateSessionProduct);
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: colors.bg,
   },
   scroll: {flex: 1},
   scrollContent: {
@@ -243,38 +243,39 @@ const styles = StyleSheet.create({
   label: {
     fontSize: fp(13),
     fontWeight: '600',
-    color: '#1A1A2E',
+    color: colors.textPrimary,
     marginBottom: hp(6),
     marginTop: hp(14),
+    letterSpacing: 0.3,
   },
   input: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.inputBg,
     borderRadius: wp(12),
     paddingHorizontal: wp(14),
     paddingVertical: hp(12),
     fontSize: fp(14),
-    color: '#1A1A2E',
+    color: colors.textPrimary,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.border,
   },
   textArea: {
     minHeight: hp(80),
     paddingTop: hp(12),
   },
   inputRow: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.inputBg,
     borderRadius: wp(12),
     paddingHorizontal: wp(14),
     paddingVertical: Platform.OS === 'ios' ? hp(12) : 0,
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.border,
   },
   inputInner: {
     flex: 1,
     fontSize: fp(14),
-    color: '#1A1A2E',
+    color: colors.textPrimary,
     marginLeft: wp(8),
     paddingVertical: Platform.OS === 'ios' ? 0 : hp(12),
   },
@@ -290,25 +291,25 @@ const styles = StyleSheet.create({
     gap: wp(8),
     paddingVertical: hp(14),
     borderRadius: wp(12),
-    backgroundColor: colors.white,
+    backgroundColor: colors.inputBg,
     borderWidth: 1.5,
-    borderColor: '#E2E8F0',
+    borderColor: colors.border,
   },
   modeBtnActive: {
-    backgroundColor: colors.cAccent,
-    borderColor: colors.cAccent,
+    backgroundColor: colors.gold,
+    borderColor: colors.gold,
   },
   modeBtnActiveGreen: {
-    backgroundColor: colors.success,
-    borderColor: colors.success,
+    backgroundColor: colors.cSuccess,
+    borderColor: colors.cSuccess,
   },
   modeBtnText: {
     fontSize: fp(14),
     fontWeight: '600',
-    color: '#1A1A2E',
+    color: colors.textSecondary,
   },
   modeBtnTextActive: {
-    color: colors.white,
+    color: colors.bg,
   },
   chipRow: {
     flexDirection: 'row',
@@ -319,35 +320,35 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(14),
     paddingVertical: hp(8),
     borderRadius: wp(10),
-    backgroundColor: colors.white,
+    backgroundColor: colors.inputBg,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.border,
   },
   chipActive: {
-    backgroundColor: colors.cAccent,
-    borderColor: colors.cAccent,
+    backgroundColor: colors.goldDim,
+    borderColor: colors.gold,
   },
   chipText: {
     fontSize: fp(12),
     fontWeight: '500',
-    color: '#1A1A2E',
+    color: colors.textSecondary,
   },
   chipTextActive: {
-    color: colors.white,
+    color: colors.gold,
     fontWeight: '600',
   },
   summaryCard: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderRadius: wp(14),
     padding: wp(16),
     marginTop: hp(20),
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.border,
   },
   summaryTitle: {
     fontSize: fp(14),
     fontWeight: '700',
-    color: '#1A1A2E',
+    color: colors.textPrimary,
     marginBottom: hp(10),
   },
   summaryRow: {
@@ -357,15 +358,15 @@ const styles = StyleSheet.create({
   },
   summaryLabel: {
     fontSize: fp(13),
-    color: '#64748B',
+    color: colors.textSecondary,
   },
   summaryValue: {
     fontSize: fp(13),
     fontWeight: '600',
-    color: '#1A1A2E',
+    color: colors.textPrimary,
   },
   createBtn: {
-    backgroundColor: colors.cAccent,
+    backgroundColor: colors.gold,
     borderRadius: wp(14),
     paddingVertical: hp(16),
     alignItems: 'center',
@@ -373,7 +374,7 @@ const styles = StyleSheet.create({
   },
   createBtnText: {
     fontSize: fp(16),
-    fontWeight: '700',
-    color: colors.white,
+    fontWeight: '800',
+    color: colors.bg,
   },
 });

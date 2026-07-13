@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Platform,
 } from 'react-native';
+import { LogOut } from 'lucide-react-native';
 import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
 
@@ -16,6 +17,10 @@ type Props = {
   onConfirm: () => void;
   variant?: 'light' | 'dark';
 };
+
+const SALMON = '#F5A9A0';
+const SALMON_DARK_TEXT = '#7A2E24';
+const ICON_BG = '#3A2426';
 
 const LogoutModal: React.FC<Props> = ({ visible, onCancel, onConfirm, variant = 'light' }) => {
   const isDark = variant === 'dark';
@@ -29,12 +34,24 @@ const LogoutModal: React.FC<Props> = ({ visible, onCancel, onConfirm, variant = 
     >
       <View style={styles.backdrop}>
         <View style={[styles.card, isDark && styles.cardDark]}>
-          <Text style={[styles.title, isDark && styles.titleDark]}>Logout</Text>
+          <View style={styles.iconWrap}>
+            <LogOut size={wp(24)} color={SALMON} strokeWidth={2} />
+          </View>
+
+          <Text style={[styles.title, isDark && styles.titleDark]}>Log Out</Text>
           <Text style={[styles.message, isDark && styles.messageDark]}>
-            Are you sure you want to logout?
+            Are you sure you want to log out of Munchly?
           </Text>
 
           <View style={styles.actions}>
+            <TouchableOpacity
+              style={[styles.btn, styles.danger]}
+              onPress={onConfirm}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.dangerText}>Log Out</Text>
+            </TouchableOpacity>
+
             <TouchableOpacity
               style={[styles.btn, isDark ? styles.cancelDark : styles.cancel]}
               onPress={onCancel}
@@ -43,14 +60,6 @@ const LogoutModal: React.FC<Props> = ({ visible, onCancel, onConfirm, variant = 
               <Text style={[styles.btnText, isDark ? styles.cancelTextDark : styles.cancelText]}>
                 Cancel
               </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.btn, styles.danger]}
-              onPress={onConfirm}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.btnText}>Logout</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -72,74 +81,92 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     alignItems: 'center',
-    borderRadius: wp(16),
+    borderRadius: wp(20),
     backgroundColor: colors.surface,
-    padding: wp(18),
+    padding: wp(22),
     ...Platform.select({
       ios: {
         shadowColor: colors.black,
-        shadowOpacity: 0.2,
-        shadowRadius: 12,
-        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.3,
+        shadowRadius: 16,
+        shadowOffset: { width: 0, height: 8 },
       },
-      android: { elevation: 6 },
+      android: { elevation: 8 },
     }),
   },
   cardDark: {
-    backgroundColor: '#1A1A2E',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: colors.border,
+  },
+  iconWrap: {
+    width: wp(56),
+    height: wp(56),
+    borderRadius: wp(28),
+    backgroundColor: ICON_BG,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: hp(16),
   },
   title: {
     fontSize: fp(18),
-    fontWeight: '800',
-    color: colors.text,
-    marginBottom: hp(6),
+    fontWeight: '600',
+    color: colors.textPrimary,
+    marginBottom: hp(8),
+    textAlign: 'center',
   },
   titleDark: {
-    color: colors.white,
+    color: colors.textPrimary,
   },
   message: {
     fontSize: fp(14),
     color: colors.textSecondary,
-    marginBottom: hp(16),
+    marginBottom: hp(22),
+    textAlign: 'center',
+    lineHeight: fp(20),
   },
   messageDark: {
-    color: 'rgba(255,255,255,0.5)',
+    color: colors.textSecondary,
   },
   actions: {
-    flexDirection: 'row',
-    gap: wp(90),
+    flexDirection: 'column',
+    width: '100%',
+    gap: hp(12),
   },
   btn: {
-    minWidth: wp(96),
-    paddingVertical: hp(12),
+    width: '100%',
+    paddingVertical: hp(15),
     paddingHorizontal: wp(14),
-    borderRadius: wp(10),
+    borderRadius: wp(12),
     alignItems: 'center',
   },
   cancel: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.inputBg,
     borderWidth: wp(1),
     borderColor: colors.border,
   },
   cancelDark: {
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: colors.inputBg,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.15)',
+    borderColor: colors.border,
   },
   cancelText: {
-    color: colors.text,
+    color: colors.textPrimary,
   },
   cancelTextDark: {
-    color: colors.white,
+    color: colors.textPrimary,
   },
   danger: {
-    backgroundColor: colors.error,
+    backgroundColor: SALMON,
+  },
+  dangerText: {
+    fontSize: fp(15),
+    fontWeight: '700',
+    color: SALMON_DARK_TEXT,
   },
   btnText: {
-    fontSize: fp(14),
-    fontWeight: '700',
+    fontSize: fp(15),
+    fontWeight: '600',
     color: colors.white,
   },
 });

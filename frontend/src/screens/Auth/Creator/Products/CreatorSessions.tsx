@@ -16,6 +16,7 @@ import {
   TrendingUp,
   PhoneCall,
   Settings,
+  Handshake,
 } from 'lucide-react-native';
 import {useDispatch, useSelector} from 'react-redux';
 import {useIsFocused, useNavigation} from '@react-navigation/native';
@@ -88,7 +89,7 @@ const CreatorSessions: React.FC = () => {
       <View style={styles.container}>
         <View style={styles.regContent}>
           <View style={styles.regIcon}>
-            <PhoneCall size={wp(36)} color={'#60A5FA'} strokeWidth={1.5} />
+            <PhoneCall size={wp(36)} color={colors.gold} strokeWidth={1.5} />
           </View>
           <Text style={styles.regTitle}>Become a Session Expert</Text>
           <Text style={styles.regSub}>
@@ -116,7 +117,7 @@ const CreatorSessions: React.FC = () => {
           <View
             style={[
               styles.availDot,
-              {backgroundColor: isAvailable ? colors.cSuccess : colors.cTextMuted},
+              {backgroundColor: isAvailable ? colors.cSuccess : colors.textMuted},
             ]}
           />
           <View>
@@ -136,7 +137,7 @@ const CreatorSessions: React.FC = () => {
           {isAvailable ? (
             <ToggleRight size={wp(32)} color={colors.cSuccess} strokeWidth={1.8} />
           ) : (
-            <ToggleLeft size={wp(32)} color={colors.cTextMuted} strokeWidth={1.8} />
+            <ToggleLeft size={wp(32)} color={colors.textMuted} strokeWidth={1.8} />
           )}
         </TouchableOpacity>
       </View>
@@ -150,40 +151,40 @@ const CreatorSessions: React.FC = () => {
             expertProfile: expertProfile,
           })
         }>
-        <Settings size={wp(16)} color={colors.cAccentLight} strokeWidth={1.8} />
+        <Settings size={wp(16)} color={colors.gold} strokeWidth={1.8} />
         <Text style={styles.editBtnText}>Edit Session Profile</Text>
       </TouchableOpacity>
 
       {/* Stats Row */}
+      <Text style={styles.overviewLabel}>YOUR OVERVIEW</Text>
       <View style={styles.statsRow}>
         <View style={styles.statCard}>
-          <PhoneCall size={wp(18)} color={colors.cAccentLight} strokeWidth={1.8} />
+          <PhoneCall size={wp(18)} color={colors.gold} strokeWidth={1.8} />
           <Text style={styles.statValue}>{stats.total_sessions}</Text>
-          <Text style={styles.statLabel}>Sessions</Text>
+          <Text style={styles.statLabel}>SESSIONS</Text>
         </View>
         <View style={styles.statCard}>
-          <Clock size={wp(18)} color={colors.cAccentLight} strokeWidth={1.8} />
+          <Clock size={wp(18)} color={colors.gold} strokeWidth={1.8} />
           <Text style={styles.statValue}>{stats.total_minutes}</Text>
-          <Text style={styles.statLabel}>Minutes</Text>
+          <Text style={styles.statLabel}>MINUTES</Text>
         </View>
         <View style={styles.statCard}>
-          <TrendingUp size={wp(18)} color={colors.cAccentLight} strokeWidth={1.8} />
+          <TrendingUp size={wp(18)} color={colors.gold} strokeWidth={1.8} />
           <Text style={styles.statValue}>
             ₹{Number(stats.total_earnings || 0).toFixed(2)}
           </Text>
-          <Text style={styles.statLabel}>Earned</Text>
+          <Text style={styles.statLabel}>EARNED</Text>
         </View>
       </View>
 
       {/* Recent Sessions */}
       <View style={styles.sectionRow}>
-        <Text style={[styles.sectionTitle, {marginTop: hp(20)}]}>
+        <Text style={styles.sectionTitle}>
           Recent Sessions
         </Text>
         {sessions.length > 3 && (
           <TouchableOpacity
             onPress={() => navigation.navigate('AllSessions')}
-            style={{marginTop: hp(20)}}
           >
             <Text style={styles.viewAllText}>View All</Text>
           </TouchableOpacity>
@@ -193,13 +194,18 @@ const CreatorSessions: React.FC = () => {
       {loading ? (
         <ActivityIndicator
           size="small"
-          color={colors.cAccentLight}
+          color={colors.gold}
           style={{marginTop: hp(20)}}
         />
       ) : sessions.length === 0 ? (
         <View style={styles.emptyState}>
-          <PhoneCall size={wp(32)} color={colors.cTextMuted} strokeWidth={1.2} />
-          <Text style={styles.emptyText}>No sessions yet</Text>
+          <View style={styles.emptyIconWrap}>
+            <Handshake size={wp(28)} color={colors.gold} strokeWidth={1.5} />
+          </View>
+          <Text style={styles.emptyTitle}>No sessions yet</Text>
+          <Text style={styles.emptyText}>
+            Your session history will appear here. Visit a creator's profile to start a new video session and build your professional history.
+          </Text>
         </View>
       ) : (
         sessions.slice(0, 3).map((session: any) => {
@@ -242,7 +248,7 @@ const CreatorSessions: React.FC = () => {
                       style={styles.callUserBtn}
                       activeOpacity={0.8}
                       onPress={() => handleCallUser(session)}>
-                      <PhoneOutgoing size={wp(14)} color={colors.white} strokeWidth={2} />
+                      <PhoneOutgoing size={wp(14)} color={colors.bg} strokeWidth={2} />
                       <Text style={styles.callUserBtnText}>Call</Text>
                     </TouchableOpacity>
                   </>
@@ -272,7 +278,7 @@ export default memo(CreatorSessions);
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: colors.bg,
   },
   scrollContent: {
     paddingHorizontal: wp(16),
@@ -283,11 +289,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderRadius: wp(14),
     padding: wp(14),
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.border,
     marginBottom: hp(16),
   },
   availLeft: {
@@ -303,11 +309,11 @@ const styles = StyleSheet.create({
   availTitle: {
     fontSize: fp(15),
     fontWeight: '700',
-    color: '#1A1A2E',
+    color: colors.textPrimary,
   },
   availSub: {
     fontSize: fp(11),
-    color: '#64748B',
+    color: colors.textSecondary,
     marginTop: hp(1),
   },
   editBtn: {
@@ -315,17 +321,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: wp(6),
-    backgroundColor: colors.cAccentMuted,
+    backgroundColor: colors.surface,
     borderRadius: wp(10),
     paddingVertical: hp(10),
-    marginBottom: hp(16),
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
+    marginBottom: hp(20),
+    borderWidth: 1.5,
+    borderColor: colors.gold,
+    borderStyle: 'dashed',
   },
   editBtnText: {
     fontSize: fp(13),
     fontWeight: '600',
-    color: colors.cAccentLight,
+    color: colors.gold,
+  },
+  overviewLabel: {
+    fontSize: fp(11),
+    fontWeight: '700',
+    color: colors.gold,
+    letterSpacing: 0.5,
+    marginBottom: hp(10),
   },
   statsRow: {
     flexDirection: 'row',
@@ -334,22 +348,23 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderRadius: wp(12),
     paddingVertical: hp(14),
     alignItems: 'center',
     gap: hp(4),
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.border,
   },
   statValue: {
     fontSize: fp(16),
     fontWeight: '800',
-    color: '#1A1A2E',
+    color: colors.textPrimary,
   },
   statLabel: {
-    fontSize: fp(10),
-    color: '#94A3B8',
+    fontSize: fp(9),
+    color: colors.textMuted,
+    letterSpacing: 0.3,
   },
   sectionRow: {
     flexDirection: 'row',
@@ -358,14 +373,14 @@ const styles = StyleSheet.create({
     marginBottom: hp(10),
   },
   sectionTitle: {
-    fontSize: fp(14),
+    fontSize: fp(15),
     fontWeight: '700',
-    color: '#1A1A2E',
+    color: colors.textPrimary,
   },
   viewAllText: {
     fontSize: fp(13),
     fontWeight: '600',
-    color: colors.cAccentLight,
+    color: colors.gold,
   },
   addBtn: {
     flexDirection: 'row',
@@ -374,30 +389,30 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(12),
     paddingVertical: hp(6),
     borderRadius: wp(8),
-    backgroundColor: colors.cAccentMuted,
+    backgroundColor: colors.goldDim,
   },
   addBtnText: {
     fontSize: fp(12),
     fontWeight: '600',
-    color: colors.cAccentLight,
+    color: colors.gold,
   },
   createCta: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: wp(8),
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderRadius: wp(14),
     padding: wp(18),
     borderWidth: 1.5,
-    borderColor: '#E2E8F0',
+    borderColor: colors.border,
     borderStyle: 'dashed',
     marginBottom: hp(10),
   },
   createCtaText: {
     fontSize: fp(13),
     fontWeight: '600',
-    color: colors.cAccentLight,
+    color: colors.gold,
   },
   deleteBtn: {
     padding: wp(8),
@@ -405,15 +420,15 @@ const styles = StyleSheet.create({
   modeCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderRadius: wp(14),
     padding: wp(14),
     marginBottom: hp(10),
     borderWidth: 1.5,
-    borderColor: '#E2E8F0',
+    borderColor: colors.border,
   },
   modeCardActive: {
-    borderColor: colors.cAccent,
+    borderColor: colors.gold,
   },
   modeIconWrap: {
     width: wp(48),
@@ -429,7 +444,7 @@ const styles = StyleSheet.create({
   modeName: {
     fontSize: fp(15),
     fontWeight: '700',
-    color: '#1A1A2E',
+    color: colors.textPrimary,
   },
   modeRateRow: {
     flexDirection: 'row',
@@ -438,7 +453,7 @@ const styles = StyleSheet.create({
   },
   modeRate: {
     fontSize: fp(13),
-    color: '#64748B',
+    color: colors.textSecondary,
     fontWeight: '500',
   },
   modeToggle: {
@@ -449,27 +464,48 @@ const styles = StyleSheet.create({
   modeToggleText: {
     fontSize: fp(11),
     fontWeight: '700',
-    color: colors.white,
+    color: colors.bg,
   },
   emptyState: {
     alignItems: 'center',
-    paddingVertical: hp(40),
-    gap: hp(8),
+    backgroundColor: colors.surface,
+    borderRadius: wp(16),
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingVertical: hp(36),
+    paddingHorizontal: wp(24),
+  },
+  emptyIconWrap: {
+    width: wp(64),
+    height: wp(64),
+    borderRadius: wp(32),
+    backgroundColor: colors.goldDim,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: hp(14),
+  },
+  emptyTitle: {
+    fontSize: fp(15),
+    fontWeight: '700',
+    color: colors.textPrimary,
+    marginBottom: hp(6),
   },
   emptyText: {
-    fontSize: fp(13),
-    color: '#94A3B8',
+    fontSize: fp(12),
+    color: colors.textMuted,
+    textAlign: 'center',
+    lineHeight: fp(18),
   },
   sessionCard: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderRadius: wp(12),
     padding: wp(12),
     marginBottom: hp(8),
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.border,
   },
   sessionLeft: {
     flexDirection: 'row',
@@ -480,19 +516,19 @@ const styles = StyleSheet.create({
     width: wp(38),
     height: wp(38),
     borderRadius: wp(12),
-    backgroundColor: colors.cAccentMuted,
+    backgroundColor: colors.goldDim,
     alignItems: 'center',
     justifyContent: 'center',
   },
   sessionAvatarText: {
     fontSize: fp(13),
     fontWeight: '700',
-    color: colors.cAccentLight,
+    color: colors.gold,
   },
   sessionName: {
     fontSize: fp(14),
     fontWeight: '600',
-    color: '#1A1A2E',
+    color: colors.textPrimary,
   },
   sessionMeta: {
     flexDirection: 'row',
@@ -502,24 +538,24 @@ const styles = StyleSheet.create({
   },
   sessionMetaText: {
     fontSize: fp(10),
-    color: '#94A3B8',
+    color: colors.textSecondary,
   },
   dot: {
     width: wp(3),
     height: wp(3),
     borderRadius: wp(2),
-    backgroundColor: '#94A3B8',
+    backgroundColor: colors.textMuted,
   },
   sessionAmount: {
     fontSize: fp(15),
     fontWeight: '700',
-    color: colors.cAccentLight,
+    color: colors.gold,
   },
   callUserBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(4),
-    backgroundColor: colors.success,
+    backgroundColor: colors.cSuccess,
     paddingHorizontal: wp(12),
     paddingVertical: hp(6),
     borderRadius: wp(8),
@@ -527,7 +563,7 @@ const styles = StyleSheet.create({
   callUserBtnText: {
     fontSize: fp(11),
     fontWeight: '700',
-    color: colors.white,
+    color: colors.bg,
   },
   regContent: {
     flex: 1,
@@ -539,7 +575,9 @@ const styles = StyleSheet.create({
     width: wp(80),
     height: wp(80),
     borderRadius: wp(24),
-    backgroundColor: '#0F3460',
+    backgroundColor: colors.goldDim,
+    borderWidth: 1,
+    borderColor: colors.gold,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: hp(20),
@@ -547,19 +585,19 @@ const styles = StyleSheet.create({
   regTitle: {
     fontSize: fp(20),
     fontWeight: '700',
-    color: '#1A1A2E',
+    color: colors.textPrimary,
     textAlign: 'center',
   },
   regSub: {
     fontSize: fp(13),
-    color: '#64748B',
+    color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: fp(20),
     marginTop: hp(8),
     marginBottom: hp(24),
   },
   regBtn: {
-    backgroundColor: '#0F3460',
+    backgroundColor: colors.gold,
     borderRadius: wp(14),
     paddingHorizontal: wp(32),
     paddingVertical: hp(14),
@@ -567,6 +605,6 @@ const styles = StyleSheet.create({
   regBtnText: {
     fontSize: fp(15),
     fontWeight: '700',
-    color: colors.white,
+    color: colors.bg,
   },
 });

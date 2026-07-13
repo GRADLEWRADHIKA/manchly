@@ -12,14 +12,13 @@ import {
   Edit3,
   Trash2,
   Share2,
-  BarChart3,
   BookOpen,
-  IndianRupee,
-  PlayCircle,
+  Clock,
+  CalendarDays,
+  ImageIcon,
   MoreVertical,
   Eye,
 } from 'lucide-react-native';
-import LinearGradient from 'react-native-linear-gradient';
 import { Menu } from 'react-native-paper';
 import colors from '../../../../../utils/colors';
 import { wp, hp, fp } from '../../../../../utils/responsive';
@@ -80,148 +79,111 @@ const CourseCard: React.FC<Props> = ({ item, onEdit, onDelete, onView }) => {
   };
 
   const videoCount = item.videos?.length || 0;
+  const statusLabel = item?.status ? String(item.status).toUpperCase() : 'DRAFT';
+  const durationMins = item?.duration ?? 0;
+  const createdLabel = item?.created_at || item?.createdAt
+    ? new Date(item.created_at || item.createdAt).toLocaleDateString('en-IN', {
+        day: 'numeric',
+        month: 'short',
+      })
+    : null;
 
   return (
     <Animated.View style={[styles.card, { transform: [{ scale: scaleAnim }] }]}>
-      <LinearGradient
-        colors={['#1A1A2E', '#16213E', '#0F3460']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.gradient}
+      <TouchableOpacity
+        activeOpacity={0.85}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        onPress={onView}
+        style={styles.row}
       >
-        <TouchableOpacity
-          activeOpacity={0.85}
-          onPressIn={handlePressIn}
-          onPressOut={handlePressOut}
-          onPress={onView}
-        >
+        {/* Thumbnail */}
+        <View style={styles.thumbnailWrap}>
           {hasThumbnail ? (
-            <View style={styles.thumbnailWrap}>
-              <Image
-                source={{ uri: item.thumbnail_url || item.thumbnail }}
-                style={styles.thumbnail}
-              />
-              <View style={styles.thumbnailOverlay} />
-              <View style={styles.thumbnailPriceBadge}>
-                <LinearGradient
-                  colors={item.price ? ['#F97316', '#FB923C'] : ['#10B981', '#34D399']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={styles.priceBadge}
-                >
-                  {item.price ? (
-                    <IndianRupee size={wp(9)} color={colors.white} strokeWidth={3} />
-                  ) : null}
-                  <Text style={styles.priceText}>
-                    {item.price ? `${item.price}` : 'Free'}
-                  </Text>
-                </LinearGradient>
-              </View>
-              {item.level && (
-                <View style={styles.thumbnailLevelBadge}>
-                  <BarChart3 size={wp(10)} color={'#60A5FA'} />
-                  <Text style={styles.levelText}>{item.level}</Text>
-                </View>
-              )}
-            </View>
+            <Image
+              source={{ uri: item.thumbnail_url || item.thumbnail }}
+              style={styles.thumbnail}
+            />
           ) : (
-            <View style={styles.headerRow}>
-              <View style={styles.headerLeft}>
-                <View style={styles.iconCircle}>
-                  <PlayCircle size={wp(20)} color={'#60A5FA'} strokeWidth={1.5} />
-                </View>
-                <View style={styles.headerInfo}>
-                  {item.category && (
-                    <Text style={styles.categoryText}>{item.category}</Text>
-                  )}
-                  {item.level && (
-                    <View style={styles.levelRow}>
-                      <BarChart3 size={wp(9)} color={'#60A5FA'} />
-                      <Text style={styles.levelText}>{item.level}</Text>
-                    </View>
-                  )}
-                </View>
-              </View>
-              <LinearGradient
-                colors={item.price ? ['#F97316', '#FB923C'] : ['#10B981', '#34D399']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.priceBadge}
-              >
-                {item.price ? (
-                  <IndianRupee size={wp(9)} color={colors.white} strokeWidth={3} />
-                ) : null}
-                <Text style={styles.priceText}>
-                  {item.price ? `${item.price}` : 'Free'}
-                </Text>
-              </LinearGradient>
+            <View style={styles.thumbnailPlaceholder}>
+              <ImageIcon size={wp(18)} color={colors.gold} strokeWidth={1.5} />
+              <Text style={styles.thumbnailPlaceholderText}>COURSE{'\n'}THUMBNAIL</Text>
             </View>
           )}
+        </View>
 
-          {/* Content */}
-          <View style={styles.content}>
-            <Text style={styles.title} numberOfLines={2}>
-              {item?.title}
+        {/* Content */}
+        <View style={styles.content}>
+          <Text style={styles.title} numberOfLines={2}>
+            {item?.title}
+          </Text>
+
+          <View style={styles.priceRow}>
+            <Text style={styles.priceText}>
+              {item.price ? `₹${item.price}` : 'Free'}
             </Text>
-            {item.description ? (
-              <Text style={styles.description} numberOfLines={2}>
-                {item.description}
-              </Text>
-            ) : null}
-
-            <View style={styles.statsRow}>
-              {hasThumbnail && item.category ? (
-                <View style={styles.statItem}>
-                  <Text style={styles.categoryChipText}>{item.category}</Text>
-                </View>
-              ) : null}
-              <View style={styles.statItem}>
-                <BookOpen size={wp(11)} color={'#60A5FA'} />
-                <Text style={styles.statText}>
-                  {videoCount} {videoCount === 1 ? 'video' : 'videos'}
-                </Text>
-              </View>
+            <View style={styles.statusBadge}>
+              <Text style={styles.statusText}>{statusLabel}</Text>
             </View>
           </View>
-        </TouchableOpacity>
 
-        {/* 3-dot menu */}
-        <View style={styles.menuAnchor}>
-          <Menu
-            key={menuKey}
-            visible={menuVisible}
-            onDismiss={closeMenu}
-            contentStyle={styles.menuContent}
-            anchor={
-              <TouchableOpacity
-                style={styles.moreBtn}
-                onPress={openMenu}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              >
-                <MoreVertical size={wp(18)} color={'#94A3B8'} />
-              </TouchableOpacity>
-            }
-          >
-            <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); setTimeout(onView, 350); }}>
-              <Eye size={wp(16)} color={'#60A5FA'} />
-              <Text style={[styles.menuItemText, { color: '#60A5FA' }]}>Details</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); setTimeout(onEdit, 350); }}>
-              <Edit3 size={wp(16)} color={'#60A5FA'} />
-              <Text style={[styles.menuItemText, { color: '#60A5FA' }]}>Edit</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); setTimeout(handleShare, 350); }}>
-              <Share2 size={wp(16)} color={'#10B981'} />
-              <Text style={[styles.menuItemText, { color: '#10B981' }]}>Share</Text>
-            </TouchableOpacity>
-            <View style={styles.menuDivider} />
-            <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); setTimeout(onDelete, 350); }}>
-              <Trash2 size={wp(16)} color={colors.error} />
-              <Text style={[styles.menuItemText, { color: colors.error }]}>Delete</Text>
-            </TouchableOpacity>
-          </Menu>
+          <View style={styles.metaRow}>
+            <View style={styles.metaItem}>
+              <BookOpen size={wp(11)} color={colors.textMuted} />
+              <Text style={styles.metaText}>
+                {videoCount} {videoCount === 1 ? 'Lesson' : 'Lessons'}
+              </Text>
+            </View>
+            <View style={styles.metaItem}>
+              <Clock size={wp(11)} color={colors.textMuted} />
+              <Text style={styles.metaText}>{durationMins} min</Text>
+            </View>
+            {createdLabel ? (
+              <View style={styles.metaItem}>
+                <CalendarDays size={wp(11)} color={colors.textMuted} />
+                <Text style={styles.metaText}>Created {createdLabel}</Text>
+              </View>
+            ) : null}
+          </View>
         </View>
-      </LinearGradient>
+      </TouchableOpacity>
+
+      {/* 3-dot menu */}
+      <View style={styles.menuAnchor}>
+        <Menu
+          key={menuKey}
+          visible={menuVisible}
+          onDismiss={closeMenu}
+          contentStyle={styles.menuContent}
+          anchor={
+            <TouchableOpacity
+              style={styles.moreBtn}
+              onPress={openMenu}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <MoreVertical size={wp(18)} color={colors.textSecondary} />
+            </TouchableOpacity>
+          }
+        >
+          <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); setTimeout(onView, 350); }}>
+            <Eye size={wp(16)} color={colors.textSecondary} />
+            <Text style={[styles.menuItemText, { color: colors.textSecondary }]}>Details</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); setTimeout(onEdit, 350); }}>
+            <Edit3 size={wp(16)} color={colors.textSecondary} />
+            <Text style={[styles.menuItemText, { color: colors.textSecondary }]}>Edit</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); setTimeout(handleShare, 350); }}>
+            <Share2 size={wp(16)} color={colors.success} />
+            <Text style={[styles.menuItemText, { color: colors.success }]}>Share</Text>
+          </TouchableOpacity>
+          <View style={styles.menuDivider} />
+          <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); setTimeout(onDelete, 350); }}>
+            <Trash2 size={wp(16)} color={colors.error} />
+            <Text style={[styles.menuItemText, { color: colors.error }]}>Delete</Text>
+          </TouchableOpacity>
+        </Menu>
+      </View>
     </Animated.View>
   );
 };
@@ -233,159 +195,97 @@ const styles = StyleSheet.create({
     borderRadius: wp(14),
     marginHorizontal: wp(8),
     marginBottom: hp(12),
-    overflow: 'hidden',
-    elevation: 4,
-    shadowColor: '#1A1A2E',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(96,165,250,0.12)',
+    borderColor: colors.border,
+    position: 'relative',
   },
-  gradient: {
-    flex: 1,
-    borderRadius: wp(14),
+  row: {
+    flexDirection: 'row',
+    padding: wp(12),
   },
 
   // Thumbnail
   thumbnailWrap: {
-    position: 'relative',
+    width: wp(72),
+    height: wp(72),
+    borderRadius: wp(10),
+    marginRight: wp(12),
+    overflow: 'hidden',
   },
   thumbnail: {
     width: '100%',
-    height: hp(120),
-    borderTopLeftRadius: wp(14),
-    borderTopRightRadius: wp(14),
-    backgroundColor: colors.cBg,
-  },
-  thumbnailOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(30,32,56,0.25)',
-    borderTopLeftRadius: wp(14),
-    borderTopRightRadius: wp(14),
-  },
-  thumbnailPriceBadge: {
-    position: 'absolute',
-    top: hp(8),
-    right: wp(8),
-  },
-  thumbnailLevelBadge: {
-    position: 'absolute',
-    bottom: hp(8),
-    left: wp(8),
-    backgroundColor: 'rgba(30,32,56,0.9)',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(4),
-    paddingHorizontal: wp(8),
-    paddingVertical: hp(3),
-    borderRadius: wp(8),
-    borderWidth: 1,
-    borderColor: 'rgba(15,52,96,0.6)',
-  },
-
-  // Icon header
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: wp(14),
-    paddingTop: hp(12),
-    paddingBottom: hp(2),
-    paddingRight: wp(44),
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(10),
-  },
-  iconCircle: {
-    width: wp(38),
-    height: wp(38),
+    height: '100%',
     borderRadius: wp(10),
-    backgroundColor: 'rgba(96,165,250,0.12)',
+    backgroundColor: colors.inputBg,
+  },
+  thumbnailPlaceholder: {
+    width: '100%',
+    height: '100%',
+    borderRadius: wp(10),
+    backgroundColor: colors.inputBg,
+    borderWidth: 1,
+    borderColor: colors.goldDim,
     alignItems: 'center',
     justifyContent: 'center',
+    gap: hp(4),
   },
-  headerInfo: {
-    gap: hp(2),
-  },
-  categoryText: {
-    color: '#60A5FA',
-    fontSize: fp(10),
+  thumbnailPlaceholderText: {
+    fontSize: fp(7),
     fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-  },
-  levelRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(3),
-  },
-  levelText: {
-    color: 'rgba(255,255,255,0.6)',
-    fontSize: fp(10),
-    fontWeight: '600',
-  },
-
-  // Shared
-  priceBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: wp(9),
-    paddingVertical: hp(3),
-    borderRadius: wp(16),
-    gap: wp(2),
-  },
-  priceText: {
-    color: colors.white,
-    fontSize: fp(11),
-    fontWeight: '800',
+    color: colors.textMuted,
+    textAlign: 'center',
+    letterSpacing: 0.4,
   },
 
   content: {
-    paddingHorizontal: wp(14),
-    paddingTop: hp(8),
-    paddingBottom: hp(12),
-    paddingRight: wp(44),
+    flex: 1,
+    paddingRight: wp(24),
   },
   title: {
-    fontSize: fp(14),
+    fontSize: fp(14.5),
     fontWeight: '700',
-    color: colors.white,
-    marginBottom: hp(2),
+    color: colors.textPrimary,
+    marginBottom: hp(6),
   },
-  description: {
-    color: 'rgba(255,255,255,0.45)',
-    fontSize: fp(11),
-    marginBottom: hp(8),
-  },
-  statsRow: {
+  priceRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: wp(6),
-    marginTop: hp(4),
+    gap: wp(8),
+    marginBottom: hp(8),
   },
-  statItem: {
+  priceText: {
+    fontSize: fp(14),
+    fontWeight: '700',
+    color: colors.textPrimary,
+  },
+  statusBadge: {
+    backgroundColor: colors.goldDim,
+    paddingHorizontal: wp(8),
+    paddingVertical: hp(2),
+    borderRadius: wp(6),
+  },
+  statusText: {
+    fontSize: fp(9.5),
+    fontWeight: '800',
+    color: colors.gold,
+    letterSpacing: 0.5,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: wp(12),
+  },
+  metaItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(4),
-    backgroundColor: 'rgba(15,52,96,0.4)',
-    paddingHorizontal: wp(8),
-    paddingVertical: hp(4),
-    borderRadius: wp(6),
   },
-  statText: {
-    color: 'rgba(255,255,255,0.55)',
-    fontSize: fp(10),
-    fontWeight: '600',
-  },
-  categoryChipText: {
-    color: '#60A5FA',
-    fontSize: fp(9),
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+  metaText: {
+    fontSize: fp(10.5),
+    color: colors.textMuted,
+    fontWeight: '500',
   },
 
   // 3-dot menu
@@ -397,18 +297,18 @@ const styles = StyleSheet.create({
     elevation: 100,
   },
   moreBtn: {
-    width: wp(34),
-    height: wp(34),
-    borderRadius: wp(17),
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    width: wp(30),
+    height: wp(30),
+    borderRadius: wp(15),
+    backgroundColor: colors.inputBg,
     alignItems: 'center',
     justifyContent: 'center',
   },
   menuContent: {
-    backgroundColor: '#16213E',
+    backgroundColor: colors.surface,
     borderRadius: wp(12),
     borderWidth: 1,
-    borderColor: 'rgba(96,165,250,0.15)',
+    borderColor: colors.border,
     paddingVertical: hp(4),
     minWidth: wp(160),
   },
@@ -426,6 +326,6 @@ const styles = StyleSheet.create({
   menuDivider: {
     height: 1,
     marginHorizontal: wp(12),
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: colors.border,
   },
 });

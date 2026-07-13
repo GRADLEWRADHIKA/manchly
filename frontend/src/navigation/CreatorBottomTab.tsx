@@ -12,10 +12,11 @@ import {
 import colors from '../utils/colors';
 import { wp, hp, fp } from '../utils/responsive';
 import CreatorHome from '../screens/Auth/Creator/Home/CreatorHome';
-import CreatorView from '../screens/Auth/Creator/Products/Course/CreatorView';
+import CreatorProducts from '../screens/Auth/Creator/Products/CreatorProducts';
 import CreatorSetting from '../screens/Auth/Creator/Settings/CreatorSetting';
-import CreatorWebinar from '../screens/Auth/Creator/Webinar/CreatorWebinar';
+//import CreatorWebinar from '../screens/Auth/Creator/Webinar/CreatorWebinar';
 import CreatorCenter from '../screens/Auth/Creator/CreatorCenter/CreatorCenter';
+import Dashboard from '../screens/Auth/Profile/Dashboard';
 
 const Tab = createBottomTabNavigator();
 
@@ -28,7 +29,7 @@ const tabs = [
   },
   {
     name: 'ProductsScreen',
-    component: CreatorView,
+    component: CreatorProducts,
     label: 'Products',
     Icon: BookOpen,
   },
@@ -39,8 +40,8 @@ const tabs = [
     Icon: Sparkles,
   },
   {
-    name: 'CreatorWebinar',
-    component: CreatorWebinar,
+    name: 'Dashboard',
+    component: Dashboard,
     label: 'Stats',
     Icon: BarChart2,
   },

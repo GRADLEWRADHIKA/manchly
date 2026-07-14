@@ -24,6 +24,7 @@ import {
   ReceiptText,
   MessageCircle,
   Instagram,
+  ArrowLeft,
 } from 'lucide-react-native';
 import LogoutModal from '../../Profile/Components/LogoutModal';
 import { useNavigation } from '@react-navigation/native';
@@ -70,10 +71,10 @@ const openWhatsApp = (message: string) => {
 /* ──────── Reusable Menu Row ──────── */
 const MenuRow = ({
   icon: Icon,
-  iconColor = colors.text,
-  iconBg = '#f4f4f5',
+  iconColor = colors.cAccentLight,
+  iconBg = colors.inputBg,
   label,
-  labelColor = colors.text,
+  labelColor = colors.textPrimary,
   subtitle,
   onPress,
   isLast = false,
@@ -96,11 +97,11 @@ const MenuRow = ({
         {subtitle && <Text style={styles.rowSubtext}>{subtitle}</Text>}
       </View>
     </View>
-    <ChevronRight size={wp(18)} color="#c8ccd0" />
+    <ChevronRight size={wp(18)} color={colors.textMuted} />
   </Pressable>
 );
 
-/* ──────── Quick Action Card ──────── */
+/* ──────── Quick Action Card (kept for potential future use, unused in current layout) ──────── */
 const QuickAction = ({ icon: Icon, label, subtitle, color, onPress }: any) => (
   <Pressable
     style={({ pressed }) => [styles.topCard, pressed && styles.topCardPressed]}
@@ -130,40 +131,11 @@ const UserSetting: React.FC = () => {
       {/* ──────── Header ──────── */}
       <View style={[styles.headerWrapper, { paddingTop: insets.top }]}>
         <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            {user?.profile_image ? (
-              <Image
-                source={{ uri: user.profile_image }}
-                style={styles.avatar}
-              />
-            ) : (
-              <View style={styles.avatarFallback}>
-                <UserCircle size={wp(28)} color={colors.white} />
-              </View>
-            )}
-            <View>
-              <Text style={styles.headerSubtitle}>Welcome Back</Text>
-              <Text style={styles.headerTitle}>
-                {user?.name
-                  ? user.name.charAt(0).toUpperCase() + user.name.slice(1)
-                  : 'User'}
-              </Text>
-            </View>
-          </View>
-          <View style={styles.headerActions}>
-            <Pressable
-              style={({ pressed }) => [
-                styles.bellBtn,
-                pressed && styles.bellBtnPressed,
-              ]}
-              onPress={() => Linking.openURL('https://www.instagram.com/manchly_app')}
-              accessibilityLabel="Instagram">
-              <Instagram size={wp(18)} color={colors.white} strokeWidth={2} />
-            </Pressable>
-            <TouchableOpacity style={styles.bellBtn}>
-              <Bell size={wp(20)} color={colors.white} />
-            </TouchableOpacity>
-          </View>
+          <Pressable onPress={() => Nav.goBack()} hitSlop={10}>
+            <ArrowLeft size={wp(22)} color={colors.textPrimary} />
+          </Pressable>
+          <Text style={styles.headerTitle}>Profile</Text>
+          <View style={{ width: wp(22) }} />
         </View>
       </View>
 
@@ -172,77 +144,29 @@ const UserSetting: React.FC = () => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* ──────── Quick Actions ──────── */}
-        <View style={styles.topCardWrapper}>
-          <QuickAction
-            icon={Headset}
-            label="Help & Support"
-            color="#3B82F6"
-            onPress={() => openWhatsApp('Hello, I am a User, I need help.')}
-          />
-          <QuickAction
-            icon={Notebook}
-            label="About"
-            subtitle="Learn more about our app, features, and community."
-            color="#10B981"
-            onPress={() => {}}
-          />
-        </View>
-
         {/* ──────── Account Section ──────── */}
-        <Text style={styles.sectionTitle}>Account</Text>
+        <Text style={styles.sectionTitle}>ACCOUNT</Text>
         <View style={styles.section}>
           <MenuRow
             icon={User2}
-            iconBg="#f0f4ff"
-            iconColor="#3B82F6"
             label="My Profile"
             subtitle="Manage your profile"
             onPress={() => Nav.navigate('UserProfile')}
-            isLast
-          />
-        </View>
-
-        {/* ──────── Legal Section ──────── */}
-        {/* <Text style={[styles.sectionTitle, { marginTop: hp(20) }]}>Legal</Text>
-        <View style={styles.section}>
-          <MenuRow
-            icon={FileText}
-            iconBg="#f0f4ff"
-            iconColor="#3B82F6"
-            label="Terms of Service"
-            onPress={() => setShowTerms(true)}
           />
           <MenuRow
-            icon={Shield}
-            iconBg="#f0fdf4"
-            iconColor="#10B981"
-            label="Privacy Policy"
-            onPress={() => setShowPrivacy(true)}
+            icon={Headset}
+            label="Help & Support"
+            onPress={() => openWhatsApp('Hello, I am a User, I need help.')}
           />
           <MenuRow
-            icon={ReceiptText}
-            iconBg="#fef3c7"
-            iconColor="#F59E0B"
-            label="Refund Policy"
-            onPress={() => setShowRefund(true)}
+            icon={Notebook}
+            label="About"
+            subtitle="Learn more about our app, features, and community."
+            onPress={() => {}}
           />
-          <MenuRow
-            icon={MessageCircle}
-            iconBg="#fce7f3"
-            iconColor="#EC4899"
-            label="Contact Us"
-            subtitle="Email & phone support"
-            onPress={() => setShowContact(true)}
-            isLast
-          />
-        </View> */}
-
-        {/* ──────── Logout Section ──────── */}
-        <View style={styles.logoutSection}>
           <MenuRow
             icon={LogOut}
-            iconBg="#fef2f2"
+            iconBg={colors.cError + '20'}
             iconColor={colors.error}
             label="Logout"
             labelColor={colors.error}
@@ -276,14 +200,11 @@ export default UserSetting;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f7',
+    backgroundColor: colors.cBg,
   },
 
   headerWrapper: {
-    backgroundColor: colors.secPrimary,
     zIndex: 10,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
   },
   header: {
     flexDirection: 'row',
@@ -292,53 +213,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(16),
     paddingVertical: hp(14),
   },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(12),
-    flex: 1,
-  },
-  avatar: {
-    width: wp(34),
-    height: wp(34),
-    borderRadius: wp(11),
-    borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.2)',
-  },
-  avatarFallback: {
-    width: wp(48),
-    height: wp(48),
-    borderRadius: wp(16),
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerSubtitle: {
-    fontSize: fp(12),
-    color: 'rgba(255,255,255,0.6)',
-    fontWeight: '500',
-  },
   headerTitle: {
-    fontSize: fp(18),
-    fontWeight: '800',
-    color: colors.white,
-    marginTop: hp(1),
-  },
-  headerActions: {
-    flexDirection: 'row',
-    gap: wp(10),
-  },
-  bellBtn: {
-    width: wp(32),
-    height: wp(32),
-    borderRadius: wp(10),
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  bellBtnPressed: {
-    backgroundColor: 'rgba(255,255,255,0.25)',
-    transform: [{ scale: 0.93 }],
+    fontSize: fp(17),
+    fontWeight: '700',
+    color: colors.textPrimary,
   },
 
   /* ──── Body ──── */
@@ -349,7 +227,7 @@ const styles = StyleSheet.create({
     paddingBottom: hp(40),
   },
 
-  /* ──── Quick Actions ──── */
+  /* ──── Quick Actions (unused in current layout, kept for future use) ──── */
   topCardWrapper: {
     flexDirection: 'row',
     paddingHorizontal: wp(16),
@@ -365,14 +243,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: hp(8),
-    backgroundColor: colors.white,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#eaecef',
+    backgroundColor: colors.cCard,
   },
   topCardPressed: {
     opacity: 0.88,
@@ -386,7 +257,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   topCardText: {
-    color: colors.text,
+    color: colors.textPrimary,
     fontSize: fp(13),
     fontWeight: '600',
   },
@@ -399,39 +270,18 @@ const styles = StyleSheet.create({
 
   /* ──── Sections ──── */
   sectionTitle: {
-    fontSize: fp(13),
-    fontWeight: '600',
-    color: colors.textSecondary,
-    textTransform: 'uppercase',
+    fontSize: fp(14),
+    fontWeight: '700',
+    color: colors.textPrimary,
     letterSpacing: 0.8,
     marginHorizontal: wp(20),
-    marginBottom: hp(8),
+    marginTop: hp(16),
+    marginBottom: hp(12),
   },
   section: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.cCard,
     marginHorizontal: wp(16),
     borderRadius: wp(16),
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 2,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#eaecef',
-    overflow: 'hidden',
-  },
-  logoutSection: {
-    backgroundColor: colors.white,
-    marginHorizontal: wp(16),
-    marginTop: hp(16),
-    borderRadius: wp(16),
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 2,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#eaecef',
     overflow: 'hidden',
   },
 
@@ -445,15 +295,16 @@ const styles = StyleSheet.create({
   },
   rowBorder: {
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#f0f2f5',
+    borderBottomColor: 'rgba(255,255,255,0.08)',
   },
   rowPressed: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: 'rgba(255,255,255,0.04)',
   },
   rowLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
+    gap: wp(12),
   },
   rowIcon: {
     width: wp(36),
@@ -461,11 +312,9 @@ const styles = StyleSheet.create({
     borderRadius: wp(10),
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: wp(12),
   },
   rowText: {
     fontSize: fp(15),
-    color: colors.text,
     fontWeight: '500',
   },
   rowSubtext: {
@@ -477,7 +326,7 @@ const styles = StyleSheet.create({
   versionText: {
     textAlign: 'center',
     fontSize: fp(12),
-    color: colors.muted,
+    color: colors.textMuted,
     marginTop: hp(24),
     fontWeight: '500',
   },

@@ -16,7 +16,7 @@ import {
   Presentation,
   TrendingUp,
   X,
-  Instagram,
+  ArrowLeft,
 } from 'lucide-react-native';
 import colors from '../../../../utils/colors';
 import { useSelector, useDispatch } from 'react-redux';
@@ -216,7 +216,7 @@ const UserView: React.FC = () => {
     if (!isLoadingMore) return null;
     return (
       <View style={styles.footerLoader}>
-        <ActivityIndicator size="small" color={colors.secPrimary} />
+        <ActivityIndicator size="small" color={colors.gold} />
         <Text style={styles.loadingMoreText}>Loading more...</Text>
       </View>
     );
@@ -227,16 +227,16 @@ const UserView: React.FC = () => {
     if (isLoading) {
       return (
         <View style={styles.emptyState}>
-          <ActivityIndicator size="large" color={colors.secPrimary} />
+          <ActivityIndicator size="large" color={colors.gold} />
         </View>
       );
     }
     return (
       <View style={styles.emptyState}>
         {active === 'courses' ? (
-          <BookOpen size={wp(40)} color={colors.muted} />
+          <BookOpen size={wp(40)} color={colors.textMuted} />
         ) : (
-          <Presentation size={wp(40)} color={colors.muted} />
+          <Presentation size={wp(40)} color={colors.textMuted} />
         )}
         <Text style={styles.emptyTitle}>
           {active === 'courses' ? 'No courses found' : 'No webinars available'}
@@ -254,47 +254,17 @@ const UserView: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      {/* Fixed Header */}
-      <View
-        style={[styles.hero, { paddingTop: insets.top + hp(16), backgroundColor: colors.secPrimary }]}
-      >
-        <View style={styles.heroTop}>
-          <View style={styles.heroContent}>
-            <Text style={styles.heroGreeting}>Hey {displayName} 👋</Text>
-            <Text style={styles.heroHeading}>
-              {active === 'courses' ? 'Discover & Learn' : 'Join Live Webinars'}
-            </Text>
-            <Text style={styles.heroSubtext}>
-              {active === 'courses'
-                ? 'Explore courses from top creators'
-                : 'Attend live sessions with experts'}
-            </Text>
-          </View>
-          <Pressable
-            style={({ pressed }) => [
-              styles.instaBtn,
-              pressed && styles.instaBtnPressed,
-            ]}
-            onPress={() => Linking.openURL('https://www.instagram.com/manchly_app')}
-            accessibilityLabel="Instagram">
-            <Instagram size={wp(18)} color={colors.white} strokeWidth={2} />
-          </Pressable>
-        </View>
-
-        {enrolledCount > 0 && (
-          <View style={styles.statsRow}>
-            <View style={styles.statItem}>
-              <TrendingUp size={wp(14)} color="#60A5FA" />
-              <Text style={styles.statText}>{enrolledCount} Enrolled</Text>
-            </View>
-            <View style={styles.statItem}>
-              <BookOpen size={wp(14)} color="#34D399" />
-              <Text style={styles.statText}>
-                {courseTotal} Available
-              </Text>
-            </View>
-          </View>
-        )}
+      {/* Header */}
+      <View style={[styles.header, { paddingTop: insets.top + hp(12) }]}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backBtn}
+          activeOpacity={0.7}
+        >
+          <ArrowLeft size={wp(22)} color={colors.textPrimary} strokeWidth={2} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Explore Detail</Text>
+        <View style={styles.headerSpacer} />
       </View>
 
       {/* Search Bar */}
@@ -310,7 +280,7 @@ const UserView: React.FC = () => {
         />
         {searchQuery.length > 0 && (
           <TouchableOpacity onPress={clearSearch}>
-            <X size={wp(18)} color={colors.muted} />
+            <X size={wp(18)} color={colors.textSecondary} />
           </TouchableOpacity>
         )}
       </View>
@@ -329,7 +299,7 @@ const UserView: React.FC = () => {
             >
               <Icon
                 size={wp(16)}
-                color={isActive ? colors.white : colors.textSecondary}
+                color={isActive ? colors.textPrimary : colors.textSecondary}
               />
               <Text
                 style={[styles.tabText, isActive && styles.activeTabText]}
@@ -400,103 +370,55 @@ export default UserView;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.bg,
   },
   listContent: {
     paddingBottom: hp(100),
     flexGrow: 1,
   },
 
-  // Hero
-  hero: {
-    paddingTop: hp(20),
-    paddingBottom: hp(20),
-    paddingHorizontal: wp(20),
-    borderBottomLeftRadius: wp(24),
-    borderBottomRightRadius: wp(24),
-  },
-  heroTop: {
+  // Header
+  header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: wp(16),
+    paddingBottom: hp(14),
+  },
+  backBtn: {
+    width: wp(36),
+    height: wp(36),
+    justifyContent: 'center',
     alignItems: 'flex-start',
   },
-  heroContent: {
+  headerTitle: {
     flex: 1,
-    marginBottom: hp(8),
+    textAlign: 'center',
+    fontSize: fp(17),
+    fontWeight: '700',
+    color: colors.textPrimary,
+    marginRight: wp(36),
   },
-  instaBtn: {
-    width: wp(40),
-    height: wp(40),
-    borderRadius: wp(14),
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
-    marginTop: hp(4),
-  },
-  instaBtnPressed: {
-    backgroundColor: 'rgba(255,255,255,0.25)',
-    transform: [{ scale: 0.93 }],
-  },
-  heroGreeting: {
-    fontSize: fp(14),
-    color: 'rgba(255,255,255,0.6)',
-    fontWeight: '500',
-    marginBottom: hp(4),
-  },
-  heroHeading: {
-    fontSize: fp(26),
-    fontWeight: '900',
-    color: colors.white,
-    marginBottom: hp(4),
-  },
-  heroSubtext: {
-    fontSize: fp(13),
-    color: 'rgba(255,255,255,0.5)',
-    fontWeight: '400',
-  },
-  statsRow: {
-    flexDirection: 'row',
-    gap: wp(12),
-    marginTop: hp(12),
-  },
-  statItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(6),
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    paddingHorizontal: wp(12),
-    paddingVertical: hp(6),
-    borderRadius: wp(10),
-  },
-  statText: {
-    fontSize: fp(11),
-    color: 'rgba(255,255,255,0.7)',
-    fontWeight: '600',
+  headerSpacer: {
+    width: wp(36),
   },
 
   // Search
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderRadius: wp(14),
-    marginTop: hp(16),
+    marginTop: hp(4),
     marginHorizontal: wp(16),
     paddingHorizontal: wp(14),
     height: hp(48),
-    elevation: 3,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
     gap: wp(8),
   },
   searchInput: {
     flex: 1,
     height: hp(48),
     borderWidth: 0,
+    color: colors.textPrimary,
   },
 
   // Tabs
@@ -514,14 +436,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: wp(6),
     paddingVertical: hp(11),
-    borderRadius: wp(12),
-    backgroundColor: colors.white,
-    borderWidth: 1,
-    borderColor: '#eaecef',
+    borderRadius: wp(24),
+    backgroundColor: colors.surface,
   },
   activeTabBtn: {
-    backgroundColor: colors.secPrimary,
-    borderColor: '#1A1A2E',
+    backgroundColor: colors.info,
   },
   tabText: {
     color: colors.textSecondary,
@@ -529,7 +448,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   activeTabText: {
-    color: colors.white,
+    color: colors.textPrimary,
   },
 
   // Section
@@ -544,7 +463,7 @@ const styles = StyleSheet.create({
   sectionHeading: {
     fontSize: fp(18),
     fontWeight: '700',
-    color: colors.text,
+    color: colors.textPrimary,
   },
   sectionCount: {
     fontSize: fp(12),
@@ -580,7 +499,7 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: fp(16),
     fontWeight: '700',
-    color: colors.text,
+    color: colors.textPrimary,
     marginTop: hp(8),
   },
   emptyText: {

@@ -14,32 +14,22 @@ import { wp, hp, fp } from '../utils/responsive';
 import ProductsScreen from '../screens/Auth/User/Products/ProductsScreen';
 import PurchasesScreen from '../screens/Auth/User/Purchase/PurchasesScreen';
 import {
-  PhoneCall,
-  ShoppingCart,
-  ShoppingBag,
   House,
-  UserPen,
-  Store,
+  Compass,
+  MonitorPlay,
+  BookOpen,
+  User,
 } from 'lucide-react-native';
 import UserHome from '../screens/Auth/User/Home/UserHome';
 import UserSessions from '../screens/Auth/User/Sessions/UserSessions';
 import UserSetting from '../screens/Auth/User/Settings/UserSetting';
-import BrandMarketplace from '../screens/Auth/User/Marketplace/BrandMarketplace';
-import MarketplaceRouteGuard from '../components/MarketplaceRouteGuard';
 import { canAccessMarketplace } from '../utils/marketplaceUtils';
 import { useSelector } from 'react-redux';
 
 const Tab = createBottomTabNavigator();
 
-const ACTIVE_COLOR = colors.secPrimary;
-const INACTIVE_COLOR = '#94a3b8';
-const ACTIVE_BG = '#1E3A5F12';
+//const INACTIVE_COLOR = '#94a3b8';
 
-const GuardedBrandMarketplace = () => (
-  <MarketplaceRouteGuard>
-    <BrandMarketplace />
-  </MarketplaceRouteGuard>
-);
 
 
 const tabs = [
@@ -48,31 +38,25 @@ const tabs = [
     name: 'ProductsScreen',
     component: ProductsScreen,
     label: 'Explore',
-    Icon: ShoppingCart,
+    Icon: Compass,
   },
   {
     name: 'UserSessions',
     component: UserSessions,
     label: 'Sessions',
-    Icon: PhoneCall,
+    Icon: MonitorPlay,
   },
   {
     name: 'PurchasesScreen',
     component: PurchasesScreen,
     label: 'My Learning',
-    Icon: ShoppingBag,
-  },
-  {
-    name: 'BrandMarketplace',
-    component: GuardedBrandMarketplace,
-    label: 'Market',
-    Icon: Store,
+    Icon: BookOpen,
   },
   {
     name: 'UserSetting',
     component: UserSetting,
     label: 'Profile',
-    Icon: UserPen,
+    Icon: User,
   },
 ];
 
@@ -143,7 +127,7 @@ const TabItem = ({ isFocused, icon: Icon, label, onPress }: any) => {
       >
         <Icon
           size={wp(21)}
-          color={isFocused ? ACTIVE_COLOR : INACTIVE_COLOR}
+          color={isFocused ? colors.info : colors.textPrimary}
           strokeWidth={isFocused ? 2.2 : 1.6}
         />
       </Animated.View>
@@ -152,7 +136,7 @@ const TabItem = ({ isFocused, icon: Icon, label, onPress }: any) => {
         style={[
           styles.tabLabel,
           {
-            color: isFocused ? ACTIVE_COLOR : INACTIVE_COLOR,
+            color: isFocused ? colors.info : colors.textPrimary,
             fontWeight: isFocused ? '600' : '400',
             opacity: isFocused ? 1 : 0.85,
           },
@@ -240,9 +224,9 @@ export default UserBottomTab;
 
 const styles = StyleSheet.create({
   tabBarOuter: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.bg,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#e2e8f0',
+    borderTopColor: colors.bg,
     shadowColor: colors.black,
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.08,
@@ -273,7 +257,7 @@ const styles = StyleSheet.create({
     width: wp(52),
     height: hp(34),
     borderRadius: wp(16),
-    backgroundColor: ACTIVE_BG,
+    backgroundColor: colors.surface,
   },
   tabLabel: {
     fontSize: fp(10.5),

@@ -138,7 +138,7 @@ const tabStyles = StyleSheet.create({
   },
   track: {
     flexDirection: 'row',
-    backgroundColor: '#f1f5f9',
+    backgroundColor: colors.bg,
     borderRadius: wp(14),
     padding: wp(4),
     position: 'relative',
@@ -149,9 +149,9 @@ const tabStyles = StyleSheet.create({
     left: wp(4),
     width: wp(160),
     height: '100%',
-    backgroundColor: colors.secPrimary,
+    backgroundColor: colors.info,
     borderRadius: wp(11),
-    shadowColor: colors.secPrimary,
+    shadowColor: colors.info,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 6,
@@ -169,14 +169,14 @@ const tabStyles = StyleSheet.create({
   label: {
     fontSize: fp(13.5),
     fontWeight: '500',
-    color: colors.textSecondary,
+    color: colors.textPrimary,
   },
   labelActive: {
-    color: colors.white,
+    color: colors.textPrimary,
     fontWeight: '600',
   },
   countBadge: {
-    backgroundColor: '#e2e8f0',
+    backgroundColor: colors.white,
     borderRadius: wp(10),
     paddingHorizontal: wp(7),
     paddingVertical: hp(1),
@@ -200,7 +200,7 @@ const tabStyles = StyleSheet.create({
 const EmptyState = ({ type }: { type: string }) => (
   <View style={styles.emptyContainer}>
     <View style={styles.emptyIconCircle}>
-      <ShoppingBag size={wp(32)} color={colors.secPrimary} strokeWidth={1.5} />
+      <ShoppingBag size={wp(32)} color={colors.textPrimary} strokeWidth={1.5} />
     </View>
     <Text style={styles.emptyText}>
       No {type === 'courses' ? 'Courses' : 'Webinars'} Yet
@@ -457,7 +457,7 @@ const PurchasesScreen = () => {
 export default PurchasesScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.surface },
+  container: { flex: 1, backgroundColor: colors.bg },
 
   headerBar: {
     flexDirection: 'row',
@@ -465,7 +465,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: wp(20),
     paddingBottom: hp(10),
-    backgroundColor: colors.secPrimary,
+    backgroundColor: colors.bg,
     zIndex: 10,
   },
   headerTitle: {
@@ -475,7 +475,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   headerEdge: {
-    backgroundColor: colors.secPrimary,
+    backgroundColor: colors.bg,
     height: hp(16),
     borderBottomLeftRadius: wp(18),
     borderBottomRightRadius: wp(18),
@@ -492,7 +492,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.2)',
   },
   instaBtnPressed: {
-    backgroundColor: 'rgba(255,255,255,0.25)',
+    backgroundColor: colors.textPrimary,
     transform: [{ scale: 0.93 }],
   },
 
@@ -534,12 +534,12 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: fp(17),
     fontWeight: '600',
-    color: colors.text,
+    color: colors.textPrimary,
     textAlign: 'center',
   },
   emptySubtext: {
     fontSize: fp(13),
-    color: colors.textSecondary,
+    color: colors.textPrimary,
     marginTop: hp(6),
     textAlign: 'center',
     lineHeight: fp(19),

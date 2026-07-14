@@ -8,7 +8,7 @@ import {
   Image,
   Pressable,
 } from 'react-native';
-import { BookOpen } from 'lucide-react-native';
+import { BookOpen, ChevronRight } from 'lucide-react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { fetchCourses } from '../../../../../store/CourseSlice';
@@ -26,20 +26,26 @@ const LatestCourseItem = ({ item, onPress }: any) => {
         <Image source={{ uri: item?.thumbnail }} style={styles.thumb} />
       ) : (
         <View style={[styles.thumb, styles.thumbPlaceholder]}>
-          <BookOpen size={wp(22)} color={colors.secPrimary} strokeWidth={1.5} />
+          <BookOpen size={wp(22)} color={colors.textMuted} strokeWidth={1.5} />
         </View>
       )}
       <View style={styles.info}>
+        {(item?.category || item?.duration) && (
+          <View style={styles.tagsRow}>
+            {item?.category && (
+              <View style={styles.tagPill}>
+                <Text style={styles.tagText}>{item.category}</Text>
+              </View>
+            )}
+            {item?.duration && (
+              <View style={styles.tagPill}>
+                <Text style={styles.tagText}>{item.duration} HOURS</Text>
+              </View>
+            )}
+          </View>
+        )}
         <Text style={styles.title} numberOfLines={2}>
           {item?.title}
-        </Text>
-        {item?.creator?.name && (
-          <Text style={styles.creator} numberOfLines={1}>
-            {item.creator.name}
-          </Text>
-        )}
-        <Text style={styles.price}>
-          {item?.price === 0 ? 'FREE' : `₹${item?.price}`}
         </Text>
       </View>
     </Pressable>
@@ -62,7 +68,18 @@ const LatestCourses = () => {
 
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Latest Courses</Text>
+      <View style={styles.header}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.sectionTitle}>Latest Courses</Text>
+          <Text style={styles.sectionSubtitle}>
+            Freshly added content for your curriculum
+          </Text>
+        </View>
+        <Pressable style={styles.seeAllBtn} hitSlop={8}>
+          <Text style={styles.seeAllText}>See All</Text>
+          <ChevronRight size={wp(14)} color="rgba(255,255,255,0.7)" strokeWidth={2} />
+        </Pressable>
+      </View>
       <FlatList
         data={browseCourses}
         horizontal
@@ -91,12 +108,33 @@ const styles = StyleSheet.create({
   section: {
     paddingTop: hp(22),
   },
-  sectionTitle: {
-    fontSize: fp(20),
-    fontWeight: '700',
-    color: '#1C1C1C',
+  header: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
     paddingHorizontal: wp(20),
     marginBottom: hp(14),
+  },
+  sectionTitle: {
+    fontSize: fp(18),
+    fontWeight: '700',
+    color: colors.textPrimary,
+  },
+  sectionSubtitle: {
+    fontSize: fp(12),
+    color: colors.textSecondary,
+    marginTop: hp(2),
+  },
+  seeAllBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(2),
+    marginTop: hp(2),
+  },
+  seeAllText: {
+    fontSize: fp(13),
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.7)',
   },
   listContent: {
     paddingHorizontal: wp(20),
@@ -107,14 +145,9 @@ const styles = StyleSheet.create({
   },
   card: {
     width: wp(160),
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderRadius: wp(14),
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
     marginBottom: 5,
   },
   cardPressed: {
@@ -126,28 +159,36 @@ const styles = StyleSheet.create({
     height: hp(90),
   },
   thumbPlaceholder: {
-    backgroundColor: '#F7ECEC',
+    backgroundColor: colors.inputBg,
     alignItems: 'center',
     justifyContent: 'center',
   },
   info: {
     padding: wp(10),
   },
+  tagsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: wp(6),
+    marginBottom: hp(8),
+  },
+  tagPill: {
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    paddingHorizontal: wp(7),
+    paddingVertical: hp(2),
+    borderRadius: wp(5),
+  },
+  tagText: {
+    fontSize: fp(8.5),
+    fontWeight: '700',
+    color: colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+  },
   title: {
     fontSize: fp(13),
-    fontWeight: '600',
-    color: '#1C1C1C',
-    lineHeight: fp(17),
-    marginBottom: hp(4),
-  },
-  creator: {
-    fontSize: fp(11),
-    color: '#6B6059',
-    marginBottom: hp(6),
-  },
-  price: {
-    fontSize: fp(14),
     fontWeight: '700',
-    color: colors.secPrimary,
+    color: colors.textPrimary,
+    lineHeight: fp(17),
   },
 });

@@ -5,8 +5,9 @@ import {
   FlatList,
   StyleSheet,
   Dimensions,
+  ImageBackground,
 } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
+import { Play } from 'lucide-react-native';
 import colors from '../../../../../utils/colors';
 import { wp, hp, fp } from '../../../../../utils/responsive';
 
@@ -124,17 +125,21 @@ const HeroCarousel = () => {
   );
 
   const renderItem = useCallback(({ item }: { item: typeof loopedSlides[0] }) => (
-    <LinearGradient
-      colors={['#3D1515', '#7A2020', '#B54040']}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.heroCard}>
+    <ImageBackground
+      source={require('../../../../../image/Logo.jpg')}
+      style={styles.heroCard}
+      imageStyle={styles.heroCardImage}
+      resizeMode="cover">
+      <View style={styles.heroOverlay} />
       <View style={styles.heroBadge}>
         <Text style={styles.heroBadgeText}>{item.badge}</Text>
       </View>
       <Text style={styles.heroTitle}>{item.title}</Text>
       <Text style={styles.heroSub}>{item.subtitle}</Text>
-    </LinearGradient>
+      <View style={styles.resumeBtn}>
+        <Play size={wp(14)} color={colors.white} fill={colors.white} />
+      </View>
+    </ImageBackground>
   ), []);
 
   return (
@@ -177,37 +182,64 @@ const styles = StyleSheet.create({
   heroCard: {
     borderRadius: wp(24),
     padding: wp(22),
-    minHeight: hp(160),
+    minHeight: hp(190),
     justifyContent: 'flex-end',
     width: HERO_CARD_WIDTH,
+    overflow: 'hidden',
+  },
+  heroCardImage: {
+    borderRadius: wp(24),
+  },
+  heroOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(15,15,15,0.45)',
+    borderRadius: wp(24),
   },
   heroBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: 'rgba(255,255,255,0.18)',
+    backgroundColor: 'rgba(59,130,246,0.25)',
     borderWidth: 1,
-    borderColor: 'rgba(255,210,140,0.3)',
+    borderColor: 'rgba(96,165,250,0.4)',
     paddingHorizontal: wp(10),
     paddingVertical: hp(4),
     borderRadius: wp(20),
     marginBottom: hp(10),
   },
   heroBadgeText: {
-    color: '#FFD6A5',
+    color: colors.info,
     fontSize: fp(10),
-    fontWeight: '600',
+    fontWeight: '700',
     letterSpacing: 1.2,
     textTransform: 'uppercase',
   },
   heroTitle: {
-    fontSize: fp(24),
-    fontWeight: '900',
+    fontSize: fp(20),
+    fontWeight: '800',
     color: colors.white,
-    lineHeight: fp(30),
+    lineHeight: fp(26),
     marginBottom: hp(6),
   },
   heroSub: {
-    fontSize: fp(13),
-    color: 'rgba(255,255,255,0.7)',
+    fontSize: fp(12.5),
+    color: 'rgba(255,255,255,0.65)',
+    lineHeight: fp(18),
+    marginBottom: hp(16),
+  },
+  resumeBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'flex-start',
+    gap: wp(8),
+    backgroundColor: colors.info,
+    paddingHorizontal: wp(18),
+    paddingVertical: hp(10),
+    borderRadius: wp(12),
+  },
+  resumeBtnText: {
+    color: colors.white,
+    fontSize: fp(13.5),
+    fontWeight: '700',
   },
   dotRow: {
     flexDirection: 'row',

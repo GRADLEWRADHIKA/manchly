@@ -353,13 +353,13 @@ const PriceRow = ({ label, value }: any) => (
 );
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.white },
+  container: { flex: 1, backgroundColor: colors.bg },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  thumbnail: { width: '100%', height: hp(220), backgroundColor: '#F1F5F9' },
+  thumbnail: { width: '100%', height: hp(220), backgroundColor: colors.surface },
   thumbnailPlaceholder: {
     width: '100%',
     height: hp(220),
-    backgroundColor: colors.secPrimary + '10',
+    backgroundColor: colors.inputBg,
     justifyContent: 'center',
     alignItems: 'center',
     gap: hp(8),
@@ -367,7 +367,7 @@ const styles = StyleSheet.create({
   placeholderText: {
     fontSize: fp(15),
     fontWeight: '600',
-    color: colors.secPrimary,
+    color: colors.gold,
     opacity: 0.6,
     paddingHorizontal: wp(30),
     textAlign: 'center',
@@ -378,13 +378,13 @@ const styles = StyleSheet.create({
     borderRadius: 0,
   },
   content: { padding: wp(16) },
-  title: { fontSize: fp(24), fontWeight: '700', color: colors.text },
+  title: { fontSize: fp(24), fontWeight: '700', color: colors.textPrimary },
   instructorRow: { flexDirection: 'row', alignItems: 'center', marginBottom: hp(16) },
   instructor: { color: colors.textSecondary, fontSize: fp(14) },
   instructorName: { color: colors.info, fontSize: fp(14), fontWeight: '600', textDecorationLine: 'underline' },
   section: { marginVertical: hp(16) },
-  sectionTitle: { fontSize: fp(18), fontWeight: '600', marginBottom: hp(10) },
-  description: { fontSize: fp(15), lineHeight: fp(22) },
+  sectionTitle: { fontSize: fp(18), fontWeight: '600', marginBottom: hp(10), color: colors.textPrimary },
+  description: { fontSize: fp(15), lineHeight: fp(22), color: colors.textSecondary },
   statsContainer: { flexDirection: 'row', gap: wp(16), marginVertical: hp(12) },
   statItem: { flexDirection: 'row', gap: wp(6), alignItems: 'center' },
   statText: { color: colors.textSecondary },
@@ -394,6 +394,8 @@ const styles = StyleSheet.create({
     padding: wp(16),
     borderRadius: wp(12),
     marginTop: hp(20),
+    borderWidth: 1,
+    borderColor: colors.border
   },
   priceRow: {
     flexDirection: 'row',
@@ -401,7 +403,7 @@ const styles = StyleSheet.create({
     marginVertical: hp(6),
   },
   priceLabel: { color: colors.textSecondary },
-  priceValue: { fontWeight: '600' },
+  priceValue: { fontWeight: '600', color: colors.textPrimary },
 
   totalRow: {
     borderTopWidth: wp(1),
@@ -411,8 +413,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
-  totalLabel: { fontSize: fp(16), fontWeight: '700' },
-  totalValue: { fontSize: fp(18), fontWeight: '800', color: colors.primary },
+  totalLabel: { fontSize: fp(16), fontWeight: '700' , color: colors.textPrimary},
+  totalValue: { fontSize: fp(18), fontWeight: '800', color: colors.info },
 
   bottomBar: {
     padding: wp(16),
@@ -420,7 +422,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   purchaseButton: {
-    backgroundColor: colors.secPrimary,
+    backgroundColor: colors.info,
     paddingVertical: hp(16),
     borderRadius: wp(12),
     alignItems: 'center',
@@ -433,7 +435,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: wp(8),
   },
-  enrolledText: { color: colors.primary, fontWeight: '700' },
+  enrolledText: { color: colors.info, fontWeight: '700' },
 
   policyText: {
     fontSize: fp(12),
@@ -443,7 +445,7 @@ const styles = StyleSheet.create({
     marginTop: hp(12),
   },
   policyLink: {
-    color: colors.primary,
+    color: colors.info,
     fontWeight: '500',
   },
 });

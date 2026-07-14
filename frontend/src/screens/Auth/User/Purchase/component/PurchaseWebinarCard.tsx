@@ -220,7 +220,7 @@ export default PurchaseWebinarCard;
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderRadius: wp(16),
     marginBottom: hp(14),
     overflow: 'hidden',
@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 4,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#e8ecf0',
+    borderColor: colors.surface,
   },
 
   thumbnailContainer: {
@@ -240,13 +240,13 @@ const styles = StyleSheet.create({
   thumbnail: {
     width: '100%',
     height: hp(170),
-    backgroundColor: '#f1f5f9',
+    backgroundColor: colors.textPrimary,
   },
 
   thumbnailPlaceholder: {
     width: '100%',
     height: hp(140),
-    backgroundColor: '#f1f5f9',
+    backgroundColor: colors.textPrimary,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -267,14 +267,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(4),
-    backgroundColor: '#EF4444',
+    backgroundColor: colors.textPrimary,
     paddingHorizontal: wp(10),
     paddingVertical: hp(4),
     borderRadius: wp(8),
   },
 
   liveBadgeText: {
-    color: colors.white,
+    color: colors.textPrimary,
     fontSize: fp(11),
     fontWeight: '700',
   },
@@ -293,7 +293,7 @@ const styles = StyleSheet.create({
   },
 
   durationText: {
-    color: colors.white,
+    color: colors.textPrimary,
     fontSize: fp(11),
     fontWeight: '600',
   },
@@ -305,7 +305,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: fp(16),
     fontWeight: '600',
-    color: colors.text,
+    color: colors.textPrimary,
     lineHeight: fp(22),
   },
 
@@ -317,17 +317,17 @@ const styles = StyleSheet.create({
   },
 
   tagChip: {
-    backgroundColor: '#1E3A5F08',
+    backgroundColor: colors.textPrimary,
     paddingHorizontal: wp(10),
     paddingVertical: hp(3),
     borderRadius: wp(12),
     borderWidth: 1,
-    borderColor: '#1E3A5F10',
+    borderColor: colors.textPrimary,
   },
 
   tagText: {
     fontSize: fp(11),
-    color: colors.secPrimary,
+    color: colors.info,
     fontWeight: '500',
   },
 
@@ -349,16 +349,16 @@ const styles = StyleSheet.create({
 
   metaText: {
     fontSize: fp(12.5),
-    color: colors.textSecondary,
+    color: colors.textPrimary,
   },
 
   credentialsBox: {
     marginTop: hp(12),
-    backgroundColor: '#f8fafc',
+    backgroundColor: colors.textPrimary,
     borderRadius: wp(10),
     padding: wp(12),
     borderWidth: 1,
-    borderColor: '#e8ecf0',
+    borderColor: colors.textPrimary,
   },
   credentialsRow: {
     flexDirection: 'row',
@@ -371,14 +371,14 @@ const styles = StyleSheet.create({
   },
   credentialLabel: {
     fontSize: fp(10.5),
-    color: colors.textSecondary,
+    color: colors.textPrimary,
     fontWeight: '500',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   credentialValue: {
     fontSize: fp(13),
-    color: colors.text,
+    color: colors.textPrimary,
     fontWeight: '700',
   },
   eyeBtn: {
@@ -393,11 +393,11 @@ const styles = StyleSheet.create({
     paddingVertical: hp(8),
     borderRadius: wp(8),
     borderWidth: 1,
-    borderColor: colors.secPrimary,
+    borderColor: colors.info,
   },
   copyText: {
     fontSize: fp(12),
-    color: colors.secPrimary,
+    color: colors.textPrimary,
     fontWeight: '600',
   },
 
@@ -417,7 +417,7 @@ const styles = StyleSheet.create({
 
   priceLabel: {
     fontSize: fp(10.5),
-    color: colors.textSecondary,
+    color: colors.textPrimary,
     fontWeight: '500',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -426,11 +426,11 @@ const styles = StyleSheet.create({
   price: {
     fontSize: fp(18),
     fontWeight: '700',
-    color: colors.secPrimary,
+    color: colors.textPrimary,
   },
 
   joinBtn: {
-    backgroundColor: colors.secPrimary,
+    backgroundColor: colors.info,
     paddingVertical: hp(10),
     paddingHorizontal: wp(18),
     borderRadius: wp(12),
@@ -449,7 +449,7 @@ const styles = StyleSheet.create({
   },
 
   joinText: {
-    color: colors.white,
+    color: colors.textPrimary,
     fontSize: fp(13.5),
     fontWeight: '600',
   },

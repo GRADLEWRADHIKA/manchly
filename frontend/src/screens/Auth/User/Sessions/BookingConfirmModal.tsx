@@ -97,7 +97,7 @@ const BookingConfirmModal = ({
             activeOpacity={0.8}
             onPress={onConfirm}
             disabled={booking}>
-            <Video size={wp(18)} color={colors.white} strokeWidth={2} />
+            <Video size={wp(18)} color={colors.textPrimary} strokeWidth={2} />
             <Text style={styles.confirmBtnText}>
               {booking ? 'Processing...' : `Pay ₹${rate * 30} & Book`}
             </Text>
@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
     gap: wp(8),
     borderRadius: wp(14),
     paddingVertical: hp(16),
-    backgroundColor: colors.secPrimary,
+    backgroundColor: colors.info,
   },
   confirmBtnText: { fontSize: fp(16), fontWeight: '700', color: colors.white },
   cancelBtn: { alignItems: 'center', paddingVertical: hp(12), marginTop: hp(4) },

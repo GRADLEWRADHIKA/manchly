@@ -16,6 +16,7 @@ import {
   IndianRupee,
   PhoneMissed,
   ChevronRight,
+  X,
 } from 'lucide-react-native';
 import colors from '../../../../utils/colors';
 import {wp, hp, fp} from '../../../../utils/responsive';
@@ -108,21 +109,21 @@ const UserSessions: React.FC = () => {
       {/* Stats */}
       <View style={styles.statsRow}>
         <View style={styles.statCard}>
-          <PhoneCall size={wp(20)} color={colors.secPrimary} strokeWidth={1.8} />
+          <PhoneCall size={wp(20)} color={colors.textSecondary} strokeWidth={1.8} />
           <Text style={styles.statValue}>{stats.total_sessions}</Text>
-          <Text style={styles.statLabel}>Sessions</Text>
+          <Text style={styles.statLabel}>SESSIONS</Text>
         </View>
         <View style={styles.statCard}>
-          <Clock size={wp(20)} color={colors.secPrimary} strokeWidth={1.8} />
+          <Clock size={wp(20)} color={colors.textSecondary} strokeWidth={1.8} />
           <Text style={styles.statValue}>{stats.total_minutes}</Text>
-          <Text style={styles.statLabel}>Minutes</Text>
+          <Text style={styles.statLabel}>MINUTES</Text>
         </View>
         <View style={styles.statCard}>
-          <IndianRupee size={wp(20)} color={colors.secPrimary} strokeWidth={1.8} />
+          <IndianRupee size={wp(20)} color={colors.textSecondary} strokeWidth={1.8} />
           <Text style={styles.statValue}>
             ₹{Number(stats.total_earnings || 0).toFixed(2)}
           </Text>
-          <Text style={styles.statLabel}>Spent</Text>
+          <Text style={styles.statLabel}>SPENT</Text>
         </View>
       </View>
 
@@ -131,42 +132,49 @@ const UserSessions: React.FC = () => {
         style={styles.ctaCard}
         activeOpacity={0.8}
         onPress={() => navigation.navigate('ExpertList')}>
-        <View style={styles.ctaLeft}>
-          <View style={styles.ctaIconWrap}>
-            <PhoneCall size={wp(22)} color={colors.white} strokeWidth={1.8} />
-          </View>
-          <View>
-            <Text style={styles.ctaTitle}>Browse Experts</Text>
-            <Text style={styles.ctaSub}>
-              Find & book session experts instantly
-            </Text>
-          </View>
+        <View style={styles.ctaIconWrap}>
+          <PhoneCall size={wp(26)} color={colors.info} strokeWidth={1.8} />
         </View>
-        <ChevronRight size={wp(20)} color={colors.white + '80'} strokeWidth={2} />
+        <Text style={styles.ctaTitle}>Browse Experts</Text>
+        <Text style={styles.ctaSub}>
+          Find and book session experts{'\n'}instantly for personalized mentorship.
+        </Text>
+        <View style={styles.ctaBtn}>
+          <Text style={styles.ctaBtnText}>Explore Now</Text>
+          <ChevronRight size={wp(16)} color={colors.textPrimary} strokeWidth={2} />
+        </View>
       </TouchableOpacity>
 
       {/* Section Title */}
-      <Text style={styles.sectionTitle}>Session History</Text>
+      <View style={styles.sectionRow}>
+        <Text style={styles.sectionTitle}>Session History</Text>
+        <Text style={styles.viewAllText}>View All</Text>
+      </View>
     </View>
   );
 
   const renderEmpty = () => (
-    <View style={styles.emptyState}>
-      <PhoneMissed size={wp(40)} color={colors.textMuted} strokeWidth={1.2} />
+    <View style={styles.emptyCard}>
+      <View style={styles.emptyIconWrap}>
+        <PhoneMissed size={wp(30)} color={colors.textMuted} strokeWidth={1.2} />
+        <View style={styles.emptyBadge}>
+          <X size={wp(10)} color={colors.textPrimary} strokeWidth={3} />
+        </View>
+      </View>
       <Text style={styles.emptyTitle}>No sessions yet</Text>
       <Text style={styles.emptyText}>
-        Visit a creator's profile to start a video session.
+        Start your journey toward mastery. Visit a creator's profile to start a live video session.
       </Text>
     </View>
   );
 
   return (
     <View style={styles.container}>
-      <AppHeader title="Sessions" />
+      <AppHeader title="My journey" />
 
       {loading && sessions.length === 0 ? (
         <View style={styles.loaderWrap}>
-          <ActivityIndicator size="large" color={colors.secPrimary} />
+          <ActivityIndicator size="large" color={colors.info} />
         </View>
       ) : (
         <FlatList
@@ -188,7 +196,7 @@ export default memo(UserSessions);
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.bg,
   },
   listContent: {
     paddingHorizontal: wp(16),
@@ -209,80 +217,99 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderRadius: wp(14),
     paddingVertical: hp(16),
     alignItems: 'center',
     gap: hp(4),
     borderWidth: 1,
-    borderColor: colors.borderLight,
-    shadowColor: colors.black,
-    shadowOffset: {width: 0, height: 1},
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 2,
+    borderColor: colors.border,
   },
   statValue: {
     fontSize: fp(18),
     fontWeight: '800',
-    color: colors.text,
+    color: colors.info,
   },
   statLabel: {
-    fontSize: fp(10),
+    fontSize: fp(9),
     color: colors.textMuted,
-    fontWeight: '500',
+    fontWeight: '600',
+    letterSpacing: 0.3,
   },
 
   // CTA
   ctaCard: {
-    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: colors.secPrimary,
-    borderRadius: wp(16),
-    padding: wp(16),
+    backgroundColor: colors.surface,
+    borderRadius: wp(20),
+    padding: wp(24),
     marginBottom: hp(20),
-  },
-  ctaLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(12),
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   ctaIconWrap: {
-    width: wp(44),
-    height: wp(44),
-    borderRadius: wp(14),
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    width: wp(56),
+    height: wp(56),
+    borderRadius: wp(16),
+    backgroundColor: 'rgba(108,99,255,0.15)',
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: hp(14),
   },
   ctaTitle: {
-    fontSize: fp(15),
+    fontSize: fp(17),
     fontWeight: '700',
-    color: colors.white,
+    color: colors.textPrimary,
+    marginBottom: hp(6),
   },
   ctaSub: {
-    fontSize: fp(11),
-    color: 'rgba(255,255,255,0.7)',
-    marginTop: hp(1),
+    fontSize: fp(12.5),
+    color: colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: fp(18),
+    marginBottom: hp(18),
+  },
+  ctaBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(6),
+    backgroundColor: colors.info,
+    paddingHorizontal: wp(20),
+    paddingVertical: hp(10),
+    borderRadius: wp(24),
+  },
+  ctaBtnText: {
+    fontSize: fp(14),
+    fontWeight: '700',
+    color: colors.textPrimary,
   },
 
   // Section
+  sectionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: hp(10),
+  },
   sectionTitle: {
     fontSize: fp(15),
     fontWeight: '700',
-    color: colors.text,
-    marginBottom: hp(10),
+    color: colors.textPrimary,
+  },
+  viewAllText: {
+    fontSize: fp(13),
+    fontWeight: '600',
+    color: colors.textSecondary,
   },
 
   // Cards
   card: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderRadius: wp(14),
     padding: wp(14),
     marginBottom: hp(10),
     borderWidth: 1,
-    borderColor: colors.borderLight,
+    borderColor: colors.border,
   },
   cardTop: {
     flexDirection: 'row',
@@ -302,7 +329,7 @@ const styles = StyleSheet.create({
   cardName: {
     fontSize: fp(14),
     fontWeight: '600',
-    color: colors.text,
+    color: colors.textPrimary,
   },
   cardDate: {
     fontSize: fp(11),
@@ -324,13 +351,13 @@ const styles = StyleSheet.create({
     marginTop: hp(10),
     paddingTop: hp(10),
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.borderLight,
+    borderTopColor: colors.border,
   },
   detailChip: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(4),
-    backgroundColor: colors.surface,
+    backgroundColor: colors.inputBg,
     paddingHorizontal: wp(10),
     paddingVertical: hp(5),
     borderRadius: wp(8),
@@ -342,20 +369,49 @@ const styles = StyleSheet.create({
   },
 
   // Empty
-  emptyState: {
+  emptyCard: {
     alignItems: 'center',
-    paddingTop: hp(50),
-    gap: hp(10),
+    backgroundColor: colors.surface,
+    borderRadius: wp(20),
+    paddingVertical: hp(40),
+    paddingHorizontal: wp(24),
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  emptyIconWrap: {
+    width: wp(64),
+    height: wp(64),
+    borderRadius: wp(32),
+    backgroundColor: colors.inputBg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: hp(16),
+    position: 'relative',
+  },
+  emptyBadge: {
+    position: 'absolute',
+    top: -wp(2),
+    right: -wp(2),
+    width: wp(18),
+    height: wp(18),
+    borderRadius: wp(9),
+    backgroundColor: colors.error,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: colors.surface,
   },
   emptyTitle: {
     fontSize: fp(16),
-    fontWeight: '600',
-    color: colors.text,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    marginBottom: hp(8),
   },
   emptyText: {
     fontSize: fp(13),
-    color: colors.textMuted,
+    color: colors.textSecondary,
     textAlign: 'center',
-    paddingHorizontal: wp(30),
+    lineHeight: fp(19),
+    paddingHorizontal: wp(10),
   },
 });

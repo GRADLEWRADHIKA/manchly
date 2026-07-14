@@ -45,7 +45,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
           <Image source={{ uri: thumbnailUrl }} style={styles.thumbnail} />
         ) : (
           <View style={styles.placeholderThumbnail}>
-            <BookOpen size={wp(36)} color={colors.secPrimary} strokeWidth={1.2} />
+            <BookOpen size={wp(36)} color={colors.gold} strokeWidth={1.2} />
             <Text style={styles.placeholderText}>{item.title || 'Course'}</Text>
           </View>
         )}
@@ -68,10 +68,6 @@ const CourseCard: React.FC<CourseCardProps> = ({
           <Text style={styles.title} numberOfLines={2}>
             {item.title}
           </Text>
-          <View style={styles.ratingBadge}>
-            <Star size={wp(12)} color="#FFD700" fill="#FFD700" />
-            <Text style={styles.ratingText}>{rating}</Text>
-          </View>
         </View>
 
         <Text style={styles.instructor} numberOfLines={1}>
@@ -102,7 +98,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
                 backgroundColor: isEnrolled
                   ? colors.success
                   : userType === 'USER'
-                  ? colors.secPrimary
+                  ? colors.info
                   : colors.primary,
               },
             ]}
@@ -122,30 +118,23 @@ export default CourseCard;
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderRadius: wp(14),
     overflow: 'hidden',
     marginBottom: hp(12),
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#E2E8F0',
   },
   thumbnailWrap: {
     position: 'relative',
   },
   thumbnail: {
     width: '100%',
-    height: hp(120),
-    backgroundColor: '#F1F5F9',
+    height: hp(128),
+    backgroundColor: colors.inputBg,
   },
   placeholderThumbnail: {
     width: '100%',
     height: hp(120),
-    backgroundColor: colors.secPrimary + '10',
+    backgroundColor: colors.inputBg,
     justifyContent: 'center',
     alignItems: 'center',
     gap: hp(6),
@@ -153,20 +142,20 @@ const styles = StyleSheet.create({
   placeholderText: {
     fontSize: fp(13),
     fontWeight: '600',
-    color: colors.secPrimary,
+    color: colors.gold,
     opacity: 0.6,
   },
   levelBadge: {
     position: 'absolute',
     top: wp(8),
     left: wp(8),
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: 'rgba(0,0,0,0.55)',
     paddingHorizontal: wp(8),
     paddingVertical: hp(3),
     borderRadius: wp(6),
   },
   levelText: {
-    color: colors.white,
+    color: colors.textPrimary,
     fontSize: fp(11),
     fontWeight: '600',
   },
@@ -174,7 +163,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: wp(8),
     right: wp(8),
-    backgroundColor: colors.secPrimary,
+    backgroundColor: colors.info,
     paddingHorizontal: wp(10),
     paddingVertical: hp(3),
     borderRadius: wp(8),
@@ -195,28 +184,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: fp(15),
     fontWeight: '700',
-    color: colors.text,
-    flex: 1,
-    marginRight: wp(8),
-    lineHeight: fp(20),
-  },
-  ratingBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFD70015',
-    paddingHorizontal: wp(6),
-    paddingVertical: hp(2),
-    borderRadius: wp(6),
-    gap: wp(3),
-  },
-  ratingText: {
-    fontSize: fp(12),
-    fontWeight: '700',
-    color: '#1A1A2E',
+    color: colors.textPrimary,
+    lineHeight: fp(20)
   },
   instructor: {
     fontSize: fp(12),
-    color: colors.textSecondary,
+    color: colors.textPrimary,
     marginTop: hp(2),
     fontWeight: '500',
   },
@@ -228,12 +201,13 @@ const styles = StyleSheet.create({
   },
   metaRow: {
     flexDirection: 'row',
-    gap: wp(10),
+    gap: wp(12),
+    marginTop: hp(6)
   },
   metaItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: wp(3),
+    gap: wp(4),
   },
   metaText: {
     fontSize: fp(11.5),

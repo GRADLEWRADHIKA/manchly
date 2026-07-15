@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   BackHandler,
   Image,
+  Dimensions
 } from 'react-native';
 import colors from '../../../utils/colors';
 import { wp, hp, fp } from '../../../utils/responsive';
@@ -28,6 +29,9 @@ import NotificationService from '../../../services/NotificationService';
 import TermsModal from '../../../components/TermsModal';
 import PrivacyModal from '../../../components/PrivacyModal';
 import RefundPolicyModal from '../../../components/RefundPolicyModal';
+import LinearGradient from 'react-native-linear-gradient';
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 type VerifyLoginProps = {
   selectedType: string | null;
@@ -263,19 +267,26 @@ const VerifyLogin: React.FC<VerifyLoginProps> = ({
             />
           )}
 
-          <TouchableOpacity
-            style={styles.btnHeader}
+         <TouchableOpacity
+            style={styles.btnWrap}
             onPress={
               otpSuccess ? handleSubmit(onOtpSubmit) : handleSubmit(onSubmit)
             }
           >
-            {loading ? (
-              <ActivityIndicator color={colors.black} />
-            ) : (
-              <Text style={styles.btnHeaderText}>
-                {otpSuccess ? 'Verify OTP' : 'Send Verification Code'}
-              </Text>
-            )}
+            <LinearGradient
+              colors={['#F7D488', '#EBA83F']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.btnHeader}
+            >
+              {loading ? (
+                <ActivityIndicator color={colors.black} />
+              ) : (
+                <Text style={styles.btnHeaderText}>
+                  {otpSuccess ? 'Verify OTP' : 'Send Verification Code'}
+                </Text>
+              )}
+            </LinearGradient>
           </TouchableOpacity>
 
           <Text style={styles.termsText}>
@@ -310,12 +321,13 @@ export default VerifyLogin;
 
 const styles = StyleSheet.create({
   wrapper: {
-    height: hp(812),
+    height: SCREEN_HEIGHT,
+    width: SCREEN_WIDTH,
     backgroundColor: colors.primary,
   },
 
   topHalf: {
-    flex: 1,
+    flex: 4,
     backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
@@ -368,12 +380,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
 
-  btnHeader: {
+  btnWrap: {
     marginTop: hp(14),
-    backgroundColor: colors.golden,
-    paddingVertical: hp(16),
     borderRadius: wp(14),
-    alignItems: 'center',
     shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.18,
@@ -381,6 +390,11 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
 
+  btnHeader: {
+    paddingVertical: hp(16),
+    borderRadius: wp(14),
+    alignItems: 'center',
+  },
   btnHeaderText: {
     color: colors.black,
     fontSize: fp(15),

@@ -26,7 +26,7 @@ import {
   Phone,
   MessageSquare,
 } from 'lucide-react-native';
-import Svg, { Circle as SvgCircle, Path as SvgPath } from 'react-native-svg';
+import Svg, { Path as SvgPath } from 'react-native-svg';
 import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
 import KycCard from './KeyCard';
@@ -50,7 +50,7 @@ import { clearJustLoggedIn } from '../../../../store/UserSlice';
 
 const INTRO_VIDEO_URL =
   'https://stream.mux.com/aiFSECiPT501KG02eutUYBTKc8aPPOz27ikxTnTHaKJJ00.m3u8';
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, } = Dimensions.get('window');
 
 const CreatorHome = () => {
   const navigation = useNavigation<any>();

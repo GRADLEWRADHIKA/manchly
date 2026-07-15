@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(20),
   },
   mainHeader: {
-    backgroundColor: colors.golden,
+    backgroundColor: '#F3C36B',
     paddingVertical: hp(16),
     borderRadius: wp(30),
     alignItems: 'center',
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
     width: wp(26),
     height: wp(26),
     borderRadius: wp(13),
-    backgroundColor: colors.golden,
+    backgroundColor: "#F3C36B",
     borderWidth: wp(1.5),
     borderColor: colors.black,
     alignItems: 'center',
@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
   trustText: {
     fontSize: fp(11),
     fontWeight: '700',
-    color: colors.golden,
+    color: "#F3C36B",
     letterSpacing: 0.5,
   },
   badgeRow: {

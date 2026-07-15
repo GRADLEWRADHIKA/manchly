@@ -7,6 +7,7 @@ import {
   ScrollView,
   ActivityIndicator,
   Platform,
+  Dimensions
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -25,6 +26,8 @@ import TermsModal from '../../components/TermsModal';
 import PrivacyModal from '../../components/PrivacyModal';
 import RefundPolicyModal from '../../components/RefundPolicyModal';
 
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+
 const USER_TYPES = [
   { label: 'Creator', value: 'CREATOR' },
   { label: 'User', value: 'USER' },
@@ -39,8 +42,10 @@ const SignupScreen: React.FC = () => {
   const [showRefund, setShowRefund] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
-  const route = useRoute();
+  const route = useRoute<any>();
   const userType = route?.params?.type;
+
+  
 
   const {
     control,
@@ -103,6 +108,12 @@ const SignupScreen: React.FC = () => {
         setLoading(false);
       })
       .catch(error => {
+        Toast.show({
+          type: 'error',
+          text1: 'Sign up failed',
+          text2: error?.message || 'Something went wrong. Please try again.',
+          position: 'bottom',
+        });
       })
       .finally(() => {
         setLoading(false);
@@ -351,7 +362,8 @@ export default SignupScreen;
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    width: SCREEN_WIDTH, 
+    height: SCREEN_HEIGHT,
     backgroundColor: colors.white,
   },
   scrollContainer: {

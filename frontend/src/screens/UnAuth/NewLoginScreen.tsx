@@ -11,7 +11,7 @@ import ChooseType from './components/ChooseType';
 import VerifyLogin from './components/VerifyLogin';
 import SignUp from './components/SignUp';
 
-const { height } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 const NewLoginScreen = () => {
   const [selectedType, setSelectedType] = React.useState<
@@ -40,7 +40,8 @@ export default NewLoginScreen;
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    height: height,
+    width: width,
     backgroundColor: colors.primary,
   },
 

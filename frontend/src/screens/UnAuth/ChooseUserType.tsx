@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { Modal, StyleSheet, Text, TouchableOpacity, View, Image } from 'react-native';
-import { User, Star, X, Check } from 'lucide-react-native';
+import { Modal, StyleSheet, Text, TouchableOpacity, View, Image, Dimensions } from 'react-native';
+import { ChevronRight } from 'lucide-react-native';
 import colors from '../../utils/colors';
 import { wp, hp, fp } from '../../utils/responsive';
+
+const {width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 type UserType = 'USER' | 'CREATOR' | null;
 
@@ -21,7 +23,7 @@ const ChooseUserType: React.FC<Props> = ({ visible, onClose, onConfirm }) => {
     onClose();
   };
 
-  return (
+ return (
     <Modal
       visible={visible}
       transparent
@@ -30,90 +32,55 @@ const ChooseUserType: React.FC<Props> = ({ visible, onClose, onConfirm }) => {
     >
       <View style={styles.overlay}>
         <View style={styles.container}>
-          <View style={styles.header}>
-            <Text style={styles.title}>Choose Your Role</Text>
-            <TouchableOpacity onPress={onClose}>
-              <X size={22} color={colors.text} />
-            </TouchableOpacity>
+          {/* Top Half - Image */}
+          <View style={styles.topHalf}>
+            <Image
+              source={require('../../image/boarding.jpg')}
+              style={styles.heroImage}
+              resizeMode="contain"
+            />
           </View>
 
-          <Text style={styles.subtitle}>
-            You can choose only one role at a time
-          </Text>
+          {/* Bottom Sheet */}
+          <View style={styles.bottomSheet}>
+            <Text style={styles.title}>Welcome</Text>
 
-          <View style={styles.optionsContainer}>
             <TouchableOpacity
-              style={[
-                styles.optionCard,
-                selectedType === 'USER' && styles.selectedCard,
-              ]}
-              onPress={() => setSelectedType('USER')}
+              style={styles.optionCard}
+              activeOpacity={0.9}
+              onPress={() => {
+                setSelectedType('CREATOR');
+                onConfirm('CREATOR');
+                onClose();
+              }}
             >
-              <User
-                size={28}
-                color={selectedType === 'USER' ? colors.white : colors.primary}
-              />
-              <Text
-                style={[
-                  styles.optionTitle,
-                  selectedType === 'USER' && styles.selectedText,
-                ]}
-              >
-                User
-              </Text>
-              <Text
-                style={[
-                  styles.optionDesc,
-                  selectedType === 'USER' && styles.selectedText,
-                ]}
-              >
-                Browse & consume content
-              </Text>
+              <View style={styles.optionTextWrap}>
+                <Text style={styles.optionTitle}>Creator</Text>
+                <Text style={styles.optionDesc}>Create & Publish content</Text>
+              </View>
+              <ChevronRight size={wp(22)} color={colors.black} />
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[
-                styles.optionCard,
-                selectedType === 'CREATOR' && styles.selectedCard,
-              ]}
-              onPress={() => setSelectedType('CREATOR')}
+              style={styles.optionCard}
+              activeOpacity={0.9}
+              onPress={() => {
+                setSelectedType('USER');
+                onConfirm('USER');
+                onClose();
+              }}
             >
-              <Star
-                size={28}
-                color={
-                  selectedType === 'CREATOR' ? colors.white : colors.secondary
-                }
-              />
-              <Text
-                style={[
-                  styles.optionTitle,
-                  selectedType === 'CREATOR' && styles.selectedText,
-                ]}
-              >
-                Creator
-              </Text>
-              <Text
-                style={[
-                  styles.optionDesc,
-                  selectedType === 'CREATOR' && styles.selectedText,
-                ]}
-              >
-                Create & publish content
-              </Text>
+              <View style={styles.optionTextWrap}>
+                <Text style={styles.optionTitle}>User</Text>
+                <Text style={styles.optionDesc}>Browse & consume content</Text>
+              </View>
+              <ChevronRight size={wp(22)} color={colors.black} />
             </TouchableOpacity>
-          </View>
 
-          <TouchableOpacity
-            style={[
-              styles.confirmButton,
-              !selectedType && styles.disabledButton,
-            ]}
-            disabled={!selectedType}
-            onPress={handleConfirm}
-          >
-            <Check size={18} color={colors.white} />
-            <Text style={styles.confirmText}>Confirm</Text>
-          </TouchableOpacity>
+            <Text style={styles.footerText}>
+              By continuing, you agree to our Terms of Service, Privacy Policy & Refund Policy
+            </Text>
+          </View>
         </View>
       </View>
     </Modal>
@@ -124,81 +91,76 @@ export default ChooseUserType;
 
 const styles = StyleSheet.create({
   overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    height: hp(812),
+    width: wp(375),
+    backgroundColor: colors.black,
   },
   container: {
-    width: '88%',
-    backgroundColor: colors.surface,
-    borderRadius: wp(16),
-    padding: wp(20),
+    flex: 1,
+    backgroundColor: colors.black,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: fp(18),
-    fontWeight: '700',
-    color: colors.text,
-  },
-  subtitle: {
-    marginTop: hp(6),
-    fontSize: fp(13),
-    color: colors.textSecondary,
-  },
-  optionsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: hp(20),
-  },
-  optionCard: {
-    width: '48%',
-    borderWidth: wp(1),
-    borderColor: colors.border,
-    borderRadius: wp(14),
-    padding: wp(16),
-    alignItems: 'center',
-    backgroundColor: colors.white,
-  },
-  selectedCard: {
-    backgroundColor: colors.secPrimary,
-    borderColor: colors.secPrimary,
-  },
-  optionTitle: {
-    marginTop: hp(10),
-    fontSize: fp(16),
-    fontWeight: '600',
-    color: colors.text,
-  },
-  optionDesc: {
-    marginTop: hp(4),
-    fontSize: fp(12),
-    textAlign: 'center',
-    color: colors.textSecondary,
-  },
-  selectedText: {
-    color: colors.white,
-  },
-  confirmButton: {
-    marginTop: hp(22),
-    backgroundColor: colors.primary,
-    paddingVertical: hp(14),
-    borderRadius: wp(12),
-    flexDirection: 'row',
+  topHalf: {
+    flex: 1,
+    backgroundColor: colors.black,
     justifyContent: 'center',
     alignItems: 'center',
-    gap: wp(8),
   },
-  disabledButton: {
-    backgroundColor: colors.muted,
+  heroImage: {
+    width: wp(260),
+    height: wp(260),
   },
-  confirmText: {
+  bottomSheet: {
+    backgroundColor: '#1A1A1A',
+    borderTopLeftRadius: wp(28),
+    borderTopRightRadius: wp(28),
+    paddingHorizontal: wp(24),
+    paddingTop: hp(32),
+    paddingBottom: hp(30),
+  },
+  title: {
+    fontSize: fp(28),
+    fontWeight: '700',
     color: colors.white,
-    fontWeight: '600',
-    fontSize: fp(15),
+    textAlign: 'center',
+    marginBottom: hp(28),
+    letterSpacing: 0.2,
+  },
+  optionCard: {
+    marginTop: hp(14),
+    backgroundColor: colors.golden,
+    paddingVertical: hp(18),
+    paddingHorizontal: wp(20),
+    borderRadius: wp(18),
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  optionTextWrap: {
+    flex: 1,
+  },
+  optionTitle: {
+    fontSize: fp(16.5),
+    fontWeight: '700',
+    color: colors.black,
+    marginBottom: hp(2),
+  },
+  optionDesc: {
+    fontSize: fp(12),
+    fontWeight: '500',
+    color: 'rgba(0,0,0,0.65)',
+  },
+  footerText: {
+    fontSize: fp(11),
+    fontWeight: '500',
+    color: colors.textMuted,
+    textAlign: 'center',
+    lineHeight: fp(17),
+    marginTop: hp(20),
+    marginBottom: hp(8),
   },
 });

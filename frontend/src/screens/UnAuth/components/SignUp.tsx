@@ -6,6 +6,8 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Image,
+  Dimensions
 } from 'react-native';
 import React, { useCallback, useState } from 'react';
 import colors from '../../../utils/colors';
@@ -21,6 +23,9 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import { useFocusEffect } from '@react-navigation/native';
 import { Dropdown } from 'react-native-element-dropdown';
 import { navigationRef } from '../../../navigation/navigationRef';
+import LinearGradient from 'react-native-linear-gradient';
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const BUSINESS_ROLE_OPTIONS = [
   { label: 'Brand', value: 'BRAND' },
@@ -112,232 +117,261 @@ const SignUp = ({ selectedType, setActive }) => {
     }, [setActive]),
   );
 
-  return (
-    <KeyboardAwareScrollView
-      contentContainerStyle={styles.container}
-      enableOnAndroid
-      keyboardShouldPersistTaps="handled"
-      showsVerticalScrollIndicator={false}
-    >
-      <Text style={styles.title}>Sign Up</Text>
-
-      {selectedType === 'CREATOR' ? (
-        <View style={styles.warningBox}>
-          <AlertTriangle size={18} color="#FFC107" />
-          <Text style={styles.warningText}>
-            Please enter your exact Full Name and Date of Birth as per your PAN
-            card. These details cannot be changed later.
-          </Text>
-        </View>
-      ) : null}
-
-      {/* Full Name */}
-      <Text style={styles.label}>Full Name</Text>
-      <Controller
-        name="name"
-        control={control}
-        rules={{ required: 'Please enter your full name' }}
-        render={({ field: { onChange, value } }) => (
-          <TextInput
-            placeholder="Enter full name"
-            placeholderTextColor={colors.white}
-            value={value}
-            onChangeText={onChange}
-            style={styles.input}
-          />
-        )}
+ return (
+    <View style={styles.screen}>
+      <Image
+        source={require('../../../image/boarding.jpg')}
+        style={styles.heroImage}
+        resizeMode="cover"
       />
 
-      {/* DOB */}
-      <Text style={styles.label}>Date of Birth</Text>
-      <Controller
-        control={control}
-        name="dob"
-        rules={{ required: 'Please select date of birth' }}
-        render={({ field: { onChange, value }, fieldState: { error } }) => (
+      <KeyboardAwareScrollView
+        contentContainerStyle={styles.container}
+        enableOnAndroid
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={styles.title}>Sign Up</Text>
+
+        {selectedType === 'CREATOR' ? (
+          <View style={styles.warningBox}>
+            <AlertTriangle size={18} color="#FFC107" />
+            <Text style={styles.warningText}>
+              Please enter your exact Full Name and Date of Birth as per your PAN
+              card. These details cannot be changed later.
+            </Text>
+          </View>
+        ) : null}
+
+        {/* Full Name */}
+        <Text style={styles.label}>FULL NAME</Text>
+        <Controller
+          name="name"
+          control={control}
+          rules={{ required: 'Please enter your full name' }}
+          render={({ field: { onChange, value } }) => (
+            <TextInput
+              placeholder="Enter full name"
+              placeholderTextColor={colors.textMuted}
+              value={value}
+              onChangeText={onChange}
+              style={styles.input}
+            />
+          )}
+        />
+
+        {/* DOB */}
+        <Text style={styles.label}>DATE OF BIRTH</Text>
+        <Controller
+          control={control}
+          name="dob"
+          rules={{ required: 'Please select date of birth' }}
+          render={({ field: { onChange, value }, fieldState: { error } }) => (
+            <>
+              <TouchableOpacity
+                style={[
+                  styles.input,
+                  { justifyContent: 'center' },
+                  error && styles.errorBorder,
+                ]}
+                onPress={showDatePicker}
+              >
+                <Text style={value ? styles.inputValueText : styles.inputPlaceholderText}>
+                  {value || 'Select Date'}
+                </Text>
+              </TouchableOpacity>
+
+              <DateTimePickerModal
+                isVisible={isDatePickerVisible}
+                mode="date"
+                maximumDate={new Date()}
+                onConfirm={date => {
+                  const formattedDate = `${date.getFullYear()}-${String(
+                    date.getMonth() + 1,
+                  ).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+
+                  onChange(formattedDate);
+                  hideDatePicker();
+                }}
+                onCancel={hideDatePicker}
+              />
+            </>
+          )}
+        />
+
+        {/* Email */}
+        <Text style={styles.label}>EMAIL ADDRESS</Text>
+        <Controller
+          name="email"
+          control={control}
+          rules={{
+            required: 'Please enter your email',
+            pattern: {
+              value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+              message: 'Enter valid email',
+            },
+          }}
+          render={({ field: { onChange, value } }) => (
+            <TextInput
+              placeholder="Enter email"
+              placeholderTextColor={colors.textMuted}
+              value={value}
+              onChangeText={onChange}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              style={styles.input}
+            />
+          )}
+        />
+
+        {/* Phone */}
+        <Text style={styles.label}>PHONE NUMBER</Text>
+        <Controller
+          name="phone"
+          control={control}
+          rules={{
+            required: 'Enter phone number',
+            pattern: {
+              value: /^\d{10}$/,
+              message: 'Enter valid 10-digit number',
+            },
+          }}
+          render={({ field: { onChange, value } }) => (
+            <TextInput
+              placeholder="Enter phone number"
+              placeholderTextColor={colors.textMuted}
+              value={value}
+              onChangeText={onChange}
+              keyboardType="phone-pad"
+              style={styles.input}
+            />
+          )}
+        />
+
+        <TouchableOpacity
+          style={styles.checkboxRow}
+          activeOpacity={0.85}
+          onPress={() => setIsBusinessAccount(prev => !prev)}
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked: isBusinessAccount }}
+        >
+          <View
+            style={[
+              styles.checkbox,
+              isBusinessAccount && styles.checkboxChecked,
+            ]}
+          >
+            {isBusinessAccount ? (
+              <Check size={wp(14)} color={colors.black} strokeWidth={3} />
+            ) : null}
+          </View>
+          <Text style={styles.checkboxLabel}>Are you a Brand or Agency?</Text>
+        </TouchableOpacity>
+
+        {isBusinessAccount ? (
           <>
-            <TouchableOpacity
-              style={[
-                styles.input,
-                { justifyContent: 'center' },
-                error && { borderColor: 'red' },
-              ]}
-              onPress={showDatePicker}
-            >
-              <Text style={{ color: colors.white }}>
-                {value || 'Select Date'}
-              </Text>
-            </TouchableOpacity>
+            <Text style={styles.label}>BUSINESS ROLE</Text>
+            <Controller
+              control={control}
+              name="businessRole"
+              rules={{ required: 'Select Brand or Agency' }}
+              render={({ field: { onChange, value }, fieldState: { error } }) => (
+                <Dropdown
+                  style={[styles.dropdown, error && styles.errorBorder]}
+                  placeholderStyle={styles.dropdownPlaceholder}
+                  selectedTextStyle={styles.dropdownSelected}
+                  itemTextStyle={styles.dropdownItem}
+                  containerStyle={styles.dropdownContainer}
+                  data={BUSINESS_ROLE_OPTIONS}
+                  labelField="label"
+                  valueField="value"
+                  value={value}
+                  placeholder="Select role"
+                  onChange={item => onChange(item.value)}
+                />
+              )}
+            />
 
-            <DateTimePickerModal
-              isVisible={isDatePickerVisible}
-              mode="date"
-              maximumDate={new Date()}
-              onConfirm={date => {
-                const formattedDate = `${date.getFullYear()}-${String(
-                  date.getMonth() + 1,
-                ).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-
-                onChange(formattedDate);
-                hideDatePicker();
+            <Text style={styles.label}>COMPANY NAME</Text>
+            <Controller
+              name="companyName"
+              control={control}
+              rules={{
+                validate: value =>
+                  !isBusinessAccount || value?.trim()?.length > 0
+                    ? true
+                    : 'Company name is required',
               }}
-              onCancel={hideDatePicker}
+              render={({ field: { onChange, value }, fieldState: { error } }) => (
+                <TextInput
+                  placeholder="Enter company name"
+                  placeholderTextColor={colors.textMuted}
+                  value={value}
+                  onChangeText={onChange}
+                  style={[styles.input, error && styles.errorBorder]}
+                />
+              )}
             />
           </>
-        )}
-      />
+        ) : null}
 
-      {/* Email */}
-      <Text style={styles.label}>Email Address</Text>
-      <Controller
-        name="email"
-        control={control}
-        rules={{
-          required: 'Please enter your email',
-          pattern: {
-            value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-            message: 'Enter valid email',
-          },
-        }}
-        render={({ field: { onChange, value } }) => (
-          <TextInput
-            placeholder="Enter email"
-            placeholderTextColor={colors.white}
-            value={value}
-            onChangeText={onChange}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            style={styles.input}
-          />
-        )}
-      />
-
-      {/* Phone */}
-      <Text style={styles.label}>Phone Number</Text>
-      <Controller
-        name="phone"
-        control={control}
-        rules={{
-          required: 'Enter phone number',
-          pattern: {
-            value: /^\d{10}$/,
-            message: 'Enter valid 10-digit number',
-          },
-        }}
-        render={({ field: { onChange, value } }) => (
-          <TextInput
-            placeholder="Enter phone number"
-            placeholderTextColor={colors.white}
-            value={value}
-            onChangeText={onChange}
-            keyboardType="phone-pad"
-            style={styles.input}
-          />
-        )}
-      />
-
-      <TouchableOpacity
-        style={styles.checkboxRow}
-        activeOpacity={0.85}
-        onPress={() => setIsBusinessAccount(prev => !prev)}
-        accessibilityRole="checkbox"
-        accessibilityState={{ checked: isBusinessAccount }}
-      >
-        <View
-          style={[
-            styles.checkbox,
-            isBusinessAccount && styles.checkboxChecked,
-          ]}
+       {/* Button */}
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={handleSubmit(onSubmit)}
+          disabled={loading}
         >
-          {isBusinessAccount ? (
-            <Check size={wp(14)} color={colors.primary} strokeWidth={3} />
-          ) : null}
-        </View>
-        <Text style={styles.checkboxLabel}>Are you a Brand or Agency?</Text>
-      </TouchableOpacity>
-
-      {isBusinessAccount ? (
-        <>
-          <Text style={styles.label}>Business Role</Text>
-          <Controller
-            control={control}
-            name="businessRole"
-            rules={{ required: 'Select Brand or Agency' }}
-            render={({ field: { onChange, value }, fieldState: { error } }) => (
-              <Dropdown
-                style={[styles.dropdown, error && styles.errorBorder]}
-                placeholderStyle={styles.dropdownPlaceholder}
-                selectedTextStyle={styles.dropdownSelected}
-                itemTextStyle={styles.dropdownItem}
-                containerStyle={styles.dropdownContainer}
-                data={BUSINESS_ROLE_OPTIONS}
-                labelField="label"
-                valueField="value"
-                value={value}
-                placeholder="Select role"
-                onChange={item => onChange(item.value)}
-              />
+          <LinearGradient
+            colors={['#F7D488', '#EBA83F']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.btnHeader}
+          >
+            {loading ? (
+              <ActivityIndicator color={colors.black} />
+            ) : (
+              <Text style={styles.btnHeaderText}>Create Account</Text>
             )}
-          />
-
-          <Text style={styles.label}>Company Name</Text>
-          <Controller
-            name="companyName"
-            control={control}
-            rules={{
-              validate: value =>
-                !isBusinessAccount || value?.trim()?.length > 0
-                  ? true
-                  : 'Company name is required',
-            }}
-            render={({ field: { onChange, value }, fieldState: { error } }) => (
-              <TextInput
-                placeholder="Enter company name"
-                placeholderTextColor={colors.white}
-                value={value}
-                onChangeText={onChange}
-                style={[styles.input, error && styles.errorBorder]}
-              />
-            )}
-          />
-        </>
-      ) : null}
-
-      {/* Button */}
-      <TouchableOpacity
-        style={styles.btnHeader}
-        onPress={handleSubmit(onSubmit)}
-        disabled={loading}
-        activeOpacity={0.8}
-      >
-        {loading ? (
-          <ActivityIndicator color={colors.primary} />
-        ) : (
-          <>
-            <Text style={styles.btnHeaderText}>Create Account</Text>
-            <MoveRight color={colors.primary} />
-          </>
-        )}
-      </TouchableOpacity>
-    </KeyboardAwareScrollView>
+          </LinearGradient>
+        </TouchableOpacity>
+      </KeyboardAwareScrollView>
+    </View>
   );
 };
 
 export default SignUp;
 
 const styles = StyleSheet.create({
+  screen: {
+    height: SCREEN_HEIGHT,
+    backgroundColor: colors.black,
+  },
+  heroImage: {
+    width: '100%',
+    height: hp(230),
+    backgroundColor: colors.black,
+  },
+
+  scrollFlex: {
+    flex: 1,
+  },
+
   container: {
-    paddingTop: hp(50),
+    backgroundColor: '#141414',
+    borderTopLeftRadius: wp(28),
+    borderTopRightRadius: wp(28),
+    marginTop: -hp(24),
+    paddingTop: hp(28),
     paddingBottom: hp(40),
     paddingHorizontal: wp(20),
     flexGrow: 1,
   },
 
   title: {
-    fontSize: fp(35),
-    fontWeight: '600',
+    fontSize: fp(30),
+    fontWeight: '700',
     color: colors.white,
-    marginBottom: hp(8),
+    marginBottom: hp(16),
   },
 
   warningBox: {
@@ -359,22 +393,31 @@ const styles = StyleSheet.create({
   },
 
   label: {
-    fontSize: fp(14),
-    fontWeight: '500',
-    color: colors.white,
-    marginBottom: hp(6),
-    marginTop: hp(10),
+    fontSize: fp(11),
+    fontWeight: '700',
+    color: colors.micButtonGolden,
+    letterSpacing: 0.6,
+    marginBottom: hp(7),
+    marginTop: hp(14),
+    textTransform: 'uppercase',
   },
 
   input: {
-    borderRadius: wp(8),
-    paddingHorizontal: wp(10),
-    height: hp(44),
-    backgroundColor: 'grey',
-    borderWidth: wp(1.5),
+    borderRadius: wp(10),
+    paddingHorizontal: wp(12),
+    height: hp(46),
+    backgroundColor: '#1E1E1E',
+    borderWidth: 0,
     marginBottom: hp(4),
-    borderColor: colors.white,
     color: colors.white,
+  },
+  inputValueText: {
+    fontSize: fp(14),
+    color: colors.white,
+  },
+  inputPlaceholderText: {
+    fontSize: fp(14),
+    color: colors.textMuted,
   },
 
   checkboxRow: {
@@ -389,15 +432,15 @@ const styles = StyleSheet.create({
     height: wp(22),
     borderRadius: wp(6),
     borderWidth: wp(1.5),
-    borderColor: colors.white,
-    backgroundColor: 'grey',
+    borderColor: colors.micButtonGolden,
+    backgroundColor: '#1E1E1E',
     alignItems: 'center',
     justifyContent: 'center',
   },
 
   checkboxChecked: {
-    backgroundColor: colors.white,
-    borderColor: colors.white,
+    backgroundColor: colors.golden,
+    borderColor: colors.golden,
   },
 
   checkboxLabel: {
@@ -408,23 +451,22 @@ const styles = StyleSheet.create({
   },
 
   dropdown: {
-    height: hp(44),
-    borderRadius: wp(8),
-    paddingHorizontal: wp(10),
-    backgroundColor: 'grey',
-    borderWidth: wp(1.5),
-    borderColor: colors.white,
+    height: hp(46),
+    borderRadius: wp(10),
+    paddingHorizontal: wp(12),
+    backgroundColor: '#1E1E1E',
+    borderWidth: 0,
     marginBottom: hp(4),
   },
 
   dropdownContainer: {
-    backgroundColor: '#2A2A2A',
-    borderColor: colors.white,
+    backgroundColor: '#1E1E1E',
+    borderColor: colors.border,
     borderRadius: wp(8),
   },
 
   dropdownPlaceholder: {
-    color: colors.white,
+    color: colors.textMuted,
     fontSize: fp(14),
   },
 
@@ -439,23 +481,22 @@ const styles = StyleSheet.create({
   },
 
   errorBorder: {
+    borderWidth: wp(1.5),
     borderColor: colors.error,
   },
 
-  btnHeader: {
-    backgroundColor: colors.white,
-    padding: wp(12),
-    borderRadius: wp(8),
-    marginTop: hp(25),
+ btnHeader: {
+    padding: wp(14),
+    borderRadius: wp(10),
+    marginTop: hp(28),
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: wp(10),
   },
 
   btnHeaderText: {
-    color: colors.primary,
-    fontWeight: '600',
+    color: colors.black,
+    fontWeight: '700',
     fontSize: fp(16),
   },
 });

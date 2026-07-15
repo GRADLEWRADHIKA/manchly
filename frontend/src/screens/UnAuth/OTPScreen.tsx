@@ -18,6 +18,7 @@ import { OtpInput } from 'react-native-otp-entry';
 import colors from '../../utils/colors';
 import { wp, hp, fp } from '../../utils/responsive';
 import { verifyOtp } from '../../store/UserSlice';
+import LinearGradient from 'react-native-linear-gradient';
 
 const OTPScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -132,25 +133,24 @@ const OTPScreen: React.FC = () => {
           )}
         />
 
-        <TouchableOpacity
-          style={[
-            styles.verifyButton,
-            {
-              backgroundColor:
-                route?.params?.payload?.tab === 'USER'
-                  ? colors.secPrimary
-                  : colors.primary,
-            },
-          ]}
+       <TouchableOpacity
+          style={styles.verifyButtonWrap}
           onPress={handleSubmit(onSubmit)}
           disabled={loading}
           activeOpacity={0.8}
         >
-          {loading ? (
-            <ActivityIndicator color={colors.white} />
-          ) : (
-            <Text style={styles.verifyButtonText}>Verify & Continue</Text>
-          )}
+          <LinearGradient
+            colors={['#F7D488', '#EBA83F']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.verifyButton}
+          >
+            {loading ? (
+              <ActivityIndicator color={colors.black} />
+            ) : (
+              <Text style={styles.verifyButtonText}>Verify & Continue</Text>
+            )}
+          </LinearGradient>
         </TouchableOpacity>
 
         <Text style={styles.helpText}>
@@ -244,12 +244,15 @@ const styles = StyleSheet.create({
     marginBottom: hp(12),
   },
 
-  verifyButton: {
+ verifyButtonWrap: {
     width: '100%',
+    borderRadius: wp(12),
+    marginTop: hp(12),
+  },
+  verifyButton: {
     paddingVertical: hp(16),
     borderRadius: wp(12),
     alignItems: 'center',
-    marginTop: hp(12),
   },
   verifyButtonText: {
     color: colors.white,

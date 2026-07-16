@@ -238,7 +238,7 @@ export default UserNotification;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FDFAF6',
+    backgroundColor: colors.bg,
   },
 
   // Tabs
@@ -255,11 +255,11 @@ const styles = StyleSheet.create({
     borderRadius: wp(20),
     backgroundColor: colors.white,
     borderWidth: 1,
-    borderColor: '#E8E0D8',
+    borderColor: colors.surface,
   },
   tabActive: {
-    backgroundColor: colors.secPrimary,
-    borderColor: colors.secPrimary,
+    backgroundColor: colors.surface,
+    borderColor: colors.surface,
   },
   tabText: {
     fontSize: fp(13),
@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
     color: '#64748B',
   },
   tabTextActive: {
-    color: colors.white,
+    color: colors.textPrimary,
   },
 
   // Mark all read
@@ -281,7 +281,7 @@ const styles = StyleSheet.create({
   },
   markAllText: {
     fontSize: fp(12),
-    color: colors.secPrimary,
+    color: colors.textPrimary,
     fontWeight: '600',
   },
 
@@ -301,19 +301,19 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderRadius: wp(14),
     padding: wp(14),
     borderWidth: 1,
-    borderColor: '#E8E0D8',
+    borderColor: colors.surface,
     elevation: 1,
-    shadowColor: colors.black,
+    shadowColor: colors.surface,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.03,
     shadowRadius: 3,
   },
   cardUnread: {
-    backgroundColor: '#FFF5F0',
+    backgroundColor: colors.surface,
     borderColor: colors.secPrimary + '30',
   },
   unreadDot: {
@@ -323,7 +323,7 @@ const styles = StyleSheet.create({
     width: wp(6),
     height: wp(6),
     borderRadius: wp(3),
-    backgroundColor: colors.secPrimary,
+    backgroundColor: colors.textPrimary,
   },
   iconWrap: {
     width: wp(42),
@@ -340,7 +340,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: fp(14),
     fontWeight: '600',
-    color: '#1A1A2E',
+    color: colors.textPrimary,
   },
   cardTitleUnread: {
     fontWeight: '700',
@@ -375,12 +375,12 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: fp(18),
     fontWeight: '700',
-    color: '#1A1A2E',
+    color: colors.textPrimary,
     marginBottom: hp(6),
   },
   emptyDesc: {
     fontSize: fp(13),
-    color: '#64748B',
+    color: colors.textPrimary,
     textAlign: 'center',
     lineHeight: fp(19),
   },

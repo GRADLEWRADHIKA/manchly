@@ -28,7 +28,7 @@ const LatestWebinarItem = ({ item, onPress }: any) => {
         <Image source={{ uri: item.thumbnail_url }} style={styles.thumb} />
       ) : (
         <View style={[styles.thumb, styles.thumbPlaceholder]}>
-          <Video size={wp(22)} color={ACCENT} strokeWidth={1.5} />
+          <Video size={wp(22)} color={colors.ACCENT} strokeWidth={1.5} />
         </View>
       )}
       <View style={styles.info}>
@@ -75,7 +75,7 @@ const LatestWebinars = () => {
     return (
       <ActivityIndicator
         size="small"
-        color={ACCENT}
+        color={colors.ACCENT}
         style={styles.loader}
       />
     );
@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
   },
   card: {
     width: wp(160),
-    backgroundColor: CARD_BG,
+    backgroundColor: colors.CARD_BG,
     borderRadius: wp(14),
     overflow: 'hidden',
     marginBottom: 5,
@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
     height: hp(90),
   },
   thumbPlaceholder: {
-    backgroundColor: PLACEHOLDER_BG,
+    backgroundColor: colors.PLACEHOLDER_BG,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -170,6 +170,6 @@ const styles = StyleSheet.create({
   price: {
     fontSize: fp(13),
     fontWeight: '700',
-    color: ACCENT,
+    color: colors.ACCENT,
   },
 });

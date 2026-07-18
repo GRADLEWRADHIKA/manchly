@@ -21,6 +21,7 @@ const FirstPage = () => {
         <Image
           source={require('../../image/boarding.jpg')}
           style={styles.imageMain}
+          resizeMode="contain"
         />
       </View>
       <View style={styles.secHalf}>
@@ -159,5 +160,5 @@ const styles = StyleSheet.create({
   flagEmoji: {
     fontSize: fp(14),
   },
-  imageMain: { height: '95%', width: '95%' },
+  imageMain: { height: '100%', width: '100%' },
 });

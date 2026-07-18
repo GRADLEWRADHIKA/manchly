@@ -21,17 +21,13 @@ const NewLoginScreen = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.topSpace}></View>
-
-      <View style={styles.mainHeader}>
-        {active === 1 ? (
-          <ChooseType setSelectedType={setSelectedType} setActive={setActive} />
-        ) : active === 2 ? (
-          <VerifyLogin selectedType={selectedType} setActive={setActive} />
-        ) : (
-          <SignUp selectedType={selectedType} setActive={setActive} />
-        )}
-      </View>
+      {active === 1 ? (
+        <ChooseType setSelectedType={setSelectedType} setActive={setActive} />
+      ) : active === 2 ? (
+        <VerifyLogin selectedType={selectedType} setActive={setActive} />
+      ) : (
+        <SignUp selectedType={selectedType} setActive={setActive} />
+      )}
     </View>
   );
 };

@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import colors from '../../../utils/colors';
 import { wp, hp, fp } from '../../../utils/responsive';
+import LinearGradient from 'react-native-linear-gradient';
 import { Controller, useForm } from 'react-hook-form';
 import { useDispatch } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
@@ -183,7 +184,7 @@ const VerifyLogin: React.FC<VerifyLoginProps> = ({
       {/* Top Half - Image */}
       <View style={styles.topHalf}>
         <Image
-          source={require('../../../image/boarding.jpg')}
+          source={require('../../../image/boardingTight.jpg')}
           style={styles.heroImage}
           resizeMode="contain"
         />
@@ -264,18 +265,25 @@ const VerifyLogin: React.FC<VerifyLoginProps> = ({
           )}
 
           <TouchableOpacity
-            style={styles.btnHeader}
+            activeOpacity={0.9}
             onPress={
               otpSuccess ? handleSubmit(onOtpSubmit) : handleSubmit(onSubmit)
             }
           >
-            {loading ? (
-              <ActivityIndicator color={colors.black} />
-            ) : (
-              <Text style={styles.btnHeaderText}>
-                {otpSuccess ? 'Verify OTP' : 'Send Verification Code'}
-              </Text>
-            )}
+            <LinearGradient
+              colors={['#F3C36B', '#D49A3D']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.btnHeader}
+            >
+              {loading ? (
+                <ActivityIndicator color={colors.black} />
+              ) : (
+                <Text style={styles.btnHeaderText}>
+                  {otpSuccess ? 'Verify OTP' : 'Send Verification Code'}
+                </Text>
+              )}
+            </LinearGradient>
           </TouchableOpacity>
 
           <Text style={styles.termsText}>
@@ -310,7 +318,7 @@ export default VerifyLogin;
 
 const styles = StyleSheet.create({
   wrapper: {
-    height: hp(812),
+    flex: 1,
     backgroundColor: colors.primary,
   },
 
@@ -322,8 +330,8 @@ const styles = StyleSheet.create({
   },
 
   heroImage: {
-    width: wp(260),
-    height: wp(260),
+    width: '100%',
+    height: '100%',
   },
 
   bottomSheet: {
@@ -370,14 +378,13 @@ const styles = StyleSheet.create({
 
   btnHeader: {
     marginTop: hp(14),
-    backgroundColor: colors.golden,
     paddingVertical: hp(16),
     borderRadius: wp(14),
     alignItems: 'center',
-    shadowColor: colors.shadow,
+    shadowColor: colors.golden,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.18,
-    shadowRadius: 8,
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
     elevation: 3,
   },
 

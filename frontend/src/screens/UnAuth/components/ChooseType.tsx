@@ -20,7 +20,7 @@ const ChooseType = ({ setSelectedType, setActive }) => {
       {/* Top Half - Image */}
       <View style={styles.topHalf}>
         <Image
-          source={require('../../../image/boarding.jpg')}
+          source={require('../../../image/boardingTight.jpg')}
           style={styles.heroImage}
           resizeMode="contain"
         />
@@ -110,7 +110,7 @@ export default ChooseType;
 
 const styles = StyleSheet.create({
   wrapper: {
-    height: SCREEN_HEIGHT,
+    flex: 1,
     backgroundColor: colors.primary,
   },
 
@@ -131,8 +131,8 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: wp(28),
     borderTopRightRadius: wp(28),
     paddingHorizontal: wp(24),
-    paddingTop: hp(32),
-    paddingBottom: hp(30),
+    paddingTop: hp(20),
+    paddingBottom: hp(20),
   },
 
   title: {
@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.white,
     textAlign: 'center',
-    marginBottom: hp(28),
+    marginBottom: hp(18),
     letterSpacing: 0.2,
   },
 

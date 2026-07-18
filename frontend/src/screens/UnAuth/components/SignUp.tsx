@@ -6,6 +6,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Image,
 } from 'react-native';
 import React, { useCallback, useState } from 'react';
 import colors from '../../../utils/colors';
@@ -21,6 +22,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import { useFocusEffect } from '@react-navigation/native';
 import { Dropdown } from 'react-native-element-dropdown';
 import { navigationRef } from '../../../navigation/navigationRef';
+import LinearGradient from 'react-native-linear-gradient';
 
 const BUSINESS_ROLE_OPTIONS = [
   { label: 'Brand', value: 'BRAND' },
@@ -111,13 +113,27 @@ const SignUp = ({ selectedType, setActive }) => {
   );
 
   return (
-    <KeyboardAwareScrollView
-      contentContainerStyle={styles.container}
-      enableOnAndroid
-      keyboardShouldPersistTaps="handled"
-      showsVerticalScrollIndicator={false}
-    >
-      <Text style={styles.title}>Sign Up</Text>
+    <View style={styles.wrapper}>
+      <View style={styles.topHalf}>
+        <Image
+          source={require('../../../image/boardingTight.jpg')}
+          style={styles.heroImage}
+          resizeMode="contain"
+        />
+      </View>
+
+      <KeyboardAwareScrollView
+        style={styles.sheet}
+        contentContainerStyle={styles.sheetContent}
+        enableOnAndroid
+        enableAutomaticScroll
+        enableResetScrollToCoords={false}
+        extraScrollHeight={120}
+        keyboardOpeningTime={0}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={styles.title}>Sign Up</Text>
 
       {selectedType === 'CREATOR' ? (
         <View style={styles.warningBox}>
@@ -138,7 +154,7 @@ const SignUp = ({ selectedType, setActive }) => {
         render={({ field: { onChange, value } }) => (
           <TextInput
             placeholder="Enter full name"
-            placeholderTextColor={colors.white}
+            placeholderTextColor="rgba(255,255,255,0.35)"
             value={value}
             onChangeText={onChange}
             style={styles.input}
@@ -200,7 +216,7 @@ const SignUp = ({ selectedType, setActive }) => {
         render={({ field: { onChange, value } }) => (
           <TextInput
             placeholder="Enter email"
-            placeholderTextColor={colors.white}
+            placeholderTextColor="rgba(255,255,255,0.35)"
             value={value}
             onChangeText={onChange}
             keyboardType="email-address"
@@ -225,7 +241,7 @@ const SignUp = ({ selectedType, setActive }) => {
         render={({ field: { onChange, value } }) => (
           <TextInput
             placeholder="Enter phone number"
-            placeholderTextColor={colors.white}
+            placeholderTextColor="rgba(255,255,255,0.35)"
             value={value}
             onChangeText={onChange}
             keyboardType="phone-pad"
@@ -234,25 +250,27 @@ const SignUp = ({ selectedType, setActive }) => {
         )}
       />
 
-      <TouchableOpacity
-        style={styles.checkboxRow}
-        activeOpacity={0.85}
-        onPress={() => setIsBusinessAccount(prev => !prev)}
-        accessibilityRole="checkbox"
-        accessibilityState={{ checked: isBusinessAccount }}
-      >
-        <View
-          style={[
-            styles.checkbox,
-            isBusinessAccount && styles.checkboxChecked,
-          ]}
+      {selectedType === 'CREATOR' ? (
+        <TouchableOpacity
+          style={styles.checkboxRow}
+          activeOpacity={0.85}
+          onPress={() => setIsBusinessAccount(prev => !prev)}
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked: isBusinessAccount }}
         >
-          {isBusinessAccount ? (
-            <Check size={wp(14)} color={colors.primary} strokeWidth={3} />
-          ) : null}
-        </View>
-        <Text style={styles.checkboxLabel}>Are you a Brand or Agency?</Text>
-      </TouchableOpacity>
+          <View
+            style={[
+              styles.checkbox,
+              isBusinessAccount && styles.checkboxChecked,
+            ]}
+          >
+            {isBusinessAccount ? (
+              <Check size={wp(14)} color={colors.primary} strokeWidth={3} />
+            ) : null}
+          </View>
+          <Text style={styles.checkboxLabel}>Are you a Brand or Agency?</Text>
+        </TouchableOpacity>
+      ) : null}
 
       {isBusinessAccount ? (
         <>
@@ -267,7 +285,10 @@ const SignUp = ({ selectedType, setActive }) => {
                 placeholderStyle={styles.dropdownPlaceholder}
                 selectedTextStyle={styles.dropdownSelected}
                 itemTextStyle={styles.dropdownItem}
+                itemContainerStyle={styles.dropdownItemContainer}
                 containerStyle={styles.dropdownContainer}
+                activeColor="#33343A"
+                iconColor={colors.gold}
                 data={BUSINESS_ROLE_OPTIONS}
                 labelField="label"
                 valueField="value"
@@ -291,7 +312,7 @@ const SignUp = ({ selectedType, setActive }) => {
             render={({ field: { onChange, value }, fieldState: { error } }) => (
               <TextInput
                 placeholder="Enter company name"
-                placeholderTextColor={colors.white}
+                placeholderTextColor="rgba(255,255,255,0.35)"
                 value={value}
                 onChangeText={onChange}
                 style={[styles.input, error && styles.errorBorder]}
@@ -303,39 +324,69 @@ const SignUp = ({ selectedType, setActive }) => {
 
       {/* Button */}
       <TouchableOpacity
-        style={styles.btnHeader}
         onPress={handleSubmit(onSubmit)}
         disabled={loading}
         activeOpacity={0.8}
       >
-        {loading ? (
-          <ActivityIndicator color={colors.primary} />
-        ) : (
-          <>
-            <Text style={styles.btnHeaderText}>Create Account</Text>
-            <MoveRight color={colors.primary} />
-          </>
-        )}
+        <LinearGradient
+          colors={['#F3C36B', '#D49A3D']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.btnHeader}
+        >
+          {loading ? (
+            <ActivityIndicator color={colors.primary} />
+          ) : (
+            <>
+              <Text style={styles.btnHeaderText}>Create Account</Text>
+              <MoveRight color={colors.primary} />
+            </>
+          )}
+        </LinearGradient>
       </TouchableOpacity>
-    </KeyboardAwareScrollView>
+      </KeyboardAwareScrollView>
+    </View>
   );
 };
 
 export default SignUp;
 
 const styles = StyleSheet.create({
-  container: {
-    paddingTop: hp(50),
-    paddingBottom: hp(40),
-    paddingHorizontal: wp(20),
+  wrapper: {
+    flex: 1,
+    backgroundColor: colors.primary,
+  },
+
+  topHalf: {
+    height: '26%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  heroImage: {
+    width: '100%',
+    height: '100%',
+  },
+
+  sheet: {
+    flex: 1,
+    backgroundColor: '#141414',
+    borderTopLeftRadius: wp(28),
+    borderTopRightRadius: wp(28),
+  },
+
+  sheetContent: {
+    paddingTop: hp(28),
+    paddingBottom: hp(60),
+    paddingHorizontal: wp(24),
     flexGrow: 1,
   },
 
   title: {
-    fontSize: fp(35),
-    fontWeight: '600',
+    fontSize: fp(28),
+    fontWeight: '700',
     color: colors.white,
-    marginBottom: hp(8),
+    marginBottom: hp(10),
   },
 
   warningBox: {
@@ -357,22 +408,23 @@ const styles = StyleSheet.create({
   },
 
   label: {
-    fontSize: fp(14),
-    fontWeight: '500',
-    color: colors.white,
-    marginBottom: hp(6),
-    marginTop: hp(10),
+    fontSize: fp(12),
+    fontWeight: '600',
+    color: colors.gold,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+    marginBottom: hp(8),
+    marginTop: hp(18),
   },
 
   input: {
-    borderRadius: wp(8),
-    paddingHorizontal: wp(10),
-    height: hp(44),
-    backgroundColor: 'grey',
-    borderWidth: wp(1.5),
+    borderRadius: wp(14),
+    paddingHorizontal: wp(16),
+    height: hp(46),
+    backgroundColor: colors.inputBg,
     marginBottom: hp(4),
-    borderColor: colors.white,
     color: colors.white,
+    fontSize: fp(14),
   },
 
   checkboxRow: {
@@ -387,15 +439,15 @@ const styles = StyleSheet.create({
     height: wp(22),
     borderRadius: wp(6),
     borderWidth: wp(1.5),
-    borderColor: colors.white,
-    backgroundColor: 'grey',
+    borderColor: colors.gold,
+    backgroundColor: 'transparent',
     alignItems: 'center',
     justifyContent: 'center',
   },
 
   checkboxChecked: {
-    backgroundColor: colors.white,
-    borderColor: colors.white,
+    backgroundColor: colors.gold,
+    borderColor: colors.gold,
   },
 
   checkboxLabel: {
@@ -406,18 +458,23 @@ const styles = StyleSheet.create({
   },
 
   dropdown: {
-    height: hp(44),
-    borderRadius: wp(8),
-    paddingHorizontal: wp(10),
-    backgroundColor: 'grey',
-    borderWidth: wp(1.5),
-    borderColor: colors.white,
+    height: hp(46),
+    borderRadius: wp(14),
+    paddingHorizontal: wp(16),
+    backgroundColor: colors.inputBg,
     marginBottom: hp(4),
   },
 
   dropdownContainer: {
-    backgroundColor: '#2A2A2A',
-    borderColor: colors.white,
+    backgroundColor: colors.inputBg,
+    borderColor: 'rgba(255,255,255,0.08)',
+    borderWidth: wp(1),
+    borderRadius: wp(12),
+    marginTop: hp(4),
+    overflow: 'hidden',
+  },
+
+  dropdownItemContainer: {
     borderRadius: wp(8),
   },
 
@@ -441,9 +498,8 @@ const styles = StyleSheet.create({
   },
 
   btnHeader: {
-    backgroundColor: colors.white,
-    padding: wp(12),
-    borderRadius: wp(8),
+    paddingVertical: hp(16),
+    borderRadius: wp(14),
     marginTop: hp(25),
     flexDirection: 'row',
     alignItems: 'center',

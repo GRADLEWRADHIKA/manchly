@@ -10,7 +10,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import colors from '../../utils/colors';
 import { wp, hp, fp } from '../../utils/responsive';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { MoveRight, BadgeCheck } from 'lucide-react-native';
+import { BadgeCheck } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 
 const FirstPage = () => {

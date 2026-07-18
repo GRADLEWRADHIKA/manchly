@@ -8,21 +8,13 @@ import {
   Linking,
   ScrollView,
 } from 'react-native';
-import { useNavigation, useRoute, useIsFocused } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import {
   User2,
   ShieldCheck,
   ShieldX,
-  Video,
-  Star,
-  Briefcase,
-  Globe,
-  ArrowLeft,
-  MapPin,
 } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
-import { useSelector, useDispatch } from 'react-redux';
-import LinearGradient from 'react-native-linear-gradient';
 import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
 import AppHeaderWithBack from '../../../../components/AppHeaderWithBack';
@@ -30,26 +22,8 @@ import { InstagramIcon, LinkedinIcon, YoutubeIcon, FacebookIcon } from '../../..
 import CreatorCenter from '../CreatorCenter/CreatorCenter';
 const CreatorPublicProfile = () => {
   const navigation = useNavigation<any>();
-  const insets = useSafeAreaInsets();
   const route = useRoute<any>();
-  const dispatch = useDispatch<any>();
-  const isFocused = useIsFocused();
   const creator = route.params?.creator;
-  const { user } = useSelector((state: any) => state.userReducer);
-  const [sessionProducts, setSessionProducts] = React.useState<any[]>([]);
-  const [expert, setExpert] = React.useState<any>(null);
-
-  React.useEffect(() => {
-    const creatorId = creator?.id || creator?._id;
-    if (creatorId && isFocused) {
-      dispatch(getCreatorSessionProducts(creatorId))
-        .unwrap()
-        .then((res: any) => {
-          setSessionProducts(res?.data?.products || []);
-          setExpert(res?.data?.expert || null);
-        });
-    }
-  }, [isFocused, creator]);
 
   const displayName = creator?.name
     ? creator.name.charAt(0).toUpperCase() + creator.name.slice(1)
@@ -91,123 +65,29 @@ const CreatorPublicProfile = () => {
   const hasSocialLinks =
     creator?.instagram_link || creator?.linkedin_link || creator?.youtube_link || creator?.facebook_link;
 
-  const socialLinks = [
-    creator?.instagram_link && {
-      key: 'instagram',
-      url: creator.instagram_link,
-      icon: InstagramIcon,
-      color: '#E1306C',
-      label: 'Instagram',
-    },
-    creator?.linkedin_link && {
-      key: 'linkedin',
-      url: creator.linkedin_link,
-      icon: LinkedinIcon,
-      color: '#0077B5',
-      label: 'LinkedIn',
-    },
-    creator?.youtube_link && {
-      key: 'youtube',
-      url: creator.youtube_link,
-      icon: YoutubeIcon,
-      color: '#FF0000',
-      label: 'YouTube',
-    },
-    creator?.facebook_link && {
-      key: 'facebook',
-      url: creator.facebook_link,
-      icon: FacebookIcon,
-      color: '#1877F2',
-      label: 'Facebook',
-    },
-  ].filter(Boolean) as any[];
-
   return (
     <View style={styles.container}>
+      <AppHeaderWithBack title="Creator Profile" />
+
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Hero Header */}
-        <LinearGradient
-          colors={['#3B0D0D', '#692626', '#8B3A3A']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={[styles.heroGradient, { paddingTop: insets.top + hp(10) }]}
-        >
-          {/* Back button */}
-          <TouchableOpacity
-            style={[styles.backBtn, { top: insets.top + hp(10) }]}
-            onPress={() => navigation.goBack()}
-            activeOpacity={0.7}
-          >
-            <ArrowLeft
-              size={wp(22)}
-              color={colors.white}
-              strokeWidth={2.5}
-            />
-          </TouchableOpacity>
-
-          {/* Decorative circles */}
-          <View style={styles.decorCircle1} />
-          <View style={styles.decorCircle2} />
-
+        {/* Profile Card */}
+        <View style={styles.profileCard}>
           {/* Avatar */}
-          <View style={styles.avatarOuter}>
-            <View style={styles.avatarInner}>
+          <View style={styles.avatarContainer}>
+            <View style={styles.imageWrapper}>
               {creator?.profile_image ? (
                 <Image source={{ uri: creator.profile_image }} style={styles.profileImage} />
               ) : (
-                <LinearGradient
-                  colors={['#8B3A3A', '#692626']}
-                  style={styles.avatarFallback}
-                >
-                  <User2 size={wp(40)} color={colors.white} />
-                </LinearGradient>
+                <User2 size={wp(44)} color={colors.white} />
               )}
             </View>
           </View>
 
-          {/* Name & Profession */}
+          {/* Name */}
           <Text style={styles.profileName}>{displayName}</Text>
-          {expert?.profession && (
-            <View style={styles.professionRow}>
-              <Briefcase size={wp(13)} color={'rgba(255,255,255,0.6)'} />
-              <Text style={styles.professionText}>{expert.profession}</Text>
-            </View>
-          )}
-
-          {/* Stats Row */}
-          <View style={styles.statsRow}>
-            {expert?.rating > 0 && (
-              <View style={styles.statItem}>
-                <Star size={wp(14)} color={'#FBBF24'} fill={'#FBBF24'} />
-                <Text style={styles.statValue}>{expert.rating}</Text>
-                <Text style={styles.statLabel}>Rating</Text>
-              </View>
-            )}
-            {expert?.experience > 0 && (
-              <View style={styles.statItem}>
-                <Briefcase size={wp(14)} color={'#F97316'} />
-                <Text style={styles.statValue}>{expert.experience}+</Text>
-                <Text style={styles.statLabel}>Years</Text>
-              </View>
-            )}
-            {expert?.total_sessions > 0 && (
-              <View style={styles.statItem}>
-                <Video size={wp(14)} color={'#34D399'} />
-                <Text style={styles.statValue}>{expert.total_sessions}</Text>
-                <Text style={styles.statLabel}>Sessions</Text>
-              </View>
-            )}
-            {expert?.languages?.length > 0 && (
-              <View style={styles.statItem}>
-                <Globe size={wp(14)} color={'#FB923C'} />
-                <Text style={styles.statValue}>{expert.languages.length}</Text>
-                <Text style={styles.statLabel}>Languages</Text>
-              </View>
-            )}
-          </View>
 
           {/* KYC Badge */}
           <View
@@ -230,7 +110,6 @@ const CreatorPublicProfile = () => {
               {creator?.kyc_verified ? 'KYC Verified' : 'KYC Not Verified'}
             </Text>
           </View>
-        </LinearGradient>
 
           {/* Social Links */}
           {hasSocialLinks && (
@@ -272,20 +151,19 @@ const CreatorPublicProfile = () => {
                 ) : null}
                 {creator?.facebook_link ? (
                   <TouchableOpacity
-                    key={s.key}
                     style={styles.socialBtn}
-                    onPress={() => openLink(s.url)}
+                    onPress={() => openLink(creator.facebook_link)}
                     activeOpacity={0.7}
                   >
                     <View style={[styles.socialIconWrap, { backgroundColor: '#1877F220' }]}>
                       <FacebookIcon size={wp(20)} color="#1877F2" />
                     </View>
                   </TouchableOpacity>
-                );
-              })}
-            </View>
-          </View>
-        )}
+                ) : null}
+              </View>
+            </>
+          )}
+        </View>
       </ScrollView>
     </View>
   );
@@ -312,15 +190,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.06)',
   },
-
-  // Avatar
-  avatarOuter: {
-    padding: wp(4),
-    borderRadius: wp(62),
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    marginBottom: hp(14),
+  avatarContainer: {
+    marginBottom: hp(16),
   },
-  avatarInner: {
+  imageWrapper: {
     width: wp(110),
     height: wp(110),
     borderRadius: wp(55),
@@ -331,69 +204,24 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,182,6,0.4)',
   },
   profileImage: {
-    width: '100%',
-    height: '100%',
+    width: wp(110),
+    height: wp(110),
+    borderRadius: wp(55),
   },
-  avatarFallback: {
-    width: '100%',
-    height: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
   profileName: {
     fontSize: fp(24),
     fontWeight: '800',
     color: colors.white,
     marginBottom: hp(12),
   },
-  professionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(6),
-    marginBottom: hp(18),
-  },
-  professionText: {
-    fontSize: fp(13),
-    color: 'rgba(255,255,255,0.6)',
-    fontWeight: '500',
-  },
-
-  // Stats
-  statsRow: {
-    flexDirection: 'row',
-    backgroundColor: 'rgba(255,255,255,0.07)',
-    borderRadius: wp(14),
-    paddingVertical: hp(12),
-    paddingHorizontal: wp(8),
-    gap: wp(4),
-    marginBottom: hp(14),
-    alignSelf: 'stretch',
-  },
-  statItem: {
-    flex: 1,
-    alignItems: 'center',
-    gap: hp(3),
-  },
-  statValue: {
-    fontSize: fp(15),
-    fontWeight: '800',
-    color: colors.white,
-  },
-  statLabel: {
-    fontSize: fp(10),
-    color: 'rgba(255,255,255,0.45)',
-    fontWeight: '600',
-  },
-
-  // KYC
   kycBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: wp(5),
-    paddingHorizontal: wp(12),
-    paddingVertical: hp(5),
+    gap: wp(6),
+    paddingHorizontal: wp(14),
+    paddingVertical: hp(7),
     borderRadius: wp(20),
+    borderWidth: 1,
   },
   kycVerified: {
     backgroundColor: 'rgba(255,182,6,0.08)',

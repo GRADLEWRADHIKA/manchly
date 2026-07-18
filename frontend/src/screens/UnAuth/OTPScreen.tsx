@@ -44,7 +44,7 @@ const OTPScreen: React.FC = () => {
     const payload = {
       email: route?.params?.payload?.email,
       phone_number: route?.params?.payload?.phone_number,
-      code: route?.params?.dummyOtp,
+      code: data?.otp,
       purpose: route?.params?.payload?.purpose,
       user_type: route?.params?.payload?.tab,
     };

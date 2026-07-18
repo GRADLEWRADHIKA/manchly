@@ -88,6 +88,7 @@ const LoginScreen: React.FC = () => {
   const {
     control,
     handleSubmit,
+    reset,
     formState: {errors},
   } = useForm({
     defaultValues: {
@@ -96,25 +97,29 @@ const LoginScreen: React.FC = () => {
   });
 
   const onSubmit = (data: any) => {
-    const phone = data.phone.trim();
-    if (phone.length < 10) return;
+    const identifier = (data?.phoneEmail ?? '').trim();
+    if (identifier.length < 10) return;
+
+    const isPhoneNumber = /^[6-9]\d{9}$/.test(identifier);
+    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier);
+
+    if (!isPhoneNumber && !isEmail) return;
+
+    const email = isEmail ? identifier.toLowerCase() : '';
 
     setLoading(true);
 
-    const isPhoneNumber = /^\d+$/.test(data?.phoneEmail);
-    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data?.phoneEmail);
-
     const payloadVerify = {
-      email: isEmail ? data?.phoneEmail : '',
-      phone: isPhoneNumber ? data?.phoneEmail : '',
+      email: email,
+      phone: isPhoneNumber ? identifier : '',
     };
     dispatch(checkAuthData(payloadVerify))
       .unwrap()
       .then(response => {
         if (response?.data?.data?.exists) {
           const payload = {
-            phone_number: isPhoneNumber ? data?.phoneEmail : '',
-            email: isEmail ? data?.phoneEmail : '',
+            phone_number: isPhoneNumber ? identifier : '',
+            email: email,
             purpose: 'login',
             tab: userType,
           };
@@ -255,7 +260,7 @@ const LoginScreen: React.FC = () => {
                   message: 'Please enter phone number or email address',
                 },
                 pattern: {
-                  value: /^(\d{10}|[^\s@]+@[^\s@]+\.[^\s@]+)$/,
+                  value: /^([6-9]\d{9}|[^\s@]+@[^\s@]+\.[^\s@]+)$/,
                   message:
                     'Please enter a valid 10-digit phone number or email address',
                 },

@@ -1,160 +1,298 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
-  TouchableOpacity,
+  StyleSheet,
+  Pressable,
   Image,
-  StatusBar,
-  TouchableWithoutFeedback,
-  Dimensions,
+  Linking,
+  TouchableOpacity,
+  Modal,
+  ActivityIndicator,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useDispatch, useSelector } from 'react-redux';
-import { ThunkDispatch } from '@reduxjs/toolkit';
-import {
-  Bell,
-  Check,
-  User,
-  Wallet,
-  Landmark,
-  LogOut,
-  ChevronRight,
-  Youtube,
-  Linkedin,
-  Instagram,
-  Star,
-  Settings,
-} from 'lucide-react-native';
-import Toast from 'react-native-toast-message';
+import { Slider } from 'react-native-awesome-slider';
+import { useSharedValue } from 'react-native-reanimated';
+import { runOnJS } from 'react-native-worklets';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
+import {
+  User2,
+  ChevronRight,
+  LogOut,
+  Headset,
+  Megaphone,
+  WalletMinimal,
+  Bell,
+  Settings,
+  UserCircle,
+  Landmark,
+  Clock,
+  AlertTriangle,
+  CheckCircle2,
+  Info,
+  FileText,
+  Shield,
+  ReceiptText,
+  MessageCircle,
+  PiggyBank,
+  Instagram,
+  BadgeIndianRupee,
+} from 'lucide-react-native';
+import LogoutModal from '../../Profile/Components/LogoutModal';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useDispatch, useSelector } from 'react-redux';
+import { ThunkDispatch } from '@reduxjs/toolkit';
 import { logout } from '../../../../store/UserSlice';
-import { formatINR } from '../../../../components/FormField';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
+import { instance } from '../../../../utils/AxiosInstance';
+import LinearGradient from 'react-native-linear-gradient';
+import TermsModal from '../../../../components/TermsModal';
+import PrivacyModal from '../../../../components/PrivacyModal';
+import RefundPolicyModal from '../../../../components/RefundPolicyModal';
+import ContactUsModal from '../../../../components/ContactUsModal';
+import { version as appVersion } from '../../../../../package.json';
 
-const { width } = Dimensions.get('window');
+const SUPPORT_PHONE = '6363790659';
 
-interface SocialItem {
-  platform: string;
-  icon: React.ComponentType<any>;
-  url: string;
-}
+const openWhatsApp = (message: string) => {
+  const url = `whatsapp://send?phone=91${SUPPORT_PHONE}&text=${encodeURIComponent(
+    message,
+  )}`;
+  Linking.canOpenURL(url)
+    .then(supported => {
+      if (!supported) {
+        Toast.show({
+          type: 'error',
+          text1: 'WhatsApp not installed',
+          text2: 'Please install WhatsApp to contact support',
+          position: 'bottom',
+        });
+      } else {
+        return Linking.openURL(url);
+      }
+    })
+    .catch(err => {
+      Toast.show({
+        type: 'error',
+        text1: 'Something went wrong',
+        text2: err?.message || 'Unable to open WhatsApp',
+        position: 'bottom',
+      });
+    });
+};
 
-interface AccountRowItem {
-  id: string;
-  icon: React.ComponentType<any>;
-  title: string;
-  meta?: string;
-  route?: string;
-  action?: () => void;
-  isLogout?: boolean;
-}
+const MenuRow = ({
+  icon: Icon,
+  iconColor = colors.text,
+  iconBg = '#f4f4f5',
+  label,
+  labelColor = colors.text,
+  subtitle,
+  onPress,
+  isLast = false,
+}: any) => (
+  <Pressable
+    style={({ pressed }) => [
+      styles.row,
+      !isLast && styles.rowBorder,
+      pressed && styles.rowPressed,
+    ]}
+    onPress={onPress}
+    accessibilityRole="button"
+  >
+    <View style={styles.rowLeft}>
+      <View style={[styles.rowIcon, { backgroundColor: iconBg }]}>
+        <Icon size={wp(18)} color={iconColor} strokeWidth={1.8} />
+      </View>
+      <View>
+        <Text style={[styles.rowText, { color: labelColor }]}>{label}</Text>
+        {subtitle && <Text style={styles.rowSubtext}>{subtitle}</Text>}
+      </View>
+    </View>
+    <ChevronRight size={wp(18)} color="#c8ccd0" />
+  </Pressable>
+);
+
+const QuickAction = ({ icon: Icon, label, color, onPress }: any) => (
+  <Pressable
+    style={({ pressed }) => [styles.topCard, pressed && styles.topCardPressed]}
+    onPress={onPress}
+  >
+    <View style={[styles.topCardIcon, { backgroundColor: color + '12' }]}>
+      <Icon size={wp(20)} color={color} strokeWidth={1.8} />
+    </View>
+    <Text style={styles.topCardText}>{label}</Text>
+  </Pressable>
+);
 
 const CreatorSetting: React.FC = () => {
-  const navigation = useNavigation<any>();
-  const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
+  const [logoutVisible, setLogoutVisible] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
+  const [showRefund, setShowRefund] = useState(false);
+  const [showContact, setShowContact] = useState(false);
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  const [showHissaModal, setShowHissaModal] = useState(false);
+  const [hissaSale, setHissaSale] = useState(1000);
+  const [walletData, setWalletData] = useState<any>(null);
+  const [walletLoading, setWalletLoading] = useState(true);
+  const [bankAccount, setBankAccount] = useState<any>(null);
+  const Nav = useNavigation<any>();
   const { user } = useSelector((state: any) => state.userReducer);
+  const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
   const insets = useSafeAreaInsets();
 
-  // States
-  const [showDropdown, setShowDropdown] = useState(false);
+  const fetchWallet = async () => {
+    try {
+      setWalletLoading(true);
+      const [walletRes, bankRes] = await Promise.all([
+        instance.get('settlements/wallet').catch((e: any) => {
+          console.log(
+            'Wallet API error:',
+            e?.response?.status,
+            e?.response?.data,
+          );
+          return null;
+        }),
+        instance.get('settlements/bank-account').catch((e: any) => {
+          console.log('Bank API error:', e?.response?.status);
+          return null;
+        }),
+      ]);
+      setWalletData(walletRes?.data?.data?.wallet || null);
+      setBankAccount(bankRes?.data?.data?.bankAccount || null);
+    } catch (error) {
+      console.log('Error fetching wallet:', error);
+    } finally {
+      setWalletLoading(false);
+    }
+  };
 
-  // Social icons list mapped array
-  const socials: SocialItem[] = [
-    { platform: 'YouTube', icon: Youtube, url: user?.youtube_link || 'https://youtube.com' },
-    { platform: 'LinkedIn', icon: Linkedin, url: user?.linkedin_link || 'https://linkedin.com' },
-    { platform: 'Instagram', icon: Instagram, url: user?.instagram_link || 'https://instagram.com' },
-  ];
+  useFocusEffect(
+    useCallback(() => {
+      fetchWallet();
+    }, []),
+  );
 
-  const handleLogout = () => {
-    setShowDropdown(false);
-    dispatch(logout());
-    Toast.show({
-      type: 'success',
-      text1: 'Logged Out',
-      text2: 'You have been successfully logged out.',
-      position: 'bottom',
+  const withdrawableBalance = walletData?.available_balance || 0;
+
+  const formatAmount = (amount: number) => {
+    return amount.toLocaleString('en-IN', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
     });
   };
 
-  // Account section list rows mapping
-  const accountRows: AccountRowItem[] = [
-    {
-      id: 'profile',
-      icon: User,
-      title: 'My Profile',
-      meta: 'Manage profile, edit…',
-      route: 'CreatorProfile',
-    },
-    {
-      id: 'wallet',
-      icon: Wallet,
-      title: 'Wallet',
-      meta: 'Account and transactions',
-      route: 'WalletCreator',
-    },
-    {
-      id: 'bank',
-      icon: Landmark,
-      title: 'Bank Details',
-      meta: 'Manage bank information',
-      route: 'BankDetails',
-    },
-    {
-      id: 'logout',
-      icon: LogOut,
-      title: 'Logout',
-      isLogout: true,
-      action: () => setShowDropdown(true),
-    },
-  ];
+  const getT2Date = () => {
+    const eta = new Date();
+    let businessDays = 0;
+    while (businessDays < 2) {
+      eta.setDate(eta.getDate() + 1);
+      const day = eta.getDay();
+      if (day !== 0 && day !== 6) businessDays++;
+    }
+    return eta.toLocaleDateString('en-IN', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    });
+  };
+
+  const CREATOR_PCT = 90;
+  const PLATFORM_PCT = 10;
+  const HISSA_MIN = 1000;
+  const HISSA_MAX = 100000;
+
+  const hissaCreatorAmount = Math.round((hissaSale * CREATOR_PCT) / 100);
+  const hissaPlatformAmount = Math.round((hissaSale * PLATFORM_PCT) / 100);
+
+  const progress = useSharedValue(1000);
+  const minSale = useSharedValue(HISSA_MIN);
+  const maxSale = useSharedValue(HISSA_MAX);
+
+  const syncFromSlider = useCallback((value: number) => {
+    const stepped = Math.round(value / 100) * 100;
+    const clamped = Math.max(HISSA_MIN, Math.min(HISSA_MAX, stepped));
+    setHissaSale(clamped);
+  }, []);
+
+  const handleWithdraw = () => {
+    if (!bankAccount) {
+      Toast.show({
+        type: 'error',
+        text1: 'No Bank Account',
+        text2: 'Please add and verify your bank account first',
+        position: 'bottom',
+      });
+      Nav.navigate('BankDetails');
+      return;
+    }
+    if (!bankAccount.is_verified) {
+      Toast.show({
+        type: 'error',
+        text1: 'Bank Not Verified',
+        text2: 'Please verify your bank account first',
+        position: 'bottom',
+      });
+      Nav.navigate('BankDetails');
+      return;
+    }
+    if (withdrawableBalance <= 0) {
+      Toast.show({
+        type: 'info',
+        text1: 'No Balance',
+        text2: 'You have no withdrawable balance at the moment',
+        position: 'bottom',
+      });
+      return;
+    }
+    setShowWithdrawModal(true);
+  };
 
  return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={colors.bg || '#0F0F0F'} />
-
-      <View style={styles.safeArea}>
-        {/* Top Bar — same as Home */}
-        <View style={[styles.topBar, { paddingTop: insets.top + hp(8) }]}>
-          <View style={styles.topBarLeft}>
-            <TouchableOpacity activeOpacity={0.75} onPress={() => navigation.navigate('CreatorProfile')}>
-              {user?.profile_image ? (
-                <Image source={{ uri: user.profile_image }} style={styles.headerAvatar} />
-              ) : (
-                <View style={styles.headerAvatarFallback}>
-                  <Text style={styles.headerAvatarText}>
-                    {(user?.name || 'C').charAt(0).toUpperCase()}
-                  </Text>
-                </View>
-              )}
-            </TouchableOpacity>
+      {/* ──────── Header ──────── */}
+      <View style={[styles.headerWrapper, { paddingTop: insets.top }]}>
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            {user?.profile_image ? (
+              <Image
+                source={{ uri: user.profile_image }}
+                style={styles.avatar}
+              />
+            ) : (
+              <View style={styles.avatarFallback}>
+                <UserCircle size={wp(28)} color={colors.white} />
+              </View>
+            )}
             <View>
-              <Text style={styles.greetingSmall}>Settings</Text>
-              <Text style={styles.greetingName}>
-                {user?.name ? user.name.charAt(0).toUpperCase() + user.name.slice(1) : 'Creator'}
-              </Text>
+              <Text style={styles.headerSubtitle}>Welcome Back</Text>
+              <Text style={styles.headerTitle}>{user.name}</Text>
             </View>
           </View>
-          <View style={styles.topBarRight}>
+          <View
+            style={{ flexDirection: 'row', alignItems: 'center', gap: wp(4) }}
+          >
             <TouchableOpacity
-              style={styles.settingsBtn}
-              activeOpacity={0.75}
-              onPress={() => navigation.navigate('CreatorSettingsDetails')}
+              style={styles.bellBtn}
+              onPress={() =>
+                Linking.openURL('https://www.instagram.com/manchly_app')
+              }
             >
-              <Settings size={18} color={colors.textPrimary} />
+              <Instagram size={wp(20)} color={colors.white} />
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.iconButton}
-              activeOpacity={0.75}
-              onPress={() => navigation.navigate('CreatorNotification')}
+              style={styles.bellBtn}
+              onPress={() => Nav.navigate('CreatorNotification')}
             >
-              <Bell size={22} color={colors.textPrimary} />
-              <View style={styles.bellDot} />
+              <Bell size={wp(20)} color={colors.white} />
             </TouchableOpacity>
           </View>
         </View>
+      </View>
 
       <ScrollView
         style={styles.body}
@@ -202,9 +340,39 @@ const CreatorSetting: React.FC = () => {
                   : `₹ ${formatAmount(withdrawableBalance)}`}
               </Text>
             </View>
+          </View>
+          <Pressable
+            style={({ pressed }) => [
+              styles.withdrawBtn,
+              pressed && styles.withdrawBtnPressed,
+            ]}
+            onPress={handleWithdraw}
+          >
+            <Text style={styles.withdrawBtnText}>Withdraw</Text>
+          </Pressable>
+        </LinearGradient>
 
-            <Text style={styles.profileName}>
-              {user?.name ? user.name.toUpperCase() : 'CREATOR'}
+        {/* ──────── Aapki Kamaai ka Hissa ──────── */}
+        <Pressable
+          style={({ pressed }) => [
+            styles.hissaCard,
+            pressed && styles.hissaCardPressed,
+          ]}
+          onPress={() => setShowHissaModal(true)}
+        >
+          <View style={styles.hissaIconWrap}>
+            <BadgeIndianRupee size={wp(22)} color={colors.white} strokeWidth={2} />
+          </View>
+          <View style={styles.hissaInfo}>
+            <Text style={styles.hissaTitle}>Aapki Kamaai ka Hissa</Text>
+            <Text style={styles.hissaSubtitle}>
+              <Text style={styles.hissaCreator}>
+                {CREATOR_PCT}% aapka
+              </Text>
+              <Text style={styles.hissaDot}> · </Text>
+              <Text style={styles.hissaPlatform}>
+                {PLATFORM_PCT}% Manchly
+              </Text>
             </Text>
           </View>
           <ChevronRight size={wp(18)} color="rgba(255,255,255,0.4)" />
@@ -288,15 +456,8 @@ const CreatorSetting: React.FC = () => {
           />
         </View>
 
-            {/* Pill Buttons Row */}
-            <View style={styles.pillButtonsRow}>
-              <TouchableOpacity
-                style={styles.outlinedPill}
-                onPress={() => navigation.navigate('CreatorProfile')}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.outlinedPillText}>Edit Profile</Text>
-              </TouchableOpacity>
+        <Text style={styles.versionText}>Version {appVersion}</Text>
+      </ScrollView>
 
       {/* ──────── Withdraw Modal ──────── */}
       <Modal
@@ -310,24 +471,15 @@ const CreatorSetting: React.FC = () => {
             <View style={styles.modalIconWrap}>
               <WalletMinimal size={wp(28)} color={colors.golden} />
             </View>
+            <Text style={styles.modalTitle}>Withdraw Funds</Text>
 
-            {/* Social Icons Row */}
-            <View style={styles.socialRow}>
-              {socials.map((item, idx) => {
-                const IconComponent = item.icon;
-                return (
-                  <TouchableOpacity
-                    key={idx}
-                    style={styles.socialCircle}
-                    onPress={() => Toast.show({ type: 'info', text1: `Opening ${item.platform}` })}
-                    activeOpacity={0.8}
-                  >
-                    <IconComponent size={16} color={colors.white || '#FFFFFF'} />
-                  </TouchableOpacity>
-                );
-              })}
+            {/* Amount */}
+            <View style={styles.modalAmountCard}>
+              <Text style={styles.modalAmountLabel}>Amount to be settled</Text>
+              <Text style={styles.modalAmountValue}>
+                ₹ {formatAmount(withdrawableBalance)}
+              </Text>
             </View>
-          </View>
 
             {/* T+2 Info */}
             <View style={styles.modalInfoRow}>
@@ -347,18 +499,8 @@ const CreatorSetting: React.FC = () => {
                   Crediting to: {bankAccount.account_number} (
                   {bankAccount.ifsc_code})
                 </Text>
-                <View style={styles.priceRow}>
-                  <Text style={styles.productPrice}>{formatINR(199.0)}</Text>
-                  <TouchableOpacity
-                    style={styles.followButton}
-                    onPress={() => Toast.show({ type: 'success', text1: 'Following course updates' })}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={styles.followButtonText}>FOLLOW</Text>
-                  </TouchableOpacity>
-                </View>
               </View>
-            </View>
+            )}
 
             {/* Note */}
             <View style={styles.modalNoteRow}>
@@ -368,14 +510,12 @@ const CreatorSetting: React.FC = () => {
                 transferred after the T+2 settlement period.
               </Text>
             </View>
-          </View>
 
-          {/* Published Courses Section */}
-          <View style={styles.card}>
-            <View style={styles.listHeaderRow}>
-              <Text style={styles.listHeaderTitle}>Published Courses</Text>
+            {/* Buttons */}
+            <View style={styles.modalButtons}>
               <TouchableOpacity
-                onPress={() => navigation.navigate('ProductsScreen', { initialTab: 'Courses' })}
+                style={styles.modalCancelBtn}
+                onPress={() => setShowWithdrawModal(false)}
                 activeOpacity={0.7}
               >
                 <Text style={styles.modalCancelText}>Close</Text>
@@ -399,33 +539,56 @@ const CreatorSetting: React.FC = () => {
                 <Text style={styles.modalConfirmText}>Got It</Text>
               </TouchableOpacity>
             </View>
+          </View>
+        </View>
+      </Modal>
 
-            {/* Single horizontal Course card */}
-            <View style={styles.courseCard}>
-              <View style={styles.courseThumbnailContainer}>
-                {user?.profile_image ? (
-                  <Image source={{ uri: user.profile_image }} style={styles.courseImage} />
-                ) : (
-                  <View style={[styles.courseImage, { backgroundColor: colors.border || '#2A2A2C' }]} />
-                )}
-              </View>
-              <View style={styles.courseDetails}>
-                <Text style={styles.courseTitle} numberOfLines={2}>
-                  Advanced Culinary Arts: French Techniques
-                </Text>
-                <Text style={styles.courseDesc} numberOfLines={2}>
-                  Learn classical culinary technique and kitchen organization methods.
-                </Text>
+      {/* ──────── Hissa Bottom Sheet ──────── */}
+      <Modal
+        visible={showHissaModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowHissaModal(false)}
+      >
+        <GestureHandlerRootView style={styles.gestureRoot}>
+          <Pressable
+            style={styles.sheetOverlay}
+            onPress={() => setShowHissaModal(false)}
+          >
+            <Pressable style={styles.sheetContainer} onPress={() => {}}>
+            <View style={styles.sheetHandle} />
 
-                <View style={styles.coursePriceRow}>
-                  <Text style={styles.coursePrice}>{formatINR(199.0)}</Text>
-                  <TouchableOpacity
-                    style={styles.courseFollowButton}
-                    onPress={() => Toast.show({ type: 'success', text1: 'Following course' })}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={styles.courseFollowText}>FOLLOW</Text>
-                  </TouchableOpacity>
+            <Text style={styles.sheetTitle}>💰 Aapki Kamaai ka Hissa</Text>
+            <Text style={styles.sheetSubtitle}>
+              Har sale pe paisa aisa baanta hai
+            </Text>
+
+            {/* Split bar */}
+            <View style={styles.splitBar}>
+              <View
+                style={[
+                  styles.splitCreator,
+                  { flex: CREATOR_PCT },
+                ]}
+              />
+              <View
+                style={[
+                  styles.splitPlatform,
+                  { flex: PLATFORM_PCT },
+                ]}
+              />
+            </View>
+
+            <View style={styles.splitLegendRow}>
+              <View style={styles.splitLegendItem}>
+                <View style={styles.splitLegendRowTop}>
+                  <View
+                    style={[
+                      styles.splitDot,
+                      { backgroundColor: colors.creatorGreen },
+                    ]}
+                  />
+                  <Text style={styles.splitLegendLabel}>Aapka (Creator)</Text>
                 </View>
                 <Text
                   style={[styles.splitLegendValue, { color: colors.creatorGreen }]}
@@ -450,7 +613,6 @@ const CreatorSetting: React.FC = () => {
                 </Text>
               </View>
             </View>
-          </View>
 
             <View style={styles.sheetDivider} />
 
@@ -473,25 +635,17 @@ const CreatorSetting: React.FC = () => {
                   bubbleBackgroundColor: colors.golden,
                   bubbleTextColor: colors.black,
                 }}
-                activeOpacity={0.85}
-              >
-                <View style={styles.accountRowLeft}>
-                  <View style={[styles.accountIconContainer, row.isLogout && styles.logoutIconBg]}>
-                    <row.icon size={18} color={row.isLogout ? '#EF4444' : colors.white || '#FFFFFF'} />
-                  </View>
-                  <View style={styles.accountTextContainer}>
-                    <Text style={[styles.accountRowTitle, row.isLogout && styles.logoutTitleText]}>
-                      {row.title}
-                    </Text>
-                    {row.meta && <Text style={styles.accountRowMeta}>{row.meta}</Text>}
-                  </View>
-                </View>
-                <ChevronRight size={16} color={colors.textSecondary || '#888888'} />
-              </TouchableOpacity>
-            ))}
-          </View>
-        </ScrollView>
-      </View>
+                sliderHeight={hp(10)}
+                thumbWidth={wp(26)}
+                bubbleTranslateY={-hp(10)}
+                panHitSlop={{ top: 20, bottom: 20, left: 10, right: 10 }}
+                containerStyle={styles.sliderInner}
+              />
+            </View>
+
+            <Text style={styles.saleAmountText}>
+              ₹{hissaSale.toLocaleString('en-IN')} ki sale
+            </Text>
 
             <View style={styles.resultRow}>
               <View style={[styles.resultBox, styles.resultCreator]}>
@@ -506,51 +660,34 @@ const CreatorSetting: React.FC = () => {
                   ₹{hissaPlatformAmount.toLocaleString('en-IN')}
                 </Text>
               </View>
-              <TouchableOpacity
-                style={styles.confirmPill}
-                onPress={handleLogout}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.confirmPillText}>Log Out</Text>
-              </TouchableOpacity>
             </View>
+            </Pressable>
+          </Pressable>
+        </GestureHandlerRootView>
+      </Modal>
 
-            <View style={styles.dropdownDivider} />
+      <TermsModal visible={showTerms} onClose={() => setShowTerms(false)} />
+      <PrivacyModal
+        visible={showPrivacy}
+        onClose={() => setShowPrivacy(false)}
+      />
+      <RefundPolicyModal
+        visible={showRefund}
+        onClose={() => setShowRefund(false)}
+      />
+      <ContactUsModal
+        visible={showContact}
+        onClose={() => setShowContact(false)}
+      />
 
-            <TouchableOpacity
-              style={styles.cancelRow}
-              onPress={() => setShowDropdown(false)}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.cancelText}>Cancel</Text>
-            </TouchableOpacity>
-
-            <View style={styles.dropdownDivider} />
-
-            {/* Quick Links */}
-            <TouchableOpacity
-              style={styles.quickLinkRow}
-              onPress={() => {
-                setShowDropdown(false);
-                navigation.navigate('BankDetails');
-              }}
-              activeOpacity={0.8}
-            >
-              <Landmark size={14} color={colors.textSecondary || '#888888'} style={styles.quickLinkIcon} />
-              <Text style={styles.quickLinkLabel}>Bank Details</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.quickLinkRow}
-              onPress={handleLogout}
-              activeOpacity={0.8}
-            >
-              <LogOut size={14} color={colors.textSecondary || '#888888'} style={styles.quickLinkIcon} />
-              <Text style={styles.quickLinkLabel}>Logout</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
+      <LogoutModal
+        visible={logoutVisible}
+        onCancel={() => setLogoutVisible(false)}
+        onConfirm={() => {
+          setLogoutVisible(false);
+          dispatch(logout());
+        }}
+      />
     </View>
   );
 };
@@ -569,14 +706,12 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
   },
-  topBar: {
+  header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: wp(16),
-    paddingVertical: hp(10),
-    borderBottomWidth: 0.5,
-    borderBottomColor: colors.border || '#2A2A2C',
+    paddingVertical: hp(14),
   },
   headerCurve: {
     backgroundColor: colors.primary,
@@ -584,10 +719,11 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: wp(20),
     borderBottomRightRadius: wp(20),
   },
-  topBarRight: {
+  headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: wp(8),
+    gap: wp(12),
+    flex: 1,
   },
   avatar: {
     width: wp(48),
@@ -606,21 +742,24 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
   },
-  headerAvatarText: {
-    fontSize: fp(16),
-    fontWeight: '800',
-    color: colors.gold || '#F0C040',
+  avatarInitials: {
+    color: colors.white,
+    fontSize: fp(17),
+    fontWeight: '700',
   },
-  greetingSmall: {
+  greetingWrap: {
+    flex: 1,
+  },
+  greetingLabel: {
     fontSize: fp(11),
     color: 'rgba(255,255,255,0.5)',
     fontWeight: '500',
   },
-  greetingName: {
-    fontSize: fp(16),
+  greetingText: {
+    fontSize: fp(15),
     fontWeight: '700',
-    color: colors.textPrimary || '#FFFFFF',
-    marginTop: hp(1),
+    color: colors.white,
+    marginTop: 0,
   },
   bellBtn: {
     width: wp(40),
@@ -636,47 +775,28 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.16)',
     transform: [{ scale: 0.93 }],
   },
-  bellDot: {
-    position: 'absolute',
-    top: hp(6),
-    right: wp(6),
-    width: wp(6),
-    height: wp(6),
-    borderRadius: wp(3),
-    backgroundColor: colors.gold || '#F0C040',
+
+  /* ──── Body ──── */
+  body: {
+    flex: 1,
   },
   scrollContent: {
     paddingBottom: hp(40),
   },
 
-  // Profile Header Card
-  profileCard: {
-    backgroundColor: colors.surface || '#1C1C1E',
-    borderRadius: 14,
-    padding: wp(20),
-    marginHorizontal: wp(16),
-    marginTop: hp(16),
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.border || '#2A2A2C',
+  /* ──── Quick Actions ──── */
+  topCardWrapper: {
+    flexDirection: 'row',
+    paddingHorizontal: wp(16),
+    marginTop: hp(18),
+    marginBottom: hp(14),
+    gap: wp(12),
   },
-  avatarContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    position: 'relative',
-    marginBottom: hp(12),
-  },
-  avatarImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-  },
-  avatarFallback: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: colors.goldDim || 'rgba(240, 192, 64, 0.1)',
+  topCard: {
+    flex: 1,
+    paddingVertical: hp(16),
+    paddingHorizontal: wp(14),
+    borderRadius: wp(14),
     alignItems: 'center',
     gap: hp(8),
     backgroundColor: '#14141F',
@@ -693,47 +813,20 @@ const styles = StyleSheet.create({
     borderRadius: wp(13),
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: colors.surface || '#1C1C1E',
   },
   topCardText: {
     color: colors.white,
     fontSize: fp(13),
     fontWeight: '600',
   },
-  roleBadge: {
-    backgroundColor: colors.goldDim || 'rgba(240, 192, 64, 0.1)',
-    paddingHorizontal: wp(8),
-    paddingVertical: hp(3),
-    borderRadius: 6,
-    marginBottom: hp(12),
-  },
-  roleBadgeText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: colors.gold || '#F0C040',
-    letterSpacing: 0.5,
-  },
-  bioText: {
-    fontSize: fp(12),
-    color: colors.textSecondary || '#888888',
-    textAlign: 'center',
-    lineHeight: fp(18),
-    paddingHorizontal: wp(10),
-    marginBottom: hp(12),
-  },
-  pillButtonsRow: {
+
+  /* ──── Wallet Card ──── */
+  withdrawCard: {
+    marginHorizontal: wp(16),
+    borderRadius: wp(16),
+    overflow: 'hidden',
+    padding: wp(16),
     flexDirection: 'row',
-    width: '100%',
-    gap: wp(10),
-    marginBottom: hp(16),
-  },
-  outlinedPill: {
-    flex: 1,
-    height: hp(36),
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: colors.border || '#2A2A2C',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: hp(22),
@@ -743,10 +836,10 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 5,
   },
-  socialRow: {
+  withdrawLeft: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    gap: wp(16),
+    alignItems: 'center',
+    flex: 1,
   },
   walletIconWrap: {
     width: wp(40),
@@ -755,29 +848,22 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,182,6,0.12)',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 0.5,
-    borderColor: colors.border || '#2A2A2C',
   },
-
-  // Card general
-  card: {
-    backgroundColor: colors.surface || '#1C1C1E',
-    borderRadius: 14,
-    padding: wp(14),
-    marginHorizontal: wp(16),
-    marginTop: hp(12),
-    borderWidth: 1,
-    borderColor: colors.border || '#2A2A2C',
+  withdrawInfo: {
+    marginLeft: wp(12),
+    flex: 1,
   },
   withdrawLabel: {
     color: 'rgba(255,255,255,0.55)',
     fontWeight: '500',
     fontSize: fp(12),
   },
-
-  // Bestselling row
-  bestsellerRow: {
-    flexDirection: 'row',
+  withdrawAmount: {
+    color: colors.white,
+    marginTop: hp(2),
+    fontSize: fp(20),
+    fontWeight: '800',
+    letterSpacing: 0.5,
   },
   withdrawBtn: {
     backgroundColor: colors.golden,
@@ -785,39 +871,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(18),
     borderRadius: wp(10),
   },
-  productThumbnail: {
-    width: 60,
-    height: 60,
+  withdrawBtnPressed: {
+    opacity: 0.85,
+    transform: [{ scale: 0.96 }],
   },
-  productThumbnailFallback: {
-    backgroundColor: colors.border || '#2A2A2C',
-  },
-  productInfo: {
-    flex: 1,
-  },
-  mostLovedBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: 'rgba(240, 192, 64, 0.12)',
-    paddingHorizontal: wp(5),
-    paddingVertical: hp(2),
-    borderRadius: 4,
-    marginBottom: hp(3),
-  },
-  mostLovedText: {
-    fontSize: 8,
+  withdrawBtnText: {
     fontWeight: '700',
     color: colors.black,
     fontSize: fp(13),
-    fontWeight: '600',
-    color: colors.white || '#FFFFFF',
-    marginBottom: hp(4),
   },
-  priceRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  productPrice: {
+
+  /* ──── Sections ──── */
+  sectionTitle: {
     fontSize: fp(13),
     fontWeight: '600',
     color: 'rgba(255,255,255,0.45)',
@@ -843,20 +908,14 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.06)',
     overflow: 'hidden',
   },
-  metricChipsRow: {
+
+  /* ──── Rows ──── */
+  row: {
+    paddingHorizontal: wp(16),
+    paddingVertical: hp(14),
     flexDirection: 'row',
-    gap: wp(8),
-    marginTop: hp(12),
-    marginBottom: hp(10),
-  },
-  metricChip: {
-    flex: 1,
-    backgroundColor: colors.inputBg || '#242426',
-    borderRadius: 10,
-    padding: wp(8),
     alignItems: 'center',
-    borderWidth: 0.5,
-    borderColor: colors.border || '#2A2A2C',
+    justifyContent: 'space-between',
   },
   rowBorder: {
     borderBottomWidth: StyleSheet.hairlineWidth,
@@ -865,21 +924,18 @@ const styles = StyleSheet.create({
   rowPressed: {
     backgroundColor: 'rgba(255,255,255,0.04)',
   },
-  ratingRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: hp(8),
-    borderTopWidth: 0.5,
-    borderTopColor: colors.border || '#2A2A2C',
-  },
-  ratingLabel: {
-    fontSize: fp(11),
-    color: colors.textSecondary || '#888888',
-  },
-  ratingValueContainer: {
+  rowLeft: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
+  },
+  rowIcon: {
+    width: wp(36),
+    height: wp(36),
+    borderRadius: wp(10),
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: wp(12),
   },
   rowText: {
     fontSize: fp(15),
@@ -904,9 +960,11 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.5)',
     fontWeight: '500',
   },
-  viewAllText: {
-    fontSize: fp(12),
-    color: colors.gold || '#F0C040',
+  headerTitle: {
+    fontSize: fp(18),
+    fontWeight: '800',
+    color: colors.white,
+    marginTop: hp(1),
   },
 
   /* ──── Withdraw Modal ──── */
@@ -973,7 +1031,6 @@ const styles = StyleSheet.create({
     borderRadius: wp(12),
     width: '100%',
     marginBottom: hp(10),
-    lineHeight: fp(14),
   },
   modalInfoText: {
     flex: 1,
@@ -984,7 +1041,6 @@ const styles = StyleSheet.create({
   },
   modalBankRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     gap: wp(8),
     backgroundColor: colors.primary,
@@ -1001,11 +1057,13 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.55)',
     fontWeight: '500',
   },
-  courseFollowButton: {
-    backgroundColor: colors.gold || '#F0C040',
-    paddingHorizontal: wp(10),
-    paddingVertical: hp(4),
-    borderRadius: 12,
+  modalNoteRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: wp(8),
+    padding: wp(12),
+    width: '100%',
+    marginBottom: hp(16),
   },
   modalNoteText: {
     flex: 1,
@@ -1013,15 +1071,10 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.45)',
     lineHeight: fp(16),
   },
-  completionsContainer: {
-    borderTopWidth: 0.5,
-    borderTopColor: colors.border || '#2A2A2C',
-    paddingTop: hp(8),
-  },
-  completionsHeader: {
+  modalButtons: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: hp(4),
+    gap: wp(10),
+    width: '100%',
   },
   modalCancelBtn: {
     flex: 1,
@@ -1036,7 +1089,7 @@ const styles = StyleSheet.create({
   modalCancelText: {
     color: colors.white,
     fontWeight: '600',
-    color: colors.white || '#FFFFFF',
+    fontSize: fp(14),
   },
   modalConfirmBtn: {
     flex: 1,
@@ -1054,19 +1107,8 @@ const styles = StyleSheet.create({
     fontSize: fp(14),
   },
 
-  // Account section
-  accountSection: {
-    paddingHorizontal: wp(16),
-    marginTop: hp(16),
-  },
-  accountSectionLabel: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: colors.textMuted || '#555558',
-    letterSpacing: 0.8,
-    marginBottom: hp(8),
-  },
-  accountRow: {
+  /* ──── Hissa Card ──── */
+  hissaCard: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#14141F',
@@ -1091,8 +1133,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: wp(12),
   },
-  logoutIconBg: {
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+  hissaInfo: {
+    flex: 1,
   },
   hissaTitle: {
     fontSize: fp(15),
@@ -1116,16 +1158,11 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 
-  // Scrim Overlay
-  overlayContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 999,
+  /* ──── Hissa Bottom Sheet ──── */
+  gestureRoot: {
+    flex: 1,
   },
-  scrim: {
+  sheetOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'flex-end',
@@ -1159,7 +1196,7 @@ const styles = StyleSheet.create({
     marginTop: hp(4),
     marginBottom: hp(18),
   },
-  dropdownRow: {
+  splitBar: {
     flexDirection: 'row',
     height: hp(14),
     borderRadius: wp(20),
@@ -1172,53 +1209,49 @@ const styles = StyleSheet.create({
   splitPlatform: {
     backgroundColor: colors.golden,
   },
-  dropdownIcon: {
-    marginRight: wp(8),
-    marginTop: hp(2),
+  splitLegendRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: hp(12),
   },
-  dropdownTextCol: {
+  splitLegendItem: {
     flex: 1,
-    justifyContent: 'center',
-    marginRight: wp(6),
   },
-  dropdownTitle: {
-    fontSize: fp(13),
-    fontWeight: '600',
-    color: colors.white || '#FFFFFF',
-    marginBottom: hp(2),
+  splitLegendRowTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(6),
   },
-  dropdownMeta: {
-    fontSize: fp(9),
-    color: colors.textMuted || '#555558',
-    lineHeight: fp(12),
-  },
-  confirmPill: {
-    backgroundColor: 'rgba(239, 68, 68, 0.15)',
-    paddingHorizontal: wp(8),
-    paddingVertical: hp(4),
-    borderRadius: 10,
-    alignSelf: 'center',
+  splitDot: {
+    width: wp(8),
+    height: wp(8),
+    borderRadius: wp(4),
   },
   splitLegendLabel: {
     fontSize: fp(12),
     color: 'rgba(255,255,255,0.5)',
     fontWeight: '500',
   },
-  dropdownDivider: {
-    height: 0.5,
-    backgroundColor: '#303030',
-    marginHorizontal: 4,
+  splitLegendValue: {
+    fontSize: fp(22),
+    fontWeight: '900',
+    marginTop: hp(4),
   },
   sheetDivider: {
     height: 1,
     backgroundColor: 'rgba(255,255,255,0.08)',
     marginVertical: hp(18),
   },
-  cancelText: {
+  calcLabel: {
     fontSize: fp(13),
     color: 'rgba(255,255,255,0.5)',
     fontWeight: '500',
-    color: colors.white || '#FFFFFF',
+    marginBottom: hp(14),
+  },
+  sliderWrapper: {
+    marginTop: hp(24),
+    marginBottom: hp(8),
+    paddingHorizontal: wp(4),
   },
   sliderInner: {
     borderRadius: hp(5),
@@ -1232,9 +1265,15 @@ const styles = StyleSheet.create({
   },
   resultRow: {
     flexDirection: 'row',
+    gap: wp(12),
+    marginTop: hp(8),
+  },
+  resultBox: {
+    flex: 1,
+    paddingVertical: hp(14),
+    paddingHorizontal: wp(14),
+    borderRadius: wp(14),
     alignItems: 'center',
-    paddingHorizontal: wp(12),
-    paddingVertical: hp(10),
   },
   resultCreator: {
     backgroundColor: 'rgba(34,197,94,0.12)',
@@ -1246,5 +1285,10 @@ const styles = StyleSheet.create({
     fontSize: fp(12),
     color: 'rgba(255,255,255,0.5)',
     fontWeight: '500',
+    marginBottom: hp(4),
+  },
+  resultValue: {
+    fontSize: fp(22),
+    fontWeight: '900',
   },
 });

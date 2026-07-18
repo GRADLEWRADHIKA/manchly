@@ -13,7 +13,7 @@ import {
 import CreatorHome from '../screens/Auth/Creator/Home/CreatorHome';
 import CreatorProducts from '../screens/Auth/Creator/Products/CreatorProducts';
 import CreatorSetting from '../screens/Auth/Creator/Settings/CreatorSetting';
-import CreateProducts from '../screens/Auth/Creator/Products/Course/CreateProducts';
+import CreatorAI from '../screens/Auth/Creator/Ai/CreatorAI';
 import Dashboard from '../screens/Auth/Profile/Dashboard';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -34,7 +34,7 @@ const tabs = [
   },
   {
     name: 'CreateProducts',
-    component: CreateProducts,
+    component: CreatorAI,
     label: 'AI',
     Icon: Bot,
   },

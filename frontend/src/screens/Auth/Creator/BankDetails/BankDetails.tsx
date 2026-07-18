@@ -1,103 +1,186 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   ScrollView,
-  SafeAreaView,
-  StatusBar,
+  TouchableOpacity,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Modal,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { ArrowLeft, Lock } from 'lucide-react-native';
-import Toast from 'react-native-toast-message';
+import { useSelector } from 'react-redux';
+import {
+  Landmark,
+  CreditCard,
+  Building2,
+  User,
+  ShieldCheck,
+  ShieldX,
+  Info,
+  CheckCircle2,
+  XCircle,
+} from 'lucide-react-native';
+import { Controller, useForm } from 'react-hook-form';
 import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
-import { FormField } from '../../../../components/FormField';
+import AppHeaderWithBack from '../../../../components/AppHeaderWithBack';
+import CustomTextInput from '../../../../components/CustomInput';
+import LinearGradient from 'react-native-linear-gradient';
+import Toast from 'react-native-toast-message';
+import { instance } from '../../../../utils/AxiosInstance';
+import { verifyBankAccount } from '../../../../services/KYCService';
 
-interface FormState {
-  accountHolderName: string;
-  bankName: string;
-  accountNumber: string;
-  confirmAccountNumber: string;
-  ifscCode: string;
+interface BankAccount {
+  id: string;
+  account_number: string;
+  ifsc_code: string;
+  beneficiary_name: string;
+  account_type: string;
+  is_verified: boolean;
 }
 
-const BankDetailsScreen: React.FC = () => {
-  const navigation = useNavigation<any>();
-  const [form, setForm] = useState<FormState>({
-    accountHolderName: '',
-    bankName: '',
-    accountNumber: '',
-    confirmAccountNumber: '',
-    ifscCode: '',
+interface FormData {
+  account_number: string;
+  confirm_account_number: string;
+  ifsc_code: string;
+  beneficiary_name: string;
+}
+
+const BankDetails = () => {
+  const { user } = useSelector((state: any) => state.userReducer);
+
+  const [bankAccount, setBankAccount] = useState<BankAccount | null>(null);
+  const [fetchLoading, setFetchLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [verificationResult, setVerificationResult] = useState<any>(null);
+  const [showResultModal, setShowResultModal] = useState(false);
+  const [showVerifyModal, setShowVerifyModal] = useState(false);
+  const [verifyAccountNumber, setVerifyAccountNumber] = useState('');
+
+  const {
+    control,
+    handleSubmit,
+    reset,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm<FormData>({
+    defaultValues: {
+      account_number: '',
+      confirm_account_number: '',
+      ifsc_code: '',
+      beneficiary_name: user?.name || '',
+    },
   });
 
-  const fields = [
-    {
-      key: 'accountHolderName' as keyof FormState,
-      label: 'ACCOUNT HOLDER NAME',
-      placeholder: 'Aaj Shyam Sharma',
-    },
-    {
-      key: 'bankName' as keyof FormState,
-      label: 'BANK NAME',
-      placeholder: 'e.g. State Bank of India',
-    },
-    {
-      key: 'accountNumber' as keyof FormState,
-      label: 'ACCOUNT NUMBER',
-      placeholder: '••••••••••',
-      keyboardType: 'numeric' as const,
-      secureTextEntry: true,
-    },
-    {
-      key: 'confirmAccountNumber' as keyof FormState,
-      label: 'CONFIRM ACCOUNT NUMBER',
-      placeholder: '•••••••••••••••',
-      secureTextEntry: true,
-    },
-    {
-      key: 'ifscCode' as keyof FormState,
-      label: 'IFSC CODE',
-      placeholder: 'e.g. SBIN0012345',
-    },
-  ];
+  const accountNumber = watch('account_number');
 
-  const handleInputChange = (key: keyof FormState, value: string) => {
-    setForm(prev => ({ ...prev, [key]: value }));
+  const fetchBankAccount = async () => {
+    try {
+      setFetchLoading(true);
+      const response = await instance.get('settlements/bank-account');
+      const data = response?.data?.data?.bankAccount;
+      if (data) {
+        setBankAccount(data);
+      }
+    } catch (error: any) {
+      if (error?.response?.status !== 404) {
+        console.log('Error fetching bank account:', error);
+      }
+    } finally {
+      setFetchLoading(false);
+    }
   };
 
-  const handleSave = () => {
-    const { accountHolderName, bankName, accountNumber, confirmAccountNumber, ifscCode } = form;
+  useEffect(() => {
+    fetchBankAccount();
+  }, []);
 
-    if (!accountHolderName || !bankName || !accountNumber || !confirmAccountNumber || !ifscCode) {
+  const onSaveBank = async (data: FormData) => {
+    setSaving(true);
+    try {
+      const payload = {
+        account_number: data.account_number,
+        ifsc_code: data.ifsc_code.toUpperCase(),
+        beneficiary_name: data.beneficiary_name,
+      };
+
+      await instance.post('settlements/bank-account', payload);
+
+      Toast.show({
+        type: 'success',
+        text1: 'Bank account saved successfully',
+        position: 'bottom',
+      });
+
+      setIsEditing(false);
+      reset();
+      await fetchBankAccount();
+    } catch (error: any) {
+      const msg =
+        error?.response?.data?.message || 'Failed to save bank account';
       Toast.show({
         type: 'error',
-        text1: 'Required Fields',
-        text2: 'Please fill in all bank details.',
+        text1: msg,
+        position: 'bottom',
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const onVerifyBank = async () => {
+    if (!bankAccount || !verifyAccountNumber) return;
+
+    if (verifyAccountNumber.length < 8 || verifyAccountNumber.length > 18) {
+      Toast.show({
+        type: 'error',
+        text1: 'Account number must be 8-18 digits',
         position: 'bottom',
       });
       return;
     }
 
-    if (accountNumber !== confirmAccountNumber) {
+    setVerifying(true);
+    setVerificationResult(null);
+    setShowVerifyModal(false);
+    try {
+      const result = await verifyBankAccount({
+        account_number: verifyAccountNumber,
+        ifsc_code: bankAccount.ifsc_code,
+        account_holder_name: bankAccount.beneficiary_name,
+      });
+
+      setVerificationResult(result.data);
+      setShowResultModal(true);
+      setVerifyAccountNumber('');
+
+      if (result.data?.bank_verification?.verified) {
+        await fetchBankAccount();
+      }
+    } catch (error: any) {
       Toast.show({
         type: 'error',
-        text1: 'Validation Error',
-        text2: 'Account numbers do not match.',
+        text1: error?.message || 'Verification failed',
         position: 'bottom',
       });
-      return;
+    } finally {
+      setVerifying(false);
     }
+  };
 
-    Toast.show({
-      type: 'success',
-      text1: 'Verification Successful',
-      text2: 'Your bank details have been securely saved.',
-      position: 'bottom',
-    });
-    navigation.goBack();
+  const startEditing = () => {
+    setIsEditing(true);
+    if (bankAccount) {
+      setValue('ifsc_code', bankAccount.ifsc_code);
+      setValue('beneficiary_name', bankAccount.beneficiary_name);
+      setValue('account_number', '');
+      setValue('confirm_account_number', '');
+    }
   };
 
  if (fetchLoading) {
@@ -112,15 +195,18 @@ const BankDetailsScreen: React.FC = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={colors.bg || '#0F0F0F'} />
+    <View style={styles.container}>
+      <AppHeaderWithBack title="Bank Details" />
 
-      {/* Navigation Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-          activeOpacity={0.8}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
           {/* Subtitle */}
           <Text style={styles.headerSubtitle}>
@@ -454,10 +540,12 @@ const BankDetailsScreen: React.FC = () => {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
+      {/* Verify Account Number Modal */}
+      <Modal
+        visible={showVerifyModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowVerifyModal(false)}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
@@ -473,8 +561,47 @@ const BankDetailsScreen: React.FC = () => {
             <Text style={styles.modalMessage}>
               Enter your full account number to verify your bank account.
             </Text>
+            <View style={styles.verifyInputWrap}>
+              <CustomTextInput
+                placeholder="Enter Account Number"
+                value={verifyAccountNumber}
+                onChange={(text: any) => {
+                  const t =
+                    typeof text === 'string'
+                      ? text
+                      : text?.nativeEvent?.text || '';
+                  setVerifyAccountNumber(t.replace(/\D/g, ''));
+                }}
+                keyboardType="numeric"
+                inputContainerStyle={styles.input}
+              />
+            </View>
+            <View style={styles.verifyModalButtons}>
+              <TouchableOpacity
+                style={styles.cancelBtn}
+                onPress={() => {
+                  setShowVerifyModal(false);
+                  setVerifyAccountNumber('');
+                }}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.cancelBtnText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.verifyBtn,
+                  !verifyAccountNumber && { opacity: 0.5 },
+                ]}
+                onPress={onVerifyBank}
+                disabled={!verifyAccountNumber}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.verifyBtnText}>Verify</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
+      </Modal>
 
       {/* Verification Result Modal */}
       <Modal
@@ -563,7 +690,7 @@ const BankDetailsScreen: React.FC = () => {
   );
 };
 
-export default BankDetailsScreen;
+export default BankDetails;
 
 const styles = StyleSheet.create({
   container: {
@@ -655,8 +782,6 @@ const styles = StyleSheet.create({
     fontSize: fp(15),
     color: colors.white,
     fontWeight: '600',
-    color: colors.white || '#FFFFFF',
-    textAlign: 'center',
   },
   bankDivider: {
     height: 1,
@@ -709,6 +834,9 @@ const styles = StyleSheet.create({
     gap: wp(10),
     backgroundColor: 'rgba(96,165,250,0.1)',
     marginHorizontal: wp(16),
+    marginTop: hp(16),
+    padding: wp(14),
+    borderRadius: wp(12),
     borderWidth: 1,
     borderColor: 'rgba(96,165,250,0.2)',
   },
@@ -753,10 +881,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#0a0a0f',
     borderColor: 'rgba(255,255,255,0.04)',
   },
-  lockIcon: {
-    marginRight: wp(6),
+  inputError: {
+    borderColor: colors.error,
   },
-  infoText: {
+  errorText: {
+    color: colors.error,
     fontSize: fp(11),
     marginTop: hp(4),
     fontWeight: '500',
@@ -831,6 +960,8 @@ const styles = StyleSheet.create({
     fontSize: fp(14),
     color: 'rgba(255,255,255,0.55)',
     textAlign: 'center',
+    lineHeight: fp(20),
+    marginBottom: hp(20),
   },
   modalDetail: {
     backgroundColor: colors.primary,
@@ -868,12 +999,10 @@ const styles = StyleSheet.create({
     borderRadius: wp(12),
     alignItems: 'center',
     justifyContent: 'center',
-    marginHorizontal: wp(16),
-    marginTop: hp(16),
   },
-  saveButtonText: {
-    color: '#000000',
-    fontSize: fp(14),
+  modalCloseBtnText: {
+    color: colors.white,
     fontWeight: '700',
+    fontSize: fp(15),
   },
 });

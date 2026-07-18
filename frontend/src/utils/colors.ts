@@ -38,7 +38,6 @@ const colors = {
   faaAiBg: '#0F0F1A',
   faaAiCard: '#1A1040',
   faaAiBlue: '#60A5FA',
-};
 
   // Creator Dark Theme
   cBg: '#0D0D1A',

@@ -114,7 +114,9 @@ const CreatorHome = () => {
       .then(response => {
         setWebinarData(response?.data?.data?.webinars || []);
       })
-      .finally(() => setLoading(false));
+      .catch(error => {
+        console.log('Error fetching webinars:', error);
+      });
   };
 
   const fetchWallet = async () => {
@@ -268,7 +270,6 @@ const CreatorHome = () => {
         <View style={styles.sectionPadding}>
           <KycCard />
         </View>
-      </View>
 
         {/* Revenue + Performance split row */}
         <View style={[styles.sectionPadding, styles.splitRow]}>
@@ -483,18 +484,8 @@ const CreatorHome = () => {
       </ScrollView>
 
       {showIntroVideo ? (
-        <View
-          style={
-            isFullScreen
-              ? styles.fullScreenVideoContainer
-              : styles.floatingVideoContainer
-          }
-        >
-          <View
-            style={
-              isFullScreen ? styles.expandedVideoWrap : styles.miniVideoWrap
-            }
-          >
+        <View style={isFullScreen ? styles.fullScreenVideoContainer : styles.floatingVideoContainer}>
+          <View style={isFullScreen ? styles.expandedVideoWrap : styles.miniVideoWrap}>
             <View style={styles.videoButtonsRow}>
               <TouchableOpacity
                 style={styles.videoActionButton}

@@ -1,10 +1,9 @@
 import { Linking } from 'react-native';
 import React, { useEffect, useRef } from 'react';
-import {
-  NavigationContainer,
-} from '@react-navigation/native';
-import AuthStack from './AuthStack';
-import { useSelector } from 'react-redux';
+import { NavigationContainer } from '@react-navigation/native';
+// Remove AuthStack import if you are moving it inside UserMainStack
+// import AuthStack from './AuthStack'; 
+import { useSelector, useDispatch } from 'react-redux';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import UserMainStack from './UserMainStack';
 import CreatorMainStack from './CreatorMainStack';
@@ -17,13 +16,9 @@ import { getUnreadCount, addRealtimeNotification } from '../store/NotificationSl
 import { addSocketMessage } from '../store/ChatSlice';
 import SocketService from '../services/SocketService';
 import CallListener, { setNavigationRef } from '../components/CallListener';
-import { useDispatch } from 'react-redux';
 import { navigationRef } from './navigationRef';
 
 const PREFIXES = ['https://manchly.chottu.link', 'http://manchly.chottu.link', 'manchly://'];
-
-// Module-level flag so the static linking object can check auth state
-let isAuthenticated = false;
 
 // Rebuild a resolved URL so it uses our registered prefix
 const ensurePrefix = (url: string): string => {
@@ -102,15 +97,11 @@ const linking = {
   },
   async getInitialURL(): Promise<string | null> {
     const url = await Linking.getInitialURL();
-    // Read token directly from store (PersistGate ensures rehydration before Router mounts)
-    const token = store.getState().userReducer?.token;
-    if (!token) return null;
     return resolveUrl(url);
   },
   subscribe(listener: (url: string) => void) {
     const subscription = Linking.addEventListener('url', async ({ url }) => {
-      // Only let React Navigation handle when authenticated
-      if (!isAuthenticated) return;
+      // Removed the isAuthenticated check here so guests can open deep links too
       const resolved = await resolveUrl(url);
       if (resolved) {
         listener(resolved);
@@ -122,12 +113,10 @@ const linking = {
 
 const navigateFromNotification = (data: any) => {
   if (!navigationRef.current?.isReady()) return;
-  // FCM data has payload as stringified JSON
   let parsed = data;
   if (typeof data?.payload === 'string') {
     try { parsed = JSON.parse(data.payload); } catch {}
   }
-  // Notifee data may already have the fields directly
   if (parsed?.courseId) {
     navigationRef.current?.navigate('CourseDetailsScreen', { courseId: parsed.courseId });
   } else if (parsed?.webinarId) {
@@ -153,10 +142,10 @@ const navigateToIncomingCall = (data: any) => {
 };
 
 const Router = () => {
-  const { token } = useSelector((state: any) => state.userReducer);
-  const { user } = useSelector((state: any) => state.userReducer);
+  const { token, user } = useSelector((state: any) => state.userReducer);
   const dispatch = useDispatch<any>();
   const userRole = String(user?.user_type || '').toUpperCase();
+  
   const pendingDeepLink = useRef<{
     screen: 'CourseDetailsScreen' | 'WebinarDetails';
     id: string;
@@ -164,16 +153,15 @@ const Router = () => {
   const pendingCallData = useRef<any>(null);
   const pendingNotificationData = useRef<any>(null);
 
-  // Keep module-level auth flag in sync + refresh user data on app open
+  // Refresh user data on app open if token exists
   useEffect(() => {
-    isAuthenticated = !!token;
     if (token) {
       dispatch(getCurrentUser());
       dispatch(getUnreadCount());
     }
   }, [token]);
 
-  // Socket listeners for real-time events
+  // Socket listeners for real-time events (Only if authenticated)
   useEffect(() => {
     if (!token) return;
 
@@ -210,23 +198,22 @@ const Router = () => {
     };
   }, [token]);
 
-  // Setup FCM notifications
+  // Setup FCM notifications (Only if authenticated)
   useEffect(() => {
+    if (!token) return; // Don't setup push notifications for guests
+
     const setupNotifications = async () => {
       await NotificationService.requestPermission();
       await NotificationService.createChannel();
       const fcmToken = await NotificationService.getToken();
-      if (fcmToken && token) {
+      if (fcmToken) {
         dispatch(updateProfile({ fcm_token: fcmToken }));
       }
     };
 
     setupNotifications();
 
-    // Foreground notification — displayed via notifee (calls are handled by socket)
     const unsubForeground = NotificationService.onForegroundMessage();
-
-    // Background notification tap handler (FCM)
     const unsubOpened = NotificationService.onNotificationOpenedApp(
       (remoteMessage) => {
         if (NotificationService.isCallNotification(remoteMessage.data)) {
@@ -238,7 +225,6 @@ const Router = () => {
       },
     );
 
-    // Foreground notifee tap handler
     const unsubNotifee = notifee.onForegroundEvent(({ type, detail }) => {
       if (type === EventType.PRESS && detail.notification?.data) {
         const data = detail.notification.data;
@@ -251,23 +237,18 @@ const Router = () => {
       }
     });
 
-    // Check if app was opened from a killed state notification
     NotificationService.getInitialNotification().then((remoteMessage) => {
       if (remoteMessage) {
         if (NotificationService.isCallNotification(remoteMessage.data)) {
           pendingCallData.current = remoteMessage.data;
         } else {
-          // Store for later navigation after mount
           pendingNotificationData.current = remoteMessage.data;
         }
       }
     });
 
-    // Token refresh listener
     const unsubTokenRefresh = NotificationService.onTokenRefresh((newToken) => {
-      if (token) {
-        dispatch(updateProfile({ fcm_token: newToken }));
-      }
+      dispatch(updateProfile({ fcm_token: newToken }));
     });
 
     return () => {
@@ -294,49 +275,6 @@ const Router = () => {
     }
   }, [token, user]);
 
-  // Handle deep link when user is not authenticated — save it for after login
-  useEffect(() => {
-    const handleDeepLink = async (url: string | null) => {
-      if (!url) return;
-      const destination = await resolveChottuLink(url);
-      if (destination) {
-        pendingDeepLink.current = destination;
-      }
-    };
-
-    if (!token) {
-      Linking.getInitialURL().then(handleDeepLink);
-
-      const subscription = Linking.addEventListener('url', ({ url }) => {
-        handleDeepLink(url);
-      });
-
-      return () => subscription.remove();
-    }
-  }, [token]);
-
-  // After login, navigate to the pending deep link destination
-  useEffect(() => {
-    if (token && user && pendingDeepLink.current) {
-      const destination = pendingDeepLink.current;
-      pendingDeepLink.current = null;
-
-      setTimeout(() => {
-        if (destination.screen === 'CourseDetailsScreen') {
-          navigationRef.current?.navigate('CourseDetailsScreen', {
-            courseId: destination.id,
-          });
-          return;
-        }
-
-        navigationRef.current?.navigate('WebinarDetails', {
-          webinarId: destination.id,
-          id: destination.id,
-        });
-      }, 800);
-    }
-  }, [token, user]);
-
   return (
     <SafeAreaProvider>
       <NavigationContainer
@@ -345,20 +283,17 @@ const Router = () => {
           setNavigationRef(ref);
         }}
         linking={linking}>
-        {token ? (
-          <>
-            <CallListener />
-            {user ? (
-              userRole.includes('CREATOR') ? (
-                <CreatorMainStack />
-              ) : (
-                <UserMainStack />
-              )
-            ) : null}
-          </>
+        
+        {/* Only mount CallListener if a token exists */}
+        {token && <CallListener />}
+        
+        {/* Routing Logic: Creator Stack if logged in as creator, otherwise default to User Stack (Guests & standard users) */}
+        {token && userRole.includes('CREATOR') ? (
+          <CreatorMainStack />
         ) : (
-          <AuthStack />
+          <UserMainStack />
         )}
+
       </NavigationContainer>
     </SafeAreaProvider>
   );

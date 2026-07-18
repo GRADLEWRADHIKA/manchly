@@ -28,7 +28,7 @@ import { ThunkDispatch } from '@reduxjs/toolkit';
 import Toast from 'react-native-toast-message';
 import { pick, types } from '@react-native-documents/picker';
 import { uploadShipDoc } from '../../../store/Common';
-
+import { LinearGradient } from 'react-native-linear-gradient';
 const UserProfile = () => {
   const navigation = useNavigation<any>();
   const { user } = useSelector((state: any) => state.userReducer);
@@ -271,22 +271,29 @@ const UserProfile = () => {
           <Text style={styles.statValue}>158</Text>
         </View>
 
-        {/* Action Buttons */}
+       {/* Action Buttons */}
         <View style={styles.buttonContainer}>
           <Pressable
             style={({ pressed }) => [
-              styles.updateButton,
+              styles.updateButtonWrapper, // Updated style reference
               loading && { opacity: 0.6 },
               pressed && !loading && styles.btnPressed,
             ]}
             onPress={handleSubmit(onUpdate)}
             disabled={loading}
           >
-            {loading ? (
-              <ActivityIndicator color={colors.textPrimary} />
-            ) : (
-              <Text style={styles.updateButtonText}>Save Changes</Text>
-            )}
+            <LinearGradient
+              colors={[colors.btnGradientStart, colors.btnGradientEnd]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.updateButtonGradient}
+            >
+              {loading ? (
+                <ActivityIndicator color={colors.white} /> 
+              ) : (
+                <Text style={styles.updateButtonText}>Save Changes</Text>
+              )}
+            </LinearGradient>
           </Pressable>
 
           <Pressable
@@ -309,7 +316,7 @@ export default UserProfile;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.bg,
+    backgroundColor: colors.cBg,
   },
   scrollView: {
     flex: 1,
@@ -320,12 +327,13 @@ const styles = StyleSheet.create({
 
   profileCard: {
     alignItems: 'center',
-    backgroundColor: colors.surface,
+    backgroundColor: colors.cSurface,
     marginHorizontal: wp(16),
     marginTop: hp(20),
     borderRadius: wp(20),
     paddingVertical: hp(24),
     paddingHorizontal: wp(20),
+    borderColor: colors.cBorder
   },
   avatarWrap: {
     position: 'relative',
@@ -339,7 +347,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 3,
-    borderColor: colors.faaAiBlue,
+    borderColor: colors.cAccent,
   },
   profileImage: {
     width: wp(100),
@@ -353,11 +361,11 @@ const styles = StyleSheet.create({
     width: wp(30),
     height: wp(30),
     borderRadius: wp(15),
-    backgroundColor: colors.faaAiBlue,
+    backgroundColor: colors.cAccent,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: colors.surface,
+    borderColor: colors.cSurface,
   },
   profileName: {
     fontSize: fp(20),
@@ -393,11 +401,12 @@ const styles = StyleSheet.create({
 
   // Form Card
   formCard: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.cSurface,
     marginHorizontal: wp(16),
     marginTop: hp(20),
     borderRadius: wp(16),
     padding: wp(16),
+    borderColor: colors.cBorder
   },
   fieldRow: {
     marginBottom: hp(16),
@@ -405,7 +414,7 @@ const styles = StyleSheet.create({
   fieldLabel: {
     fontSize: fp(10.5),
     fontWeight: '700',
-    color: colors.textSecondary,
+    color: colors.textPrimary,
     letterSpacing: 0.6,
     marginBottom: hp(6),
     textTransform: 'uppercase',
@@ -436,7 +445,7 @@ const styles = StyleSheet.create({
 
   // Stats Cards
   statCard: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.cSurface,
     marginHorizontal: wp(16),
     marginTop: hp(12),
     borderRadius: wp(16),
@@ -471,12 +480,15 @@ const styles = StyleSheet.create({
     marginHorizontal: wp(16),
     gap: wp(12),
   },
-  updateButton: {
-    height: hp(50),
+ updateButtonWrapper: {
     borderRadius: wp(12),
+    overflow: 'hidden', // Ensures the gradient respects the border radius
+  },
+  updateButtonGradient: {
+    height: hp(50),
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.faaAiBlue,
+    // Removed backgroundColor: colors.faaAiBlue
   },
   updateButtonText: {
     color: colors.textPrimary,

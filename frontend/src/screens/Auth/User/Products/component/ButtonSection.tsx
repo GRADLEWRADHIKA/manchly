@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import React from 'react';
+import { LinearGradient } from 'react-native-linear-gradient';
 import colors from '../../../../../utils/colors';
 import { wp, hp, fp } from '../../../../../utils/responsive';
 
@@ -18,18 +19,32 @@ const ButtonSection = ({ setActive, active }) => {
             key={tab.key}
             onPress={() => setActive(tab.key)}
             style={({ pressed }) => [
-              styles.tabBtn,
-              isActive && styles.activeTabBtn,
+              styles.pressableWrapper,
               pressed && !isActive && styles.tabBtnPressed,
             ]}
             accessibilityRole="tab"
             accessibilityState={{ selected: isActive }}
           >
-            <Text
-              style={[styles.tabText, isActive && styles.activeTabText]}
+            <LinearGradient
+              // Dynamically apply the gradient if active, or solid grey if inactive
+              colors={
+                isActive
+                  ? [colors.btnGradientStart, colors.btnGradientEnd]
+                  : ['#f1f5f9', '#f1f5f9']
+              }
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={[
+                styles.gradientContainer,
+                isActive && styles.activeGradientContainer,
+              ]}
             >
-              {tab.label}
-            </Text>
+              <Text
+                style={[styles.tabText, isActive && styles.activeTabText]}
+              >
+                {tab.label}
+              </Text>
+            </LinearGradient>
           </Pressable>
         );
       })}
@@ -47,20 +62,27 @@ const styles = StyleSheet.create({
     marginTop: hp(12),
     marginBottom: hp(6),
   },
-  tabBtn: {
+  pressableWrapper: {
+    borderRadius: wp(24),
+    // Overflow hidden ensures the ripple/opacity effects stay inside the pill shape
+    overflow: 'hidden', 
+  },
+  gradientContainer: {
     paddingVertical: hp(9),
     paddingHorizontal: wp(20),
     borderRadius: wp(24),
-    backgroundColor: '#f1f5f9',
     borderWidth: 1,
     borderColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  activeTabBtn: {
-    backgroundColor: colors.bg,
-    borderColor: colors.secPrimary,
+  activeGradientContainer: {
+    // Optional: If you still want the secPrimary border when active
+    // borderColor: colors.secPrimary, 
+    borderWidth: 0, // Usually gradients look cleaner without borders
   },
   tabBtnPressed: {
-    backgroundColor: '#e2e8f0',
+    opacity: 0.7, // Replaced background color change with an opacity shift for a cleaner press effect
   },
   tabText: {
     color: colors.textSecondary,

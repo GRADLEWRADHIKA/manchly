@@ -29,6 +29,7 @@ import PurchaseCoursCard from './component/PurchaseCoursCard';
 import PurchaseWebinarCard from './component/PurchaseWebinarCard';
 import { getEnrolledWebinar } from '../../../../store/WebinarSlice';
 import { wp, hp, fp } from '../../../../utils/responsive';
+import { LinearGradient } from 'react-native-linear-gradient';
 
 if (
   Platform.OS === 'android' &&
@@ -74,10 +75,16 @@ const SegmentedTabs = ({
   return (
     <View style={tabStyles.wrapper}>
       <View style={tabStyles.track}>
-        {/* Sliding indicator */}
-        <Animated.View
-          style={[tabStyles.indicator, { transform: [{ translateX }] }]}
-        />
+
+        {/* Sliding indicator updated with Gradient */}
+        <Animated.View style={[tabStyles.indicatorContainer, { transform: [{ translateX }] }]}>
+          <LinearGradient
+            colors={[colors.btnGradientStart, colors.btnGradientEnd]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={tabStyles.gradientIndicator}
+          />
+        </Animated.View>
 
         {TAB_OPTIONS.map(tab => {
           const isActive = active === tab.key;
@@ -142,6 +149,22 @@ const tabStyles = StyleSheet.create({
     borderRadius: wp(14),
     padding: wp(4),
     position: 'relative',
+  },
+  indicatorContainer: {
+    position: 'absolute',
+    top: wp(4),
+    bottom: wp(4), // using bottom instead of height:'100%' prevents overflow
+    left: wp(4),
+    width: wp(160),
+    shadowColor: colors.btnGradientStart, // updated shadow to match gradient
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.35,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  gradientIndicator: {
+    flex: 1,
+    borderRadius: wp(11),
   },
   indicator: {
     position: 'absolute',

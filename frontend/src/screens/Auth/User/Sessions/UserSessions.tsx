@@ -21,7 +21,8 @@ import {
 import colors from '../../../../utils/colors';
 import {wp, hp, fp} from '../../../../utils/responsive';
 import AppHeader from '../../../../components/AppHeader';
-import {getMySessions, getSessionStats, createSession} from '../../../../store/SessionSlice';
+import {getMySessions, getSessionStats} from '../../../../store/SessionSlice';
+import { LinearGradient } from 'react-native-linear-gradient';
 
 const UserSessions: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -139,10 +140,16 @@ const UserSessions: React.FC = () => {
         <Text style={styles.ctaSub}>
           Find and book session experts{'\n'}instantly for personalized mentorship.
         </Text>
-        <View style={styles.ctaBtn}>
+        {/* Updated Explore Now Button */}
+        <LinearGradient
+          colors={[colors.btnGradientStart, colors.btnGradientEnd]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.ctaBtn}
+        >
           <Text style={styles.ctaBtnText}>Explore Now</Text>
-          <ChevronRight size={wp(16)} color={colors.textPrimary} strokeWidth={2} />
-        </View>
+          <ChevronRight size={wp(16)} color={colors.white} strokeWidth={2} />
+        </LinearGradient>
       </TouchableOpacity>
 
       {/* Section Title */}
@@ -196,7 +203,7 @@ export default memo(UserSessions);
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.bg,
+    backgroundColor: colors.cBg,
   },
   listContent: {
     paddingHorizontal: wp(16),
@@ -217,13 +224,13 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.cSurface,
     borderRadius: wp(14),
     paddingVertical: hp(16),
     alignItems: 'center',
     gap: hp(4),
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.cBorder,
   },
   statValue: {
     fontSize: fp(18),
@@ -240,12 +247,12 @@ const styles = StyleSheet.create({
   // CTA
   ctaCard: {
     alignItems: 'center',
-    backgroundColor: colors.surface,
+    backgroundColor: colors.cSurface,
     borderRadius: wp(20),
     padding: wp(24),
     marginBottom: hp(20),
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.cBorder,
   },
   ctaIconWrap: {
     width: wp(56),
@@ -273,7 +280,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(6),
-    backgroundColor: colors.info,
     paddingHorizontal: wp(20),
     paddingVertical: hp(10),
     borderRadius: wp(24),
@@ -281,7 +287,7 @@ const styles = StyleSheet.create({
   ctaBtnText: {
     fontSize: fp(14),
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: colors.white,
   },
 
   // Section
@@ -304,7 +310,7 @@ const styles = StyleSheet.create({
 
   // Cards
   card: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.cSurface,
     borderRadius: wp(14),
     padding: wp(14),
     marginBottom: hp(10),
@@ -371,12 +377,12 @@ const styles = StyleSheet.create({
   // Empty
   emptyCard: {
     alignItems: 'center',
-    backgroundColor: colors.surface,
+    backgroundColor: colors.cSurface,
     borderRadius: wp(20),
     paddingVertical: hp(40),
     paddingHorizontal: wp(24),
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.cBorder,
   },
   emptyIconWrap: {
     width: wp(64),

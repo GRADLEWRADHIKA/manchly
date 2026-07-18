@@ -6,6 +6,7 @@ import { MoveRight } from 'lucide-react-native';
 import TermsModal from '../../../components/TermsModal';
 import PrivacyModal from '../../../components/PrivacyModal';
 import RefundPolicyModal from '../../../components/RefundPolicyModal';
+import LinearGradient from 'react-native-linear-gradient';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -31,32 +32,46 @@ const ChooseType = ({ setSelectedType, setActive }) => {
 
         <TouchableOpacity
           activeOpacity={0.9}
-          style={styles.card}
+          style={styles.cardShadow}
           onPress={() => {
             setSelectedType('CREATOR');
             setActive(2);
           }}
         >
-          <View>
-            <Text style={styles.subtitle}>creator</Text>
-            <Text style={styles.description}>Create & publish content</Text>
-          </View>
-          <MoveRight size={wp(22)} color={colors.black} />
+          <LinearGradient
+            colors={['#F3C36B', '#D49A3D']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.cardInner}
+          >
+            <View>
+              <Text style={styles.subtitle}>creator</Text>
+              <Text style={styles.description}>Create & publish content</Text>
+            </View>
+            <MoveRight size={wp(22)} color={colors.black} />
+          </LinearGradient>
         </TouchableOpacity>
 
         <TouchableOpacity
           activeOpacity={0.9}
-          style={styles.card}
+          style={styles.cardShadow}
           onPress={() => {
             setSelectedType('USER');
             setActive(2);
           }}
         >
-          <View>
-            <Text style={styles.subtitle}>user</Text>
-            <Text style={styles.description}>Browse & consume content</Text>
-          </View>
-          <MoveRight size={wp(22)} color={colors.black} />
+          <LinearGradient
+            colors={['#F3C36B', '#D49A3D']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.cardInner}
+          >
+            <View>
+              <Text style={styles.subtitle}>user</Text>
+              <Text style={styles.description}>Browse & consume content</Text>
+            </View>
+            <MoveRight size={wp(22)} color={colors.black} />
+          </LinearGradient>
         </TouchableOpacity>
 
         <Text style={styles.termsText}>
@@ -107,8 +122,8 @@ const styles = StyleSheet.create({
   },
 
   heroImage: {
-    width: wp(260),
-    height: wp(260),
+    width: '100%',
+    height: '100%',
   },
 
   bottomSheet: {
@@ -129,20 +144,23 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
   },
 
-  card: {
+  cardShadow: {
     marginTop: hp(14),
-    backgroundColor: colors.golden,
+    borderRadius: wp(18),
+    shadowColor: colors.golden,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 4,
+  },
+
+  cardInner: {
     paddingVertical: hp(18),
     paddingHorizontal: wp(20),
     borderRadius: wp(18),
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.18,
-    shadowRadius: 8,
-    elevation: 3,
   },
 
   subtitle: {
@@ -162,7 +180,7 @@ const styles = StyleSheet.create({
   termsText: {
     fontSize: fp(11),
     fontWeight: '500',
-    color: 'rgba(255,255,255,0.35)',
+    color: 'rgba(240,192,64,0.6)',
     textAlign: 'center',
     lineHeight: fp(17),
     marginTop: hp(20),
@@ -170,7 +188,7 @@ const styles = StyleSheet.create({
   },
 
   linkText: {
-    color: colors.white,
+    color: '#F0C040',
     fontWeight: '700',
   },
 });

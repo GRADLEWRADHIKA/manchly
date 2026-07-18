@@ -287,7 +287,7 @@ export default function CreatorCenter() {
   if (profileLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
+        <ActivityIndicator size="large" color={colors.golden} />
         <Text style={styles.loadingText}>Loading your profile…</Text>
       </View>
     );
@@ -295,7 +295,7 @@ export default function CreatorCenter() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={colors.primary} />
+      <StatusBar barStyle="light-content" backgroundColor={colors.black} />
 
       {/* ── Header ── */}
       <View style={[styles.headerWrapper, { paddingTop: insets.top }]}>
@@ -338,7 +338,7 @@ export default function CreatorCenter() {
         {/* ── Hero ── */}
         <View style={styles.heroBlock}>
           <View style={styles.heroIcon}>
-            <Sparkles size={wp(22)} color={colors.secondary} />
+            <Sparkles size={wp(22)} color={colors.golden} />
           </View>
           <View style={styles.heroCopy}>
             <Text style={styles.kicker}>MONETIZATION ENGINE</Text>
@@ -383,7 +383,7 @@ export default function CreatorCenter() {
         {/* ── SECTION: Creator Profile ── */}
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeader}>
-            <User size={wp(19)} color={colors.info} />
+            <User size={wp(19)} color={colors.ACCENT} />
             <Text style={styles.sectionTitle}>Public Profile</Text>
           </View>
 
@@ -394,7 +394,7 @@ export default function CreatorCenter() {
               value={name}
               onChangeText={setName}
               placeholder="Rigi Creator Studio"
-              placeholderTextColor="#94A3B8"
+              placeholderTextColor={colors.textMuted}
               style={inputStyle('name')}
               onFocus={() => setFocusedField('name')}
               onBlur={() => setFocusedField(null)}
@@ -409,7 +409,7 @@ export default function CreatorCenter() {
               value={bio}
               onChangeText={setBio}
               placeholder="Courses, consults, collabs, and UGC"
-              placeholderTextColor="#94A3B8"
+              placeholderTextColor={colors.textMuted}
               multiline
               numberOfLines={3}
               style={[inputStyle('bio'), styles.textArea]}
@@ -449,7 +449,7 @@ export default function CreatorCenter() {
               value={city}
               onChangeText={setCity}
               placeholder="Mumbai"
-              placeholderTextColor="#94A3B8"
+              placeholderTextColor={colors.textMuted}
               style={inputStyle('city')}
               onFocus={() => setFocusedField('city')}
               onBlur={() => setFocusedField(null)}
@@ -464,7 +464,7 @@ export default function CreatorCenter() {
               value={phone}
               onChangeText={setPhone}
               placeholder="919876543210"
-              placeholderTextColor="#94A3B8"
+              placeholderTextColor={colors.textMuted}
               keyboardType="numeric"
               style={inputStyle('phone')}
               onFocus={() => setFocusedField('phone')}
@@ -480,7 +480,7 @@ export default function CreatorCenter() {
               value={instagram}
               onChangeText={setInstagram}
               placeholder="yourhandle"
-              placeholderTextColor="#94A3B8"
+              placeholderTextColor={colors.textMuted}
               autoCapitalize="none"
               style={inputStyle('instagram')}
               onFocus={() => setFocusedField('instagram')}
@@ -498,8 +498,8 @@ export default function CreatorCenter() {
             <Switch
               value={sebiRegistered}
               onValueChange={setSebiRegistered}
-              trackColor={{ false: '#CBD5E1', true: colors.primary + '60' }}
-              thumbColor={sebiRegistered ? colors.primary : '#F1F5F9'}
+              trackColor={{ false: '#3A3A3C', true: colors.golden + '60' }}
+              thumbColor={sebiRegistered ? colors.golden : '#F1F5F9'}
             />
           </View>
         </View>
@@ -507,7 +507,7 @@ export default function CreatorCenter() {
         {/* ── SECTION: Stats ── */}
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeader}>
-            <BarChart2 size={wp(19)} color={colors.info} />
+            <BarChart2 size={wp(19)} color={colors.ACCENT} />
             <Text style={styles.sectionTitle}>Audience Stats</Text>
           </View>
 
@@ -518,7 +518,7 @@ export default function CreatorCenter() {
                 value={followers}
                 onChangeText={setFollowers}
                 placeholder="486K"
-                placeholderTextColor="#94A3B8"
+                placeholderTextColor={colors.textMuted}
                 style={inputStyle('followers')}
                 onFocus={() => setFocusedField('followers')}
                 onBlur={() => setFocusedField(null)}
@@ -531,7 +531,7 @@ export default function CreatorCenter() {
                 value={engagementRate}
                 onChangeText={setEngagementRate}
                 placeholder="6.8%"
-                placeholderTextColor="#94A3B8"
+                placeholderTextColor={colors.textMuted}
                 style={inputStyle('engagementRate')}
                 onFocus={() => setFocusedField('engagementRate')}
                 onBlur={() => setFocusedField(null)}
@@ -544,7 +544,7 @@ export default function CreatorCenter() {
                 value={avgViews}
                 onChangeText={setAvgViews}
                 placeholder="92K"
-                placeholderTextColor="#94A3B8"
+                placeholderTextColor={colors.textMuted}
                 style={inputStyle('avgViews')}
                 onFocus={() => setFocusedField('avgViews')}
                 onBlur={() => setFocusedField(null)}
@@ -561,10 +561,10 @@ export default function CreatorCenter() {
             activeOpacity={0.8}
           >
             {saving ? (
-              <ActivityIndicator size="small" color={colors.white} />
+              <ActivityIndicator size="small" color={colors.black} />
             ) : (
               <>
-                <Save size={wp(16)} color={colors.white} />
+                <Save size={wp(16)} color={colors.black} />
                 <Text style={styles.saveBtnText}>
                   {saveSuccess ? 'Saved!' : 'Save Profile'}
                 </Text>
@@ -576,7 +576,7 @@ export default function CreatorCenter() {
         {/* ── SECTION: Link-In-Bio ── */}
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeader}>
-            <WalletCards size={wp(19)} color={colors.info} />
+            <WalletCards size={wp(19)} color={colors.ACCENT} />
             <Text style={styles.sectionTitle}>Link-In-Bio Digital Forge</Text>
           </View>
 
@@ -588,7 +588,7 @@ export default function CreatorCenter() {
                 onChangeText={v => updateLink(field, v)}
                 onFocus={() => setFocusedField(`link_${field}`)}
                 onBlur={() => setFocusedField(null)}
-                placeholderTextColor="#94A3B8"
+                placeholderTextColor={colors.textMuted}
                 placeholder={field === 'collabs' ? 'brand@you.com or https://…' : 'https://…'}
                 autoCapitalize="none"
                 style={inputStyle(`link_${field}`)}
@@ -614,7 +614,7 @@ export default function CreatorCenter() {
         {/* ── SECTION: Meta Automation ── */}
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeader}>
-            <BadgeCheck size={wp(19)} color={colors.info} />
+            <BadgeCheck size={wp(19)} color={colors.ACCENT} />
             <Text style={styles.sectionTitle}>Meta Instagram Graph Automation</Text>
           </View>
 
@@ -670,20 +670,20 @@ export default function CreatorCenter() {
 
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.white },
+  container: { flex: 1, backgroundColor: colors.black },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: colors.black,
     gap: hp(12),
   },
-  loadingText: { color: '#64748B', fontSize: fp(14), fontWeight: '500' },
+  loadingText: { color: colors.textMuted, fontSize: fp(14), fontWeight: '500' },
   scrollContent: { paddingHorizontal: wp(16), paddingBottom: hp(110) },
 
   /* Header */
   headerWrapper: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.black,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
   },
@@ -697,39 +697,40 @@ const styles = StyleSheet.create({
   headerLeft: { flexDirection: 'row', alignItems: 'center', gap: wp(12) },
   avatar: {
     width: wp(44), height: wp(44), borderRadius: wp(22),
-    borderWidth: 2, borderColor: colors.border,
+    borderWidth: 2, borderColor: colors.golden,
   },
   avatarFallback: {
     width: wp(44), height: wp(44), borderRadius: wp(22),
-    backgroundColor: colors.secondary,
+    backgroundColor: colors.CARD_BG,
     justifyContent: 'center', alignItems: 'center',
+    borderWidth: 2, borderColor: colors.golden,
   },
   avatarText: { fontSize: fp(18), fontWeight: '700', color: colors.white },
-  greetingSub: { fontSize: fp(12), color: colors.muted, fontWeight: '500' },
+  greetingSub: { fontSize: fp(12), color: colors.textMuted, fontWeight: '500' },
   greeting: { fontSize: fp(16), fontWeight: '800', color: colors.white, marginTop: hp(1) },
   bellBtn: {
     width: wp(40), height: wp(40), borderRadius: wp(20),
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: colors.CARD_BG,
     justifyContent: 'center', alignItems: 'center',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)',
+    borderWidth: 1, borderColor: 'rgba(255,182,6,0.15)',
   },
 
   /* Hero */
   heroBlock: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: '#F8FAFC', borderRadius: wp(16),
-    borderWidth: 1, borderColor: '#eaecef',
+    backgroundColor: colors.CARD_BG, borderRadius: wp(16),
+    borderWidth: 1, borderColor: 'rgba(255,182,6,0.15)',
     padding: wp(16), marginVertical: hp(16),
   },
   heroIcon: {
     width: wp(46), height: wp(46), borderRadius: wp(12),
-    backgroundColor: '#FFF7ED', alignItems: 'center', justifyContent: 'center',
-    marginRight: wp(12), borderWidth: 1, borderColor: '#FED7AA',
+    backgroundColor: colors.PLACEHOLDER_BG, alignItems: 'center', justifyContent: 'center',
+    marginRight: wp(12), borderWidth: 1, borderColor: 'rgba(255,182,6,0.3)',
   },
   heroCopy: { flex: 1 },
-  kicker: { color: '#F59E0B', fontSize: fp(10), fontWeight: '900', letterSpacing: 0.5 },
-  title: { color: '#0F172A', fontSize: fp(20), fontWeight: '800', marginTop: hp(2) },
-  subtitle: { color: '#64748b', fontSize: fp(11.5), marginTop: hp(2), lineHeight: fp(16) },
+  kicker: { color: colors.golden, fontSize: fp(10), fontWeight: '900', letterSpacing: 0.5 },
+  title: { color: colors.white, fontSize: fp(20), fontWeight: '800', marginTop: hp(2) },
+  subtitle: { color: colors.textMuted, fontSize: fp(11.5), marginTop: hp(2), lineHeight: fp(16) },
 
   /* Publish Banner */
   publishBanner: {
@@ -737,12 +738,12 @@ const styles = StyleSheet.create({
     borderRadius: wp(14), padding: wp(14), marginBottom: hp(16),
     borderWidth: 1,
   },
-  publishBannerLive: { backgroundColor: '#F0FDF4', borderColor: '#BBF7D0' },
-  publishBannerDraft: { backgroundColor: '#FFFBEB', borderColor: '#FDE68A' },
+  publishBannerLive: { backgroundColor: 'rgba(34,197,94,0.1)', borderColor: 'rgba(34,197,94,0.3)' },
+  publishBannerDraft: { backgroundColor: 'rgba(245,158,11,0.1)', borderColor: 'rgba(245,158,11,0.3)' },
   publishBannerLeft: { flexDirection: 'row', alignItems: 'center', gap: wp(10), flex: 1 },
   publishDot: { width: wp(8), height: wp(8), borderRadius: wp(4) },
-  publishBannerTitle: { color: '#0F172A', fontSize: fp(13), fontWeight: '700' },
-  publishBannerSub: { color: '#64748B', fontSize: fp(11), marginTop: hp(2) },
+  publishBannerTitle: { color: colors.white, fontSize: fp(13), fontWeight: '700' },
+  publishBannerSub: { color: colors.textMuted, fontSize: fp(11), marginTop: hp(2) },
   publishToggleBtn: {
     paddingHorizontal: wp(14), paddingVertical: hp(8),
     borderRadius: wp(10), minWidth: wp(90), alignItems: 'center',
@@ -753,48 +754,46 @@ const styles = StyleSheet.create({
 
   /* Section cards */
   sectionCard: {
-    backgroundColor: colors.white, borderWidth: 1, borderColor: '#E2E8F0',
+    backgroundColor: colors.CARD_BG, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
     borderRadius: wp(16), padding: wp(16), marginBottom: hp(16),
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04, shadowRadius: 8, elevation: 2,
   },
   sectionHeader: {
     flexDirection: 'row', alignItems: 'center', gap: wp(8), marginBottom: hp(16),
   },
-  sectionTitle: { color: '#0F172A', fontSize: fp(15), fontWeight: '800', flex: 1 },
+  sectionTitle: { color: colors.white, fontSize: fp(15), fontWeight: '800', flex: 1 },
 
   /* Inputs */
   inputGroup: { marginBottom: hp(12) },
-  inputLabel: { color: '#475467', fontSize: fp(11.5), fontWeight: '700', marginBottom: hp(6) },
+  inputLabel: { color: colors.golden, fontSize: fp(11.5), fontWeight: '700', marginBottom: hp(6) },
   formInput: {
     minHeight: hp(46), borderRadius: wp(12), borderWidth: 1,
-    borderColor: '#E2E8F0', backgroundColor: '#F8FAFC',
-    color: '#0F172A', paddingHorizontal: wp(14), fontSize: fp(13.5),
+    borderColor: 'rgba(255,255,255,0.1)', backgroundColor: colors.black,
+    color: colors.white, paddingHorizontal: wp(14), fontSize: fp(13.5),
   },
-  formInputFocused: { borderColor: colors.secondary, backgroundColor: colors.white },
-  formInputError: { borderColor: '#EF4444', backgroundColor: '#FFF5F5' },
+  formInputFocused: { borderColor: colors.golden, backgroundColor: colors.PLACEHOLDER_BG },
+  formInputError: { borderColor: colors.error, backgroundColor: 'rgba(239,68,68,0.08)' },
   textArea: { minHeight: hp(80), paddingTop: hp(12), textAlignVertical: 'top' },
-  fieldError: { color: '#EF4444', fontSize: fp(11), marginTop: hp(4), fontWeight: '500' },
+  fieldError: { color: colors.error, fontSize: fp(11), marginTop: hp(4), fontWeight: '500' },
 
   /* Niche chips */
   nicheRow: { gap: wp(8), paddingVertical: hp(4) },
   nicheChip: {
     paddingHorizontal: wp(16), paddingVertical: hp(8),
-    borderRadius: wp(20), backgroundColor: '#F8FAFC',
-    borderWidth: 1, borderColor: '#E2E8F0',
+    borderRadius: wp(20), backgroundColor: colors.PLACEHOLDER_BG,
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
   },
-  nicheChipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
-  nicheChipText: { fontSize: fp(12.5), color: '#64748B', fontWeight: '600' },
-  nicheChipTextActive: { color: colors.white, fontWeight: '700' },
+  nicheChipActive: { backgroundColor: colors.golden, borderColor: colors.golden },
+  nicheChipText: { fontSize: fp(12.5), color: colors.textMuted, fontWeight: '600' },
+  nicheChipTextActive: { color: colors.black, fontWeight: '700' },
 
   /* SEBI switch */
   switchRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: '#F8FAFC', borderRadius: wp(12), padding: wp(14),
-    borderWidth: 1, borderColor: '#E2E8F0', marginBottom: hp(4),
+    backgroundColor: colors.PLACEHOLDER_BG, borderRadius: wp(12), padding: wp(14),
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', marginBottom: hp(4),
   },
-  switchTitle: { color: '#334155', fontSize: fp(13), fontWeight: '700' },
-  switchSub: { color: '#94A3B8', fontSize: fp(11), marginTop: hp(2) },
+  switchTitle: { color: colors.white, fontSize: fp(13), fontWeight: '700' },
+  switchSub: { color: colors.textMuted, fontSize: fp(11), marginTop: hp(2) },
 
   /* Stats */
   statsRow: { flexDirection: 'row', gap: wp(8), marginBottom: hp(12) },
@@ -802,16 +801,16 @@ const styles = StyleSheet.create({
 
   /* Save button */
   saveBtn: {
-    minHeight: hp(48), borderRadius: wp(12), backgroundColor: colors.primary,
+    minHeight: hp(48), borderRadius: wp(12), backgroundColor: colors.golden,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     gap: wp(8), marginTop: hp(4),
   },
   saveBtnDisabled: { opacity: 0.7 },
-  saveBtnText: { color: colors.white, fontWeight: '700', fontSize: fp(14) },
+  saveBtnText: { color: colors.black, fontWeight: '700', fontSize: fp(14) },
 
   /* Links */
   previewToggle: {
-    minHeight: hp(44), borderRadius: wp(12), backgroundColor: colors.info,
+    minHeight: hp(44), borderRadius: wp(12), backgroundColor: colors.ACCENT,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     gap: wp(8), marginTop: hp(8),
   },
@@ -819,44 +818,44 @@ const styles = StyleSheet.create({
 
   /* Mock preview */
   mockProfile: {
-    marginTop: hp(16), backgroundColor: '#F8FAFC', borderRadius: wp(20),
-    borderWidth: 2, borderColor: '#E2E8F0', padding: wp(16),
+    marginTop: hp(16), backgroundColor: colors.PLACEHOLDER_BG, borderRadius: wp(20),
+    borderWidth: 2, borderColor: 'rgba(255,182,6,0.2)', padding: wp(16),
   },
   mockAvatar: {
     width: wp(56), height: wp(56), borderRadius: wp(28),
-    backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center',
-    alignSelf: 'center', borderWidth: 2, borderColor: colors.white, elevation: 2,
+    backgroundColor: colors.golden, alignItems: 'center', justifyContent: 'center',
+    alignSelf: 'center', borderWidth: 2, borderColor: colors.black, elevation: 2,
   },
-  mockAvatarText: { color: colors.white, fontWeight: '800', fontSize: fp(18) },
+  mockAvatarText: { color: colors.black, fontWeight: '800', fontSize: fp(18) },
   mockName: {
-    color: '#0F172A', fontWeight: '800', textAlign: 'center',
+    color: colors.white, fontWeight: '800', textAlign: 'center',
     fontSize: fp(16), marginTop: hp(8),
   },
   mockSub: {
-    color: '#64748b', textAlign: 'center', fontSize: fp(11.5),
+    color: colors.textMuted, textAlign: 'center', fontSize: fp(11.5),
     marginTop: hp(2), marginBottom: hp(12),
   },
   emptyLinksHint: {
-    color: '#94A3B8', textAlign: 'center', fontSize: fp(12),
+    color: colors.textMuted, textAlign: 'center', fontSize: fp(12),
     marginTop: hp(8), fontStyle: 'italic',
   },
   mockLink: {
-    backgroundColor: colors.white, borderRadius: wp(12), padding: wp(12),
-    marginTop: hp(8), borderWidth: 1, borderColor: '#E2E8F0',
+    backgroundColor: colors.black, borderRadius: wp(12), padding: wp(12),
+    marginTop: hp(8), borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
   },
-  mockLinkTitle: { color: '#0F172A', fontSize: fp(12.5), fontWeight: '700' },
-  mockLinkValue: { color: '#64748b', fontSize: fp(11), marginTop: hp(1) },
+  mockLinkTitle: { color: colors.white, fontSize: fp(12.5), fontWeight: '700' },
+  mockLinkValue: { color: colors.textMuted, fontSize: fp(11), marginTop: hp(1) },
 
   /* Permissions */
   permissionRow: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: '#F8FAFC', borderRadius: wp(12), padding: wp(12),
-    marginBottom: hp(8), gap: wp(8), borderWidth: 1, borderColor: '#E2E8F0',
+    backgroundColor: colors.PLACEHOLDER_BG, borderRadius: wp(12), padding: wp(12),
+    marginBottom: hp(8), gap: wp(8), borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
   },
-  permissionText: { color: '#334155', flex: 1, fontSize: fp(12), fontWeight: '600' },
+  permissionText: { color: colors.textMuted, flex: 1, fontSize: fp(12), fontWeight: '600' },
   permissionBadge: {
     color: '#16A34A', fontSize: fp(10), fontWeight: '800',
-    backgroundColor: '#DCFCE7', paddingHorizontal: wp(8),
+    backgroundColor: 'rgba(22,163,74,0.15)', paddingHorizontal: wp(8),
     paddingVertical: hp(2), borderRadius: wp(6), overflow: 'hidden',
   },
 
@@ -877,7 +876,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(12), fontSize: fp(12.5), marginBottom: hp(10),
   },
   runButton: {
-    minHeight: hp(40), borderRadius: wp(10), backgroundColor: colors.info,
+    minHeight: hp(40), borderRadius: wp(10), backgroundColor: colors.ACCENT,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     gap: wp(8), marginBottom: hp(12),
   },

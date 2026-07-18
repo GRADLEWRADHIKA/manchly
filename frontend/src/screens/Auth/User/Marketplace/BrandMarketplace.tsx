@@ -26,6 +26,7 @@ import {
   UserCircle,
   Lock,
   RefreshCw,
+  ArrowLeft,
 } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -140,14 +141,15 @@ const CreatorCard: React.FC<CreatorCardProps> = ({
         <Text style={s.creatorName}>{creator.name}</Text>
         {creator.sebiRegistered && (
           <View style={s.sebiBadge}>
-            <ShieldCheck size={wp(12)} color="#16A34A" />
+            <ShieldCheck size={wp(12)} color="#4ADE80" />
             <Text style={s.sebiText}>SEBI Registered</Text>
           </View>
         )}
       </View>
 
       <Text style={s.creatorNiche}>
-        {creator.niche} • {creator.city}
+        <Text style={s.creatorNicheHighlight}>{creator.niche}</Text>
+        <Text style={s.creatorNicheDot}> • {creator.city}</Text>
       </Text>
 
       <Text style={s.creatorBio} numberOfLines={2}>
@@ -181,7 +183,7 @@ const CreatorCard: React.FC<CreatorCardProps> = ({
           ) : contactsLocked ? (
             <Lock size={16} color="#71717A" />
           ) : (
-            <MessageCircle size={16} color="#16A34A" />
+            <MessageCircle size={16} color="#4ADE80" />
           )}
           <Text style={contactsLocked ? s.actionBtnLockedText : s.waBtnText}>
             WhatsApp
@@ -195,11 +197,11 @@ const CreatorCard: React.FC<CreatorCardProps> = ({
           activeOpacity={0.8}
         >
           {contactLoading ? (
-            <ActivityIndicator size="small" color={contactsLocked ? '#71717A' : '#DB2777'} />
+            <ActivityIndicator size="small" color={contactsLocked ? '#71717A' : '#FFFFFF'} />
           ) : contactsLocked ? (
             <Lock size={16} color="#71717A" />
           ) : (
-            <Instagram size={16} color="#DB2777" />
+            <Instagram size={16} color="#FFFFFF" />
           )}
           <Text style={contactsLocked ? s.actionBtnLockedText : s.igBtnText}>
             Instagram
@@ -430,17 +432,17 @@ export default function BrandMarketplace() {
     <View>
       {/* Search */}
       <View style={s.searchContainer}>
-        <Search size={18} color="#64748B" />
+        <Search size={18} color="#6B7280" />
         <TextInput
           value={query}
           onChangeText={setQuery}
           placeholder="Search by name, niche or city…"
-          placeholderTextColor="#94A3B8"
+          placeholderTextColor="#6B7280"
           style={s.searchInput}
         />
         {query.length > 0 && (
           <TouchableOpacity onPress={() => setQuery('')}>
-            <X size={16} color="#64748B" />
+            <X size={16} color="#6B7280" />
           </TouchableOpacity>
         )}
       </View>
@@ -473,8 +475,8 @@ export default function BrandMarketplace() {
         <Switch
           value={sebiOnly}
           onValueChange={setSebiOnly}
-          trackColor={{ false: '#CBD5E1', true: colors.secPrimary + '50' }}
-          thumbColor={sebiOnly ? colors.secPrimary : '#F1F5F9'}
+          trackColor={{ false: '#3A3A3C', true: '#818CF8' }}
+          thumbColor={sebiOnly ? '#6366F1' : '#9CA3AF'}
         />
       </View>
     </View>
@@ -508,33 +510,16 @@ export default function BrandMarketplace() {
 
   return (
     <View style={s.container}>
-      <StatusBar barStyle="light-content" backgroundColor={colors.secPrimary} />
+      <StatusBar barStyle="light-content" backgroundColor="#1A1B26" />
 
       {/* Header */}
       <View style={[s.headerWrapper, { paddingTop: insets.top }]}>
         <View style={s.header}>
-          <View style={s.headerLeft}>
-            {user?.profile_image ? (
-              <Image source={{ uri: user.profile_image }} style={s.avatar} />
-            ) : (
-              <View style={s.avatarFallback}>
-                <UserCircle size={wp(28)} color={colors.white} />
-              </View>
-            )}
-            <View>
-              <Text style={s.headerSubtitle}>Discover Creators</Text>
-              <Text style={s.headerTitle}>Marketplace</Text>
-            </View>
-          </View>
-          <Pressable
-            style={({ pressed }) => [s.bellBtn, pressed && s.bellBtnPressed]}
-            onPress={() => {
-              const { Linking } = require('react-native');
-              Linking.openURL('https://www.instagram.com/manchly_app');
-            }}
-          >
-            <Instagram size={wp(18)} color={colors.white} strokeWidth={2} />
-          </Pressable>
+          <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={10}>
+            <ArrowLeft size={wp(22)} color={colors.white} />
+          </TouchableOpacity>
+          <Text style={s.headerTitle}>Market Place</Text>
+          <View style={{ width: wp(22) }} />
         </View>
       </View>
 
@@ -575,110 +560,93 @@ export default function BrandMarketplace() {
 
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC' },
+  container: { flex: 1, backgroundColor: '#1A1B26' },
   feedContent: { paddingBottom: hp(100) },
 
   /* Header */
   headerWrapper: {
-    backgroundColor: colors.secPrimary,
+    backgroundColor: '#1A1B26',
     zIndex: 10,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
   },
   header: {
     flexDirection: 'row', justifyContent: 'space-between',
     alignItems: 'center', paddingHorizontal: wp(16), paddingVertical: hp(14),
   },
-  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: wp(12), flex: 1 },
-  avatar: {
-    width: wp(44), height: wp(44), borderRadius: wp(22),
-    borderWidth: 2, borderColor: 'rgba(255,255,255,0.5)',
-  },
-  avatarFallback: {
-    width: wp(44), height: wp(44), borderRadius: wp(22),
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    justifyContent: 'center', alignItems: 'center',
-    borderWidth: 2, borderColor: 'rgba(255,255,255,0.5)',
-  },
-  headerSubtitle: { fontSize: fp(12), color: 'rgba(255,255,255,0.75)', fontWeight: '400' },
-  headerTitle: { fontSize: fp(17), fontWeight: '700', color: colors.white, lineHeight: fp(22) },
-  bellBtn: {
-    width: wp(40), height: wp(40), borderRadius: wp(14),
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)',
-  },
-  bellBtnPressed: { backgroundColor: 'rgba(255,255,255,0.25)', transform: [{ scale: 0.93 }] },
+  headerTitle: { fontSize: fp(17), fontWeight: '700', color: colors.white },
 
   /* Search */
   searchContainer: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF',
-    borderRadius: wp(14), marginTop: hp(16), marginHorizontal: wp(16),
-    paddingHorizontal: wp(14), height: hp(48), elevation: 3,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06, shadowRadius: 8, gap: wp(8),
+    flexDirection: 'row', alignItems: 'center', backgroundColor: '#0F0F14',
+    borderRadius: wp(14), marginTop: hp(4), marginHorizontal: wp(16),
+    paddingHorizontal: wp(14), height: hp(48), gap: wp(8),
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)',
   },
-  searchInput: { flex: 1, height: hp(48), color: '#0F172A', fontSize: fp(13.5) },
+  searchInput: { flex: 1, height: hp(48), color: colors.white, fontSize: fp(13.5) },
 
   /* Niche Tabs */
   nicheScroll: { marginVertical: hp(12), paddingLeft: wp(16) },
   nicheContent: { paddingRight: wp(32), gap: wp(8) },
   nicheTab: {
     paddingHorizontal: wp(16), paddingVertical: hp(8),
-    borderRadius: wp(20), backgroundColor: '#FFFFFF',
-    borderWidth: 1, borderColor: '#E2E8F0',
+    borderRadius: wp(20), backgroundColor: 'transparent',
   },
-  nicheTabActive: { backgroundColor: colors.secPrimary, borderColor: colors.secPrimary },
-  nicheTabText: { fontSize: fp(12.5), color: '#64748B', fontWeight: '600' },
+  nicheTabActive: { backgroundColor: '#6366F1' },
+  nicheTabText: { fontSize: fp(12.5), color: '#9CA3AF', fontWeight: '600' },
   nicheTabTextActive: { color: '#FFFFFF', fontWeight: '700' },
 
   /* SEBI Switch */
   switchRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: '#FFFFFF', marginHorizontal: wp(16), marginBottom: hp(12),
+    backgroundColor: '#22232E', marginHorizontal: wp(16), marginBottom: hp(12),
     paddingHorizontal: wp(16), paddingVertical: hp(12), borderRadius: wp(14),
-    borderWidth: 1, borderColor: '#E2E8F0',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)',
   },
-  switchTitle: { fontSize: fp(13), color: '#334155', fontWeight: '700' },
+  switchTitle: { fontSize: fp(13), color: '#9CA3AF', fontWeight: '600' },
 
   /* Creator Card */
   creatorCard: {
-    backgroundColor: '#FFFFFF', borderRadius: wp(16), padding: wp(16),
+    backgroundColor: '#22232E', borderRadius: wp(16), padding: wp(16),
     marginHorizontal: wp(16), marginBottom: hp(12),
-    borderWidth: 1, borderColor: '#E2E8F0',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04, shadowRadius: 6, elevation: 2,
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)',
   },
   creatorHeader: {
     flexDirection: 'row', justifyContent: 'space-between',
     alignItems: 'center', marginBottom: hp(6),
   },
-  creatorName: { fontSize: fp(15), fontWeight: '800', color: '#0F172A' },
+  creatorName: { fontSize: fp(15), fontWeight: '800', color: colors.white },
   sebiBadge: {
     flexDirection: 'row', alignItems: 'center', gap: wp(4),
-    backgroundColor: '#DCFCE7', paddingHorizontal: wp(8),
+    backgroundColor: 'rgba(34,197,94,0.15)', paddingHorizontal: wp(8),
     paddingVertical: hp(3), borderRadius: wp(6),
   },
-  sebiText: { color: '#16A34A', fontSize: fp(9.5), fontWeight: '800' },
-  creatorNiche: { color: colors.secPrimary, fontSize: fp(11), fontWeight: '700', marginBottom: hp(6) },
-  creatorBio: { color: '#64748B', fontSize: fp(12.5), lineHeight: fp(17), marginBottom: hp(12) },
+  sebiText: { color: '#4ADE80', fontSize: fp(9.5), fontWeight: '800' },
+  creatorNiche: { fontSize: fp(12), fontWeight: '600', marginBottom: hp(8) },
+  creatorNicheHighlight: { color: '#818CF8', fontWeight: '700' },
+  creatorNicheDot: { color: '#9CA3AF' },
+  creatorBio: { color: '#D1D5DB', fontSize: fp(12.5), lineHeight: fp(17), marginBottom: hp(12) },
   metricsRow: {
     flexDirection: 'row', justifyContent: 'space-between',
-    backgroundColor: '#F8FAFC', borderRadius: wp(10), padding: wp(10),
-    marginBottom: hp(12), borderWidth: 1, borderColor: '#F1F5F9',
+    backgroundColor: '#0F0F14', borderRadius: wp(10), padding: wp(10),
+    marginBottom: hp(12), borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)',
   },
   cardMetric: { alignItems: 'center', flex: 1 },
-  cardMetricVal: { fontSize: fp(13), fontWeight: '800', color: '#0F172A' },
-  cardMetricLabel: { fontSize: fp(9.5), color: '#64748B', marginTop: hp(2), fontWeight: '600' },
+  cardMetricVal: { fontSize: fp(13), fontWeight: '800', color: colors.white },
+  cardMetricLabel: {
+    fontSize: fp(9.5), color: '#9CA3AF', marginTop: hp(2),
+    fontWeight: '600', textTransform: 'uppercase',
+  },
   actionRow: { flexDirection: 'row', gap: wp(8) },
   actionBtn: {
     flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     gap: wp(6), paddingVertical: hp(10), borderRadius: wp(10),
   },
-  waBtn: { backgroundColor: '#DCFCE7' },
-  waBtnText: { color: '#16A34A', fontSize: fp(12), fontWeight: '700' },
-  igBtn: { backgroundColor: '#FDF2F8' },
-  igBtnText: { color: '#DB2777', fontSize: fp(12), fontWeight: '700' },
+  waBtn: {
+    backgroundColor: 'rgba(34,197,94,0.15)',
+    borderWidth: 1, borderColor: 'rgba(34,197,94,0.3)',
+  },
+  waBtnText: { color: '#4ADE80', fontSize: fp(12), fontWeight: '700' },
+  igBtn: { backgroundColor: '#DB2777' },
+  igBtnText: { color: '#FFFFFF', fontSize: fp(12), fontWeight: '700' },
   actionBtnLocked: { backgroundColor: '#181818' },
   actionBtnLockedText: { color: '#71717A', fontSize: fp(12), fontWeight: '700' },
 
@@ -736,12 +704,12 @@ const s = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
     paddingVertical: hp(56), paddingHorizontal: wp(32),
   },
-  centerStateText: { color: '#64748B', fontSize: fp(14), marginTop: hp(12) },
-  emptyTextTitle: { fontSize: fp(16), fontWeight: '800', color: '#334155', marginTop: hp(12) },
-  emptyTextSub: { fontSize: fp(12), color: '#64748B', textAlign: 'center', marginTop: hp(4) },
+  centerStateText: { color: '#9CA3AF', fontSize: fp(14), marginTop: hp(12) },
+  emptyTextTitle: { fontSize: fp(16), fontWeight: '800', color: colors.white, marginTop: hp(12) },
+  emptyTextSub: { fontSize: fp(12), color: '#9CA3AF', textAlign: 'center', marginTop: hp(4) },
   retryBtn: {
     marginTop: hp(16), paddingHorizontal: wp(24), paddingVertical: hp(10),
-    backgroundColor: colors.secPrimary, borderRadius: wp(10),
+    backgroundColor: '#6366F1', borderRadius: wp(10),
   },
   retryBtnText: { color: '#FFFFFF', fontSize: fp(13), fontWeight: '700' },
 });

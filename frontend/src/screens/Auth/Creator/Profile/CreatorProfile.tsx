@@ -24,6 +24,8 @@ import {
   Lock,
   Calendar,
   AlertTriangle,
+  Star,
+  ChevronRight
 } from 'lucide-react-native';
 import { Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -256,9 +258,9 @@ const CreatorProfile = () => {
     }
   };
 
-  return (
+ return (
     <View style={styles.container}>
-      <AppHeaderWithBack title="My Profile" />
+      <AppHeaderWithBack title="Edit Profile" />
 
       <ScrollView
         style={styles.scrollView}
@@ -266,12 +268,7 @@ const CreatorProfile = () => {
         showsVerticalScrollIndicator={false}
       >
         {/* Profile Card */}
-        <LinearGradient
-          colors={['#1A1A2E', '#16213E', '#0F3460']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.profileCard}
-        >
+        <View style={styles.profileCard}>
           <TouchableOpacity
             style={styles.avatarWrap}
             onPress={uploading ? undefined : imagePicker}
@@ -293,34 +290,27 @@ const CreatorProfile = () => {
             <View style={styles.cameraIcon}>
               <Camera size={wp(14)} color={colors.white} />
             </View>
+            <View style={styles.goldBadge}>
+              <ShieldCheck size={wp(12)} color={colors.black} />
+            </View>
           </TouchableOpacity>
 
           <Text style={styles.profileName}>{displayName}</Text>
 
-          {/* KYC Badge */}
-          <View
-            style={[
-              styles.kycBadge,
-              {
-                backgroundColor: user?.kyc_verified ? colors.success + '15' : colors.error + '15',
-                borderColor: user?.kyc_verified ? colors.success + '40' : colors.error + '40',
-              },
-            ]}
-          >
-            {user?.kyc_verified ? (
-              <ShieldCheck size={wp(14)} color={colors.success} />
-            ) : (
-              <ShieldX size={wp(14)} color={colors.error} />
-            )}
-            <Text
-              style={[
-                styles.kycBadgeText,
-                { color: user?.kyc_verified ? colors.success : colors.error },
-              ]}
-            >
-              {user?.kyc_verified ? 'KYC Verified' : 'KYC Not Verified'}
-            </Text>
+          <View style={styles.proBadge}>
+            <Star size={wp(11)} color={colors.black} fill={colors.black} />
+            <Text style={styles.proBadgeText}>PRO INSTRUCTOR</Text>
           </View>
+
+          <Text style={styles.bioText} numberOfLines={3}>
+            Digital Architect and Lead Educator specializing in Technical
+            Elegance and advanced UI systems. Mentoring the next generation
+            of visual designers.
+          </Text>
+
+          <TouchableOpacity style={styles.shareBtn} activeOpacity={0.85}>
+            <Text style={styles.shareBtnText}>Share Profile</Text>
+          </TouchableOpacity>
 
           {/* Social Links Icons */}
           {(user?.instagram_link || user?.linkedin_link || user?.youtube_link || user?.facebook_link) && (
@@ -363,7 +353,7 @@ const CreatorProfile = () => {
               ) : null}
             </View>
           )}
-        </LinearGradient>
+        </View>
 
         {/* Form Section */}
         <Text style={styles.sectionTitle}>Personal Information</Text>
@@ -371,11 +361,8 @@ const CreatorProfile = () => {
         <View style={styles.formCard}>
           {/* NAME */}
           <View style={styles.fieldRow}>
-            <View style={styles.fieldIcon}>
-              <Pen size={wp(16)} color={colors.info} />
-            </View>
             <View style={styles.fieldContent}>
-              <Text style={styles.fieldLabel}>Full Name</Text>
+              <Text style={styles.fieldLabel}>FULL NAME</Text>
               <Controller
                 name="name"
                 control={control}
@@ -397,11 +384,8 @@ const CreatorProfile = () => {
 
           {/* DOB */}
           <View style={styles.fieldRow}>
-            <View style={styles.fieldIcon}>
-              <Calendar size={wp(16)} color={colors.info} />
-            </View>
             <View style={styles.fieldContent}>
-              <Text style={styles.fieldLabel}>Date of Birth</Text>
+              <Text style={styles.fieldLabel}>DATE OF BIRTH</Text>
               <Controller
                 name="dob"
                 control={control}
@@ -415,7 +399,7 @@ const CreatorProfile = () => {
                       <Text
                         style={[
                           styles.inputText,
-                          !value && { color: colors.muted },
+                          !value && { color: colors.textMuted },
                         ]}
                       >
                         {value ? formatDisplayDate(value) : 'Select Date of Birth'}
@@ -448,17 +432,8 @@ const CreatorProfile = () => {
 
           {/* EMAIL */}
           <View style={styles.fieldRow}>
-            <View style={styles.fieldIcon}>
-              <Mail size={wp(16)} color={colors.muted} />
-            </View>
             <View style={styles.fieldContent}>
-              <View style={styles.fieldLabelRow}>
-                <Text style={styles.fieldLabel}>Email</Text>
-                <View style={styles.lockedBadge}>
-                  <Lock size={wp(10)} color={colors.muted} />
-                  <Text style={styles.lockedText}>Locked</Text>
-                </View>
-              </View>
+              <Text style={styles.fieldLabel}>EMAIL</Text>
               <Controller
                 name="email"
                 control={control}
@@ -478,17 +453,8 @@ const CreatorProfile = () => {
 
           {/* PHONE */}
           <View style={styles.fieldRow}>
-            <View style={styles.fieldIcon}>
-              <Phone size={wp(16)} color={colors.muted} />
-            </View>
             <View style={styles.fieldContent}>
-              <View style={styles.fieldLabelRow}>
-                <Text style={styles.fieldLabel}>Phone</Text>
-                <View style={styles.lockedBadge}>
-                  <Lock size={wp(10)} color={colors.muted} />
-                  <Text style={styles.lockedText}>Locked</Text>
-                </View>
-              </View>
+              <Text style={styles.fieldLabel}>PHONE</Text>
               <Controller
                 name="phone"
                 control={control}
@@ -511,11 +477,8 @@ const CreatorProfile = () => {
         <View style={styles.formCard}>
           {/* Instagram */}
           <View style={styles.fieldRow}>
-            <View style={[styles.fieldIcon, styles.igFieldIcon]}>
-              <InstagramIcon size={wp(16)} color="#E1306C" />
-            </View>
             <View style={styles.fieldContent}>
-              <Text style={styles.fieldLabel}>Instagram</Text>
+              <Text style={styles.fieldLabel}>INSTAGRAM</Text>
               <Controller
                 name="instagram_link"
                 control={control}
@@ -536,11 +499,8 @@ const CreatorProfile = () => {
 
           {/* LinkedIn */}
           <View style={styles.fieldRow}>
-            <View style={[styles.fieldIcon, styles.liFieldIcon]}>
-              <LinkedinIcon size={wp(16)} color="#0077B5" />
-            </View>
             <View style={styles.fieldContent}>
-              <Text style={styles.fieldLabel}>LinkedIn</Text>
+              <Text style={styles.fieldLabel}>LINKEDIN</Text>
               <Controller
                 name="linkedin_link"
                 control={control}
@@ -561,11 +521,8 @@ const CreatorProfile = () => {
 
           {/* YouTube */}
           <View style={styles.fieldRow}>
-            <View style={[styles.fieldIcon, styles.ytFieldIcon]}>
-              <YoutubeIcon size={wp(16)} color="#FF0000" />
-            </View>
             <View style={styles.fieldContent}>
-              <Text style={styles.fieldLabel}>YouTube</Text>
+              <Text style={styles.fieldLabel}>YOUTUBE</Text>
               <Controller
                 name="youtube_link"
                 control={control}
@@ -586,11 +543,8 @@ const CreatorProfile = () => {
 
           {/* Facebook */}
           <View style={styles.fieldRow}>
-            <View style={[styles.fieldIcon, styles.fbFieldIcon]}>
-              <FacebookIcon size={wp(16)} color="#1877F2" />
-            </View>
             <View style={styles.fieldContent}>
-              <Text style={styles.fieldLabel}>Facebook</Text>
+              <Text style={styles.fieldLabel}>FACEBOOK</Text>
               <Controller
                 name="facebook_link"
                 control={control}
@@ -608,16 +562,50 @@ const CreatorProfile = () => {
           </View>
         </View>
 
+        {/* Bestselling Product (mock) */}
+        <Text style={styles.sectionTitle}>Bestselling Product</Text>
+        <View style={styles.productCard}>
+          <View style={styles.productThumb}>
+            <View style={styles.bestsellerBadge}>
+              <Text style={styles.bestsellerBadgeText}>BESTSELLER</Text>
+            </View>
+          </View>
+          <View style={styles.productContent}>
+            <Text style={styles.productTitle}>
+              Mastering Technical Elegance (Premium Edition)
+            </Text>
+            <Text style={styles.productDesc} numberOfLines={2}>
+              The complete architectural framework for high-end digital
+              products. Includes source files, 4K video modules, and private
+              community access.
+            </Text>
+            <View style={styles.productFooter}>
+              <Text style={styles.productPrice}>₹199.00</Text>
+              <TouchableOpacity style={styles.getAccessBtn} activeOpacity={0.85}>
+                <Text style={styles.getAccessBtnText}>Get Access</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+
+        {/* Published Courses (mock) */}
+        <View style={styles.sectionHeaderRow}>
+          <Text style={styles.sectionTitle}>Published Courses</Text>
+          <TouchableOpacity style={styles.viewAllBtn} activeOpacity={0.7}>
+            <Text style={styles.viewAllText}>View All</Text>
+            <ChevronRight size={wp(14)} color={colors.golden} />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.courseCard}>
+          <View style={styles.courseThumb} />
+          <View style={styles.courseContent}>
+            <Text style={styles.courseTitle}>Mastering Technical Elegance</Text>
+            <Text style={styles.courseMeta}>4.9 ★ · 12k students</Text>
+          </View>
+        </View>
+
         {/* Action Buttons */}
         <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.backButtonText}>Cancel</Text>
-          </TouchableOpacity>
-
           <TouchableOpacity
             style={[styles.updateButton, loading && { opacity: 0.6 }]}
             onPress={handleSubmit(onUpdate)}
@@ -625,10 +613,18 @@ const CreatorProfile = () => {
             activeOpacity={0.8}
           >
             {loading ? (
-              <ActivityIndicator color={colors.white} />
+              <ActivityIndicator color={colors.black} />
             ) : (
               <Text style={styles.updateButtonText}>Save Changes</Text>
             )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.backButtonText}>Cancel</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -686,7 +682,7 @@ export default CreatorProfile;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.black,
   },
   scrollView: {
     flex: 1,
@@ -698,17 +694,12 @@ const styles = StyleSheet.create({
   // Profile Card
   profileCard: {
     alignItems: 'center',
+    backgroundColor: colors.CARD_BG,
     marginHorizontal: wp(16),
     marginTop: hp(20),
     borderRadius: wp(20),
     paddingVertical: hp(24),
     paddingHorizontal: wp(20),
-    elevation: 3,
-    shadowColor: '#0F3460',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    overflow: 'hidden',
   },
   avatarWrap: {
     position: 'relative',
@@ -718,11 +709,11 @@ const styles = StyleSheet.create({
     width: wp(100),
     height: wp(100),
     borderRadius: wp(50),
-    backgroundColor: colors.primary,
+    backgroundColor: colors.PLACEHOLDER_BG,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 3,
-    borderColor: 'rgba(96,165,250,0.5)',
+    borderColor: colors.golden,
   },
   profileImage: {
     width: wp(100),
@@ -731,46 +722,77 @@ const styles = StyleSheet.create({
   },
   cameraIcon: {
     position: 'absolute',
-    bottom: hp(2),
+    top: hp(2),
     right: wp(2),
-    width: wp(30),
-    height: wp(30),
-    borderRadius: wp(15),
+    width: wp(26),
+    height: wp(26),
+    borderRadius: wp(13),
     backgroundColor: colors.info,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: colors.white,
+    borderColor: colors.CARD_BG,
+  },
+  goldBadge: {
+    position: 'absolute',
+    bottom: hp(10),
+    right: -wp(2),
+    width: wp(26),
+    height: wp(26),
+    borderRadius: wp(13),
+    backgroundColor: colors.golden,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: colors.CARD_BG,
   },
   profileName: {
     fontSize: fp(20),
     fontWeight: '800',
     color: colors.white,
+    marginBottom: hp(8),
   },
-  profileEmail: {
-    fontSize: fp(13),
-    color: 'rgba(255,255,255,0.6)',
-    marginTop: hp(2),
-  },
-  kycBadge: {
+  proBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: wp(6),
-    marginTop: hp(12),
-    paddingHorizontal: wp(12),
-    paddingVertical: hp(6),
+    gap: wp(5),
+    backgroundColor: colors.golden,
+    paddingHorizontal: wp(10),
+    paddingVertical: hp(4),
     borderRadius: wp(20),
-    borderWidth: 1,
+    marginBottom: hp(12),
   },
-  kycBadgeText: {
-    fontSize: fp(12),
-    fontWeight: '700',
+  proBadgeText: {
+    fontSize: fp(10),
+    fontWeight: '800',
+    color: colors.black,
+    letterSpacing: 0.5,
+  },
+  bioText: {
+    fontSize: fp(12.5),
+    color: colors.textMuted,
+    textAlign: 'center',
+    lineHeight: fp(18),
+    marginBottom: hp(16),
+    paddingHorizontal: wp(4),
+  },
+  shareBtn: {
+    borderWidth: 1,
+    borderColor: colors.golden,
+    borderRadius: wp(20),
+    paddingVertical: hp(9),
+    paddingHorizontal: wp(24),
+    marginBottom: hp(14),
+  },
+  shareBtnText: {
+    fontSize: fp(13),
+    fontWeight: '600',
+    color: colors.golden,
   },
   socialRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(12),
-    marginTop: hp(14),
   },
   socialIconBtnIg: {
     width: wp(38),
@@ -804,159 +826,218 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#1877F225',
   },
-  igFieldIcon: {
-    backgroundColor: '#fce4ec',
-  },
-  liFieldIcon: {
-    backgroundColor: '#e3f2fd',
-  },
-  ytFieldIcon: {
-    backgroundColor: '#ffebee',
-  },
-  fbFieldIcon: {
-    backgroundColor: '#e8eaf6',
-  },
 
   // Section
   sectionTitle: {
     fontSize: fp(16),
     fontWeight: '700',
-    color: colors.text,
+    color: colors.white,
     marginHorizontal: wp(20),
     marginTop: hp(24),
     marginBottom: hp(10),
   },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginHorizontal: wp(20),
+  },
+  viewAllBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(2),
+    marginTop: hp(24),
+  },
+  viewAllText: {
+    fontSize: fp(12.5),
+    fontWeight: '600',
+    color: colors.golden,
+  },
 
   // Form Card
   formCard: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.CARD_BG,
     marginHorizontal: wp(16),
     borderRadius: wp(16),
     paddingVertical: hp(6),
-    elevation: 2,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
   },
   fieldRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
     paddingHorizontal: wp(16),
     paddingVertical: hp(12),
-  },
-  fieldIcon: {
-    width: wp(36),
-    height: wp(36),
-    borderRadius: wp(10),
-    backgroundColor: colors.surface,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: wp(12),
-    marginTop: hp(2),
   },
   fieldContent: {
     flex: 1,
   },
   fieldLabel: {
-    fontSize: fp(12),
-    fontWeight: '600',
-    color: colors.textSecondary,
-    marginBottom: hp(4),
-  },
-  fieldLabelRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: hp(4),
-  },
-  lockedBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(3),
-    backgroundColor: colors.surface,
-    paddingHorizontal: wp(8),
-    paddingVertical: hp(2),
-    borderRadius: wp(6),
-  },
-  lockedText: {
-    fontSize: fp(10),
-    color: colors.muted,
-    fontWeight: '500',
+    fontSize: fp(10.5),
+    fontWeight: '700',
+    color: colors.golden,
+    letterSpacing: 0.6,
+    marginBottom: hp(6),
   },
   input: {
     height: hp(42),
-    borderWidth: 1,
-    borderColor: colors.borderColor,
+    borderWidth: 0,
     borderRadius: wp(10),
     paddingHorizontal: wp(12),
     justifyContent: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: colors.black,
   },
   inputText: {
     fontSize: fp(14),
-    color: colors.text,
+    color: colors.white,
   },
   disabledInput: {
-    backgroundColor: colors.surface,
-    borderColor: colors.surface,
+    backgroundColor: colors.black,
   },
   disabledText: {
     fontSize: fp(14),
-    color: colors.textSecondary,
+    color: colors.textMuted,
   },
   divider: {
     height: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: 'rgba(255,255,255,0.06)',
     marginHorizontal: wp(16),
+  },
+
+  // Bestselling Product
+  productCard: {
+    backgroundColor: colors.CARD_BG,
+    marginHorizontal: wp(16),
+    borderRadius: wp(16),
+    overflow: 'hidden',
+  },
+  productThumb: {
+    width: '100%',
+    height: hp(140),
+    backgroundColor: colors.PLACEHOLDER_BG,
+    justifyContent: 'flex-start',
+    padding: wp(12),
+  },
+  bestsellerBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: colors.golden,
+    paddingHorizontal: wp(9),
+    paddingVertical: hp(3),
+    borderRadius: wp(6),
+  },
+  bestsellerBadgeText: {
+    fontSize: fp(9.5),
+    fontWeight: '800',
+    color: colors.black,
+    letterSpacing: 0.4,
+  },
+  productContent: {
+    padding: wp(16),
+  },
+  productTitle: {
+    fontSize: fp(15),
+    fontWeight: '700',
+    color: colors.white,
+    marginBottom: hp(6),
+  },
+  productDesc: {
+    fontSize: fp(12),
+    color: colors.textMuted,
+    lineHeight: fp(17),
+    marginBottom: hp(14),
+  },
+  productFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  productPrice: {
+    fontSize: fp(18),
+    fontWeight: '800',
+    color: colors.white,
+  },
+  getAccessBtn: {
+    backgroundColor: colors.golden,
+    paddingHorizontal: wp(18),
+    paddingVertical: hp(9),
+    borderRadius: wp(10),
+  },
+  getAccessBtnText: {
+    fontSize: fp(13),
+    fontWeight: '700',
+    color: colors.black,
+  },
+
+  // Published Courses
+  courseCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.CARD_BG,
+    marginHorizontal: wp(16),
+    marginTop: hp(10),
+    borderRadius: wp(14),
+    padding: wp(12),
+    gap: wp(12),
+  },
+  courseThumb: {
+    width: wp(56),
+    height: wp(56),
+    borderRadius: wp(10),
+    backgroundColor: colors.PLACEHOLDER_BG,
+  },
+  courseContent: {
+    flex: 1,
+  },
+  courseTitle: {
+    fontSize: fp(13.5),
+    fontWeight: '700',
+    color: colors.white,
+    marginBottom: hp(3),
+  },
+  courseMeta: {
+    fontSize: fp(11.5),
+    color: colors.textMuted,
   },
 
   // Buttons
   buttonContainer: {
-    flexDirection: 'row',
     marginTop: hp(24),
     marginHorizontal: wp(16),
     gap: wp(12),
   },
-  backButton: {
-    flex: 1,
-    height: hp(48),
-    borderRadius: wp(12),
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.white,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  backButtonText: {
-    color: colors.text,
-    fontWeight: '600',
-    fontSize: fp(15),
-  },
   updateButton: {
-    flex: 2,
-    height: hp(48),
+    height: hp(50),
     borderRadius: wp(12),
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.primary,
+    backgroundColor: colors.golden,
   },
   updateButtonText: {
-    color: colors.white,
+    color: colors.black,
     fontWeight: '700',
+    fontSize: fp(15),
+  },
+  backButton: {
+    height: hp(50),
+    borderRadius: wp(12),
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: colors.golden,
+  },
+  backButtonText: {
+    color: colors.golden,
+    fontWeight: '600',
     fontSize: fp(15),
   },
 
   // Modal
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: wp(24),
   },
   modalContainer: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.CARD_BG,
     borderRadius: wp(20),
     paddingVertical: hp(28),
     paddingHorizontal: wp(24),
@@ -967,7 +1048,7 @@ const styles = StyleSheet.create({
     width: wp(60),
     height: wp(60),
     borderRadius: wp(30),
-    backgroundColor: colors.secondary + '15',
+    backgroundColor: colors.secondary + '20',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: hp(16),
@@ -975,12 +1056,12 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: fp(18),
     fontWeight: '700',
-    color: colors.text,
+    color: colors.white,
     marginBottom: hp(8),
   },
   modalMessage: {
     fontSize: fp(14),
-    color: colors.textSecondary,
+    color: colors.textMuted,
     textAlign: 'center',
     lineHeight: fp(20),
     marginBottom: hp(24),
@@ -996,12 +1077,12 @@ const styles = StyleSheet.create({
     borderRadius: wp(12),
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.surface,
+    backgroundColor: colors.black,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: 'rgba(255,255,255,0.12)',
   },
   modalCancelText: {
-    color: colors.text,
+    color: colors.white,
     fontWeight: '600',
     fontSize: fp(14),
   },

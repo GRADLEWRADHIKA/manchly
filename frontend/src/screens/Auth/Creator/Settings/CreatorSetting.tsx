@@ -885,7 +885,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: fp(13),
     fontWeight: '600',
-    color: 'rgba(255,255,255,0.45)',
+    color: colors.white,
     textTransform: 'uppercase',
     letterSpacing: 0.8,
     marginHorizontal: wp(20),
@@ -916,6 +916,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    color: colors.white
   },
   rowBorder: {
     borderBottomWidth: StyleSheet.hairlineWidth,
@@ -940,24 +941,24 @@ const styles = StyleSheet.create({
   rowText: {
     fontSize: fp(15),
     color: colors.white,
-    fontWeight: '500',
+    fontWeight: '700',
   },
   rowSubtext: {
     fontSize: fp(12),
-    color: 'rgba(255,255,255,0.45)',
+    color: colors.white,
     marginTop: hp(1),
   },
 
   versionText: {
     textAlign: 'center',
     fontSize: fp(12),
-    color: 'rgba(255,255,255,0.3)',
+    color: colors.white,
     marginTop: hp(24),
     fontWeight: '500',
   },
   headerSubtitle: {
     fontSize: fp(12),
-    color: 'rgba(255,255,255,0.5)',
+    color: colors.white,
     fontWeight: '500',
   },
   headerTitle: {
@@ -1119,6 +1120,7 @@ const styles = StyleSheet.create({
     borderRadius: wp(16),
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.06)',
+    color: colors.white
   },
   hissaCardPressed: {
     opacity: 0.9,

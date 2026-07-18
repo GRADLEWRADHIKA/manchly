@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   activeTabBtn: {
-    backgroundColor: colors.secPrimary,
+    backgroundColor: colors.bg,
     borderColor: colors.secPrimary,
   },
   tabBtnPressed: {

@@ -1,4 +1,4 @@
-import React, { useEffect, memo } from 'react';
+import React, {useEffect, memo} from 'react';
 import {
   View,
   Text,
@@ -7,35 +7,34 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
-import { useNavigation, useIsFocused } from '@react-navigation/native';
-import { useDispatch, useSelector } from 'react-redux';
+import {useNavigation, useIsFocused} from '@react-navigation/native';
+import {useDispatch, useSelector} from 'react-redux';
 import {
   Video,
   Clock,
   PhoneCall,
   IndianRupee,
   PhoneMissed,
-  Menu,
-  Bell,
+  ChevronRight,
+  X,
 } from 'lucide-react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import colors from '../../../../utils/colors';
-import { wp, hp, fp } from '../../../../utils/responsive';
-import { getMySessions, getSessionStats } from '../../../../store/SessionSlice';
+import {wp, hp, fp} from '../../../../utils/responsive';
+import AppHeader from '../../../../components/AppHeader';
+import {getMySessions, getSessionStats, createSession} from '../../../../store/SessionSlice';
 
 const UserSessions: React.FC = () => {
   const navigation = useNavigation<any>();
   const dispatch = useDispatch<any>();
   const isFocused = useIsFocused();
-  const insets = useSafeAreaInsets();
-
-  const { sessions, stats, loading } = useSelector(
+  const {sessions, stats, loading} = useSelector(
     (state: any) => state.sessionReducer,
   );
+  const {user} = useSelector((state: any) => state.userReducer);
 
   useEffect(() => {
     if (isFocused) {
-      dispatch(getMySessions({ role: 'caller', page: 1, limit: 30 }));
+      dispatch(getMySessions({role: 'caller', page: 1, limit: 30}));
       dispatch(getSessionStats());
     }
   }, [isFocused]);
@@ -43,23 +42,27 @@ const UserSessions: React.FC = () => {
   const getStatusStyle = (status: string) => {
     switch (status) {
       case 'COMPLETED':
-        return { bg: colors.success + '15', color: colors.success };
+        return {bg: colors.success + '15', color: colors.success};
       case 'ACTIVE':
-        return { bg: colors.info + '15', color: colors.info };
+        return {bg: colors.info + '15', color: colors.info};
       case 'MISSED':
-        return { bg: colors.error + '15', color: colors.error };
+        return {bg: colors.error + '15', color: colors.error};
       default:
-        return { bg: colors.cTextMuted + '15', color: colors.cTextMuted };
+        return {bg: colors.textMuted + '15', color: colors.textMuted};
     }
   };
 
-  // ── Session Card ─────────────────────────────────────────────────────────────
-  const renderSession = ({ item }: { item: any }) => {
+  const renderSession = ({item}: {item: any}) => {
     const st = getStatusStyle(item.status);
+
     return (
       <View style={styles.card}>
         <View style={styles.cardTop}>
-          <View style={[styles.modeIcon, { backgroundColor: colors.success + '12' }]}>
+          <View
+            style={[
+              styles.modeIcon,
+              {backgroundColor: colors.success + '12'},
+            ]}>
             <Video size={wp(18)} color={colors.success} strokeWidth={1.8} />
           </View>
           <View style={styles.cardInfo}>
@@ -67,8 +70,7 @@ const UserSessions: React.FC = () => {
               {item.receiver?.name || 'Video Call'}
             </Text>
             <Text style={styles.cardDate}>
-              Video ·{' '}
-              {new Date(item.created_at).toLocaleDateString('en-IN', {
+              Video · {new Date(item.created_at).toLocaleDateString('en-IN', {
                 day: 'numeric',
                 month: 'short',
                 hour: '2-digit',
@@ -76,8 +78,8 @@ const UserSessions: React.FC = () => {
               })}
             </Text>
           </View>
-          <View style={[styles.statusBadge, { backgroundColor: st.bg }]}>
-            <Text style={[styles.statusText, { color: st.color }]}>
+          <View style={[styles.statusBadge, {backgroundColor: st.bg}]}>
+            <Text style={[styles.statusText, {color: st.color}]}>
               {item.status.charAt(0) + item.status.slice(1).toLowerCase()}
             </Text>
           </View>
@@ -85,40 +87,41 @@ const UserSessions: React.FC = () => {
 
         <View style={styles.cardBottom}>
           <View style={styles.detailChip}>
-            <Clock size={wp(12)} color={colors.cTextSecondary} strokeWidth={1.8} />
+            <Clock size={wp(12)} color={colors.textSecondary} strokeWidth={1.8} />
             <Text style={styles.detailText}>{item.duration} min</Text>
           </View>
           <View style={styles.detailChip}>
-            <IndianRupee size={wp(12)} color={colors.cTextSecondary} strokeWidth={2} />
+            <IndianRupee size={wp(12)} color={colors.textSecondary} strokeWidth={2} />
             <Text style={styles.detailText}>{item.amount}</Text>
           </View>
           <View style={styles.detailChip}>
-            <Text style={styles.detailText}>₹{item.rate_per_min}/min</Text>
+            <Text style={styles.detailText}>
+              ₹{item.rate_per_min}/min
+            </Text>
           </View>
         </View>
       </View>
     );
   };
 
-  // ── List Header ──────────────────────────────────────────────────────────────
   const renderHeader = () => (
     <View>
-      {/* Stats Row */}
+      {/* Stats */}
       <View style={styles.statsRow}>
         <View style={styles.statCard}>
-          <PhoneCall size={wp(20)} color={colors.cTextSecondary} strokeWidth={1.8} />
-          <Text style={styles.statValue}>{stats?.total_sessions ?? 0}</Text>
+          <PhoneCall size={wp(20)} color={colors.textSecondary} strokeWidth={1.8} />
+          <Text style={styles.statValue}>{stats.total_sessions}</Text>
           <Text style={styles.statLabel}>SESSIONS</Text>
         </View>
         <View style={styles.statCard}>
-          <Clock size={wp(20)} color={colors.cTextSecondary} strokeWidth={1.8} />
-          <Text style={styles.statValue}>{stats?.total_minutes ?? 0}</Text>
+          <Clock size={wp(20)} color={colors.textSecondary} strokeWidth={1.8} />
+          <Text style={styles.statValue}>{stats.total_minutes}</Text>
           <Text style={styles.statLabel}>MINUTES</Text>
         </View>
         <View style={styles.statCard}>
-          <IndianRupee size={wp(20)} color={colors.cTextSecondary} strokeWidth={1.8} />
+          <IndianRupee size={wp(20)} color={colors.textSecondary} strokeWidth={1.8} />
           <Text style={styles.statValue}>
-            ₹{Number(stats?.total_earnings || 0).toFixed(2)}
+            ₹{Number(stats.total_earnings || 0).toFixed(2)}
           </Text>
           <Text style={styles.statLabel}>SPENT</Text>
         </View>
@@ -128,70 +131,50 @@ const UserSessions: React.FC = () => {
       <TouchableOpacity
         style={styles.ctaCard}
         activeOpacity={0.8}
-        onPress={() => navigation.navigate('ExpertList')}
-      >
-        <View style={styles.ctaIconCircle}>
-          <PhoneCall size={wp(26)} color={colors.white} strokeWidth={1.8} />
+        onPress={() => navigation.navigate('ExpertList')}>
+        <View style={styles.ctaIconWrap}>
+          <PhoneCall size={wp(26)} color={colors.info} strokeWidth={1.8} />
         </View>
         <Text style={styles.ctaTitle}>Browse Experts</Text>
         <Text style={styles.ctaSub}>
-          Find and book session experts instantly for personalized mentorship.
+          Find and book session experts{'\n'}instantly for personalized mentorship.
         </Text>
-        <View style={styles.exploreBtn}>
-          <Text style={styles.exploreBtnText}>Explore Now →</Text>
+        <View style={styles.ctaBtn}>
+          <Text style={styles.ctaBtnText}>Explore Now</Text>
+          <ChevronRight size={wp(16)} color={colors.textPrimary} strokeWidth={2} />
         </View>
       </TouchableOpacity>
 
-      {/* Section Header */}
-      <View style={styles.sectionHeaderRow}>
+      {/* Section Title */}
+      <View style={styles.sectionRow}>
         <Text style={styles.sectionTitle}>Session History</Text>
-        <TouchableOpacity activeOpacity={0.7}>
-          <Text style={styles.viewAllText}>View All</Text>
-        </TouchableOpacity>
+        <Text style={styles.viewAllText}>View All</Text>
       </View>
     </View>
   );
 
-  // ── Empty State ──────────────────────────────────────────────────────────────
   const renderEmpty = () => (
     <View style={styles.emptyCard}>
       <View style={styles.emptyIconWrap}>
-        <View style={styles.emptyIconCircle}>
-          <PhoneMissed size={wp(22)} color={colors.white} strokeWidth={1.8} />
-        </View>
-        <View style={styles.emptyIconBadge}>
-          <Text style={styles.emptyIconBadgeText}>✕</Text>
+        <PhoneMissed size={wp(30)} color={colors.textMuted} strokeWidth={1.2} />
+        <View style={styles.emptyBadge}>
+          <X size={wp(10)} color={colors.textPrimary} strokeWidth={3} />
         </View>
       </View>
       <Text style={styles.emptyTitle}>No sessions yet</Text>
       <Text style={styles.emptyText}>
-        Start your journey toward mastery.{'\n'}Visit a creator's profile to start a live
-        video session.
+        Start your journey toward mastery. Visit a creator's profile to start a live video session.
       </Text>
-      <TouchableOpacity
-        style={styles.searchInstructorsBtn}
-        activeOpacity={0.8}
-        onPress={() => navigation.navigate('ExpertList')}
-      >
-        <Text style={styles.searchInstructorsBtnText}>Search Instructors</Text>
-      </TouchableOpacity>
     </View>
   );
 
-  // ── Root Render ──────────────────────────────────────────────────────────────
   return (
     <View style={styles.container}>
-
-      {/* Top Bar */}
-      <View style={[styles.topBar, { paddingTop: insets.top }]}>
-        <Menu size={22} color={colors.cText} />
-        <Text style={styles.brandTitle}>Manchly</Text>
-        <Bell size={22} color={colors.cText} />
-      </View>
+      <AppHeader title="My journey" />
 
       {loading && sessions.length === 0 ? (
         <View style={styles.loaderWrap}>
-          <ActivityIndicator size="large" color={colors.gold} />
+          <ActivityIndicator size="large" color={colors.info} />
         </View>
       ) : (
         <FlatList
@@ -213,27 +196,8 @@ export default memo(UserSessions);
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.cBg,
+    backgroundColor: colors.bg,
   },
-
-  // Top Bar
-  topBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: wp(16),
-    paddingBottom: hp(12),
-    backgroundColor: colors.cBg,
-    borderBottomWidth: 0.5,
-    borderBottomColor: colors.cBorder,
-  },
-  brandTitle: {
-    fontSize: fp(18),
-    fontWeight: '700',
-    color: colors.white,
-  },
-
-  // List
   listContent: {
     paddingHorizontal: wp(16),
     paddingTop: hp(14),
@@ -253,73 +217,75 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: colors.cCard,
+    backgroundColor: colors.surface,
     borderRadius: wp(14),
     paddingVertical: hp(16),
     alignItems: 'center',
     gap: hp(4),
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: colors.border,
   },
   statValue: {
     fontSize: fp(18),
     fontWeight: '800',
-    color: colors.cText,
+    color: colors.info,
   },
   statLabel: {
-    fontSize: fp(10),
-    color: colors.cTextMuted,
-    fontWeight: '500',
-    letterSpacing: 0.5,
+    fontSize: fp(9),
+    color: colors.textMuted,
+    fontWeight: '600',
+    letterSpacing: 0.3,
   },
 
-  // CTA Card
+  // CTA
   ctaCard: {
     alignItems: 'center',
-    backgroundColor: colors.cCard,
-    borderRadius: wp(16),
-    padding: wp(20),
+    backgroundColor: colors.surface,
+    borderRadius: wp(20),
+    padding: wp(24),
     marginBottom: hp(20),
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: colors.border,
   },
-  ctaIconCircle: {
+  ctaIconWrap: {
     width: wp(56),
     height: wp(56),
-    borderRadius: wp(28),
-    backgroundColor: 'rgba(99,102,241,0.2)',
+    borderRadius: wp(16),
+    backgroundColor: 'rgba(108,99,255,0.15)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: hp(12),
+    marginBottom: hp(14),
   },
   ctaTitle: {
-    fontSize: fp(18),
+    fontSize: fp(17),
     fontWeight: '700',
-    color: colors.cText,
+    color: colors.textPrimary,
     marginBottom: hp(6),
   },
   ctaSub: {
-    fontSize: fp(12),
-    color: colors.cTextSecondary,
+    fontSize: fp(12.5),
+    color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: fp(18),
-    marginBottom: hp(16),
-    paddingHorizontal: wp(10),
+    marginBottom: hp(18),
   },
-  exploreBtn: {
-    backgroundColor: colors.cAccentLight,
-    borderRadius: 99,
-    paddingHorizontal: wp(28),
-    paddingVertical: hp(12),
+  ctaBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(6),
+    backgroundColor: colors.info,
+    paddingHorizontal: wp(20),
+    paddingVertical: hp(10),
+    borderRadius: wp(24),
   },
-  exploreBtnText: {
-    color: colors.white,
-    fontWeight: '700',
+  ctaBtnText: {
     fontSize: fp(14),
+    fontWeight: '700',
+    color: colors.textPrimary,
   },
 
-  // Section Header
-  sectionHeaderRow: {
+  // Section
+  sectionRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -328,22 +294,22 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: fp(15),
     fontWeight: '700',
-    color: colors.cText,
+    color: colors.textPrimary,
   },
   viewAllText: {
-    fontSize: fp(12),
-    color: colors.cTextSecondary,
-    fontWeight: '500',
+    fontSize: fp(13),
+    fontWeight: '600',
+    color: colors.textSecondary,
   },
 
-  // Session Card
+  // Cards
   card: {
-    backgroundColor: colors.cCard,
+    backgroundColor: colors.surface,
     borderRadius: wp(14),
     padding: wp(14),
     marginBottom: hp(10),
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: colors.border,
   },
   cardTop: {
     flexDirection: 'row',
@@ -363,11 +329,11 @@ const styles = StyleSheet.create({
   cardName: {
     fontSize: fp(14),
     fontWeight: '600',
-    color: colors.cText,
+    color: colors.textPrimary,
   },
   cardDate: {
     fontSize: fp(11),
-    color: colors.cTextMuted,
+    color: colors.textMuted,
     marginTop: hp(2),
   },
   statusBadge: {
@@ -385,87 +351,67 @@ const styles = StyleSheet.create({
     marginTop: hp(10),
     paddingTop: hp(10),
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.cBorder,
+    borderTopColor: colors.border,
   },
   detailChip: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(4),
-    backgroundColor: colors.cSurface,
+    backgroundColor: colors.inputBg,
     paddingHorizontal: wp(10),
     paddingVertical: hp(5),
     borderRadius: wp(8),
   },
   detailText: {
     fontSize: fp(11),
-    color: colors.cTextSecondary,
+    color: colors.textSecondary,
     fontWeight: '500',
   },
 
-  // Empty State
+  // Empty
   emptyCard: {
-    backgroundColor: colors.cCard,
-    borderRadius: wp(16),
-    padding: wp(20),
     alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderRadius: wp(20),
+    paddingVertical: hp(40),
+    paddingHorizontal: wp(24),
     borderWidth: 1,
-    borderColor: colors.cBorder,
-    marginTop: hp(10),
+    borderColor: colors.border,
   },
   emptyIconWrap: {
-    position: 'relative',
-    marginBottom: hp(16),
-  },
-  emptyIconCircle: {
     width: wp(64),
     height: wp(64),
     borderRadius: wp(32),
-    backgroundColor: colors.cCardLight,
+    backgroundColor: colors.inputBg,
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: hp(16),
+    position: 'relative',
   },
-  emptyIconBadge: {
+  emptyBadge: {
     position: 'absolute',
-    bottom: -2,
-    right: -2,
-    width: wp(22),
-    height: wp(22),
-    borderRadius: wp(11),
+    top: -wp(2),
+    right: -wp(2),
+    width: wp(18),
+    height: wp(18),
+    borderRadius: wp(9),
     backgroundColor: colors.error,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: colors.cCard,
-  },
-  emptyIconBadgeText: {
-    color: colors.white,
-    fontSize: fp(10),
-    fontWeight: '700',
+    borderColor: colors.surface,
   },
   emptyTitle: {
     fontSize: fp(16),
     fontWeight: '700',
-    color: colors.cText,
+    color: colors.textPrimary,
     marginBottom: hp(8),
   },
   emptyText: {
     fontSize: fp(13),
-    color: colors.cTextSecondary,
+    color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: fp(19),
     paddingHorizontal: wp(10),
-    marginBottom: hp(16),
-  },
-  searchInstructorsBtn: {
-    borderWidth: 1,
-    borderColor: colors.cBorder,
-    borderRadius: 99,
-    paddingHorizontal: wp(28),
-    paddingVertical: hp(12),
-  },
-  searchInstructorsBtnText: {
-    color: colors.cText,
-    fontWeight: '600',
-    fontSize: fp(14),
   },
 });

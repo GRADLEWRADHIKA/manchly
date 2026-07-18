@@ -19,8 +19,6 @@ import { wp, hp, fp } from '../../../../../utils/responsive';
 import moment from 'moment-timezone';
 
 const LatestWebinarItem = ({ item, onPress }: any) => {
-  const scheduledDate = moment(item?.scheduled_at);
-  
   return (
     <Pressable
       style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
@@ -30,21 +28,15 @@ const LatestWebinarItem = ({ item, onPress }: any) => {
         <Image source={{ uri: item.thumbnail_url }} style={styles.thumb} />
       ) : (
         <View style={[styles.thumb, styles.thumbPlaceholder]}>
-          <Video size={wp(22)} color={colors.secPrimary} strokeWidth={1.5} />
+          <Video size={wp(22)} color={colors.gold} strokeWidth={1.5} />
         </View>
       )}
       <View style={styles.info}>
         <Text style={styles.title} numberOfLines={2}>
           {item?.title}
         </Text>
-        <View style={styles.dateRow}>
-          <Calendar size={wp(11)} color={colors.secPrimary} strokeWidth={2} />
-          <Text style={styles.dateText}>
-            {scheduledDate.format('DD MMM, h:mm A')}
-          </Text>
-        </View>
-        <Text style={styles.price}>
-          {item?.price === 0 ? 'FREE' : `₹${item?.price}`}
+        <Text style={styles.hostedBy} numberOfLines={1}>
+          Hosted by {item?.creator?.name || 'Instructor'}
         </Text>
       </View>
     </Pressable>
@@ -89,10 +81,21 @@ const EmptyWebinarCard = () => {
 
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Latest Webinars</Text>
+      <View style={styles.sectionHeader}>
+        <View style={styles.sectionHeaderText}>
+          <Text style={styles.sectionTitle}>Latest Webinars</Text>
+          <Text style={styles.sectionSubtitle}>
+            Join live discussions with industry leaders
+          </Text>
+        </View>
+        <Pressable style={styles.seeAllBtn}>
+          <Text style={styles.seeAllText}>See All</Text>
+          <ArrowRight size={wp(14)} color="rgba(228, 191, 191, 0.85)" strokeWidth={2} />
+        </Pressable>
+      </View>
       <Pressable style={({ pressed }) => [pressed && { opacity: 0.95 }]}>
         <LinearGradient
-          colors={['#692626', '#8B3A3A', '#3D1515']}
+          colors={['#2A2416', '#4A3A1A', '#0F0F0F']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.emptyCard}
@@ -107,7 +110,7 @@ const EmptyWebinarCard = () => {
               { transform: [{ scale: pulseAnim }, { translateY: floatAnim }] },
             ]}
           >
-            <Video size={wp(30)} color={colors.secPrimary} strokeWidth={1.8} />
+            <Video size={wp(30)} color={colors.gold} strokeWidth={1.8} />
           </Animated.View>
 
           <View style={styles.sparkleRow}>
@@ -122,9 +125,9 @@ const EmptyWebinarCard = () => {
           </Text>
 
           <View style={styles.notifyBtn}>
-            <Bell size={wp(14)} color={colors.secPrimary} strokeWidth={2} />
+            <Bell size={wp(14)} color={colors.bg} strokeWidth={2} />
             <Text style={styles.notifyBtnText}>Notify Me</Text>
-            <ArrowRight size={wp(14)} color={colors.secPrimary} strokeWidth={2} />
+            <ArrowRight size={wp(14)} color={colors.bg} strokeWidth={2} />
           </View>
         </LinearGradient>
       </Pressable>
@@ -158,7 +161,7 @@ const LatestWebinars = () => {
     return (
       <ActivityIndicator
         size="small"
-        color={colors.secPrimary}
+        color={colors.gold}
         style={styles.loader}
       />
     );
@@ -170,7 +173,18 @@ const LatestWebinars = () => {
 
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Latest Webinars</Text>
+      <View style={styles.sectionHeader}>
+        <View style={styles.sectionHeaderText}>
+          <Text style={styles.sectionTitle}>Latest Webinars</Text>
+          <Text style={styles.sectionSubtitle}>
+            Join live discussions with industry leaders
+          </Text>
+        </View>
+        <Pressable style={styles.seeAllBtn}>
+          <Text style={styles.seeAllText}>See All</Text>
+          <ArrowRight size={wp(14)} color="rgba(255,255,255,0.85)" strokeWidth={2} />
+        </Pressable>
+      </View>
       <FlatList
         data={webinars}
         horizontal
@@ -196,12 +210,36 @@ const styles = StyleSheet.create({
   section: {
     paddingTop: hp(22),
   },
-  sectionTitle: {
-    fontSize: fp(20),
-    fontWeight: '700',
-    color: '#1C1C1C',
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
     paddingHorizontal: wp(20),
     marginBottom: hp(14),
+  },
+  sectionHeaderText: {
+    flex: 1,
+  },
+  sectionTitle: {
+    fontSize: fp(18),
+    fontWeight: '700',
+    color: colors.textPrimary,
+  },
+  sectionSubtitle: {
+    fontSize: fp(12),
+    color: colors.textSecondary,
+    marginTop: hp(2),
+  },
+  seeAllBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(4),
+    marginTop: hp(2),
+  },
+  seeAllText: {
+    fontSize: fp(13),
+    fontWeight: '600',
+    color: colors.gold,
   },
   listContent: {
     paddingHorizontal: wp(20),
@@ -212,14 +250,9 @@ const styles = StyleSheet.create({
   },
   card: {
     width: wp(160),
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderRadius: wp(14),
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
     marginBottom: 5,
   },
   cardPressed: {
@@ -231,7 +264,7 @@ const styles = StyleSheet.create({
     height: hp(90),
   },
   thumbPlaceholder: {
-    backgroundColor: '#F7ECEC',
+    backgroundColor: colors.inputBg,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -240,25 +273,14 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: fp(13),
-    fontWeight: '600',
-    color: '#1C1C1C',
+    fontWeight: '700',
+    color: colors.textPrimary,
     lineHeight: fp(17),
     marginBottom: hp(4),
   },
-  dateRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(4),
-    marginBottom: hp(6),
-  },
-  dateText: {
+  hostedBy: {
     fontSize: fp(11),
-    color: '#6B6059',
-  },
-  price: {
-    fontSize: fp(14),
-    fontWeight: '700',
-    color: colors.secPrimary,
+    color: colors.textSecondary,
   },
   emptyCard: {
     marginHorizontal: wp(20),
@@ -267,11 +289,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(24),
     alignItems: 'center',
     overflow: 'hidden',
-    shadowColor: '#692626',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
-    shadowRadius: 14,
-    elevation: 8,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   decoCircle1: {
     position: 'absolute',
@@ -280,7 +299,7 @@ const styles = StyleSheet.create({
     width: wp(80),
     height: wp(80),
     borderRadius: wp(40),
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: 'rgba(255,255,255,0.05)',
   },
   decoCircle2: {
     position: 'absolute',
@@ -289,13 +308,13 @@ const styles = StyleSheet.create({
     width: wp(60),
     height: wp(60),
     borderRadius: wp(30),
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: 'rgba(255,255,255,0.04)',
   },
   emptyIconWrap: {
     width: wp(64),
     height: wp(64),
     borderRadius: wp(32),
-    backgroundColor: 'rgba(255,255,255,0.9)',
+    backgroundColor: colors.white,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: hp(14),
@@ -309,11 +328,11 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: fp(17),
     fontWeight: '700',
-    color: colors.white,
+    color: colors.textPrimary,
   },
   emptySub: {
     fontSize: fp(12.5),
-    color: 'rgba(255,255,255,0.85)',
+    color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: fp(18),
     marginBottom: hp(18),
@@ -321,20 +340,15 @@ const styles = StyleSheet.create({
   notifyBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: colors.gold,
     paddingHorizontal: wp(20),
     paddingVertical: hp(10),
     borderRadius: wp(25),
     gap: wp(8),
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
   notifyBtnText: {
     fontSize: fp(13),
     fontWeight: '700',
-    color: colors.secPrimary,
+    color: colors.bg,
   },
 });

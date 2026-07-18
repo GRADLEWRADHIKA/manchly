@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View, Image, TouchableOpacity } from 'react-native';
 import React from 'react';
 import colors from '../../../../../utils/colors';
-import { Calendar, Clock, User, Video, IndianRupee } from 'lucide-react-native';
+import { Calendar, Clock, User, Video, IndianRupee, Star } from 'lucide-react-native';
 import moment from 'moment-timezone';
 import { useNavigation } from '@react-navigation/native';
 import { wp, hp, fp } from '../../../../../utils/responsive';
@@ -23,21 +23,20 @@ const EnrolledWebinarCard = ({ item }) => {
       activeOpacity={0.85}
       onPress={() => navigation.navigate('WebinarDetails', { data: item })}
     >
-      {/* Thumbnail */}
-      <View style={styles.thumbnailWrap}>
-        <Image
-          source={{ uri: webinar?.thumbnail_url }}
-          style={styles.thumbnail}
-          resizeMode="cover"
-        />
-        {/* Price badge */}
-        <View style={styles.priceBadge}>
-          <Text style={styles.priceBadgeText}>{price}</Text>
-        </View>
-      </View>
-
-      {/* Content */}
+      {/* Content (now on top) */}
       <View style={styles.content}>
+        <View style={styles.topRow}>
+          <View style={styles.featuredBadge}>
+            <Text style={styles.featuredBadgeText}>FEATURED</Text>
+          </View>
+          {webinar?.rating ? (
+            <View style={styles.ratingRow}>
+              <Star size={wp(13)} color={colors.gold} fill={colors.gold} strokeWidth={0} />
+              <Text style={styles.ratingText}>{webinar.rating}</Text>
+            </View>
+          ) : null}
+        </View>
+
         <Text style={styles.title} numberOfLines={2}>
           {webinar?.title}
         </Text>
@@ -48,39 +47,31 @@ const EnrolledWebinarCard = ({ item }) => {
           </Text>
         ) : null}
 
-        {/* Meta row */}
-        <View style={styles.metaRow}>
-          <View style={styles.metaItem}>
-            <Calendar size={wp(13)} color={colors.secPrimary} strokeWidth={1.8} />
-            <Text style={styles.metaText}>
-              {scheduledDate.format('DD MMM')}
-            </Text>
+        <View style={styles.priceActionRow}>
+          <View style={styles.priceGroup}>
+            <Text style={styles.price}>{price}</Text>
+            {webinar?.original_price ? (
+              <Text style={styles.originalPrice}>₹{webinar.original_price}</Text>
+            ) : null}
           </View>
-          <View style={styles.metaItem}>
-            <Clock size={wp(13)} color={colors.secPrimary} strokeWidth={1.8} />
-            <Text style={styles.metaText}>
-              {scheduledDate.format('hh:mm A')}
-            </Text>
-          </View>
-          {webinar?.creator?.name && (
-            <View style={styles.metaItem}>
-              <User size={wp(13)} color={colors.secPrimary} strokeWidth={1.8} />
-              <Text style={styles.metaText} numberOfLines={1}>
-                {webinar.creator.name}
-              </Text>
-            </View>
-          )}
-        </View>
 
-        {/* Join button */}
-        <TouchableOpacity
-          style={styles.joinBtn}
-          onPress={() => navigation.navigate('WebinarDetails', { data: item })}
-          activeOpacity={0.8}
-        >
-          <Video size={wp(16)} color={colors.white} strokeWidth={2} />
-          <Text style={styles.joinText}>Join Webinar</Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.joinBtn}
+            onPress={() => navigation.navigate('WebinarDetails', { data: item })}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.joinText}>Enroll Now</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Thumbnail (now on bottom) */}
+      <View style={styles.thumbnailWrap}>
+        <Image
+          source={{ uri: webinar?.thumbnail_url }}
+          style={styles.thumbnail}
+          resizeMode="cover"
+        />
       </View>
     </TouchableOpacity>
   );
@@ -90,83 +81,93 @@ export default EnrolledWebinarCard;
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.white,
-    borderRadius: wp(14),
+    backgroundColor: colors.surface,
+    borderRadius: wp(16),
     marginBottom: hp(12),
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#E2E8F0',
-  },
-  thumbnailWrap: {
-    position: 'relative',
-  },
-  thumbnail: {
-    width: '100%',
-    height: hp(120),
-    backgroundColor: '#F1F5F9',
-  },
-  priceBadge: {
-    position: 'absolute',
-    top: wp(8),
-    right: wp(8),
-    backgroundColor: colors.secPrimary,
-    paddingHorizontal: wp(10),
-    paddingVertical: hp(3),
-    borderRadius: wp(8),
-  },
-  priceBadgeText: {
-    fontSize: fp(12),
-    fontWeight: '700',
-    color: colors.white,
   },
   content: {
-    padding: wp(12),
+    padding: wp(14),
   },
-  title: {
-    fontSize: fp(15),
-    fontWeight: '700',
-    color: colors.text,
-    lineHeight: fp(20),
-  },
-  description: {
-    fontSize: fp(12),
-    color: colors.textSecondary,
-    marginTop: hp(3),
-  },
-  metaRow: {
+  topRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: wp(12),
-    marginTop: hp(8),
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: hp(10),
   },
-  metaItem: {
+  featuredBadge: {
+    backgroundColor: colors.goldDim,
+    paddingHorizontal: wp(10),
+    paddingVertical: hp(4),
+    borderRadius: wp(6),
+  },
+  featuredBadgeText: {
+    fontSize: fp(10),
+    fontWeight: '700',
+    color: colors.gold,
+    letterSpacing: 0.5,
+  },
+  ratingRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(4),
   },
-  metaText: {
-    fontSize: fp(11.5),
+  ratingText: {
+    fontSize: fp(12),
+    fontWeight: '700',
+    color: colors.gold,
+  },
+  title: {
+    fontSize: fp(17),
+    fontWeight: '700',
+    color: colors.textPrimary,
+    lineHeight: fp(22),
+  },
+  description: {
+    fontSize: fp(12.5),
     color: colors.textSecondary,
-    fontWeight: '500',
+    marginTop: hp(4),
+  },
+  priceActionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: hp(14),
+  },
+  priceGroup: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: wp(8),
+  },
+  price: {
+    fontSize: fp(18),
+    fontWeight: '700',
+    color: colors.textPrimary,
+  },
+  originalPrice: {
+    fontSize: fp(13),
+    color: colors.textSecondary,
+    textDecorationLine: 'line-through',
   },
   joinBtn: {
-    marginTop: hp(10),
-    backgroundColor: colors.secPrimary,
+    backgroundColor: colors.info,
     paddingVertical: hp(9),
+    paddingHorizontal: wp(18),
     borderRadius: wp(10),
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: wp(6),
   },
   joinText: {
-    color: colors.white,
+    color: colors.textPrimary,
     fontWeight: '700',
     fontSize: fp(13),
+  },
+  thumbnailWrap: {
+    marginTop: hp(4),
+  },
+  thumbnail: {
+    width: '100%',
+    height: hp(110),
+    backgroundColor: colors.inputBg,
+    borderBottomLeftRadius: wp(16),
+    borderBottomRightRadius: wp(16),
   },
 });

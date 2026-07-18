@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import React from 'react';
+import LinearGradient from 'react-native-linear-gradient';
 import colors from '../../utils/colors';
 import { wp, hp, fp } from '../../utils/responsive';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -30,7 +31,14 @@ const FirstPage = () => {
             Nav.navigate('NewLoginScreen');
           }}
         >
-          <Text style={styles.mainTop}>Get Started</Text>
+          <LinearGradient
+            colors={['#F3C36B', '#D49A3D']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.mainHeaderGradient}
+          >
+            <Text style={styles.mainTop}>Get Started</Text>
+          </LinearGradient>
         </TouchableOpacity>
 
         <View style={styles.trustRow}>
@@ -76,16 +84,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(20),
   },
   mainHeader: {
-    backgroundColor: colors.golden,
-    paddingVertical: hp(16),
     borderRadius: wp(30),
-    alignItems: 'center',
-    justifyContent: 'center',
     shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.18,
     shadowRadius: 8,
     elevation: 3,
+  },
+  mainHeaderGradient: {
+    paddingVertical: hp(16),
+    borderRadius: wp(30),
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   mainTop: {
     fontSize: fp(16),

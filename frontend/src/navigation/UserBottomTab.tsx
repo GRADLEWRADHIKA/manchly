@@ -16,58 +16,46 @@ import PurchasesScreen from '../screens/Auth/User/Purchase/PurchasesScreen';
 import {
   House,
   Compass,
+  MonitorPlay,
   BookOpen,
-  Tv,
   User,
-  MessageCircle,
 } from 'lucide-react-native';
 import UserHome from '../screens/Auth/User/Home/UserHome';
 import UserSessions from '../screens/Auth/User/Sessions/UserSessions';
 import UserSetting from '../screens/Auth/User/Settings/UserSetting';
-import UserChat from '../screens/Auth/User/Chat/UserChat';
-//import BrandMarketplace from '../screens/Auth/User/Marketplace/BrandMarketplace';
-//import MarketplaceRouteGuard from '../components/MarketplaceRouteGuard';
 import { canAccessMarketplace } from '../utils/marketplaceUtils';
 import { useSelector } from 'react-redux';
 
-//import UserHome from '../screens/Auth/User/Home/UserHome';
-
 const Tab = createBottomTabNavigator();
 
-const ACTIVE_COLOR = '#241ade';
-const INACTIVE_COLOR = '#6B6B80';
-const ACTIVE_BG = 'transparent';
+//const INACTIVE_COLOR = '#94a3b8';
+
+
 
 const tabs = [
-  { name: 'Home', component: UserHome, label: 'HOME', Icon: House },
+  { name: 'Home', component: UserHome, label: 'Home', Icon: House },
   {
     name: 'ProductsScreen',
     component: ProductsScreen,
-    label: 'EXPLORE',
+    label: 'Explore',
     Icon: Compass,
+  },
+  {
+    name: 'UserSessions',
+    component: UserSessions,
+    label: 'Sessions',
+    Icon: MonitorPlay,
   },
   {
     name: 'PurchasesScreen',
     component: PurchasesScreen,
-    label: 'LEARNING',
+    label: 'My Learning',
     Icon: BookOpen,
-  },
-  {
-    name: 'UserSession',
-    component: UserSessions,
-    label: 'SESSIONS',
-    Icon: Tv,
-  },
-  {
-    name: 'UserChat',
-    component: UserChat,
-    label: 'CHATS',
-    Icon: MessageCircle,
   },
   {
     name: 'UserSetting',
     component: UserSetting,
-    label: 'PROFILE',
+    label: 'Profile',
     Icon: User,
   },
 ];
@@ -121,7 +109,16 @@ const TabItem = ({ isFocused, icon: Icon, label, onPress }: any) => {
       accessibilityState={{ selected: isFocused }}
       accessibilityLabel={label}
     >
-      {/* Active pill background (removed to match mockup) */}
+      {/* Active pill background */}
+      <Animated.View
+        style={[
+          styles.activePill,
+          {
+            opacity: pillOpacity,
+            transform: [{ scaleX: pillScaleX }, { scaleY: pillScaleY }],
+          },
+        ]}
+      />
 
       <Animated.View
         style={{
@@ -130,7 +127,7 @@ const TabItem = ({ isFocused, icon: Icon, label, onPress }: any) => {
       >
         <Icon
           size={wp(21)}
-          color={isFocused ? ACTIVE_COLOR : INACTIVE_COLOR}
+          color={isFocused ? colors.info : colors.textPrimary}
           strokeWidth={isFocused ? 2.2 : 1.6}
         />
       </Animated.View>
@@ -139,7 +136,7 @@ const TabItem = ({ isFocused, icon: Icon, label, onPress }: any) => {
         style={[
           styles.tabLabel,
           {
-            color: isFocused ? ACTIVE_COLOR : INACTIVE_COLOR,
+            color: isFocused ? colors.info : colors.textPrimary,
             fontWeight: isFocused ? '600' : '400',
             opacity: isFocused ? 1 : 0.85,
           },
@@ -227,9 +224,14 @@ export default UserBottomTab;
 
 const styles = StyleSheet.create({
   tabBarOuter: {
-    backgroundColor: colors.cBg,
+    backgroundColor: colors.bg,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.cBorder,
+    borderTopColor: colors.bg,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 12,
   },
   tabContainer: {
     flexDirection: 'row',
@@ -255,12 +257,11 @@ const styles = StyleSheet.create({
     width: wp(52),
     height: hp(34),
     borderRadius: wp(16),
-    backgroundColor: 'transparent',
+    backgroundColor: colors.surface,
   },
   tabLabel: {
-    fontSize: fp(9),
-    fontWeight: '700',
-    marginTop: hp(4),
-    letterSpacing: 0.5,
+    fontSize: fp(10.5),
+    marginTop: hp(2),
+    letterSpacing: 0.1,
   },
 });

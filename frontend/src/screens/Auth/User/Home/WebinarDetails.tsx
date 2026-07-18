@@ -405,7 +405,7 @@ const PriceRow = ({ label, value }: { label: string; value: string }) => (
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: colors.bg,
   },
   loaderContainer: {
     flex: 1,
@@ -434,7 +434,7 @@ const styles = StyleSheet.create({
   thumbnailWrapper: {
     width: '100%',
     height: hp(220),
-    backgroundColor: colors.lightGrey,
+    backgroundColor: colors.surface,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -449,7 +449,7 @@ const styles = StyleSheet.create({
   },
   noImageText: {
     marginTop: hp(8),
-    color: colors.textSecondary,
+    color: colors.textPrimary,
     fontSize: fp(14),
   },
 
@@ -458,7 +458,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginTop: hp(15),
     paddingHorizontal: wp(15),
-    color: colors.text,
+    color: colors.textPrimary,
   },
 
   row: {
@@ -469,11 +469,11 @@ const styles = StyleSheet.create({
     gap: wp(6),
   },
   host: {
-    color: colors.textSecondary,
+    color: colors.textPrimary,
     fontSize: fp(14),
   },
   detailText: {
-    color: colors.textSecondary,
+    color: colors.textPrimary,
     fontSize: fp(14),
   },
 
@@ -496,12 +496,13 @@ const styles = StyleSheet.create({
   },
 
   tagText: {
-    color: colors.white,
+    color: colors.textPrimary,
     fontSize: fp(12),
   },
 
   priceBox: {
     backgroundColor: colors.surface,
+    color: colors.textPrimary,
     padding: wp(16),
     borderRadius: wp(12),
     marginHorizontal: wp(15),
@@ -512,14 +513,14 @@ const styles = StyleSheet.create({
     marginVertical: hp(6),
   },
   priceLabel: {
-    color: colors.textSecondary,
+    color: colors.textPrimary,
   },
   priceValue: {
     fontWeight: '600',
   },
   totalRow: {
     borderTopWidth: wp(1),
-    borderColor: colors.border,
+    borderColor: colors.textPrimary,
     marginTop: hp(10),
     paddingTop: hp(10),
     flexDirection: 'row',
@@ -528,15 +529,16 @@ const styles = StyleSheet.create({
   totalLabel: {
     fontSize: fp(16),
     fontWeight: '700',
+    color: colors.textPrimary
   },
   totalValue: {
     fontSize: fp(18),
     fontWeight: '800',
-    color: colors.primary,
+    color: colors.info,
   },
   participants: {
     fontSize: fp(14),
-    color: colors.textSecondary,
+    color: colors.textPrimary,
     marginTop: hp(10),
   },
 
@@ -544,11 +546,11 @@ const styles = StyleSheet.create({
     fontSize: fp(18),
     fontWeight: '600',
     paddingHorizontal: wp(15),
-    color: colors.text,
+    color: colors.textPrimary,
   },
   description: {
     fontSize: fp(14),
-    color: colors.textSecondary,
+    color: colors.textPrimary,
     marginTop: hp(8),
     paddingHorizontal: wp(15),
     lineHeight: fp(20),
@@ -560,13 +562,13 @@ const styles = StyleSheet.create({
     bottom: 0,
     width: '100%',
     padding: wp(15),
-    backgroundColor: colors.white,
+    backgroundColor: colors.bg,
     borderTopWidth: wp(1),
     borderColor: colors.border,
     marginBottom: hp(10),
   },
   buyButton: {
-    backgroundColor: colors.secPrimary,
+    backgroundColor: colors.info,
     paddingVertical: hp(14),
     borderRadius: wp(10),
     alignItems: 'center',
@@ -578,14 +580,14 @@ const styles = StyleSheet.create({
   },
   policyText: {
     fontSize: fp(12),
-    color: colors.textSecondary,
+    color: colors.textPrimary,
     textAlign: 'center',
     lineHeight: fp(18),
     marginTop: hp(12),
     paddingHorizontal: wp(15),
   },
   policyLink: {
-    color: colors.primary,
+    color: colors.info,
     fontWeight: '500',
   },
 });

@@ -13,7 +13,7 @@ const AppHeaderWithBack = ({ title }) => {
   const { user } = useSelector((state: any) => state.userReducer);
 
   const isCreator = user?.user_type !== 'USER';
-  const bgColor = isCreator ? colors.cBg : colors.secPrimary;
+  const bgColor = isCreator ? colors.cBg : colors.bg;
 
   return (
     <View
@@ -78,10 +78,10 @@ const styles = StyleSheet.create({
     borderRadius: wp(12),
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: colors.info,
   },
   backButtonPressed: {
-    backgroundColor: 'rgba(255,255,255,0.22)',
+    backgroundColor: 'rgba(255,255,255,0.',
     transform: [{ scale: 0.92 }],
   },
   title: {

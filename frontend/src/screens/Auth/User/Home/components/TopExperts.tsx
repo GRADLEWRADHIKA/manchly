@@ -68,16 +68,6 @@ const TopExperts = () => {
               </Text>
             </View>
           )}
-          <View
-            style={[
-              styles.onlineDot,
-              {
-                backgroundColor: item.is_available
-                  ? colors.success
-                  : colors.textMuted,
-              },
-            ]}
-          />
         </View>
         <Text style={styles.name} numberOfLines={1}>
           {user?.name || 'Expert'}
@@ -85,16 +75,6 @@ const TopExperts = () => {
         <Text style={styles.profession} numberOfLines={1}>
           {item.profession}
         </Text>
-        <View style={styles.ratingRow}>
-          <Star
-            size={wp(10)}
-            color={colors.golden}
-            fill={colors.golden}
-            strokeWidth={1}
-          />
-          <Text style={styles.ratingText}>{item.rating.toFixed(1)}</Text>
-        </View>
-        <Text style={styles.price}>₹{item.video_rate}/min</Text>
       </TouchableOpacity>
     );
   };
@@ -110,7 +90,7 @@ const TopExperts = () => {
           <Text style={styles.seeAllText}>See All</Text>
           <ChevronRight
             size={wp(14)}
-            color={colors.secPrimary}
+            color="rgba(255,255,255,0.7)"
             strokeWidth={2}
           />
         </TouchableOpacity>
@@ -144,7 +124,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: fp(17),
     fontWeight: '700',
-    color: colors.text,
+    color: colors.textPrimary,
   },
   seeAllBtn: {
     flexDirection: 'row',
@@ -154,7 +134,7 @@ const styles = StyleSheet.create({
   seeAllText: {
     fontSize: fp(13),
     fontWeight: '600',
-    color: colors.secPrimary,
+    color: 'rgba(255,255,255,0.7)',
   },
   list: {
     paddingHorizontal: wp(16),
@@ -162,15 +142,12 @@ const styles = StyleSheet.create({
   },
   card: {
     width: wp(130),
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderRadius: wp(14),
     padding: wp(12),
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.borderLight,
   },
   avatarWrap: {
-    position: 'relative',
     marginBottom: hp(8),
   },
   avatar: {
@@ -182,29 +159,19 @@ const styles = StyleSheet.create({
     width: wp(50),
     height: wp(50),
     borderRadius: wp(25),
-    backgroundColor: colors.secPrimary + '18',
+    backgroundColor: colors.inputBg,
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarText: {
     fontSize: fp(16),
     fontWeight: '700',
-    color: colors.secPrimary,
-  },
-  onlineDot: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    width: wp(12),
-    height: wp(12),
-    borderRadius: wp(6),
-    borderWidth: 2,
-    borderColor: colors.white,
+    color: colors.textPrimary,
   },
   name: {
     fontSize: fp(13),
     fontWeight: '600',
-    color: colors.text,
+    color: colors.textPrimary,
     textAlign: 'center',
   },
   profession: {
@@ -212,22 +179,5 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginTop: hp(2),
     textAlign: 'center',
-  },
-  ratingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(3),
-    marginTop: hp(4),
-  },
-  ratingText: {
-    fontSize: fp(11),
-    fontWeight: '600',
-    color: colors.text,
-  },
-  price: {
-    fontSize: fp(11),
-    fontWeight: '700',
-    color: colors.info,
-    marginTop: hp(4),
   },
 });

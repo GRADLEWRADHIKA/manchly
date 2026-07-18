@@ -1,4 +1,12 @@
 const colors = {
+  // Dark-theme / legacy palette keys (used across user-side & other screens)
+  bg: '#0F0F0F',
+  inputBg: '#242426',
+  gold: '#F0C040',
+  goldDim: '#F0C04018',
+  textPrimary: '#FFFFFF',
+  primaryDark: '#1A1A1A',
+
   primary: '#000000',
   secPrimary: '#692626',
   secondary: '#F97316',

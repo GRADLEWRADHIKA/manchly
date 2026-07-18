@@ -26,19 +26,7 @@ const WebinarCard = ({ data }) => {
           />
         ) : (
           <View style={styles.thumbnailPlaceholder}>
-            <Video size={wp(24)} color="#cbd5e1" strokeWidth={1.2} />
-          </View>
-        )}
-
-        {/* Duration badge */}
-        <View style={styles.durationBadge}>
-          <Clock size={wp(10)} color={colors.white} strokeWidth={2} />
-          <Text style={styles.durationText}>{data?.duration} min</Text>
-        </View>
-
-        {isToday && (
-          <View style={styles.todayBadge}>
-            <Text style={styles.todayText}>Today</Text>
+            <Video size={wp(24)} color={colors.textMuted} strokeWidth={1.2} />
           </View>
         )}
       </View>
@@ -49,31 +37,11 @@ const WebinarCard = ({ data }) => {
           {data?.title || 'Untitled'}
         </Text>
 
-        <View style={styles.metaRow}>
-          {data?.creator?.name && (
-            <View style={styles.metaItem}>
-              <User size={wp(12)} color={colors.textSecondary} strokeWidth={1.8} />
-              <Text style={styles.metaText} numberOfLines={1}>
-                {data.creator.name}
-              </Text>
-            </View>
-          )}
-          <View style={styles.metaItem}>
-            <Calendar size={wp(12)} color={colors.secPrimary} strokeWidth={1.8} />
-            <Text style={styles.metaText}>
-              {isToday
-                ? scheduledDate.format('h:mm A')
-                : scheduledDate.format('DD MMM')}
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.footerRow}>
-          <Text style={styles.price}>₹{data?.price}</Text>
-          <View style={styles.viewBtn}>
-            <Text style={styles.viewBtnText}>View</Text>
-          </View>
-        </View>
+        {data?.creator?.name && (
+          <Text style={styles.hostedBy} numberOfLines={1}>
+            Hosted by {data.creator.name}
+          </Text>
+        )}
       </View>
     </Pressable>
   );
@@ -83,17 +51,11 @@ export default WebinarCard;
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.white,
+    width: wp(160),
+    backgroundColor: colors.surface,
     borderRadius: wp(14),
     overflow: 'hidden',
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#eaecef',
-    marginVertical: 10
+    marginVertical: 10,
   },
   cardPressed: {
     opacity: 0.92,
@@ -105,96 +67,29 @@ const styles = StyleSheet.create({
   },
   thumbnail: {
     width: '100%',
-    height: hp(120),
-    backgroundColor: '#f1f5f9',
+    height: hp(90),
+    backgroundColor: colors.inputBg,
   },
   thumbnailPlaceholder: {
     width: '100%',
-    height: hp(120),
-    backgroundColor: '#f1f5f9',
+    height: hp(90),
+    backgroundColor: colors.inputBg,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  durationBadge: {
-    position: 'absolute',
-    bottom: hp(6),
-    right: wp(6),
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(3),
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    paddingHorizontal: wp(6),
-    paddingVertical: hp(2),
-    borderRadius: wp(5),
-  },
-  durationText: {
-    color: colors.white,
-    fontSize: fp(10),
-    fontWeight: '600',
-  },
-  todayBadge: {
-    position: 'absolute',
-    top: hp(6),
-    left: wp(6),
-    backgroundColor: '#EF4444',
-    paddingHorizontal: wp(8),
-    paddingVertical: hp(2),
-    borderRadius: wp(5),
-  },
-  todayText: {
-    color: colors.white,
-    fontSize: fp(10),
-    fontWeight: '700',
   },
 
   content: {
     padding: wp(10),
   },
   title: {
-    fontSize: fp(14),
-    fontWeight: '600',
-    color: colors.text,
-    lineHeight: fp(19),
-    marginBottom: hp(6),
-  },
-  metaRow: {
-    flexDirection: 'row',
-    gap: wp(12),
-    marginBottom: hp(8),
-  },
-  metaItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(4),
-  },
-  metaText: {
-    fontSize: fp(11.5),
-    color: colors.textSecondary,
-  },
-  footerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: hp(8),
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#f0f2f5',
-  },
-  price: {
-    fontSize: fp(16),
+    fontSize: fp(13),
     fontWeight: '700',
-    color: colors.secPrimary,
+    color: colors.textPrimary,
+    lineHeight: fp(18),
+    marginBottom: hp(4),
   },
-  viewBtn: {
-    backgroundColor: '#1E3A5F0A',
-    paddingHorizontal: wp(14),
-    paddingVertical: hp(5),
-    borderRadius: wp(8),
-    borderWidth: 1,
-    borderColor: '#1E3A5F15',
-  },
-  viewBtnText: {
-    fontSize: fp(12),
-    fontWeight: '600',
-    color: colors.secPrimary,
+  hostedBy: {
+    fontSize: fp(11),
+    color: colors.textSecondary,
   },
 });

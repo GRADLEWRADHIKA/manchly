@@ -166,11 +166,11 @@ export class AuthController {
       return ApiResponseHandler.customError(res, "Email is required", 400, "MISSING_EMAIL");
     if (!phone)
       return ApiResponseHandler.customError(res, "Phone number is required", 400, "MISSING_PHONE");
-    if (!password)
-      return ApiResponseHandler.customError(res, "Password is required", 400, "MISSING_PASSWORD");
     if (!isValidEmail(email))
       return ApiResponseHandler.customError(res, "Invalid email format", 400, "INVALID_EMAIL_FORMAT");
-    if (typeof password !== "string" || password.length < 8)
+    // Password is optional — this app authenticates via OTP, not passwords.
+    // Only validate strength if a password is explicitly provided.
+    if (password !== undefined && password !== null && (typeof password !== "string" || password.length < 8))
       return ApiResponseHandler.customError(res, "Password must be at least 8 characters", 400, "WEAK_PASSWORD");
     if (dob && !AuthController.isValidDOB(dob))
       return ApiResponseHandler.customError(res, "Invalid date of birth format. Use YYYY-MM-DD", 400, "INVALID_DOB_FORMAT");
@@ -207,8 +207,10 @@ export class AuthController {
       if (existingByPhone)
         return ApiResponseHandler.customError(res, "Phone number already registered with a different email.", 409, "PHONE_ALREADY_EXISTS");
 
-      // Hash password — never store plaintext
-      const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
+      // Hash password only when one is provided — never store plaintext (app uses OTP)
+      const passwordHash = password
+        ? await bcrypt.hash(password, BCRYPT_ROUNDS)
+        : undefined;
 
       // Create new user
       const user = await prisma.users.create({
@@ -216,7 +218,7 @@ export class AuthController {
           email,
           phone,
           name,
-          password: passwordHash,
+          ...(passwordHash && { password: passwordHash }),
           user_type: userTypesArray.length > 0 ? userTypesArray : [UserType.USER],
           ...(organizationRoleSelected && { companyName: normalizedCompanyName }),
           ...(dob && { dob }),

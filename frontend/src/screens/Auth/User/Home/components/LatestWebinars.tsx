@@ -103,7 +103,6 @@ const EmptyWebinarCard = () => {
           {/* Decorative circles */}
           <View style={styles.decoCircle1} />
           <View style={styles.decoCircle2} />
-
           <Animated.View
             style={[
               styles.emptyIconWrap,
@@ -122,8 +121,7 @@ const EmptyWebinarCard = () => {
           <Text style={styles.emptySub}>
             Live sessions with experts are on the way.{'\n'}
             Be the first to know when they go live!
-          </Text>
-
+          </Text>   
           <View style={styles.notifyBtn}>
             <Bell size={wp(14)} color={colors.bg} strokeWidth={2} />
             <Text style={styles.notifyBtnText}>Notify Me</Text>

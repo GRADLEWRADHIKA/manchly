@@ -363,7 +363,7 @@ const CourseAddVideoModal = ({
         <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
           {aiLoading ? (
             <View style={{ alignItems: 'center', paddingVertical: hp(40), gap: hp(12) }}>
-              <ActivityIndicator size="large" color={'#60A5FA'} />
+              <ActivityIndicator size="large" color={colors.gold} />
               <Text style={{ color: '#64748B', fontSize: fp(14) }}>Enhancing your {aiView.label.toLowerCase()}...</Text>
             </View>
           ) : aiSuggestion ? (
@@ -560,7 +560,7 @@ export default CourseAddVideoModal;
 
 const styles = StyleSheet.create({
   modalContainer: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.cSurface,
     borderTopLeftRadius: wp(20),
     borderTopRightRadius: wp(20),
     maxHeight: '100%',
@@ -570,10 +570,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     borderBottomWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.cBorder,
     padding: wp(16),
   },
-  modalTitle: { fontSize: fp(18), fontWeight: '700', color: '#1A1A2E' },
+  modalTitle: { fontSize: fp(18), fontWeight: '700', color: colors.textPrimary },
   closeButton: { padding: wp(4) },
   modalContent: { padding: wp(20) },
   labelRow: {
@@ -590,27 +590,27 @@ const styles = StyleSheet.create({
   },
   inputField: {
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.cBorder,
     borderRadius: wp(12),
     paddingHorizontal: wp(12),
     height: hp(42),
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.textPrimary,
   },
   uploadButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderColor: '#E2E8F0',
+    borderColor: colors.cBorder,
     borderWidth: 1,
     borderRadius: wp(12),
     borderStyle: 'dashed',
     height: hp(42),
     paddingHorizontal: wp(12),
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.cBorder,
   },
   uploadText: {
     marginLeft: wp(10),
     fontSize: fp(14),
-    color: '#64748B',
+    color: colors.textPrimary,
   },
   progressContainer: {
     flexDirection: 'row',
@@ -621,20 +621,20 @@ const styles = StyleSheet.create({
   },
   progressText: {
     fontSize: fp(14),
-    color: '#60A5FA',
+    color: colors.golden,
     fontWeight: '600',
   },
   dropdown: {
     height: hp(42),
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.cBorder,
     borderRadius: wp(12),
     paddingHorizontal: wp(14),
     justifyContent: 'center',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.cSurface,
   },
-  placeholder: { color: '#94A3B8', fontSize: fp(14) },
-  selectedText: { color: '#1A1A2E', fontSize: fp(14) },
+  placeholder: { color: colors.textPrimary, fontSize: fp(14) },
+  selectedText: { color: colors.textPrimary, fontSize: fp(14) },
   errorBorder: { borderColor: colors.cError },
   modalFooter: {
     flexDirection: 'row',
@@ -652,10 +652,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.white,
   },
-  cancelButtonText: { color: '#1A1A2E', fontWeight: '600', fontSize: fp(14) },
+  cancelButtonText: { color: colors.cSurface, fontWeight: '600', fontSize: fp(14) },
   saveButton: {
     flex: 1,
-    backgroundColor: '#0F3460',
+    backgroundColor: colors.golden,
     borderRadius: wp(12),
     alignItems: 'center',
     justifyContent: 'center',

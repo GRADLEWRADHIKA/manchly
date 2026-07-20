@@ -527,7 +527,7 @@ const styles = StyleSheet.create({
   dropdownContainer: {
     borderRadius: wp(12),
     overflow: 'hidden',
-    backgroundColor: colors.surface,
+    backgroundColor: colors.cSurface,
     borderWidth: 1,
     borderColor: colors.border,
   },

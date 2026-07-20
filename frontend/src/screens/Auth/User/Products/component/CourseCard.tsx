@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import colors from '../../../../../utils/colors';
 import { Users, Clock, Play, BookOpen, Star } from 'lucide-react-native';
 import { wp, hp, fp } from '../../../../../utils/responsive';
+import LinearGradient from 'react-native-linear-gradient';
 
 interface CourseCardProps {
   item: any;
@@ -90,23 +91,27 @@ const CourseCard: React.FC<CourseCardProps> = ({
               <Text style={styles.metaText}>{duration}</Text>
             </View>
           </View>
-
+          
+          {/* Fixed Gradient Button */}
           <TouchableOpacity
-            style={[
-              styles.enrollBtn,
-              {
-                backgroundColor: isEnrolled
-                  ? colors.success
-                  : userType === 'USER'
-                  ? colors.info
-                  : colors.primary,
-              },
-            ]}
+            style={styles.enrollBtnWrapper}
+            activeOpacity={0.85}
             onPress={() => handleCoursePress(courseId)}
           >
-            <Text style={styles.enrollBtnText}>
-              {isEnrolled ? 'Continue' : 'Enroll Now'}
-            </Text>
+            <LinearGradient
+              colors={
+                isEnrolled
+                  ? [colors.success, '#059669'] // Success green gradient if enrolled
+                  : [colors.btnGradientStart, colors.btnGradientEnd] // Default gradient
+              }
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.enrollBtnGradient}
+            >
+              <Text style={styles.enrollBtnText}>
+                {isEnrolled ? 'Continue' : 'Enroll Now'}
+              </Text>
+            </LinearGradient>
           </TouchableOpacity>
         </View>
       </View>
@@ -214,14 +219,22 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontWeight: '500',
   },
-  enrollBtn: {
-    paddingHorizontal: wp(14),
-    paddingVertical: hp(7),
+  
+  // Updated Button Styles
+  enrollBtnWrapper: {
     borderRadius: wp(8),
+    overflow: 'hidden', 
+  },
+  enrollBtnGradient: {
+    paddingHorizontal: wp(16),
+    paddingVertical: hp(8),
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   enrollBtnText: {
-    color: colors.white,
+    color: colors.white, 
     fontWeight: '700',
     fontSize: fp(12),
+    letterSpacing: 0.3,
   },
 });

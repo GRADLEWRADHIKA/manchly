@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(12), paddingVertical: hp(6), borderRadius: wp(18),
     backgroundColor: colors.cSurface, borderWidth: 1, borderColor: colors.cSurface,
   },
-  catChipActive: {backgroundColor: colors.info, borderColor: colors.info},
+  catChipActive: {backgroundColor: colors.btnGradientStart, borderColor: colors.btnGradientStart},
   catChipText: {fontSize: fp(11), color: colors.textPrimary, fontWeight: '500'},
   catChipTextActive: {color: colors.textPrimary, fontWeight: '600'},
   searchWrap: {
@@ -217,12 +217,12 @@ const styles = StyleSheet.create({
   listContent: {paddingHorizontal: wp(16), paddingBottom: hp(30)},
   loaderWrap: {flex: 1, justifyContent: 'center', alignItems: 'center'},
   card: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.cSurface,
     borderRadius: wp(12),
     padding: wp(12),
     marginBottom: hp(8),
     borderWidth: 1,
-    borderColor: colors.surface,
+    borderColor: colors.cBorder,
   },
   cardRow: {
     flexDirection: 'row',

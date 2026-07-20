@@ -12,13 +12,12 @@
  */
 
 // Local-dev toggle — flip to true LOCALLY only. Keep false on shared branches.
-const USE_LOCAL_BACKEND = true;
+//const USE_LOCAL_BACKEND = true;
 
-const LOCAL_IP = "192.168.1.11";
+const LOCAL_IP = "10.71.79.236";
 const LOCAL_PORT = 8080;
 
 const LOCAL_URL = `http://${LOCAL_IP}:${LOCAL_PORT}/`;
-const PRODUCTION_URL = "https://server.manchly.com/";
+//const PRODUCTION_URL = "https://server.manchly.com/";
 
-export const BASE_URL =
-  __DEV__ && USE_LOCAL_BACKEND ? LOCAL_URL : PRODUCTION_URL;
+export const BASE_URL = LOCAL_URL;

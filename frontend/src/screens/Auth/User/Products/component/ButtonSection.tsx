@@ -26,7 +26,6 @@ const ButtonSection = ({ setActive, active }) => {
             accessibilityState={{ selected: isActive }}
           >
             <LinearGradient
-              // Dynamically apply the gradient if active, or solid grey if inactive
               colors={
                 isActive
                   ? [colors.btnGradientStart, colors.btnGradientEnd]

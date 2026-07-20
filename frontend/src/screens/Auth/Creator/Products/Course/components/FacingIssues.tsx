@@ -33,7 +33,7 @@ const FacingIssues = ({ messgae, title }) => {
                                             type: 'error',
                                             text1: 'WhatsApp not installed',
                                             text2: 'Please install WhatsApp to contact support',
-                                            position: 'bottom',
+                                            position: 'top',
                                         });
                                     } else {
                                         return Linking.openURL(url);
@@ -44,7 +44,7 @@ const FacingIssues = ({ messgae, title }) => {
                                         type: 'error',
                                         text1: 'Something went wrong',
                                         text2: err?.message || 'Unable to open WhatsApp',
-                                        position: 'bottom',
+                                        position: 'top',
                                     });
                                 });
                         }}

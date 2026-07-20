@@ -26,7 +26,7 @@ export const sendOtpSms = createAsyncThunk(
           type: 'error',
           text1: 'Error',
           text2: getApiErrorMessage(error, 'Failed to send OTP'),
-          position: 'bottom',
+          position: 'top',
         });
       }
       return rejectWithValue(
@@ -52,7 +52,7 @@ export const sendOtpEmail = createAsyncThunk(
           type: 'error',
           text1: 'Error',
           text2: getApiErrorMessage(error, 'Failed to send OTP'),
-          position: 'bottom',
+          position: 'top',
         });
       }
       return rejectWithValue(
@@ -73,7 +73,7 @@ export const verifyOtp = createAsyncThunk('verifyOtp', async (data: object) => {
       type: 'error',
       text1: 'Verification Failed',
       text2: getApiErrorMessage(error, 'Invalid OTP'),
-      position: 'bottom',
+      position: 'top',
     });
     throw error;
   }
@@ -110,7 +110,7 @@ export const signUp = createAsyncThunk('signUp', async (data: object) => {
       type: 'error',
       text1: 'Error',
       text2: getApiErrorMessage(error, 'Signup failed'),
-      position: 'bottom',
+      position: 'top',
     });
     throw error;
   }
@@ -127,7 +127,7 @@ export const checkAuthData = createAsyncThunk('checkAuthData', async (data: obje
       type: 'error',
       text1: 'Error',
       text2: getApiErrorMessage(error, 'Unable to verify account'),
-      position: 'bottom',
+      position: 'top',
     });
     throw error;
   }
@@ -143,14 +143,14 @@ export const getCurrentUser = createAsyncThunk('getCurrentUser', async () => {
 export const resendOtp = createAsyncThunk('resendOtp', async (data: object) => {
   try {
     const response = await instance.post('auth/resend-otp', data);
-    Toast.show({type: 'success', text1: 'OTP Resent', position: 'bottom'});
+    Toast.show({type: 'success', text1: 'OTP Resent', position: 'top'});
     return response;
   } catch (error) {
     Toast.show({
       type: 'error',
       text1: 'Error',
       text2: getApiErrorMessage(error, 'Failed to resend OTP'),
-      position: 'bottom',
+      position: 'top',
     });
     throw error;
   }
@@ -173,7 +173,7 @@ export const createSubscriptionCheckout = createAsyncThunk(
         type: 'error',
         text1: 'Error',
         text2: getApiErrorMessage(error, 'Failed to create checkout'),
-        position: 'bottom',
+        position: 'top',
       });
       throw error;
     }
@@ -185,14 +185,14 @@ export const verifySubscription = createAsyncThunk(
   async (data: object) => {
     try {
       const response = await instance.post('subscriptions/verify', data);
-      Toast.show({type: 'success', text1: 'Premium activated!', position: 'bottom'});
+      Toast.show({type: 'success', text1: 'Premium activated!', position: 'top'});
       return response.data;
     } catch (error) {
       Toast.show({
         type: 'error',
         text1: 'Error',
         text2: getApiErrorMessage(error, 'Verification failed'),
-        position: 'bottom',
+        position: 'top',
       });
       throw error;
     }
@@ -209,7 +209,7 @@ export const verifyPAN = createAsyncThunk('verifyPAN', async (data: object) => {
       type: 'error',
       text1: 'Verification Failed',
       text2: getApiErrorMessage(error, 'PAN verification failed'),
-      position: 'bottom',
+      position: 'top',
     });
     throw error;
   }

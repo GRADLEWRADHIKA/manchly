@@ -20,7 +20,7 @@ const ExpertBioModal: React.FC<Props> = ({visible, onClose, name: prefillName, e
 
   const generate = async () => {
     if (!name.trim() || !expertise.trim()) {
-      Toast.show({type: 'error', text1: 'Name and expertise are required', position: 'bottom'});
+      Toast.show({type: 'error', text1: 'Name and expertise are required', position: 'top'});
       return;
     }
     setLoading(true);
@@ -32,7 +32,7 @@ const ExpertBioModal: React.FC<Props> = ({visible, onClose, name: prefillName, e
       });
       setResult(data);
     } catch {
-      Toast.show({type: 'error', text1: 'Failed to generate bio', position: 'bottom'});
+      Toast.show({type: 'error', text1: 'Failed to generate bio', position: 'top'});
     } finally {
       setLoading(false);
     }
@@ -40,7 +40,7 @@ const ExpertBioModal: React.FC<Props> = ({visible, onClose, name: prefillName, e
 
   const copyText = (t: string) => {
     Clipboard.setString(t);
-    Toast.show({type: 'success', text1: 'Copied!', position: 'bottom'});
+    Toast.show({type: 'success', text1: 'Copied!', position: 'top'});
   };
 
   const handleClose = () => { setResult(null); onClose(); };

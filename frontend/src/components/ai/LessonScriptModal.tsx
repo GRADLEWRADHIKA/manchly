@@ -36,7 +36,7 @@ const LessonScriptModal: React.FC<Props> = ({
       setResult(data);
       setScript(data.script || '');
     } catch {
-      Toast.show({ type: 'error', text1: 'Failed to generate script', position: 'bottom' });
+      Toast.show({ type: 'error', text1: 'Failed to generate script', position: 'top' });
     } finally {
       setLoading(false);
     }

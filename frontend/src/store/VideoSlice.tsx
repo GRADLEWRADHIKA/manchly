@@ -22,7 +22,7 @@ export const createVideoUpload = createAsyncThunk(
       return res.data?.data;
     } catch (e: any) {
       const msg = e?.response?.data?.message || 'Failed to create upload';
-      Toast.show({ type: 'error', text1: msg, position: 'bottom' });
+      Toast.show({ type: 'error', text1: msg, position: 'top' });
       return rejectWithValue(msg);
     }
   },
@@ -40,7 +40,7 @@ export const updateVideo = createAsyncThunk(
   'videos/update',
   async ({ videoId, body }: { videoId: string; body: any }) => {
     const res = await instance.put(`courses/videos/${videoId}`, body);
-    Toast.show({ type: 'success', text1: 'Video updated', position: 'bottom' });
+    Toast.show({ type: 'success', text1: 'Video updated', position: 'top' });
     return res.data?.data;
   },
 );
@@ -49,7 +49,7 @@ export const deleteVideo = createAsyncThunk(
   'videos/delete',
   async (videoId: string) => {
     const res = await instance.delete(`courses/videos/${videoId}`);
-    Toast.show({ type: 'success', text1: 'Video deleted', position: 'bottom' });
+    Toast.show({ type: 'success', text1: 'Video deleted', position: 'top' });
     return { id: videoId };
   },
 );

@@ -78,7 +78,7 @@ const WebinarDetails = () => {
     Toast.show({
       type: 'success',
       text1: 'Webinar link copied',
-      position: 'bottom',
+      position: 'top',
     });
   };
 

@@ -12,7 +12,7 @@ export const createPaymentOrder = createAsyncThunk(
       return res.data?.data;
     } catch (e: any) {
       const msg = e?.response?.data?.message || 'Failed to create payment order';
-      Toast.show({ type: 'error', text1: msg, position: 'bottom' });
+      Toast.show({ type: 'error', text1: msg, position: 'top' });
       return rejectWithValue(msg);
     }
   }
@@ -32,12 +32,12 @@ export const verifyPayment = createAsyncThunk(
       Toast.show({
         type: 'success',
         text1: 'Payment successful! Enjoy your course.',
-        position: 'bottom',
+        position: 'top',
       });
       return res.data?.data;
     } catch (e: any) {
       const msg = e?.response?.data?.message || 'Payment verification failed';
-      Toast.show({ type: 'error', text1: msg, position: 'bottom' });
+      Toast.show({ type: 'error', text1: msg, position: 'top' });
       return rejectWithValue(msg);
     }
   }

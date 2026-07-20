@@ -18,7 +18,7 @@ const WebinarDescribeModal: React.FC<Props> = ({visible, onClose, title: prefill
 
   const generate = async () => {
     if (!title.trim()) {
-      Toast.show({type: 'error', text1: 'Title is required', position: 'bottom'});
+      Toast.show({type: 'error', text1: 'Title is required', position: 'top'});
       return;
     }
     setLoading(true);
@@ -26,7 +26,7 @@ const WebinarDescribeModal: React.FC<Props> = ({visible, onClose, title: prefill
       const data = await aiCall('/ai/webinar/describe', {title: title.trim()});
       setResult(data);
     } catch {
-      Toast.show({type: 'error', text1: 'Failed to generate', position: 'bottom'});
+      Toast.show({type: 'error', text1: 'Failed to generate', position: 'top'});
     } finally {
       setLoading(false);
     }
@@ -34,7 +34,7 @@ const WebinarDescribeModal: React.FC<Props> = ({visible, onClose, title: prefill
 
   const copyText = (text: string) => {
     Clipboard.setString(text);
-    Toast.show({type: 'success', text1: 'Copied!', position: 'bottom'});
+    Toast.show({type: 'success', text1: 'Copied!', position: 'top'});
   };
 
   const handleClose = () => { setResult(null); onClose(); };

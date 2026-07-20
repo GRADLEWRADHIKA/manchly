@@ -16,7 +16,7 @@ export const createWebinar = createAsyncThunk(
       Toast.show({
         type: 'error',
         text1: response?.error?.message || 'Failed to create webinar',
-        position: 'bottom',
+        position: 'top',
       });
       throw error;
     }
@@ -37,7 +37,7 @@ export const getAllWebinar = createAsyncThunk(
       Toast.show({
         type: 'error',
         text1: response?.error?.message,
-        position: 'bottom',
+        position: 'top',
       });
       throw error;
     }
@@ -66,7 +66,7 @@ export const deleteWebinar = createAsyncThunk(
       Toast.show({
         type: 'success',
         text1: 'Webinar deleted',
-        position: 'bottom',
+        position: 'top',
       });
       return res.data?.data;
     } catch (e: any) {
@@ -74,7 +74,7 @@ export const deleteWebinar = createAsyncThunk(
       Toast.show({
         type: 'error',
         text1: msg,
-        position: 'bottom',
+        position: 'top',
       });
       return rejectWithValue(msg);
     }
@@ -93,13 +93,13 @@ export const updateWebinar = createAsyncThunk(
       Toast.show({
         type: 'success',
         text1: 'Webinar updated',
-        position: 'bottom',
+        position: 'top',
       });
       return res.data?.data;
     } catch (e: any) {
 
       const msg = e?.response?.data?.message || 'Failed to update webinar';
-      Toast.show({ type: 'error', text1: msg, position: 'bottom' });
+      Toast.show({ type: 'error', text1: msg, position: 'top' });
       return rejectWithValue(msg);
     }
   },
@@ -120,7 +120,7 @@ export const createWebinarEnroll = createAsyncThunk(
       Toast.show({
         type: 'error',
         text1: response?.error?.message || 'Failed to Enroll',
-        position: 'bottom',
+        position: 'top',
       });
       throw error;
     }
@@ -141,7 +141,7 @@ export const createWebinarVerify = createAsyncThunk(
       Toast.show({
         type: 'error',
         text1: response?.error?.message || 'Failed to buy',
-        position: 'bottom',
+        position: 'top',
       });
       throw error;
     }
@@ -162,7 +162,7 @@ export const getEnrolledWebinar = createAsyncThunk(
       Toast.show({
         type: 'error',
         text1: response?.error?.message || 'Failed to buy',
-        position: 'bottom',
+        position: 'top',
       });
       throw error;
     }

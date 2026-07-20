@@ -68,7 +68,7 @@ const KYCVerificationScreen: React.FC = () => {
           Toast.show({
             type: 'success',
             text1: response?.message || 'KYC verified successfully',
-            position: 'bottom',
+            position: 'top',
           });
         } else {
           const reason =
@@ -81,7 +81,7 @@ const KYCVerificationScreen: React.FC = () => {
             type: 'error',
             text1: 'Verification Failed',
             text2: reason,
-            position: 'bottom',
+            position: 'top',
           });
         }
       })
@@ -90,7 +90,7 @@ const KYCVerificationScreen: React.FC = () => {
           type: 'error',
           text1: 'Verification Failed',
           text2: 'Something went wrong. Please try again.',
-          position: 'bottom',
+          position: 'top',
         });
       })
       .finally(() => {

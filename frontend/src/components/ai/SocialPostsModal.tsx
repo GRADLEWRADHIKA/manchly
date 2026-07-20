@@ -44,7 +44,7 @@ const SocialPostsModal: React.FC<Props> = ({
       });
       setPosts(data);
     } catch {
-      Toast.show({ type: 'error', text1: 'Failed to generate posts', position: 'bottom' });
+      Toast.show({ type: 'error', text1: 'Failed to generate posts', position: 'top' });
     } finally {
       setLoading(false);
     }
@@ -62,7 +62,7 @@ const SocialPostsModal: React.FC<Props> = ({
     const text = getContent();
     if (text) {
       Clipboard.setString(text);
-      Toast.show({ type: 'success', text1: 'Copied!', position: 'bottom' });
+      Toast.show({ type: 'success', text1: 'Copied!', position: 'top' });
     }
   };
 

@@ -42,7 +42,7 @@ const FollowUpModal: React.FC<Props> = ({
       setResult(data);
       setBody(data.body || '');
     } catch {
-      Toast.show({ type: 'error', text1: 'Failed to generate follow-up', position: 'bottom' });
+      Toast.show({ type: 'error', text1: 'Failed to generate follow-up', position: 'top' });
     } finally {
       setLoading(false);
     }
@@ -51,7 +51,7 @@ const FollowUpModal: React.FC<Props> = ({
   const copyAll = () => {
     const text = `Subject: ${result?.subject || ''}\n\n${body}\n\n${result?.signoff || ''}`;
     Clipboard.setString(text);
-    Toast.show({ type: 'success', text1: 'Copied!', position: 'bottom' });
+    Toast.show({ type: 'success', text1: 'Copied!', position: 'top' });
   };
 
   const handleClose = () => { setResult(null); setBody(''); onClose(); };

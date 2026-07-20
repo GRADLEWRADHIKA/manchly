@@ -72,7 +72,7 @@ const UserProfile = () => {
       Toast.show({
         type: 'error',
         text1: 'Image Picker Failed',
-        position: 'bottom',
+        position: 'top',
       });
     }
   };
@@ -89,13 +89,13 @@ const UserProfile = () => {
       Toast.show({
         type: 'success',
         text1: 'Image uploaded successfully',
-        position: 'bottom',
+        position: 'top',
       });
     } catch (error) {
       Toast.show({
         type: 'error',
         text1: 'Image upload failed',
-        position: 'bottom',
+        position: 'top',
       });
     } finally {
       setUploading(false);
@@ -106,7 +106,7 @@ const UserProfile = () => {
       Toast.show({
         type: 'info',
         text1: 'Image is uploading',
-        position: 'bottom',
+        position: 'top',
       });
       return;
     }
@@ -124,7 +124,7 @@ const UserProfile = () => {
       Toast.show({
         type: 'success',
         text1: 'Profile updated successfully',
-        position: 'bottom',
+        position: 'top',
       });
 
       navigation.goBack();
@@ -133,7 +133,7 @@ const UserProfile = () => {
       Toast.show({
         type: 'error',
         text1: 'Update failed',
-        position: 'bottom',
+        position: 'top',
       });
     } finally {
       setLoading(false);

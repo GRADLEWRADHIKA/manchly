@@ -14,10 +14,10 @@ export const getMyGroups = createAsyncThunk('group/getMyGroups', async (_, {reje
 export const createGroup = createAsyncThunk('group/create', async (data: {name: string; description?: string}, {rejectWithValue}) => {
   try {
     const res = await instance.post('groups', data);
-    Toast.show({type: 'success', text1: 'Group created!', position: 'bottom'});
+    Toast.show({type: 'success', text1: 'Group created!', position: 'top'});
     return res.data?.data;
   } catch (e: any) {
-    Toast.show({type: 'error', text1: e?.response?.data?.message || 'Failed', position: 'bottom'});
+    Toast.show({type: 'error', text1: e?.response?.data?.message || 'Failed', position: 'top'});
     return rejectWithValue(e?.response?.data?.message);
   }
 });
@@ -34,7 +34,7 @@ export const getGroupDetails = createAsyncThunk('group/getDetails', async (group
 export const updateGroup = createAsyncThunk('group/update', async ({groupId, data}: {groupId: string; data: any}, {rejectWithValue}) => {
   try {
     const res = await instance.put(`groups/${groupId}`, data);
-    Toast.show({type: 'success', text1: 'Group updated', position: 'bottom'});
+    Toast.show({type: 'success', text1: 'Group updated', position: 'top'});
     return res.data?.data;
   } catch (e: any) {
     return rejectWithValue(e?.response?.data?.message);
@@ -44,7 +44,7 @@ export const updateGroup = createAsyncThunk('group/update', async ({groupId, dat
 export const deleteGroup = createAsyncThunk('group/delete', async (groupId: string, {rejectWithValue}) => {
   try {
     await instance.delete(`groups/${groupId}`);
-    Toast.show({type: 'success', text1: 'Group deleted', position: 'bottom'});
+    Toast.show({type: 'success', text1: 'Group deleted', position: 'top'});
     return groupId;
   } catch (e: any) {
     return rejectWithValue(e?.response?.data?.message);
@@ -54,7 +54,7 @@ export const deleteGroup = createAsyncThunk('group/delete', async (groupId: stri
 export const addGroupMembers = createAsyncThunk('group/addMembers', async ({groupId, memberIds}: {groupId: string; memberIds: string[]}, {rejectWithValue}) => {
   try {
     const res = await instance.post(`groups/${groupId}/members`, {member_ids: memberIds});
-    Toast.show({type: 'success', text1: 'Members added', position: 'bottom'});
+    Toast.show({type: 'success', text1: 'Members added', position: 'top'});
     return res.data?.data;
   } catch (e: any) {
     return rejectWithValue(e?.response?.data?.message);
@@ -82,7 +82,7 @@ export const updateMemberRole = createAsyncThunk('group/updateRole', async ({gro
 export const leaveGroup = createAsyncThunk('group/leave', async (groupId: string, {rejectWithValue}) => {
   try {
     await instance.post(`groups/${groupId}/leave`);
-    Toast.show({type: 'success', text1: 'Left group', position: 'bottom'});
+    Toast.show({type: 'success', text1: 'Left group', position: 'top'});
     return groupId;
   } catch (e: any) {
     return rejectWithValue(e?.response?.data?.message);

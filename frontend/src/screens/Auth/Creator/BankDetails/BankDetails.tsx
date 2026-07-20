@@ -114,7 +114,7 @@ const BankDetails = () => {
       Toast.show({
         type: 'success',
         text1: 'Bank account saved successfully',
-        position: 'bottom',
+        position: 'top',
       });
 
       setIsEditing(false);
@@ -126,7 +126,7 @@ const BankDetails = () => {
       Toast.show({
         type: 'error',
         text1: msg,
-        position: 'bottom',
+        position: 'top',
       });
     } finally {
       setSaving(false);
@@ -140,7 +140,7 @@ const BankDetails = () => {
       Toast.show({
         type: 'error',
         text1: 'Account number must be 8-18 digits',
-        position: 'bottom',
+        position: 'top',
       });
       return;
     }
@@ -166,7 +166,7 @@ const BankDetails = () => {
       Toast.show({
         type: 'error',
         text1: error?.message || 'Verification failed',
-        position: 'bottom',
+        position: 'top',
       });
     } finally {
       setVerifying(false);

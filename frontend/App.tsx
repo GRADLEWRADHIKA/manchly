@@ -47,7 +47,7 @@ export default function App() {
                   barStyle="light-content"
                 />
                 <Router />
-                <Toast config={toastConfig} />
+                <Toast config={toastConfig} position="top" topOffset={60} />
               </PaperProvider>
             </PersistGate>
           </Provider>

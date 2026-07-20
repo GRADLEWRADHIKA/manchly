@@ -97,7 +97,7 @@ const SignupScreen: React.FC = () => {
         Toast.show({
           type: 'success',
           text1: 'Account created successfully',
-          position: 'bottom',
+          position: 'top',
         });
         Nav.goBack();
         setLoading(false);

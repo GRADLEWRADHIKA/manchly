@@ -41,7 +41,7 @@ const QuizModal: React.FC<Props> = ({ visible, onClose, topic, lessonText }) => 
       });
       setQuestions(data.questions || []);
     } catch {
-      Toast.show({ type: 'error', text1: 'Failed to generate quiz', position: 'bottom' });
+      Toast.show({ type: 'error', text1: 'Failed to generate quiz', position: 'top' });
     } finally {
       setLoading(false);
     }

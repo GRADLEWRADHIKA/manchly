@@ -41,7 +41,7 @@ const TitleSuggestionsModal: React.FC<Props> = ({
       });
       setTitles(data.titles || []);
     } catch {
-      Toast.show({ type: 'error', text1: 'Failed to get suggestions', position: 'bottom' });
+      Toast.show({ type: 'error', text1: 'Failed to get suggestions', position: 'top' });
     } finally {
       setLoading(false);
     }

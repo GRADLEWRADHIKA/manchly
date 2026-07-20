@@ -75,7 +75,7 @@ const SignUp = ({ selectedType, setActive }) => {
         Toast.show({
           type: 'success',
           text1: 'Account created successfully',
-          position: 'bottom',
+          position: 'top',
         });
 
         if (['BRAND', 'AGENCY'].includes(effectiveRole)) {

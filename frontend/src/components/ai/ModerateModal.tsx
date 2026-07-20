@@ -17,7 +17,7 @@ const ModerateModal: React.FC<Props> = ({visible, onClose}) => {
 
   const moderate = async () => {
     if (!text.trim()) {
-      Toast.show({type: 'error', text1: 'Text is required', position: 'bottom'});
+      Toast.show({type: 'error', text1: 'Text is required', position: 'top'});
       return;
     }
     setLoading(true);
@@ -25,7 +25,7 @@ const ModerateModal: React.FC<Props> = ({visible, onClose}) => {
       const data = await aiCall('/ai/moderate', {text: text.trim()});
       setResult(data);
     } catch {
-      Toast.show({type: 'error', text1: 'Moderation failed', position: 'bottom'});
+      Toast.show({type: 'error', text1: 'Moderation failed', position: 'top'});
     } finally {
       setLoading(false);
     }

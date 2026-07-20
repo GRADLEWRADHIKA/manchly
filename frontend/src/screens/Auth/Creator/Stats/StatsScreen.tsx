@@ -132,7 +132,7 @@ const StatsScreen = () => {
       type: 'info',
       text1: 'Time Range Filter',
       text2: 'Filter options sheet (Mocked)',
-      position: 'bottom',
+      position: 'top',
     });
   };
 
@@ -141,7 +141,7 @@ const StatsScreen = () => {
       type: 'success',
       text1: 'Exporting Data',
       text2: 'PDF / CSV download started (Mocked)',
-      position: 'bottom',
+      position: 'top',
     });
   };
 

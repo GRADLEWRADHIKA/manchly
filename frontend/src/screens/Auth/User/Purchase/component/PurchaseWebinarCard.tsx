@@ -32,7 +32,7 @@ const PurchaseWebinarCard = ({ item }) => {
         type: 'success',
         text1: 'Copied!',
         text2: 'Meeting ID & Password copied to clipboard',
-        position: 'bottom',
+        position: 'top',
       });
     }
   };

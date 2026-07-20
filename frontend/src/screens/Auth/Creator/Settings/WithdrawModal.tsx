@@ -118,7 +118,7 @@ const WithdrawModal: React.FC<WithdrawModalProps> = ({
                   text2: `₹${formatAmount(
                     withdrawableBalance,
                   )} will be credited by ${getT2Date()}`,
-                  position: 'bottom',
+                  position: 'top',
                 });
               }}
               activeOpacity={0.8}

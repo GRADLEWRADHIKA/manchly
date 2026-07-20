@@ -33,7 +33,7 @@ const EnhanceSuggestionCard: React.FC<Props> = ({
 
   const enhance = async () => {
     if (!value || value.trim().length < 3) {
-      Toast.show({ type: 'error', text1: 'Type at least 3 characters first', position: 'bottom' });
+      Toast.show({ type: 'error', text1: 'Type at least 3 characters first', position: 'top' });
       return;
     }
     setLoading(true);
@@ -50,7 +50,7 @@ const EnhanceSuggestionCard: React.FC<Props> = ({
       console.log('[AI Enhance] endpoint:', endpoint);
       console.log('[AI Enhance] payload:', { text: value, kind, tone });
       console.log('[AI Enhance] error:', err?.response?.status, err?.response?.data || err?.message);
-      Toast.show({ type: 'error', text1: 'Failed to enhance', position: 'bottom' });
+      Toast.show({ type: 'error', text1: 'Failed to enhance', position: 'top' });
     } finally {
       setLoading(false);
     }

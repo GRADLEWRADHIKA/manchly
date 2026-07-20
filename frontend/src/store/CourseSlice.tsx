@@ -54,13 +54,13 @@ export const createCourse = createAsyncThunk(
       Toast.show({
         type: 'success',
         text1: 'Course created',
-        position: 'bottom',
+        position: 'top',
       });
       return res.data?.data;
     } catch (e: any) {
 
       const msg = e?.response?.data?.message || 'Failed to create course';
-      Toast.show({ type: 'error', text1: msg, position: 'bottom' });
+      Toast.show({ type: 'error', text1: msg, position: 'top' });
       return rejectWithValue(msg);
     }
   },
@@ -75,13 +75,13 @@ export const updateCourse = createAsyncThunk(
       Toast.show({
         type: 'success',
         text1: 'Course updated',
-        position: 'bottom',
+        position: 'top',
       });
       return res.data?.data;
     } catch (e: any) {
 
       const msg = e?.response?.data?.message || 'Failed to update course';
-      Toast.show({ type: 'error', text1: msg, position: 'bottom' });
+      Toast.show({ type: 'error', text1: msg, position: 'top' });
       return rejectWithValue(msg);
     }
   },
@@ -96,7 +96,7 @@ export const deleteCourse = createAsyncThunk(
       Toast.show({
         type: 'success',
         text1: 'Course deleted',
-        position: 'bottom',
+        position: 'top',
       });
       return res.data?.data;
     } catch (e: any) {
@@ -104,7 +104,7 @@ export const deleteCourse = createAsyncThunk(
       Toast.show({
         type: 'error',
         text1: msg,
-        position: 'bottom',
+        position: 'top',
       });
       return rejectWithValue(msg);
     }

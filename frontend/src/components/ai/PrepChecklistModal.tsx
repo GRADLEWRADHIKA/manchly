@@ -43,7 +43,7 @@ const PrepChecklistModal: React.FC<Props> = ({
       });
       setResult(data);
     } catch {
-      Toast.show({ type: 'error', text1: 'Failed to generate checklist', position: 'bottom' });
+      Toast.show({ type: 'error', text1: 'Failed to generate checklist', position: 'top' });
     } finally {
       setLoading(false);
     }

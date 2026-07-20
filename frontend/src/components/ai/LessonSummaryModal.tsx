@@ -18,7 +18,7 @@ const LessonSummaryModal: React.FC<Props> = ({visible, onClose}) => {
 
   const generate = async () => {
     if (!text.trim() || text.trim().length < 80) {
-      Toast.show({type: 'error', text1: 'Text must be at least 80 characters', position: 'bottom'});
+      Toast.show({type: 'error', text1: 'Text must be at least 80 characters', position: 'top'});
       return;
     }
     setLoading(true);
@@ -26,7 +26,7 @@ const LessonSummaryModal: React.FC<Props> = ({visible, onClose}) => {
       const data = await aiCall('/ai/lesson/summarize', {text: text.trim()});
       setResult(data);
     } catch {
-      Toast.show({type: 'error', text1: 'Failed to summarize', position: 'bottom'});
+      Toast.show({type: 'error', text1: 'Failed to summarize', position: 'top'});
     } finally {
       setLoading(false);
     }
@@ -34,7 +34,7 @@ const LessonSummaryModal: React.FC<Props> = ({visible, onClose}) => {
 
   const copyText = (t: string) => {
     Clipboard.setString(t);
-    Toast.show({type: 'success', text1: 'Copied!', position: 'bottom'});
+    Toast.show({type: 'success', text1: 'Copied!', position: 'top'});
   };
 
   const handleClose = () => { setResult(null); setText(''); onClose(); };

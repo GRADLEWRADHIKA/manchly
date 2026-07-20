@@ -58,7 +58,7 @@ const CreatorPublicProfile = () => {
     }
 
     Linking.openURL(finalUrl).catch(() => {
-      Toast.show({ type: 'error', text1: 'Could not open link', position: 'bottom' });
+      Toast.show({ type: 'error', text1: 'Could not open link', position: 'top' });
     });
   };
 

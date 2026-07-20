@@ -97,7 +97,7 @@ const CreateWebinarScreen = () => {
         type: 'error',
         text1: 'Image Picker Error',
         text2: 'Unable to pick the image. Please try again.',
-        position: 'bottom',
+        position: 'top',
       });
     }
   };
@@ -122,7 +122,7 @@ const CreateWebinarScreen = () => {
       Toast.show({
         type: 'success',
         text1: 'Image uploaded successfully!',
-        position: 'bottom',
+        position: 'top',
       });
     } catch (err: any) {
       console.error('Image Upload Error:', err);
@@ -130,7 +130,7 @@ const CreateWebinarScreen = () => {
         type: 'error',
         text1: 'Upload Failed',
         text2: 'Please try again later.',
-        position: 'bottom',
+        position: 'top',
       });
     } finally {
       setUploading(false);

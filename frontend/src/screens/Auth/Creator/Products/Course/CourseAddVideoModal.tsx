@@ -89,7 +89,7 @@ const CourseAddVideoModal = ({
         Toast.show({
           type: 'success',
           text1: 'Video updated successfully',
-          position: 'bottom',
+          position: 'top',
         });
         onClose();
         setIsModalVisible(false);
@@ -100,7 +100,7 @@ const CourseAddVideoModal = ({
         Toast.show({
           type: 'error',
           text1: 'Update failed',
-          position: 'bottom',
+          position: 'top',
         });
       })
       .finally(() => setLoading(false));
@@ -121,7 +121,7 @@ const CourseAddVideoModal = ({
           type: 'success',
           text1: 'Video selected',
           text2: video.name || '1 video selected',
-          position: 'bottom',
+          position: 'top',
         });
       }
     } catch (err: any) {
@@ -130,7 +130,7 @@ const CourseAddVideoModal = ({
         type: 'error',
         text1: 'Error selecting video',
         text2: err.message || 'Something went wrong',
-        position: 'bottom',
+        position: 'top',
       });
     }
   };
@@ -154,7 +154,7 @@ const CourseAddVideoModal = ({
         type: 'error',
         text1: 'Image Picker Error',
         text2: 'Unable to pick image',
-        position: 'bottom',
+        position: 'top',
       });
     }
   };
@@ -179,7 +179,7 @@ const CourseAddVideoModal = ({
       Toast.show({
         type: 'success',
         text1: 'Thumbnail uploaded successfully',
-        position: 'bottom',
+        position: 'top',
       });
     } catch (err) {
       console.error('Thumbnail Upload Error:', err);
@@ -187,7 +187,7 @@ const CourseAddVideoModal = ({
         type: 'error',
         text1: 'Thumbnail upload failed',
         text2: 'Please try again',
-        position: 'bottom',
+        position: 'top',
       });
     } finally {
       setThumbnailUploading(false);
@@ -213,7 +213,7 @@ const CourseAddVideoModal = ({
       setAiSuggestion(res);
     } catch (err: any) {
       console.log('[AI] Error:', err?.message, err?.response?.data);
-      Toast.show({ type: 'error', text1: 'Failed to enhance', position: 'bottom' });
+      Toast.show({ type: 'error', text1: 'Failed to enhance', position: 'top' });
       setAiView(null);
     } finally {
       setAiLoading(false);
@@ -239,7 +239,7 @@ const CourseAddVideoModal = ({
       Toast.show({
         type: 'error',
         text1: 'Please select a video first',
-        position: 'bottom',
+        position: 'top',
       });
       return;
     }
@@ -321,7 +321,7 @@ const CourseAddVideoModal = ({
         type: 'info',
         text1: 'Video uploading in background',
         text2: 'You can continue using the app',
-        position: 'bottom',
+        position: 'top',
       });
 
       reset();
@@ -335,7 +335,7 @@ const CourseAddVideoModal = ({
         type: 'error',
         text1: 'Upload failed',
         text2: error.message || 'Something went wrong',
-        position: 'bottom',
+        position: 'top',
       });
     } finally {
       setIsModalVisible(false);

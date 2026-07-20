@@ -112,7 +112,7 @@ const WebinarCard: React.FC<WebinarCardProps> = ({
     Toast.show({
       type: 'success',
       text1: `${label} copied!`,
-      position: 'bottom',
+      position: 'top',
       visibilityTime: 1500,
     });
   };

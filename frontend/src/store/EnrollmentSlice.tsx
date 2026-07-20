@@ -10,12 +10,12 @@ export const enrollInCourse = createAsyncThunk(
       Toast.show({
         type: 'success',
         text1: 'Enrolled successfully',
-        position: 'bottom',
+        position: 'top',
       });
       return res.data?.data;
     } catch (e: any) {
       const msg = e?.response?.data?.message || 'Failed to enroll';
-      Toast.show({ type: 'error', text1: msg, position: 'bottom' });
+      Toast.show({ type: 'error', text1: msg, position: 'top' });
       return rejectWithValue(msg);
     }
   },
@@ -49,7 +49,7 @@ export const unenrollFromCourse = createAsyncThunk(
   'enroll/unenroll',
   async (courseId: string) => {
     const res = await instance.delete(`courses/${courseId}/enroll`);
-    Toast.show({ type: 'success', text1: 'Unenrolled', position: 'bottom' });
+    Toast.show({ type: 'success', text1: 'Unenrolled', position: 'top' });
     return { courseId };
   },
 );

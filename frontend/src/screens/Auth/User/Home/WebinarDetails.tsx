@@ -200,7 +200,7 @@ const WebinarDetails = () => {
         Toast.show({
           type: 'error',
           text1: 'Invalid payment order',
-          position: 'bottom',
+          position: 'top',
         });
         setLoading(false);
         return;

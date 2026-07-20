@@ -10,7 +10,7 @@ export const createSession = createAsyncThunk(
       return response.data;
     } catch (error: any) {
       const msg = JSON.parse(error?.request?._response || '{}');
-      Toast.show({type: 'error', text1: 'Error', text2: msg?.error, position: 'bottom'});
+      Toast.show({type: 'error', text1: 'Error', text2: msg?.error, position: 'top'});
       throw error;
     }
   },
@@ -97,11 +97,11 @@ export const registerAsExpert = createAsyncThunk(
   async (data: any) => {
     try {
       const response = await instance.post('sessions/expert/register', data);
-      Toast.show({type: 'success', text1: 'Registered as session expert!', position: 'bottom'});
+      Toast.show({type: 'success', text1: 'Registered as session expert!', position: 'top'});
       return response.data;
     } catch (error: any) {
       const msg = JSON.parse(error?.request?._response || '{}');
-      Toast.show({type: 'error', text1: 'Error', text2: msg?.error, position: 'bottom'});
+      Toast.show({type: 'error', text1: 'Error', text2: msg?.error, position: 'top'});
       throw error;
     }
   },
@@ -166,11 +166,11 @@ export const setAvailability = createAsyncThunk(
   async (data: any) => {
     try {
       const response = await instance.post('sessions/availability', data);
-      Toast.show({type: 'success', text1: 'Availability updated!', position: 'bottom'});
+      Toast.show({type: 'success', text1: 'Availability updated!', position: 'top'});
       return response.data;
     } catch (error: any) {
       const msg = JSON.parse(error?.request?._response || '{}');
-      Toast.show({type: 'error', text1: 'Error', text2: msg?.error, position: 'bottom'});
+      Toast.show({type: 'error', text1: 'Error', text2: msg?.error, position: 'top'});
       throw error;
     }
   },
@@ -181,11 +181,11 @@ export const addAvailabilitySlot = createAsyncThunk(
   async (data: {day: string; start_time: string; end_time: string}) => {
     try {
       const response = await instance.post('sessions/availability/slot', data);
-      Toast.show({type: 'success', text1: 'Slot added!', position: 'bottom'});
+      Toast.show({type: 'success', text1: 'Slot added!', position: 'top'});
       return response.data;
     } catch (error: any) {
       const msg = JSON.parse(error?.request?._response || '{}');
-      Toast.show({type: 'error', text1: 'Error', text2: msg?.error, position: 'bottom'});
+      Toast.show({type: 'error', text1: 'Error', text2: msg?.error, position: 'top'});
       throw error;
     }
   },
@@ -203,7 +203,7 @@ export const removeAvailabilitySlot = createAsyncThunk(
   'session/removeSlot',
   async (slotId: string) => {
     await instance.delete(`sessions/availability/${slotId}`);
-    Toast.show({type: 'success', text1: 'Slot removed', position: 'bottom'});
+    Toast.show({type: 'success', text1: 'Slot removed', position: 'top'});
     return slotId;
   },
 );
@@ -214,11 +214,11 @@ export const updateSessionProduct = createAsyncThunk(
   async ({productId, data}: {productId: string; data: any}) => {
     try {
       const response = await instance.patch(`sessions/products/${productId}`, data);
-      Toast.show({type: 'success', text1: 'Product updated!', position: 'bottom'});
+      Toast.show({type: 'success', text1: 'Product updated!', position: 'top'});
       return response.data;
     } catch (error: any) {
       const msg = JSON.parse(error?.request?._response || '{}');
-      Toast.show({type: 'error', text1: 'Error', text2: msg?.error, position: 'bottom'});
+      Toast.show({type: 'error', text1: 'Error', text2: msg?.error, position: 'top'});
       throw error;
     }
   },
@@ -233,7 +233,7 @@ export const createSessionProduct = createAsyncThunk(
       return response.data;
     } catch (error: any) {
       const msg = JSON.parse(error?.request?._response || '{}');
-      Toast.show({type: 'error', text1: 'Error', text2: msg?.error, position: 'bottom'});
+      Toast.show({type: 'error', text1: 'Error', text2: msg?.error, position: 'top'});
       throw error;
     }
   },
@@ -283,7 +283,7 @@ export const bookSession = createAsyncThunk(
       return response.data;
     } catch (error: any) {
       const msg = JSON.parse(error?.request?._response || '{}');
-      Toast.show({type: 'error', text1: 'Error', text2: msg?.error, position: 'bottom'});
+      Toast.show({type: 'error', text1: 'Error', text2: msg?.error, position: 'top'});
       throw error;
     }
   },
@@ -294,11 +294,11 @@ export const verifySessionPayment = createAsyncThunk(
   async (data: {order_id: string}) => {
     try {
       const response = await instance.post('sessions/verify-payment', data);
-      Toast.show({type: 'success', text1: 'Payment successful! Session booked.', position: 'bottom'});
+      Toast.show({type: 'success', text1: 'Payment successful! Session booked.', position: 'top'});
       return response.data;
     } catch (error: any) {
       const msg = JSON.parse(error?.request?._response || '{}');
-      Toast.show({type: 'error', text1: 'Payment verification failed', text2: msg?.error, position: 'bottom'});
+      Toast.show({type: 'error', text1: 'Payment verification failed', text2: msg?.error, position: 'top'});
       throw error;
     }
   },
@@ -309,11 +309,11 @@ export const rateSession = createAsyncThunk(
   async (data: {session_id: string; rating: number; feedback?: string}) => {
     try {
       const response = await instance.post('sessions/rate', data);
-      Toast.show({type: 'success', text1: 'Thanks for your feedback!', position: 'bottom'});
+      Toast.show({type: 'success', text1: 'Thanks for your feedback!', position: 'top'});
       return response.data;
     } catch (error: any) {
       const msg = JSON.parse(error?.request?._response || '{}');
-      Toast.show({type: 'error', text1: 'Error', text2: msg?.error, position: 'bottom'});
+      Toast.show({type: 'error', text1: 'Error', text2: msg?.error, position: 'top'});
       throw error;
     }
   },

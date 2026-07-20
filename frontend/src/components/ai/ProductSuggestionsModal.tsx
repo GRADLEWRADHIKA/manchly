@@ -44,7 +44,7 @@ const ProductSuggestionsModal: React.FC<Props> = ({
       });
       setProducts(data.products || []);
     } catch {
-      Toast.show({ type: 'error', text1: 'Failed to get suggestions', position: 'bottom' });
+      Toast.show({ type: 'error', text1: 'Failed to get suggestions', position: 'top' });
     } finally {
       setLoading(false);
     }

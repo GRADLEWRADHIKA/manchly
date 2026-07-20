@@ -105,7 +105,7 @@ const CreateSessionProduct: React.FC<{embedded?: boolean}> = ({embedded = false}
 
   const handleSubmit = () => {
     if (!title.trim() || !duration) {
-      Toast.show({type: 'error', text1: 'Please fill in all details', position: 'bottom'});
+      Toast.show({type: 'error', text1: 'Please fill in all details', position: 'top'});
       return;
     }
 
@@ -138,7 +138,7 @@ const CreateSessionProduct: React.FC<{embedded?: boolean}> = ({embedded = false}
       dispatch(createSessionProduct(payload))
         .unwrap()
         .then(() => {
-          Toast.show({type: 'success', text1: 'Session created!', position: 'bottom'});
+          Toast.show({type: 'success', text1: 'Session created!', position: 'top'});
           if (embedded) {
             setShowForm(false);
             resetForm();
@@ -156,7 +156,7 @@ const CreateSessionProduct: React.FC<{embedded?: boolean}> = ({embedded = false}
     setDeleting(productId);
     dispatch(deleteSessionProduct(productId))
       .unwrap()
-      .then(() => Toast.show({type: 'success', text1: 'Product deleted', position: 'bottom'}))
+      .then(() => Toast.show({type: 'success', text1: 'Product deleted', position: 'top'}))
       .finally(() => setDeleting(null));
   };
 

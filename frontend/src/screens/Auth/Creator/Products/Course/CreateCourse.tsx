@@ -75,7 +75,7 @@ const CreateCourse = () => {
         type: 'error',
         text1: 'Image Picker Error',
         text2: 'Unable to pick the image. Please try again.',
-        position: 'bottom',
+        position: 'top',
       });
     }
   };
@@ -97,10 +97,10 @@ const CreateCourse = () => {
       Toast.show({
         type: 'success',
         text1: 'Image uploaded!',
-        position: 'bottom',
+        position: 'top',
       });
     } catch {
-      Toast.show({ type: 'error', text1: 'Upload Failed', position: 'bottom' });
+      Toast.show({ type: 'error', text1: 'Upload Failed', position: 'top' });
     } finally {
       setUploading(false);
     }

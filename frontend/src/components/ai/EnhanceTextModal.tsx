@@ -26,7 +26,7 @@ const EnhanceTextModal: React.FC<Props> = ({visible, onClose, endpoint, label}) 
 
   const generate = async () => {
     if (!text.trim() || text.trim().length < 3) {
-      Toast.show({type: 'error', text1: 'Text must be at least 3 characters', position: 'bottom'});
+      Toast.show({type: 'error', text1: 'Text must be at least 3 characters', position: 'top'});
       return;
     }
     setLoading(true);
@@ -34,7 +34,7 @@ const EnhanceTextModal: React.FC<Props> = ({visible, onClose, endpoint, label}) 
       const data = await aiCall(endpoint, {text: text.trim(), kind});
       setResult(data);
     } catch {
-      Toast.show({type: 'error', text1: 'Failed to enhance', position: 'bottom'});
+      Toast.show({type: 'error', text1: 'Failed to enhance', position: 'top'});
     } finally {
       setLoading(false);
     }
@@ -42,7 +42,7 @@ const EnhanceTextModal: React.FC<Props> = ({visible, onClose, endpoint, label}) 
 
   const copyText = (t: string) => {
     Clipboard.setString(t);
-    Toast.show({type: 'success', text1: 'Copied!', position: 'bottom'});
+    Toast.show({type: 'success', text1: 'Copied!', position: 'top'});
   };
 
   const handleClose = () => { setResult(null); setText(''); onClose(); };

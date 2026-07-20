@@ -19,7 +19,7 @@ const CourseMetaModal: React.FC<Props> = ({visible, onClose}) => {
 
   const generate = async () => {
     if (!topic.trim()) {
-      Toast.show({type: 'error', text1: 'Topic is required', position: 'bottom'});
+      Toast.show({type: 'error', text1: 'Topic is required', position: 'top'});
       return;
     }
     setLoading(true);
@@ -30,7 +30,7 @@ const CourseMetaModal: React.FC<Props> = ({visible, onClose}) => {
       });
       setResult(data);
     } catch {
-      Toast.show({type: 'error', text1: 'Failed to generate', position: 'bottom'});
+      Toast.show({type: 'error', text1: 'Failed to generate', position: 'top'});
     } finally {
       setLoading(false);
     }
@@ -38,7 +38,7 @@ const CourseMetaModal: React.FC<Props> = ({visible, onClose}) => {
 
   const copyText = (text: string) => {
     Clipboard.setString(text);
-    Toast.show({type: 'success', text1: 'Copied!', position: 'bottom'});
+    Toast.show({type: 'success', text1: 'Copied!', position: 'top'});
   };
 
   const handleClose = () => {

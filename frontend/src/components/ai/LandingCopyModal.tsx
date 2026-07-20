@@ -33,7 +33,7 @@ const LandingCopyModal: React.FC<Props> = ({
       });
       setResult(data);
     } catch {
-      Toast.show({ type: 'error', text1: 'Failed to generate copy', position: 'bottom' });
+      Toast.show({ type: 'error', text1: 'Failed to generate copy', position: 'top' });
     } finally {
       setLoading(false);
     }
@@ -41,7 +41,7 @@ const LandingCopyModal: React.FC<Props> = ({
 
   const copyText = (text: string) => {
     Clipboard.setString(text);
-    Toast.show({ type: 'success', text1: 'Copied!', position: 'bottom' });
+    Toast.show({ type: 'success', text1: 'Copied!', position: 'top' });
   };
 
   const handleClose = () => { setResult(null); onClose(); };

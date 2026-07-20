@@ -68,7 +68,7 @@ const openWhatsApp = (message: string) => {
           type: 'error',
           text1: 'WhatsApp not installed',
           text2: 'Please install WhatsApp to contact support',
-          position: 'bottom',
+          position: 'top',
         });
       } else {
         return Linking.openURL(url);
@@ -79,7 +79,7 @@ const openWhatsApp = (message: string) => {
         type: 'error',
         text1: 'Something went wrong',
         text2: err?.message || 'Unable to open WhatsApp',
-        position: 'bottom',
+        position: 'top',
       });
     });
 };
@@ -225,7 +225,7 @@ const CreatorSetting: React.FC = () => {
         type: 'error',
         text1: 'No Bank Account',
         text2: 'Please add and verify your bank account first',
-        position: 'bottom',
+        position: 'top',
       });
       Nav.navigate('BankDetails');
       return;
@@ -235,7 +235,7 @@ const CreatorSetting: React.FC = () => {
         type: 'error',
         text1: 'Bank Not Verified',
         text2: 'Please verify your bank account first',
-        position: 'bottom',
+        position: 'top',
       });
       Nav.navigate('BankDetails');
       return;
@@ -245,7 +245,7 @@ const CreatorSetting: React.FC = () => {
         type: 'info',
         text1: 'No Balance',
         text2: 'You have no withdrawable balance at the moment',
-        position: 'bottom',
+        position: 'top',
       });
       return;
     }
@@ -530,7 +530,7 @@ const CreatorSetting: React.FC = () => {
                     text2: `₹${formatAmount(
                       withdrawableBalance,
                     )} will be credited by ${getT2Date()}`,
-                    position: 'bottom',
+                    position: 'top',
                   });
                 }}
                 activeOpacity={0.8}

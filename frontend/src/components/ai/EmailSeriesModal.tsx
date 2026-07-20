@@ -44,7 +44,7 @@ const EmailSeriesModal: React.FC<Props> = ({
       });
       setEmails(data);
     } catch {
-      Toast.show({ type: 'error', text1: 'Failed to generate emails', position: 'bottom' });
+      Toast.show({ type: 'error', text1: 'Failed to generate emails', position: 'top' });
     } finally {
       setLoading(false);
     }
@@ -54,7 +54,7 @@ const EmailSeriesModal: React.FC<Props> = ({
     const email = emails?.[activeTab];
     if (email) {
       Clipboard.setString(`Subject: ${email.subject}\n\n${email.body}`);
-      Toast.show({ type: 'success', text1: 'Email copied!', position: 'bottom' });
+      Toast.show({ type: 'success', text1: 'Email copied!', position: 'top' });
     }
   };
 

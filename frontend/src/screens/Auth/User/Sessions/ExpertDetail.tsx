@@ -234,7 +234,7 @@ const ExpertDetail: React.FC = () => {
           type: 'error',
           text1: 'Payment Failed',
           text2: msg,
-          position: 'bottom',
+          position: 'top',
         });
       },
     });
@@ -284,7 +284,7 @@ const ExpertDetail: React.FC = () => {
             type: 'success',
             text1: 'Session Booked!',
             text2: 'The expert will connect with you shortly.',
-            position: 'bottom',
+            position: 'top',
           });
           navigation.navigate('UserBottomTab', { screen: 'UserSessions' });
           setBooking(false);

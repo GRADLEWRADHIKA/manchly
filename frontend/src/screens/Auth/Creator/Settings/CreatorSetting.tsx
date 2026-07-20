@@ -5,11 +5,9 @@ import {
   ScrollView,
   StyleSheet,
   Pressable,
-  Image,
   Linking,
   TouchableOpacity,
   Modal,
-  ActivityIndicator,
 } from 'react-native';
 import { Slider } from 'react-native-awesome-slider';
 import { useSharedValue } from 'react-native-reanimated';
@@ -24,25 +22,19 @@ import {
   Headset,
   Megaphone,
   WalletMinimal,
-  Bell,
-  Settings,
-  UserCircle,
   Landmark,
   Clock,
-  AlertTriangle,
   CheckCircle2,
   Info,
   FileText,
   Shield,
   ReceiptText,
   MessageCircle,
-  PiggyBank,
-  Instagram,
   BadgeIndianRupee,
 } from 'lucide-react-native';
 import LogoutModal from '../../Profile/Components/LogoutModal';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
 import { logout } from '../../../../store/UserSlice';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -56,6 +48,17 @@ import ContactUsModal from '../../../../components/ContactUsModal';
 import { version as appVersion } from '../../../../../package.json';
 
 const SUPPORT_PHONE = '6363790659';
+
+// Figma gold palette (same as Dashboard)
+const GOLD_CREAM = '#F8DEAE';
+const GOLD_DEEP = '#D69C3F';
+const GOLD_CHIP_BG = 'rgba(214,156,63,0.10)';
+const GOLD_CHIP_BORDER = 'rgba(214,156,63,0.30)';
+// Card system from Figma: #1C1B1B @70%, 1px #FFFFFF @5%, shadow 0/4 blur 24 @20%
+const CARD_BG = 'rgba(28,27,27,0.70)';
+const CARD_BORDER = 'rgba(255,255,255,0.05)';
+const ROW_CHIP_BG = 'rgba(214,156,63,0.20)';
+const LOGOUT_SALMON = '#F2A29B';
 
 const openWhatsApp = (message: string) => {
   const url = `whatsapp://send?phone=91${SUPPORT_PHONE}&text=${encodeURIComponent(
@@ -86,10 +89,11 @@ const openWhatsApp = (message: string) => {
 
 const MenuRow = ({
   icon: Icon,
-  iconColor = colors.text,
-  iconBg = '#f4f4f5',
+  iconColor = GOLD_CREAM,
+  iconBg = ROW_CHIP_BG,
+  iconBorder = 'transparent',
   label,
-  labelColor = colors.text,
+  labelColor = colors.white,
   subtitle,
   onPress,
   isLast = false,
@@ -104,7 +108,12 @@ const MenuRow = ({
     accessibilityRole="button"
   >
     <View style={styles.rowLeft}>
-      <View style={[styles.rowIcon, { backgroundColor: iconBg }]}>
+      <View
+        style={[
+          styles.rowIcon,
+          { backgroundColor: iconBg, borderColor: iconBorder },
+        ]}
+      >
         <Icon size={wp(18)} color={iconColor} strokeWidth={1.8} />
       </View>
       <View>
@@ -112,19 +121,7 @@ const MenuRow = ({
         {subtitle && <Text style={styles.rowSubtext}>{subtitle}</Text>}
       </View>
     </View>
-    <ChevronRight size={wp(18)} color="#c8ccd0" />
-  </Pressable>
-);
-
-const QuickAction = ({ icon: Icon, label, color, onPress }: any) => (
-  <Pressable
-    style={({ pressed }) => [styles.topCard, pressed && styles.topCardPressed]}
-    onPress={onPress}
-  >
-    <View style={[styles.topCardIcon, { backgroundColor: color + '12' }]}>
-      <Icon size={wp(20)} color={color} strokeWidth={1.8} />
-    </View>
-    <Text style={styles.topCardText}>{label}</Text>
+    <ChevronRight size={wp(18)} color="rgba(255,255,255,0.35)" />
   </Pressable>
 );
 
@@ -141,7 +138,6 @@ const CreatorSetting: React.FC = () => {
   const [walletLoading, setWalletLoading] = useState(true);
   const [bankAccount, setBankAccount] = useState<any>(null);
   const Nav = useNavigation<any>();
-  const { user } = useSelector((state: any) => state.userReducer);
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
   const insets = useSafeAreaInsets();
 
@@ -256,41 +252,10 @@ const CreatorSetting: React.FC = () => {
     <View style={styles.container}>
       {/* ──────── Header ──────── */}
       <View style={[styles.headerWrapper, { paddingTop: insets.top }]}>
-        <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            {user?.profile_image ? (
-              <Image
-                source={{ uri: user.profile_image }}
-                style={styles.avatar}
-              />
-            ) : (
-              <View style={styles.avatarFallback}>
-                <UserCircle size={wp(28)} color={colors.white} />
-              </View>
-            )}
-            <View>
-              <Text style={styles.headerSubtitle}>Welcome Back</Text>
-              <Text style={styles.headerTitle}>{user.name}</Text>
-            </View>
-          </View>
-          <View
-            style={{ flexDirection: 'row', alignItems: 'center', gap: wp(4) }}
-          >
-            <TouchableOpacity
-              style={styles.bellBtn}
-              onPress={() =>
-                Linking.openURL('https://www.instagram.com/manchly_app')
-              }
-            >
-              <Instagram size={wp(20)} color={colors.white} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.bellBtn}
-              onPress={() => Nav.navigate('CreatorNotification')}
-            >
-              <Bell size={wp(20)} color={colors.white} />
-            </TouchableOpacity>
-          </View>
+        <View style={styles.headerBar}>
+          <View style={styles.backBtn} />
+          <Text style={styles.headerTitleCentered}>Profile</Text>
+          <View style={styles.backBtn} />
         </View>
       </View>
 
@@ -299,41 +264,18 @@ const CreatorSetting: React.FC = () => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* ──────── Quick Actions ──────── */}
-        <View style={styles.topCardWrapper}>
-          <QuickAction
-            icon={Headset}
-            label="Help & Support"
-            color="#60A5FA"
-            onPress={() => openWhatsApp('Hello, I am a Creator, I need help.')}
-          />
-          <QuickAction
-            icon={Megaphone}
-            label="Marketing"
-            color="#A78BFA"
-            onPress={() =>
-              openWhatsApp('Hello, I am a Creator, I need help for marketing.')
-            }
-          />
-        </View>
-
         {/* ──────── Wallet Card ──────── */}
-        <LinearGradient
-          colors={['#1A1A2E', '#16213E', '#0F3460']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.withdrawCard}
-        >
+        <View style={styles.withdrawCard}>
           <View style={styles.withdrawLeft}>
             <View style={styles.walletIconWrap}>
               <WalletMinimal
                 size={wp(20)}
-                color={colors.golden}
+                color={GOLD_CREAM}
                 strokeWidth={2}
               />
             </View>
             <View style={styles.withdrawInfo}>
-              <Text style={styles.withdrawLabel}>Withdrawable Balance</Text>
+              <Text style={styles.withdrawLabel}>WITHDRAWABLE{'\n'}BALANCE</Text>
               <Text style={styles.withdrawAmount}>
                 {walletLoading
                   ? '₹ ...'
@@ -342,15 +284,19 @@ const CreatorSetting: React.FC = () => {
             </View>
           </View>
           <Pressable
-            style={({ pressed }) => [
-              styles.withdrawBtn,
-              pressed && styles.withdrawBtnPressed,
-            ]}
+            style={({ pressed }) => pressed && styles.withdrawBtnPressed}
             onPress={handleWithdraw}
           >
-            <Text style={styles.withdrawBtnText}>Withdraw</Text>
+            <LinearGradient
+              colors={[GOLD_CREAM, GOLD_DEEP]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 0, y: 1 }}
+              style={styles.withdrawBtn}
+            >
+              <Text style={styles.withdrawBtnText}>Withdraw</Text>
+            </LinearGradient>
           </Pressable>
-        </LinearGradient>
+        </View>
 
         {/* ──────── Aapki Kamaai ka Hissa ──────── */}
         <Pressable
@@ -361,7 +307,11 @@ const CreatorSetting: React.FC = () => {
           onPress={() => setShowHissaModal(true)}
         >
           <View style={styles.hissaIconWrap}>
-            <BadgeIndianRupee size={wp(22)} color={colors.white} strokeWidth={2} />
+            <BadgeIndianRupee
+              size={wp(22)}
+              color={colors.creatorGreen}
+              strokeWidth={2}
+            />
           </View>
           <View style={styles.hissaInfo}>
             <Text style={styles.hissaTitle}>Aapki Kamaai ka Hissa</Text>
@@ -383,27 +333,51 @@ const CreatorSetting: React.FC = () => {
         <View style={styles.section}>
           <MenuRow
             icon={User2}
-            iconBg="rgba(59,130,246,0.15)"
-            iconColor="#b4d0f4"
             label="My Profile"
             subtitle="Manage your public profile"
             onPress={() => Nav.navigate('CreatorProfile')}
           />
           <MenuRow
             icon={WalletMinimal}
-            iconBg="rgba(16,185,129,0.15)"
-            iconColor={colors.success}
             label="Wallet"
             subtitle="Earnings & transactions"
             onPress={() => Nav.navigate('WalletCreator')}
           />
           <MenuRow
             icon={Landmark}
-            iconBg="rgba(255,255,255,0.08)"
-            iconColor="rgba(255,255,255,0.7)"
             label="Bank Details"
-            subtitle="Manage your bank information"
+            subtitle="Manage bank information"
             onPress={() => Nav.navigate('BankDetails')}
+          />
+          <MenuRow
+            icon={LogOut}
+            iconBg="rgba(239,68,68,0.14)"
+            iconColor={LOGOUT_SALMON}
+            label="Logout"
+            labelColor={LOGOUT_SALMON}
+            onPress={() => setLogoutVisible(true)}
+            isLast
+          />
+        </View>
+
+        {/* ──────── Support Section ──────── */}
+        <Text style={[styles.sectionTitle, { marginTop: hp(20) }]}>
+          Support
+        </Text>
+        <View style={styles.section}>
+          <MenuRow
+            icon={Headset}
+            label="Help & Support"
+            subtitle="Chat with us on WhatsApp"
+            onPress={() => openWhatsApp('Hello, I am a Creator, I need help.')}
+          />
+          <MenuRow
+            icon={Megaphone}
+            label="Marketing"
+            subtitle="Grow your audience with Manchly"
+            onPress={() =>
+              openWhatsApp('Hello, I am a Creator, I need help for marketing.')
+            }
             isLast
           />
         </View>
@@ -413,45 +387,24 @@ const CreatorSetting: React.FC = () => {
         <View style={styles.section}>
           <MenuRow
             icon={FileText}
-            iconBg="rgba(59,130,246,0.15)"
-            iconColor="#60A5FA"
             label="Terms of Service"
             onPress={() => setShowTerms(true)}
           />
           <MenuRow
             icon={Shield}
-            iconBg="rgba(16,185,129,0.15)"
-            iconColor="#10B981"
             label="Privacy Policy"
             onPress={() => setShowPrivacy(true)}
           />
           <MenuRow
             icon={ReceiptText}
-            iconBg="rgba(255,182,6,0.15)"
-            iconColor={colors.golden}
             label="Refund Policy"
             onPress={() => setShowRefund(true)}
           />
           <MenuRow
             icon={MessageCircle}
-            iconBg="rgba(236,72,153,0.15)"
-            iconColor="#EC4899"
             label="Contact Us"
             subtitle="Email & phone support"
             onPress={() => setShowContact(true)}
-            isLast
-          />
-        </View>
-
-        {/* ──────── Logout Section ──────── */}
-        <View style={styles.logoutSection}>
-          <MenuRow
-            icon={LogOut}
-            iconBg="rgba(239,68,68,0.15)"
-            iconColor={colors.error}
-            label="Logout"
-            labelColor={colors.error}
-            onPress={() => setLogoutVisible(true)}
             isLast
           />
         </View>
@@ -469,7 +422,7 @@ const CreatorSetting: React.FC = () => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
             <View style={styles.modalIconWrap}>
-              <WalletMinimal size={wp(28)} color={colors.golden} />
+              <WalletMinimal size={wp(28)} color={GOLD_CREAM} />
             </View>
             <Text style={styles.modalTitle}>Withdraw Funds</Text>
 
@@ -504,7 +457,7 @@ const CreatorSetting: React.FC = () => {
 
             {/* Note */}
             <View style={styles.modalNoteRow}>
-              <Info size={wp(14)} color={colors.golden} />
+              <Info size={wp(14)} color={GOLD_DEEP} />
               <Text style={styles.modalNoteText}>
                 Settlements are processed automatically. Your earnings will be
                 transferred after the T+2 settlement period.
@@ -602,12 +555,12 @@ const CreatorSetting: React.FC = () => {
                   <View
                     style={[
                       styles.splitDot,
-                      { backgroundColor: colors.golden },
+                      { backgroundColor: GOLD_DEEP },
                     ]}
                   />
                 </View>
                 <Text
-                  style={[styles.splitLegendValue, { color: colors.golden }]}
+                  style={[styles.splitLegendValue, { color: GOLD_CREAM }]}
                 >
                   {PLATFORM_PCT}%
                 </Text>
@@ -630,10 +583,10 @@ const CreatorSetting: React.FC = () => {
                 onSlidingComplete={syncFromSlider}
                 bubble={(v) => `₹${Math.round(v).toLocaleString('en-IN')}`}
                 theme={{
-                  minimumTrackTintColor: colors.golden,
-                  maximumTrackTintColor: colors.trackDark,
-                  bubbleBackgroundColor: colors.golden,
-                  bubbleTextColor: colors.black,
+                  minimumTrackTintColor: GOLD_DEEP,
+                  maximumTrackTintColor: 'rgba(255,255,255,0.12)',
+                  bubbleBackgroundColor: GOLD_DEEP,
+                  bubbleTextColor: '#3A2C12',
                 }}
                 sliderHeight={hp(10)}
                 thumbWidth={wp(26)}
@@ -656,7 +609,7 @@ const CreatorSetting: React.FC = () => {
               </View>
               <View style={[styles.resultBox, styles.resultPlatform]}>
                 <Text style={styles.resultLabel}>🏢 Manchly ka</Text>
-                <Text style={[styles.resultValue, { color: colors.golden }]}>
+                <Text style={[styles.resultValue, { color: GOLD_CREAM }]}>
                   ₹{hissaPlatformAmount.toLocaleString('en-IN')}
                 </Text>
               </View>
@@ -697,83 +650,33 @@ export default CreatorSetting;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.primary,
+    backgroundColor: 'rgba(0,0,0,0.75)',
   },
 
   headerWrapper: {
-    backgroundColor: colors.primary,
+    backgroundColor: 'transparent',
     zIndex: 10,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
   },
-  header: {
+  headerBar: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: wp(16),
-    paddingVertical: hp(14),
+    paddingVertical: hp(12),
   },
-  headerCurve: {
-    backgroundColor: colors.primary,
-    height: hp(6),
-    borderBottomLeftRadius: wp(20),
-    borderBottomRightRadius: wp(20),
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(12),
-    flex: 1,
-  },
-  avatar: {
-    width: wp(48),
-    height: wp(48),
-    borderRadius: wp(24),
-    borderWidth: 2,
-    borderColor: 'rgba(255,182,6,0.4)',
-  },
-  avatarFallback: {
-    width: wp(48),
-    height: wp(48),
-    borderRadius: wp(24),
-    backgroundColor: '#14141F',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-  },
-  avatarInitials: {
-    color: colors.white,
-    fontSize: fp(17),
-    fontWeight: '700',
-  },
-  greetingWrap: {
-    flex: 1,
-  },
-  greetingLabel: {
-    fontSize: fp(11),
-    color: 'rgba(255,255,255,0.5)',
-    fontWeight: '500',
-  },
-  greetingText: {
-    fontSize: fp(15),
-    fontWeight: '700',
-    color: colors.white,
-    marginTop: 0,
-  },
-  bellBtn: {
+  backBtn: {
     width: wp(40),
     height: wp(40),
     borderRadius: wp(20),
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
+    justifyContent: 'center',
   },
-  bellBtnPressed: {
-    backgroundColor: 'rgba(255,255,255,0.16)',
-    transform: [{ scale: 0.93 }],
+  headerTitleCentered: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: fp(18),
+    fontWeight: '700',
+    color: colors.white,
+    letterSpacing: 0.3,
   },
 
   /* ──── Body ──── */
@@ -784,57 +687,20 @@ const styles = StyleSheet.create({
     paddingBottom: hp(40),
   },
 
-  /* ──── Quick Actions ──── */
-  topCardWrapper: {
-    flexDirection: 'row',
-    paddingHorizontal: wp(16),
-    marginTop: hp(18),
-    marginBottom: hp(14),
-    gap: wp(12),
-  },
-  topCard: {
-    flex: 1,
-    paddingVertical: hp(16),
-    paddingHorizontal: wp(14),
-    borderRadius: wp(14),
-    alignItems: 'center',
-    gap: hp(8),
-    backgroundColor: '#14141F',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
-  },
-  topCardPressed: {
-    opacity: 0.88,
-    transform: [{ scale: 0.97 }],
-  },
-  topCardIcon: {
-    width: wp(42),
-    height: wp(42),
-    borderRadius: wp(13),
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  topCardText: {
-    color: colors.white,
-    fontSize: fp(13),
-    fontWeight: '600',
-  },
-
   /* ──── Wallet Card ──── */
   withdrawCard: {
     marginHorizontal: wp(16),
-    borderRadius: wp(16),
+    marginTop: hp(10),
+    borderRadius: wp(18),
     overflow: 'hidden',
     padding: wp(16),
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: hp(22),
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    elevation: 5,
+    marginBottom: hp(14),
+    backgroundColor: CARD_BG,
+    borderWidth: 1,
+    borderColor: CARD_BORDER,
   },
   withdrawLeft: {
     flexDirection: 'row',
@@ -842,10 +708,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   walletIconWrap: {
-    width: wp(40),
-    height: wp(40),
+    width: wp(42),
+    height: wp(42),
     borderRadius: wp(12),
-    backgroundColor: 'rgba(255,182,6,0.12)',
+    backgroundColor: GOLD_CHIP_BG,
+    borderWidth: 1,
+    borderColor: GOLD_CHIP_BORDER,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -855,21 +723,22 @@ const styles = StyleSheet.create({
   },
   withdrawLabel: {
     color: 'rgba(255,255,255,0.55)',
-    fontWeight: '500',
-    fontSize: fp(12),
+    fontWeight: '600',
+    fontSize: fp(11),
+    letterSpacing: 1.2,
+    lineHeight: fp(16),
   },
   withdrawAmount: {
     color: colors.white,
-    marginTop: hp(2),
+    marginTop: hp(4),
     fontSize: fp(20),
     fontWeight: '800',
     letterSpacing: 0.5,
   },
   withdrawBtn: {
-    backgroundColor: colors.golden,
-    paddingVertical: hp(9),
-    paddingHorizontal: wp(18),
-    borderRadius: wp(10),
+    paddingVertical: hp(11),
+    paddingHorizontal: wp(22),
+    borderRadius: wp(12),
   },
   withdrawBtnPressed: {
     opacity: 0.85,
@@ -877,35 +746,26 @@ const styles = StyleSheet.create({
   },
   withdrawBtnText: {
     fontWeight: '700',
-    color: colors.black,
-    fontSize: fp(13),
+    color: '#3A2C12',
+    fontSize: fp(14),
   },
 
   /* ──── Sections ──── */
   sectionTitle: {
-    fontSize: fp(13),
-    fontWeight: '600',
-    color: 'rgba(255,255,255,0.45)',
+    fontSize: fp(15),
+    fontWeight: '700',
+    color: colors.white,
     textTransform: 'uppercase',
-    letterSpacing: 0.8,
+    letterSpacing: 1.2,
     marginHorizontal: wp(20),
-    marginBottom: hp(8),
+    marginBottom: hp(10),
   },
   section: {
-    backgroundColor: '#14141F',
+    backgroundColor: CARD_BG,
     marginHorizontal: wp(16),
-    borderRadius: wp(16),
+    borderRadius: wp(18),
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
-    overflow: 'hidden',
-  },
-  logoutSection: {
-    backgroundColor: '#14141F',
-    marginHorizontal: wp(16),
-    marginTop: hp(16),
-    borderRadius: wp(16),
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
+    borderColor: CARD_BORDER,
     overflow: 'hidden',
   },
 
@@ -919,7 +779,7 @@ const styles = StyleSheet.create({
   },
   rowBorder: {
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(255,255,255,0.06)',
+    borderBottomColor: 'rgba(255,255,255,0.05)',
   },
   rowPressed: {
     backgroundColor: 'rgba(255,255,255,0.04)',
@@ -930,9 +790,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   rowIcon: {
-    width: wp(36),
-    height: wp(36),
-    borderRadius: wp(10),
+    width: wp(38),
+    height: wp(38),
+    borderRadius: wp(11),
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: wp(12),
@@ -944,7 +805,7 @@ const styles = StyleSheet.create({
   },
   rowSubtext: {
     fontSize: fp(12),
-    color: 'rgba(255,255,255,0.45)',
+    color: 'rgba(255,255,255,0.55)',
     marginTop: hp(1),
   },
 
@@ -954,17 +815,6 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.3)',
     marginTop: hp(24),
     fontWeight: '500',
-  },
-  headerSubtitle: {
-    fontSize: fp(12),
-    color: 'rgba(255,255,255,0.5)',
-    fontWeight: '500',
-  },
-  headerTitle: {
-    fontSize: fp(18),
-    fontWeight: '800',
-    color: colors.white,
-    marginTop: hp(1),
   },
 
   /* ──── Withdraw Modal ──── */
@@ -976,20 +826,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(20),
   },
   modalContainer: {
-    backgroundColor: '#14141F',
+    backgroundColor: '#1C1B1B',
     borderRadius: wp(20),
     paddingVertical: hp(24),
     paddingHorizontal: wp(20),
     width: '100%',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: CARD_BORDER,
   },
   modalIconWrap: {
     width: wp(56),
     height: wp(56),
     borderRadius: wp(28),
-    backgroundColor: 'rgba(255,182,6,0.1)',
+    backgroundColor: 'rgba(214,156,63,0.12)',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: hp(12),
@@ -1098,11 +948,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.golden,
+    backgroundColor: GOLD_DEEP,
     gap: wp(6),
   },
   modalConfirmText: {
-    color: colors.black,
+    color: '#3A2C12',
     fontWeight: '700',
     fontSize: fp(14),
   },
@@ -1111,14 +961,14 @@ const styles = StyleSheet.create({
   hissaCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#14141F',
+    backgroundColor: CARD_BG,
     marginHorizontal: wp(16),
     marginBottom: hp(20),
     paddingVertical: hp(14),
     paddingHorizontal: wp(14),
-    borderRadius: wp(16),
+    borderRadius: wp(18),
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
+    borderColor: CARD_BORDER,
   },
   hissaCardPressed: {
     opacity: 0.9,
@@ -1128,7 +978,9 @@ const styles = StyleSheet.create({
     width: wp(44),
     height: wp(44),
     borderRadius: wp(12),
-    backgroundColor: colors.creatorGreen,
+    backgroundColor: 'rgba(34,197,94,0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(34,197,94,0.35)',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: wp(12),
@@ -1154,7 +1006,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   hissaPlatform: {
-    color: colors.golden,
+    color: 'rgba(255,255,255,0.7)',
     fontWeight: '700',
   },
 
@@ -1168,14 +1020,14 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   sheetContainer: {
-    backgroundColor: '#14141F',
+    backgroundColor: '#1C1B1B',
     borderTopLeftRadius: wp(24),
     borderTopRightRadius: wp(24),
     paddingHorizontal: wp(20),
     paddingTop: hp(10),
     paddingBottom: hp(28),
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: CARD_BORDER,
   },
   sheetHandle: {
     width: wp(40),
@@ -1207,7 +1059,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.creatorGreen,
   },
   splitPlatform: {
-    backgroundColor: colors.golden,
+    backgroundColor: GOLD_DEEP,
   },
   splitLegendRow: {
     flexDirection: 'row',
@@ -1279,7 +1131,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(34,197,94,0.12)',
   },
   resultPlatform: {
-    backgroundColor: 'rgba(255,182,6,0.12)',
+    backgroundColor: 'rgba(214,156,63,0.12)',
   },
   resultLabel: {
     fontSize: fp(12),

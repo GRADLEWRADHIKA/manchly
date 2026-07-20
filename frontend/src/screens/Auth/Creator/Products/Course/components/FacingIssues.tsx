@@ -2,56 +2,57 @@ import { Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
 import { CloudUpload } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
+import LinearGradient from 'react-native-linear-gradient';
 import colors from '../../../../../../utils/colors';
 import { wp, hp, fp } from '../../../../../../utils/responsive';
 
-const FacingIssues = ({ messgae, title }) => {
+const FacingIssues = ({ messgae, title }: { messgae?: string; title: string }) => {
     return (
-        <View>
-            <View style={styles.uploadHeader}>
-                <View style={styles.uploadMain}>
-                    <View style={styles.secHead}>
-                        <CloudUpload width={wp(40)} height={hp(40)} color={'#60A5FA'} />
-                    </View>
-                    <View style={styles.mainHead}>
-                        <Text style={styles.mainPara}>{title}</Text>
-                    </View>
-                    <View style={{ width: '5%' }}></View>
-                    <TouchableOpacity
-                        style={styles.buttonHelp}
-                        onPress={() => {
-                            const phoneNumber = '6363790659';
-                            const message = messgae || 'Hello, I need help with uploading.';
-                            const url = `whatsapp://send?phone=91${phoneNumber}&text=${encodeURIComponent(
-                                message,
-                            )}`;
+        <View style={styles.uploadHeader}>
+            <View style={styles.uploadMain}>
+                <CloudUpload width={wp(36)} height={hp(36)} color={'#6B7280'} />
+                <Text style={styles.mainPara}>{title}</Text>
+                <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => {
+                        const phoneNumber = '6363790659';
+                        const message = messgae || 'Hello, I need help with uploading.';
+                        const url = `whatsapp://send?phone=91${phoneNumber}&text=${encodeURIComponent(
+                            message,
+                        )}`;
 
-                            Linking.canOpenURL(url)
-                                .then(supported => {
-                                    if (!supported) {
-                                        Toast.show({
-                                            type: 'error',
-                                            text1: 'WhatsApp not installed',
-                                            text2: 'Please install WhatsApp to contact support',
-                                            position: 'top',
-                                        });
-                                    } else {
-                                        return Linking.openURL(url);
-                                    }
-                                })
-                                .catch(err => {
+                        Linking.canOpenURL(url)
+                            .then(supported => {
+                                if (!supported) {
                                     Toast.show({
                                         type: 'error',
-                                        text1: 'Something went wrong',
-                                        text2: err?.message || 'Unable to open WhatsApp',
+                                        text1: 'WhatsApp not installed',
+                                        text2: 'Please install WhatsApp to contact support',
                                         position: 'top',
                                     });
+                                } else {
+                                    return Linking.openURL(url);
+                                }
+                            })
+                            .catch(err => {
+                                Toast.show({
+                                    type: 'error',
+                                    text1: 'Something went wrong',
+                                    text2: err?.message || 'Unable to open WhatsApp',
+                                    position: 'top',
                                 });
-                        }}
+                            });
+                    }}
+                >
+                    <LinearGradient
+                        colors={['#F5D98F', '#D89E3F']}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 0, y: 1 }}
+                        style={styles.buttonHelp}
                     >
                         <Text style={styles.buttonHelpPara}>Get help!</Text>
-                    </TouchableOpacity>
-                </View>
+                    </LinearGradient>
+                </TouchableOpacity>
             </View>
         </View>
     )
@@ -60,46 +61,36 @@ const FacingIssues = ({ messgae, title }) => {
 export default FacingIssues
 
 const styles = StyleSheet.create({
-    buttonHelpPara: {
-        fontSize: fp(14),
-        color: colors.white,
-        fontWeight: '500',
-        borderRadius: wp(10),
-    },
     uploadHeader: {
-        alignItems: 'center',
         marginTop: hp(20),
     },
     uploadMain: {
         flexDirection: 'row',
-        padding: wp(16),
-        borderRadius: wp(10),
-        backgroundColor: colors.white,
-        elevation: 5,
         alignItems: 'center',
+        padding: wp(18),
+        borderRadius: wp(18),
+        backgroundColor: '#141414',
         borderWidth: 1,
-        borderColor: '#E2E8F0',
-    },
-    secHead: {
-        width: '20%',
-        alignItems: 'center',
-    },
-    mainHead: {
-        width: '45%',
-        alignItems: 'center',
+        borderColor: 'rgba(255,255,255,0.08)',
+        gap: wp(14),
     },
     mainPara: {
-        fontSize: fp(16),
+        flex: 1,
+        fontSize: fp(15),
         fontWeight: '500',
-        color: '#1A1A2E',
+        color: 'rgba(255,255,255,0.55)',
+        lineHeight: fp(21),
     },
     buttonHelp: {
-        width: '30%',
-        borderWidth: wp(1),
+        borderRadius: wp(14),
+        paddingVertical: hp(10),
+        paddingHorizontal: wp(18),
         alignItems: 'center',
-        backgroundColor: '#0F3460',
-        borderColor: '#0F3460',
-        borderRadius: wp(5),
-        paddingVertical: hp(5),
+        justifyContent: 'center',
+    },
+    buttonHelpPara: {
+        fontSize: fp(14.5),
+        color: '#1A1A1A',
+        fontWeight: '700',
     },
 })

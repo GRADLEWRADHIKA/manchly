@@ -5,18 +5,20 @@ import {
   Image,
   ScrollView,
   TouchableOpacity,
+  Pressable,
   Share,
   ActivityIndicator,
 } from 'react-native';
 import React, { useEffect } from 'react';
-import { useRoute } from '@react-navigation/native';
+import { useRoute, useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Clipboard from '@react-native-clipboard/clipboard';
 import Toast from 'react-native-toast-message';
 import { useDispatch, useSelector } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
 import colors from '../../../../../utils/colors';
-import AppHeaderWithBack from '../../../../../components/AppHeaderWithBack';
 import {
+  ArrowLeft,
   Calendar,
   Clock,
   User,
@@ -30,14 +32,11 @@ import {
 import { wp, hp, fp } from '../../../../../utils/responsive';
 import { getWebinarById } from '../../../../../store/WebinarSlice';
 import { createDynamicLink } from 'react-native-chottulink-sdk';
-import AiButton from '../../../../../components/AiButton';
-import EmailSeriesModal from '../../../../../components/ai/EmailSeriesModal';
-import SocialPostsModal from '../../../../../components/ai/SocialPostsModal';
 
 const WebinarDetails = () => {
-  const [showEmails, setShowEmails] = React.useState(false);
-  const [showSocialPosts, setShowSocialPosts] = React.useState(false);
   const { params } = useRoute<any>();
+  const navigation = useNavigation<any>();
+  const insets = useSafeAreaInsets();
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
   const webinarFromStore = useSelector(
     (state: any) => state.webinarReducer?.current,
@@ -90,9 +89,20 @@ const WebinarDetails = () => {
   if (!data) {
     return (
       <View style={styles.container}>
-        <AppHeaderWithBack title="Webinar Details" />
+        <View style={[styles.header, { paddingTop: insets.top + hp(16) }]}>
+        <Pressable
+          style={styles.backBtn}
+          onPress={() => navigation.goBack()}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
+        >
+          <ArrowLeft color={colors.white} size={wp(24)} strokeWidth={2.2} />
+        </Pressable>
+        <Text style={styles.headerTitle}>Webinar Details</Text>
+      </View>
         <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color={colors.cBg} />
+          <ActivityIndicator size="large" color={'#F0C040'} />
         </View>
       </View>
     );
@@ -100,7 +110,18 @@ const WebinarDetails = () => {
 
   return (
     <View style={styles.container}>
-      <AppHeaderWithBack title="Webinar Details" />
+      <View style={[styles.header, { paddingTop: insets.top + hp(16) }]}>
+        <Pressable
+          style={styles.backBtn}
+          onPress={() => navigation.goBack()}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
+        >
+          <ArrowLeft color={colors.white} size={wp(24)} strokeWidth={2.2} />
+        </Pressable>
+        <Text style={styles.headerTitle}>Webinar Details</Text>
+      </View>
 
       <ScrollView contentContainerStyle={{ paddingBottom: hp(120) }}>
         <View style={styles.thumbnailWrapper}>
@@ -111,7 +132,7 @@ const WebinarDetails = () => {
             />
           ) : (
             <View style={styles.thumbnailPlaceholder}>
-              <ImageOff size={wp(60)} color={'#64748B'} />
+              <ImageOff size={wp(60)} color={'rgba(255,255,255,0.45)'} />
               <Text style={styles.noImageText}>No Thumbnail Available</Text>
             </View>
           )}
@@ -139,27 +160,22 @@ const WebinarDetails = () => {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.linkActionRow}>
-          <AiButton label="Generate Emails" onPress={() => setShowEmails(true)} />
-          <AiButton label="Social Posts" onPress={() => setShowSocialPosts(true)} />
-        </View>
-
         <View style={styles.row}>
-          <User size={wp(18)} color={'#64748B'} />
+          <User size={wp(18)} color={'rgba(255,255,255,0.45)'} />
           <Text style={styles.host}>
             Hosted by {data?.creator?.name || 'Unknown'}
           </Text>
         </View>
 
         <View style={styles.row}>
-          <Calendar size={wp(18)} color={'#64748B'} />
+          <Calendar size={wp(18)} color={'rgba(255,255,255,0.45)'} />
           <Text style={styles.detailText}>
             {new Date(data?.scheduled_at).toDateString()}
           </Text>
         </View>
 
         <View style={styles.row}>
-          <Clock size={wp(18)} color={'#64748B'} />
+          <Clock size={wp(18)} color={'rgba(255,255,255,0.45)'} />
           <Text style={styles.detailText}>
             {new Date(data?.scheduled_at).toLocaleTimeString([], {
               hour: '2-digit',
@@ -170,12 +186,12 @@ const WebinarDetails = () => {
         </View>
 
         <View style={styles.row}>
-          <Video size={wp(18)} color={'#64748B'} />
+          <Video size={wp(18)} color={'rgba(255,255,255,0.45)'} />
           <Text style={styles.detailText}>Zoom Meeting</Text>
         </View>
 
         <View style={styles.row}>
-          <Users size={wp(18)} color={'#64748B'} />
+          <Users size={wp(18)} color={'rgba(255,255,255,0.45)'} />
           <Text style={styles.detailText}>
             Max Participants: {data?.max_participants}
           </Text>
@@ -184,7 +200,7 @@ const WebinarDetails = () => {
         <View style={styles.tagContainer}>
           {data?.tags?.map((tag: string, index: number) => (
             <View key={index} style={styles.tag}>
-              <Tag size={wp(14)} color={colors.white} />
+              <Tag size={wp(14)} color={'#F0C040'} />
               <Text style={styles.tagText}>{tag}</Text>
             </View>
           ))}
@@ -214,20 +230,6 @@ const WebinarDetails = () => {
         </View>
       </ScrollView>
 
-      <EmailSeriesModal
-        visible={showEmails}
-        onClose={() => setShowEmails(false)}
-        title={data?.title || ''}
-        scheduledAt={data?.scheduled_at}
-      />
-
-      <SocialPostsModal
-        visible={showSocialPosts}
-        onClose={() => setShowSocialPosts(false)}
-        title={data?.title || ''}
-        description={data?.description}
-        scheduledAt={data?.scheduled_at}
-      />
     </View>
   );
 };
@@ -244,7 +246,7 @@ const PriceRow = ({ label, value }: { label: string; value: string }) => (
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: 'rgba(0,0,0,0.75)',
   },
   loaderContainer: {
     flex: 1,
@@ -252,10 +254,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
+  // Header
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: wp(50),
+    paddingBottom: hp(12),
+  },
+  backBtn: {
+    position: 'absolute',
+    left: wp(18),
+    bottom: hp(10),
+  },
+  headerTitle: {
+    color: colors.white,
+    fontSize: fp(19),
+    fontWeight: '700',
+    letterSpacing: 0.2,
+  },
+
   thumbnailWrapper: {
-    width: '100%',
+    marginHorizontal: wp(16),
     height: hp(220),
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#1A1A1A',
+    borderRadius: wp(18),
+    overflow: 'hidden',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -270,7 +294,7 @@ const styles = StyleSheet.create({
   },
   noImageText: {
     marginTop: hp(8),
-    color: '#64748B',
+    color: 'rgba(255,255,255,0.45)',
     fontSize: fp(14),
   },
 
@@ -278,38 +302,40 @@ const styles = StyleSheet.create({
     fontSize: fp(22),
     fontWeight: '700',
     marginTop: hp(15),
-    paddingHorizontal: wp(15),
-    color: '#1A1A2E',
+    paddingHorizontal: wp(16),
+    color: colors.white,
   },
 
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: hp(8),
-    paddingHorizontal: wp(15),
+    paddingHorizontal: wp(16),
     gap: wp(6),
   },
   host: {
-    color: '#64748B',
+    color: '#D9C7A3',
     fontSize: fp(14),
   },
   detailText: {
-    color: '#64748B',
+    color: '#D9C7A3',
     fontSize: fp(14),
   },
   linkActionRow: {
     flexDirection: 'row',
     gap: wp(10),
     marginTop: hp(12),
-    paddingHorizontal: wp(15),
+    paddingHorizontal: wp(16),
   },
   linkActionButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(6),
-    backgroundColor: colors.cAccent,
+    backgroundColor: '#2A2A2A',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
     paddingVertical: hp(9),
-    paddingHorizontal: wp(12),
+    paddingHorizontal: wp(14),
     borderRadius: wp(20),
   },
   linkActionText: {
@@ -322,14 +348,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     marginTop: hp(15),
-    paddingHorizontal: wp(15),
+    paddingHorizontal: wp(16),
     gap: wp(8),
   },
 
   tag: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.cAccent,
+    backgroundColor: 'rgba(240,192,64,0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(240,192,64,0.35)',
     paddingVertical: hp(5),
     paddingHorizontal: wp(10),
     borderRadius: wp(20),
@@ -337,17 +365,17 @@ const styles = StyleSheet.create({
   },
 
   tagText: {
-    color: colors.white,
+    color: '#E9C47C',
     fontSize: fp(12),
   },
 
   priceBox: {
-    backgroundColor: colors.white,
+    backgroundColor: '#1A1A1A',
     padding: wp(16),
-    borderRadius: wp(12),
-    marginHorizontal: wp(15),
+    borderRadius: wp(18),
+    marginHorizontal: wp(16),
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: 'rgba(255,255,255,0.08)',
   },
   priceRow: {
     flexDirection: 'row',
@@ -355,15 +383,15 @@ const styles = StyleSheet.create({
     marginVertical: hp(6),
   },
   priceLabel: {
-    color: '#64748B',
+    color: 'rgba(255,255,255,0.55)',
   },
   priceValue: {
     fontWeight: '600',
-    color: '#1A1A2E',
+    color: colors.white,
   },
   totalRow: {
     borderTopWidth: wp(1),
-    borderColor: '#E2E8F0',
+    borderColor: 'rgba(255,255,255,0.12)',
     marginTop: hp(10),
     paddingTop: hp(10),
     flexDirection: 'row',
@@ -372,53 +400,31 @@ const styles = StyleSheet.create({
   totalLabel: {
     fontSize: fp(16),
     fontWeight: '700',
-    color: '#1A1A2E',
+    color: colors.white,
   },
   totalValue: {
     fontSize: fp(18),
     fontWeight: '800',
-    color: colors.cAccentLight,
+    color: '#F0C040',
   },
   participants: {
     fontSize: fp(14),
-    color: '#64748B',
+    color: '#D9C7A3',
     marginTop: hp(10),
   },
 
   sectionTitle: {
     fontSize: fp(18),
     fontWeight: '600',
-    paddingHorizontal: wp(15),
-    color: '#1A1A2E',
+    paddingHorizontal: wp(16),
+    color: colors.white,
   },
   description: {
     fontSize: fp(14),
-    color: '#64748B',
+    color: 'rgba(255,255,255,0.6)',
     marginTop: hp(8),
-    paddingHorizontal: wp(15),
+    paddingHorizontal: wp(16),
     lineHeight: fp(20),
     paddingBottom: hp(40),
-  },
-
-  bottomBar: {
-    position: 'absolute',
-    bottom: 0,
-    width: '100%',
-    padding: wp(15),
-    backgroundColor: '#F1F5F9',
-    borderTopWidth: wp(1),
-    borderColor: '#E2E8F0',
-    marginBottom: hp(10),
-  },
-  buyButton: {
-    backgroundColor: colors.secPrimary,
-    paddingVertical: hp(14),
-    borderRadius: wp(10),
-    alignItems: 'center',
-  },
-  buyText: {
-    color: colors.white,
-    fontWeight: '700',
-    fontSize: fp(16),
   },
 });

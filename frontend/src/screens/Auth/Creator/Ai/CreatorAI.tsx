@@ -8,10 +8,7 @@ import {
   TextInput,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
 import {
-  Menu,
-  Bell,
   Search,
   FileText,
   HelpCircle,
@@ -158,7 +155,6 @@ const ToolCard = ({ icon: Icon, title, description, onPress }: any) => (
 
 // ── Main Screen ──────────────────────────────────────────────────────────────
 const AskManchlyAI = () => {
-  const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeModal, setActiveModal] = useState<string | null>(null);
@@ -176,24 +172,7 @@ const AskManchlyAI = () => {
 
       {/* ── Top Bar ─────────────────────────────────────────────────────── */}
       <View style={[styles.topBar, { paddingTop: insets.top }]}>
-        <TouchableOpacity
-          style={styles.iconButton}
-          activeOpacity={0.75}
-          onPress={() => navigation.navigate('CreatorSetting')}
-        >
-          <Menu size={22} color={colors.textPrimary} />
-        </TouchableOpacity>
-
         <Text style={styles.brandTitle}>Manchly AI</Text>
-
-        <TouchableOpacity
-          style={styles.iconButton}
-          activeOpacity={0.75}
-          onPress={() => navigation.navigate('CreatorNotification')}
-        >
-          <Bell size={22} color={colors.textPrimary} />
-          <View style={styles.bellDot} />
-        </TouchableOpacity>
       </View>
 
       {/* ── Scrollable Content ──────────────────────────────────────────── */}
@@ -285,24 +264,11 @@ const styles = StyleSheet.create({
   // Top Bar
   topBar: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: wp(16),
     paddingVertical: hp(12),
     backgroundColor: 'transparent',
-  },
-  iconButton: {
-    padding: wp(6),
-    position: 'relative',
-  },
-  bellDot: {
-    position: 'absolute',
-    top: hp(6),
-    right: wp(6),
-    width: wp(6),
-    height: wp(6),
-    borderRadius: wp(3),
-    backgroundColor: colors.gold,
   },
   brandTitle: {
     fontSize: fp(18),

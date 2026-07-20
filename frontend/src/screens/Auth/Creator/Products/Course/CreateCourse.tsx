@@ -406,46 +406,46 @@ const CreateCourse = () => {
           />
 
           <FacingIssues
-            title="facing issues in upload"
+            title="Facing issues in upload"
             messgae="Hello, I need help with uploading."
           />
           </View>
-        </ScrollView>
 
-        {/* Bottom Actions */}
-        <View style={styles.actions}>
-          <TouchableOpacity
-            style={styles.cancelBtn}
-            onPress={() => {
-              Nav.goBack();
-              reset();
-            }}
-            disabled={loading}
-          >
-            <Text style={styles.cancelText}>Cancel</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={handleSubmit(isUpdated ? onCourseUpdate : onCreateCourse)}
-            disabled={loading}
-            activeOpacity={0.85}
-          >
-            <LinearGradient
-              colors={['#F3C36B', '#D49A3D']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={[styles.primaryBtn, loading && { opacity: 0.7 }]}
+          {/* Bottom Actions */}
+          <View style={styles.actions}>
+            <TouchableOpacity
+              style={styles.cancelBtn}
+              onPress={() => {
+                Nav.goBack();
+                reset();
+              }}
+              disabled={loading}
             >
-              {loading ? (
-                <ActivityIndicator size="small" color={colors.black} />
-              ) : (
-                <Text style={styles.primaryText}>
-                  {isUpdated ? 'Update Course' : 'Create Course'}
-                </Text>
-              )}
-            </LinearGradient>
-          </TouchableOpacity>
-        </View>
+              <Text style={styles.cancelText}>Cancel</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={handleSubmit(isUpdated ? onCourseUpdate : onCreateCourse)}
+              disabled={loading}
+              activeOpacity={0.85}
+            >
+              <LinearGradient
+                colors={['#F3C36B', '#D49A3D']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={[styles.primaryBtn, loading && { opacity: 0.7 }]}
+              >
+                {loading ? (
+                  <ActivityIndicator size="small" color={colors.black} />
+                ) : (
+                  <Text style={styles.primaryText}>
+                    {isUpdated ? 'Update Course' : 'Create Course'}
+                  </Text>
+                )}
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </View>
   );
@@ -466,7 +466,7 @@ const styles = StyleSheet.create({
     paddingBottom: hp(24),
   },
   card: {
-    backgroundColor: '#141414',
+    backgroundColor: '#1A1A1A',
     borderRadius: wp(18),
     padding: wp(16),
   },
@@ -557,7 +557,7 @@ const styles = StyleSheet.create({
   dropdownContainer: {
     borderRadius: wp(12),
     overflow: 'hidden',
-    backgroundColor: '#141414',
+    backgroundColor: '#1A1A1A',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
   },
@@ -592,11 +592,10 @@ const styles = StyleSheet.create({
   actions: {
     flexDirection: 'column-reverse',
     gap: wp(12),
-    paddingHorizontal: wp(16),
     paddingVertical: hp(14),
   },
   cancelBtn: {
-    paddingVertical: hp(16),
+    paddingVertical: hp(11),
     borderRadius: wp(14),
     alignItems: 'center',
     justifyContent: 'center',
@@ -610,7 +609,7 @@ const styles = StyleSheet.create({
     fontSize: fp(16),
   },
   primaryBtn: {
-    paddingVertical: hp(16),
+    paddingVertical: hp(11),
     borderRadius: wp(14),
     alignItems: 'center',
     justifyContent: 'center',

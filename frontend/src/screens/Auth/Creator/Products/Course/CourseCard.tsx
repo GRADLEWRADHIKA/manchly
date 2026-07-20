@@ -25,6 +25,9 @@ import { wp, hp, fp } from '../../../../../utils/responsive';
 import { useNavigation } from '@react-navigation/native';
 import { createDynamicLink } from 'react-native-chottulink-sdk';
 
+const CARD_BG = '#1C1B1B';
+const ACCENT = '#D5C4AB';
+
 interface Props {
   item: any;
   onEdit: () => void;
@@ -85,6 +88,7 @@ const CourseCard: React.FC<Props> = ({ item, onEdit, onDelete, onView }) => {
     ? new Date(item.created_at || item.createdAt).toLocaleDateString('en-IN', {
         day: 'numeric',
         month: 'short',
+        year: 'numeric',
       })
     : null;
 
@@ -106,7 +110,7 @@ const CourseCard: React.FC<Props> = ({ item, onEdit, onDelete, onView }) => {
             />
           ) : (
             <View style={styles.thumbnailPlaceholder}>
-              <ImageIcon size={wp(18)} color={colors.gold} strokeWidth={1.5} />
+              <ImageIcon size={wp(18)} color={ACCENT} strokeWidth={1.5} />
               <Text style={styles.thumbnailPlaceholderText}>COURSE{'\n'}THUMBNAIL</Text>
             </View>
           )}
@@ -129,22 +133,22 @@ const CourseCard: React.FC<Props> = ({ item, onEdit, onDelete, onView }) => {
 
           <View style={styles.metaRow}>
             <View style={styles.metaItem}>
-              <BookOpen size={wp(11)} color={colors.textMuted} />
+              <BookOpen size={wp(12)} color={colors.textMuted} />
               <Text style={styles.metaText}>
                 {videoCount} {videoCount === 1 ? 'Lesson' : 'Lessons'}
               </Text>
             </View>
             <View style={styles.metaItem}>
-              <Clock size={wp(11)} color={colors.textMuted} />
+              <Clock size={wp(12)} color={colors.textMuted} />
               <Text style={styles.metaText}>{durationMins} min</Text>
             </View>
-            {createdLabel ? (
-              <View style={styles.metaItem}>
-                <CalendarDays size={wp(11)} color={colors.textMuted} />
-                <Text style={styles.metaText}>Created {createdLabel}</Text>
-              </View>
-            ) : null}
           </View>
+          {createdLabel ? (
+            <View style={styles.createdRow}>
+              <CalendarDays size={wp(12)} color={colors.textMuted} />
+              <Text style={styles.metaText}>Created on {createdLabel}</Text>
+            </View>
+          ) : null}
         </View>
       </TouchableOpacity>
 
@@ -161,25 +165,24 @@ const CourseCard: React.FC<Props> = ({ item, onEdit, onDelete, onView }) => {
               onPress={openMenu}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-              <MoreVertical size={wp(18)} color={colors.textSecondary} />
+              <MoreVertical size={wp(18)} color={colors.textMuted} />
             </TouchableOpacity>
           }
         >
           <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); setTimeout(onView, 350); }}>
-            <Eye size={wp(16)} color={colors.textSecondary} />
-            <Text style={[styles.menuItemText, { color: colors.textSecondary }]}>Details</Text>
+            <Eye size={wp(17)} color={ACCENT} strokeWidth={1.8} />
+            <Text style={[styles.menuItemText, { color: ACCENT }]}>Details</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); setTimeout(onEdit, 350); }}>
-            <Edit3 size={wp(16)} color={colors.textSecondary} />
-            <Text style={[styles.menuItemText, { color: colors.textSecondary }]}>Edit</Text>
+            <Edit3 size={wp(17)} color={ACCENT} strokeWidth={1.8} />
+            <Text style={[styles.menuItemText, { color: ACCENT }]}>Edit</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); setTimeout(handleShare, 350); }}>
-            <Share2 size={wp(16)} color={colors.success} />
+            <Share2 size={wp(17)} color={colors.success} strokeWidth={1.8} />
             <Text style={[styles.menuItemText, { color: colors.success }]}>Share</Text>
           </TouchableOpacity>
-          <View style={styles.menuDivider} />
           <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); setTimeout(onDelete, 350); }}>
-            <Trash2 size={wp(16)} color={colors.error} />
+            <Trash2 size={wp(17)} color={colors.error} strokeWidth={1.8} />
             <Text style={[styles.menuItemText, { color: colors.error }]}>Delete</Text>
           </TouchableOpacity>
         </Menu>
@@ -192,48 +195,44 @@ export default CourseCard;
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: wp(14),
+    borderRadius: wp(20),
     marginHorizontal: wp(8),
     marginBottom: hp(12),
-    backgroundColor: colors.cCard,
-    borderWidth: 1,
-    borderColor: colors.cBorder,
+    backgroundColor: CARD_BG,
     position: 'relative',
   },
   row: {
     flexDirection: 'row',
-    padding: wp(12),
+    padding: wp(14),
   },
 
   // Thumbnail
   thumbnailWrap: {
-    width: wp(72),
-    height: wp(72),
-    borderRadius: wp(10),
-    marginRight: wp(12),
+    width: wp(84),
+    height: wp(84),
+    borderRadius: wp(16),
+    marginRight: wp(14),
+    borderWidth: 1.5,
+    borderColor: ACCENT,
     overflow: 'hidden',
   },
   thumbnail: {
     width: '100%',
     height: '100%',
-    borderRadius: wp(10),
-    backgroundColor: colors.inputBg,
+    backgroundColor: '#242220',
   },
   thumbnailPlaceholder: {
     width: '100%',
     height: '100%',
-    borderRadius: wp(10),
-    backgroundColor: colors.inputBg,
-    borderWidth: 1,
-    borderColor: colors.golden,
+    backgroundColor: 'transparent',
     alignItems: 'center',
     justifyContent: 'center',
     gap: hp(4),
   },
   thumbnailPlaceholderText: {
-    fontSize: fp(7),
+    fontSize: fp(7.5),
     fontWeight: '700',
-    color: colors.textMuted,
+    color: ACCENT,
     textAlign: 'center',
     letterSpacing: 0.4,
   },
@@ -243,39 +242,45 @@ const styles = StyleSheet.create({
     paddingRight: wp(24),
   },
   title: {
-    fontSize: fp(14.5),
-    fontWeight: '700',
+    fontSize: fp(16),
+    fontWeight: '800',
     color: colors.textPrimary,
-    marginBottom: hp(6),
+    marginBottom: hp(8),
   },
   priceRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: wp(8),
-    marginBottom: hp(8),
+    gap: wp(10),
+    marginBottom: hp(10),
   },
   priceText: {
-    fontSize: fp(14),
-    fontWeight: '700',
-    color: colors.textPrimary,
+    fontSize: fp(16.5),
+    fontWeight: '800',
+    color: ACCENT,
   },
   statusBadge: {
-    backgroundColor: colors.goldDim,
-    paddingHorizontal: wp(8),
-    paddingVertical: hp(2),
-    borderRadius: wp(6),
+    backgroundColor: 'rgba(213,196,171,0.14)',
+    paddingHorizontal: wp(10),
+    paddingVertical: hp(3),
+    borderRadius: wp(9),
   },
   statusText: {
-    fontSize: fp(9.5),
+    fontSize: fp(10),
     fontWeight: '800',
-    color: colors.gold,
-    letterSpacing: 0.5,
+    color: ACCENT,
+    letterSpacing: 0.8,
   },
   metaRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     alignItems: 'center',
-    gap: wp(12),
+    gap: wp(16),
+  },
+  createdRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(4),
+    marginTop: hp(7),
   },
   metaItem: {
     flexDirection: 'row',
@@ -283,7 +288,7 @@ const styles = StyleSheet.create({
     gap: wp(4),
   },
   metaText: {
-    fontSize: fp(10.5),
+    fontSize: fp(11),
     color: colors.textMuted,
     fontWeight: '500',
   },
@@ -300,32 +305,27 @@ const styles = StyleSheet.create({
     width: wp(30),
     height: wp(30),
     borderRadius: wp(15),
-    backgroundColor: colors.inputBg,
+    backgroundColor: 'transparent',
     alignItems: 'center',
     justifyContent: 'center',
   },
   menuContent: {
-    backgroundColor: colors.cSurface,
-    borderRadius: wp(12),
+    backgroundColor: 'rgba(26,26,26,0.97)',
+    borderRadius: wp(14),
     borderWidth: 1,
-    borderColor: colors.cBorder,
-    paddingVertical: hp(4),
-    minWidth: wp(160),
+    borderColor: 'rgba(255,255,255,0.1)',
+    paddingVertical: hp(6),
+    minWidth: wp(170),
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: wp(10),
-    paddingHorizontal: wp(16),
-    paddingVertical: hp(10),
+    gap: wp(12),
+    paddingHorizontal: wp(18),
+    paddingVertical: hp(12),
   },
   menuItemText: {
-    fontSize: fp(13),
+    fontSize: fp(14),
     fontWeight: '600',
-  },
-  menuDivider: {
-    height: 1,
-    marginHorizontal: wp(12),
-    backgroundColor: colors.border,
   },
 });

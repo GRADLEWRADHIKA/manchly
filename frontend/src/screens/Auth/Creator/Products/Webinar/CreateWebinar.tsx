@@ -702,46 +702,46 @@ const CreateWebinarScreen = () => {
 
             <View style={{ marginHorizontal: wp(5) }}>
               <FacingIssues
-                title="facing issues in Webinar creation"
+                title="Facing issues in webinar creation"
                 messgae="Hello, I need help with webinar creation."
               />
             </View>
+
+            <View style={styles.actions}>
+              <TouchableOpacity
+                disabled={loading}
+                style={styles.cancelBtn}
+                onPress={() => {
+                  navigation.goBack();
+                  reset();
+                }}
+              >
+                <Text style={styles.cancelText}>Cancel</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleSubmit(updatedata ? onUpdateSubmit : onSubmit)}
+                disabled={loading}
+                activeOpacity={0.85}
+              >
+                <LinearGradient
+                  colors={['#F3C36B', '#D49A3D']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={[styles.primaryButton, loading && { opacity: 0.7 }]}
+                >
+                  {loading ? (
+                    <ActivityIndicator color={colors.black} size="small" />
+                  ) : (
+                    <Text style={styles.primaryText}>
+                      {updatedata ? 'Update Webinar' : 'Create Webinar'}
+                    </Text>
+                  )}
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
           </ScrollView>
         </KeyboardAvoidingView>
-
-        <View style={styles.actions}>
-          <TouchableOpacity
-            disabled={loading}
-            style={styles.cancelBtn}
-            onPress={() => {
-              navigation.goBack();
-              reset();
-            }}
-          >
-            <Text style={styles.cancelText}>Cancel</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={handleSubmit(updatedata ? onUpdateSubmit : onSubmit)}
-            disabled={loading}
-            activeOpacity={0.85}
-          >
-            <LinearGradient
-              colors={['#F3C36B', '#D49A3D']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={[styles.primaryButton, loading && { opacity: 0.7 }]}
-            >
-              {loading ? (
-                <ActivityIndicator color={colors.black} size="small" />
-              ) : (
-                <Text style={styles.primaryText}>
-                  {updatedata ? 'Update Webinar' : 'Create Webinar'}
-                </Text>
-              )}
-            </LinearGradient>
-          </TouchableOpacity>
-        </View>
       </View>
     </View>
   );
@@ -765,7 +765,7 @@ const styles = StyleSheet.create({
     paddingBottom: hp(24),
   },
   card: {
-    backgroundColor: '#141414',
+    backgroundColor: '#1A1A1A',
     borderRadius: wp(18),
     padding: wp(16),
     marginTop: hp(4),
@@ -799,7 +799,7 @@ const styles = StyleSheet.create({
     paddingVertical: hp(16),
   },
   cancelBtn: {
-    paddingVertical: hp(16),
+    paddingVertical: hp(11),
     borderRadius: wp(14),
     alignItems: 'center',
     justifyContent: 'center',
@@ -813,7 +813,7 @@ const styles = StyleSheet.create({
     fontSize: fp(16),
   },
   primaryButton: {
-    paddingVertical: hp(16),
+    paddingVertical: hp(11),
     borderRadius: wp(14),
     alignItems: 'center',
     justifyContent: 'center',
@@ -851,7 +851,7 @@ const styles = StyleSheet.create({
   dropdownContainer: {
     borderRadius: wp(12),
     overflow: 'hidden',
-    backgroundColor: '#141414',
+    backgroundColor: '#1A1A1A',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
   },

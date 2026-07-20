@@ -248,7 +248,7 @@ export default CreatorWebinar;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.bg,
+    backgroundColor: 'transparent',
   },
   listContent: {
     flexGrow: 1,

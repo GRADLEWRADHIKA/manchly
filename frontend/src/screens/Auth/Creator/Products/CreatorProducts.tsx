@@ -1,121 +1,81 @@
-import React, {useState, useRef, memo} from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
-  Linking,
-  Animated,
-} from 'react-native';
-import {useNavigation, useRoute} from '@react-navigation/native';
-import {Bell, Instagram, UserCircle} from 'lucide-react-native';
-import {useSelector} from 'react-redux';
+import React, {useState, memo} from 'react';
+import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
+import {useRoute} from '@react-navigation/native';
+import {BookOpen, Users, Video} from 'lucide-react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import LinearGradient from 'react-native-linear-gradient';
 import colors from '../../../../utils/colors';
 import {wp, hp, fp} from '../../../../utils/responsive';
 import CreatorView from './Course/CreatorView';
 import CreatorWebinar from '../Webinar/CreatorWebinar';
 import CreatorSessions from './CreatorSessions';
 
+// Figma gold palette (same as Dashboard)
+const GOLD_CREAM = '#F8DEAE';
+const GOLD_DEEP = '#D69C3F';
+const GOLD_GLOW = '#FFDCA1';
+
 const TABS = ['Courses', 'Webinars', 'Sessions'] as const;
 type TabType = (typeof TABS)[number];
 
+const STEP_META: Record<TabType, {label: string; Icon: any}> = {
+  Courses: {label: 'COURSES', Icon: BookOpen},
+  Webinars: {label: 'WEBINARS', Icon: Video},
+  Sessions: {label: 'SESSIONS', Icon: Users},
+};
+
 const CreatorProducts: React.FC = () => {
-  const navigation = useNavigation<any>();
   const route = useRoute<any>();
-  const {user} = useSelector((state: any) => state.userReducer);
   const insets = useSafeAreaInsets();
   const initialTab = route.params?.initialTab || 'Courses';
   const [activeTab, setActiveTab] = useState<TabType>(initialTab);
-  const slideAnim = useRef(new Animated.Value(TABS.indexOf(initialTab as TabType))).current;
-  const [tabBarWidth, setTabBarWidth] = useState(0);
-  const padding = wp(3);
-  const tabCount = TABS.length;
-  const sliderWidth = tabBarWidth > 0 ? (tabBarWidth - padding * 2) / tabCount : 0;
-
-  const handleTabChange = (tab: TabType) => {
-    if (tab === activeTab) return;
-    Animated.spring(slideAnim, {
-      toValue: TABS.indexOf(tab),
-      useNativeDriver: true,
-      friction: 7,
-      tension: 70,
-    }).start();
-    setActiveTab(tab);
-  };
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={[styles.headerWrapper, {paddingTop: insets.top}]}>
-        <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            {user?.profile_image ? (
-              <Image source={{uri: user.profile_image}} style={styles.avatar} />
-            ) : (
-              <View style={styles.avatarFallback}>
-                <UserCircle size={wp(28)} color={colors.white} />
-              </View>
-            )}
-            <View>
-              <Text style={styles.headerSub}>My Products</Text>
-              <Text style={styles.headerTitle}>Products</Text>
-            </View>
-          </View>
-          <View style={{flexDirection: 'row', alignItems: 'center', gap: wp(4)}}>
-            <TouchableOpacity
-              style={styles.bellBtn}
-              onPress={() =>
-                Linking.openURL('https://www.instagram.com/manchly_app')
-              }>
-              <Instagram size={wp(20)} color={colors.white} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.bellBtn}
-              onPress={() => navigation.navigate('CreatorNotification')}>
-              <Bell size={wp(20)} color={colors.white} />
-            </TouchableOpacity>
-          </View>
-        </View>
+      {/* Centered Header */}
+      <View style={[styles.headerArea, {paddingTop: insets.top + hp(14)}]}>
+        <Text style={styles.title}>Products</Text>
+      </View>
 
-        {/* Tab Bar with sliding indicator */}
-        <View
-          style={styles.tabBar}
-          onLayout={(e) => setTabBarWidth(e.nativeEvent.layout.width)}
-        >
-          {sliderWidth > 0 && (
-            <Animated.View
-              style={[
-                styles.tabSlider,
-                {
-                  width: sliderWidth,
-                  transform: [{
-                    translateX: slideAnim.interpolate({
-                      inputRange: [0, 1, 2],
-                      outputRange: [0, sliderWidth, sliderWidth * 2],
-                    }),
-                  }],
-                },
-              ]}
-            />
-          )}
-          {TABS.map(tab => (
-            <TouchableOpacity
-              key={tab}
-              style={styles.tab}
-              onPress={() => handleTabChange(tab)}
-              activeOpacity={0.7}>
-              <Text
-                style={[
-                  styles.tabText,
-                  activeTab === tab && styles.tabTextActive,
-                ]}>
-                {tab}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+      {/* Stepper Selector */}
+      <View style={styles.stepperRow}>
+        {TABS.map((tab, i) => {
+          const isActive = activeTab === tab;
+          const {label, Icon} = STEP_META[tab];
+          return (
+            <React.Fragment key={tab}>
+              <TouchableOpacity
+                style={styles.stepItem}
+                onPress={() => setActiveTab(tab)}
+                activeOpacity={0.8}>
+                {isActive ? (
+                  <LinearGradient
+                    colors={[GOLD_CREAM, GOLD_DEEP]}
+                    start={{x: 0, y: 0}}
+                    end={{x: 1, y: 1}}
+                    style={styles.stepRingActive}>
+                    <View style={styles.stepCircleActive}>
+                      <Icon size={wp(16)} color={'#F0C040'} strokeWidth={2} />
+                    </View>
+                  </LinearGradient>
+                ) : (
+                  <View style={styles.stepCircle}>
+                    <Icon
+                      size={wp(16)}
+                      color={'rgba(240,192,64,0.5)'}
+                      strokeWidth={2}
+                    />
+                  </View>
+                )}
+                <Text
+                  style={[styles.stepLabel, isActive && styles.stepLabelActive]}>
+                  {label}
+                </Text>
+              </TouchableOpacity>
+              {i < TABS.length - 1 && <View style={styles.stepLine} />}
+            </React.Fragment>
+          );
+        })}
       </View>
 
       {/* Content */}
@@ -133,100 +93,83 @@ export default memo(CreatorProducts);
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: 'rgba(0,0,0,0.75)',
   },
-  headerWrapper: {
-    backgroundColor: '#121212',
-    borderBottomWidth: 1,
-    borderBottomColor: '#2A2A2A',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  headerArea: {
     alignItems: 'center',
-    paddingHorizontal: wp(16),
-    paddingVertical: hp(14),
+    paddingHorizontal: wp(18),
+    paddingBottom: hp(18),
   },
-  headerLeft: {
+  title: {
+    fontSize: fp(22),
+    fontWeight: '700',
+    color: colors.textPrimary,
+    letterSpacing: 0.3,
+  },
+
+  // Stepper (same as Stats page)
+  stepperRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(12),
-  },
-  avatar: {
-    width: wp(46),
-    height: wp(46),
-    borderRadius: wp(23),
-    borderWidth: 2,
-    borderColor: '#2A2A2A',
-  },
-  avatarFallback: {
-    width: wp(46),
-    height: wp(46),
-    borderRadius: wp(23),
-    backgroundColor: '#1E1E1E',
+    alignItems: 'flex-start',
     justifyContent: 'center',
+    paddingHorizontal: wp(30),
+    paddingBottom: hp(10),
+  },
+  stepItem: {
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#2A2A2A',
+    width: wp(64),
   },
-  headerSub: {
-    fontSize: fp(12),
-    color: '#8A8A8A',
-    fontWeight: '500',
-  },
-  headerTitle: {
-    fontSize: fp(18),
-    fontWeight: '800',
-    color: '#FFFFFF',
-    marginTop: hp(1),
-  },
-  bellBtn: {
-    width: wp(40),
-    height: wp(40),
-    borderRadius: wp(20),
-    backgroundColor: '#1E1E1E',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#2A2A2A',
-  },
-  tabBar: {
-    flexDirection: 'row',
-    marginHorizontal: wp(16),
-    marginBottom: hp(12),
-    backgroundColor: '#1E1E1E',
-    borderRadius: wp(14),
-    padding: wp(3),
-    position: 'relative',
-    borderWidth: 1,
-    borderColor: '#2A2A2A',
-  },
-  tabSlider: {
-    position: 'absolute',
-    top: wp(3),
-    left: wp(3),
-    height: '100%',
-    backgroundColor: '#F4C430',
-    borderRadius: wp(12),
-  },
-  tab: {
+  stepLine: {
     flex: 1,
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    marginTop: wp(19),
+  },
+  stepCircle: {
+    width: wp(38),
+    height: wp(38),
+    borderRadius: wp(19),
+    backgroundColor: '#141414',
+    borderWidth: 1,
+    borderColor: 'rgba(240,192,64,0.25)',
     alignItems: 'center',
-    paddingVertical: hp(9),
-    borderRadius: wp(12),
-    zIndex: 1,
+    justifyContent: 'center',
+    marginBottom: hp(6),
   },
-  tabText: {
-    fontSize: fp(13),
+  stepRingActive: {
+    width: wp(38),
+    height: wp(38),
+    borderRadius: wp(19),
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: hp(6),
+    shadowColor: GOLD_GLOW,
+    shadowOffset: {width: 0, height: 0},
+    shadowOpacity: 0.9,
+    shadowRadius: wp(10),
+    elevation: 10,
+  },
+  stepCircleActive: {
+    width: wp(35),
+    height: wp(35),
+    borderRadius: wp(17.5),
+    backgroundColor: '#0A0A0A',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepLabel: {
+    fontSize: fp(9),
+    color: 'rgba(255,255,255,0.4)',
     fontWeight: '600',
-    color: '#8A8A8A',
+    letterSpacing: 0.3,
   },
-  tabTextActive: {
-    color: '#121212',
+  stepLabelActive: {
+    color: '#F0C040',
     fontWeight: '700',
   },
+
   content: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: 'transparent',
   },
 });

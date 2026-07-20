@@ -288,7 +288,7 @@ export default memo(CreatorSessions);
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.bg,
+    backgroundColor: 'transparent',
   },
   scrollContent: {
     paddingHorizontal: wp(16),

@@ -5,4 +5,4 @@
 // export const BASE_URL = "http://10.151.38.158:8080/"
 //export const BASE_URL = "http://10.151.38.158:8080/" // Android emulator → host machine
 // export const BASE_URL = "https://manchly3.thescript.design/"
-export const BASE_URL = "http://10.71.79.26:8080/";
+export const BASE_URL = "http://10.71.79.96:8080/";

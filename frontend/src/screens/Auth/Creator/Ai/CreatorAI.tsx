@@ -149,12 +149,10 @@ const ToolCard = ({ icon: Icon, title, description, onPress }: any) => (
     onPress={onPress}
   >
     <View style={styles.toolIconWrap}>
-      <Icon size={wp(20)} color={colors.textSecondary} />
+      <Icon size={wp(22)} color={colors.white} />
     </View>
-    <View style={styles.toolContent}>
-      <Text style={styles.toolTitle}>{title}</Text>
-      <Text style={styles.toolDescription}>{description}</Text>
-    </View>
+    <Text style={styles.toolTitle}>{title}</Text>
+    <Text style={styles.toolDescription}>{description}</Text>
   </TouchableOpacity>
 );
 
@@ -206,7 +204,8 @@ const AskManchlyAI = () => {
       >
         {/* Badge */}
         <View style={styles.badgeRow}>
-          <Text style={styles.badgeText}>{'\u2726'}  CREATIVE INTELLIGENCE</Text>
+          <Sparkles size={wp(14)} color={colors.gold} fill={colors.gold} />
+          <Text style={styles.badgeText}>CREATIVE INTELLIGENCE</Text>
         </View>
 
         {/* Hero Heading */}
@@ -225,7 +224,7 @@ const AskManchlyAI = () => {
             onChangeText={setSearchQuery}
           />
           <TouchableOpacity style={styles.searchIconBtn} activeOpacity={0.75}>
-            <Search size={16} color={colors.black} />
+            <Search size={18} color={colors.black} />
           </TouchableOpacity>
         </View>
 
@@ -276,7 +275,7 @@ export default AskManchlyAI;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.bg,
+    backgroundColor: 'rgba(0,0,0,0.75)',
   },
   scrollContent: {
     paddingHorizontal: wp(16),
@@ -290,9 +289,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: wp(16),
     paddingVertical: hp(12),
-    backgroundColor: colors.bg,
-    borderBottomWidth: 0.5,
-    borderBottomColor: colors.border,
+    backgroundColor: 'transparent',
   },
   iconButton: {
     padding: wp(6),
@@ -310,56 +307,62 @@ const styles = StyleSheet.create({
   brandTitle: {
     fontSize: fp(18),
     fontWeight: '700',
-    color: colors.gold,
-    letterSpacing: -0.5,
+    color: colors.white,
+    letterSpacing: 0.2,
   },
 
   // Hero Header
   badgeRow: {
     marginTop: hp(20),
-    marginBottom: hp(10),
+    marginBottom: hp(12),
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: wp(6),
   },
   badgeText: {
-    fontSize: fp(10),
+    fontSize: fp(11),
     fontWeight: '700',
     color: colors.gold,
-    letterSpacing: 1,
+    letterSpacing: 1.5,
   },
   heroTitle: {
-    fontSize: fp(26),
+    fontSize: fp(30),
     fontWeight: '700',
-    color: colors.textPrimary,
-    marginBottom: hp(8),
+    color: colors.white,
+    textAlign: 'center',
+    marginBottom: hp(10),
   },
   heroSubtitle: {
-    fontSize: fp(13),
-    color: colors.textSecondary,
-    lineHeight: fp(19),
-    marginBottom: hp(20),
+    fontSize: fp(14),
+    color: '#D9C7A3',
+    lineHeight: fp(21),
+    textAlign: 'center',
+    marginBottom: hp(22),
+    paddingHorizontal: wp(8),
   },
 
   // Search Bar
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: wp(14),
-    height: hp(48),
-    marginBottom: hp(20),
+    backgroundColor: '#1E1E1E',
+    borderRadius: wp(16),
+    paddingLeft: wp(16),
+    paddingRight: wp(8),
+    height: hp(56),
+    marginBottom: hp(22),
   },
   searchInput: {
     flex: 1,
-    color: colors.textPrimary,
+    color: colors.white,
     fontSize: fp(14),
   },
   searchIconBtn: {
-    width: wp(32),
-    height: wp(32),
-    borderRadius: 8,
-    backgroundColor: colors.gold,
+    width: wp(40),
+    height: wp(40),
+    borderRadius: wp(12),
+    backgroundColor: '#F5D98F',
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: wp(8),
@@ -367,38 +370,30 @@ const styles = StyleSheet.create({
 
   // Tool Card
   toolCard: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    backgroundColor: colors.surface,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: wp(14),
-    marginBottom: hp(10),
+    backgroundColor: '#1A1A1A',
+    borderRadius: wp(22),
+    padding: wp(20),
+    marginBottom: hp(14),
   },
   toolIconWrap: {
-    width: wp(38),
-    height: wp(38),
-    borderRadius: 10,
-    backgroundColor: colors.inputBg,
+    width: wp(50),
+    height: wp(50),
+    borderRadius: wp(14),
+    backgroundColor: '#2A2A2A',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: wp(12),
-    marginTop: hp(2),
-  },
-  toolContent: {
-    flex: 1,
+    marginBottom: hp(16),
   },
   toolTitle: {
-    fontSize: fp(14),
+    fontSize: fp(17),
     fontWeight: '600',
-    color: colors.textPrimary,
-    marginBottom: hp(4),
+    color: colors.white,
+    marginBottom: hp(8),
   },
   toolDescription: {
-    fontSize: fp(12),
-    color: colors.textSecondary,
-    lineHeight: fp(17),
+    fontSize: fp(13),
+    color: '#D9C7A3',
+    lineHeight: fp(19),
   },
 
   // Empty State
@@ -409,7 +404,7 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     fontSize: fp(14),
-    color: colors.textMuted,
+    color: '#D9C7A3',
     textAlign: 'center',
   },
 });

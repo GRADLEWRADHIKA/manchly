@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.black,
   },
   backButtonPressed: {
-    backgroundColor: 'rgba(255,255,255,0.',
+    backgroundColor: 'rgba(255,255,255,0.2)',
     transform: [{ scale: 0.92 }],
   },
   title: {

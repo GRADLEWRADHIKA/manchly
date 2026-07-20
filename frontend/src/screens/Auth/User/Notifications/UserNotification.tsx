@@ -238,7 +238,7 @@ export default UserNotification;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.bg,
+    backgroundColor: colors.cBg,
   },
 
   // Tabs
@@ -255,11 +255,11 @@ const styles = StyleSheet.create({
     borderRadius: wp(20),
     backgroundColor: colors.white,
     borderWidth: 1,
-    borderColor: colors.surface,
+    borderColor: colors.cSurface,
   },
   tabActive: {
-    backgroundColor: colors.surface,
-    borderColor: colors.surface,
+    backgroundColor: colors.btnGradientEnd,
+    borderColor: colors.btnGradientStart,
   },
   tabText: {
     fontSize: fp(13),

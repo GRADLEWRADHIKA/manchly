@@ -8,6 +8,7 @@ import {
   Image,
   TouchableOpacity,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import colors from '../../../../../utils/colors';
 import {
   CheckCircle2,
@@ -141,9 +142,16 @@ const PurchaseCoursCard = ({
           </View>
 
           {/* CTA Button */}
-          <TouchableOpacity style={styles.resumeBtn} onPress={onPress} activeOpacity={0.8}>
-            <Play size={12} color="#FFFFFF" fill="#FFFFFF" />
-            <Text style={styles.resumeBtnText}>RESUME LESSON</Text>
+          <TouchableOpacity style={styles.resumeBtnWrapper} onPress={onPress} activeOpacity={0.8}>
+            <LinearGradient
+              colors={[colors.btnGradientStart, colors.btnGradientEnd]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.resumeBtnGradient}
+            >
+              <Play size={12} color="#FFFFFF" fill="#FFFFFF" />
+              <Text style={styles.resumeBtnText}>RESUME LESSON</Text>
+            </LinearGradient>
           </TouchableOpacity>
         </Pressable>
       );
@@ -248,9 +256,16 @@ const PurchaseCoursCard = ({
 
         {/* Buttons */}
         <View style={styles.archivedBtnRow}>
-          <TouchableOpacity style={styles.restoreBtn} activeOpacity={0.8}>
-            <RotateCcw size={14} color={colors.white} />
-            <Text style={styles.restoreBtnText}>Restore</Text>
+          <TouchableOpacity style={styles.restoreBtnWrapper} activeOpacity={0.8}>
+            <LinearGradient
+              colors={[colors.btnGradientStart, colors.btnGradientEnd]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.restoreBtnGradient}
+            >
+              <RotateCcw size={14} color={colors.white} />
+              <Text style={styles.restoreBtnText}>Restore</Text>
+            </LinearGradient>
           </TouchableOpacity>
           <TouchableOpacity style={styles.syllabusBtn} activeOpacity={0.8}>
             <Text style={styles.syllabusBtnText}>Syllabus</Text>
@@ -305,9 +320,16 @@ const PurchaseCoursCard = ({
         </View>
 
         {/* Certificate Button */}
-        <TouchableOpacity style={styles.certificateBtn} activeOpacity={0.8}>
-          <Award size={14} color={colors.white} />
-          <Text style={styles.certificateBtnText}>Download Certificate</Text>
+        <TouchableOpacity style={styles.certificateBtnWrapper} activeOpacity={0.8}>
+          <LinearGradient
+            colors={[colors.btnGradientStart, colors.btnGradientEnd]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.certificateBtnGradient}
+          >
+            <Award size={14} color={colors.white} />
+            <Text style={styles.certificateBtnText}>Download Certificate</Text>
+          </LinearGradient>
         </TouchableOpacity>
 
         {/* Review Button */}
@@ -448,15 +470,17 @@ const styles = StyleSheet.create({
     fontSize: fp(11),
     color: colors.cTextMuted,
   },
-  resumeBtn: {
+  resumeBtnWrapper: {
+    marginHorizontal: wp(14),
+    marginBottom: hp(14),
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  resumeBtnGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: wp(8),
-    backgroundColor: colors.cAccentLight,
-    marginHorizontal: wp(14),
-    marginBottom: hp(14),
-    borderRadius: 8,
     paddingVertical: hp(12),
   },
   resumeBtnText: {
@@ -557,14 +581,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(14),
     paddingBottom: hp(14),
   },
-  restoreBtn: {
+  restoreBtnWrapper: {
     flex: 1,
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  restoreBtnGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: wp(6),
-    backgroundColor: colors.cAccentLight,
-    borderRadius: 8,
     paddingVertical: hp(10),
   },
   restoreBtnText: {
@@ -638,15 +664,17 @@ const styles = StyleSheet.create({
     fontSize: fp(12),
     color: colors.cTextMuted,
   },
-  certificateBtn: {
+  certificateBtnWrapper: {
+    marginHorizontal: wp(14),
+    marginBottom: hp(8),
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  certificateBtnGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: wp(8),
-    backgroundColor: colors.cAccentLight,
-    marginHorizontal: wp(14),
-    marginBottom: hp(8),
-    borderRadius: 8,
     paddingVertical: hp(12),
   },
   certificateBtnText: {

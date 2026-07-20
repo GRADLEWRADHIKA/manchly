@@ -443,7 +443,7 @@ export default CourseVideoList;
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.cSurface,
     flex: 1,
   },
   listContainer: {
@@ -457,12 +457,12 @@ const styles = StyleSheet.create({
   countText: {
     fontSize: fp(14),
     fontWeight: '600',
-    color: '#1A1A2E',
+    color: colors.textPrimary,
   },
   // Video card - horizontal layout like user page
   card: {
     flexDirection: 'row',
-    backgroundColor: colors.white,
+    backgroundColor: colors.cCard,
     borderRadius: wp(12),
     marginBottom: hp(14),
     overflow: 'hidden',
@@ -472,7 +472,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.cBorder,
   },
   thumbnailWrapper: {
     position: 'relative',
@@ -500,7 +500,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   playIcon: {
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: colors.golden,
     width: wp(32),
     height: wp(32),
     borderRadius: wp(16),
@@ -543,7 +543,7 @@ const styles = StyleSheet.create({
   },
   videoDesc: {
     fontSize: fp(12),
-    color: '#64748B',
+    color: colors.textPrimary,
     lineHeight: fp(17),
     marginTop: hp(4),
   },
@@ -556,7 +556,7 @@ const styles = StyleSheet.create({
     padding: wp(4),
   },
   menuContent: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.textPrimary,
     borderRadius: wp(8),
     elevation: 4,
     shadowColor: '#000',
@@ -649,7 +649,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(40),
   },
   noDataIcon: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.cSurface,
     width: wp(100),
     height: hp(100),
     borderRadius: wp(50),
@@ -657,18 +657,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: hp(20),
     borderWidth: wp(1),
-    borderColor: '#E2E8F0',
+    borderColor: colors.cBorder,
   },
   noDataTitle: {
     fontSize: fp(20),
     fontWeight: '700',
-    color: '#1A1A2E',
+    color: colors.gold,
     textAlign: 'center',
     marginBottom: hp(8),
   },
   noDataSubtitle: {
     fontSize: fp(14),
-    color: '#64748B',
+    color: colors.textPrimary,
     textAlign: 'center',
     lineHeight: fp(20),
   },

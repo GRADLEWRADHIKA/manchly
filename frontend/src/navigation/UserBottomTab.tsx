@@ -31,7 +31,6 @@ const Tab = createBottomTabNavigator();
 //const INACTIVE_COLOR = '#94a3b8';
 
 
-
 const tabs = [
   { name: 'Home', component: UserHome, label: 'Home', Icon: House },
   {
@@ -257,7 +256,7 @@ const styles = StyleSheet.create({
     width: wp(52),
     height: hp(34),
     borderRadius: wp(16),
-    backgroundColor: colors.surface,
+    backgroundColor: colors.cSurface,
   },
   tabLabel: {
     fontSize: fp(10.5),

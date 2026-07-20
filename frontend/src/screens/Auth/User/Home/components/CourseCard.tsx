@@ -58,7 +58,7 @@ export default CourseCard;
 const styles = StyleSheet.create({
   card: {
     width: wp(160),
-    backgroundColor: colors.surface,
+    backgroundColor: colors.cCard,
     borderRadius: wp(14),
     overflow: 'hidden',
     marginBottom: hp(12),

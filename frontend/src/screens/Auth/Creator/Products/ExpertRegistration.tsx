@@ -16,7 +16,8 @@ import EnhanceSuggestionCard from '../../../../components/ai/EnhanceSuggestionCa
 import { MultiSelect } from 'react-native-element-dropdown';
 import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
-import AppHeaderWithBack from '../../../../components/AppHeaderWithBack';
+import CreateStepHeader from '../../../../components/CreateStepHeader';
+import LinearGradient from 'react-native-linear-gradient';
 import { registerAsExpert, updateExpertProfile } from '../../../../store/SessionSlice';
 
 const CATEGORIES = [
@@ -102,7 +103,7 @@ const ExpertRegistration: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <AppHeaderWithBack title={isEditing ? 'Edit Session Profile' : 'Become a Session Expert'} />
+      <CreateStepHeader title="Session Details" active="session" />
 
       <ScrollView
         contentContainerStyle={styles.scroll}
@@ -288,16 +289,22 @@ const ExpertRegistration: React.FC = () => {
 
           {/* Register */}
           <TouchableOpacity
-            style={[styles.registerBtn, loading && styles.registerBtnDisabled]}
             activeOpacity={0.8}
             onPress={handleSubmit(onSubmit)}
             disabled={loading}
           >
-            <Text style={styles.registerBtnText}>
-              {loading
-                ? isEditing ? 'Updating...' : 'Registering...'
-                : isEditing ? 'Update Profile' : 'Register as Expert'}
-            </Text>
+            <LinearGradient
+              colors={['#F3C36B', '#D49A3D']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={[styles.registerBtn, loading && styles.registerBtnDisabled]}
+            >
+              <Text style={styles.registerBtnText}>
+                {loading
+                  ? isEditing ? 'Updating...' : 'Registering...'
+                  : isEditing ? 'Update Profile' : 'Register as Expert'}
+              </Text>
+            </LinearGradient>
           </TouchableOpacity>
 
           {/* Cancel */}
@@ -318,7 +325,7 @@ const ExpertRegistration: React.FC = () => {
 export default ExpertRegistration;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
+  container: { flex: 1, backgroundColor: 'rgba(0,0,0,0.75)' },
 
   stepperRow: {
     flexDirection: 'row',
@@ -334,7 +341,7 @@ const styles = StyleSheet.create({
     width: wp(38),
     height: wp(38),
     borderRadius: wp(19),
-    backgroundColor: colors.surface,
+    backgroundColor: '#141414',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: hp(4),
@@ -364,7 +371,7 @@ const styles = StyleSheet.create({
   },
 
   card: {
-    backgroundColor: colors.surface,
+    backgroundColor: '#141414',
     borderRadius: wp(18),
     padding: wp(16),
   },
@@ -396,7 +403,7 @@ const styles = StyleSheet.create({
     fontSize: fp(14),
     color: colors.textPrimary,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: 'rgba(255,255,255,0.08)',
   },
   textArea: { minHeight: hp(80), paddingTop: hp(12) },
   inputRow: {
@@ -407,7 +414,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: 'rgba(255,255,255,0.08)',
   },
   inputError: { borderColor: colors.cError },
   inputInner: {
@@ -423,13 +430,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(14),
     paddingVertical: hp(12),
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: 'rgba(255,255,255,0.08)',
   },
   dropdownContainer: {
     borderRadius: wp(12),
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
+    borderColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: '#141414',
     shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
@@ -444,7 +451,7 @@ const styles = StyleSheet.create({
     fontSize: fp(13),
     color: colors.textPrimary,
     borderRadius: wp(8),
-    borderColor: colors.border,
+    borderColor: 'rgba(255,255,255,0.08)',
     height: hp(40),
   },
   selectedChipStyle: {
@@ -452,7 +459,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.goldDim,
   },
   registerBtn: {
-    backgroundColor: colors.gold,
     borderRadius: wp(14),
     paddingVertical: hp(16),
     alignItems: 'center',

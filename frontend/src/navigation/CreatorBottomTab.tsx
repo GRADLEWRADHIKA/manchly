@@ -61,13 +61,13 @@ const TabItem = ({ isFocused, icon: Icon, label, onPress }: any) => {
     >
       <Icon
         size={wp(22)}
-        color={isFocused ? colors.golden : colors.muted}
+        color={isFocused ? '#D69C40' : colors.muted}
         strokeWidth={isFocused ? 2.2 : 1.6}
       />
       <Text
         style={[
           styles.tabLabel,
-          { color: isFocused ? colors.golden : colors.muted },
+          { color: isFocused ? '#D69C40' : colors.muted },
         ]}
         numberOfLines={1}
       >

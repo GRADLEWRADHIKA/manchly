@@ -100,6 +100,13 @@ const VerifyLogin: React.FC<VerifyLoginProps> = ({
                 setOtpSuccess(true);
                 reset();
               })
+              .catch((err: any) => {
+                // An OTP is already active — advance so the user can enter it
+                if (err?.code === 'OTP_ALREADY_SENT') {
+                  setOtpSuccess(true);
+                  reset();
+                }
+              })
               .finally(() => setLoading(false));
           } else if (isEmail) {
             dispatch(sendOtpEmail(payload))
@@ -112,6 +119,13 @@ const VerifyLogin: React.FC<VerifyLoginProps> = ({
                 setOtpData(res?.data?.data?.otp);
                 setOtpSuccess(true);
                 reset();
+              })
+              .catch((err: any) => {
+                // An OTP is already active — advance so the user can enter it
+                if (err?.code === 'OTP_ALREADY_SENT') {
+                  setOtpSuccess(true);
+                  reset();
+                }
               })
               .finally(() => setLoading(false));
           } else {

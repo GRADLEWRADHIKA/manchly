@@ -12,9 +12,9 @@
  */
 
 // Local-dev toggle — flip to true LOCALLY only. Keep false on shared branches.
-const USE_LOCAL_BACKEND = false;
+const USE_LOCAL_BACKEND = true;
 
-const LOCAL_IP = "192.168.1.8";
+const LOCAL_IP = "192.168.1.11";
 const LOCAL_PORT = 8080;
 
 const LOCAL_URL = `http://${LOCAL_IP}:${LOCAL_PORT}/`;

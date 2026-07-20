@@ -12,40 +12,52 @@ export interface taskState {
 
 export const sendOtpSms = createAsyncThunk(
   'sendOtpSms',
-  async (data: object) => {
+  async (data: object, { rejectWithValue }) => {
     try {
       const url = 'auth/send-otp/sms';
       const requestBody = data;
       const response = await instance.post(url, requestBody);
       return response;
-    } catch (error) {
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: getApiErrorMessage(error, 'Failed to send OTP'),
-        position: 'bottom',
-      });
-      throw error;
+    } catch (error: any) {
+      const apiError = error?.response?.data?.error;
+      // "OTP already sent" is handled by advancing to the OTP screen — don't scare the user with an error toast.
+      if (apiError?.code !== 'OTP_ALREADY_SENT') {
+        Toast.show({
+          type: 'error',
+          text1: 'Error',
+          text2: getApiErrorMessage(error, 'Failed to send OTP'),
+          position: 'bottom',
+        });
+      }
+      return rejectWithValue(
+        apiError || { message: getApiErrorMessage(error, 'Failed to send OTP') },
+      );
     }
   },
 );
 
 export const sendOtpEmail = createAsyncThunk(
   'sendOtpEmail',
-  async (data: object) => {
+  async (data: object, { rejectWithValue }) => {
     try {
       const url = 'auth/send-otp/email';
       const requestBody = data;
       const response = await instance.post(url, requestBody);
       return response;
-    } catch (error) {
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: getApiErrorMessage(error, 'Failed to send OTP'),
-        position: 'bottom',
-      });
-      throw error;
+    } catch (error: any) {
+      const apiError = error?.response?.data?.error;
+      // "OTP already sent" is handled by advancing to the OTP screen — don't scare the user with an error toast.
+      if (apiError?.code !== 'OTP_ALREADY_SENT') {
+        Toast.show({
+          type: 'error',
+          text1: 'Error',
+          text2: getApiErrorMessage(error, 'Failed to send OTP'),
+          position: 'bottom',
+        });
+      }
+      return rejectWithValue(
+        apiError || { message: getApiErrorMessage(error, 'Failed to send OTP') },
+      );
     }
   },
 );

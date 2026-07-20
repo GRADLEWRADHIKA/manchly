@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
     borderRadius: wp(12),
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.info,
+    backgroundColor: colors.cBg,
   },
   backButtonPressed: {
     backgroundColor: 'rgba(255,255,255,0.',

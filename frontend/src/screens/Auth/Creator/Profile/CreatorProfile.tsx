@@ -665,16 +665,23 @@ const CreatorProfile = () => {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.updateButton, loading && { opacity: 0.6 }]}
+            style={[styles.updateButtonWrap, loading && { opacity: 0.6 }]}
             onPress={handleSubmit(onUpdate)}
             disabled={loading}
             activeOpacity={0.8}
           >
-            {loading ? (
-              <ActivityIndicator color={colors.white} />
-            ) : (
-              <Text style={styles.updateButtonText}>Save Changes</Text>
-            )}
+            <LinearGradient
+              colors={['#F3C36B', '#D49A3D']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.updateButton}
+            >
+              {loading ? (
+                <ActivityIndicator color={colors.white} />
+              ) : (
+                <Text style={styles.updateButtonText}>Save Changes</Text>
+              )}
+            </LinearGradient>
           </TouchableOpacity>
         </View>
       </KeyboardAwareScrollView>
@@ -732,7 +739,7 @@ export default CreatorProfile;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: colors.cBg,
   },
   scrollView: {
     flex: 1,
@@ -791,11 +798,11 @@ const styles = StyleSheet.create({
   profileName: {
     fontSize: fp(20),
     fontWeight: '800',
-    color: colors.white,
+    color: colors.textPrimary,
   },
   profileEmail: {
     fontSize: fp(13),
-    color: 'rgba(255,255,255,0.6)',
+    color: colors.cCard,
     marginTop: hp(2),
   },
   kycBadge: {
@@ -833,7 +840,7 @@ const styles = StyleSheet.create({
   completionPercent: {
     fontSize: fp(13),
     fontWeight: '800',
-    color: colors.white,
+    color: colors.textPrimary,
   },
   completionBarBg: {
     height: hp(6),
@@ -847,7 +854,7 @@ const styles = StyleSheet.create({
   },
   completionHint: {
     fontSize: fp(10),
-    color: 'rgba(255,255,255,0.45)',
+    color: colors.textPrimary,
     marginTop: hp(5),
   },
   socialRow: {
@@ -905,7 +912,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: fp(16),
     fontWeight: '700',
-    color: '#1A1A2E',
+    color: colors.textPrimary,
     marginHorizontal: wp(20),
     marginTop: hp(24),
     marginBottom: hp(10),
@@ -913,17 +920,17 @@ const styles = StyleSheet.create({
 
   // Form Card
   formCard: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.cCard,
     marginHorizontal: wp(16),
     borderRadius: wp(16),
     paddingVertical: hp(6),
     elevation: 2,
-    shadowColor: colors.black,
+    shadowColor: colors.cCard,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.04,
     shadowRadius: 6,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.cBorder,
   },
   fieldRow: {
     flexDirection: 'row',
@@ -935,7 +942,7 @@ const styles = StyleSheet.create({
     width: wp(36),
     height: wp(36),
     borderRadius: wp(10),
-    backgroundColor: '#F1F5F9',
+    backgroundColor: colors.cAccent,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: wp(12),
@@ -947,7 +954,7 @@ const styles = StyleSheet.create({
   fieldLabel: {
     fontSize: fp(12),
     fontWeight: '600',
-    color: '#64748B',
+    color: colors.textPrimary,
     marginBottom: hp(4),
   },
   fieldLabelRow: {
@@ -960,7 +967,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(3),
-    backgroundColor: '#F1F5F9',
+    backgroundColor: colors.cSurface,
     paddingHorizontal: wp(8),
     paddingVertical: hp(2),
     borderRadius: wp(6),
@@ -973,7 +980,7 @@ const styles = StyleSheet.create({
   input: {
     height: hp(42),
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.cBorder,
     borderRadius: wp(10),
     paddingHorizontal: wp(12),
     justifyContent: 'center',
@@ -1019,16 +1026,17 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: fp(15),
   },
+  updateButtonWrap: {
+    flex: 1,
+  },
   updateButton: {
-    flex: 2,
     height: hp(48),
     borderRadius: wp(12),
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#0F3460',
   },
   updateButtonText: {
-    color: colors.white,
+    color: colors.black,
     fontWeight: '700',
     fontSize: fp(15),
   },

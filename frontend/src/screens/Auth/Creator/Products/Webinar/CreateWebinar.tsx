@@ -13,7 +13,8 @@ import {
 import { useNavigation, useRoute } from '@react-navigation/native';
 import colors from '../../../../../utils/colors';
 import { wp, hp, fp } from '../../../../../utils/responsive';
-import AppHeaderWithBack from '../../../../../components/AppHeaderWithBack';
+import CreateStepHeader from '../../../../../components/CreateStepHeader';
+import LinearGradient from 'react-native-linear-gradient';
 import { Controller, useForm } from 'react-hook-form';
 import CustomTextInput from '../../../../../components/CustomInput';
 import { Dropdown } from 'react-native-element-dropdown';
@@ -219,9 +220,7 @@ const CreateWebinarScreen = () => {
 
   return (
     <View style={styles.safe}>
-      <AppHeaderWithBack
-        title={updatedata ? 'Update Webinar' : 'Create Webinar'}
-      />
+      <CreateStepHeader title="Webinar Details" active="webinar" />
 
       <View style={styles.container}>
         <KeyboardAvoidingView
@@ -232,6 +231,13 @@ const CreateWebinarScreen = () => {
             contentContainerStyle={styles.formScroll}
             showsVerticalScrollIndicator={false}
           >
+            <View style={styles.card}>
+            <View style={styles.banner}>
+              <Text style={styles.bannerTitle}>Webinar Details</Text>
+              <Text style={styles.bannerSub}>
+                Configure your live group sessions.
+              </Text>
+            </View>
             <View style={[styles.labelRow, { marginTop: hp(10), justifyContent: 'space-between' }]}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: wp(6) }}>
                 <Type size={wp(14)} color={'#F0C040'} />
@@ -262,7 +268,7 @@ const CreateWebinarScreen = () => {
                   inputContainerStyle={[
                     styles.nameFields,
                     {
-                      borderColor: error ? colors.cError : colors.border,
+                      borderColor: error ? colors.cError : 'rgba(255,255,255,0.08)',
                     },
                   ]}
                   inputStyle={{
@@ -299,7 +305,7 @@ const CreateWebinarScreen = () => {
                   inputContainerStyle={[
                     styles.nameFields,
                     {
-                      borderColor: error ? colors.cError : colors.border,
+                      borderColor: error ? colors.cError : 'rgba(255,255,255,0.08)',
                     },
                   ]}
                   inputStyle={{
@@ -449,7 +455,7 @@ const CreateWebinarScreen = () => {
                   inputContainerStyle={[
                     styles.nameFields,
                     {
-                      borderColor: error ? colors.cError : colors.border,
+                      borderColor: error ? colors.cError : 'rgba(255,255,255,0.08)',
                     },
                   ]}
                   inputStyle={{
@@ -480,7 +486,7 @@ const CreateWebinarScreen = () => {
                       inputContainerStyle={[
                         styles.nameFields,
                         {
-                          borderColor: error ? colors.cError : colors.border,
+                          borderColor: error ? colors.cError : 'rgba(255,255,255,0.08)',
                           width: '90%',
                           marginBottom: 0,
                         },
@@ -584,7 +590,7 @@ const CreateWebinarScreen = () => {
                   inputContainerStyle={[
                     styles.nameFields,
                     {
-                      borderColor: error ? colors.cError : colors.border,
+                      borderColor: error ? colors.cError : 'rgba(255,255,255,0.08)',
                     },
                   ]}
                   inputStyle={{
@@ -675,7 +681,7 @@ const CreateWebinarScreen = () => {
                     styles.nameFields,
                     styles.textArea,
                     {
-                      borderColor: error ? colors.cError : colors.border,
+                      borderColor: error ? colors.cError : 'rgba(255,255,255,0.08)',
                     },
                   ]}
                   inputStyle={{
@@ -691,6 +697,8 @@ const CreateWebinarScreen = () => {
                 />
               )}
             />
+
+            </View>
 
             <View style={{ marginHorizontal: wp(5) }}>
               <FacingIssues
@@ -714,17 +722,24 @@ const CreateWebinarScreen = () => {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.primaryButton, loading && { opacity: 0.7 }]}
             onPress={handleSubmit(updatedata ? onUpdateSubmit : onSubmit)}
             disabled={loading}
+            activeOpacity={0.85}
           >
-            {loading ? (
-              <ActivityIndicator color={colors.white} size="small" />
-            ) : (
-              <Text style={styles.primaryText}>
-                {updatedata ? 'Update Webinar' : 'Create Webinar'}
-              </Text>
-            )}
+            <LinearGradient
+              colors={['#F3C36B', '#D49A3D']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={[styles.primaryButton, loading && { opacity: 0.7 }]}
+            >
+              {loading ? (
+                <ActivityIndicator color={colors.black} size="small" />
+              ) : (
+                <Text style={styles.primaryText}>
+                  {updatedata ? 'Update Webinar' : 'Create Webinar'}
+                </Text>
+              )}
+            </LinearGradient>
           </TouchableOpacity>
         </View>
       </View>
@@ -737,7 +752,7 @@ export default CreateWebinarScreen;
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: colors.bg,
+    backgroundColor: 'rgba(0,0,0,0.75)',
   },
   container: {
     flex: 1,
@@ -749,6 +764,22 @@ const styles = StyleSheet.create({
   formScroll: {
     paddingBottom: hp(24),
   },
+  card: {
+    backgroundColor: '#141414',
+    borderRadius: wp(18),
+    padding: wp(16),
+    marginTop: hp(4),
+  },
+  banner: {
+    marginBottom: hp(8),
+  },
+  bannerTitle: { fontSize: fp(18), fontWeight: '700', color: '#FFFFFF' },
+  bannerSub: {
+    fontSize: fp(12),
+    color: 'rgba(255,255,255,0.55)',
+    marginTop: hp(4),
+    lineHeight: fp(18),
+  },
   labelRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -756,46 +787,41 @@ const styles = StyleSheet.create({
     marginBottom: hp(6),
   },
   label: {
-    fontSize: fp(13),
-    color: colors.textPrimary,
-    fontWeight: '600',
-    letterSpacing: 0.3,
+    fontSize: fp(11),
+    color: '#F0C040',
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
   },
   actions: {
-    flexDirection: 'row',
+    flexDirection: 'column-reverse',
     gap: wp(12),
     paddingVertical: hp(16),
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    backgroundColor: colors.surface,
   },
   cancelBtn: {
-    flex: 1,
-    paddingVertical: hp(10),
-    borderRadius: wp(12),
+    paddingVertical: hp(16),
+    borderRadius: wp(14),
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: colors.border,
+    borderWidth: wp(1.5),
+    borderColor: '#F0C040',
   },
   cancelText: {
-    color: colors.textSecondary,
-    fontWeight: '600',
-    fontSize: fp(15),
+    color: '#F0C040',
+    fontWeight: '700',
+    fontSize: fp(16),
   },
   primaryButton: {
-    flex: 2,
-    backgroundColor: colors.gold,
-    paddingVertical: hp(10),
-    borderRadius: wp(12),
+    paddingVertical: hp(16),
+    borderRadius: wp(14),
     alignItems: 'center',
     justifyContent: 'center',
   },
   primaryText: {
-    color: colors.bg,
+    color: colors.black,
     fontWeight: '800',
-    fontSize: fp(15),
+    fontSize: fp(16),
   },
   nameFields: {
     borderRadius: wp(10),
@@ -805,7 +831,7 @@ const styles = StyleSheet.create({
     borderWidth: wp(1),
     marginBottom: hp(10),
     backgroundColor: colors.inputBg,
-    borderColor: colors.border,
+    borderColor: 'rgba(255,255,255,0.08)',
     color: colors.textPrimary,
   },
   textArea: {
@@ -815,7 +841,7 @@ const styles = StyleSheet.create({
   dropdown: {
     height: hp(46),
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: 'rgba(255,255,255,0.08)',
     borderRadius: wp(12),
     paddingHorizontal: wp(14),
     justifyContent: 'center',
@@ -825,9 +851,9 @@ const styles = StyleSheet.create({
   dropdownContainer: {
     borderRadius: wp(12),
     overflow: 'hidden',
-    backgroundColor: colors.surface,
+    backgroundColor: '#141414',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: 'rgba(255,255,255,0.08)',
   },
   dropdownItem: {
     paddingHorizontal: wp(14),
@@ -864,7 +890,7 @@ const styles = StyleSheet.create({
     borderWidth: wp(1),
     borderRadius: wp(10),
     height: hp(46),
-    borderColor: colors.border,
+    borderColor: 'rgba(255,255,255,0.08)',
     paddingLeft: wp(12),
     marginBottom: hp(10),
     backgroundColor: colors.inputBg,
@@ -875,7 +901,7 @@ const styles = StyleSheet.create({
     borderRadius: wp(8),
     marginTop: hp(10),
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: 'rgba(255,255,255,0.08)',
   },
   customHeader: {
     flexDirection: 'row',

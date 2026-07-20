@@ -3,6 +3,7 @@ import React, { useEffect } from 'react';
 import { StatusBar, useColorScheme, View } from 'react-native';
 import { Provider } from 'react-redux';
 import Toast from 'react-native-toast-message';
+import { toastConfig } from './src/components/CustomToast';
 import Router from './src/navigation/Router';
 import { PaperProvider } from 'react-native-paper';
 import { PersistGate } from 'redux-persist/integration/react';
@@ -46,7 +47,7 @@ export default function App() {
                   barStyle="light-content"
                 />
                 <Router />
-                <Toast />
+                <Toast config={toastConfig} />
               </PaperProvider>
             </PersistGate>
           </Provider>

@@ -2,6 +2,7 @@ import React from 'react';
 import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
 import {ShieldCheck, ChevronRight} from 'lucide-react-native';
 import {useNavigation} from '@react-navigation/native';
+import LinearGradient from 'react-native-linear-gradient';
 import {wp, hp, fp} from '../../../../utils/responsive';
 import colors from '../../../../utils/colors';
 
@@ -20,7 +21,7 @@ const KycCard = () => {
       <View style={styles.row}>
         {/* Icon */}
         <View style={styles.iconWrap}>
-          <ShieldCheck size={wp(24)} color={colors.golden} />
+          <ShieldCheck size={wp(24)} color="#F2E4BC" />
         </View>
 
         {/* Content */}
@@ -35,11 +36,16 @@ const KycCard = () => {
 
       {/* CTA Button */}
       <TouchableOpacity
-        style={styles.button}
         onPress={handleVerifyKYC}
         activeOpacity={0.85}>
-        <Text style={styles.buttonText}>Verify Now</Text>
-        <ChevronRight size={wp(16)} color={colors.primary} />
+        <LinearGradient
+          colors={['#F3C36B', '#D49A3D']}
+          start={{x: 0, y: 0}}
+          end={{x: 1, y: 0}}
+          style={styles.button}>
+          <Text style={styles.buttonText}>Verify Now</Text>
+          <ChevronRight size={wp(16)} color={colors.primary} />
+        </LinearGradient>
       </TouchableOpacity>
     </TouchableOpacity>
   );
@@ -47,7 +53,7 @@ const KycCard = () => {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#14141F',
+    backgroundColor: '#141414',
     borderRadius: wp(18),
     padding: wp(16),
     borderWidth: 1,
@@ -66,8 +72,8 @@ const styles = StyleSheet.create({
   iconWrap: {
     width: wp(46),
     height: wp(46),
-    borderRadius: wp(23),
-    backgroundColor: 'rgba(255,182,6,0.12)',
+    borderRadius: wp(14),
+    backgroundColor: 'rgba(214,156,64,0.18)',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: wp(12),
@@ -91,7 +97,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: wp(6),
-    backgroundColor: colors.golden,
     paddingVertical: hp(12),
     borderRadius: wp(12),
   },

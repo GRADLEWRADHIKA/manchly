@@ -10,10 +10,9 @@ import {
   Platform,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { Shield, User, Calendar, CreditCard, Info } from 'lucide-react-native';
+import { Shield, ShieldUser, User, Calendar, CreditCard, Info, ArrowLeft } from 'lucide-react-native';
 import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
-import AppHeaderWithBack from '../../../../components/AppHeaderWithBack';
 import CustomTextInput from '../../../../components/CustomInput';
 import { verifyPAN } from '../../../../store/UserSlice';
 import { Controller, useForm } from 'react-hook-form';
@@ -21,12 +20,14 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import Toast from 'react-native-toast-message';
 import LinearGradient from 'react-native-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const KYCVerificationScreen: React.FC = () => {
   const dispatch = useDispatch<any>();
   const { user } = useSelector((state: any) => state.userReducer);
   const [loading, setLoading] = useState(false);
   const navigation = useNavigation<any>();
+  const insets = useSafeAreaInsets();
 
   const {
     control,
@@ -34,6 +35,7 @@ const KYCVerificationScreen: React.FC = () => {
     reset,
     formState: { errors },
   } = useForm({
+    mode: 'onChange',
     defaultValues: {
       full_name: user?.name || '',
       dob: user?.dob || '',
@@ -98,7 +100,17 @@ const KYCVerificationScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <AppHeaderWithBack title="KYC Verification" />
+      <View style={[styles.header, { paddingTop: insets.top + hp(6) }]}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          hitSlop={12}
+          activeOpacity={0.7}
+        >
+          <ArrowLeft color={colors.white} size={wp(24)} strokeWidth={2.2} />
+        </TouchableOpacity>
+        <Text style={styles.headerBarTitle}>KYC Verification</Text>
+        <View style={{ width: wp(24) }} />
+      </View>
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
@@ -111,16 +123,21 @@ const KYCVerificationScreen: React.FC = () => {
           keyboardShouldPersistTaps="handled"
         >
           {/* Header Card */}
-          <View style={styles.headerCard}>
+          <LinearGradient
+            colors={['rgba(255,184,0,0.10)', 'rgba(255,184,0,0.0)']}
+            start={{ x: 0.5, y: 0 }}
+            end={{ x: 0.5, y: 1 }}
+            style={styles.headerCard}
+          >
             <View style={styles.shieldIconWrapper}>
-              <Shield size={wp(28)} color={colors.golden} />
+              <ShieldUser size={wp(28)} color="#F2E4BC" />
             </View>
             <Text style={styles.headerTitle}>Verify Your Identity</Text>
             <Text style={styles.headerSubtitle}>
               Complete your KYC by verifying your PAN card details. This helps
               us ensure a safe and trusted platform.
             </Text>
-          </View>
+          </LinearGradient>
 
           {/* Info Banner */}
           <View style={styles.infoBanner}>
@@ -166,6 +183,7 @@ const KYCVerificationScreen: React.FC = () => {
                     }}
                     disabled={true}
                     onBlur={onBlur}
+                    inputStyle={styles.inputText}
                     inputContainerStyle={[
                       styles.input,
                       styles.disabledInput,
@@ -275,6 +293,7 @@ const KYCVerificationScreen: React.FC = () => {
                       onChange(panText.toUpperCase());
                     }}
                     onBlur={onBlur}
+                    inputStyle={styles.inputText}
                     inputContainerStyle={[
                       styles.input,
                       error ? styles.inputError : null,
@@ -297,21 +316,27 @@ const KYCVerificationScreen: React.FC = () => {
           <View style={styles.buttonContainer}>
             <TouchableOpacity
               disabled={loading}
-              style={[
-                styles.verifyButton,
-                loading && styles.verifyButtonDisabled,
-              ]}
               onPress={handleSubmit(onSubmit)}
               activeOpacity={0.8}
             >
-              {loading ? (
-                <View style={styles.loadingRow}>
-                  <ActivityIndicator color={colors.primary} size="small" />
-                  <Text style={styles.verifyButtonText}>Verifying...</Text>
-                </View>
-              ) : (
-                <Text style={styles.verifyButtonText}>Verify PAN</Text>
-              )}
+              <LinearGradient
+                colors={['#F3C36B', '#D49A3D']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={[
+                  styles.verifyButton,
+                  loading && styles.verifyButtonDisabled,
+                ]}
+              >
+                {loading ? (
+                  <View style={styles.loadingRow}>
+                    <ActivityIndicator color={colors.primary} size="small" />
+                    <Text style={styles.verifyButtonText}>Verifying...</Text>
+                  </View>
+                ) : (
+                  <Text style={styles.verifyButtonText}>Verify PAN</Text>
+                )}
+              </LinearGradient>
             </TouchableOpacity>
           </View>
 
@@ -334,7 +359,19 @@ export default KYCVerificationScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.primary,
+    backgroundColor: 'rgba(0,0,0,0.75)',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: wp(16),
+    paddingBottom: hp(12),
+  },
+  headerBarTitle: {
+    fontSize: fp(18),
+    fontWeight: '700',
+    color: colors.white,
   },
   scrollView: {
     flex: 1,
@@ -349,15 +386,15 @@ const styles = StyleSheet.create({
     borderRadius: wp(16),
     padding: wp(24),
     alignItems: 'center',
-    backgroundColor: '#14141F',
     borderWidth: 1,
-    borderColor: 'rgba(255,182,6,0.35)',
+    borderColor: 'rgba(255,184,0,0.20)',
+    overflow: 'hidden',
   },
   shieldIconWrapper: {
     width: wp(56),
     height: wp(56),
-    borderRadius: wp(28),
-    backgroundColor: 'rgba(255,182,6,0.1)',
+    borderRadius: wp(16),
+    backgroundColor: 'rgba(214,156,64,0.18)',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: hp(12),
@@ -398,7 +435,7 @@ const styles = StyleSheet.create({
   },
   // Form
   formSection: {
-    backgroundColor: '#14141F',
+    backgroundColor: '#1A1A1A',
     marginHorizontal: wp(16),
     marginTop: hp(16),
     borderRadius: wp(16),
@@ -417,7 +454,7 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: fp(14),
     fontWeight: '600',
-    color: 'rgba(255,255,255,0.85)',
+    color: '#D5C4AB',
     marginLeft: wp(6),
   },
   labelHint: {
@@ -429,12 +466,16 @@ const styles = StyleSheet.create({
     borderRadius: wp(10),
     paddingHorizontal: wp(14),
     height: hp(48),
-    backgroundColor: colors.primary,
+    backgroundColor: '#0E0E0E',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
+    borderColor: 'rgba(255,255,255,0.08)',
+  },
+  inputText: {
+    color: '#FFFFFF',
+    fontSize: fp(15),
   },
   disabledInput: {
-    backgroundColor: '#0a0a0f',
+    backgroundColor: '#0E0E0E',
   },
   inputError: {
     borderColor: colors.error,
@@ -469,7 +510,6 @@ const styles = StyleSheet.create({
     marginTop: hp(20),
   },
   verifyButton: {
-    backgroundColor: colors.golden,
     borderRadius: wp(12),
     paddingVertical: hp(16),
     alignItems: 'center',

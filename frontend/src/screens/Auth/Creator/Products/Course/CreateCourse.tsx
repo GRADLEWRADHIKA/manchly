@@ -10,7 +10,8 @@ import {
   Platform,
   Image,
 } from 'react-native';
-import AppHeaderWithBack from '../../../../../components/AppHeaderWithBack';
+import CreateStepHeader from '../../../../../components/CreateStepHeader';
+import LinearGradient from 'react-native-linear-gradient';
 import Toast from 'react-native-toast-message';
 import colors from '../../../../../utils/colors';
 import { wp, hp, fp } from '../../../../../utils/responsive';
@@ -188,9 +189,7 @@ const CreateCourse = () => {
 
   return (
     <View style={styles.root}>
-      <AppHeaderWithBack
-        title={isUpdated ? 'Update Course' : 'Create Course'}
-      />
+      <CreateStepHeader title="Course Details" active="course" />
 
       <KeyboardAvoidingView
         style={styles.flex}
@@ -201,6 +200,13 @@ const CreateCourse = () => {
           contentContainerStyle={styles.scrollArea}
           showsVerticalScrollIndicator={false}
         >
+          <View style={styles.card}>
+          <View style={styles.banner}>
+            <Text style={styles.bannerTitle}>Course Details</Text>
+            <Text style={styles.bannerSub}>
+              Set up your course and start teaching.
+            </Text>
+          </View>
           {/* Title */}
           <View style={[styles.labelRow, { justifyContent: 'space-between' }]}>
             <View
@@ -403,6 +409,7 @@ const CreateCourse = () => {
             title="facing issues in upload"
             messgae="Hello, I need help with uploading."
           />
+          </View>
         </ScrollView>
 
         {/* Bottom Actions */}
@@ -419,17 +426,24 @@ const CreateCourse = () => {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.primaryBtn, loading && { opacity: 0.7 }]}
             onPress={handleSubmit(isUpdated ? onCourseUpdate : onCreateCourse)}
             disabled={loading}
+            activeOpacity={0.85}
           >
-            {loading ? (
-              <ActivityIndicator size="small" color={colors.white} />
-            ) : (
-              <Text style={styles.primaryText}>
-                {isUpdated ? 'Update Course' : 'Create Course'}
-              </Text>
-            )}
+            <LinearGradient
+              colors={['#F3C36B', '#D49A3D']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={[styles.primaryBtn, loading && { opacity: 0.7 }]}
+            >
+              {loading ? (
+                <ActivityIndicator size="small" color={colors.black} />
+              ) : (
+                <Text style={styles.primaryText}>
+                  {isUpdated ? 'Update Course' : 'Create Course'}
+                </Text>
+              )}
+            </LinearGradient>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -442,7 +456,7 @@ export default CreateCourse;
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: colors.bg,
+    backgroundColor: 'rgba(0,0,0,0.75)',
   },
   flex: {
     flex: 1,
@@ -450,6 +464,21 @@ const styles = StyleSheet.create({
   scrollArea: {
     padding: wp(16),
     paddingBottom: hp(24),
+  },
+  card: {
+    backgroundColor: '#141414',
+    borderRadius: wp(18),
+    padding: wp(16),
+  },
+  banner: {
+    marginBottom: hp(8),
+  },
+  bannerTitle: { fontSize: fp(18), fontWeight: '700', color: '#FFFFFF' },
+  bannerSub: {
+    fontSize: fp(12),
+    color: 'rgba(255,255,255,0.55)',
+    marginTop: hp(4),
+    lineHeight: fp(18),
   },
 
   // Labels
@@ -461,10 +490,11 @@ const styles = StyleSheet.create({
     marginBottom: hp(6),
   },
   label: {
-    fontSize: fp(13),
-    color: colors.textPrimary,
-    fontWeight: '600',
-    letterSpacing: 0.3,
+    fontSize: fp(11),
+    color: '#F0C040',
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
   },
 
   // Inputs
@@ -475,7 +505,7 @@ const styles = StyleSheet.create({
     width: '100%',
     backgroundColor: colors.inputBg,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: 'rgba(255,255,255,0.08)',
     color: colors.textPrimary,
   },
   textArea: {
@@ -511,14 +541,14 @@ const styles = StyleSheet.create({
     borderRadius: wp(12),
     marginTop: hp(10),
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: 'rgba(255,255,255,0.08)',
   },
 
   // Dropdowns
   dropdown: {
     height: hp(46),
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: 'rgba(255,255,255,0.08)',
     borderRadius: wp(12),
     paddingHorizontal: wp(14),
     justifyContent: 'center',
@@ -527,9 +557,9 @@ const styles = StyleSheet.create({
   dropdownContainer: {
     borderRadius: wp(12),
     overflow: 'hidden',
-    backgroundColor: colors.cSurface,
+    backgroundColor: '#141414',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: 'rgba(255,255,255,0.08)',
   },
   dropdownItem: {
     paddingHorizontal: wp(14),
@@ -560,40 +590,34 @@ const styles = StyleSheet.create({
 
   // Bottom Actions
   actions: {
-    flexDirection: 'row',
+    flexDirection: 'column-reverse',
     gap: wp(12),
     paddingHorizontal: wp(16),
     paddingVertical: hp(14),
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    backgroundColor: colors.surface,
   },
   cancelBtn: {
-    flex: 1,
-    paddingVertical: hp(14),
-    borderRadius: wp(12),
+    paddingVertical: hp(16),
+    borderRadius: wp(14),
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: colors.border,
+    borderWidth: wp(1.5),
+    borderColor: '#F0C040',
   },
   cancelText: {
-    color: colors.textSecondary,
-    fontWeight: '600',
-    fontSize: fp(15),
+    color: '#F0C040',
+    fontWeight: '700',
+    fontSize: fp(16),
   },
   primaryBtn: {
-    flex: 2,
-    backgroundColor: colors.gold,
-    paddingVertical: hp(14),
-    borderRadius: wp(12),
+    paddingVertical: hp(16),
+    borderRadius: wp(14),
     alignItems: 'center',
     justifyContent: 'center',
   },
   primaryText: {
-    color: colors.bg,
+    color: colors.black,
     fontWeight: '800',
-    fontSize: fp(15),
+    fontSize: fp(16),
   },
 });

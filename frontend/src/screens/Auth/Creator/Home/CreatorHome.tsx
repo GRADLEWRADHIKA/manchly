@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -18,13 +18,14 @@ import {
   Bell,
   ChevronRight,
   Sparkles,
+  Bot,
   BookOpen,
   Users,
   Award,
+  Calendar,
   AtSign,
   Video as VideoIcon,
   Phone,
-  MessageSquare,
 } from 'lucide-react-native';
 import Svg, { Circle as SvgCircle, Path as SvgPath } from 'react-native-svg';
 import colors from '../../../../utils/colors';
@@ -34,6 +35,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import LinearGradient from 'react-native-linear-gradient';
+import RocketIcon from '../../../../components/RocketIcon';
 import { getCreatorSales } from '../../../../store/PaymentSlice';
 import {
   fetchCourses,
@@ -173,39 +175,6 @@ const CreatorHome = () => {
   const withdrawableBalance = walletData?.available_balance || 0;
   const totalRevenueAmount = walletData?.total_net_earnings || 0;
 
-  const milestones = useMemo(
-    () => [
-      { label: 'Create your account', pts: 10, completed: true },
-      { label: 'Complete your profile', pts: 2, completed: true },
-      {
-        label: 'Publish your first course',
-        pts: 30,
-        completed: courses.length > 0,
-      },
-      {
-        label: 'Go Live once',
-        pts: 20,
-        completed: webiniarData.length > 0,
-      },
-      {
-        label: 'Get your first student',
-        pts: 40,
-        completed: !!creatorStats?.statistics?.total_enrollments,
-      },
-    ],
-    [creatorStats, creatorWebinarStats],
-  );
-
-  const totalPts = milestones.reduce((sum, m) => sum + m.pts, 0);
-  const earnedPts = milestones.reduce(
-    (sum, m) => sum + (m.completed ? m.pts : 0),
-    0,
-  );
-  const progressPercent = Math.round((earnedPts / totalPts) * 100);
-  const circumference = 2 * Math.PI * wp(28);
-  const progressOffset = circumference * (1 - progressPercent / 100);
-  const allCompleted = milestones.every(m => m.completed);
-
   const formatAmount = (amount: number) => {
     return amount.toLocaleString('en-IN', {
       minimumFractionDigits: 0,
@@ -266,10 +235,12 @@ const CreatorHome = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* KYC Card */}
-        <View style={styles.sectionPadding}>
-          <KycCard />
-        </View>
+        {/* KYC Card — hidden once identity is verified */}
+        {!user?.kyc_verified && (
+          <View style={styles.sectionPadding}>
+            <KycCard />
+          </View>
+        )}
 
         {/* Revenue + Performance split row */}
         <View style={[styles.sectionPadding, styles.splitRow]}>
@@ -293,12 +264,15 @@ const CreatorHome = () => {
                 fill="none"
                 strokeLinecap="round"
               />
+              <SvgCircle cx={150} cy={6} r={3.5} fill={colors.golden} />
             </Svg>
           </View>
 
           {/* Performance mini card */}
           <View style={styles.performanceMiniCard}>
-            <Text style={styles.miniLabel}>PERFORMANCE</Text>
+            <Text style={[styles.miniLabel, { color: colors.white }]}>
+              PERFORMANCE
+            </Text>
             <View style={styles.perfRow}>
               <BookOpen size={wp(13)} color={colors.golden} />
               <Text style={styles.perfLabel}>Courses</Text>
@@ -317,7 +291,7 @@ const CreatorHome = () => {
               <Text style={styles.perfValue}>{webiniarData.length}</Text>
             </View>
             <View style={styles.perfRow}>
-              <Award size={wp(13)} color={colors.golden} />
+              <Calendar size={wp(13)} color={colors.golden} />
               <Text style={styles.perfLabel}>Sessions</Text>
               <Text style={styles.perfValue}>
                 {creatorWebinarStats?.statistics?.webinars_sold ?? 0}
@@ -329,7 +303,7 @@ const CreatorHome = () => {
         {/* Launch / Course Progress Card */}
         <View style={styles.sectionPadding}>
           <LinearGradient
-            colors={['#1A1A2E', '#16213E', '#0F3460']}
+            colors={['#1E1E1E', '#141414']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.launchCard}
@@ -342,24 +316,14 @@ const CreatorHome = () => {
                   Course
                 </Text>
                 <Text style={styles.launchSubtitle}>
-                  You're {progressPercent}% ready to go live.{'\n'}Turn
-                  expertise into income.
+                  Turn your expertise into income.{'\n'}Publish your course and
+                  go live.
                 </Text>
               </View>
-              <Text style={styles.launchEmoji}>📚</Text>
+              <View style={styles.rocketBox}>
+                <RocketIcon size={wp(32)} color="rgba(213,196,171,0.6)" />
+              </View>
             </View>
-
-            <View style={styles.progressBarTrack}>
-              <View
-                style={[
-                  styles.progressBarFill,
-                  { width: `${progressPercent}%` },
-                ]}
-              />
-            </View>
-            <Text style={styles.progressBarLabel}>
-              {progressPercent}% Complete
-            </Text>
 
             <TouchableOpacity
               activeOpacity={0.85}
@@ -370,10 +334,16 @@ const CreatorHome = () => {
                   navigation.navigate('KYCVerificationScreen');
                 }
               }}
-              style={styles.ctaButton}
             >
-              <Text style={styles.ctaText}>Complete Checklist</Text>
-              <ChevronRight size={wp(18)} color={colors.primary} />
+              <LinearGradient
+                colors={['#F3C36B', '#D49A3D']}
+                start={{x: 0, y: 0}}
+                end={{x: 1, y: 0}}
+                style={styles.ctaButton}
+              >
+                <Text style={styles.ctaText}>Complete Checklist</Text>
+                <ChevronRight size={wp(18)} color={colors.primary} />
+              </LinearGradient>
             </TouchableOpacity>
           </LinearGradient>
         </View>
@@ -394,7 +364,7 @@ const CreatorHome = () => {
               }}
             >
               <View style={styles.quickActionIconWrap}>
-                <VideoIcon size={wp(20)} color={colors.golden} />
+                <VideoIcon size={wp(20)} color="#F2E4BC" />
               </View>
               <Text style={styles.quickActionText}>Go live</Text>
             </TouchableOpacity>
@@ -402,51 +372,28 @@ const CreatorHome = () => {
             <TouchableOpacity
               activeOpacity={0.85}
               style={styles.quickActionCard}
-              onPress={() => {
-                Toast.show({
-                  type: 'info',
-                  text1: '1:1 Sessions coming soon',
-                });
-              }}
+              onPress={() =>
+                navigation.navigate('ProductsScreen', { initialTab: 'Sessions' })
+              }
             >
               <View style={styles.quickActionIconWrap}>
-                <Phone size={wp(20)} color={colors.golden} />
+                <Phone size={wp(20)} color="#F2E4BC" />
               </View>
               <Text style={styles.quickActionText}>1:1 Sessions</Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* Creator Center Banner */}
-        <View style={styles.sectionPadding}>
-          <TouchableOpacity
-            activeOpacity={0.85}
-            style={styles.creatorCenterRow}
-            onPress={() => {
-              Toast.show({ type: 'info', text1: 'Creator Center coming soon' });
-            }}
-          >
-            <View style={styles.creatorCenterIconWrap}>
-              <MessageSquare size={wp(18)} color={colors.golden} />
-            </View>
-            <Text style={styles.creatorCenterText}>Creator Center</Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: wp(2) }}>
-              <Text style={styles.creatorCenterLink}>Go to Hub</Text>
-              <ChevronRight size={wp(16)} color="rgba(255,255,255,0.5)" />
-            </View>
-          </TouchableOpacity>
-        </View>
-
         {/* AI Content Assistant */}
         <View style={styles.sectionPadding}>
           <LinearGradient
-            colors={['#1A1A2E', '#16213E', '#0F3460']}
+            colors={['#1A1A1A', '#141414']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.aiCard}
           >
             <View style={styles.aiBadge}>
-              <Sparkles size={wp(12)} color={colors.golden} />
+              <Bot size={wp(14)} color={colors.golden} />
               <Text style={styles.aiBadgeText}>AI CONTENT ASSISTANT</Text>
             </View>
             <Text style={styles.aiTitle}>Suggested: Host a Live Q&A</Text>
@@ -455,30 +402,6 @@ const CreatorHome = () => {
               live session could increase your retention by up to 15%. Your
               subscribers are asking about "Color Grading Workflow".
             </Text>
-            <View style={styles.aiButtonsRow}>
-              <TouchableOpacity
-                activeOpacity={0.85}
-                style={styles.aiScheduleBtn}
-                onPress={() => {
-                  if (user?.kyc_verified) {
-                    navigation.navigate('CreateWebinar');
-                  } else {
-                    navigation.navigate('KYCVerificationScreen');
-                  }
-                }}
-              >
-                <Text style={styles.aiScheduleText}>Schedule Now</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                activeOpacity={0.85}
-                style={styles.aiDraftBtn}
-                onPress={() => {
-                  Toast.show({ type: 'info', text1: 'Draft saved' });
-                }}
-              >
-                <Text style={styles.aiDraftText}>Draft Post</Text>
-              </TouchableOpacity>
-            </View>
           </LinearGradient>
         </View>
       </ScrollView>
@@ -532,12 +455,12 @@ export default CreatorHome;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.primary,
+    backgroundColor: 'rgba(0,0,0,0.75)',
   },
 
   // Header
   headerWrapper: {
-    backgroundColor: colors.primary,
+    backgroundColor: 'transparent',
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
   },
@@ -619,7 +542,7 @@ const styles = StyleSheet.create({
   },
   revenueMiniCard: {
     flex: 1,
-    backgroundColor: '#14141F',
+    backgroundColor: '#141414',
     borderRadius: wp(18),
     padding: wp(14),
     borderWidth: 1,
@@ -628,7 +551,7 @@ const styles = StyleSheet.create({
   },
   performanceMiniCard: {
     flex: 1,
-    backgroundColor: '#14141F',
+    backgroundColor: '#141414',
     borderRadius: wp(18),
     padding: wp(14),
     borderWidth: 1,
@@ -664,7 +587,7 @@ const styles = StyleSheet.create({
   perfLabel: {
     flex: 1,
     fontSize: fp(11.5),
-    color: 'rgba(255,255,255,0.65)',
+    color: '#D5C4AB',
     fontWeight: '500',
   },
   perfValue: {
@@ -677,6 +600,9 @@ const styles = StyleSheet.create({
   launchCard: {
     borderRadius: wp(20),
     padding: wp(20),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
+    overflow: 'hidden',
     shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.2,
@@ -701,27 +627,16 @@ const styles = StyleSheet.create({
     lineHeight: fp(19),
     marginTop: hp(6),
   },
-  launchEmoji: {
-    fontSize: fp(36),
+  rocketBox: {
+    width: wp(60),
+    height: wp(60),
+    borderRadius: wp(16),
+    borderWidth: 1,
+    borderColor: 'rgba(213,196,171,0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginLeft: wp(8),
-  },
-  progressBarTrack: {
-    height: hp(10),
-    borderRadius: wp(6),
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    overflow: 'hidden',
-    marginBottom: hp(8),
-  },
-  progressBarFill: {
-    height: '100%',
-    borderRadius: wp(6),
-    backgroundColor: colors.golden,
-  },
-  progressBarLabel: {
-    fontSize: fp(12),
-    color: 'rgba(255,255,255,0.6)',
-    fontWeight: '600',
-    marginBottom: hp(16),
+    transform: [{ rotate: '-12deg' }],
   },
 
   // CTA (shared golden button style)
@@ -730,7 +645,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: wp(6),
-    backgroundColor: colors.golden,
     borderRadius: wp(14),
     paddingVertical: hp(14),
   },
@@ -753,7 +667,7 @@ const styles = StyleSheet.create({
   },
   quickActionCard: {
     flex: 1,
-    backgroundColor: '#14141F',
+    backgroundColor: '#141414',
     borderRadius: wp(16),
     paddingVertical: hp(18),
     alignItems: 'center',
@@ -764,7 +678,7 @@ const styles = StyleSheet.create({
     width: wp(44),
     height: wp(44),
     borderRadius: wp(22),
-    backgroundColor: 'rgba(255,182,6,0.12)',
+    backgroundColor: 'rgba(214,156,64,0.18)',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: hp(8),
@@ -772,47 +686,13 @@ const styles = StyleSheet.create({
   quickActionText: {
     fontSize: fp(13),
     fontWeight: '700',
-    color: colors.white,
-  },
-
-  // Creator Center
-  creatorCenterRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#14141F',
-    borderRadius: wp(16),
-    paddingVertical: hp(16),
-    paddingHorizontal: wp(16),
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
-  },
-  creatorCenterIconWrap: {
-    width: wp(36),
-    height: wp(36),
-    borderRadius: wp(10),
-    backgroundColor: 'rgba(255,182,6,0.12)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: wp(12),
-  },
-  creatorCenterText: {
-    flex: 1,
-    fontSize: fp(14.5),
-    fontWeight: '700',
-    color: colors.white,
-  },
-  creatorCenterLink: {
-    fontSize: fp(12.5),
-    fontWeight: '600',
-    color: 'rgba(255,255,255,0.5)',
+    color: '#D5C4AB',
   },
 
   // AI Content Assistant
   aiCard: {
     borderRadius: wp(20),
     padding: wp(20),
-    borderWidth: 1,
-    borderColor: 'rgba(255,182,6,0.35)',
     shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.2,
@@ -848,9 +728,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: wp(10),
   },
-  aiScheduleBtn: {
+  aiScheduleWrap: {
     flex: 1,
-    backgroundColor: colors.golden,
+  },
+  aiScheduleBtn: {
     borderRadius: wp(12),
     paddingVertical: hp(13),
     alignItems: 'center',
@@ -866,12 +747,12 @@ const styles = StyleSheet.create({
     paddingVertical: hp(13),
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
+    borderColor: 'rgba(214,156,64,0.5)',
   },
   aiDraftText: {
     fontSize: fp(13.5),
     fontWeight: '700',
-    color: colors.white,
+    color: '#D69C40',
   },
 
   // Floating Intro Video

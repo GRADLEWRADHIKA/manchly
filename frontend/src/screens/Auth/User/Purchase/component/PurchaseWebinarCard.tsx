@@ -14,6 +14,7 @@ import colors from '../../../../../utils/colors';
 import { Calendar, Clock, User, Video, Radio, Copy, Eye, EyeOff } from 'lucide-react-native';
 import moment from 'moment-timezone';
 import { wp, hp, fp } from '../../../../../utils/responsive';
+import LinearGradient from 'react-native-linear-gradient';
 
 const PurchaseWebinarCard = ({ item }) => {
   const webinar = item?.webinar;
@@ -189,7 +190,7 @@ const PurchaseWebinarCard = ({ item }) => {
           </View>
         )}
 
-        {/* Footer */}
+       {/* Footer */}
         <View style={styles.footerRow}>
           <View style={styles.priceContainer}>
             <Text style={styles.priceLabel}>Paid</Text>
@@ -198,17 +199,28 @@ const PurchaseWebinarCard = ({ item }) => {
 
           <Pressable
             style={({ pressed }) => [
-              styles.joinBtn,
+              styles.joinBtnWrapper,
               pressed && styles.joinBtnPressed,
-              !isUpcoming && styles.joinBtnDisabled,
             ]}
             onPress={handleJoin}
             disabled={!isUpcoming}
           >
-            <Video size={wp(16)} color={colors.white} strokeWidth={2} />
-            <Text style={styles.joinText}>
-              {isUpcoming ? 'Join Webinar' : 'Ended'}
-            </Text>
+            <LinearGradient
+              // If upcoming, show gradient. If ended, show solid disabled color.
+              colors={
+                isUpcoming
+                  ? [colors.btnGradientStart, colors.btnGradientEnd]
+                  : ['#94a3b8', '#94a3b8']
+              }
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.joinBtnGradient}
+            >
+              <Video size={wp(16)} color={colors.white} strokeWidth={2} />
+              <Text style={styles.joinText}>
+                {isUpcoming ? 'Join Webinar' : 'Ended'}
+              </Text>
+            </LinearGradient>
           </Pressable>
         </View>
       </View>
@@ -428,7 +440,19 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.textPrimary,
   },
-
+  // --- Updated Button Styles ---
+  joinBtnWrapper: {
+    borderRadius: wp(12),
+    overflow: 'hidden', 
+  },
+  joinBtnGradient: {
+    paddingVertical: hp(10),
+    paddingHorizontal: wp(18),
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: wp(6),
+  },
   joinBtn: {
     backgroundColor: colors.info,
     paddingVertical: hp(10),

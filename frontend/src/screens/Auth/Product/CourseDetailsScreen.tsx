@@ -35,6 +35,7 @@ import { getCourseById } from '../../../store/CourseSlice';
 import { createPaymentOrder, verifyPayment } from '../../../store/PaymentSlice';
 import { getEnrolledCourses } from '../../../store/EnrollmentSlice';
 import NotificationService from '../../../services/NotificationService';
+import LinearGradient from 'react-native-linear-gradient';
 
 const CourseDetailsScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -323,19 +324,27 @@ const CourseDetailsScreen: React.FC = () => {
         ) : (
           <TouchableOpacity
             style={[
-              styles.purchaseButton,
+              styles.purchaseButtonWrapper,
               (purchasing || loading) && styles.purchaseButtonDisabled,
             ]}
             onPress={handlePurchase}
             disabled={purchasing || loading}
+            activeOpacity={0.85}
           >
-            {purchasing || loading ? (
-              <ActivityIndicator color={colors.white} />
-            ) : (
-              <Text style={styles.purchaseText}>
-                Purchase for ₹{total.toFixed(2)}
-              </Text>
-            )}
+            <LinearGradient
+              colors={[colors.btnGradientStart, colors.btnGradientEnd]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.purchaseButtonGradient}
+            >
+              {purchasing || loading ? (
+                <ActivityIndicator color={colors.white} />
+              ) : (
+                <Text style={styles.purchaseText}>
+                  Purchase for ₹{total.toFixed(2)}
+                </Text>
+              )}
+            </LinearGradient>
           </TouchableOpacity>
         )}
       </View>
@@ -420,6 +429,16 @@ const styles = StyleSheet.create({
     padding: wp(16),
     borderTopWidth: wp(1),
     borderColor: colors.border,
+  },
+  // --- Updated Button Styles ---
+  purchaseButtonWrapper: {
+    borderRadius: wp(12),
+    overflow: 'hidden', // Ensures gradient respects the border radius
+  },
+  purchaseButtonGradient: {
+    paddingVertical: hp(16),
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   purchaseButton: {
     backgroundColor: colors.info,

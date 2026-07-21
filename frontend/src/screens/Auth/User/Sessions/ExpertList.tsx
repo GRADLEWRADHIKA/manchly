@@ -17,6 +17,7 @@ import {
   Video,
   Search,
 } from 'lucide-react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import colors from '../../../../utils/colors';
 import {wp, hp, fp} from '../../../../utils/responsive';
 import AppHeaderWithBack from '../../../../components/AppHeaderWithBack';
@@ -63,11 +64,25 @@ const ExpertCard = ({item, onPress}: {item: any; onPress: () => void}) => {
         {/* Right side */}
         <View style={styles.cardRight}>
           <Text style={styles.priceText}>₹{expert.video_rate}/min</Text>
-          <View style={[styles.bookBtn, !expert.is_available && styles.bookBtnOffline]}>
-            <Text style={[styles.bookBtnText, !expert.is_available && styles.bookBtnTextOffline]}>
-              {expert.is_available ? 'Book' : 'Offline'}
-            </Text>
+          
+          {/* Gradient Book Button */}
+          <View style={[styles.bookBtnWrapper, !expert.is_available && styles.bookBtnOffline]}>
+            <LinearGradient
+              colors={
+                expert.is_available
+                  ? [colors.btnGradientStart, colors.btnGradientEnd]
+                  : [colors.surface, colors.surface]
+              }
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.bookBtnGradient}
+            >
+              <Text style={[styles.bookBtnText, !expert.is_available && styles.bookBtnTextOffline]}>
+                {expert.is_available ? 'Book' : 'Offline'}
+              </Text>
+            </LinearGradient>
           </View>
+
         </View>
       </View>
     </TouchableOpacity>
@@ -273,16 +288,27 @@ const styles = StyleSheet.create({
     gap: hp(6),
     marginLeft: wp(8),
   },
-  priceText: {fontSize: fp(12), fontWeight: '700', color: colors.info},
-  bookBtn: {
-    backgroundColor: colors.info,
+  priceText: {fontSize: fp(12), fontWeight: '700', color: colors.cAccent},
+  
+  // --- Updated Button Styles ---
+  bookBtnWrapper: {
     borderRadius: wp(8),
+    overflow: 'hidden',
+  },
+  bookBtnGradient: {
     paddingHorizontal: wp(12),
     paddingVertical: hp(5),
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  bookBtnOffline: {backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.secPrimary},
+  bookBtnOffline: {
+    borderWidth: 1,
+    borderColor: colors.secPrimary,
+  },
   bookBtnText: {fontSize: fp(11), fontWeight: '600', color: colors.white},
   bookBtnTextOffline: {color: colors.textPrimary},
+  // -----------------------------
+
   emptyWrap: {alignItems: 'center', paddingTop: hp(60), gap: hp(10)},
   emptyTitle: {fontSize: fp(16), fontWeight: '600', color: colors.text},
   emptyText: {fontSize: fp(13), color: colors.textPrimary, textAlign: 'center', paddingHorizontal: wp(40)},

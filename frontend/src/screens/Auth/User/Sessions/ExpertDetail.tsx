@@ -27,6 +27,7 @@ import {
   CFDropCheckoutPayment,
   CFThemeBuilder,
 } from 'cashfree-pg-api-contract';
+import LinearGradient from 'react-native-linear-gradient';
 import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
 import AppHeaderWithBack from '../../../../components/AppHeaderWithBack';
@@ -449,7 +450,12 @@ const ExpertDetail: React.FC = () => {
         {/* Book a Session */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Book a Video Session</Text>
-          <View style={styles.videoRateCard}>
+          <LinearGradient
+            colors={[colors.btnGradientStart, colors.btnGradientEnd]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.videoRateCard}
+          >
             <Video
               size={wp(20)}
               color={colors.white}
@@ -458,7 +464,7 @@ const ExpertDetail: React.FC = () => {
             <Text style={styles.videoRateText}>
               Video Call · ₹{videoRate}/min
             </Text>
-          </View>
+          </LinearGradient>
         </View>
 
         {/* Select Date */}
@@ -519,7 +525,7 @@ const ExpertDetail: React.FC = () => {
         {/* Select Time */}
         <View style={styles.section}>
           <View style={styles.sectionHeaderRow}>
-            <Clock size={wp(16)} color={colors.text} strokeWidth={1.8} />
+            <Clock size={wp(16)} color={colors.textPrimary} strokeWidth={1.8} />
             <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>
               Select Time
             </Text>
@@ -589,15 +595,22 @@ const ExpertDetail: React.FC = () => {
         </View>
         <TouchableOpacity
           style={[
-            styles.bottomBtn,
+            styles.bottomBtnWrapper,
             !selectedTime && styles.bottomBtnDisabled,
           ]}
           activeOpacity={0.8}
           disabled={!selectedTime}
           onPress={() => setShowConfirm(true)}
         >
-          <Video size={wp(16)} color={colors.white} strokeWidth={2} />
-          <Text style={styles.bottomBtnText}>Book Now</Text>
+          <LinearGradient
+            colors={[colors.btnGradientStart, colors.btnGradientEnd]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.bottomBtnGradient}
+          >
+            <Video size={wp(16)} color={colors.white} strokeWidth={2} />
+            <Text style={styles.bottomBtnText}>Book Now</Text>
+          </LinearGradient>
         </TouchableOpacity>
       </View>
 
@@ -701,7 +714,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(10),
-    backgroundColor: colors.info,
     borderRadius: wp(14),
     paddingVertical: hp(14),
     paddingHorizontal: wp(16),
@@ -709,7 +721,7 @@ const styles = StyleSheet.create({
   videoRateText: {
     fontSize: fp(14),
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: colors.white,
   },
   sectionHeaderRow: {
     flexDirection: 'row',
@@ -728,8 +740,8 @@ const styles = StyleSheet.create({
     borderColor: colors.surface,
   },
   dateCardActive: {
-    backgroundColor: colors.info,
-    borderColor: colors.info,
+    backgroundColor: colors.btnGradientStart,
+    borderColor: colors.btnGradientEnd,
   },
   dateDay: { fontSize: fp(11), fontWeight: '600', color: colors.textSecondary },
   dateDayActive: { color: 'rgba(255,255,255,0.7)' },
@@ -806,15 +818,18 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     marginTop: hp(2),
   },
-  bottomBtn: {
-    backgroundColor: colors.info,
+  bottomBtnWrapper: {
     borderRadius: wp(12),
+    overflow: 'hidden',
+  },
+  bottomBtnGradient: {
     paddingHorizontal: wp(22),
     paddingVertical: hp(14),
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: wp(8),
   },
   bottomBtnDisabled: { opacity: 0.4 },
-  bottomBtnText: { fontSize: fp(14), fontWeight: '700', color: colors.textPrimary },
+  bottomBtnText: { fontSize: fp(14), fontWeight: '700', color: colors.white },
 });

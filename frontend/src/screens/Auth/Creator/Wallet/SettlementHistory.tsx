@@ -89,10 +89,10 @@ const SettlementHistory: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={colors.white} />
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <ArrowLeft size={wp(22)} color="#1A1A2E" />
+          <ArrowLeft size={wp(24)} color={colors.white} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Settlement History</Text>
         <View style={{width: wp(34)}} />
@@ -100,11 +100,11 @@ const SettlementHistory: React.FC = () => {
 
       {loading && list.length === 0 ? (
         <View style={styles.centered}>
-          <ActivityIndicator size="large" color={colors.cAccentLight} />
+          <ActivityIndicator size="large" color={colors.gold} />
         </View>
       ) : list.length === 0 ? (
         <View style={styles.centered}>
-          <Banknote size={wp(48)} color={colors.cTextMuted} strokeWidth={1.2} />
+          <Banknote size={wp(48)} color={colors.gold} strokeWidth={1.2} />
           <Text style={styles.emptyTitle}>No settlements yet</Text>
           <Text style={styles.emptySub}>
             Your settlement history will appear here once payouts are processed.
@@ -118,7 +118,7 @@ const SettlementHistory: React.FC = () => {
           contentContainerStyle={styles.listContent}
           onEndReached={loadMore}
           onEndReachedThreshold={0.5}
-          ListFooterComponent={loading ? <ActivityIndicator style={{marginVertical: hp(16)}} color={colors.cAccentLight} /> : null}
+          ListFooterComponent={loading ? <ActivityIndicator style={{marginVertical: hp(16)}} color={colors.gold} /> : null}
         />
       )}
     </SafeAreaView>
@@ -128,24 +128,22 @@ const SettlementHistory: React.FC = () => {
 export default SettlementHistory;
 
 const styles = StyleSheet.create({
-  container: {flex: 1, backgroundColor: '#F8FAFC'},
+  container: {flex: 1, backgroundColor: 'rgba(0,0,0,0.75)'},
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: wp(16),
     paddingVertical: hp(12),
-    backgroundColor: colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    backgroundColor: 'transparent',
   },
   backBtn: {padding: wp(4)},
-  headerTitle: {fontSize: fp(17), fontWeight: '700', color: '#1A1A2E'},
+  headerTitle: {fontSize: fp(17), fontWeight: '700', color: colors.white},
   centered: {flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: wp(32)},
-  emptyTitle: {fontSize: fp(18), fontWeight: '700', color: '#1A1A2E', marginTop: hp(16)},
+  emptyTitle: {fontSize: fp(18), fontWeight: '700', color: colors.textPrimary, marginTop: hp(16)},
   emptySub: {
     fontSize: fp(13),
-    color: '#64748B',
+    color: 'rgba(255,255,255,0.55)',
     textAlign: 'center',
     marginTop: hp(8),
     lineHeight: fp(20),
@@ -155,12 +153,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: colors.white,
+    backgroundColor: '#1A1A1A',
     borderRadius: wp(14),
     padding: wp(14),
     marginBottom: hp(10),
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: 'rgba(255,255,255,0.08)',
   },
   cardLeft: {flexDirection: 'row', alignItems: 'center', gap: wp(12), flex: 1},
   iconWrap: {
@@ -171,8 +169,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   cardInfo: {flex: 1},
-  cardTitle: {fontSize: fp(14), fontWeight: '600', color: '#1A1A2E'},
-  cardDate: {fontSize: fp(11), color: '#94A3B8', marginTop: hp(2)},
+  cardTitle: {fontSize: fp(14), fontWeight: '600', color: colors.textPrimary},
+  cardDate: {fontSize: fp(11), color: 'rgba(255,255,255,0.5)', marginTop: hp(2)},
   cardRight: {alignItems: 'flex-end', gap: hp(4)},
   cardAmount: {fontSize: fp(15), fontWeight: '700'},
   statusBadge: {paddingHorizontal: wp(8), paddingVertical: hp(2), borderRadius: wp(6)},

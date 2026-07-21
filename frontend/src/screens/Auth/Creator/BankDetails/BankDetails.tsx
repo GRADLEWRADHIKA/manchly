@@ -186,7 +186,7 @@ const BankDetails = () => {
  if (fetchLoading) {
     return (
       <View style={styles.container}>
-        <AppHeaderWithBack title="Bank Details" />
+        <AppHeaderWithBack title="Bank Details" bgColor="transparent" />
         <View style={styles.loaderWrap}>
           <ActivityIndicator size="large" color={colors.golden} />
         </View>
@@ -196,7 +196,7 @@ const BankDetails = () => {
 
   return (
     <View style={styles.container}>
-      <AppHeaderWithBack title="Bank Details" />
+      <AppHeaderWithBack title="Bank Details" bgColor="transparent" />
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
@@ -327,7 +327,7 @@ const BankDetails = () => {
             <>
               {/* Info Banner */}
               <View style={styles.infoBanner}>
-                <Info size={wp(16)} color={colors.faaAiBlue} />
+                <Info size={wp(16)} color={colors.gold} />
                 <Text style={styles.infoBannerText}>
                   Enter your bank account details carefully. The account must be
                   in your name for verification.
@@ -525,13 +525,20 @@ const BankDetails = () => {
                     disabled={saving}
                     activeOpacity={0.8}
                   >
-                    {saving ? (
-                      <ActivityIndicator size="small" color={colors.black} />
-                    ) : (
-                      <Text style={styles.saveBtnText}>
-                        {bankAccount ? 'Update Account' : 'Save Account'}
-                      </Text>
-                    )}
+                    <LinearGradient
+                      colors={['#F3C36B', '#D49A3D']}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      style={styles.saveBtnGradient}
+                    >
+                      {saving ? (
+                        <ActivityIndicator size="small" color={colors.black} />
+                      ) : (
+                        <Text style={styles.saveBtnText}>
+                          {bankAccount ? 'Update Account' : 'Save Account'}
+                        </Text>
+                      )}
+                    </LinearGradient>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -552,10 +559,10 @@ const BankDetails = () => {
             <View
               style={[
                 styles.modalIconWrap,
-                { backgroundColor: 'rgba(96,165,250,0.12)' },
+                { backgroundColor: 'rgba(240,192,64,0.12)' },
               ]}
             >
-              <ShieldCheck size={wp(32)} color={colors.faaAiBlue} />
+              <ShieldCheck size={wp(32)} color={colors.gold} />
             </View>
             <Text style={styles.modalTitle}>Verify Bank Account</Text>
             <Text style={styles.modalMessage}>
@@ -695,7 +702,7 @@ export default BankDetails;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.primary,
+    backgroundColor: 'rgba(0,0,0,0.75)',
   },
   scrollView: {
     flex: 1,
@@ -722,7 +729,7 @@ const styles = StyleSheet.create({
 
   // Bank Card
   bankCard: {
-    backgroundColor: '#14141F',
+    backgroundColor: '#1A1A1A',
     marginHorizontal: wp(16),
     marginTop: hp(16),
     borderRadius: wp(16),
@@ -802,7 +809,7 @@ const styles = StyleSheet.create({
     borderRadius: wp(12),
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.primary,
+    backgroundColor: 'transparent',
     borderWidth: 1,
     borderColor: colors.golden,
   },
@@ -832,18 +839,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: wp(10),
-    backgroundColor: 'rgba(96,165,250,0.1)',
+    backgroundColor: 'rgba(240,192,64,0.08)',
     marginHorizontal: wp(16),
     marginTop: hp(16),
     padding: wp(14),
     borderRadius: wp(12),
     borderWidth: 1,
-    borderColor: 'rgba(96,165,250,0.2)',
+    borderColor: 'rgba(240,192,64,0.3)',
   },
   infoBannerText: {
     flex: 1,
     fontSize: fp(12),
-    color: colors.faaAiBlue,
+    color: colors.gold,
     lineHeight: fp(17),
     fontWeight: '500',
   },
@@ -852,7 +859,7 @@ const styles = StyleSheet.create({
   formSection: {
     marginHorizontal: wp(16),
     marginTop: hp(16),
-    backgroundColor: '#14141F',
+    backgroundColor: '#1A1A1A',
     borderRadius: wp(16),
     padding: wp(16),
     borderWidth: 1,
@@ -875,7 +882,7 @@ const styles = StyleSheet.create({
     borderRadius: wp(12),
     paddingHorizontal: wp(14),
     justifyContent: 'center',
-    backgroundColor: colors.primary,
+    backgroundColor: '#0F0F0F',
   },
   disabledInput: {
     backgroundColor: '#0a0a0f',
@@ -901,9 +908,9 @@ const styles = StyleSheet.create({
     borderRadius: wp(12),
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.primary,
+    backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
+    borderColor: 'rgba(255,255,255,0.25)',
   },
   cancelBtnText: {
     color: colors.white,
@@ -914,9 +921,12 @@ const styles = StyleSheet.create({
     flex: 2,
     height: hp(48),
     borderRadius: wp(12),
+    overflow: 'hidden',
+  },
+  saveBtnGradient: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.golden,
   },
   saveBtnText: {
     color: colors.black,
@@ -933,7 +943,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(24),
   },
   modalContainer: {
-    backgroundColor: '#14141F',
+    backgroundColor: '#1A1A1A',
     borderRadius: wp(20),
     paddingVertical: hp(28),
     paddingHorizontal: wp(24),

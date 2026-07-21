@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: wp(12),
     borderWidth: 1,
-    borderColor: colors.border || '#2A2A2C',
+    borderColor: 'rgba(255,255,255,0.1)',
   },
   avatarText: {
     color: colors.white || '#FFFFFF',
@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
   fallbackSquare: {
     width: '100%',
     height: '100%',
-    backgroundColor: colors.border || '#2A2A2C',
+    backgroundColor: 'rgba(255,255,255,0.08)',
   },
   textContainer: {
     flex: 1,
@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 0.5,
-    backgroundColor: colors.border || '#2A2A2C',
+    backgroundColor: 'rgba(255,255,255,0.08)',
     width: '100%',
   },
 });

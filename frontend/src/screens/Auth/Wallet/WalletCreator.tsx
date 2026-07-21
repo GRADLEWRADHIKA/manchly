@@ -5,18 +5,17 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
   StatusBar,
   Modal,
   TextInput,
   ActivityIndicator,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
 import {
   ArrowLeft,
-  Settings,
   Coins,
   BarChart3,
   ArrowUp,
@@ -26,6 +25,7 @@ import {
   Check,
 } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
+import LinearGradient from 'react-native-linear-gradient';
 import colors from '../../../utils/colors';
 import { wp, hp, fp } from '../../../utils/responsive';
 import { formatINR } from '../../../components/FormField';
@@ -43,6 +43,7 @@ import { getCreatorSales } from '../../../store/PaymentSlice';
 
 const WalletCreator: React.FC = () => {
   const navigation = useNavigation<any>();
+  const insets = useSafeAreaInsets();
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
 
   const { kycStatus, wallet, bankAccount, earningsBreakdown } = useSelector(
@@ -84,7 +85,7 @@ const WalletCreator: React.FC = () => {
     loadData();
   }, []);
 
-  const kycVerified = kycStatus?.status === 'COMPLETED';
+  const kycVerified = !!kycStatus?.verified || kycStatus?.kyc_status === 'COMPLETED';
 
   const handleWithdraw = () => {
     if (!kycVerified) {
@@ -213,11 +214,11 @@ const WalletCreator: React.FC = () => {
   ];
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={colors.bg || '#0F0F0F'} />
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
       {/* Navigation Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + hp(12) }]}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
@@ -226,13 +227,7 @@ const WalletCreator: React.FC = () => {
           <ArrowLeft size={22} color={colors.white || '#FFFFFF'} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Wallet & Settlements</Text>
-        <TouchableOpacity
-          style={styles.settingsButton}
-          onPress={loadData}
-          activeOpacity={0.8}
-        >
-          <Settings size={20} color={colors.white || '#FFFFFF'} />
-        </TouchableOpacity>
+        <View style={{ width: wp(30) }} />
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
@@ -244,11 +239,18 @@ const WalletCreator: React.FC = () => {
           {/* Action Pills */}
           <View style={styles.actionPillsContainer}>
             <TouchableOpacity
-              style={[styles.actionPill, styles.withdrawPill]}
+              style={styles.actionPill}
               onPress={handleWithdraw}
               activeOpacity={0.8}
             >
-              <Text style={styles.withdrawText}>Request Payout</Text>
+              <LinearGradient
+                colors={['#F3C36B', '#D49A3D']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.withdrawPillGradient}
+              >
+                <Text style={styles.withdrawText}>Request Payout</Text>
+              </LinearGradient>
             </TouchableOpacity>
           </View>
         </View>
@@ -492,7 +494,7 @@ const WalletCreator: React.FC = () => {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -501,7 +503,7 @@ export default WalletCreator;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.bg || '#0F0F0F',
+    backgroundColor: 'rgba(0,0,0,0.75)',
   },
   header: {
     flexDirection: 'row',
@@ -510,7 +512,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(16),
     paddingVertical: hp(12),
     borderBottomWidth: 0.5,
-    borderBottomColor: colors.border || '#2A2A2C',
+    borderBottomColor: 'rgba(255,255,255,0.08)',
   },
   backButton: {
     padding: wp(4),
@@ -519,9 +521,6 @@ const styles = StyleSheet.create({
     fontSize: fp(16),
     fontWeight: '600',
     color: colors.white || '#FFFFFF',
-  },
-  settingsButton: {
-    padding: wp(4),
   },
   scrollContent: {
     flexGrow: 1,
@@ -555,11 +554,12 @@ const styles = StyleSheet.create({
     flex: 1,
     height: hp(44),
     borderRadius: 22,
+    overflow: 'hidden',
+  },
+  withdrawPillGradient: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  withdrawPill: {
-    backgroundColor: colors.gold || '#F0C040',
   },
   withdrawText: {
     color: '#000000',
@@ -569,12 +569,12 @@ const styles = StyleSheet.create({
   complianceCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface || '#1C1C1E',
+    backgroundColor: '#1A1A1A',
     borderRadius: 14,
     padding: wp(14),
     marginHorizontal: wp(16),
     borderWidth: 1,
-    borderColor: '#EF444430',
+    borderColor: 'rgba(240,192,64,0.3)',
     marginBottom: hp(12),
   },
   complianceInfo: {
@@ -589,7 +589,7 @@ const styles = StyleSheet.create({
   },
   complianceText: {
     fontSize: fp(11),
-    color: colors.textSecondary,
+    color: 'rgba(255,255,255,0.6)',
     marginTop: hp(2),
   },
   complianceBtn: {
@@ -604,12 +604,12 @@ const styles = StyleSheet.create({
     fontSize: fp(11),
   },
   bankDetailsCard: {
-    backgroundColor: colors.surface || '#1C1C1E',
+    backgroundColor: '#1A1A1A',
     borderRadius: 14,
     padding: wp(16),
     marginHorizontal: wp(16),
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: 'rgba(255,255,255,0.08)',
     marginBottom: hp(12),
   },
   bankHeaderRow: {
@@ -630,7 +630,7 @@ const styles = StyleSheet.create({
   },
   bankNumber: {
     fontSize: fp(12),
-    color: colors.textSecondary,
+    color: 'rgba(255,255,255,0.6)',
     marginTop: hp(2),
   },
   bankIfsc: {
@@ -639,12 +639,12 @@ const styles = StyleSheet.create({
     marginTop: hp(2),
   },
   earningsCard: {
-    backgroundColor: colors.surface || '#1C1C1E',
+    backgroundColor: '#1A1A1A',
     borderRadius: 14,
     padding: wp(16),
     marginHorizontal: wp(16),
     borderWidth: 1,
-    borderColor: colors.border || '#2A2A2C',
+    borderColor: 'rgba(255,255,255,0.08)',
     marginBottom: hp(12),
   },
   cardHeaderTitle: {
@@ -682,7 +682,7 @@ const styles = StyleSheet.create({
   },
   earningSubLabel: {
     fontSize: fp(11),
-    color: colors.textSecondary || '#888888',
+    color: 'rgba(255,255,255,0.55)',
   },
   earningAmount: {
     fontSize: fp(14),
@@ -691,16 +691,16 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 0.5,
-    backgroundColor: colors.border || '#2A2A2C',
+    backgroundColor: 'rgba(255,255,255,0.08)',
     width: '100%',
   },
   transactionsCard: {
-    backgroundColor: colors.surface || '#1C1C1E',
+    backgroundColor: '#1A1A1A',
     borderRadius: 14,
     padding: wp(16),
     marginHorizontal: wp(16),
     borderWidth: 1,
-    borderColor: colors.border || '#2A2A2C',
+    borderColor: 'rgba(255,255,255,0.08)',
   },
   settlementLink: {
     flexDirection: 'row',
@@ -721,7 +721,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   emptyText: {
-    color: colors.textSecondary,
+    color: 'rgba(255,255,255,0.55)',
     fontSize: fp(13),
     textAlign: 'center',
     marginVertical: hp(20),
@@ -735,11 +735,11 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     width: '88%',
-    backgroundColor: colors.surface,
+    backgroundColor: '#1A1A1A',
     borderRadius: 16,
     padding: wp(20),
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -754,13 +754,13 @@ const styles = StyleSheet.create({
   },
   modalSub: {
     fontSize: fp(13),
-    color: colors.textSecondary,
+    color: 'rgba(255,255,255,0.6)',
     marginBottom: hp(12),
   },
   modalInput: {
     height: hp(48),
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: 'rgba(255,255,255,0.1)',
     borderRadius: 8,
     paddingHorizontal: wp(12),
     color: colors.white,

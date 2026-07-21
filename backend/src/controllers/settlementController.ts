@@ -307,7 +307,7 @@ export class SettlementController {
         where: {
           course: { creator_id: userId },
           status: "SUCCESS",
-          payment_method: "RAZORPAY",
+          payment_method: { in: ["RAZORPAY", "CASHFREE"] },
           id: { notIn: settledCourseIds.length > 0 ? settledCourseIds : undefined },
         },
         include: { course: { select: { price: true, title: true } } },
@@ -318,7 +318,7 @@ export class SettlementController {
         where: {
           webinar: { creator_id: userId },
           status: "SUCCESS",
-          payment_method: "RAZORPAY",
+          payment_method: { in: ["RAZORPAY", "CASHFREE"] },
           id: { notIn: settledWebinarIds.length > 0 ? settledWebinarIds : undefined },
         },
         include: { webinar: { select: { price: true, title: true } } },
@@ -342,7 +342,48 @@ export class SettlementController {
 
       const totalDeductions = SettlementService.calculateDeductions(totalUnsettledGross, commissionPct);
 
+      // Summary figures for the wallet screen (net of deductions)
+      const monthStart = new Date();
+      monthStart.setDate(1);
+      monthStart.setHours(0, 0, 0, 0);
+
+      const [allCourseTx, allWebinarTx, lastSettlement] = await Promise.all([
+        prisma.transactions.findMany({
+          where: {
+            course: { creator_id: userId },
+            status: "SUCCESS",
+            payment_method: { in: ["RAZORPAY", "CASHFREE"] },
+          },
+          select: { amount: true, completed_at: true, created_at: true },
+        }),
+        prisma.webinar_transactions.findMany({
+          where: {
+            webinar: { creator_id: userId },
+            status: "SUCCESS",
+            payment_method: { in: ["RAZORPAY", "CASHFREE"] },
+          },
+          select: { amount: true, completed_at: true, created_at: true },
+        }),
+        prisma.settlements.findFirst({
+          where: { creator_id: userId, status: "COMPLETED" },
+          orderBy: { created_at: "desc" },
+          select: { net_amount: true },
+        }),
+      ]);
+
+      let totalNetEarnings = 0;
+      let monthNetEarnings = 0;
+      for (const tx of [...allCourseTx, ...allWebinarTx]) {
+        const net = SettlementService.calculateDeductions(tx.amount || 0, commissionPct).netAmount;
+        totalNetEarnings += net;
+        const paidAt = tx.completed_at || tx.created_at;
+        if (paidAt && paidAt >= monthStart) monthNetEarnings += net;
+      }
+
       ApiResponseHandler.success(res, {
+        net_earnings: Math.round(monthNetEarnings * 100) / 100,
+        total_earnings: Math.round(totalNetEarnings * 100) / 100,
+        last_payout: lastSettlement?.net_amount || 0,
         unsettled_count: items.length,
         total_gross: totalUnsettledGross,
         estimated_deductions: {

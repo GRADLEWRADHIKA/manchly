@@ -5,15 +5,12 @@ import { useNavigation } from '@react-navigation/native';
 import { ArrowLeft } from 'lucide-react-native';
 import colors from '../utils/colors';
 import { wp, hp, fp } from '../utils/responsive';
-import { useSelector } from 'react-redux';
 
-const AppHeaderWithBack = ({ title }) => {
+const AppHeaderWithBack = ({ title, bgColor = colors.bg }) => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
-  const { user } = useSelector((state: any) => state.userReducer);
 
-  const isCreator = user?.user_type !== 'USER';
-  const bgColor = isCreator ? colors.cBg : colors.bg;
+  const transparent = bgColor === 'transparent';
 
   return (
     <View
@@ -23,6 +20,7 @@ const AppHeaderWithBack = ({ title }) => {
           paddingTop: insets.top + hp(12),
           backgroundColor: bgColor,
         },
+        transparent && styles.flat,
       ]}
     >
       <View style={styles.mainHeader}>
@@ -36,7 +34,7 @@ const AppHeaderWithBack = ({ title }) => {
           accessibilityRole="button"
           accessibilityLabel="Go back"
         >
-          <ArrowLeft color={colors.white} size={wp(22)} strokeWidth={2.2} />
+          <ArrowLeft color={colors.white} size={wp(24)} strokeWidth={2.2} />
         </Pressable>
 
         <Text style={styles.title} numberOfLines={1}>
@@ -44,7 +42,9 @@ const AppHeaderWithBack = ({ title }) => {
         </Text>
       </View>
 
-      <View style={[styles.bottomEdge, { backgroundColor: bgColor }]} />
+      {!transparent && (
+        <View style={[styles.bottomEdge, { backgroundColor: bgColor }]} />
+      )}
     </View>
   );
 };
@@ -63,6 +63,10 @@ const styles = StyleSheet.create({
     elevation: 6,
     zIndex: 10,
   },
+  flat: {
+    shadowOpacity: 0,
+    elevation: 0,
+  },
   mainHeader: {
     width: '100%',
     flexDirection: 'row',
@@ -78,7 +82,6 @@ const styles = StyleSheet.create({
     borderRadius: wp(12),
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.black,
   },
   backButtonPressed: {
     backgroundColor: 'rgba(255,255,255,0.2)',

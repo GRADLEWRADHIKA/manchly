@@ -9,6 +9,7 @@ import {
   Image,
 } from 'react-native';
 import { Video, X, Sparkles, ArrowRight, ArrowLeft } from 'lucide-react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import { aiCall } from '../../../../../utils/aiApi';
 import colors from '../../../../../utils/colors';
 import { wp, hp, fp } from '../../../../../utils/responsive';
@@ -352,11 +353,11 @@ const CourseAddVideoModal = ({
             onPress={() => { setAiView(null); setAiSuggestion(null); }}
             style={{ flexDirection: 'row', alignItems: 'center', gap: wp(6) }}
           >
-            <ArrowLeft color={'#1A1A2E'} size={wp(20)} />
+            <ArrowLeft color={colors.white} size={wp(20)} />
             <Text style={styles.modalTitle}>Enhance {aiView.label}</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <X color={'#1A1A2E'} size={wp(22)} />
+            <X color={colors.white} size={wp(22)} />
           </TouchableOpacity>
         </View>
 
@@ -364,7 +365,7 @@ const CourseAddVideoModal = ({
           {aiLoading ? (
             <View style={{ alignItems: 'center', paddingVertical: hp(40), gap: hp(12) }}>
               <ActivityIndicator size="large" color={colors.gold} />
-              <Text style={{ color: '#64748B', fontSize: fp(14) }}>Enhancing your {aiView.label.toLowerCase()}...</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: fp(14) }}>Enhancing your {aiView.label.toLowerCase()}...</Text>
             </View>
           ) : aiSuggestion ? (
             <>
@@ -419,7 +420,7 @@ const CourseAddVideoModal = ({
           {isUpdate ? 'Update Video' : 'Add Course Video'}
         </Text>
         <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-          <X color={'#1A1A2E'} size={wp(22)} />
+          <X color={colors.white} size={wp(22)} />
         </TouchableOpacity>
       </View>
 
@@ -453,9 +454,9 @@ const CourseAddVideoModal = ({
         {/* Video Picker */}
         {!isUpdate && (
           <>
-            <Text style={[styles.label, { marginTop: hp(12) }]}>Select Video</Text>
+            <Text style={[styles.label, { marginTop: hp(12), marginBottom: hp(6) }]}>Select Video</Text>
             <TouchableOpacity style={styles.uploadButton} onPress={handleVideoSelect}>
-              <Video color={'#60A5FA'} size={wp(22)} />
+              <Video color={colors.gold} size={wp(22)} />
               <Text style={styles.uploadText}>
                 {selectedVideo?.name || 'Tap to select video'}
               </Text>
@@ -490,7 +491,7 @@ const CourseAddVideoModal = ({
         )}
 
         {/* Thumbnail */}
-        <Text style={[styles.label, { marginTop: hp(12) }]}>Choose Thumbnail</Text>
+        <Text style={[styles.label, { marginTop: hp(12), marginBottom: hp(6) }]}>Choose Thumbnail</Text>
         <Controller
           name="thumbnail_url"
           control={control}
@@ -502,7 +503,7 @@ const CourseAddVideoModal = ({
                 disabled={thumbnailUploading}
               >
                 {thumbnailUploading ? (
-                  <ActivityIndicator color={'#60A5FA'} />
+                  <ActivityIndicator color={colors.gold} />
                 ) : (
                   <Text style={styles.buttonText}>
                     {value ? 'Change Thumbnail' : 'Choose Thumbnail'}
@@ -517,7 +518,7 @@ const CourseAddVideoModal = ({
         />
 
         {/* Order */}
-        <Text style={[styles.label, { marginTop: hp(12) }]}>Video Order</Text>
+        <Text style={[styles.label, { marginTop: hp(12), marginBottom: hp(6) }]}>Video Order</Text>
         <Controller
           name="order"
           control={control}
@@ -545,11 +546,18 @@ const CourseAddVideoModal = ({
           disabled={loading}
           onPress={handleSubmit(isUpdate ? onSubmitUpdate : onSubmit)}
         >
-          {loading ? (
-            <ActivityIndicator color={colors.white} size="small" />
-          ) : (
-            <Text style={styles.saveButtonText}>{isUpdate ? 'Update' : 'Save'}</Text>
-          )}
+          <LinearGradient
+            colors={['#F3C36B', '#D49A3D']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.saveButtonGradient}
+          >
+            {loading ? (
+              <ActivityIndicator color={colors.black} size="small" />
+            ) : (
+              <Text style={styles.saveButtonText}>{isUpdate ? 'Update' : 'Save'}</Text>
+            )}
+          </LinearGradient>
         </TouchableOpacity>
       </View>
     </View>
@@ -560,7 +568,7 @@ export default CourseAddVideoModal;
 
 const styles = StyleSheet.create({
   modalContainer: {
-    backgroundColor: colors.cSurface,
+    backgroundColor: '#1A1A1A',
     borderTopLeftRadius: wp(20),
     borderTopRightRadius: wp(20),
     maxHeight: '100%',
@@ -570,7 +578,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     borderBottomWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: 'rgba(255,255,255,0.08)',
     padding: wp(16),
   },
   modalTitle: { fontSize: fp(18), fontWeight: '700', color: colors.textPrimary },
@@ -585,27 +593,27 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: fp(13),
-    color: '#1A1A2E',
+    color: colors.gold,
     fontWeight: '600',
   },
   inputField: {
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: 'rgba(255,255,255,0.1)',
     borderRadius: wp(12),
     paddingHorizontal: wp(12),
     height: hp(42),
-    backgroundColor: colors.textPrimary,
+    backgroundColor: colors.inputBg,
   },
   uploadButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderColor: colors.cBorder,
+    borderColor: 'rgba(240,192,64,0.4)',
     borderWidth: 1,
     borderRadius: wp(12),
     borderStyle: 'dashed',
     height: hp(42),
     paddingHorizontal: wp(12),
-    backgroundColor: colors.cBorder,
+    backgroundColor: 'rgba(240,192,64,0.08)',
   },
   uploadText: {
     marginLeft: wp(10),
@@ -627,11 +635,11 @@ const styles = StyleSheet.create({
   dropdown: {
     height: hp(42),
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: 'rgba(255,255,255,0.1)',
     borderRadius: wp(12),
     paddingHorizontal: wp(14),
     justifyContent: 'center',
-    backgroundColor: colors.cSurface,
+    backgroundColor: colors.inputBg,
   },
   placeholder: { color: colors.textPrimary, fontSize: fp(14) },
   selectedText: { color: colors.textPrimary, fontSize: fp(14) },
@@ -647,35 +655,37 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: hp(12),
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: 'rgba(255,255,255,0.2)',
     borderRadius: wp(12),
     alignItems: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: 'transparent',
   },
-  cancelButtonText: { color: colors.cSurface, fontWeight: '600', fontSize: fp(14) },
+  cancelButtonText: { color: colors.textPrimary, fontWeight: '600', fontSize: fp(14) },
   saveButton: {
     flex: 1,
-    backgroundColor: colors.golden,
     borderRadius: wp(12),
+    overflow: 'hidden',
+  },
+  saveButtonGradient: {
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: hp(12),
   },
-  saveButtonText: { color: colors.white, fontWeight: '700', fontSize: fp(14) },
+  saveButtonText: { color: colors.black, fontWeight: '700', fontSize: fp(14) },
   button: {
     borderRadius: wp(12),
     paddingHorizontal: wp(12),
     height: hp(42),
     width: '100%',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: 'rgba(240,192,64,0.08)',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: 'rgba(240,192,64,0.4)',
     borderStyle: 'dashed',
     justifyContent: 'center',
     alignItems: 'center',
   },
   buttonText: {
-    color: '#64748B',
+    color: colors.gold,
     fontSize: fp(14),
     fontWeight: '500',
   },
@@ -685,7 +695,7 @@ const styles = StyleSheet.create({
     borderRadius: wp(12),
     marginTop: hp(10),
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: 'rgba(255,255,255,0.1)',
   },
 
   warningText: {
@@ -713,7 +723,7 @@ const styles = StyleSheet.create({
 
   // AI view styles
   aiOriginalBlock: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: 'rgba(255,255,255,0.06)',
     borderRadius: wp(10),
     padding: wp(12),
     marginBottom: hp(12),
@@ -721,17 +731,17 @@ const styles = StyleSheet.create({
   aiSectionLabel: {
     fontSize: fp(10),
     fontWeight: '700',
-    color: '#94A3B8',
+    color: 'rgba(255,255,255,0.5)',
     textTransform: 'uppercase',
     marginBottom: hp(4),
   },
   aiOriginalText: {
     fontSize: fp(14),
-    color: '#64748B',
+    color: 'rgba(255,255,255,0.6)',
     lineHeight: fp(21),
   },
   aiEnhancedBlock: {
-    backgroundColor: 'rgba(96,165,250,0.06)',
+    backgroundColor: 'rgba(96,165,250,0.1)',
     borderRadius: wp(10),
     padding: wp(12),
     borderLeftWidth: 3,
@@ -747,7 +757,7 @@ const styles = StyleSheet.create({
   },
   aiEnhancedText: {
     fontSize: fp(14),
-    color: '#1A1A2E',
+    color: colors.textPrimary,
     lineHeight: fp(21),
     marginBottom: hp(10),
   },
@@ -768,7 +778,7 @@ const styles = StyleSheet.create({
   },
   aiSummary: {
     fontSize: fp(12),
-    color: '#94A3B8',
+    color: 'rgba(255,255,255,0.5)',
     fontStyle: 'italic',
     marginBottom: hp(12),
     lineHeight: fp(18),
@@ -776,7 +786,7 @@ const styles = StyleSheet.create({
   aiAltLabel: {
     fontSize: fp(10),
     fontWeight: '700',
-    color: '#94A3B8',
+    color: 'rgba(255,255,255,0.5)',
     textTransform: 'uppercase',
     marginBottom: hp(6),
   },
@@ -784,18 +794,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: 'rgba(255,255,255,0.06)',
     borderRadius: wp(10),
     paddingHorizontal: wp(12),
     paddingVertical: hp(10),
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: 'rgba(255,255,255,0.1)',
     marginBottom: hp(8),
   },
   aiAltText: {
     flex: 1,
     fontSize: fp(13),
-    color: '#64748B',
+    color: 'rgba(255,255,255,0.7)',
     lineHeight: fp(19),
     marginRight: wp(8),
   },
@@ -804,12 +814,12 @@ const styles = StyleSheet.create({
     paddingVertical: hp(12),
     borderRadius: wp(10),
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: 'rgba(255,255,255,0.2)',
     marginTop: hp(8),
   },
   aiKeepBtnText: {
     fontSize: fp(13),
     fontWeight: '600',
-    color: '#64748B',
+    color: 'rgba(255,255,255,0.7)',
   },
 });

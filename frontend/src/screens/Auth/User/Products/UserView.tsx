@@ -316,7 +316,7 @@ const UserView: React.FC = () => {
         <FlatList
           data={courseLoading ? [] : courses}
           keyExtractor={i => i.id || i._id}
-          ListHeaderComponent={renderListHeader}
+          ListHeaderComponent={renderListHeader()}
           renderItem={({ item }) => {
             const isEnrolled = enrolledCourseIds.includes(item.id || item._id);
             return (
@@ -344,7 +344,7 @@ const UserView: React.FC = () => {
         <FlatList
           data={webinarLoading ? [] : webinars}
           keyExtractor={(item: any) => item?.id}
-          ListHeaderComponent={renderListHeader}
+          ListHeaderComponent={renderListHeader()}
           renderItem={({ item }) => (
             <View style={styles.cardWrap}>
               <EnrolledWebinarCard item={item} />

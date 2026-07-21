@@ -273,7 +273,7 @@ const CreatorProfile = () => {
 
   return (
     <View style={styles.container}>
-      <AppHeaderWithBack title="My Profile" />
+      <AppHeaderWithBack title="My Profile" bgColor="transparent" />
 
       <KeyboardAwareScrollView
         style={styles.scrollView}
@@ -284,7 +284,7 @@ const CreatorProfile = () => {
       >
         {/* Profile Card */}
         <LinearGradient
-          colors={['#1A1A2E', '#16213E', '#0F3460']}
+          colors={['#2E2C29', '#1C1B19']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.profileCard}
@@ -308,7 +308,7 @@ const CreatorProfile = () => {
               )}
             </View>
             <View style={styles.cameraIcon}>
-              <Camera size={wp(14)} color={colors.white} />
+              <Camera size={wp(14)} color={colors.black} />
             </View>
           </TouchableOpacity>
 
@@ -418,7 +418,7 @@ const CreatorProfile = () => {
           {/* NAME */}
           <View style={styles.fieldRow}>
             <View style={styles.fieldIcon}>
-              <Pen size={wp(16)} color={'#60A5FA'} />
+              <Pen size={wp(16)} color={colors.gold} />
             </View>
             <View style={styles.fieldContent}>
               <Text style={styles.fieldLabel}>Full Name</Text>
@@ -444,7 +444,7 @@ const CreatorProfile = () => {
           {/* DOB */}
           <View style={styles.fieldRow}>
             <View style={styles.fieldIcon}>
-              <Calendar size={wp(16)} color={'#60A5FA'} />
+              <Calendar size={wp(16)} color={colors.gold} />
             </View>
             <View style={styles.fieldContent}>
               <Text style={styles.fieldLabel}>Date of Birth</Text>
@@ -495,13 +495,13 @@ const CreatorProfile = () => {
           {/* EMAIL */}
           <View style={styles.fieldRow}>
             <View style={styles.fieldIcon}>
-              <Mail size={wp(16)} color="#94A3B8" />
+              <Mail size={wp(16)} color="rgba(255,255,255,0.5)" />
             </View>
             <View style={styles.fieldContent}>
               <View style={styles.fieldLabelRow}>
                 <Text style={styles.fieldLabel}>Email</Text>
                 <View style={styles.lockedBadge}>
-                  <Lock size={wp(10)} color="#94A3B8" />
+                  <Lock size={wp(10)} color="rgba(255,255,255,0.5)" />
                   <Text style={styles.lockedText}>Locked</Text>
                 </View>
               </View>
@@ -525,13 +525,13 @@ const CreatorProfile = () => {
           {/* PHONE */}
           <View style={styles.fieldRow}>
             <View style={styles.fieldIcon}>
-              <Phone size={wp(16)} color="#94A3B8" />
+              <Phone size={wp(16)} color="rgba(255,255,255,0.5)" />
             </View>
             <View style={styles.fieldContent}>
               <View style={styles.fieldLabelRow}>
                 <Text style={styles.fieldLabel}>Phone</Text>
                 <View style={styles.lockedBadge}>
-                  <Lock size={wp(10)} color="#94A3B8" />
+                  <Lock size={wp(10)} color="rgba(255,255,255,0.5)" />
                   <Text style={styles.lockedText}>Locked</Text>
                 </View>
               </View>
@@ -670,11 +670,18 @@ const CreatorProfile = () => {
             disabled={loading}
             activeOpacity={0.8}
           >
-            {loading ? (
-              <ActivityIndicator color={colors.white} />
-            ) : (
-              <Text style={styles.updateButtonText}>Save Changes</Text>
-            )}
+            <LinearGradient
+              colors={['#F3C36B', '#D49A3D']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.updateButtonGradient}
+            >
+              {loading ? (
+                <ActivityIndicator color={colors.black} />
+              ) : (
+                <Text style={styles.updateButtonText}>Save Changes</Text>
+              )}
+            </LinearGradient>
           </TouchableOpacity>
         </View>
       </KeyboardAwareScrollView>
@@ -732,7 +739,7 @@ export default CreatorProfile;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: 'rgba(0,0,0,0.75)',
   },
   scrollView: {
     flex: 1,
@@ -746,13 +753,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginHorizontal: wp(16),
     marginTop: hp(20),
-    borderRadius: wp(20),
+    borderRadius: wp(24),
     paddingVertical: hp(24),
     paddingHorizontal: wp(20),
     elevation: 3,
-    shadowColor: '#0F3460',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.3,
     shadowRadius: 10,
     overflow: 'hidden',
   },
@@ -764,11 +771,11 @@ const styles = StyleSheet.create({
     width: wp(100),
     height: wp(100),
     borderRadius: wp(50),
-    backgroundColor: '#0F3460',
+    backgroundColor: '#242220',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 3,
-    borderColor: '#0F346050',
+    borderColor: '#D69C40',
   },
   profileImage: {
     width: wp(100),
@@ -782,11 +789,11 @@ const styles = StyleSheet.create({
     width: wp(30),
     height: wp(30),
     borderRadius: wp(15),
-    backgroundColor: '#0F3460',
+    backgroundColor: '#D69C40',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: colors.cCard,
+    borderColor: '#1C1B19',
   },
   profileName: {
     fontSize: fp(20),
@@ -905,7 +912,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: fp(16),
     fontWeight: '700',
-    color: '#1A1A2E',
+    color: colors.textPrimary,
     marginHorizontal: wp(20),
     marginTop: hp(24),
     marginBottom: hp(10),
@@ -913,7 +920,7 @@ const styles = StyleSheet.create({
 
   // Form Card
   formCard: {
-    backgroundColor: colors.white,
+    backgroundColor: '#1A1A1A',
     marginHorizontal: wp(16),
     borderRadius: wp(16),
     paddingVertical: hp(6),
@@ -923,7 +930,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.04,
     shadowRadius: 6,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: 'rgba(255,255,255,0.06)',
   },
   fieldRow: {
     flexDirection: 'row',
@@ -935,7 +942,7 @@ const styles = StyleSheet.create({
     width: wp(36),
     height: wp(36),
     borderRadius: wp(10),
-    backgroundColor: '#F1F5F9',
+    backgroundColor: 'rgba(255,255,255,0.08)',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: wp(12),
@@ -945,10 +952,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   fieldLabel: {
-    fontSize: fp(12),
-    fontWeight: '600',
-    color: '#64748B',
-    marginBottom: hp(4),
+    fontSize: fp(11),
+    fontWeight: '700',
+    color: colors.gold,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+    marginBottom: hp(6),
   },
   fieldLabelRow: {
     flexDirection: 'row',
@@ -960,40 +969,40 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(3),
-    backgroundColor: '#F1F5F9',
+    backgroundColor: 'rgba(255,255,255,0.08)',
     paddingHorizontal: wp(8),
     paddingVertical: hp(2),
     borderRadius: wp(6),
   },
   lockedText: {
     fontSize: fp(10),
-    color: '#94A3B8',
+    color: 'rgba(255,255,255,0.5)',
     fontWeight: '500',
   },
   input: {
     height: hp(42),
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderRadius: wp(10),
+    borderColor: 'rgba(255,255,255,0.1)',
+    borderRadius: wp(12),
     paddingHorizontal: wp(12),
     justifyContent: 'center',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#0F0F0F',
   },
   inputText: {
     fontSize: fp(14),
-    color: '#1A1A2E',
+    color: colors.textPrimary,
   },
   disabledInput: {
-    backgroundColor: '#F1F5F9',
-    borderColor: '#F1F5F9',
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderColor: 'transparent',
   },
   disabledText: {
     fontSize: fp(14),
-    color: '#64748B',
+    color: 'rgba(255,255,255,0.45)',
   },
   divider: {
     height: 1,
-    backgroundColor: '#E2E8F0',
+    backgroundColor: 'rgba(255,255,255,0.07)',
     marginHorizontal: wp(16),
   },
 
@@ -1010,12 +1019,12 @@ const styles = StyleSheet.create({
     borderRadius: wp(12),
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: 'rgba(255,255,255,0.25)',
   },
   backButtonText: {
-    color: '#1A1A2E',
+    color: colors.textPrimary,
     fontWeight: '600',
     fontSize: fp(15),
   },
@@ -1023,12 +1032,15 @@ const styles = StyleSheet.create({
     flex: 2,
     height: hp(48),
     borderRadius: wp(12),
+    overflow: 'hidden',
+  },
+  updateButtonGradient: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#0F3460',
   },
   updateButtonText: {
-    color: colors.white,
+    color: colors.black,
     fontWeight: '700',
     fontSize: fp(15),
   },
@@ -1042,14 +1054,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(24),
   },
   modalContainer: {
-    backgroundColor: colors.white,
+    backgroundColor: '#1A1A1A',
     borderRadius: wp(20),
     paddingVertical: hp(28),
     paddingHorizontal: wp(24),
     width: '100%',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: 'rgba(255,255,255,0.1)',
   },
   modalIconWrap: {
     width: wp(60),
@@ -1063,12 +1075,12 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: fp(18),
     fontWeight: '700',
-    color: '#1A1A2E',
+    color: colors.textPrimary,
     marginBottom: hp(8),
   },
   modalMessage: {
     fontSize: fp(14),
-    color: '#64748B',
+    color: 'rgba(255,255,255,0.6)',
     textAlign: 'center',
     lineHeight: fp(20),
     marginBottom: hp(24),
@@ -1084,12 +1096,12 @@ const styles = StyleSheet.create({
     borderRadius: wp(12),
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F1F5F9',
+    backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: 'rgba(255,255,255,0.25)',
   },
   modalCancelText: {
-    color: '#1A1A2E',
+    color: colors.textPrimary,
     fontWeight: '600',
     fontSize: fp(14),
   },

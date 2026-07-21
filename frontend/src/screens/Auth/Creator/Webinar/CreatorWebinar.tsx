@@ -151,7 +151,7 @@ const CreatorWebinar = ({embedded = false}: {embedded?: boolean}) => {
   const renderHeader = () => (
     <>
       <View style={styles.searchContainer}>
-        <Search size={wp(18)} color={colors.textSecondary} />
+        <Search size={wp(18)} color={colors.gold} />
         <CustomTextInput
           inputContainerStyle={styles.searchInput}
           inputStyle={{ fontSize: fp(14), color: colors.textPrimary }}
@@ -222,7 +222,7 @@ const CreatorWebinar = ({embedded = false}: {embedded?: boolean}) => {
         data={loading ? [] : data}
         renderItem={renderItem}
         keyExtractor={item => item.id}
-        ListHeaderComponent={renderHeader}
+        ListHeaderComponent={renderHeader()}
         ListEmptyComponent={renderEmpty}
         ListFooterComponent={renderFooter}
         onEndReached={handleLoadMore}
@@ -317,19 +317,19 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: wp(8),
     marginTop: hp(12),
     marginBottom: hp(4),
     borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: wp(12),
-    paddingHorizontal: wp(12),
-    backgroundColor: colors.inputBg,
+    borderColor: 'rgba(240,192,64,0.25)',
+    borderRadius: wp(26),
+    paddingHorizontal: wp(16),
+    backgroundColor: '#141414',
   },
   searchInput: {
     height: hp(42),
-    width: '85%',
-    borderRadius: wp(12),
-    backgroundColor: colors.inputBg,
+    width: '82%',
+    backgroundColor: 'transparent',
   },
 
   // List header

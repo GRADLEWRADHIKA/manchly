@@ -459,22 +459,22 @@ const styles = StyleSheet.create({
     backgroundColor: colors.goldDim,
   },
   registerBtn: {
-    borderRadius: wp(14),
-    paddingVertical: hp(16),
+    borderRadius: wp(12),
+    paddingVertical: hp(11),
     alignItems: 'center',
     marginTop: hp(24),
   },
   registerBtnDisabled: { opacity: 0.6 },
-  registerBtnText: { fontSize: fp(16), fontWeight: '700', color: colors.black },
+  registerBtnText: { fontSize: fp(14), fontWeight: '700', color: colors.black },
 
   cancelBtn: {
     backgroundColor: 'transparent',
-    borderRadius: wp(14),
+    borderRadius: wp(12),
     borderWidth: wp(1.5),
     borderColor: colors.gold,
-    paddingVertical: hp(16),
+    paddingVertical: hp(11),
     alignItems: 'center',
     marginTop: hp(12),
   },
-  cancelBtnText: { fontSize: fp(16), fontWeight: '700', color: colors.gold },
+  cancelBtnText: { fontSize: fp(14), fontWeight: '700', color: colors.gold },
 });

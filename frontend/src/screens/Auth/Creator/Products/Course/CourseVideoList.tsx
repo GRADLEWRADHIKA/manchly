@@ -20,9 +20,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
 import YouTubePlayer from '../../../../../components/YouTubePlayer';
 import { Play, Clock, Plus, MoreVertical, Upload, CheckCircle, AlertCircle } from 'lucide-react-native';
-import AiButton from '../../../../../components/AiButton';
-import LessonScriptModal from '../../../../../components/ai/LessonScriptModal';
-import QuizModal from '../../../../../components/ai/QuizModal';
 import LinearGradient from 'react-native-linear-gradient';
 import { createShimmerPlaceholder } from 'react-native-shimmer-placeholder';
 import { Menu, FAB } from 'react-native-paper';
@@ -33,6 +30,15 @@ import DynamicModal from '../../../../../components/CommonModal';
 import { RootState } from '../../../../../store/Store';
 
 const ShimmerPlaceholder = createShimmerPlaceholder(LinearGradient);
+
+const SCREEN_BG = 'rgba(0,0,0,0.75)';
+const CARD_BG = '#141414';
+const VIDEO_CARD_BG = '#1C1B1B';
+const ACCENT = '#D5C4AB';
+const CARD_BORDER = 'rgba(255,255,255,0.06)';
+const TEXT_SECONDARY = 'rgba(255,255,255,0.6)';
+const TEXT_MUTED = 'rgba(255,255,255,0.5)';
+const SHIMMER_COLORS = ['#1E1E1E', '#2A2A2A', '#1E1E1E'];
 
 const formatDuration = (durationInSeconds: number) => {
   const totalSeconds = Math.max(0, Math.floor(Number(durationInSeconds) || 0));
@@ -64,10 +70,6 @@ const CourseVideoList = () => {
   const focus = useIsFocused();
   const [refresh, setRefresh] = useState(false);
   const [isUpdate, setIsUpdate] = useState(false);
-
-  const [scriptModal, setScriptModal] = useState<{ visible: boolean; title: string }>({ visible: false, title: '' });
-  const [quizModal, setQuizModal] = useState<{ visible: boolean; topic: string }>({ visible: false, topic: '' });
-  const courseTitle = route?.params?.item?.title || 'Course';
 
   const activeUploads = useSelector(
     (state: RootState) => state.videosReducer.activeUploads,
@@ -126,7 +128,7 @@ const CourseVideoList = () => {
           ) : isFailed ? (
             <AlertCircle color={colors.error} size={wp(24)} />
           ) : (
-            <Upload color={'#60A5FA'} size={wp(24)} />
+            <Upload color={colors.gold} size={wp(24)} />
           )}
         </View>
         <View style={styles.uploadInfo}>
@@ -161,16 +163,16 @@ const CourseVideoList = () => {
     <View style={styles.shimmerCard}>
       <ShimmerPlaceholder
         style={styles.shimmerThumbnail}
-        shimmerColors={['#E2E8F0', '#F8FAFC', '#E2E8F0']}
+        shimmerColors={SHIMMER_COLORS}
       />
       <View style={styles.shimmerContent}>
         <ShimmerPlaceholder
           style={styles.shimmerTitle}
-          shimmerColors={['#E2E8F0', '#F8FAFC', '#E2E8F0']}
+          shimmerColors={SHIMMER_COLORS}
         />
         <ShimmerPlaceholder
           style={styles.shimmerDuration}
-          shimmerColors={['#E2E8F0', '#F8FAFC', '#E2E8F0']}
+          shimmerColors={SHIMMER_COLORS}
         />
       </View>
     </View>
@@ -226,7 +228,7 @@ const CourseVideoList = () => {
                   }}
                   style={styles.menuButton}
                 >
-                  <MoreVertical color={'#64748B'} size={wp(18)} />
+                  <MoreVertical color={'rgba(255,255,255,0.5)'} size={wp(18)} />
                 </TouchableOpacity>
               }
               contentStyle={styles.menuContent}
@@ -257,18 +259,6 @@ const CourseVideoList = () => {
           <Text style={styles.videoDesc} numberOfLines={2}>
             {item?.description || 'No description available'}
           </Text>
-          <View style={styles.aiRow}>
-            <AiButton
-              compact
-              label="Script"
-              onPress={() => setScriptModal({ visible: true, title: item?.title || '' })}
-            />
-            <AiButton
-              compact
-              label="Quiz"
-              onPress={() => setQuizModal({ visible: true, topic: item?.title || '' })}
-            />
-          </View>
         </View>
       </TouchableOpacity>
     );
@@ -276,7 +266,7 @@ const CourseVideoList = () => {
 
   return (
     <View style={styles.container}>
-      <AppHeaderWithBack title="Course Videos" />
+      <AppHeaderWithBack title="Course Videos" bgColor="transparent" />
 
       {activeUploads.length > 0 && (
         <View style={styles.uploadsSection}>
@@ -311,7 +301,7 @@ const CourseVideoList = () => {
       ) : (
         <View style={styles.noDataContainer}>
           <View style={styles.noDataIcon}>
-            <Play color={'#60A5FA'} size={wp(48)} />
+            <Play color={colors.gold} size={wp(48)} />
           </View>
           <Text style={styles.noDataTitle}>No Videos Available</Text>
           <Text style={styles.noDataSubtitle}>
@@ -394,7 +384,7 @@ const CourseVideoList = () => {
           icon={({ size, color }) => <Plus size={size} color={color} />}
           style={styles.fab}
           onPress={toggleModal}
-          color={colors.white}
+          color={colors.black}
         />
       </View>
 
@@ -423,18 +413,6 @@ const CourseVideoList = () => {
         loading={deleteLoading}
       />
 
-      <LessonScriptModal
-        visible={scriptModal.visible}
-        onClose={() => setScriptModal({ visible: false, title: '' })}
-        courseTitle={courseTitle}
-        lessonTitle={scriptModal.title}
-      />
-
-      <QuizModal
-        visible={quizModal.visible}
-        onClose={() => setQuizModal({ visible: false, topic: '' })}
-        topic={quizModal.topic}
-      />
     </View>
   );
 };
@@ -443,7 +421,7 @@ export default CourseVideoList;
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: colors.cSurface,
+    backgroundColor: SCREEN_BG,
     flex: 1,
   },
   listContainer: {
@@ -462,37 +440,38 @@ const styles = StyleSheet.create({
   // Video card - horizontal layout like user page
   card: {
     flexDirection: 'row',
-    backgroundColor: colors.cCard,
-    borderRadius: wp(12),
+    alignItems: 'center',
+    backgroundColor: VIDEO_CARD_BG,
+    borderRadius: wp(20),
     marginBottom: hp(14),
-    overflow: 'hidden',
+    padding: wp(14),
     elevation: 3,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    borderWidth: 1,
-    borderColor: colors.cBorder,
   },
   thumbnailWrapper: {
     position: 'relative',
-    width: wp(130),
-    height: hp(90),
+    width: wp(84),
+    height: wp(84),
+    borderRadius: wp(16),
+    borderWidth: 1.5,
+    borderColor: ACCENT,
+    overflow: 'hidden',
+    marginRight: wp(14),
   },
   thumbnail: {
     width: '100%',
     height: '100%',
-    borderTopLeftRadius: wp(12),
-    borderBottomLeftRadius: wp(12),
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#242220',
   },
   thumbnailGradient: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    height: hp(40),
-    borderBottomLeftRadius: wp(12),
+    height: hp(30),
   },
   playIconContainer: {
     ...StyleSheet.absoluteFillObject,
@@ -501,9 +480,9 @@ const styles = StyleSheet.create({
   },
   playIcon: {
     backgroundColor: colors.golden,
-    width: wp(32),
-    height: wp(32),
-    borderRadius: wp(16),
+    width: wp(28),
+    height: wp(28),
+    borderRadius: wp(14),
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -526,7 +505,6 @@ const styles = StyleSheet.create({
   },
   cardContent: {
     flex: 1,
-    padding: wp(10),
     justifyContent: 'center',
   },
   titleRow: {
@@ -536,41 +514,36 @@ const styles = StyleSheet.create({
   },
   videoTitle: {
     fontSize: fp(15),
-    fontWeight: '600',
-    color: '#1A1A2E',
+    fontWeight: '800',
+    color: colors.textPrimary,
     flex: 1,
     marginRight: wp(4),
   },
   videoDesc: {
     fontSize: fp(12),
-    color: colors.textPrimary,
+    color: TEXT_SECONDARY,
     lineHeight: fp(17),
     marginTop: hp(4),
-  },
-  aiRow: {
-    flexDirection: 'row',
-    gap: wp(6),
-    marginTop: hp(6),
   },
   menuButton: {
     padding: wp(4),
   },
   menuContent: {
-    backgroundColor: colors.textPrimary,
-    borderRadius: wp(8),
+    backgroundColor: 'rgba(26,26,26,0.97)',
+    borderRadius: wp(14),
     elevation: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: 'rgba(255,255,255,0.1)',
   },
   menuItem: {
     paddingVertical: hp(8),
   },
   editText: {
-    color: '#1A1A2E',
+    color: '#D5C4AB',
   },
   deleteText: {
     color: colors.error,
@@ -586,19 +559,19 @@ const styles = StyleSheet.create({
   },
   videoInfoContainer: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: '#404040',
     paddingHorizontal: wp(16),
     paddingTop: hp(16),
   },
   videoInfoTitle: {
     fontSize: fp(18),
     fontWeight: '700',
-    color: '#1A1A2E',
+    color: colors.textPrimary,
     marginBottom: hp(6),
   },
   videoInfoDesc: {
     fontSize: fp(14),
-    color: '#64748B',
+    color: TEXT_SECONDARY,
     lineHeight: fp(20),
     marginBottom: hp(16),
   },
@@ -608,10 +581,10 @@ const styles = StyleSheet.create({
   upNextTitle: {
     fontSize: fp(16),
     fontWeight: '700',
-    color: '#1A1A2E',
+    color: colors.gold,
     marginBottom: hp(12),
     borderTopWidth: 1,
-    borderTopColor: '#E2E8F0',
+    borderTopColor: 'rgba(255,255,255,0.1)',
     paddingTop: hp(12),
   },
   upNextCard: {
@@ -624,7 +597,9 @@ const styles = StyleSheet.create({
     width: wp(120),
     height: hp(68),
     borderRadius: wp(8),
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#242220',
+    borderWidth: 1,
+    borderColor: 'rgba(213,196,171,0.35)',
   },
   upNextInfo: {
     flex: 1,
@@ -634,12 +609,12 @@ const styles = StyleSheet.create({
   upNextCardTitle: {
     fontSize: fp(14),
     fontWeight: '600',
-    color: '#1A1A2E',
+    color: colors.textPrimary,
     marginBottom: hp(4),
   },
   upNextDuration: {
     fontSize: fp(12),
-    color: '#64748B',
+    color: TEXT_MUTED,
   },
   // Empty state
   noDataContainer: {
@@ -649,7 +624,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(40),
   },
   noDataIcon: {
-    backgroundColor: colors.cSurface,
+    backgroundColor: CARD_BG,
     width: wp(100),
     height: hp(100),
     borderRadius: wp(50),
@@ -657,7 +632,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: hp(20),
     borderWidth: wp(1),
-    borderColor: colors.cBorder,
+    borderColor: 'rgba(240,192,64,0.4)',
   },
   noDataTitle: {
     fontSize: fp(20),
@@ -668,18 +643,19 @@ const styles = StyleSheet.create({
   },
   noDataSubtitle: {
     fontSize: fp(14),
-    color: colors.textPrimary,
+    color: TEXT_SECONDARY,
     textAlign: 'center',
     lineHeight: fp(20),
   },
   // Shimmer
   shimmerCard: {
     flexDirection: 'row',
-    backgroundColor: colors.white,
-    borderRadius: wp(12),
+    alignItems: 'center',
+    backgroundColor: VIDEO_CARD_BG,
+    borderRadius: wp(20),
     marginHorizontal: wp(16),
     marginVertical: hp(6),
-    overflow: 'hidden',
+    padding: wp(14),
     elevation: 3,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -687,12 +663,13 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   shimmerThumbnail: {
-    width: wp(130),
-    height: hp(90),
+    width: wp(84),
+    height: wp(84),
+    borderRadius: wp(16),
   },
   shimmerContent: {
     flex: 1,
-    padding: wp(10),
+    paddingLeft: wp(14),
     justifyContent: 'center',
   },
   shimmerTitle: {
@@ -714,7 +691,7 @@ const styles = StyleSheet.create({
   uploadCard: {
     flexDirection: 'row' as const,
     alignItems: 'center' as const,
-    backgroundColor: colors.white,
+    backgroundColor: CARD_BG,
     borderRadius: wp(10),
     padding: wp(12),
     marginBottom: hp(8),
@@ -728,7 +705,7 @@ const styles = StyleSheet.create({
     width: wp(40),
     height: wp(40),
     borderRadius: wp(20),
-    backgroundColor: '#F1F5F9',
+    backgroundColor: 'rgba(255,255,255,0.08)',
     justifyContent: 'center' as const,
     alignItems: 'center' as const,
     marginRight: wp(12),
@@ -739,23 +716,23 @@ const styles = StyleSheet.create({
   uploadTitle: {
     fontSize: fp(14),
     fontWeight: '600' as const,
-    color: '#1A1A2E',
+    color: colors.textPrimary,
     marginBottom: hp(2),
   },
   uploadStatus: {
     fontSize: fp(12),
-    color: '#60A5FA',
+    color: colors.gold,
     marginBottom: hp(4),
   },
   progressBarBg: {
     height: hp(4),
-    backgroundColor: '#E2E8F0',
+    backgroundColor: 'rgba(255,255,255,0.1)',
     borderRadius: wp(2),
     overflow: 'hidden' as const,
   },
   progressBarFill: {
     height: '100%' as const,
-    backgroundColor: '#0F3460',
+    backgroundColor: '#D69C40',
     borderRadius: wp(2),
   },
   // FAB
@@ -764,7 +741,7 @@ const styles = StyleSheet.create({
     margin: wp(16),
     right: 0,
     bottom: 0,
-    backgroundColor: '#0F3460',
+    backgroundColor: '#D69C40',
     borderRadius: wp(50),
   },
   // Bottom modal

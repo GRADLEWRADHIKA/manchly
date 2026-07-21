@@ -341,12 +341,12 @@ const WebinarCard: React.FC<WebinarCardProps> = ({
             }
           >
             <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); setTimeout(() => Nav.navigate('WebinarDetails', { data }), 350); }}>
-              <Eye size={wp(16)} color={colors.textSecondary} />
-              <Text style={[styles.menuItemText, { color: colors.textSecondary }]}>Details</Text>
+              <Eye size={wp(16)} color={'#D5C4AB'} />
+              <Text style={[styles.menuItemText, { color: '#D5C4AB' }]}>Details</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); setTimeout(() => Nav.navigate('CreateWebinar', { data }), 350); }}>
-              <Edit3 size={wp(16)} color={colors.textSecondary} />
-              <Text style={[styles.menuItemText, { color: colors.textSecondary }]}>Edit</Text>
+              <Edit3 size={wp(16)} color={'#D5C4AB'} />
+              <Text style={[styles.menuItemText, { color: '#D5C4AB' }]}>Edit</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); setTimeout(handleShare, 350); }}>
               <Share2 size={wp(16)} color={colors.success} />
@@ -382,8 +382,8 @@ const styles = StyleSheet.create({
     marginBottom: hp(12),
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
+    borderColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: '#1C1B1B',
   },
   touchable: {
     padding: wp(14),
@@ -586,7 +586,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.inputBg,
     borderRadius: wp(8),
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: 'rgba(255,255,255,0.08)',
   },
   zoomToggleLeft: {
     flexDirection: 'row',
@@ -605,7 +605,7 @@ const styles = StyleSheet.create({
     padding: wp(10),
     gap: hp(8),
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: 'rgba(255,255,255,0.08)',
   },
   zoomRow: {
     flexDirection: 'row',
@@ -675,10 +675,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   menuContent: {
-    backgroundColor: colors.surface,
+    backgroundColor: 'rgba(26,26,26,0.97)',
     borderRadius: wp(12),
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: 'rgba(255,255,255,0.1)',
     paddingVertical: hp(4),
     minWidth: wp(160),
   },
@@ -696,6 +696,6 @@ const styles = StyleSheet.create({
   menuDivider: {
     height: 1,
     marginHorizontal: wp(12),
-    backgroundColor: colors.border,
+    backgroundColor: 'rgba(255,255,255,0.1)',
   },
 });

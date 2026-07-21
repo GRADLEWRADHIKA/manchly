@@ -71,7 +71,7 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
           underlineColorAndroid={'transparent'}
           style={[
             styles.textInput,
-            isCreator && { color: '#1A1A2E' },
+            isCreator && { color: colors.textPrimary },
             inputStyle,
             showFullHeight ? { height: '100%' } : {},
             { width: passwordFild === true ? '90%' : '100%' },

@@ -16,10 +16,10 @@ import {
   TrendingUp,
   PhoneCall,
   Settings,
-  Calendar,
   Handshake,
 } from 'lucide-react-native';
 import {useDispatch, useSelector} from 'react-redux';
+import LinearGradient from 'react-native-linear-gradient';
 import {useIsFocused, useNavigation} from '@react-navigation/native';
 import {PhoneOutgoing} from 'lucide-react-native';
 import SocketService from '../../../../services/SocketService';
@@ -28,6 +28,11 @@ import {wp, hp, fp} from '../../../../utils/responsive';
 import {getMySessions, getSessionStats, getMyExpertProfile, updateExpertProfile, getMySessionProducts, updateSessionProduct, deleteSessionProduct} from '../../../../store/SessionSlice';
 import AiButton from '../../../../components/AiButton';
 import PrepChecklistModal from '../../../../components/ai/PrepChecklistModal';
+
+const CARD_BG = '#141414';
+const CARD_BORDER = 'rgba(255,255,255,0.06)';
+const TEXT_SECONDARY = 'rgba(255,255,255,0.6)';
+const TEXT_MUTED = 'rgba(255,255,255,0.5)';
 
 const CreatorSessions: React.FC = () => {
   const dispatch = useDispatch<any>();
@@ -156,15 +161,6 @@ const CreatorSessions: React.FC = () => {
         <Text style={styles.editBtnText}>Edit Session Profile</Text>
       </TouchableOpacity>
 
-      {/* Manage Availability */}
-      <TouchableOpacity
-        style={styles.editBtn}
-        activeOpacity={0.7}
-        onPress={() => navigation.navigate('AvailabilityManager')}>
-        <Calendar size={wp(16)} color={colors.cAccentLight} strokeWidth={1.8} />
-        <Text style={styles.editBtnText}>Manage Availability</Text>
-      </TouchableOpacity>
-
       {/* Stats Row */}
       <Text style={styles.overviewLabel}>YOUR OVERVIEW</Text>
       <View style={styles.statsRow}>
@@ -235,7 +231,7 @@ const CreatorSessions: React.FC = () => {
                 <View>
                   <Text style={styles.sessionName}>{callerName}</Text>
                   <View style={styles.sessionMeta}>
-                    <Video size={wp(12)} color={colors.cSuccess} strokeWidth={1.8} />
+                    <Video size={wp(12)} color={colors.gold} strokeWidth={1.8} />
                     <Text style={styles.sessionMetaText}>
                       {session.duration} min
                     </Text>
@@ -258,8 +254,14 @@ const CreatorSessions: React.FC = () => {
                       style={styles.callUserBtn}
                       activeOpacity={0.8}
                       onPress={() => handleCallUser(session)}>
-                      <PhoneOutgoing size={wp(14)} color={colors.bg} strokeWidth={2} />
-                      <Text style={styles.callUserBtnText}>Call</Text>
+                      <LinearGradient
+                        colors={['#F3C36B', '#D49A3D']}
+                        start={{x: 0, y: 0}}
+                        end={{x: 1, y: 0}}
+                        style={styles.callUserBtnGradient}>
+                        <PhoneOutgoing size={wp(14)} color={colors.primary} strokeWidth={2} />
+                        <Text style={styles.callUserBtnText}>Call</Text>
+                      </LinearGradient>
                     </TouchableOpacity>
                   </>
                 ) : (
@@ -299,11 +301,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: colors.surface,
+    backgroundColor: CARD_BG,
     borderRadius: wp(14),
     padding: wp(14),
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: CARD_BORDER,
     marginBottom: hp(16),
   },
   availLeft: {
@@ -323,7 +325,7 @@ const styles = StyleSheet.create({
   },
   availSub: {
     fontSize: fp(11),
-    color: colors.textSecondary,
+    color: TEXT_SECONDARY,
     marginTop: hp(1),
   },
   editBtn: {
@@ -331,12 +333,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: wp(6),
-    backgroundColor: colors.surface,
+    backgroundColor: CARD_BG,
     borderRadius: wp(10),
     paddingVertical: hp(10),
     marginBottom: hp(20),
     borderWidth: 1.5,
-    borderColor: colors.gold,
+    borderColor: 'rgba(240,192,64,0.4)',
     borderStyle: 'dashed',
   },
   editBtnText: {
@@ -358,13 +360,13 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: CARD_BG,
     borderRadius: wp(12),
     paddingVertical: hp(14),
     alignItems: 'center',
     gap: hp(4),
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: CARD_BORDER,
   },
   statValue: {
     fontSize: fp(16),
@@ -373,7 +375,7 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: fp(9),
-    color: colors.textMuted,
+    color: TEXT_MUTED,
     letterSpacing: 0.3,
   },
   sectionRow: {
@@ -411,11 +413,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: wp(8),
-    backgroundColor: colors.surface,
+    backgroundColor: CARD_BG,
     borderRadius: wp(14),
     padding: wp(18),
     borderWidth: 1.5,
-    borderColor: colors.border,
+    borderColor: CARD_BORDER,
     borderStyle: 'dashed',
     marginBottom: hp(10),
   },
@@ -430,12 +432,12 @@ const styles = StyleSheet.create({
   modeCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface,
+    backgroundColor: CARD_BG,
     borderRadius: wp(14),
     padding: wp(14),
     marginBottom: hp(10),
     borderWidth: 1.5,
-    borderColor: colors.border,
+    borderColor: CARD_BORDER,
   },
   modeCardActive: {
     borderColor: colors.gold,
@@ -463,7 +465,7 @@ const styles = StyleSheet.create({
   },
   modeRate: {
     fontSize: fp(13),
-    color: colors.textSecondary,
+    color: TEXT_SECONDARY,
     fontWeight: '500',
   },
   modeToggle: {
@@ -478,10 +480,10 @@ const styles = StyleSheet.create({
   },
   emptyState: {
     alignItems: 'center',
-    backgroundColor: colors.surface,
+    backgroundColor: CARD_BG,
     borderRadius: wp(16),
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: CARD_BORDER,
     paddingVertical: hp(36),
     paddingHorizontal: wp(24),
   },
@@ -502,7 +504,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: fp(12),
-    color: colors.textMuted,
+    color: TEXT_MUTED,
     textAlign: 'center',
     lineHeight: fp(18),
   },
@@ -510,12 +512,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: colors.surface,
+    backgroundColor: CARD_BG,
     borderRadius: wp(12),
     padding: wp(12),
     marginBottom: hp(8),
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: CARD_BORDER,
   },
   sessionLeft: {
     flexDirection: 'row',
@@ -548,13 +550,13 @@ const styles = StyleSheet.create({
   },
   sessionMetaText: {
     fontSize: fp(10),
-    color: colors.textSecondary,
+    color: TEXT_SECONDARY,
   },
   dot: {
     width: wp(3),
     height: wp(3),
     borderRadius: wp(2),
-    backgroundColor: colors.textMuted,
+    backgroundColor: 'rgba(255,255,255,0.35)',
   },
   sessionAmount: {
     fontSize: fp(15),
@@ -562,18 +564,20 @@ const styles = StyleSheet.create({
     color: colors.gold,
   },
   callUserBtn: {
+    borderRadius: wp(8),
+    overflow: 'hidden',
+  },
+  callUserBtnGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(4),
-    backgroundColor: colors.cSuccess,
     paddingHorizontal: wp(12),
     paddingVertical: hp(6),
-    borderRadius: wp(8),
   },
   callUserBtnText: {
     fontSize: fp(11),
     fontWeight: '700',
-    color: colors.bg,
+    color: colors.primary,
   },
   regContent: {
     flex: 1,
@@ -600,7 +604,7 @@ const styles = StyleSheet.create({
   },
   regSub: {
     fontSize: fp(13),
-    color: colors.textSecondary,
+    color: TEXT_SECONDARY,
     textAlign: 'center',
     lineHeight: fp(20),
     marginTop: hp(8),

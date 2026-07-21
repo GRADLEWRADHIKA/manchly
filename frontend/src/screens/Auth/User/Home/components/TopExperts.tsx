@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
   },
   card: {
     width: wp(130),
-    backgroundColor: colors.surface,
+    backgroundColor: '#1A1E38',
     borderRadius: wp(14),
     padding: wp(12),
     alignItems: 'center',
@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
   },
   profession: {
     fontSize: fp(10),
-    color: colors.textSecondary,
+    color: 'rgba(255,255,255,0.6)',
     marginTop: hp(2),
     textAlign: 'center',
   },

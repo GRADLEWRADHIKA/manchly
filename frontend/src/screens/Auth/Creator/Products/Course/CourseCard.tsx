@@ -28,6 +28,15 @@ import { createDynamicLink } from 'react-native-chottulink-sdk';
 const CARD_BG = '#1C1B1B';
 const ACCENT = '#D5C4AB';
 
+const formatDuration = (mins: number) => {
+  if (!mins || mins < 1) return '0 min';
+  const h = Math.floor(mins / 60);
+  const m = Math.round(mins % 60);
+  if (h === 0) return `${m} min`;
+  if (m === 0) return `${h} hr`;
+  return `${h} hr ${m} min`;
+};
+
 interface Props {
   item: any;
   onEdit: () => void;
@@ -140,7 +149,7 @@ const CourseCard: React.FC<Props> = ({ item, onEdit, onDelete, onView }) => {
             </View>
             <View style={styles.metaItem}>
               <Clock size={wp(12)} color={colors.textMuted} />
-              <Text style={styles.metaText}>{durationMins} min</Text>
+              <Text style={styles.metaText}>{formatDuration(durationMins)}</Text>
             </View>
           </View>
           {createdLabel ? (

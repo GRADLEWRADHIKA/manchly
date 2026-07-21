@@ -49,11 +49,11 @@ export default memo(UserHome);
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#14141F',
+    backgroundColor: '#0D112B',
   },
   container: {
     flex: 1,
-    backgroundColor: '#14141F',
+    backgroundColor: '#0D112B',
   },
   scrollContent: {
     paddingBottom: hp(100),

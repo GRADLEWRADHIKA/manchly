@@ -1,4 +1,4 @@
-import React, {useState, memo} from 'react';
+import React, {useState, useEffect, memo} from 'react';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import {useRoute} from '@react-navigation/native';
 import {BookOpen, Users, Video} from 'lucide-react-native';
@@ -29,6 +29,12 @@ const CreatorProducts: React.FC = () => {
   const insets = useSafeAreaInsets();
   const initialTab = route.params?.initialTab || 'Courses';
   const [activeTab, setActiveTab] = useState<TabType>(initialTab);
+
+  useEffect(() => {
+    if (route.params?.initialTab && TABS.includes(route.params.initialTab)) {
+      setActiveTab(route.params.initialTab);
+    }
+  }, [route.params]);
 
   return (
     <View style={styles.container}>

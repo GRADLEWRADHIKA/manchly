@@ -49,6 +49,7 @@ const CreatorView: React.FC<{embedded?: boolean}> = ({embedded = false}) => {
   const fetchData = useCallback((pageNum: number, search: string, refresh = false) => {
     if (refresh) {
       setLoading(true);
+      setLoadingMore(false);
     } else {
       setLoadingMore(true);
     }
@@ -139,7 +140,7 @@ const CreatorView: React.FC<{embedded?: boolean}> = ({embedded = false}) => {
   );
 
   const renderFooter = () => {
-    if (!loadingMore) return null;
+    if (!loadingMore || loading) return null;
     return (
       <View style={styles.footerLoader}>
         <ActivityIndicator size="small" color={colors.gold} />

@@ -1,20 +1,18 @@
-import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
+import React, { memo, useState } from 'react';
 import {
   View,
   Text,
-  FlatList,
   StyleSheet,
   Dimensions,
   ImageBackground,
 } from 'react-native';
+import Carousel from 'react-native-reanimated-carousel';
 import { Play } from 'lucide-react-native';
 import colors from '../../../../../utils/colors';
 import { wp, hp, fp } from '../../../../../utils/responsive';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const HERO_CARD_GAP = wp(12);
-const HERO_CARD_WIDTH = SCREEN_WIDTH - wp(40);
-const HERO_SNAP_WIDTH = HERO_CARD_WIDTH + HERO_CARD_GAP;
+const HERO_HEIGHT = hp(200);
 
 const heroSlides = [
   {
@@ -37,13 +35,6 @@ const heroSlides = [
   },
 ];
 
-const LOOP_COUNT = 100;
-const loopedSlides = Array.from({ length: LOOP_COUNT * heroSlides.length }, (_, i) => ({
-  ...heroSlides[i % heroSlides.length],
-  key: String(i),
-}));
-const INITIAL_INDEX = Math.floor(LOOP_COUNT / 2) * heroSlides.length;
-
 /* ──── Dot Indicator ──── */
 const DotIndicator = ({ count, activeIndex }: any) => (
   <View style={styles.dotRow}>
@@ -62,108 +53,43 @@ const DotIndicator = ({ count, activeIndex }: any) => (
   </View>
 );
 
-const getItemLayout = (_: any, index: number) => ({
-  length: HERO_SNAP_WIDTH,
-  offset: HERO_SNAP_WIDTH * index,
-  index,
-});
-
 /* ──── Hero Carousel ──── */
 const HeroCarousel = () => {
   const [activeDotIndex, setActiveDotIndex] = useState(0);
-  const heroCurrentIndex = useRef(INITIAL_INDEX);
-  const heroListRef = useRef<FlatList>(null);
-  const heroTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const isUserScrolling = useRef(false);
-
-  const startTimer = useCallback(() => {
-    if (heroTimerRef.current) clearInterval(heroTimerRef.current);
-    heroTimerRef.current = setInterval(() => {
-      if (isUserScrolling.current) return;
-      const nextIndex = heroCurrentIndex.current + 1;
-      if (nextIndex >= loopedSlides.length) {
-        // Reset to middle without animation, then continue
-        heroCurrentIndex.current = INITIAL_INDEX;
-        heroListRef.current?.scrollToIndex({
-          index: INITIAL_INDEX,
-          animated: false,
-        });
-        setActiveDotIndex(INITIAL_INDEX % heroSlides.length);
-        return;
-      }
-      heroCurrentIndex.current = nextIndex;
-      setActiveDotIndex(nextIndex % heroSlides.length);
-      heroListRef.current?.scrollToIndex({
-        index: nextIndex,
-        animated: true,
-      });
-    }, 3000);
-  }, []);
-
-  useEffect(() => {
-    startTimer();
-    return () => {
-      if (heroTimerRef.current) clearInterval(heroTimerRef.current);
-    };
-  }, [startTimer]);
-
-  const onScrollBeginDrag = useCallback(() => {
-    isUserScrolling.current = true;
-  }, []);
-
-  const onMomentumScrollEnd = useCallback(
-    (e: any) => {
-      const index = Math.round(
-        e.nativeEvent.contentOffset.x / HERO_SNAP_WIDTH,
-      );
-      heroCurrentIndex.current = index;
-      setActiveDotIndex(index % heroSlides.length);
-      isUserScrolling.current = false;
-      startTimer();
-    },
-    [startTimer],
-  );
-
-  const renderItem = useCallback(({ item }: { item: typeof loopedSlides[0] }) => (
-    <ImageBackground
-      source={require('../../../../../image/Logo.jpg')}
-      style={styles.heroCard}
-      imageStyle={styles.heroCardImage}
-      resizeMode="cover">
-      <View style={styles.heroOverlay} />
-      <View style={styles.heroBadge}>
-        <Text style={styles.heroBadgeText}>{item.badge}</Text>
-      </View>
-      <Text style={styles.heroTitle}>{item.title}</Text>
-      <Text style={styles.heroSub}>{item.subtitle}</Text>
-      <View style={styles.resumeBtn}>
-        <Play size={wp(14)} color={colors.white} fill={colors.white} />
-      </View>
-    </ImageBackground>
-  ), []);
 
   return (
     <View style={styles.heroSection}>
-      <FlatList
-        ref={heroListRef}
-        data={loopedSlides}
-        keyExtractor={item => item.key}
-        renderItem={renderItem}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        snapToInterval={HERO_SNAP_WIDTH}
-        snapToAlignment="start"
-        decelerationRate="fast"
-        scrollEventThrottle={16}
-        getItemLayout={getItemLayout}
-        initialScrollIndex={INITIAL_INDEX}
-        onScrollBeginDrag={onScrollBeginDrag}
-        onMomentumScrollEnd={onMomentumScrollEnd}
-        contentContainerStyle={styles.heroListContent}
-        ItemSeparatorComponent={() => <View style={{ width: HERO_CARD_GAP }} />}
-        windowSize={3}
-        maxToRenderPerBatch={5}
-        initialNumToRender={5}
+      <Carousel
+        width={SCREEN_WIDTH}
+        height={HERO_HEIGHT}
+        data={heroSlides}
+        loop
+        autoPlay
+        autoPlayInterval={3000}
+        scrollAnimationDuration={900}
+        mode="parallax"
+        modeConfig={{
+          parallaxScrollingScale: 0.92,
+          parallaxScrollingOffset: wp(42),
+        }}
+        onSnapToItem={setActiveDotIndex}
+        renderItem={({ item }) => (
+          <ImageBackground
+            source={require('../../../../../image/Logo.jpg')}
+            style={styles.heroCard}
+            imageStyle={styles.heroCardImage}
+            resizeMode="cover">
+            <View style={styles.heroOverlay} />
+            <View style={styles.heroBadge}>
+              <Text style={styles.heroBadgeText}>{item.badge}</Text>
+            </View>
+            <Text style={styles.heroTitle}>{item.title}</Text>
+            <Text style={styles.heroSub}>{item.subtitle}</Text>
+            <View style={styles.resumeBtn}>
+              <Play size={wp(14)} color={colors.white} fill={colors.white} />
+            </View>
+          </ImageBackground>
+        )}
       />
       <DotIndicator count={heroSlides.length} activeIndex={activeDotIndex} />
     </View>
@@ -176,15 +102,11 @@ const styles = StyleSheet.create({
   heroSection: {
     paddingTop: hp(20),
   },
-  heroListContent: {
-    paddingHorizontal: wp(20),
-  },
   heroCard: {
+    flex: 1,
     borderRadius: wp(24),
     padding: wp(22),
-    minHeight: hp(190),
     justifyContent: 'flex-end',
-    width: HERO_CARD_WIDTH,
     overflow: 'hidden',
   },
   heroCardImage: {

@@ -28,7 +28,9 @@ import { useSelector } from 'react-redux';
 
 const Tab = createBottomTabNavigator();
 
-//const INACTIVE_COLOR = '#94a3b8';
+const BAR_BG = '#080C25';
+const ACTIVE_COLOR = '#4F60FA';
+const INACTIVE_COLOR = '#8B90A7';
 
 
 const tabs = [
@@ -48,7 +50,7 @@ const tabs = [
   {
     name: 'PurchasesScreen',
     component: PurchasesScreen,
-    label: 'My Learning',
+    label: 'Learning',
     Icon: BookOpen,
   },
   {
@@ -108,10 +110,10 @@ const TabItem = ({ isFocused, icon: Icon, label, onPress }: any) => {
       accessibilityState={{ selected: isFocused }}
       accessibilityLabel={label}
     >
-      {/* Active pill background */}
+      {/* Active glowing indicator bar */}
       <Animated.View
         style={[
-          styles.activePill,
+          styles.activeBar,
           {
             opacity: pillOpacity,
             transform: [{ scaleX: pillScaleX }, { scaleY: pillScaleY }],
@@ -126,8 +128,8 @@ const TabItem = ({ isFocused, icon: Icon, label, onPress }: any) => {
       >
         <Icon
           size={wp(21)}
-          color={isFocused ? colors.info : colors.textPrimary}
-          strokeWidth={isFocused ? 2.2 : 1.6}
+          color={isFocused ? ACTIVE_COLOR : INACTIVE_COLOR}
+          strokeWidth={isFocused ? 2.2 : 1.8}
         />
       </Animated.View>
 
@@ -135,9 +137,8 @@ const TabItem = ({ isFocused, icon: Icon, label, onPress }: any) => {
         style={[
           styles.tabLabel,
           {
-            color: isFocused ? colors.info : colors.textPrimary,
-            fontWeight: isFocused ? '600' : '400',
-            opacity: isFocused ? 1 : 0.85,
+            color: isFocused ? ACTIVE_COLOR : INACTIVE_COLOR,
+            fontWeight: isFocused ? '700' : '600',
           },
         ]}
         numberOfLines={1}
@@ -223,9 +224,9 @@ export default UserBottomTab;
 
 const styles = StyleSheet.create({
   tabBarOuter: {
-    backgroundColor: colors.bg,
+    backgroundColor: BAR_BG,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.bg,
+    borderTopColor: BAR_BG,
     shadowColor: colors.black,
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.08,
@@ -244,23 +245,30 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flex: 1,
     position: 'relative',
-    paddingVertical: hp(6),
-    minHeight: hp(52),
+    paddingTop: hp(12),
+    paddingBottom: hp(6),
+    minHeight: hp(56),
   },
   tabItemPressed: {
     opacity: 0.6,
   },
-  activePill: {
+  activeBar: {
     position: 'absolute',
-    top: hp(2),
-    width: wp(52),
-    height: hp(34),
-    borderRadius: wp(16),
-    backgroundColor: colors.cSurface,
+    top: 0,
+    width: wp(44),
+    height: hp(5),
+    borderRadius: wp(4),
+    backgroundColor: ACTIVE_COLOR,
+    shadowColor: ACTIVE_COLOR,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 12,
+    elevation: 8,
   },
   tabLabel: {
-    fontSize: fp(10.5),
-    marginTop: hp(2),
-    letterSpacing: 0.1,
+    fontSize: fp(10),
+    marginTop: hp(4),
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
   },
 });

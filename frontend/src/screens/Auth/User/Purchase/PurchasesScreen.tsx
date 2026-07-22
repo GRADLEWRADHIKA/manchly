@@ -570,12 +570,12 @@ const styles = StyleSheet.create({
 
   // Skeleton styles
   skeletonCard: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.uCard,
     borderRadius: wp(14),
     padding: wp(16),
     marginBottom: hp(12),
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#e8ecf0',
+    borderColor: '#242843',
   },
   skeletonRow: {
     flexDirection: 'row',
@@ -586,7 +586,7 @@ const styles = StyleSheet.create({
     width: wp(40),
     height: wp(40),
     borderRadius: wp(12),
-    backgroundColor: '#f1f5f9',
+    backgroundColor: '#2A3057',
   },
   skeletonTextGroup: {
     flex: 1,
@@ -597,18 +597,18 @@ const styles = StyleSheet.create({
     height: hp(14),
     width: '75%',
     borderRadius: wp(6),
-    backgroundColor: '#f1f5f9',
+    backgroundColor: '#2A3057',
   },
   skeletonSubtitle: {
     height: hp(10),
     width: '50%',
     borderRadius: wp(4),
-    backgroundColor: '#f1f5f9',
+    backgroundColor: '#2A3057',
   },
   skeletonBar: {
     height: hp(6),
     borderRadius: wp(3),
-    backgroundColor: '#f1f5f9',
+    backgroundColor: '#2A3057',
     marginBottom: hp(14),
   },
   skeletonFooter: {
@@ -619,12 +619,12 @@ const styles = StyleSheet.create({
     width: wp(80),
     height: hp(24),
     borderRadius: wp(6),
-    backgroundColor: '#f1f5f9',
+    backgroundColor: '#2A3057',
   },
   skeletonButton: {
     width: wp(70),
     height: hp(24),
     borderRadius: wp(6),
-    backgroundColor: '#f1f5f9',
+    backgroundColor: '#2A3057',
   },
 });

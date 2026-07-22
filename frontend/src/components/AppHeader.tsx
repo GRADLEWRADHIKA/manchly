@@ -9,7 +9,7 @@ const AppHeader = ({ title = 'Manchly' }) => {
   const insets = useSafeAreaInsets();
   const { user } = useSelector((state: any) => state.userReducer);
   const isUser = user?.user_type === 'USER';
-  const bgColor = isUser ? colors.bg : colors.primary;
+  const bgColor = isUser ? colors.uBg : colors.primary;
 
   return (
     <View

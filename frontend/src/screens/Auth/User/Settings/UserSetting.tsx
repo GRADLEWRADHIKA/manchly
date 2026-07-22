@@ -62,8 +62,8 @@ const openWhatsApp = (message: string) => {
 /* ──────── Reusable Menu Row ──────── */
 const MenuRow = ({
   icon: Icon,
-  iconColor = colors.statText,
-  iconBg = colors.statIcon,
+  iconColor = colors.statIcon2,
+  iconBg = colors.btnGradientEnd + '2E',
   label,
   labelColor = colors.textPrimary,
   subtitle,
@@ -81,7 +81,7 @@ const MenuRow = ({
   >
     <View style={styles.rowLeft}>
       <View style={[styles.rowIcon, { backgroundColor: iconBg }]}>
-        <Icon size={wp(18)} color={iconColor} strokeWidth={1.8} />
+        <Icon size={wp(19)} color={iconColor} strokeWidth={2.2} />
       </View>
       <View>
         <Text style={[styles.rowText, { color: labelColor }]}>{label}</Text>
@@ -147,14 +147,14 @@ const UserSetting: React.FC = () => {
           <MenuRow
             icon={Headset}
             label="Help & Support"
-            subtitle='Earnings & transaction'
+            subtitle='Get help or contact us'
             onPress={() => openWhatsApp('Hello, I am a User, I need help.')}
           />
           <MenuRow
             icon={Notebook}
             label="About"
-            subtitle='Manage bank information'
-            onPress={() => {}}
+            subtitle='Terms, privacy & policies'
+            onPress={() => setShowTerms(true)}
           />
           <MenuRow
             icon={LogOut}

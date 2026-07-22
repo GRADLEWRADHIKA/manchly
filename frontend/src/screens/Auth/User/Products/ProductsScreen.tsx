@@ -1,97 +1,202 @@
-// screens/Auth/User/Products/component/ProductsScreen.tsx
-import React, { useState } from 'react';
+// screens/Auth/User/Products/ProductsScreen.tsx
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView,
-  TouchableOpacity, Image, TextInput,
+  TouchableOpacity, Image, TextInput, ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
-import { Search, Star, Bell } from 'lucide-react-native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
+import { useDispatch, useSelector } from 'react-redux';
+import { Search, Star, Bell, BookOpen, Video } from 'lucide-react-native';
 import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
+import { fetchCourses } from '../../../../store/CourseSlice';
+import { getAllWebinar } from '../../../../store/WebinarSlice';
+import { listExperts } from '../../../../store/SessionSlice';
 
-// ── Mock Data matching the UI ───────────────────────────────────────────────
-const FEATURED_COURSE = {
-  title: 'Mastering Advanced Quant Trading Strategies',
-  subtitle: 'Learn to build, backtest, and deploy high-frequency algorithmic trading systems using Python and real-time market data APIs.',
-  price: '₹199',
-  originalPrice: '₹1,999',
-  rating: '4.9',
-  image: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400',
+const fmtPrice = (p: any) => (Number(p) > 0 ? `₹${p}` : 'Free');
+
+const fmtDateTime = (iso?: string) => {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '';
+  return `${d.toLocaleDateString('en-IN', {
+    day: '2-digit',
+    month: 'short',
+  })}, ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
 };
 
-const POPULAR_COURSES = [
-  {
-    id: '1',
-    title: 'Advanced Neural Networks & DL',
-    duration: '18h 45m',
-    rating: '4.8',
-    price: '₹249',
-    level: 'INTERMEDIATE',
-    image: 'https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=200',
-  },
-  {
-    id: '2',
-    title: 'Technical Writing for Engineers',
-    duration: '09h 20m',
-    rating: '4.5',
-    price: 'Free',
-    level: 'BEGINNER',
-    image: 'https://images.unsplash.com/photo-1455390582262-044cdead277a?w=200',
-  },
-  {
-    id: '3',
-    title: 'Advanced UI Design Systems',
-    duration: '12h 15m',
-    rating: '4.7',
-    price: '₹399',
-    level: 'EXPERT',
-    image: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=200',
-  },
-];
-
-const UPCOMING_WEBINARS = [
-  {
-    id: '1',
-    title: 'State Management: Redux vs Zustand vs Jotai',
-    desc: 'Architectural benefits and performance of modern state libraries.',
-    date: '05 Jul, 03:00 PM',
-    host: 'Shrikant Chauhan',
-    price: '₹299',
-    image: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=400',
-  },
-  {
-    id: '2',
-    title: 'Mastering Mobile UI/UX Design Systems',
-    desc: 'Scalable design languages for cross-platform mobile experiences.',
-    date: '06 Jul, 11:00 AM',
-    host: 'Ananya Sharma',
-    price: '₹149',
-    image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400',
-  },
-];
-
-const FACULTY_MEMBERS = [
-  {
-    id: '1',
-    name: 'Shrikant Chauhan',
-    role: 'Lead Dev at TechFlow',
-    avatar: 'https://randomuser.me/api/portraits/men/45.jpg',
-  },
-];
+const initials = (name?: string) =>
+  (name || '?')
+    .split(' ')
+    .map((n: string) => n[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
 
 const ProductsScreen = () => {
   const navigation = useNavigation<any>();
+  const dispatch = useDispatch<any>();
   const insets = useSafeAreaInsets();
+  const focus = useIsFocused();
+
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<'Courses' | 'Webinars'>('Courses');
+  const [webinars, setWebinars] = useState<any[]>([]);
+  const [experts, setExperts] = useState<any[]>([]);
+  const [loadingWebinars, setLoadingWebinars] = useState(false);
+
+  const { list: allCourses } = useSelector((state: any) => state.coursesReducer);
+  const courses = allCourses?.data?.courses || [];
+
+  useEffect(() => {
+    if (!focus) return;
+
+    dispatch(fetchCourses({}));
+
+    dispatch(listExperts({ page: 1, limit: 10 }))
+      .unwrap()
+      .then((res: any) => setExperts(res?.data?.experts || []))
+      .catch(() => {});
+
+    setLoadingWebinars(true);
+    dispatch(getAllWebinar({ page: 1, limit: 10, upcoming: true, title: '' }))
+      .unwrap()
+      .then((res: any) => {
+        const all = res?.data?.data?.webinars || [];
+        setWebinars(all.filter((w: any) => !w.is_enrolled));
+      })
+      .catch(() => {})
+      .finally(() => setLoadingWebinars(false));
+  }, [focus]);
+
+  const q = searchQuery.trim().toLowerCase();
+
+  const filteredCourses = useMemo(
+    () =>
+      q
+        ? courses.filter((c: any) => (c?.title || '').toLowerCase().includes(q))
+        : courses,
+    [courses, q],
+  );
+
+  const filteredWebinars = useMemo(
+    () =>
+      q
+        ? webinars.filter((w: any) => (w?.title || '').toLowerCase().includes(q))
+        : webinars,
+    [webinars, q],
+  );
+
+  const featured = filteredCourses[0];
+  const popular = filteredCourses.slice(1);
+
+  const openCourse = (course: any) =>
+    navigation.navigate('CourseDetailsScreen', {
+      courseId: course?.id,
+      videoList: course?.videos,
+    });
+  const openWebinar = (webinar: any) =>
+    navigation.navigate('WebinarDetails', { data: webinar });
+  const openExpert = (expert: any) =>
+    navigation.navigate('ExpertDetail', { expert });
+
+  const SearchBar = (
+    <View style={styles.searchBar}>
+      <Search size={16} color={colors.cTextMuted} />
+      <TextInput
+        style={styles.searchInput}
+        placeholder="Search courses, webinars, or experts..."
+        placeholderTextColor={colors.cTextMuted}
+        value={searchQuery}
+        onChangeText={setSearchQuery}
+      />
+    </View>
+  );
+
+  const FilterRow = (
+    <View style={styles.filterRow}>
+      {(['Courses', 'Webinars'] as const).map(filter => (
+        <TouchableOpacity
+          key={filter}
+          style={[
+            styles.filterPill,
+            activeFilter === filter && styles.filterPillActive,
+          ]}
+          onPress={() => setActiveFilter(filter)}
+          activeOpacity={0.8}
+        >
+          <Text
+            style={[
+              styles.filterPillText,
+              activeFilter === filter && styles.filterPillTextActive,
+            ]}
+          >
+            {filter}
+          </Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+
+  const ExpertsRail = experts.length > 0 && (
+    <>
+      <View style={[styles.sectionHeader, { marginTop: hp(24) }]}>
+        <Text style={styles.sectionTitle}>Learn from the Best</Text>
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={() => navigation.navigate('ExpertList')}
+        >
+          <Text style={styles.seeAllText}>See All →</Text>
+        </TouchableOpacity>
+      </View>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ gap: wp(12) }}
+      >
+        {experts.map(expert => {
+          const u = expert.user || {};
+          return (
+            <TouchableOpacity
+              key={expert.id}
+              style={[styles.facultyCircularCard, { width: wp(140) }]}
+              activeOpacity={0.85}
+              onPress={() => openExpert(expert)}
+            >
+              {u.profile_image ? (
+                <Image
+                  source={{ uri: u.profile_image }}
+                  style={styles.facultyImageCircle}
+                />
+              ) : (
+                <View style={[styles.facultyImageCircle, styles.imgPlaceholder]}>
+                  <Text style={styles.avatarInitials}>{initials(u.name)}</Text>
+                </View>
+              )}
+              <Text style={styles.facultyCardName} numberOfLines={1}>
+                {u.name || 'Expert'}
+              </Text>
+              <Text style={styles.facultyCardRole} numberOfLines={1}>
+                {expert.profession || 'Expert'}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
+    </>
+  );
 
   return (
     <View style={styles.container}>
       {/* Top Bar */}
       <View style={[styles.topBar, { paddingTop: insets.top }]}>
         <Text style={styles.brandTitle}>Manchly</Text>
-        <TouchableOpacity style={styles.iconButton} activeOpacity={0.75}>
+        <TouchableOpacity
+          style={styles.iconButton}
+          activeOpacity={0.75}
+          onPress={() => navigation.navigate('UserNotification')}
+        >
           <Bell size={22} color={colors.cText} />
           <View style={styles.bellDot} />
         </TouchableOpacity>
@@ -103,209 +208,224 @@ const ProductsScreen = () => {
       >
         {activeFilter === 'Courses' ? (
           <>
-            {/* Hero Heading */}
             <Text style={styles.heroTitle}>Explore Knowledge</Text>
+            {SearchBar}
+            {FilterRow}
 
-            {/* Search Bar */}
-            <View style={styles.searchBar}>
-              <Search size={16} color={colors.cTextMuted} />
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Search webinars, topics, or experts..."
-                placeholderTextColor={colors.cTextMuted}
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-              />
-            </View>
-
-            {/* Filter Toggle Row */}
-            <View style={styles.filterRow}>
-              {['Courses', 'Webinars'].map((filter: any) => (
-                <TouchableOpacity
-                  key={filter}
-                  style={[
-                    styles.filterPill,
-                    activeFilter === filter && styles.filterPillActive,
-                  ]}
-                  onPress={() => setActiveFilter(filter)}
-                  activeOpacity={0.8}
-                >
-                  <Text
-                    style={[
-                      styles.filterPillText,
-                      activeFilter === filter && styles.filterPillTextActive,
-                    ]}
-                  >
-                    {filter}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            {/* Featured Course Card */}
-            <View style={styles.featuredCourseCard}>
-              <View style={styles.featuredContentRow}>
-                <View style={styles.featuredTextContent}>
-                  <View style={styles.badgeRow}>
-                    <View style={styles.featuredAccentBadge}>
-                      <Text style={styles.featuredAccentBadgeText}>FEATURED</Text>
+            {/* Featured Course */}
+            {featured && (
+              <TouchableOpacity
+                style={styles.featuredCourseCard}
+                activeOpacity={0.85}
+                onPress={() => openCourse(featured)}
+              >
+                <View style={styles.featuredContentRow}>
+                  <View style={styles.featuredTextContent}>
+                    <View style={styles.badgeRow}>
+                      <View style={styles.featuredAccentBadge}>
+                        <Text style={styles.featuredAccentBadgeText}>FEATURED</Text>
+                      </View>
+                      {!!(featured.average_rating || featured.rating) && (
+                        <View style={styles.starMetaRow}>
+                          <Star size={10} color={colors.gold} fill={colors.gold} />
+                          <Text style={styles.featuredMetaText}>
+                            {featured.average_rating || featured.rating}
+                          </Text>
+                        </View>
+                      )}
                     </View>
-                    <View style={styles.starMetaRow}>
-                      <Star size={10} color={colors.gold} fill={colors.gold} />
-                      <Text style={styles.featuredMetaText}>{FEATURED_COURSE.rating}</Text>
+
+                    <Text style={styles.featuredCourseTitle} numberOfLines={2}>
+                      {featured.title}
+                    </Text>
+                    <Text style={styles.featuredCourseDesc} numberOfLines={3}>
+                      {featured.description || 'Start learning today.'}
+                    </Text>
+
+                    <View style={styles.featuredActionFooter}>
+                      <View style={styles.priceContainer}>
+                        <Text style={styles.featuredCoursePrice}>
+                          {fmtPrice(featured.price)}
+                        </Text>
+                        {!!featured.creator?.name && (
+                          <Text style={styles.featuredMetaText} numberOfLines={1}>
+                            by {featured.creator.name}
+                          </Text>
+                        )}
+                      </View>
+                      <View style={styles.enrollBtn}>
+                        <Text style={styles.enrollBtnText}>Enroll Now</Text>
+                      </View>
                     </View>
                   </View>
 
-                  <Text style={styles.featuredCourseTitle}>{FEATURED_COURSE.title}</Text>
-                  <Text style={styles.featuredCourseDesc} numberOfLines={3}>
-                    {FEATURED_COURSE.subtitle}
-                  </Text>
-
-                  <View style={styles.featuredActionFooter}>
-                    <View style={styles.priceContainer}>
-                      <Text style={styles.featuredCoursePrice}>{FEATURED_COURSE.price}</Text>
-                      <Text style={styles.featuredOriginalPrice}>{FEATURED_COURSE.originalPrice}</Text>
+                  {featured.thumbnail ? (
+                    <Image
+                      source={{ uri: featured.thumbnail }}
+                      style={styles.featuredSideImage}
+                    />
+                  ) : (
+                    <View style={[styles.featuredSideImage, styles.imgPlaceholder]}>
+                      <BookOpen
+                        size={wp(30)}
+                        color={colors.cAccentLight}
+                        strokeWidth={1.6}
+                      />
                     </View>
-                    <TouchableOpacity style={styles.enrollBtn} activeOpacity={0.8}>
-                      <Text style={styles.enrollBtnText}>Enroll Now</Text>
-                    </TouchableOpacity>
-                  </View>
+                  )}
                 </View>
+              </TouchableOpacity>
+            )}
 
-                <Image source={{ uri: FEATURED_COURSE.image }} style={styles.featuredSideImage} />
-              </View>
-            </View>
-
-            {/* Popular Courses Title Header */}
+            {/* Popular Courses */}
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Popular Courses</Text>
             </View>
 
-            {POPULAR_COURSES.map(course => (
-              <TouchableOpacity key={course.id} style={styles.popularCourseCard} activeOpacity={0.8}>
-                <Image source={{ uri: course.image }} style={styles.courseThumbnailImage} />
-                <View style={styles.popularCourseCardInfo}>
-                  <View style={styles.pillBadgeContainer}>
-                    <Text style={styles.pillBadgeText}>{course.level}</Text>
+            {filteredCourses.length === 0 ? (
+              <Text style={styles.emptyText}>No courses found.</Text>
+            ) : (
+              popular.map((course: any) => (
+                <TouchableOpacity
+                  key={course.id}
+                  style={styles.popularCourseCard}
+                  activeOpacity={0.8}
+                  onPress={() => openCourse(course)}
+                >
+                  {course.thumbnail ? (
+                    <Image
+                      source={{ uri: course.thumbnail }}
+                      style={styles.courseThumbnailImage}
+                    />
+                  ) : (
+                    <View
+                      style={[styles.courseThumbnailImage, styles.imgPlaceholder]}
+                    >
+                      <BookOpen
+                        size={wp(24)}
+                        color={colors.cAccentLight}
+                        strokeWidth={1.6}
+                      />
+                    </View>
+                  )}
+                  <View style={styles.popularCourseCardInfo}>
+                    {!!course.category && (
+                      <View style={styles.pillBadgeContainer}>
+                        <Text style={styles.pillBadgeText}>
+                          {String(course.category).toUpperCase()}
+                        </Text>
+                      </View>
+                    )}
+                    <Text style={styles.popularCourseTitle} numberOfLines={1}>
+                      {course.title}
+                    </Text>
+                    <Text style={styles.courseDurationText}>
+                      {course.duration ? `🕒 ${course.duration}h  ` : ''}
+                      {course.average_rating || course.rating
+                        ? `★ ${course.average_rating || course.rating}`
+                        : ''}
+                    </Text>
+                    <View style={styles.courseBottomActionRow}>
+                      <Text style={styles.coursePriceTag}>
+                        {fmtPrice(course.price)}
+                      </Text>
+                      <View style={styles.addButtonCircle}>
+                        <Text style={styles.addButtonText}>+</Text>
+                      </View>
+                    </View>
                   </View>
-                  <Text style={styles.popularCourseTitle} numberOfLines={1}>{course.title}</Text>
-                  <Text style={styles.courseDurationText}>🕒 {course.duration}  ★ {course.rating}</Text>
-                  <View style={styles.courseBottomActionRow}>
-                    <Text style={styles.coursePriceTag}>{course.price}</Text>
-                    <TouchableOpacity style={styles.addButtonCircle} activeOpacity={0.7}>
-                      <Text style={styles.addButtonText}>+</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              </TouchableOpacity>
-            ))}
+                </TouchableOpacity>
+              ))
+            )}
 
-            {/* Learn from the Best Section */}
-            <View style={[styles.sectionHeader, { marginTop: hp(24) }]}>
-              <Text style={styles.sectionTitle}>Learn from the Best</Text>
-              <TouchableOpacity activeOpacity={0.7}>
-                <Text style={styles.seeAllText}>See All →</Text>
-              </TouchableOpacity>
-            </View>
-
-            {FACULTY_MEMBERS.map(faculty => (
-              <View key={faculty.id} style={styles.facultyCircularCard}>
-                <Image source={{ uri: faculty.avatar }} style={styles.facultyImageCircle} />
-                <Text style={styles.facultyCardName}>{faculty.name}</Text>
-                <Text style={styles.facultyCardRole}>{faculty.role}</Text>
-              </View>
-            ))}
+            {ExpertsRail}
           </>
         ) : (
           <>
-            {/* Webinar Welcome Hero Card */}
+            {/* Webinar Hero */}
             <View style={styles.webinarWelcomeHeroCard}>
-              <Text style={styles.webinarHeroGreeting}>Hey Shrikant 👋</Text>
+              <Text style={styles.webinarHeroGreeting}>Hey 👋</Text>
               <Text style={styles.webinarHeroTitle}>Join Live Webinars</Text>
               <Text style={styles.webinarHeroDesc}>
-                Attend live sessions with world-class experts and scale your knowledge in real-time.
+                Attend live sessions with world-class experts and scale your
+                knowledge in real-time.
               </Text>
             </View>
 
-            {/* Search Bar */}
-            <View style={styles.searchBar}>
-              <Search size={16} color={colors.cTextMuted} />
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Search webinars, topics, or experts..."
-                placeholderTextColor={colors.cTextMuted}
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-              />
-            </View>
+            {SearchBar}
+            {FilterRow}
 
-            {/* Filter Toggle Row */}
-            <View style={styles.filterRow}>
-              {['Courses', 'Webinars'].map((filter: any) => (
-                <TouchableOpacity
-                  key={filter}
-                  style={[
-                    styles.filterPill,
-                    activeFilter === filter && styles.filterPillActive,
-                  ]}
-                  onPress={() => setActiveFilter(filter)}
-                  activeOpacity={0.8}
-                >
-                  <Text
-                    style={[
-                      styles.filterPillText,
-                      activeFilter === filter && styles.filterPillTextActive,
-                    ]}
-                  >
-                    {filter}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            {/* Upcoming Webinars Section Header */}
+            {/* Upcoming Webinars */}
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Upcoming Webinars</Text>
               <View style={styles.upcomingCountBadge}>
-                <Text style={styles.upcomingCountText}>• 2 upcoming</Text>
+                <Text style={styles.upcomingCountText}>
+                  • {filteredWebinars.length} upcoming
+                </Text>
               </View>
             </View>
 
-            {UPCOMING_WEBINARS.map(webinar => (
-              <View key={webinar.id} style={styles.webinarItemCard}>
-                <View style={{ position: 'relative' }}>
-                  <Image source={{ uri: webinar.image }} style={styles.webinarCoverImage} />
-                  <View style={styles.priceOverlayBadge}>
-                    <Text style={styles.priceOverlayText}>{webinar.price}</Text>
+            {loadingWebinars ? (
+              <ActivityIndicator
+                size="small"
+                color={colors.cAccentLight}
+                style={{ marginVertical: hp(20) }}
+              />
+            ) : filteredWebinars.length === 0 ? (
+              <Text style={styles.emptyText}>No upcoming webinars right now.</Text>
+            ) : (
+              filteredWebinars.map((webinar: any) => (
+                <TouchableOpacity
+                  key={webinar.id}
+                  style={styles.webinarItemCard}
+                  activeOpacity={0.85}
+                  onPress={() => openWebinar(webinar)}
+                >
+                  <View style={{ position: 'relative' }}>
+                    {webinar.thumbnail_url ? (
+                      <Image
+                        source={{ uri: webinar.thumbnail_url }}
+                        style={styles.webinarCoverImage}
+                      />
+                    ) : (
+                      <View style={[styles.webinarCoverImage, styles.imgPlaceholder]}>
+                        <Video
+                          size={wp(30)}
+                          color={colors.cAccentLight}
+                          strokeWidth={1.6}
+                        />
+                      </View>
+                    )}
+                    <View style={styles.priceOverlayBadge}>
+                      <Text style={styles.priceOverlayText}>
+                        {fmtPrice(webinar.price)}
+                      </Text>
+                    </View>
                   </View>
-                </View>
-                <View style={styles.webinarDetailsContent}>
-                  <Text style={styles.webinarItemTitle}>{webinar.title}</Text>
-                  <Text style={styles.webinarItemDesc} numberOfLines={2}>{webinar.desc}</Text>
-                  <Text style={styles.webinarMetaLineText}>📅 {webinar.date}</Text>
-                  <Text style={styles.webinarMetaLineText}>👤 {webinar.host}</Text>
-                  <TouchableOpacity style={styles.registerWebinarBtn} activeOpacity={0.8}>
-                    <Text style={styles.registerWebinarBtnText}>Register Now</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            ))}
+                  <View style={styles.webinarDetailsContent}>
+                    <Text style={styles.webinarItemTitle} numberOfLines={2}>
+                      {webinar.title}
+                    </Text>
+                    {!!webinar.description && (
+                      <Text style={styles.webinarItemDesc} numberOfLines={2}>
+                        {webinar.description}
+                      </Text>
+                    )}
+                    <Text style={styles.webinarMetaLineText}>
+                      📅 {fmtDateTime(webinar.scheduled_at)}
+                    </Text>
+                    <Text style={styles.webinarMetaLineText}>
+                      👤 {webinar.creator?.name || 'Host'}
+                    </Text>
+                    <View style={styles.registerWebinarBtn}>
+                      <Text style={styles.registerWebinarBtnText}>Register Now</Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              ))
+            )}
 
-            {/* Expert Faculty Section */}
-            <View style={[styles.sectionHeader, { marginTop: hp(24) }]}>
-              <Text style={styles.sectionTitle}>Expert Faculty</Text>
-              <TouchableOpacity activeOpacity={0.7}>
-                <Text style={styles.seeAllText}>See All ›</Text>
-              </TouchableOpacity>
-            </View>
-
-            {FACULTY_MEMBERS.map(faculty => (
-              <View key={faculty.id} style={styles.facultyCircularCard}>
-                <Image source={{ uri: faculty.avatar }} style={styles.facultyImageCircle} />
-                <Text style={styles.facultyCardName}>{faculty.name}</Text>
-                <Text style={styles.facultyCardRole}>{faculty.role}</Text>
-              </View>
-            ))}
+            {ExpertsRail}
           </>
         )}
       </ScrollView>
@@ -318,7 +438,7 @@ export default ProductsScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.cBg,
+    backgroundColor: colors.uBg,
   },
   scrollContent: {
     paddingHorizontal: wp(16),
@@ -330,9 +450,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: wp(16),
     paddingVertical: hp(12),
-    backgroundColor: colors.cBg,
-    borderBottomWidth: 0.5,
-    borderBottomColor: colors.cBorder,
+    backgroundColor: colors.uBg,
   },
   brandTitle: {
     fontSize: fp(18),
@@ -403,7 +521,24 @@ const styles = StyleSheet.create({
     color: colors.white,
   },
 
-  // Left Image Split Architecture for Featured Course
+  imgPlaceholder: {
+    backgroundColor: colors.cCard,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarInitials: {
+    fontSize: fp(16),
+    fontWeight: '700',
+    color: colors.cAccentLight,
+  },
+  emptyText: {
+    fontSize: fp(13),
+    color: colors.cTextMuted,
+    textAlign: 'center',
+    marginVertical: hp(24),
+  },
+
+  // Featured Course
   featuredCourseCard: {
     backgroundColor: colors.cSurface,
     borderRadius: 16,
@@ -469,16 +604,12 @@ const styles = StyleSheet.create({
   },
   priceContainer: {
     flexDirection: 'column',
+    flex: 1,
   },
   featuredCoursePrice: {
     fontSize: fp(16),
     fontWeight: '700',
     color: colors.white,
-  },
-  featuredOriginalPrice: {
-    fontSize: fp(11),
-    color: colors.cTextMuted,
-    textDecorationLine: 'line-through',
   },
   enrollBtn: {
     backgroundColor: colors.cAccentLight,
@@ -497,7 +628,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
 
-  // Popular Course Styles
+  // Popular Course
   popularCourseCard: {
     flexDirection: 'row',
     backgroundColor: colors.cSurface,
@@ -567,7 +698,7 @@ const styles = StyleSheet.create({
     lineHeight: fp(16),
   },
 
-  // Webinar Sub-Layout Styling structures
+  // Webinar
   webinarWelcomeHeroCard: {
     backgroundColor: colors.cSurface,
     borderRadius: 16,
@@ -665,7 +796,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  // Faculty Layout Definitions
+  // Faculty / Experts
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',

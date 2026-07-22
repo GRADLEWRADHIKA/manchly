@@ -11,14 +11,7 @@ import {
 import colors from '../../../utils/colors';
 import { wp, hp, fp } from '../../../utils/responsive';
 import AppHeaderWithBack from '../../../components/AppHeaderWithBack';
-import {
-  User2,
-  Camera,
-  Facebook,
-  Instagram,
-  CheckCircle2,
-  Clock,
-} from 'lucide-react-native';
+import { User2, Camera } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { Controller, useForm } from 'react-hook-form';
@@ -143,7 +136,7 @@ const UserProfile = () => {
 
   return (
     <View style={styles.container}>
-      <AppHeaderWithBack title="Edit Profile" />
+      <AppHeaderWithBack title="Edit Profile" bgColor={colors.uBg} />
 
       <ScrollView
         style={styles.scrollView}
@@ -175,19 +168,6 @@ const UserProfile = () => {
           </Pressable>
 
           <Text style={styles.profileName}>{displayName}</Text>
-
-          <Pressable style={({ pressed }) => [styles.shareBtn, pressed && styles.btnPressed]}>
-            <Text style={styles.shareBtnText}>Share Profile</Text>
-          </Pressable>
-
-          <View style={styles.socialRow}>
-            <View style={styles.socialIconWrap}>
-              <Facebook size={wp(18)} color="#4267B2" fill="#4267B2" />
-            </View>
-            <View style={styles.socialIconWrap}>
-              <Instagram size={wp(18)} color="#E1306C" />
-            </View>
-          </View>
         </View>
 
         {/* Form Section */}
@@ -209,14 +189,6 @@ const UserProfile = () => {
                 />
               )}
             />
-          </View>
-
-          {/* DATE OF BIRTH (mock/static, not wired to the form) */}
-          <View style={styles.fieldRow}>
-            <Text style={styles.fieldLabel}>DATE OF BIRTH</Text>
-            <View style={[styles.input, styles.disabledInput]}>
-              <Text style={styles.mockPlaceholderText}>00/00/0000</Text>
-            </View>
           </View>
 
           {/* EMAIL */}
@@ -252,23 +224,6 @@ const UserProfile = () => {
               )}
             />
           </View>
-        </View>
-
-        {/* Stats Cards (hardcoded per design mock) */}
-        <View style={styles.statCard}>
-          <View style={styles.statIconWrap}>
-            <CheckCircle2 size={wp(18)} color={colors.faaAiBlue} />
-          </View>
-          <Text style={styles.statLabel}>COURSES COMPLETED</Text>
-          <Text style={styles.statValue}>24</Text>
-        </View>
-
-        <View style={styles.statCard}>
-          <View style={styles.statIconWrap}>
-            <Clock size={wp(18)} color={colors.faaAiBlue} />
-          </View>
-          <Text style={styles.statLabel}>HOURS LEARNED</Text>
-          <Text style={styles.statValue}>158</Text>
         </View>
 
        {/* Action Buttons */}

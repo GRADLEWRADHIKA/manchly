@@ -196,7 +196,7 @@ const CourseDetailsScreen: React.FC = () => {
   if (courseLoading || !course) {
     return (
       <View style={styles.container}>
-        <AppHeaderWithBack title="Course Details" />
+        <AppHeaderWithBack title="Course Details" bgColor={colors.uBg} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
@@ -208,7 +208,7 @@ const CourseDetailsScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <AppHeaderWithBack title="Course Details" />
+      <AppHeaderWithBack title="Course Details" bgColor={colors.uBg} />
 
       <ScrollView showsVerticalScrollIndicator={false}>
         {showVideo ? (
@@ -362,7 +362,7 @@ const PriceRow = ({ label, value }: any) => (
 );
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
+  container: { flex: 1, backgroundColor: colors.uBg },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   thumbnail: { width: '100%', height: hp(220), backgroundColor: colors.surface },
   thumbnailPlaceholder: {

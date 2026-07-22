@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   RefreshControl,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import AppHeaderWithBack from '../../../../components/AppHeaderWithBack';
 import colors from '../../../../utils/colors';
@@ -14,16 +15,13 @@ import { wp, hp, fp } from '../../../../utils/responsive';
 import {
   Bell,
   BookOpen,
-  Calendar,
   CheckCheck,
-  CreditCard,
-  Gift,
-  MessageCircle,
+  ChevronRight,
   PhoneCall,
-  Star,
   Video,
   Wifi,
   Info,
+  Tag,
 } from 'lucide-react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -43,24 +41,24 @@ const TABS = [
   { key: 'system', label: 'System' },
 ];
 
-const ICON_CONFIG: Record<string, { icon: any; color: string; bg: string }> = {
-  'Course Purchased': { icon: BookOpen, color: '#3B82F6', bg: '#3B82F615' },
-  'Session Reminder': { icon: Calendar, color: '#F59E0B', bg: '#F59E0B15' },
-  'Expert is Online': { icon: Wifi, color: '#22C55E', bg: '#22C55E15' },
-  'Webinar Starting Soon': { icon: Video, color: '#8B5CF6', bg: '#8B5CF615' },
-  'New Video Added': { icon: BookOpen, color: '#3B82F6', bg: '#3B82F615' },
-  'Call Summary': { icon: PhoneCall, color: '#10B981', bg: '#10B98115' },
-  'Wallet Credited': { icon: CreditCard, color: '#22C55E', bg: '#22C55E15' },
-  'Special Offer': { icon: Gift, color: '#EC4899', bg: '#EC489915' },
+const INDIGO = '#9AA0FF';
+const GREEN = '#4ADE80';
+const PURPLE = '#C084FC';
+const SLATE = '#94A3B8';
+
+const TYPE_META: Record<
+  string,
+  { icon: any; accent: string; label: string }
+> = {
+  course: { icon: BookOpen, accent: INDIGO, label: 'Course' },
+  session: { icon: PhoneCall, accent: INDIGO, label: 'Session' },
+  webinar: { icon: Video, accent: PURPLE, label: 'Webinar' },
+  sale: { icon: Tag, accent: GREEN, label: 'Sale' },
+  expert: { icon: Wifi, accent: GREEN, label: 'Expert' },
+  system: { icon: Info, accent: SLATE, label: 'System' },
 };
 
-const TYPE_ICON: Record<string, { icon: any; color: string; bg: string }> = {
-  course: { icon: BookOpen, color: '#3B82F6', bg: '#3B82F615' },
-  session: { icon: PhoneCall, color: '#10B981', bg: '#10B98115' },
-  webinar: { icon: Video, color: '#8B5CF6', bg: '#8B5CF615' },
-  expert: { icon: Wifi, color: '#22C55E', bg: '#22C55E15' },
-  system: { icon: Info, color: '#64748B', bg: '#64748B15' },
-};
+const getMeta = (type: string) => TYPE_META[type] || TYPE_META.system;
 
 function getTimeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -125,30 +123,72 @@ const UserNotification = () => {
     });
   };
 
-  const getIconForItem = (item: Notification) => {
-    return ICON_CONFIG[item.title] || TYPE_ICON[item.type] || TYPE_ICON.system;
+  const getActionLabel = (item: Notification): string | null => {
+    if (item.data?.courseId) return 'View Course';
+    if (item.data?.webinarId) return 'Join Webinar';
+    if (item.data?.sessionId) return 'View Session';
+    return null;
   };
 
   const renderItem = ({ item }: { item: Notification }) => {
-    const { icon: Icon, color, bg } = getIconForItem(item);
+    const { icon: Icon, accent, label } = getMeta(item.type);
+    const avatar =
+      item.data?.avatar || item.data?.image || item.data?.thumbnail || null;
+    const actionLabel = getActionLabel(item);
+
     return (
       <TouchableOpacity
-        style={[styles.card, !item.is_read && styles.cardUnread]}
-        activeOpacity={0.7}
+        style={styles.card}
+        activeOpacity={0.75}
         onPress={() => handlePress(item)}
       >
-        {!item.is_read && <View style={styles.unreadDot} />}
-        <View style={[styles.iconWrap, { backgroundColor: bg }]}>
-          <Icon size={wp(20)} color={color} />
-        </View>
+        {avatar ? (
+          <Image source={{ uri: avatar }} style={styles.avatar} />
+        ) : (
+          <View style={styles.iconWrap}>
+            <Icon size={wp(20)} color={accent} strokeWidth={2} />
+          </View>
+        )}
+
         <View style={styles.cardContent}>
-          <Text style={[styles.cardTitle, !item.is_read && styles.cardTitleUnread]}>
+          <View style={styles.topRow}>
+            <Text style={[styles.category, { color: accent }]} numberOfLines={1}>
+              {label}
+            </Text>
+            <Text style={styles.cardTime}>{getTimeAgo(item.createdAt)}</Text>
+            {!item.is_read && (
+              <View style={[styles.unreadDot, { backgroundColor: accent }]} />
+            )}
+          </View>
+
+          <Text
+            style={[styles.cardTitle, !item.is_read && styles.cardTitleUnread]}
+            numberOfLines={3}
+          >
             {item.title}
           </Text>
-          <Text style={styles.cardMessage} numberOfLines={2}>
-            {item.message}
-          </Text>
-          <Text style={styles.cardTime}>{getTimeAgo(item.createdAt)}</Text>
+
+          {!!item.message && (
+            <Text style={styles.cardMessage} numberOfLines={2}>
+              {item.message}
+            </Text>
+          )}
+
+          {actionLabel && (
+            <View style={styles.actionRow}>
+              <View
+                style={[
+                  styles.actionPill,
+                  { backgroundColor: accent + '22', borderColor: accent + '44' },
+                ]}
+              >
+                <Text style={[styles.actionText, { color: accent }]}>
+                  {actionLabel}
+                </Text>
+                <ChevronRight size={wp(13)} color={accent} strokeWidth={2.4} />
+              </View>
+            </View>
+          )}
         </View>
       </TouchableOpacity>
     );
@@ -170,7 +210,7 @@ const UserNotification = () => {
 
   return (
     <View style={styles.container}>
-      <AppHeaderWithBack title="Notifications" />
+      <AppHeaderWithBack title="Notifications" bgColor={colors.uBg} />
 
       {/* Tabs */}
       <View style={styles.tabRow}>
@@ -250,24 +290,27 @@ const styles = StyleSheet.create({
     gap: wp(8),
   },
   tab: {
-    paddingHorizontal: wp(16),
-    paddingVertical: hp(7),
-    borderRadius: wp(20),
-    backgroundColor: colors.uBg,
-    borderWidth: 1,
-    borderColor: colors.uBg,
+    paddingHorizontal: wp(18),
+    paddingVertical: hp(9),
+    borderRadius: wp(22),
+    backgroundColor: 'transparent',
   },
   tabActive: {
-    backgroundColor: colors.btnGradientEnd,
-    borderColor: colors.btnGradientStart,
+    backgroundColor: colors.btnGradientStart,
+    shadowColor: colors.btnGradientStart,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
+    elevation: 4,
   },
   tabText: {
-    fontSize: fp(13),
+    fontSize: fp(14),
     fontWeight: '600',
-    color: colors.textPrimary,
+    color: colors.uSubHeading,
   },
   tabTextActive: {
-    color: colors.textPrimary,
+    color: colors.white,
+    fontWeight: '700',
   },
 
   // Mark all read
@@ -288,9 +331,9 @@ const styles = StyleSheet.create({
   // List
   listContent: {
     paddingHorizontal: wp(16),
-    paddingTop: hp(12),
+    paddingTop: hp(14),
     paddingBottom: hp(40),
-    gap: hp(8),
+    gap: hp(14),
   },
   listContentEmpty: {
     flex: 1,
@@ -302,60 +345,85 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     backgroundColor: colors.uCard,
-    borderRadius: wp(14),
-    padding: wp(14),
-    borderWidth: 1,
-    borderColor: colors.surface,
-    elevation: 1,
-    shadowColor: colors.surface,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 3,
+    borderRadius: wp(18),
+    padding: wp(16),
   },
-  cardUnread: {
-    backgroundColor: colors.uCard,
-    borderColor: colors.uCard + '10',
-  },
-  unreadDot: {
-    position: 'absolute',
-    top: hp(16),
-    left: wp(6),
-    width: wp(6),
-    height: wp(6),
-    borderRadius: wp(3),
-    backgroundColor: colors.textPrimary,
+  avatar: {
+    width: wp(48),
+    height: wp(48),
+    borderRadius: wp(24),
+    marginRight: wp(14),
+    backgroundColor: colors.uSubtext,
   },
   iconWrap: {
-    width: wp(42),
-    height: wp(42),
-    borderRadius: wp(12),
+    width: wp(48),
+    height: wp(48),
+    borderRadius: wp(24),
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: wp(12),
-    marginTop: hp(2),
+    marginRight: wp(14),
+    backgroundColor: 'rgba(255,255,255,0.05)',
   },
   cardContent: {
     flex: 1,
+    minHeight: wp(48),
+    justifyContent: 'center',
+  },
+  topRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: hp(4),
+  },
+  category: {
+    flex: 1,
+    fontSize: fp(11),
+    fontWeight: '700',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+  },
+  cardTime: {
+    fontSize: fp(11),
+    color: colors.uSubHeading,
+    fontWeight: '500',
+  },
+  unreadDot: {
+    width: wp(7),
+    height: wp(7),
+    borderRadius: wp(4),
+    marginLeft: wp(7),
   },
   cardTitle: {
-    fontSize: fp(14),
+    fontSize: fp(15),
     fontWeight: '600',
     color: colors.textPrimary,
+    lineHeight: fp(21),
   },
   cardTitleUnread: {
     fontWeight: '700',
   },
   cardMessage: {
-    fontSize: fp(12),
+    fontSize: fp(13),
     color: colors.uSubHeading,
-    marginTop: hp(3),
-    lineHeight: fp(17),
+    marginTop: hp(4),
+    lineHeight: fp(19),
   },
-  cardTime: {
-    fontSize: fp(11),
-    color: colors.uSubHeading,
-    marginTop: hp(5),
-    fontWeight: '500',
+  actionRow: {
+    flexDirection: 'row',
+    marginTop: hp(12),
+  },
+  actionPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(3),
+    paddingLeft: wp(14),
+    paddingRight: wp(10),
+    paddingVertical: hp(7),
+    borderRadius: wp(20),
+    borderWidth: 1,
+  },
+  actionText: {
+    fontSize: fp(12.5),
+    fontWeight: '700',
   },
 
   // Empty
@@ -367,7 +435,7 @@ const styles = StyleSheet.create({
     width: wp(72),
     height: wp(72),
     borderRadius: wp(36),
-    backgroundColor: '#E8E0D8',
+    backgroundColor: colors.uCard,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: hp(16),
@@ -380,7 +448,7 @@ const styles = StyleSheet.create({
   },
   emptyDesc: {
     fontSize: fp(13),
-    color: colors.textPrimary,
+    color: colors.uSubHeading,
     textAlign: 'center',
     lineHeight: fp(19),
   },

@@ -243,7 +243,7 @@ const WebinarDetails = () => {
   if (!data) {
     return (
       <View style={styles.container}>
-        <AppHeaderWithBack title="Webinar Details" />
+        <AppHeaderWithBack title="Webinar Details" bgColor={colors.uBg} />
         <View style={styles.loaderContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
@@ -253,7 +253,7 @@ const WebinarDetails = () => {
 
   return (
     <View style={styles.container}>
-      <AppHeaderWithBack title="Webinar Details" />
+      <AppHeaderWithBack title="Webinar Details" bgColor={colors.uBg} />
 
       <ScrollView contentContainerStyle={{ paddingBottom: hp(120) }}>
         <View style={styles.thumbnailWrapper}>

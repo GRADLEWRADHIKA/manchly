@@ -14,16 +14,34 @@ import colors from '../../../../../utils/colors';
 import {wp, hp, fp} from '../../../../../utils/responsive';
 import {listExperts} from '../../../../../store/SessionSlice';
 import SocketService from '../../../../../services/SocketService';
+import ShimmerBox from '../../../../../components/ShimmerBox';
+
+const ExpertSkeleton = () => (
+  <View style={styles.card}>
+    <View style={styles.avatarWrap}>
+      <ShimmerBox width={wp(50)} height={wp(50)} radius={wp(25)} />
+    </View>
+    <ShimmerBox width={wp(80)} height={hp(13)} radius={5} />
+    <ShimmerBox
+      width={wp(60)}
+      height={hp(10)}
+      radius={5}
+      style={{marginTop: hp(6)}}
+    />
+  </View>
+);
 
 const TopExperts = () => {
   const navigation = useNavigation<any>();
   const dispatch = useDispatch<any>();
   const [experts, setExperts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const fetchTopExperts = () => {
     dispatch(listExperts({page: 1, limit: 5}))
       .unwrap()
-      .then((res: any) => setExperts(res?.data?.experts || []));
+      .then((res: any) => setExperts(res?.data?.experts || []))
+      .finally(() => setLoading(false));
   };
 
   useEffect(() => {
@@ -45,7 +63,7 @@ const TopExperts = () => {
     return () => { SocketService.off('expert_availability_updated', handler); };
   }, []);
 
-  if (experts.length === 0) return null;
+  if (!loading && experts.length === 0) return null;
 
   const renderCard = ({item}: {item: any}) => {
     const user = item.user;
@@ -96,14 +114,22 @@ const TopExperts = () => {
         </TouchableOpacity>
       </View>
 
-      <FlatList
-        data={experts}
-        renderItem={renderCard}
-        keyExtractor={item => item.id}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.list}
-      />
+      {loading ? (
+        <View style={[styles.list, styles.skeletonRow]}>
+          {[0, 1, 2].map(i => (
+            <ExpertSkeleton key={i} />
+          ))}
+        </View>
+      ) : (
+        <FlatList
+          data={experts}
+          renderItem={renderCard}
+          keyExtractor={item => item.id}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.list}
+        />
+      )}
     </View>
   );
 };
@@ -139,6 +165,9 @@ const styles = StyleSheet.create({
   list: {
     paddingHorizontal: wp(16),
     gap: wp(10),
+  },
+  skeletonRow: {
+    flexDirection: 'row',
   },
   card: {
     width: wp(130),

@@ -104,7 +104,7 @@ const UserVideoList = () => {
 
   return (
     <View style={styles.container}>
-      <AppHeaderWithBack title={data?.title || 'Videos'} />
+      <AppHeaderWithBack title={data?.title || 'Videos'} bgColor={colors.uBg} />
 
       {loading ? (
         <View style={styles.loaderContainer}>

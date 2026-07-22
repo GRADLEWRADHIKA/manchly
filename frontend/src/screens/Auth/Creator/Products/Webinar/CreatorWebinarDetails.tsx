@@ -5,20 +5,17 @@ import {
   Image,
   ScrollView,
   TouchableOpacity,
-  Pressable,
   Share,
   ActivityIndicator,
 } from 'react-native';
 import React, { useEffect } from 'react';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Clipboard from '@react-native-clipboard/clipboard';
 import Toast from 'react-native-toast-message';
 import { useDispatch, useSelector } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
 import colors from '../../../../../utils/colors';
 import {
-  ArrowLeft,
   Calendar,
   Clock,
   User,
@@ -30,13 +27,13 @@ import {
   Share2,
 } from 'lucide-react-native';
 import { wp, hp, fp } from '../../../../../utils/responsive';
+import AppHeaderWithBack from '../../../../../components/AppHeaderWithBack';
 import { getWebinarById } from '../../../../../store/WebinarSlice';
 import { createDynamicLink } from 'react-native-chottulink-sdk';
 
 const WebinarDetails = () => {
   const { params } = useRoute<any>();
   const navigation = useNavigation<any>();
-  const insets = useSafeAreaInsets();
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
   const webinarFromStore = useSelector(
     (state: any) => state.webinarReducer?.current,
@@ -89,18 +86,7 @@ const WebinarDetails = () => {
   if (!data) {
     return (
       <View style={styles.container}>
-        <View style={[styles.header, { paddingTop: insets.top + hp(16) }]}>
-        <Pressable
-          style={styles.backBtn}
-          onPress={() => navigation.goBack()}
-          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-          accessibilityRole="button"
-          accessibilityLabel="Go back"
-        >
-          <ArrowLeft color={colors.white} size={wp(24)} strokeWidth={2.2} />
-        </Pressable>
-        <Text style={styles.headerTitle}>Webinar Details</Text>
-      </View>
+        <AppHeaderWithBack title="Webinar Details" />
         <View style={styles.loaderContainer}>
           <ActivityIndicator size="large" color={'#F0C040'} />
         </View>
@@ -110,18 +96,7 @@ const WebinarDetails = () => {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.header, { paddingTop: insets.top + hp(16) }]}>
-        <Pressable
-          style={styles.backBtn}
-          onPress={() => navigation.goBack()}
-          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-          accessibilityRole="button"
-          accessibilityLabel="Go back"
-        >
-          <ArrowLeft color={colors.white} size={wp(24)} strokeWidth={2.2} />
-        </Pressable>
-        <Text style={styles.headerTitle}>Webinar Details</Text>
-      </View>
+      <AppHeaderWithBack title="Webinar Details" />
 
       <ScrollView contentContainerStyle={{ paddingBottom: hp(120) }}>
         <View style={styles.thumbnailWrapper}>
@@ -252,26 +227,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-
-  // Header
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: wp(50),
-    paddingBottom: hp(12),
-  },
-  backBtn: {
-    position: 'absolute',
-    left: wp(18),
-    bottom: hp(10),
-  },
-  headerTitle: {
-    color: colors.white,
-    fontSize: fp(19),
-    fontWeight: '700',
-    letterSpacing: 0.2,
   },
 
   thumbnailWrapper: {

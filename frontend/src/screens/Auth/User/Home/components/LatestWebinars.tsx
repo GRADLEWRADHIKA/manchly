@@ -4,7 +4,6 @@ import {
   Text,
   FlatList,
   StyleSheet,
-  ActivityIndicator,
   Image,
   Pressable,
   Animated,
@@ -16,7 +15,46 @@ import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { getAllWebinar } from '../../../../../store/WebinarSlice';
 import colors from '../../../../../utils/colors';
 import { wp, hp, fp } from '../../../../../utils/responsive';
+import ShimmerBox from '../../../../../components/ShimmerBox';
 //import moment from 'moment-timezone';
+
+const WebinarSkeleton = () => (
+  <View style={styles.section}>
+    <View style={styles.sectionHeader}>
+      <View style={styles.sectionHeaderText}>
+        <ShimmerBox width={wp(150)} height={hp(18)} radius={6} />
+        <ShimmerBox
+          width={wp(210)}
+          height={hp(12)}
+          radius={5}
+          style={{ marginTop: hp(8) }}
+        />
+      </View>
+    </View>
+    <View style={[styles.listContent, { flexDirection: 'row' }]}>
+      {[0, 1, 2].map(i => (
+        <View key={i} style={styles.card}>
+          <ShimmerBox width={wp(160)} height={hp(90)} radius={0} />
+          <View style={{ padding: wp(10) }}>
+            <ShimmerBox width={wp(60)} height={hp(12)} radius={5} />
+            <ShimmerBox
+              width={wp(130)}
+              height={hp(13)}
+              radius={5}
+              style={{ marginTop: hp(10) }}
+            />
+            <ShimmerBox
+              width={wp(90)}
+              height={hp(11)}
+              radius={5}
+              style={{ marginTop: hp(8) }}
+            />
+          </View>
+        </View>
+      ))}
+    </View>
+  </View>
+);
 
 const LatestWebinarItem = ({ item, onPress }: any) => {
   return (
@@ -156,13 +194,7 @@ const LatestWebinars = () => {
   }, [focus]);
 
   if (loading) {
-    return (
-      <ActivityIndicator
-        size="small"
-        color={colors.gold}
-        style={styles.loader}
-      />
-    );
+    return <WebinarSkeleton />;
   }
 
   if (webinars.length === 0) {

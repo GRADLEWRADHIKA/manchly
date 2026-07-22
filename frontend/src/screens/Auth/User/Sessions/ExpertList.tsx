@@ -144,7 +144,7 @@ const ExpertList: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <AppHeaderWithBack title="Session Experts" />
+      <AppHeaderWithBack title="Session Experts" bgColor={colors.uBg} />
 
       {/* Categories */}
       <ScrollView

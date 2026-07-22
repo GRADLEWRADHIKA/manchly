@@ -61,10 +61,26 @@ const ExpertDetail: React.FC = () => {
     dispatch(getExpertAvailability(expert.id))
       .unwrap()
       .then((res: any) => {
-        const slots = res?.data || res || [];
-        setAvailability(slots);
+        const payload = res?.data ?? res;
+        let slots: any[] = [];
+        if (Array.isArray(payload)) {
+          // Already a flat slot array
+          slots = payload;
+        } else if (Array.isArray(payload?.weekly_schedule)) {
+          // Backend (no-date) shape: [{ day_of_week, slots: [{ start_time, end_time }] }]
+          slots = payload.weekly_schedule.flatMap((day: any) =>
+            (day?.slots || []).map((s: any) => ({
+              day_of_week: day.day_of_week,
+              start: s.start_time,
+              end: s.end_time,
+            })),
+          );
+        } else if (Array.isArray(payload?.availability)) {
+          slots = payload.availability;
+        }
+        setAvailability(Array.isArray(slots) ? slots : []);
       })
-      .catch(() => {});
+      .catch(() => setAvailability([]));
   }, [expert?.id]);
 
   const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -102,7 +118,9 @@ const ExpertDetail: React.FC = () => {
 
   const timeSlots = useMemo(() => {
     const selectedDayOfWeek = next7Days[selectedDate]?.date.getDay();
-    const dailySlots = availability.filter((slot: any) => Number(slot.day_of_week) === selectedDayOfWeek);
+    const dailySlots = (Array.isArray(availability) ? availability : []).filter(
+      (slot: any) => Number(slot.day_of_week) === selectedDayOfWeek,
+    );
 
     if (dailySlots.length === 0) {
       // Fallback default slots
@@ -331,7 +349,7 @@ const ExpertDetail: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <AppHeaderWithBack title="Expert Profile" />
+      <AppHeaderWithBack title="Expert Profile" bgColor={colors.uBg} />
 
       <ScrollView
         contentContainerStyle={[

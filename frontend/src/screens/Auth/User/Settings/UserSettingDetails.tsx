@@ -50,7 +50,7 @@ const settingsItems = [
 const UserSettingsDetails = () => {
   return (
     <View style={styles.container}>
-      <AppHeaderWithBack title="Settings" />
+      <AppHeaderWithBack title="Settings" bgColor={colors.uBg} />
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         {settingsItems?.map((item, index) => (
           <TouchableOpacity

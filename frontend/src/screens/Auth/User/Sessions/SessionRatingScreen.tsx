@@ -13,6 +13,7 @@ import { Star, User2, Phone, Video } from 'lucide-react-native';
 import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
 import { rateSession } from '../../../../store/SessionSlice';
+import LinearGradient from 'react-native-linear-gradient';
 
 const SessionRatingScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -49,9 +50,9 @@ const SessionRatingScreen: React.FC = () => {
         {/* Call Ended Header */}
         <View style={styles.endedBadge}>
           {isVideo ? (
-            <Video size={wp(16)} color={colors.secPrimary} strokeWidth={2} />
+            <Video size={wp(16)} color={colors.uSubHeading} strokeWidth={2} />
           ) : (
-            <Phone size={wp(16)} color={colors.secPrimary} strokeWidth={2} />
+            <Phone size={wp(16)} color={colors.uSubHeading} strokeWidth={2} />
           )}
           <Text style={styles.endedText}>Session Ended</Text>
         </View>
@@ -103,14 +104,21 @@ const SessionRatingScreen: React.FC = () => {
         />
 
         {/* Submit Button */}
-        <TouchableOpacity
-          style={[styles.submitBtn, rating === 0 && styles.submitBtnDisabled]}
+       <TouchableOpacity
+          style={styles.submitBtnWrap}
           activeOpacity={0.8}
           onPress={handleSubmit}
           disabled={rating === 0 || submitting}>
-          <Text style={styles.submitBtnText}>
-            {submitting ? 'Submitting...' : 'Submit Rating'}
-          </Text>
+          <LinearGradient
+            colors={[colors.btnGradientStart, colors.btnGradientEnd]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={[styles.submitBtn, rating === 0 && styles.submitBtnDisabled]}
+          >
+            <Text style={styles.submitBtnText}>
+              {submitting ? 'Submitting...' : 'Submit Rating'}
+            </Text>
+          </LinearGradient>
         </TouchableOpacity>
 
         {/* Skip */}
@@ -127,7 +135,7 @@ export default SessionRatingScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: colors.uBg,
   },
   content: {
     flex: 1,
@@ -139,7 +147,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(6),
-    backgroundColor: colors.secPrimary + '10',
+    backgroundColor: colors.uCard,
     paddingHorizontal: wp(16),
     paddingVertical: hp(8),
     borderRadius: wp(20),
@@ -148,7 +156,7 @@ const styles = StyleSheet.create({
   endedText: {
     fontSize: fp(13),
     fontWeight: '600',
-    color: colors.secPrimary,
+    color: colors.uSubHeading,
   },
   avatarWrap: {
     marginBottom: hp(12),
@@ -158,13 +166,13 @@ const styles = StyleSheet.create({
     height: wp(80),
     borderRadius: wp(40),
     borderWidth: 3,
-    borderColor: colors.secPrimary + '30',
+    borderColor: colors.uSubtext,
   },
   avatarPlaceholder: {
     width: wp(80),
     height: wp(80),
     borderRadius: wp(40),
-    backgroundColor: colors.secPrimary + '18',
+    backgroundColor: colors.subtext,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -175,7 +183,7 @@ const styles = StyleSheet.create({
   },
   durationText: {
     fontSize: fp(13),
-    color: colors.textSecondary,
+    color: colors.uSubHeading,
     marginTop: hp(4),
   },
   rateLabel: {
@@ -191,14 +199,14 @@ const styles = StyleSheet.create({
   },
   ratingLabel: {
     fontSize: fp(13),
-    color: colors.secPrimary,
+    color: colors.uSubHeading,
     fontWeight: '600',
     marginTop: hp(10),
     height: hp(20),
   },
   feedbackInput: {
     width: '100%',
-    backgroundColor: colors.surface,
+    backgroundColor: colors.uCard,
     borderRadius: wp(14),
     padding: wp(14),
     fontSize: fp(14),
@@ -206,15 +214,17 @@ const styles = StyleSheet.create({
     marginTop: hp(20),
     minHeight: hp(80),
     borderWidth: 1,
-    borderColor: colors.borderLight,
+    borderColor: colors.uCard,
+  },
+    submitBtnWrap: {
+    width: '100%',
+    borderRadius: wp(14),
+    marginTop: hp(20),
   },
   submitBtn: {
-    width: '100%',
-    backgroundColor: colors.secPrimary,
     borderRadius: wp(14),
     paddingVertical: hp(16),
     alignItems: 'center',
-    marginTop: hp(20),
   },
   submitBtnDisabled: {
     opacity: 0.4,

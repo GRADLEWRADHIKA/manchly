@@ -26,6 +26,8 @@ import {
   UserCircle,
   Lock,
   RefreshCw,
+  ChevronRight,
+  ArrowLeft
 } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -506,35 +508,18 @@ export default function BrandMarketplace() {
     </View>
   );
 
-  return (
+ return (
     <View style={s.container}>
-      <StatusBar barStyle="light-content" backgroundColor={colors.secPrimary} />
+      <StatusBar barStyle="light-content" backgroundColor={colors.uBottom} />
 
       {/* Header */}
       <View style={[s.headerWrapper, { paddingTop: insets.top }]}>
         <View style={s.header}>
-          <View style={s.headerLeft}>
-            {user?.profile_image ? (
-              <Image source={{ uri: user.profile_image }} style={s.avatar} />
-            ) : (
-              <View style={s.avatarFallback}>
-                <UserCircle size={wp(28)} color={colors.white} />
-              </View>
-            )}
-            <View>
-              <Text style={s.headerSubtitle}>Discover Creators</Text>
-              <Text style={s.headerTitle}>Marketplace</Text>
-            </View>
-          </View>
-          <Pressable
-            style={({ pressed }) => [s.bellBtn, pressed && s.bellBtnPressed]}
-            onPress={() => {
-              const { Linking } = require('react-native');
-              Linking.openURL('https://www.instagram.com/manchly_app');
-            }}
-          >
-            <Instagram size={wp(18)} color={colors.white} strokeWidth={2} />
-          </Pressable>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
+            <ChevronRight size={wp(20)} color={colors.white} style={{ transform: [{ rotate: '180deg' }] }} />
+          </TouchableOpacity>
+          <Text style={s.headerTitle}>Market Place</Text>
+          <View style={s.headerSpacer} />
         </View>
       </View>
 
@@ -575,173 +560,155 @@ export default function BrandMarketplace() {
 
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC' },
+  container: { flex: 1, backgroundColor: colors.uBg },
   feedContent: { paddingBottom: hp(100) },
 
   /* Header */
   headerWrapper: {
-    backgroundColor: colors.secPrimary,
-    zIndex: 10,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
+    backgroundColor: colors.uBg,
   },
   header: {
     flexDirection: 'row', justifyContent: 'space-between',
     alignItems: 'center', paddingHorizontal: wp(16), paddingVertical: hp(14),
   },
-  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: wp(12), flex: 1 },
-  avatar: {
-    width: wp(44), height: wp(44), borderRadius: wp(22),
-    borderWidth: 2, borderColor: 'rgba(255,255,255,0.5)',
+  backBtn: {
+    width: wp(36), height: wp(36),
+    justifyContent: 'center', alignItems: 'flex-start',
   },
-  avatarFallback: {
-    width: wp(44), height: wp(44), borderRadius: wp(22),
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    justifyContent: 'center', alignItems: 'center',
-    borderWidth: 2, borderColor: 'rgba(255,255,255,0.5)',
+  headerTitle: {
+    flex: 1, textAlign: 'center',
+    fontSize: fp(17), fontWeight: '700', color: colors.white,
   },
-  headerSubtitle: { fontSize: fp(12), color: 'rgba(255,255,255,0.75)', fontWeight: '400' },
-  headerTitle: { fontSize: fp(17), fontWeight: '700', color: colors.white, lineHeight: fp(22) },
-  bellBtn: {
-    width: wp(40), height: wp(40), borderRadius: wp(14),
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)',
-  },
-  bellBtnPressed: { backgroundColor: 'rgba(255,255,255,0.25)', transform: [{ scale: 0.93 }] },
+  headerSpacer: { width: wp(36) },
 
   /* Search */
   searchContainer: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF',
-    borderRadius: wp(14), marginTop: hp(16), marginHorizontal: wp(16),
-    paddingHorizontal: wp(14), height: hp(48), elevation: 3,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06, shadowRadius: 8, gap: wp(8),
+    flexDirection: 'row', alignItems: 'center', backgroundColor: colors.uCard,
+    borderRadius: wp(14), marginTop: hp(4), marginHorizontal: wp(16),
+    paddingHorizontal: wp(14), height: hp(48), gap: wp(8),
   },
-  searchInput: { flex: 1, height: hp(48), color: '#0F172A', fontSize: fp(13.5) },
+  searchInput: { flex: 1, height: hp(48), color: colors.white, fontSize: fp(13.5) },
 
   /* Niche Tabs */
   nicheScroll: { marginVertical: hp(12), paddingLeft: wp(16) },
   nicheContent: { paddingRight: wp(32), gap: wp(8) },
   nicheTab: {
     paddingHorizontal: wp(16), paddingVertical: hp(8),
-    borderRadius: wp(20), backgroundColor: '#FFFFFF',
-    borderWidth: 1, borderColor: '#E2E8F0',
+    borderRadius: wp(20), backgroundColor: colors.uCard,
+    borderWidth: 0,
   },
-  nicheTabActive: { backgroundColor: colors.secPrimary, borderColor: colors.secPrimary },
-  nicheTabText: { fontSize: fp(12.5), color: '#64748B', fontWeight: '600' },
-  nicheTabTextActive: { color: '#FFFFFF', fontWeight: '700' },
+  nicheTabActive: { backgroundColor: colors.btnGradientStart },
+  nicheTabText: { fontSize: fp(12.5), color: colors.uSubHeading, fontWeight: '600' },
+  nicheTabTextActive: { color: colors.white, fontWeight: '700' },
 
   /* SEBI Switch */
   switchRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: '#FFFFFF', marginHorizontal: wp(16), marginBottom: hp(12),
+    backgroundColor: colors.uCard, marginHorizontal: wp(16), marginBottom: hp(12),
     paddingHorizontal: wp(16), paddingVertical: hp(12), borderRadius: wp(14),
-    borderWidth: 1, borderColor: '#E2E8F0',
+    borderWidth: 0,
   },
-  switchTitle: { fontSize: fp(13), color: '#334155', fontWeight: '700' },
+  switchTitle: { fontSize: fp(13), color: colors.white, fontWeight: '700' },
 
   /* Creator Card */
   creatorCard: {
-    backgroundColor: '#FFFFFF', borderRadius: wp(16), padding: wp(16),
+    backgroundColor: colors.uCard, borderRadius: wp(16), padding: wp(16),
     marginHorizontal: wp(16), marginBottom: hp(12),
-    borderWidth: 1, borderColor: '#E2E8F0',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04, shadowRadius: 6, elevation: 2,
+    borderWidth: 0,
   },
   creatorHeader: {
     flexDirection: 'row', justifyContent: 'space-between',
     alignItems: 'center', marginBottom: hp(6),
   },
-  creatorName: { fontSize: fp(15), fontWeight: '800', color: '#0F172A' },
+  creatorName: { fontSize: fp(15), fontWeight: '800', color: colors.white },
   sebiBadge: {
     flexDirection: 'row', alignItems: 'center', gap: wp(4),
-    backgroundColor: '#DCFCE7', paddingHorizontal: wp(8),
+    backgroundColor: 'rgba(34,197,94,0.15)', paddingHorizontal: wp(8),
     paddingVertical: hp(3), borderRadius: wp(6),
   },
-  sebiText: { color: '#16A34A', fontSize: fp(9.5), fontWeight: '800' },
-  creatorNiche: { color: colors.secPrimary, fontSize: fp(11), fontWeight: '700', marginBottom: hp(6) },
-  creatorBio: { color: '#64748B', fontSize: fp(12.5), lineHeight: fp(17), marginBottom: hp(12) },
+  sebiText: { color: '#4ADE80', fontSize: fp(9.5), fontWeight: '800' },
+  creatorNiche: { color: colors.btnGradientStart, fontSize: fp(11), fontWeight: '700', marginBottom: hp(6) },
+  creatorBio: { color: colors.uSubHeading, fontSize: fp(12.5), lineHeight: fp(17), marginBottom: hp(12) },
   metricsRow: {
     flexDirection: 'row', justifyContent: 'space-between',
-    backgroundColor: '#F8FAFC', borderRadius: wp(10), padding: wp(10),
-    marginBottom: hp(12), borderWidth: 1, borderColor: '#F1F5F9',
+    backgroundColor: colors.uSubtext, borderRadius: wp(10), padding: wp(10),
+    marginBottom: hp(12), borderWidth: 0,
   },
   cardMetric: { alignItems: 'center', flex: 1 },
-  cardMetricVal: { fontSize: fp(13), fontWeight: '800', color: '#0F172A' },
-  cardMetricLabel: { fontSize: fp(9.5), color: '#64748B', marginTop: hp(2), fontWeight: '600' },
+  cardMetricVal: { fontSize: fp(13), fontWeight: '800', color: colors.white },
+  cardMetricLabel: { fontSize: fp(9.5), color: colors.uSubHeading, marginTop: hp(2), fontWeight: '600' },
   actionRow: { flexDirection: 'row', gap: wp(8) },
   actionBtn: {
     flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: wp(6), paddingVertical: hp(10), borderRadius: wp(10),
+    gap: wp(6), paddingVertical: hp(10), borderRadius: wp(24),
   },
-  waBtn: { backgroundColor: '#DCFCE7' },
-  waBtnText: { color: '#16A34A', fontSize: fp(12), fontWeight: '700' },
-  igBtn: { backgroundColor: '#FDF2F8' },
-  igBtnText: { color: '#DB2777', fontSize: fp(12), fontWeight: '700' },
-  actionBtnLocked: { backgroundColor: '#181818' },
-  actionBtnLockedText: { color: '#71717A', fontSize: fp(12), fontWeight: '700' },
+  waBtn: { backgroundColor: 'transparent', borderWidth: 1, borderColor: '#22C55E' },
+  waBtnText: { color: '#22C55E', fontSize: fp(12), fontWeight: '700' },
+  igBtn: { backgroundColor: '#DB2777' },
+  igBtnText: { color: colors.white, fontSize: fp(12), fontWeight: '700' },
+  actionBtnLocked: { backgroundColor: colors.uSubtext },
+  actionBtnLockedText: { color: colors.uSubHeading, fontSize: fp(12), fontWeight: '700' },
 
   /* Modal / Drawer */
-  modalScrim: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  modalScrim: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },
   scrimTouch: { flex: 1 },
   drawer: {
-    backgroundColor: '#FFFFFF', borderTopLeftRadius: wp(24), borderTopRightRadius: wp(24),
+    backgroundColor: colors.uCard, borderTopLeftRadius: wp(24), borderTopRightRadius: wp(24),
     paddingHorizontal: wp(16), paddingTop: hp(10), paddingBottom: hp(24), maxHeight: '80%',
   },
   drawerHandle: {
-    height: hp(4), width: wp(40), backgroundColor: '#E2E8F0',
+    height: hp(4), width: wp(40), backgroundColor: colors.uSubtext,
     borderRadius: wp(2), alignSelf: 'center', marginBottom: hp(16),
   },
   drawerLoader: {
     alignItems: 'center', justifyContent: 'center',
     paddingVertical: hp(48), gap: hp(12),
   },
-  drawerLoaderText: { color: '#64748B', fontSize: fp(14), fontWeight: '500' },
+  drawerLoaderText: { color: colors.uSubHeading, fontSize: fp(14), fontWeight: '500' },
   drawerHeader: {
     flexDirection: 'row', justifyContent: 'space-between',
     alignItems: 'center', marginBottom: hp(16),
   },
-  drawerTitle: { color: '#0F172A', fontSize: fp(18), fontWeight: '800' },
-  drawerSub: { color: '#64748B', fontSize: fp(12), marginTop: hp(2) },
+  drawerTitle: { color: colors.white, fontSize: fp(18), fontWeight: '800' },
+  drawerSub: { color: colors.uSubHeading, fontSize: fp(12), marginTop: hp(2) },
   closeBtn: {
     width: wp(32), height: wp(32), borderRadius: wp(16),
-    backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: colors.uSubtext, alignItems: 'center', justifyContent: 'center',
   },
   drawerMetricsRow: {
     flexDirection: 'row', justifyContent: 'space-between',
-    backgroundColor: '#F8FAFC', borderRadius: wp(14), padding: wp(14),
-    marginBottom: hp(16), borderWidth: 1, borderColor: '#E2E8F0',
+    backgroundColor: colors.uSubtext, borderRadius: wp(14), padding: wp(14),
+    marginBottom: hp(16), borderWidth: 0,
   },
   drawerMetricBox: { alignItems: 'center', flex: 1 },
-  drawerMetricVal: { fontSize: fp(16), fontWeight: '800', color: colors.secPrimary },
-  drawerMetricLabel: { fontSize: fp(10.5), color: '#64748B', marginTop: hp(2), fontWeight: '600' },
+  drawerMetricVal: { fontSize: fp(16), fontWeight: '800', color: colors.btnGradientStart },
+  drawerMetricLabel: { fontSize: fp(10.5), color: colors.uSubHeading, marginTop: hp(2), fontWeight: '600' },
 
   /* Table */
   tableBlock: { marginBottom: hp(16) },
   tableTitle: {
-    color: colors.secPrimary, fontWeight: '800',
+    color: colors.btnGradientStart, fontWeight: '800',
     fontSize: fp(13), marginBottom: hp(8), letterSpacing: 0.3,
   },
-  tableEmpty: { color: '#94A3B8', fontSize: fp(12), fontStyle: 'italic' },
+  tableEmpty: { color: colors.uSubHeading, fontSize: fp(12), fontStyle: 'italic' },
   tableRow: {
     flexDirection: 'row', justifyContent: 'space-between',
-    paddingVertical: hp(10), borderBottomWidth: 1, borderBottomColor: '#F1F5F9',
+    paddingVertical: hp(10), borderBottomWidth: 1, borderBottomColor: colors.uSubtext,
   },
-  tableLabel: { color: '#475467', fontSize: fp(12.5) },
-  tableValue: { color: '#0F172A', fontWeight: '700', fontSize: fp(12.5) },
+  tableLabel: { color: colors.uSubHeading, fontSize: fp(12.5) },
+  tableValue: { color: colors.white, fontWeight: '700', fontSize: fp(12.5) },
 
   /* Empty / Error / Loading */
   centerState: {
     alignItems: 'center', justifyContent: 'center',
     paddingVertical: hp(56), paddingHorizontal: wp(32),
   },
-  centerStateText: { color: '#64748B', fontSize: fp(14), marginTop: hp(12) },
-  emptyTextTitle: { fontSize: fp(16), fontWeight: '800', color: '#334155', marginTop: hp(12) },
-  emptyTextSub: { fontSize: fp(12), color: '#64748B', textAlign: 'center', marginTop: hp(4) },
+  centerStateText: { color: colors.uSubHeading, fontSize: fp(14), marginTop: hp(12) },
+  emptyTextTitle: { fontSize: fp(16), fontWeight: '800', color: colors.white, marginTop: hp(12) },
+  emptyTextSub: { fontSize: fp(12), color: colors.uSubHeading, textAlign: 'center', marginTop: hp(4) },
   retryBtn: {
     marginTop: hp(16), paddingHorizontal: wp(24), paddingVertical: hp(10),
-    backgroundColor: colors.secPrimary, borderRadius: wp(10),
+    backgroundColor: colors.btnGradientStart, borderRadius: wp(10),
   },
-  retryBtnText: { color: '#FFFFFF', fontSize: fp(13), fontWeight: '700' },
+  retryBtnText: { color: colors.white, fontSize: fp(13), fontWeight: '700' },
 });

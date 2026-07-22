@@ -171,7 +171,7 @@ const ExpertList: React.FC = () => {
         <TextInput
           style={styles.searchInput}
           placeholder="Search by name or profession..."
-          placeholderTextColor={colors.textMuted}
+          placeholderTextColor={colors.uSubHeading}
           value={searchText}
           onChangeText={setSearchText}
           onSubmitEditing={handleSearch}
@@ -207,11 +207,11 @@ const ExpertList: React.FC = () => {
 export default memo(ExpertList);
 
 const styles = StyleSheet.create({
-  container: {flex: 1, backgroundColor: colors.cBg},
+  container: {flex: 1, backgroundColor: colors.uBg},
   catList: {paddingHorizontal: wp(16), marginTop: hp(15), paddingBottom: hp(6), gap: wp(8)},
   catChip: {
     paddingHorizontal: wp(12), paddingVertical: hp(6), borderRadius: wp(18),
-    backgroundColor: colors.cSurface, borderWidth: 1, borderColor: colors.cSurface,
+    backgroundColor: colors.uCard, borderWidth: 1, borderColor: colors.uCard,
   },
   catChipActive: {backgroundColor: colors.btnGradientStart, borderColor: colors.btnGradientStart},
   catChipText: {fontSize: fp(11), color: colors.textPrimary, fontWeight: '500'},
@@ -226,18 +226,18 @@ const styles = StyleSheet.create({
     borderRadius: wp(12),
     paddingHorizontal: wp(12),
     borderWidth: 1,
-    borderColor: colors.borderLight,
+    borderColor: colors.uCard,
   },
   searchInput: {flex: 1, fontSize: fp(13), color: colors.text, marginLeft: wp(8), paddingVertical: hp(10)},
   listContent: {paddingHorizontal: wp(16), paddingBottom: hp(30)},
   loaderWrap: {flex: 1, justifyContent: 'center', alignItems: 'center'},
   card: {
-    backgroundColor: colors.cSurface,
+    backgroundColor: colors.uCard,
     borderRadius: wp(12),
     padding: wp(12),
     marginBottom: hp(8),
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: colors.uCard,
   },
   cardRow: {
     flexDirection: 'row',
@@ -249,7 +249,7 @@ const styles = StyleSheet.create({
     width: wp(44),
     height: wp(44),
     borderRadius: wp(22),
-    backgroundColor: colors.secPrimary + '18',
+    backgroundColor: colors.uSubtext,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
     height: wp(10),
     borderRadius: wp(5),
     borderWidth: 1.5,
-    borderColor: colors.surface,
+    borderColor: colors.uSubtext,
   },
   cardInfo: {
     marginLeft: wp(10),
@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
     gap: hp(6),
     marginLeft: wp(8),
   },
-  priceText: {fontSize: fp(12), fontWeight: '700', color: colors.cAccent},
+  priceText: {fontSize: fp(12), fontWeight: '700', color: colors.statText},
   
   // --- Updated Button Styles ---
   bookBtnWrapper: {
@@ -303,13 +303,13 @@ const styles = StyleSheet.create({
   },
   bookBtnOffline: {
     borderWidth: 1,
-    borderColor: colors.secPrimary,
+    borderColor: colors.uSubHeading,
   },
-  bookBtnText: {fontSize: fp(11), fontWeight: '600', color: colors.white},
+  bookBtnText: {fontSize: fp(11), fontWeight: '600', color: colors.textPrimary},
   bookBtnTextOffline: {color: colors.textPrimary},
   // -----------------------------
 
   emptyWrap: {alignItems: 'center', paddingTop: hp(60), gap: hp(10)},
-  emptyTitle: {fontSize: fp(16), fontWeight: '600', color: colors.text},
-  emptyText: {fontSize: fp(13), color: colors.textPrimary, textAlign: 'center', paddingHorizontal: wp(40)},
+  emptyTitle: {fontSize: fp(16), fontWeight: '600', color: colors.textPrimary},
+  emptyText: {fontSize: fp(13), color: colors.uSubHeading, textAlign: 'center', paddingHorizontal: wp(40)},
 });

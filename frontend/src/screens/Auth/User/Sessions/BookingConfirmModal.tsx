@@ -1,11 +1,5 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Modal,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Modal } from 'react-native';
 import {
   Video,
   Clock,
@@ -15,6 +9,7 @@ import {
 } from 'lucide-react-native';
 import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
+import LinearGradient from 'react-native-linear-gradient';
 
 interface BookingConfirmModalProps {
   visible: boolean;
@@ -44,9 +39,22 @@ const BookingConfirmModal = ({
     .slice(0, 2);
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={onClose}>
-        <TouchableOpacity style={styles.content} activeOpacity={1} onPress={() => {}}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
+      <TouchableOpacity
+        style={styles.overlay}
+        activeOpacity={1}
+        onPress={onClose}
+      >
+        <TouchableOpacity
+          style={styles.content}
+          activeOpacity={1}
+          onPress={() => {}}
+        >
           <Text style={styles.title}>Confirm Booking</Text>
 
           <View style={styles.infoRow}>
@@ -62,25 +70,35 @@ const BookingConfirmModal = ({
           <View style={styles.divider} />
 
           <View style={styles.row}>
-            <IndianRupee size={wp(16)} color={colors.secPrimary} strokeWidth={1.8} />
+            <IndianRupee
+              size={wp(16)}
+              color={colors.statText}
+              strokeWidth={1.8}
+            />
             <Text style={styles.label}>Rate</Text>
             <Text style={styles.value}>₹{rate}/min</Text>
           </View>
 
           <View style={styles.row}>
-            <Calendar size={wp(16)} color={colors.secPrimary} strokeWidth={1.8} />
+            <Calendar size={wp(16)} color={colors.statIcon} strokeWidth={1.8} />
             <Text style={styles.label}>Date & Time</Text>
-            <Text style={styles.value}>{dateLabel} · {timeLabel}</Text>
+            <Text style={styles.value}>
+              {dateLabel} · {timeLabel}
+            </Text>
           </View>
 
           <View style={styles.row}>
-            <Clock size={wp(16)} color={colors.secPrimary} strokeWidth={1.8} />
+            <Clock size={wp(16)} color={colors.statIcon} strokeWidth={1.8} />
             <Text style={styles.label}>Duration</Text>
             <Text style={styles.value}>30 min</Text>
           </View>
 
           <View style={styles.row}>
-            <IndianRupee size={wp(16)} color={colors.secPrimary} strokeWidth={1.8} />
+            <IndianRupee
+              size={wp(16)}
+              color={colors.statText}
+              strokeWidth={1.8}
+            />
             <Text style={styles.label}>Total</Text>
             <Text style={styles.totalValue}>₹{rate * 30}</Text>
           </View>
@@ -93,14 +111,21 @@ const BookingConfirmModal = ({
           </View>
 
           <TouchableOpacity
-            style={styles.confirmBtn}
             activeOpacity={0.8}
             onPress={onConfirm}
-            disabled={booking}>
-            <Video size={wp(18)} color={colors.textPrimary} strokeWidth={2} />
-            <Text style={styles.confirmBtnText}>
-              {booking ? 'Processing...' : `Pay ₹${rate * 30} & Book`}
-            </Text>
+            disabled={booking}
+          >
+            <LinearGradient
+              colors={[colors.btnGradientStart, colors.btnGradientEnd]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.confirmBtn}
+            >
+              <Video size={wp(18)} color={colors.textPrimary} strokeWidth={2} />
+              <Text style={styles.confirmBtnText}>
+                {booking ? 'Processing...' : `Pay ₹${rate * 30} & Book`}
+              </Text>
+            </LinearGradient>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.cancelBtn} onPress={onClose}>
@@ -117,11 +142,11 @@ export default BookingConfirmModal;
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: colors.uCard,
     justifyContent: 'flex-end',
   },
   content: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.textPrimary,
     borderTopLeftRadius: wp(20),
     borderTopRightRadius: wp(20),
     padding: wp(20),
@@ -130,7 +155,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: fp(18),
     fontWeight: '700',
-    color: colors.text,
+    color: colors.textPrimary,
     textAlign: 'center',
     marginBottom: hp(16),
   },
@@ -139,17 +164,21 @@ const styles = StyleSheet.create({
     width: wp(44),
     height: wp(44),
     borderRadius: wp(22),
-    backgroundColor: colors.secPrimary + '18',
+    backgroundColor: colors.statIcon,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  avatarText: { fontSize: fp(14), fontWeight: '700', color: colors.secPrimary },
+  avatarText: {
+    fontSize: fp(14),
+    fontWeight: '700',
+    color: colors.textPrimary,
+  },
   infoText: { flex: 1 },
-  name: { fontSize: fp(15), fontWeight: '600', color: colors.text },
-  sub: { fontSize: fp(12), color: colors.textSecondary, marginTop: hp(2) },
+  name: { fontSize: fp(15), fontWeight: '600', color: colors.textPrimary },
+  sub: { fontSize: fp(12), color: colors.uSubHeading, marginTop: hp(2) },
   divider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: colors.borderLight,
+    backgroundColor: '#898BA8',
     marginVertical: hp(16),
   },
   row: {
@@ -158,9 +187,9 @@ const styles = StyleSheet.create({
     gap: wp(10),
     marginBottom: hp(12),
   },
-  label: { fontSize: fp(13), color: colors.textSecondary, flex: 1 },
-  value: { fontSize: fp(14), fontWeight: '600', color: colors.text },
-  totalValue: { fontSize: fp(14), fontWeight: '800', color: colors.text },
+  label: { fontSize: fp(13), color: colors.uSubHeading, flex: 1 },
+  value: { fontSize: fp(14), fontWeight: '600', color: colors.statText },
+  totalValue: { fontSize: fp(14), fontWeight: '800', color: colors.statText },
   note: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -179,9 +208,17 @@ const styles = StyleSheet.create({
     gap: wp(8),
     borderRadius: wp(14),
     paddingVertical: hp(16),
-    backgroundColor: colors.info,
+    //backgroundColor: colors.info,
   },
   confirmBtnText: { fontSize: fp(16), fontWeight: '700', color: colors.white },
-  cancelBtn: { alignItems: 'center', paddingVertical: hp(12), marginTop: hp(4) },
-  cancelBtnText: { fontSize: fp(14), fontWeight: '500', color: colors.textMuted },
+  cancelBtn: {
+    alignItems: 'center',
+    paddingVertical: hp(12),
+    marginTop: hp(4),
+  },
+  cancelBtnText: {
+    fontSize: fp(14),
+    fontWeight: '500',
+    color: colors.uBg,
+  },
 });

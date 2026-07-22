@@ -5,11 +5,17 @@ import {
   StyleSheet,
   Dimensions,
   ImageBackground,
+  TouchableOpacity,
 } from 'react-native';
 import Carousel from 'react-native-reanimated-carousel';
-import { Play } from 'lucide-react-native';
+import { Play, Route } from 'lucide-react-native';
 import colors from '../../../../../utils/colors';
 import { wp, hp, fp } from '../../../../../utils/responsive';
+import LinearGradient from 'react-native-linear-gradient';
+import ProductsScreen from '../../Products/ProductsScreen';
+import PurchasesScreen from '../../Purchase/PurchasesScreen';
+import { useNavigation } from '@react-navigation/native';
+
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const HERO_HEIGHT = hp(200);
@@ -17,21 +23,23 @@ const HERO_HEIGHT = hp(200);
 const heroSlides = [
   {
     id: '1',
-    badge: "This Week's Top Pick",
-    title: 'Grow with the\nBest Creators',
-    subtitle: 'Expert-led learning paths, just for you',
+    badge: 'Start Your Journey',
+    title: 'Explore Your Interest',
+    subtitle:
+      'Unlock Your Potential with expert\nadvisors and career-focused\nprograms',
+    buttonLabel: 'Browse Courses',
+    showPlayIcon: false,
+    route: 'ProductsScreen',
   },
   {
     id: '2',
-    badge: 'Trending Now',
-    title: 'Master New\nSkills Today',
-    subtitle: 'Courses designed by industry experts',
-  },
-  {
-    id: '3',
-    badge: 'New Arrivals',
-    title: 'Explore Fresh\nContent Daily',
-    subtitle: 'Stay ahead with the latest courses',
+    badge: 'Continue Learning',
+    title: 'Mastering Advanced Quant Trading Strategies',
+    subtitle:
+      'Pick up where you left off in Module 4: Sentiment Analysis in High-Frequency Markets.',
+    buttonLabel: 'Resume Class',
+    showPlayIcon: true,
+    route: 'PurchasesScreen',
   },
 ];
 
@@ -45,7 +53,7 @@ const DotIndicator = ({ count, activeIndex }: any) => (
           styles.dot,
           {
             width: i === activeIndex ? wp(22) : wp(6),
-            backgroundColor: i === activeIndex ? colors.secPrimary : '#B8ADA5',
+            backgroundColor: i === activeIndex ? colors.uBg : '#B8ADA5',
           },
         ]}
       />
@@ -56,6 +64,7 @@ const DotIndicator = ({ count, activeIndex }: any) => (
 /* ──── Hero Carousel ──── */
 const HeroCarousel = () => {
   const [activeDotIndex, setActiveDotIndex] = useState(0);
+  const navigation = useNavigation<any>();
 
   return (
     <View style={styles.heroSection}>
@@ -78,16 +87,38 @@ const HeroCarousel = () => {
             source={require('../../../../../image/Logo.jpg')}
             style={styles.heroCard}
             imageStyle={styles.heroCardImage}
-            resizeMode="cover">
+            resizeMode="cover"
+          >
             <View style={styles.heroOverlay} />
-            <View style={styles.heroBadge}>
+
+            <LinearGradient
+              colors={[colors.btnGradientStart, colors.btnGradientEnd]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.heroBadge}
+            >
               <Text style={styles.heroBadgeText}>{item.badge}</Text>
-            </View>
+            </LinearGradient>
+
             <Text style={styles.heroTitle}>{item.title}</Text>
             <Text style={styles.heroSub}>{item.subtitle}</Text>
-            <View style={styles.resumeBtn}>
-              <Play size={wp(14)} color={colors.white} fill={colors.white} />
-            </View>
+
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => navigation.navigate(item.route)}
+            >
+              <LinearGradient
+                colors={[colors.btnGradientStart, colors.btnGradientEnd]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.resumeBtn}
+              >
+                {item.showPlayIcon && (
+                  <Play size={wp(14)} color={colors.white} fill={colors.white} />
+                )}
+                <Text style={styles.resumeBtnText}>{item.buttonLabel}</Text>
+              </LinearGradient>
+            </TouchableOpacity>
           </ImageBackground>
         )}
       />
@@ -119,9 +150,9 @@ const styles = StyleSheet.create({
   },
   heroBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: 'rgba(59,130,246,0.25)',
+    //backgroundColor: 'rgba(59,130,246,0.25)',
     borderWidth: 1,
-    borderColor: 'rgba(96,165,250,0.4)',
+    borderColor: 'rgba(129,140,248,0.5)',
     paddingHorizontal: wp(10),
     paddingVertical: hp(4),
     borderRadius: wp(20),
@@ -153,13 +184,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignSelf: 'flex-start',
     gap: wp(8),
-    backgroundColor: colors.info,
+    //backgroundColor: colors.info,
     paddingHorizontal: wp(18),
     paddingVertical: hp(10),
     borderRadius: wp(12),
   },
   resumeBtnText: {
-    color: colors.white,
+    color: colors.textPrimary,
     fontSize: fp(13.5),
     fontWeight: '700',
   },

@@ -5,9 +5,7 @@ import {
   ScrollView,
   StyleSheet,
   Pressable,
-  Image,
   Linking,
-  TouchableOpacity,
 } from 'react-native';
 import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
@@ -16,14 +14,7 @@ import {
   ChevronRight,
   LogOut,
   Headset,
-  Bell,
-  UserCircle,
   Notebook,
-  FileText,
-  Shield,
-  ReceiptText,
-  MessageCircle,
-  Instagram,
   ArrowLeft,
 } from 'lucide-react-native';
 import LogoutModal from '../../Profile/Components/LogoutModal';
@@ -71,8 +62,8 @@ const openWhatsApp = (message: string) => {
 /* ──────── Reusable Menu Row ──────── */
 const MenuRow = ({
   icon: Icon,
-  iconColor = colors.cAccentLight,
-  iconBg = colors.inputBg,
+  iconColor = colors.statText,
+  iconBg = colors.statIcon,
   label,
   labelColor = colors.textPrimary,
   subtitle,
@@ -156,12 +147,13 @@ const UserSetting: React.FC = () => {
           <MenuRow
             icon={Headset}
             label="Help & Support"
+            subtitle='Earnings & transaction'
             onPress={() => openWhatsApp('Hello, I am a User, I need help.')}
           />
           <MenuRow
             icon={Notebook}
             label="About"
-            subtitle="Learn more about our app, features, and community."
+            subtitle='Manage bank information'
             onPress={() => {}}
           />
           <MenuRow
@@ -200,7 +192,7 @@ export default UserSetting;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.cBg,
+    backgroundColor: colors.uBg,
   },
 
   headerWrapper: {
@@ -243,7 +235,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: hp(8),
-    backgroundColor: colors.cCard,
+    backgroundColor: colors.uCard,
   },
   topCardPressed: {
     opacity: 0.88,
@@ -279,7 +271,7 @@ const styles = StyleSheet.create({
     marginBottom: hp(12),
   },
   section: {
-    backgroundColor: colors.cCard,
+    backgroundColor: colors.uCard,
     marginHorizontal: wp(16),
     borderRadius: wp(16),
     overflow: 'hidden',
@@ -319,14 +311,14 @@ const styles = StyleSheet.create({
   },
   rowSubtext: {
     fontSize: fp(12),
-    color: colors.textSecondary,
+    color: colors.uSubHeading,
     marginTop: hp(1),
   },
 
   versionText: {
     textAlign: 'center',
     fontSize: fp(12),
-    color: colors.textMuted,
+    color: colors.uSubHeading,
     marginTop: hp(24),
     fontWeight: '500',
   },

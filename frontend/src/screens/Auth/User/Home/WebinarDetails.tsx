@@ -305,12 +305,12 @@ const WebinarDetails = () => {
         </View>
 
         <View style={styles.row}>
-          <Video size={wp(18)} color={colors.textSecondary} />
+          <Video size={wp(18)} color={colors.textPrimary} />
           <Text style={styles.detailText}>Zoom Meeting</Text>
         </View>
 
         <View style={styles.row}>
-          <Users size={wp(18)} color={colors.textSecondary} />
+          <Users size={wp(18)} color={colors.textPrimary} />
           <Text style={styles.detailText}>
             Max Participants: {data?.max_participants}
           </Text>
@@ -319,7 +319,7 @@ const WebinarDetails = () => {
         <View style={styles.tagContainer}>
           {data?.tags?.map((tag: string, index: number) => (
             <View key={index} style={styles.tag}>
-              <Tag size={wp(14)} color={colors.white} />
+              <Tag size={wp(14)} color={colors.textPrimary} />
               <Text style={styles.tagText}>{tag}</Text>
             </View>
           ))}
@@ -380,7 +380,7 @@ const WebinarDetails = () => {
             disabled={loading}
           >
             {loading ? (
-              <ActivityIndicator color={colors.white} size={'small'} />
+              <ActivityIndicator color={colors.textPrimary} size={'small'} />
             ) : (
               <Text style={styles.buyText}>
                 Purchase for ₹{total.toFixed(2)}
@@ -405,7 +405,7 @@ const PriceRow = ({ label, value }: { label: string; value: string }) => (
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.bg,
+    backgroundColor: colors.uBg,
   },
   loaderContainer: {
     flex: 1,
@@ -488,7 +488,7 @@ const styles = StyleSheet.create({
   tag: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.secPrimary,
+    backgroundColor: colors.uCard,
     paddingVertical: hp(5),
     paddingHorizontal: wp(10),
     borderRadius: wp(20),
@@ -534,7 +534,7 @@ const styles = StyleSheet.create({
   totalValue: {
     fontSize: fp(18),
     fontWeight: '800',
-    color: colors.info,
+    color: colors.uSubtext,
   },
   participants: {
     fontSize: fp(14),
@@ -562,19 +562,19 @@ const styles = StyleSheet.create({
     bottom: 0,
     width: '100%',
     padding: wp(15),
-    backgroundColor: colors.bg,
+    backgroundColor: colors.uBg,
     borderTopWidth: wp(1),
-    borderColor: colors.border,
+    borderColor: colors.uBg,
     marginBottom: hp(10),
   },
   buyButton: {
-    backgroundColor: colors.info,
+    backgroundColor: colors.textPrimary,
     paddingVertical: hp(14),
     borderRadius: wp(10),
     alignItems: 'center',
   },
   buyText: {
-    color: colors.white,
+    color: colors.textPrimary,
     fontWeight: '700',
     fontSize: fp(16),
   },
@@ -587,7 +587,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(15),
   },
   policyLink: {
-    color: colors.info,
+    color: colors.uSubtext,
     fontWeight: '500',
   },
 });

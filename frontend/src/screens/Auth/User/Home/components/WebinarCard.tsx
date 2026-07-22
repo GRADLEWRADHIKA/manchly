@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View, Image, Pressable } from 'react-native';
 import React from 'react';
-import { Calendar, Clock, User, Video } from 'lucide-react-native';
+import {  Video } from 'lucide-react-native';
 import colors from '../../../../../utils/colors';
 import { useNavigation } from '@react-navigation/native';
 import { wp, hp, fp } from '../../../../../utils/responsive';

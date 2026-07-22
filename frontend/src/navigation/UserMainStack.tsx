@@ -25,6 +25,9 @@ import SessionRatingScreen from '../screens/Auth/User/Sessions/SessionRatingScre
 import UserNotification from '../screens/Auth/User/Notifications/UserNotification';
 import ChatThread from '../screens/Auth/User/Chat/ChatThread';
 import SettlementHistory from '../screens/Auth/Creator/Wallet/SettlementHistory';
+import ProductsScreen from '../screens/Auth/User/Products/ProductsScreen';
+import PurchasesScreen from '../screens/Auth/User/Purchase/PurchasesScreen';
+import BrandMarketplace from '../screens/Auth/User/Marketplace/BrandMarketplace';
 
 const Stack = createNativeStackNavigator();
 
@@ -54,6 +57,8 @@ const UserMainStack = () => {
       />
       <Stack.Screen name="UserCourseSearch" component={UserCourseSearch} />
       <Stack.Screen name="UserVideoList" component={UserVideoList} />
+      <Stack.Screen name="ProductsScreen" component={ProductsScreen} />
+      <Stack.Screen name="PurchasesScreen" component={PurchasesScreen} />
       <Stack.Screen name="WebinarDetails" component={WebinarDetails} />
       <Stack.Screen name="KYCVerificationScreen" component={KYCVerificationScreen} />
       <Stack.Screen name="CreatorPublicProfile" component={CreatorPublicProfile} />
@@ -65,6 +70,7 @@ const UserMainStack = () => {
       <Stack.Screen name="UserNotification" component={UserNotification} />
       <Stack.Screen name="SettlementHistory" component={SettlementHistory} />
       <Stack.Screen name="ChatThread" component={ChatThread} />
+      <Stack.Screen name="BrandMarketplace" component={BrandMarketplace} />
     </Stack.Navigator>
   );
 };

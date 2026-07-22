@@ -480,7 +480,7 @@ const PurchasesScreen = () => {
 export default PurchasesScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
+  container: { flex: 1, backgroundColor: colors.uBg },
 
   headerBar: {
     flexDirection: 'row',
@@ -488,17 +488,17 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: wp(20),
     paddingBottom: hp(10),
-    backgroundColor: colors.bg,
+    backgroundColor: colors.uBg,
     zIndex: 10,
   },
   headerTitle: {
-    color: colors.white,
+    color: colors.textPrimary,
     fontSize: fp(20),
     fontWeight: '700',
     letterSpacing: 0.3,
   },
   headerEdge: {
-    backgroundColor: colors.bg,
+    backgroundColor: colors.uBg,
     height: hp(16),
     borderBottomLeftRadius: wp(18),
     borderBottomRightRadius: wp(18),

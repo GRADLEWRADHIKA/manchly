@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     borderRadius: wp(20),
-    backgroundColor: colors.surface,
+    backgroundColor: '#080C25',
     padding: wp(22),
     ...Platform.select({
       ios: {
@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
   cardDark: {
     backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.uCard,
   },
   iconWrap: {
     width: wp(56),
@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
   },
   message: {
     fontSize: fp(14),
-    color: colors.textSecondary,
+    color: colors.uSubHeading,
     marginBottom: hp(22),
     textAlign: 'center',
     lineHeight: fp(20),
@@ -141,12 +141,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cancel: {
-    backgroundColor: colors.inputBg,
+    backgroundColor: colors.uCard,
     borderWidth: wp(1),
-    borderColor: colors.border,
+    borderColor: colors.uBg,
   },
   cancelDark: {
-    backgroundColor: colors.inputBg,
+    backgroundColor: colors.uCard,
     borderWidth: 1,
     borderColor: colors.border,
   },
@@ -167,6 +167,6 @@ const styles = StyleSheet.create({
   btnText: {
     fontSize: fp(15),
     fontWeight: '600',
-    color: colors.white,
+    color: colors.textPrimary,
   },
 });

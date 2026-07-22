@@ -88,11 +88,11 @@ const UserSessions: React.FC = () => {
 
         <View style={styles.cardBottom}>
           <View style={styles.detailChip}>
-            <Clock size={wp(12)} color={colors.textSecondary} strokeWidth={1.8} />
+            <Clock size={wp(12)} color='#BDC2FF' strokeWidth={1.8} />
             <Text style={styles.detailText}>{item.duration} min</Text>
           </View>
           <View style={styles.detailChip}>
-            <IndianRupee size={wp(12)} color={colors.textSecondary} strokeWidth={2} />
+            <IndianRupee size={wp(12)} color='#BDC2FF' strokeWidth={2} />
             <Text style={styles.detailText}>{item.amount}</Text>
           </View>
           <View style={styles.detailChip}>
@@ -148,7 +148,7 @@ const UserSessions: React.FC = () => {
           style={styles.ctaBtn}
         >
           <Text style={styles.ctaBtnText}>Explore Now</Text>
-          <ChevronRight size={wp(16)} color={colors.white} strokeWidth={2} />
+          <ChevronRight size={wp(16)} color={colors.textPrimary} strokeWidth={2} />
         </LinearGradient>
       </TouchableOpacity>
 
@@ -203,7 +203,7 @@ export default memo(UserSessions);
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.cBg,
+    backgroundColor: colors.uBg,
   },
   listContent: {
     paddingHorizontal: wp(16),
@@ -224,22 +224,22 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: colors.cSurface,
+    backgroundColor: colors.uCard,
     borderRadius: wp(14),
     paddingVertical: hp(16),
     alignItems: 'center',
     gap: hp(4),
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: colors.uCard,
   },
   statValue: {
     fontSize: fp(18),
     fontWeight: '800',
-    color: colors.info,
+    color: colors.statText,
   },
   statLabel: {
     fontSize: fp(9),
-    color: colors.textMuted,
+    color: colors.uSubHeading,
     fontWeight: '600',
     letterSpacing: 0.3,
   },
@@ -247,18 +247,18 @@ const styles = StyleSheet.create({
   // CTA
   ctaCard: {
     alignItems: 'center',
-    backgroundColor: colors.cSurface,
+    backgroundColor: colors.uCard,
     borderRadius: wp(20),
     padding: wp(24),
     marginBottom: hp(20),
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: colors.uCard,
   },
   ctaIconWrap: {
     width: wp(56),
     height: wp(56),
     borderRadius: wp(16),
-    backgroundColor: 'rgba(108,99,255,0.15)',
+    backgroundColor: '#BDC2FF',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: hp(14),
@@ -271,7 +271,7 @@ const styles = StyleSheet.create({
   },
   ctaSub: {
     fontSize: fp(12.5),
-    color: colors.textSecondary,
+    color: colors.uSubHeading,
     textAlign: 'center',
     lineHeight: fp(18),
     marginBottom: hp(18),
@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
   ctaBtnText: {
     fontSize: fp(14),
     fontWeight: '700',
-    color: colors.white,
+    color: colors.textPrimary,
   },
 
   // Section
@@ -305,17 +305,17 @@ const styles = StyleSheet.create({
   viewAllText: {
     fontSize: fp(13),
     fontWeight: '600',
-    color: colors.textSecondary,
+    color: colors.uSubHeading,
   },
 
   // Cards
   card: {
-    backgroundColor: colors.cSurface,
+    backgroundColor: colors.uCard,
     borderRadius: wp(14),
     padding: wp(14),
     marginBottom: hp(10),
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.uCard,
   },
   cardTop: {
     flexDirection: 'row',
@@ -363,32 +363,32 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(4),
-    backgroundColor: colors.inputBg,
+    backgroundColor: colors.uBg,
     paddingHorizontal: wp(10),
     paddingVertical: hp(5),
     borderRadius: wp(8),
   },
   detailText: {
     fontSize: fp(11),
-    color: colors.textSecondary,
+    color: colors.uSubHeading,
     fontWeight: '500',
   },
 
   // Empty
   emptyCard: {
     alignItems: 'center',
-    backgroundColor: colors.cSurface,
+    backgroundColor: colors.uCard,
     borderRadius: wp(20),
     paddingVertical: hp(40),
     paddingHorizontal: wp(24),
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: colors.uCard,
   },
   emptyIconWrap: {
     width: wp(64),
     height: wp(64),
     borderRadius: wp(32),
-    backgroundColor: colors.inputBg,
+    backgroundColor: colors.uBg,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: hp(16),
@@ -405,7 +405,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: colors.surface,
+    borderColor: '#0D112B',
   },
   emptyTitle: {
     fontSize: fp(16),
@@ -415,7 +415,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: fp(13),
-    color: colors.textSecondary,
+    color: colors.uSubHeading,
     textAlign: 'center',
     lineHeight: fp(19),
     paddingHorizontal: wp(10),

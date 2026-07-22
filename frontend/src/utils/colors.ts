@@ -47,8 +47,23 @@ const colors = {
   faaAiCard: '#1A1040',
   faaAiBlue: '#60A5FA',
 
+  //User Dark Theme
   btnGradientStart: '#5A68F3', 
   btnGradientEnd: '#7B88DD',
+  uBg: '#0D112B',
+  uCard: '#1A1E38',
+  uSubtext:'#242843',
+  uBottomText: '#4F60FA',
+  uBottom: '#080C25',
+  uExploreNowText: '#0013A0',
+  uExploreNow:'#BDC2FF',
+  uSubHeading:'#73799B',
+  logoutUser: '#080C25',
+  logoutButton: '#FFB4AB',
+  textLogout: '#690005',
+  statText: '#4F60FA',
+  statIcon: '#73799B',
+  statIcon2: '#BDC2FF',
 
   // Creator Dark Theme
   cBg: '#0D0D1A',

@@ -316,7 +316,7 @@ export default UserProfile;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.cBg,
+    backgroundColor: colors.uBg,
   },
   scrollView: {
     flex: 1,
@@ -327,13 +327,13 @@ const styles = StyleSheet.create({
 
   profileCard: {
     alignItems: 'center',
-    backgroundColor: colors.cSurface,
+    backgroundColor: colors.uCard,
     marginHorizontal: wp(16),
     marginTop: hp(20),
     borderRadius: wp(20),
     paddingVertical: hp(24),
     paddingHorizontal: wp(20),
-    borderColor: colors.cBorder
+    borderColor: colors.uCard
   },
   avatarWrap: {
     position: 'relative',
@@ -343,11 +343,11 @@ const styles = StyleSheet.create({
     width: wp(100),
     height: wp(100),
     borderRadius: wp(50),
-    backgroundColor: colors.inputBg,
+    backgroundColor: colors.uBottom,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 3,
-    borderColor: colors.cAccent,
+    borderColor: colors.statIcon,
   },
   profileImage: {
     width: wp(100),
@@ -361,11 +361,11 @@ const styles = StyleSheet.create({
     width: wp(30),
     height: wp(30),
     borderRadius: wp(15),
-    backgroundColor: colors.cAccent,
+    backgroundColor: colors.statIcon,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: colors.cSurface,
+    borderColor: colors.statIcon,
   },
   profileName: {
     fontSize: fp(20),
@@ -375,7 +375,7 @@ const styles = StyleSheet.create({
   },
   shareBtn: {
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.uBg,
     borderRadius: wp(20),
     paddingVertical: hp(9),
     paddingHorizontal: wp(24),
@@ -394,19 +394,19 @@ const styles = StyleSheet.create({
     width: wp(38),
     height: wp(38),
     borderRadius: wp(19),
-    backgroundColor: colors.inputBg,
+    backgroundColor: colors.uBg,
     alignItems: 'center',
     justifyContent: 'center',
   },
 
   // Form Card
   formCard: {
-    backgroundColor: colors.cSurface,
+    backgroundColor: colors.uCard,
     marginHorizontal: wp(16),
     marginTop: hp(20),
     borderRadius: wp(16),
     padding: wp(16),
-    borderColor: colors.cBorder
+    borderColor: colors.uCard
   },
   fieldRow: {
     marginBottom: hp(16),
@@ -425,27 +425,27 @@ const styles = StyleSheet.create({
     borderRadius: wp(10),
     paddingHorizontal: wp(12),
     justifyContent: 'center',
-    backgroundColor: colors.inputBg,
+    backgroundColor: '#242843',
   },
   inputText: {
     fontSize: fp(14),
     color: colors.textPrimary,
   },
   disabledInput: {
-    backgroundColor: colors.inputBg,
+    backgroundColor: '#242843',
   },
   disabledText: {
     fontSize: fp(14),
-    color: colors.textSecondary,
+    color: colors.uSubHeading,
   },
   mockPlaceholderText: {
     fontSize: fp(14),
-    color: colors.textMuted,
+    color: colors.uSubHeading,
   },
 
   // Stats Cards
   statCard: {
-    backgroundColor: colors.cSurface,
+    backgroundColor: colors.uCard,
     marginHorizontal: wp(16),
     marginTop: hp(12),
     borderRadius: wp(16),
@@ -456,7 +456,7 @@ const styles = StyleSheet.create({
     width: wp(36),
     height: wp(36),
     borderRadius: wp(18),
-    backgroundColor: 'rgba(96,165,250,0.15)',
+    backgroundColor: colors.statIcon,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: hp(8),
@@ -464,7 +464,7 @@ const styles = StyleSheet.create({
   statLabel: {
     fontSize: fp(10.5),
     fontWeight: '700',
-    color: colors.textSecondary,
+    color: colors.uSubHeading,
     letterSpacing: 0.6,
     marginBottom: hp(4),
   },

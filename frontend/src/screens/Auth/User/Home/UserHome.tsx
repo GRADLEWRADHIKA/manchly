@@ -1,7 +1,7 @@
 import React, { memo } from 'react';
 import { View, ScrollView, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { PhoneCall, ChevronRight, Store } from 'lucide-react-native';
+import { ChevronRight, Store } from 'lucide-react-native';
 import { hp, wp, fp } from '../../../../utils/responsive';
 import colors from '../../../../utils/colors';
 import HomeHeader from './components/HomeHeader';
@@ -9,7 +9,7 @@ import HeroCarousel from './components/HeroCarousel';
 import LatestCourses from './components/LatestCourses';
 import LatestWebinars from './components/LatestWebinars';
 import TopExperts from './components/TopExperts';
-
+//import BrandMarketplace from '../Marketplace/BrandMarketplace';
 const UserHome = () => {
   const navigation = useNavigation<any>();
 
@@ -22,21 +22,25 @@ const UserHome = () => {
         contentContainerStyle={styles.scrollContent}
       >
         <HeroCarousel />
-
+        
         <TopExperts />
         <LatestCourses />
         <LatestWebinars />
 
-        <TouchableOpacity style={styles.marketPlaceBanner} activeOpacity={0.8}>
+       <TouchableOpacity
+          style={styles.marketPlaceBanner}
+          activeOpacity={0.8}
+          onPress={() => navigation.navigate('BrandMarketplace')}
+        >
           <View style={styles.marketPlaceIcon}>
-            <Store size={wp(20)} color={colors.white} />
+            <Store size={wp(20)} color={colors.textPrimary} />
           </View>
           <View style={styles.marketPlaceContent}>
             <Text style={styles.marketPlaceTitle}>Market Place</Text>
           </View>
           <View style={styles.marketPlaceAction}>
             <Text style={styles.marketPlaceActionText}>Go to Hub</Text>
-            <ChevronRight size={wp(16)} color="rgba(255,255,255,0.6)" />
+            <ChevronRight size={wp(16)} color={colors.textPrimary} />
           </View>
         </TouchableOpacity>
       </ScrollView>
@@ -49,11 +53,11 @@ export default memo(UserHome);
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#0D112B',
+    backgroundColor: colors.uBg,
   },
   container: {
     flex: 1,
-    backgroundColor: '#0D112B',
+    backgroundColor: colors.uBg,
   },
   scrollContent: {
     paddingBottom: hp(100),
@@ -95,17 +99,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginHorizontal: wp(16),
     marginTop: hp(12),
-    backgroundColor: '#1E1E2E',
+    backgroundColor: colors.uCard,
     borderRadius: wp(14),
     padding: wp(14),
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: colors.uCard,
   },
   marketPlaceIcon: {
     width: wp(40),
     height: wp(40),
     borderRadius: wp(10),
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: colors.uBg,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -116,7 +120,7 @@ const styles = StyleSheet.create({
   marketPlaceTitle: {
     fontSize: fp(15),
     fontWeight: '700',
-    color: colors.white,
+    color: colors.textPrimary,
   },
   marketPlaceAction: {
     flexDirection: 'row',
@@ -124,7 +128,7 @@ const styles = StyleSheet.create({
   },
   marketPlaceActionText: {
     fontSize: fp(12),
-    color: 'rgba(255,255,255,0.6)',
+    color: colors.textPrimary,
     marginRight: wp(2),
   },
 });

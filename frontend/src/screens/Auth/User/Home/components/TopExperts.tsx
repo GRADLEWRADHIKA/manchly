@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {useDispatch} from 'react-redux';
-import {Star, ChevronRight} from 'lucide-react-native';
+import {ChevronRight} from 'lucide-react-native';
 import colors from '../../../../../utils/colors';
 import {wp, hp, fp} from '../../../../../utils/responsive';
 import {listExperts} from '../../../../../store/SessionSlice';
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
   },
   card: {
     width: wp(130),
-    backgroundColor: '#1A1E38',
+    backgroundColor: colors.uCard,
     borderRadius: wp(14),
     padding: wp(12),
     alignItems: 'center',
@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
     width: wp(50),
     height: wp(50),
     borderRadius: wp(25),
-    backgroundColor: colors.inputBg,
+    backgroundColor: colors.uSubtext,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
   },
   profession: {
     fontSize: fp(10),
-    color: 'rgba(255,255,255,0.6)',
+    color: colors.textPrimary,
     marginTop: hp(2),
     textAlign: 'center',
   },

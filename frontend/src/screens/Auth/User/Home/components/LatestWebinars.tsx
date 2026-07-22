@@ -10,13 +10,13 @@ import {
   Animated,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { Video, Calendar, Sparkles, Bell, ArrowRight } from 'lucide-react-native';
+import { Video,Sparkles, Bell, ArrowRight } from 'lucide-react-native';
 import { useDispatch } from 'react-redux';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { getAllWebinar } from '../../../../../store/WebinarSlice';
 import colors from '../../../../../utils/colors';
 import { wp, hp, fp } from '../../../../../utils/responsive';
-import moment from 'moment-timezone';
+//import moment from 'moment-timezone';
 
 const LatestWebinarItem = ({ item, onPress }: any) => {
   return (
@@ -28,7 +28,7 @@ const LatestWebinarItem = ({ item, onPress }: any) => {
         <Image source={{ uri: item.thumbnail_url }} style={styles.thumb} />
       ) : (
         <View style={[styles.thumb, styles.thumbPlaceholder]}>
-          <Video size={wp(22)} color={colors.gold} strokeWidth={1.5} />
+          <Video size={wp(22)} color={colors.uSubtext} strokeWidth={1.5} />
         </View>
       )}
       <View style={styles.info}>
@@ -123,9 +123,9 @@ const EmptyWebinarCard = () => {
             Be the first to know when they go live!
           </Text>   
           <View style={styles.notifyBtn}>
-            <Bell size={wp(14)} color={colors.bg} strokeWidth={2} />
+            <Bell size={wp(14)} color={colors.uBg} strokeWidth={2} />
             <Text style={styles.notifyBtnText}>Notify Me</Text>
-            <ArrowRight size={wp(14)} color={colors.bg} strokeWidth={2} />
+            <ArrowRight size={wp(14)} color={colors.uBg} strokeWidth={2} />
           </View>
         </LinearGradient>
       </Pressable>
@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
   seeAllText: {
     fontSize: fp(13),
     fontWeight: '600',
-    color: colors.gold,
+    color: "rgba(255,255,255,0.85)",
   },
   listContent: {
     paddingHorizontal: wp(20),
@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
   },
   card: {
     width: wp(160),
-    backgroundColor: colors.surface,
+    backgroundColor: colors.uCard,
     borderRadius: wp(14),
     overflow: 'hidden',
     marginBottom: 5,
@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
     height: hp(90),
   },
   thumbPlaceholder: {
-    backgroundColor: colors.inputBg,
+    backgroundColor: colors.uSubtext,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -278,7 +278,7 @@ const styles = StyleSheet.create({
   },
   hostedBy: {
     fontSize: fp(11),
-    color: colors.textSecondary,
+    color: colors.uSubHeading,
   },
   emptyCard: {
     marginHorizontal: wp(20),
@@ -312,7 +312,7 @@ const styles = StyleSheet.create({
     width: wp(64),
     height: wp(64),
     borderRadius: wp(32),
-    backgroundColor: colors.white,
+    backgroundColor: colors.textPrimary,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: hp(14),
@@ -338,7 +338,7 @@ const styles = StyleSheet.create({
   notifyBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.gold,
+    backgroundColor: colors.uBg,
     paddingHorizontal: wp(20),
     paddingVertical: hp(10),
     borderRadius: wp(25),
@@ -347,6 +347,6 @@ const styles = StyleSheet.create({
   notifyBtnText: {
     fontSize: fp(13),
     fontWeight: '700',
-    color: colors.bg,
+    color: colors.uSubHeading,
   },
 });

@@ -1,8 +1,8 @@
 import React, { memo } from 'react';
-import { View, Text, StyleSheet, Image, Pressable, Linking } from 'react-native';
+import { View, Text, StyleSheet, Image, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import colors from '../../../../../utils/colors';
-import { Search, Bell, Instagram } from 'lucide-react-native';
+import { Search, Bell} from 'lucide-react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { wp, hp, fp } from '../../../../../utils/responsive';
@@ -61,15 +61,9 @@ const HomeHeader = () => {
       <View style={styles.headerActions}>
         <Pressable
           style={styles.hiddenIconBtn}
-          onPress={() => Linking.openURL('https://www.instagram.com/manchly_app')}
-          accessibilityLabel="Instagram">
-          <Instagram size={wp(18)} color={colors.white} strokeWidth={2} />
-        </Pressable>
-        <Pressable
-          style={styles.hiddenIconBtn}
           onPress={() => navigation.navigate('ProductsScreen')}
           accessibilityLabel="Search courses">
-          <Search size={wp(18)} color={colors.white} strokeWidth={2} />
+          <Search size={wp(18)} color={colors.textPrimary} strokeWidth={2} />
         </Pressable>
         <Pressable
           style={({ pressed }) => [
@@ -78,7 +72,7 @@ const HomeHeader = () => {
           ]}
           onPress={() => navigation.navigate('UserNotification')}
           accessibilityLabel="Notifications">
-          <Bell size={wp(20)} color={colors.white} strokeWidth={2} />
+          <Bell size={wp(20)} color={colors.textPrimary} strokeWidth={2} />
           {unreadCount > 0 && (
             <View style={styles.bellBadge}>
               <Text style={styles.bellBadgeText}>
@@ -118,12 +112,12 @@ const styles = StyleSheet.create({
     width: wp(44),
     height: wp(44),
     borderRadius: wp(22),
-    backgroundColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: colors.uCard,
     justifyContent: 'center',
     alignItems: 'center',
   },
   avatarInitials: {
-    color: colors.white,
+    color: colors.textPrimary,
     fontSize: fp(18),
     fontWeight: '700',
   },
@@ -135,7 +129,7 @@ const styles = StyleSheet.create({
   },
   greetingLabel: {
     fontSize: fp(12),
-    color: 'rgba(255,255,255,0.55)',
+    color: colors.textPrimary,
     fontWeight: '400',
     marginTop: hp(1),
   },
@@ -164,16 +158,16 @@ const styles = StyleSheet.create({
     minWidth: wp(16),
     height: wp(16),
     borderRadius: wp(8),
-    backgroundColor: '#EF4444',
+    backgroundColor: colors.uCard,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: wp(3),
     borderWidth: 1.5,
-    borderColor: colors.bg,
+    borderColor: colors.uBg,
   },
   bellBadgeText: {
     fontSize: fp(8),
     fontWeight: '700',
-    color: colors.white,
+    color: colors.textPrimary,
   },
 });

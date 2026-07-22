@@ -351,7 +351,7 @@ const ExpertDetail: React.FC = () => {
                 />
               ) : (
                 <View style={styles.avatarPlaceholder}>
-                  <User2 size={wp(28)} color={colors.secPrimary} />
+                  <User2 size={wp(28)} color={colors.uSubtext} />
                 </View>
               )}
               <View
@@ -632,15 +632,15 @@ const ExpertDetail: React.FC = () => {
 export default ExpertDetail;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
+  container: { flex: 1, backgroundColor: colors.uBg },
   scroll: { paddingTop: hp(14) },
   profileCard: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.uCard,
     marginHorizontal: wp(16),
     borderRadius: wp(16),
     padding: wp(16),
     borderWidth: 1,
-    borderColor: colors.surface,
+    borderColor: colors.uCard,
   },
   profileTop: { flexDirection: 'row', alignItems: 'center' },
   avatarWrap: { position: 'relative' },
@@ -649,7 +649,7 @@ const styles = StyleSheet.create({
     width: wp(64),
     height: wp(64),
     borderRadius: wp(32),
-    backgroundColor: colors.info + '18',
+    backgroundColor: colors.uSubtext,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -661,13 +661,13 @@ const styles = StyleSheet.create({
     height: wp(14),
     borderRadius: wp(7),
     borderWidth: 2,
-    borderColor: colors.surface,
+    borderColor: colors.uSubtext,
   },
   profileInfo: { marginLeft: wp(14), flex: 1 },
   profileName: { fontSize: fp(17), fontWeight: '700', color: colors.textPrimary },
   profileProf: {
     fontSize: fp(12),
-    color: colors.textPrimary,
+    color: colors.uSubHeading,
     marginTop: hp(2),
   },
   onlineRow: {
@@ -683,7 +683,7 @@ const styles = StyleSheet.create({
     marginTop: hp(16),
     paddingTop: hp(14),
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.surface,
+    borderTopColor: colors.uCard,
     justifyContent: 'space-around',
   },
   statBox: { alignItems: 'center', gap: hp(3) },
@@ -699,7 +699,7 @@ const styles = StyleSheet.create({
   },
   aboutText: {
     fontSize: fp(13),
-    color: colors.textPrimary,
+    color: colors.uSubHeading,
     lineHeight: fp(20),
   },
   langRow: {
@@ -721,7 +721,7 @@ const styles = StyleSheet.create({
   videoRateText: {
     fontSize: fp(14),
     fontWeight: '700',
-    color: colors.white,
+    color: colors.uSubHeading,
   },
   sectionHeaderRow: {
     flexDirection: 'row',
@@ -765,13 +765,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: hp(12),
     borderRadius: wp(12),
-    backgroundColor: colors.surface,
+    backgroundColor: colors.uExploreNow,
     borderWidth: 1,
-    borderColor: colors.surface,
+    borderColor: colors.uExploreNow,
   },
   timeSlotActive: {
-    backgroundColor: colors.info,
-    borderColor: colors.info,
+    backgroundColor: colors.uCard,
+    borderColor: colors.uCard,
   },
   timeSlotBooked: {
     backgroundColor: '#f1f5f9',
@@ -806,7 +806,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: colors.surface,
+    backgroundColor: colors.uBg,
     paddingHorizontal: wp(16),
     paddingTop: hp(12),
     borderTopWidth: StyleSheet.hairlineWidth,
@@ -831,5 +831,5 @@ const styles = StyleSheet.create({
     gap: wp(8),
   },
   bottomBtnDisabled: { opacity: 0.4 },
-  bottomBtnText: { fontSize: fp(14), fontWeight: '700', color: colors.white },
+  bottomBtnText: { fontSize: fp(14), fontWeight: '700', color: colors.textPrimary },
 });

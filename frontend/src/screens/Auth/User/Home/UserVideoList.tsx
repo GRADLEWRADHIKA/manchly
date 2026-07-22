@@ -194,7 +194,7 @@ export default UserVideoList;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: colors.uBg,
   },
   loaderContainer: {
     flex: 1,
@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
   },
   card: {
     flexDirection: 'row',
-    backgroundColor: '#F8F9FB',
+    backgroundColor: colors.uCard,
     borderRadius: wp(12),
     marginBottom: hp(14),
     overflow: 'hidden',
@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
     height: '100%',
     borderTopLeftRadius: wp(12),
     borderBottomLeftRadius: wp(12),
-    backgroundColor: colors.lightGrey,
+    backgroundColor: colors.textPrimary,
   },
   thumbnailGradient: {
     position: 'absolute',
@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   playIcon: {
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: colors.uBottom,
     width: wp(32),
     height: wp(32),
     borderRadius: wp(16),
@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: hp(4),
     right: wp(4),
-    backgroundColor: 'rgba(0,0,0,0.8)',
+    backgroundColor: colors.uSubHeading,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: wp(5),
@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
     borderRadius: wp(4),
   },
   durationBadgeText: {
-    color: colors.white,
+    color: colors.textPrimary,
     fontSize: fp(10),
     fontWeight: '600',
     marginLeft: wp(2),
@@ -274,12 +274,12 @@ const styles = StyleSheet.create({
   videoTitle: {
     fontSize: fp(15),
     fontWeight: '600',
-    color: colors.black,
+    color: colors.textPrimary,
     marginBottom: hp(4),
   },
   videoDesc: {
     fontSize: fp(12),
-    color: colors.textTertiary,
+    color: colors.textPrimary,
     lineHeight: fp(17),
   },
   emptyContainer: {
@@ -289,7 +289,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: fp(16),
-    color: colors.textMuted,
+    color: colors.textPrimary,
   },
   // Modal styles
   modalContainer: {
@@ -298,23 +298,23 @@ const styles = StyleSheet.create({
   },
   playerSection: {
     width: '100%',
-    backgroundColor: colors.black,
+    backgroundColor: colors.uBottom,
   },
   videoInfoContainer: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: colors.textPrimary,
     paddingHorizontal: wp(16),
     paddingTop: hp(16),
   },
   videoInfoTitle: {
     fontSize: fp(18),
     fontWeight: '700',
-    color: colors.text,
+    color: colors.textPrimary,
     marginBottom: hp(6),
   },
   videoInfoDesc: {
     fontSize: fp(14),
-    color: colors.textSecondary,
+    color: colors.textPrimary,
     lineHeight: fp(20),
     marginBottom: hp(16),
   },
@@ -340,7 +340,7 @@ const styles = StyleSheet.create({
     width: wp(120),
     height: hp(68),
     borderRadius: wp(8),
-    backgroundColor: colors.lightGrey,
+    backgroundColor: colors.uSubtext,
   },
   upNextInfo: {
     flex: 1,
@@ -355,6 +355,6 @@ const styles = StyleSheet.create({
   },
   upNextDuration: {
     fontSize: fp(12),
-    color: colors.textSecondary,
+    color: colors.textPrimary,
   },
 });

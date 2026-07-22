@@ -238,7 +238,7 @@ export default UserNotification;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.cBg,
+    backgroundColor: colors.uBg,
   },
 
   // Tabs
@@ -253,9 +253,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(16),
     paddingVertical: hp(7),
     borderRadius: wp(20),
-    backgroundColor: colors.white,
+    backgroundColor: colors.uBg,
     borderWidth: 1,
-    borderColor: colors.cSurface,
+    borderColor: colors.uBg,
   },
   tabActive: {
     backgroundColor: colors.btnGradientEnd,
@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
   tabText: {
     fontSize: fp(13),
     fontWeight: '600',
-    color: '#64748B',
+    color: colors.textPrimary,
   },
   tabTextActive: {
     color: colors.textPrimary,
@@ -301,7 +301,7 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: colors.surface,
+    backgroundColor: colors.uCard,
     borderRadius: wp(14),
     padding: wp(14),
     borderWidth: 1,
@@ -313,8 +313,8 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
   },
   cardUnread: {
-    backgroundColor: colors.surface,
-    borderColor: colors.secPrimary + '30',
+    backgroundColor: colors.uCard,
+    borderColor: colors.uCard + '10',
   },
   unreadDot: {
     position: 'absolute',
@@ -347,13 +347,13 @@ const styles = StyleSheet.create({
   },
   cardMessage: {
     fontSize: fp(12),
-    color: '#64748B',
+    color: colors.uSubHeading,
     marginTop: hp(3),
     lineHeight: fp(17),
   },
   cardTime: {
     fontSize: fp(11),
-    color: '#94A3B8',
+    color: colors.uSubHeading,
     marginTop: hp(5),
     fontWeight: '500',
   },

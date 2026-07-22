@@ -4,7 +4,6 @@ import {
   Text,
   FlatList,
   StyleSheet,
-  ActivityIndicator,
   Image,
   Pressable,
 } from 'react-native';
@@ -26,7 +25,7 @@ const LatestCourseItem = ({ item, onPress }: any) => {
         <Image source={{ uri: item?.thumbnail }} style={styles.thumb} />
       ) : (
         <View style={[styles.thumb, styles.thumbPlaceholder]}>
-          <BookOpen size={wp(22)} color={colors.textMuted} strokeWidth={1.5} />
+          <BookOpen size={wp(22)} color={colors.uSubHeading} strokeWidth={1.5} />
         </View>
       )}
       <View style={styles.info}>
@@ -145,7 +144,7 @@ const styles = StyleSheet.create({
   },
   card: {
     width: wp(160),
-    backgroundColor: colors.surface,
+    backgroundColor: colors.uCard,
     borderRadius: wp(14),
     overflow: 'hidden',
     marginBottom: 5,
@@ -159,7 +158,7 @@ const styles = StyleSheet.create({
     height: hp(90),
   },
   thumbPlaceholder: {
-    backgroundColor: colors.inputBg,
+    backgroundColor: colors.uSubHeading,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -173,7 +172,7 @@ const styles = StyleSheet.create({
     marginBottom: hp(8),
   },
   tagPill: {
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: colors.uSubHeading,
     paddingHorizontal: wp(7),
     paddingVertical: hp(2),
     borderRadius: wp(5),

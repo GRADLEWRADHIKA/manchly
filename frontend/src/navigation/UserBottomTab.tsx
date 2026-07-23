@@ -11,7 +11,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import colors from '../utils/colors';
 import { wp, hp, fp } from '../utils/responsive';
-import ProductsScreen from '../screens/Auth/User/Products/ProductsScreen';
+//import ProductsScreen from '../screens/Auth/User/Products/ProductsScreen';
 import PurchasesScreen from '../screens/Auth/User/Purchase/PurchasesScreen';
 import {
   House,
@@ -25,19 +25,16 @@ import UserSessions from '../screens/Auth/User/Sessions/UserSessions';
 import UserSetting from '../screens/Auth/User/Settings/UserSetting';
 import { canAccessMarketplace } from '../utils/marketplaceUtils';
 import { useSelector } from 'react-redux';
-
+import UserView from '../screens/Auth/User/Products/UserView';
 const Tab = createBottomTabNavigator();
 
-const BAR_BG = '#080C25';
-const ACTIVE_COLOR = '#4F60FA';
-const INACTIVE_COLOR = '#8B90A7';
 
 
 const tabs = [
   { name: 'Home', component: UserHome, label: 'Home', Icon: House },
   {
-    name: 'ProductsScreen',
-    component: ProductsScreen,
+    name: 'UserView',
+    component: UserView,
     label: 'Explore',
     Icon: Compass,
   },
@@ -128,7 +125,7 @@ const TabItem = ({ isFocused, icon: Icon, label, onPress }: any) => {
       >
         <Icon
           size={wp(21)}
-          color={isFocused ? ACTIVE_COLOR : INACTIVE_COLOR}
+          color={isFocused ? colors.uBottomText : '#080C25'}
           strokeWidth={isFocused ? 2.2 : 1.8}
         />
       </Animated.View>
@@ -224,10 +221,10 @@ export default UserBottomTab;
 
 const styles = StyleSheet.create({
   tabBarOuter: {
-    backgroundColor: BAR_BG,
+    backgroundColor: '#080C25',
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: BAR_BG,
-    shadowColor: colors.black,
+    borderTopColor: colors.uBottomText,
+    shadowColor: '#080C25',
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.08,
     shadowRadius: 12,
@@ -258,8 +255,8 @@ const styles = StyleSheet.create({
     width: wp(44),
     height: hp(5),
     borderRadius: wp(4),
-    backgroundColor: ACTIVE_COLOR,
-    shadowColor: ACTIVE_COLOR,
+    backgroundColor: colors.uBottomText,
+    shadowColor: colors.uBottomText,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8,
     shadowRadius: 12,

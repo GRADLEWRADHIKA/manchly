@@ -9,7 +9,7 @@ const AppHeader = ({ title = 'Manchly' }) => {
   const insets = useSafeAreaInsets();
   const { user } = useSelector((state: any) => state.userReducer);
   const isUser = user?.user_type === 'USER';
-  const bgColor = isUser ? colors.bg : colors.primary;
+  const bgColor = isUser ? colors.uBg : colors.primary;
 
   return (
     <View
@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     paddingBottom: hp(10),
-    shadowColor: colors.black,
+    shadowColor: colors.uBg,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.12,
     shadowRadius: 6,
@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   title: {
-    color: colors.white,
+    color: colors.textPrimary,
     fontSize: fp(20),
     fontWeight: '700',
     letterSpacing: 0.3,

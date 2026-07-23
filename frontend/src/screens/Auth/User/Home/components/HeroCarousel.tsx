@@ -12,7 +12,7 @@ import { Play, Route } from 'lucide-react-native';
 import colors from '../../../../../utils/colors';
 import { wp, hp, fp } from '../../../../../utils/responsive';
 import LinearGradient from 'react-native-linear-gradient';
-import ProductsScreen from '../../Products/ProductsScreen';
+import UserView from '../../Products/UserView';
 import PurchasesScreen from '../../Purchase/PurchasesScreen';
 import { useNavigation } from '@react-navigation/native';
 
@@ -29,7 +29,7 @@ const heroSlides = [
       'Unlock Your Potential with expert\nadvisors and career-focused\nprograms',
     buttonLabel: 'Browse Courses',
     showPlayIcon: false,
-    route: 'ProductsScreen',
+    route: 'UserView',
   },
   {
     id: '2',

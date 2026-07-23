@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
   tabText: {
     fontSize: fp(13),
     fontWeight: '600',
-    color: colors.textPrimary,
+    color: colors.uSubHeading,
   },
   tabTextActive: {
     color: colors.textPrimary,

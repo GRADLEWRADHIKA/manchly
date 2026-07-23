@@ -9,76 +9,9 @@ import { useNavigation } from '@react-navigation/native';
 import { Search, Star, Bell } from 'lucide-react-native';
 import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
-
-// ── Mock Data matching the UI ───────────────────────────────────────────────
-const FEATURED_COURSE = {
-  title: 'Mastering Advanced Quant Trading Strategies',
-  subtitle: 'Learn to build, backtest, and deploy high-frequency algorithmic trading systems using Python and real-time market data APIs.',
-  price: '₹199',
-  originalPrice: '₹1,999',
-  rating: '4.9',
-  image: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400',
-};
-
-const POPULAR_COURSES = [
-  {
-    id: '1',
-    title: 'Advanced Neural Networks & DL',
-    duration: '18h 45m',
-    rating: '4.8',
-    price: '₹249',
-    level: 'INTERMEDIATE',
-    image: 'https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=200',
-  },
-  {
-    id: '2',
-    title: 'Technical Writing for Engineers',
-    duration: '09h 20m',
-    rating: '4.5',
-    price: 'Free',
-    level: 'BEGINNER',
-    image: 'https://images.unsplash.com/photo-1455390582262-044cdead277a?w=200',
-  },
-  {
-    id: '3',
-    title: 'Advanced UI Design Systems',
-    duration: '12h 15m',
-    rating: '4.7',
-    price: '₹399',
-    level: 'EXPERT',
-    image: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=200',
-  },
-];
-
-const UPCOMING_WEBINARS = [
-  {
-    id: '1',
-    title: 'State Management: Redux vs Zustand vs Jotai',
-    desc: 'Architectural benefits and performance of modern state libraries.',
-    date: '05 Jul, 03:00 PM',
-    host: 'Shrikant Chauhan',
-    price: '₹299',
-    image: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=400',
-  },
-  {
-    id: '2',
-    title: 'Mastering Mobile UI/UX Design Systems',
-    desc: 'Scalable design languages for cross-platform mobile experiences.',
-    date: '06 Jul, 11:00 AM',
-    host: 'Ananya Sharma',
-    price: '₹149',
-    image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400',
-  },
-];
-
-const FACULTY_MEMBERS = [
-  {
-    id: '1',
-    name: 'Shrikant Chauhan',
-    role: 'Lead Dev at TechFlow',
-    avatar: 'https://randomuser.me/api/portraits/men/45.jpg',
-  },
-];
+import CourseCard from './component/CourseCard';
+import EnrolledWebinarCard from './component/EnrolledWebinarCard';
+import UserView from './UserView';
 
 const ProductsScreen = () => {
   const navigation = useNavigation<any>();

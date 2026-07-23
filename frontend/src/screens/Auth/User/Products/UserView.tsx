@@ -252,7 +252,7 @@ const UserView: React.FC = () => {
     );
   };
 
-  return (
+ return (
     <View style={styles.container}>
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + hp(12) }]}>
@@ -261,7 +261,7 @@ const UserView: React.FC = () => {
           style={styles.backBtn}
           activeOpacity={0.7}
         >
-          <ArrowLeft size={wp(22)} color={colors.textPrimary} strokeWidth={2} />
+          <ArrowLeft size={wp(22)} color={colors.white} strokeWidth={2} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Explore Detail</Text>
         <View style={styles.headerSpacer} />
@@ -269,7 +269,7 @@ const UserView: React.FC = () => {
 
       {/* Search Bar */}
       <View style={styles.searchContainer}>
-        <Search size={wp(18)} color={colors.textSecondary} />
+        <Search size={wp(18)} color={colors.uSubHeading} />
         <CustomTextInput
           inputContainerStyle={styles.searchInput}
           placeholder={
@@ -280,7 +280,7 @@ const UserView: React.FC = () => {
         />
         {searchQuery.length > 0 && (
           <TouchableOpacity onPress={clearSearch}>
-            <X size={wp(18)} color={colors.textSecondary} />
+            <X size={wp(18)} color={colors.uSubHeading} />
           </TouchableOpacity>
         )}
       </View>
@@ -299,7 +299,7 @@ const UserView: React.FC = () => {
             >
               <Icon
                 size={wp(16)}
-                color={isActive ? colors.textPrimary : colors.textSecondary}
+                color={isActive ? colors.white : colors.uSubHeading}
               />
               <Text
                 style={[styles.tabText, isActive && styles.activeTabText]}
@@ -370,7 +370,7 @@ export default UserView;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.bg,
+    backgroundColor: colors.uBg,
   },
   listContent: {
     paddingBottom: hp(100),
@@ -395,7 +395,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: fp(17),
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: colors.white,
     marginRight: wp(36),
   },
   headerSpacer: {
@@ -406,7 +406,7 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface,
+    backgroundColor: colors.uCard,
     borderRadius: wp(14),
     marginTop: hp(4),
     marginHorizontal: wp(16),
@@ -418,7 +418,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: hp(48),
     borderWidth: 0,
-    color: colors.textPrimary,
+    color: colors.white,
   },
 
   // Tabs
@@ -437,18 +437,18 @@ const styles = StyleSheet.create({
     gap: wp(6),
     paddingVertical: hp(11),
     borderRadius: wp(24),
-    backgroundColor: colors.surface,
+    backgroundColor: colors.uCard,
   },
   activeTabBtn: {
-    backgroundColor: colors.info,
+    backgroundColor: colors.btnGradientStart,
   },
   tabText: {
-    color: colors.textSecondary,
+    color: colors.uSubHeading,
     fontSize: fp(13),
     fontWeight: '600',
   },
   activeTabText: {
-    color: colors.textPrimary,
+    color: colors.white,
   },
 
   // Section
@@ -463,11 +463,11 @@ const styles = StyleSheet.create({
   sectionHeading: {
     fontSize: fp(18),
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: colors.white,
   },
   sectionCount: {
     fontSize: fp(12),
-    color: colors.textSecondary,
+    color: colors.uSubHeading,
     fontWeight: '500',
   },
 
@@ -485,7 +485,7 @@ const styles = StyleSheet.create({
     gap: wp(8),
   },
   loadingMoreText: {
-    color: colors.textSecondary,
+    color: colors.uSubHeading,
     fontSize: fp(13),
     fontWeight: '500',
   },
@@ -499,11 +499,11 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: fp(16),
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: colors.white,
     marginTop: hp(8),
   },
   emptyText: {
-    color: colors.textSecondary,
+    color: colors.uSubHeading,
     fontSize: fp(13),
     textAlign: 'center',
     paddingHorizontal: wp(40),

@@ -40,6 +40,8 @@ import { wp, hp, fp } from '../../../../utils/responsive';
 import TermsModal from '../../../../components/TermsModal';
 import PrivacyModal from '../../../../components/PrivacyModal';
 import RefundPolicyModal from '../../../../components/RefundPolicyModal';
+import LinearGradient from 'react-native-linear-gradient';
+
 
 const WebinarDetails = () => {
   const { params } = useRoute<any>();
@@ -368,24 +370,32 @@ const WebinarDetails = () => {
       <PrivacyModal visible={showPrivacy} onClose={() => setShowPrivacy(false)} />
       <RefundPolicyModal visible={showRefund} onClose={() => setShowRefund(false)} />
 
-      <View style={styles.bottomBar}>
+     <View style={styles.bottomBar}>
         {data?.is_enrolled ? (
-          <View style={[styles.buyButton, { backgroundColor: colors.success }]}>
-            <Text style={styles.buyText}>Already Enrolled</Text>
+          <View style={[styles.buyButtonWrapper, { backgroundColor: colors.success }]}>
+            <Text style={styles.buyTextEnrolled}>Already Enrolled</Text>
           </View>
         ) : (
           <TouchableOpacity
-            style={styles.buyButton}
+            style={[styles.buyButtonWrapper, loading && { opacity: 0.7 }]}
             onPress={onVerifyWebinar}
             disabled={loading}
+            activeOpacity={0.8}
           >
-            {loading ? (
-              <ActivityIndicator color={colors.textPrimary} size={'small'} />
-            ) : (
-              <Text style={styles.buyText}>
-                Purchase for ₹{total.toFixed(2)}
-              </Text>
-            )}
+            <LinearGradient
+              colors={[colors.btnGradientStart, colors.btnGradientEnd]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.buyButtonGradient}
+            >
+              {loading ? (
+                <ActivityIndicator color={colors.white} size={'small'} />
+              ) : (
+                <Text style={styles.buyText}>
+                  Purchase for ₹{total.toFixed(2)}
+                </Text>
+              )}
+            </LinearGradient>
           </TouchableOpacity>
         )}
       </View>
@@ -517,10 +527,11 @@ const styles = StyleSheet.create({
   },
   priceValue: {
     fontWeight: '600',
+    color: colors.textPrimary
   },
   totalRow: {
     borderTopWidth: wp(1),
-    borderColor: colors.textPrimary,
+    borderColor: colors.border,
     marginTop: hp(10),
     paddingTop: hp(10),
     flexDirection: 'row',
@@ -534,7 +545,7 @@ const styles = StyleSheet.create({
   totalValue: {
     fontSize: fp(18),
     fontWeight: '800',
-    color: colors.uSubtext,
+    color: colors.btnGradientStart,
   },
   participants: {
     fontSize: fp(14),
@@ -567,6 +578,17 @@ const styles = StyleSheet.create({
     borderColor: colors.uBg,
     marginBottom: hp(10),
   },
+  
+  // --- Updated Button Styles ---
+  buyButtonWrapper: {
+    borderRadius: wp(10),
+    overflow: 'hidden', // Ensures the gradient stays within the rounded corners
+  },
+  buyButtonGradient: {
+    paddingVertical: hp(14),
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   buyButton: {
     backgroundColor: colors.textPrimary,
     paddingVertical: hp(14),
@@ -574,13 +596,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buyText: {
-    color: colors.textPrimary,
+    color: colors.white,
     fontWeight: '700',
     fontSize: fp(16),
   },
   policyText: {
     fontSize: fp(12),
-    color: colors.textPrimary,
+    color: colors.white,
     textAlign: 'center',
     lineHeight: fp(18),
     marginTop: hp(12),

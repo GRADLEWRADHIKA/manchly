@@ -82,9 +82,15 @@ const UserVideoList = () => {
           style={styles.thumbnailGradient}
         />
         <View style={styles.playIconContainer}>
-          <View style={styles.playIcon}>
+          {/* Upgraded Play Icon with Gradient */}
+          <LinearGradient
+            colors={[colors.btnGradientStart, colors.btnGradientEnd]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.playIcon}
+          >
             <Play color={colors.white} size={wp(16)} fill={colors.white} />
-          </View>
+          </LinearGradient>
         </View>
         <View style={styles.durationBadge}>
           <Clock color={colors.white} size={wp(10)} />
@@ -108,7 +114,7 @@ const UserVideoList = () => {
 
       {loading ? (
         <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
+          <ActivityIndicator size="large" color={colors.btnGradientStart} />
         </View>
       ) : videoList.length > 0 ? (
         <FlatList
@@ -226,7 +232,7 @@ const styles = StyleSheet.create({
     height: '100%',
     borderTopLeftRadius: wp(12),
     borderBottomLeftRadius: wp(12),
-    backgroundColor: colors.textPrimary,
+    backgroundColor: colors.uSubtext, // Darkened placeholder
   },
   thumbnailGradient: {
     position: 'absolute',
@@ -242,7 +248,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   playIcon: {
-    backgroundColor: colors.uBottom,
     width: wp(32),
     height: wp(32),
     borderRadius: wp(16),
@@ -253,7 +258,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: hp(4),
     right: wp(4),
-    backgroundColor: colors.uSubHeading,
+    backgroundColor: 'rgba(0,0,0,0.6)',
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: wp(5),
@@ -261,7 +266,7 @@ const styles = StyleSheet.create({
     borderRadius: wp(4),
   },
   durationBadgeText: {
-    color: colors.textPrimary,
+    color: colors.white,
     fontSize: fp(10),
     fontWeight: '600',
     marginLeft: wp(2),
@@ -279,7 +284,7 @@ const styles = StyleSheet.create({
   },
   videoDesc: {
     fontSize: fp(12),
-    color: colors.textPrimary,
+    color: colors.uSubHeading, // Muted text for description
     lineHeight: fp(17),
   },
   emptyContainer: {
@@ -289,20 +294,20 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: fp(16),
-    color: colors.textPrimary,
+    color: colors.uSubHeading,
   },
   // Modal styles
   modalContainer: {
     flex: 1,
-    backgroundColor: colors.black,
+    backgroundColor: colors.uBg, // Match dark theme
   },
   playerSection: {
     width: '100%',
-    backgroundColor: colors.uBottom,
+    backgroundColor: colors.black, // Keep video player background pitch black
   },
   videoInfoContainer: {
     flex: 1,
-    backgroundColor: colors.textPrimary,
+    backgroundColor: colors.uBg, // Fixed: Was textPrimary (white)
     paddingHorizontal: wp(16),
     paddingTop: hp(16),
   },
@@ -314,7 +319,7 @@ const styles = StyleSheet.create({
   },
   videoInfoDesc: {
     fontSize: fp(14),
-    color: colors.textPrimary,
+    color: colors.uSubHeading, // Muted text
     lineHeight: fp(20),
     marginBottom: hp(16),
   },
@@ -324,10 +329,10 @@ const styles = StyleSheet.create({
   upNextTitle: {
     fontSize: fp(16),
     fontWeight: '700',
-    color: colors.text,
+    color: colors.textPrimary, // Fixed: Was black text
     marginBottom: hp(12),
     borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTopColor: colors.uCard, // Subtler divider line
     paddingTop: hp(12),
   },
   upNextCard: {
@@ -335,6 +340,7 @@ const styles = StyleSheet.create({
     marginBottom: hp(12),
     borderRadius: wp(8),
     overflow: 'hidden',
+    backgroundColor: colors.uCard, // Contrast against uBg
   },
   upNextThumb: {
     width: wp(120),
@@ -350,11 +356,11 @@ const styles = StyleSheet.create({
   upNextCardTitle: {
     fontSize: fp(14),
     fontWeight: '600',
-    color: colors.text,
+    color: colors.textPrimary, 
     marginBottom: hp(4),
   },
   upNextDuration: {
     fontSize: fp(12),
-    color: colors.textPrimary,
+    color: colors.uSubHeading,
   },
 });

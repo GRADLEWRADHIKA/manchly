@@ -159,7 +159,16 @@ const LatestCourses = () => {
             Freshly added content for your curriculum
           </Text>
         </View>
-        <Pressable style={styles.seeAllBtn} hitSlop={8}>
+        <Pressable
+          style={styles.seeAllBtn}
+          hitSlop={8}
+          onPress={() =>
+            navigation.navigate('UserBottomTab', {
+              screen: 'ProductsScreen',
+              params: { initialTab: 'Courses', ts: Date.now() },
+            })
+          }
+        >
           <Text style={styles.seeAllText}>See All</Text>
           <ChevronRight size={wp(14)} color="rgba(255,255,255,0.7)" strokeWidth={2} />
         </Pressable>

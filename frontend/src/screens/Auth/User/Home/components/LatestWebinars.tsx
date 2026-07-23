@@ -82,6 +82,7 @@ const LatestWebinarItem = ({ item, onPress }: any) => {
 };
 
 const EmptyWebinarCard = () => {
+  const navigation = useNavigation<any>();
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const floatAnim = useRef(new Animated.Value(0)).current;
 
@@ -126,7 +127,15 @@ const EmptyWebinarCard = () => {
             Join live discussions with industry leaders
           </Text>
         </View>
-        <Pressable style={styles.seeAllBtn}>
+        <Pressable
+          style={styles.seeAllBtn}
+          onPress={() =>
+            navigation.navigate('UserBottomTab', {
+              screen: 'ProductsScreen',
+              params: { initialTab: 'Webinars', ts: Date.now() },
+            })
+          }
+        >
           <Text style={styles.seeAllText}>See All</Text>
           <ArrowRight size={wp(14)} color="rgba(228, 191, 191, 0.85)" strokeWidth={2} />
         </Pressable>
@@ -210,7 +219,15 @@ const LatestWebinars = () => {
             Join live discussions with industry leaders
           </Text>
         </View>
-        <Pressable style={styles.seeAllBtn}>
+        <Pressable
+          style={styles.seeAllBtn}
+          onPress={() =>
+            navigation.navigate('UserBottomTab', {
+              screen: 'ProductsScreen',
+              params: { initialTab: 'Webinars', ts: Date.now() },
+            })
+          }
+        >
           <Text style={styles.seeAllText}>See All</Text>
           <ArrowRight size={wp(14)} color="rgba(255,255,255,0.85)" strokeWidth={2} />
         </Pressable>

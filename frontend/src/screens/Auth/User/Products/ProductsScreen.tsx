@@ -5,7 +5,7 @@ import {
   TouchableOpacity, Image, TextInput, ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useIsFocused, useNavigation } from '@react-navigation/native';
+import { useIsFocused, useNavigation, useRoute } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { Search, Star, Bell, BookOpen, Video } from 'lucide-react-native';
 import colors from '../../../../utils/colors';
@@ -36,12 +36,21 @@ const initials = (name?: string) =>
 
 const ProductsScreen = () => {
   const navigation = useNavigation<any>();
+  const route = useRoute<any>();
   const dispatch = useDispatch<any>();
   const insets = useSafeAreaInsets();
   const focus = useIsFocused();
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeFilter, setActiveFilter] = useState<'Courses' | 'Webinars'>('Courses');
+  const [activeFilter, setActiveFilter] = useState<'Courses' | 'Webinars'>(
+    route.params?.initialTab === 'Webinars' ? 'Webinars' : 'Courses',
+  );
+
+  // Switch to the requested tab when navigated here from Home "See All"
+  useEffect(() => {
+    const t = route.params?.initialTab;
+    if (t === 'Courses' || t === 'Webinars') setActiveFilter(t);
+  }, [route.params?.initialTab, route.params?.ts]);
   const [webinars, setWebinars] = useState<any[]>([]);
   const [experts, setExperts] = useState<any[]>([]);
   const [loadingWebinars, setLoadingWebinars] = useState(false);

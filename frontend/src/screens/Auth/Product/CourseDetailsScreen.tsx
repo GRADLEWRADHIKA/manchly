@@ -224,7 +224,7 @@ const CourseDetailsScreen: React.FC = () => {
             <Image source={{ uri: course.thumbnail }} style={styles.thumbnail} />
           ) : (
             <View style={styles.thumbnailPlaceholder}>
-              <BookOpen size={wp(44)} color={colors.secPrimary} strokeWidth={1.2} />
+              <BookOpen size={wp(44)} color={colors.btnGradientStart} strokeWidth={1.2} />
               <Text style={styles.placeholderText}>{course.title || 'Course'}</Text>
             </View>
           )
@@ -364,11 +364,11 @@ const PriceRow = ({ label, value }: any) => (
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.uBg },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  thumbnail: { width: '100%', height: hp(220), backgroundColor: colors.surface },
+  thumbnail: { width: '100%', height: hp(220), backgroundColor: colors.uCard },
   thumbnailPlaceholder: {
     width: '100%',
     height: hp(220),
-    backgroundColor: colors.inputBg,
+    backgroundColor: colors.uCard,
     justifyContent: 'center',
     alignItems: 'center',
     gap: hp(8),
@@ -376,7 +376,7 @@ const styles = StyleSheet.create({
   placeholderText: {
     fontSize: fp(15),
     fontWeight: '600',
-    color: colors.gold,
+    color: colors.uExploreNow,
     opacity: 0.6,
     paddingHorizontal: wp(30),
     textAlign: 'center',
@@ -399,36 +399,38 @@ const styles = StyleSheet.create({
   statText: { color: colors.textSecondary },
 
   priceBox: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.uCard,
     padding: wp(16),
-    borderRadius: wp(12),
+    borderRadius: wp(14),
     marginTop: hp(20),
     borderWidth: 1,
-    borderColor: colors.border
+    borderColor: colors.uSubtext,
   },
   priceRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginVertical: hp(6),
   },
-  priceLabel: { color: colors.textSecondary },
-  priceValue: { fontWeight: '600', color: colors.textPrimary },
+  priceLabel: { color: colors.uSubHeading, fontSize: fp(14) },
+  priceValue: { fontWeight: '600', color: colors.textPrimary, fontSize: fp(14) },
 
   totalRow: {
     borderTopWidth: wp(1),
-    borderColor: colors.border,
-    marginTop: hp(10),
-    paddingTop: hp(10),
+    borderColor: colors.uSubtext,
+    marginTop: hp(12),
+    paddingTop: hp(12),
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
   },
-  totalLabel: { fontSize: fp(16), fontWeight: '700' , color: colors.textPrimary},
-  totalValue: { fontSize: fp(18), fontWeight: '800', color: colors.info },
+  totalLabel: { fontSize: fp(16), fontWeight: '700', color: colors.textPrimary },
+  totalValue: { fontSize: fp(18), fontWeight: '800', color: colors.statText },
 
   bottomBar: {
     padding: wp(16),
     borderTopWidth: wp(1),
-    borderColor: colors.border,
+    borderColor: colors.uSubtext,
+    backgroundColor: colors.uBg,
   },
   // --- Updated Button Styles ---
   purchaseButtonWrapper: {

@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import { useRoute } from '@react-navigation/native';
+import LinearGradient from 'react-native-linear-gradient';
 import colors from '../../../../utils/colors';
 import AppHeaderWithBack from '../../../../components/AppHeaderWithBack';
 import {
@@ -375,17 +376,25 @@ const WebinarDetails = () => {
           </View>
         ) : (
           <TouchableOpacity
-            style={styles.buyButton}
+            style={styles.buyButtonWrapper}
             onPress={onVerifyWebinar}
             disabled={loading}
+            activeOpacity={0.85}
           >
-            {loading ? (
-              <ActivityIndicator color={colors.textPrimary} size={'small'} />
-            ) : (
-              <Text style={styles.buyText}>
-                Purchase for ₹{total.toFixed(2)}
-              </Text>
-            )}
+            <LinearGradient
+              colors={[colors.btnGradientStart, colors.btnGradientEnd]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.buyButton}
+            >
+              {loading ? (
+                <ActivityIndicator color={colors.white} size={'small'} />
+              ) : (
+                <Text style={styles.buyText}>
+                  Purchase for ₹{total.toFixed(2)}
+                </Text>
+              )}
+            </LinearGradient>
           </TouchableOpacity>
         )}
       </View>
@@ -434,7 +443,7 @@ const styles = StyleSheet.create({
   thumbnailWrapper: {
     width: '100%',
     height: hp(220),
-    backgroundColor: colors.surface,
+    backgroundColor: colors.uCard,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -501,11 +510,12 @@ const styles = StyleSheet.create({
   },
 
   priceBox: {
-    backgroundColor: colors.surface,
-    color: colors.textPrimary,
+    backgroundColor: colors.uCard,
     padding: wp(16),
-    borderRadius: wp(12),
+    borderRadius: wp(14),
     marginHorizontal: wp(15),
+    borderWidth: 1,
+    borderColor: colors.uSubtext,
   },
   priceRow: {
     flexDirection: 'row',
@@ -513,18 +523,22 @@ const styles = StyleSheet.create({
     marginVertical: hp(6),
   },
   priceLabel: {
-    color: colors.textPrimary,
+    color: colors.uSubHeading,
+    fontSize: fp(14),
   },
   priceValue: {
     fontWeight: '600',
+    color: colors.textPrimary,
+    fontSize: fp(14),
   },
   totalRow: {
     borderTopWidth: wp(1),
-    borderColor: colors.textPrimary,
-    marginTop: hp(10),
-    paddingTop: hp(10),
+    borderColor: colors.uSubtext,
+    marginTop: hp(12),
+    paddingTop: hp(12),
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
   },
   totalLabel: {
     fontSize: fp(16),
@@ -534,7 +548,7 @@ const styles = StyleSheet.create({
   totalValue: {
     fontSize: fp(18),
     fontWeight: '800',
-    color: colors.uSubtext,
+    color: colors.statText,
   },
   participants: {
     fontSize: fp(14),
@@ -567,27 +581,31 @@ const styles = StyleSheet.create({
     borderColor: colors.uBg,
     marginBottom: hp(10),
   },
+  buyButtonWrapper: {
+    borderRadius: wp(12),
+    overflow: 'hidden',
+  },
   buyButton: {
-    backgroundColor: colors.textPrimary,
     paddingVertical: hp(14),
-    borderRadius: wp(10),
+    borderRadius: wp(12),
     alignItems: 'center',
+    justifyContent: 'center',
   },
   buyText: {
-    color: colors.textPrimary,
+    color: colors.white,
     fontWeight: '700',
     fontSize: fp(16),
   },
   policyText: {
     fontSize: fp(12),
-    color: colors.textPrimary,
+    color: colors.uSubHeading,
     textAlign: 'center',
     lineHeight: fp(18),
     marginTop: hp(12),
     paddingHorizontal: wp(15),
   },
   policyLink: {
-    color: colors.uSubtext,
-    fontWeight: '500',
+    color: colors.statText,
+    fontWeight: '600',
   },
 });

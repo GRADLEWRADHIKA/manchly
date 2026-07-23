@@ -28,6 +28,7 @@ import SettlementHistory from '../screens/Auth/Creator/Wallet/SettlementHistory'
 import ProductsScreen from '../screens/Auth/User/Products/ProductsScreen';
 import PurchasesScreen from '../screens/Auth/User/Purchase/PurchasesScreen';
 import BrandMarketplace from '../screens/Auth/User/Marketplace/BrandMarketplace';
+import ExploreDetail from '../screens/Auth/User/Explore/ExploreDetail';
 
 const Stack = createNativeStackNavigator();
 
@@ -71,6 +72,7 @@ const UserMainStack = () => {
       <Stack.Screen name="SettlementHistory" component={SettlementHistory} />
       <Stack.Screen name="ChatThread" component={ChatThread} />
       <Stack.Screen name="BrandMarketplace" component={BrandMarketplace} />
+      <Stack.Screen name="ExploreDetail" component={ExploreDetail} />
     </Stack.Navigator>
   );
 };

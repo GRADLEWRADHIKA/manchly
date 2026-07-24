@@ -23,6 +23,7 @@ import {wp, hp, fp} from '../../../../utils/responsive';
 import AppHeader from '../../../../components/AppHeader';
 import {getMySessions, getSessionStats} from '../../../../store/SessionSlice';
 import { LinearGradient } from 'react-native-linear-gradient';
+import BrowseIcon from '../../../../image/BrowseIcon';
 
 const UserSessions: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -134,7 +135,7 @@ const UserSessions: React.FC = () => {
         activeOpacity={0.8}
         onPress={() => navigation.navigate('ExpertList')}>
         <View style={styles.ctaIconWrap}>
-          <PhoneCall size={wp(26)} color={colors.info} strokeWidth={1.8} />
+          <BrowseIcon size={wp(26)} color={colors.info} strokeWidth={1.8} />
         </View>
         <Text style={styles.ctaTitle}>Browse Experts</Text>
         <Text style={styles.ctaSub}>

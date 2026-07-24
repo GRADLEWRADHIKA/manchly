@@ -64,7 +64,7 @@ const colors = {
   statText: '#4F60FA',
   statIcon: '#73799B',
   statIcon2: '#BDC2FF',
-
+  
   // Creator Dark Theme
   cBg: '#0D0D1A',
   cSurface: '#141428',

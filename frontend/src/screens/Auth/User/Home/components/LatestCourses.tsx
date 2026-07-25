@@ -320,7 +320,7 @@ const styles = StyleSheet.create({
   price: {
     fontSize: fp(15),
     fontWeight: '800',
-    color: colors.info,
+    color: colors.statText,
     marginTop: hp(6),
   },
 });

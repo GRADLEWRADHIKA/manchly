@@ -219,6 +219,6 @@ const styles = StyleSheet.create({
   cancelBtnText: {
     fontSize: fp(14),
     fontWeight: '500',
-    color: colors.uSubHeading,
+    color: colors.white,
   },
 });

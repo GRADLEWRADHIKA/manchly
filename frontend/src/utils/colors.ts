@@ -5,7 +5,8 @@ const colors = {
   gold: '#F0C040',
   goldDim: '#F0C04018',
   textPrimary: '#FFFFFF',
-  primaryDark: '#1A1A1A',
+  primaryDark: '#1A1A1A'
+  ,
 
   primary: '#000000',
   secPrimary: '#692626',

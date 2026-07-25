@@ -224,7 +224,7 @@ const CourseDetailsScreen: React.FC = () => {
             <Image source={{ uri: course.thumbnail }} style={styles.thumbnail} />
           ) : (
             <View style={styles.thumbnailPlaceholder}>
-              <BookOpen size={wp(44)} color={colors.secPrimary} strokeWidth={1.2} />
+              <BookOpen size={wp(44)} color={colors.uSubHeading} strokeWidth={1.2} />
               <Text style={styles.placeholderText}>{course.title || 'Course'}</Text>
             </View>
           )
@@ -364,11 +364,11 @@ const PriceRow = ({ label, value }: any) => (
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.uBg },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  thumbnail: { width: '100%', height: hp(220), backgroundColor: colors.surface },
+  thumbnail: { width: '100%', height: hp(220), backgroundColor: colors.uCard },
   thumbnailPlaceholder: {
     width: '100%',
     height: hp(220),
-    backgroundColor: colors.inputBg,
+    backgroundColor: colors.uCard,
     justifyContent: 'center',
     alignItems: 'center',
     gap: hp(8),
@@ -376,7 +376,7 @@ const styles = StyleSheet.create({
   placeholderText: {
     fontSize: fp(15),
     fontWeight: '600',
-    color: colors.gold,
+    color: colors.uSubHeading,
     opacity: 0.6,
     paddingHorizontal: wp(30),
     textAlign: 'center',
@@ -390,7 +390,7 @@ const styles = StyleSheet.create({
   title: { fontSize: fp(24), fontWeight: '700', color: colors.textPrimary },
   instructorRow: { flexDirection: 'row', alignItems: 'center', marginBottom: hp(16) },
   instructor: { color: colors.textSecondary, fontSize: fp(14) },
-  instructorName: { color: colors.info, fontSize: fp(14), fontWeight: '600', textDecorationLine: 'underline' },
+  instructorName: { color: colors.uBottomText, fontSize: fp(14), fontWeight: '600', textDecorationLine: 'underline' },
   section: { marginVertical: hp(16) },
   sectionTitle: { fontSize: fp(18), fontWeight: '600', marginBottom: hp(10), color: colors.textPrimary },
   description: { fontSize: fp(15), lineHeight: fp(22), color: colors.textSecondary },
@@ -399,19 +399,19 @@ const styles = StyleSheet.create({
   statText: { color: colors.textSecondary },
 
   priceBox: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.uCard,
     padding: wp(16),
     borderRadius: wp(12),
     marginTop: hp(20),
     borderWidth: 1,
-    borderColor: colors.border
+    borderColor: colors.uCard,
   },
   priceRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginVertical: hp(6),
   },
-  priceLabel: { color: colors.textSecondary },
+  priceLabel: { color: colors.uSubHeading },
   priceValue: { fontWeight: '600', color: colors.textPrimary },
 
   totalRow: {
@@ -423,7 +423,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   totalLabel: { fontSize: fp(16), fontWeight: '700' , color: colors.textPrimary},
-  totalValue: { fontSize: fp(18), fontWeight: '800', color: colors.info },
+  totalValue: { fontSize: fp(18), fontWeight: '800', color: colors.uBottomText },
 
   bottomBar: {
     padding: wp(16),
@@ -464,7 +464,7 @@ const styles = StyleSheet.create({
     marginTop: hp(12),
   },
   policyLink: {
-    color: colors.info,
+    color: colors.uBottomText,
     fontWeight: '500',
   },
 });

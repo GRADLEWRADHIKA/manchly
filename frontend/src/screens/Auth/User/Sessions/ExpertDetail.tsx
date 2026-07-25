@@ -488,7 +488,7 @@ const ExpertDetail: React.FC = () => {
         {/* Select Date */}
         <View style={styles.section}>
           <View style={styles.sectionHeaderRow}>
-            <Calendar size={wp(16)} color={colors.text} strokeWidth={1.8} />
+            <Calendar size={wp(16)} color={colors.uSubHeading} strokeWidth={1.8} />
             <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>
               Select Date
             </Text>
@@ -543,7 +543,7 @@ const ExpertDetail: React.FC = () => {
         {/* Select Time */}
         <View style={styles.section}>
           <View style={styles.sectionHeaderRow}>
-            <Clock size={wp(16)} color={colors.textPrimary} strokeWidth={1.8} />
+            <Clock size={wp(16)} color={colors.uSubHeading} strokeWidth={1.8} />
             <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>
               Select Time
             </Text>
@@ -792,18 +792,18 @@ const styles = StyleSheet.create({
     borderColor: colors.uCard,
   },
   timeSlotBooked: {
-    backgroundColor: colors.uBg,
-    borderColor: colors.uBg,
+    backgroundColor: colors.uCard,
+    borderColor: colors.uCard,
     opacity: 0.7,
   },
   timeText: { fontSize: fp(11), fontWeight: '600', color: colors.uSubHeading },
-  timeTextActive: { color: colors.white },
-  timeTextBooked: { color: colors.uSubtext, textDecorationLine: 'line-through' },
+  timeTextActive: { color: colors.uBottomText },
+  timeTextBooked: { color: colors.uBottomText, textDecorationLine: 'line-through' },
   bookedLabel: {
     fontSize: fp(5),
-    color: colors.white,
+    color: colors.textLogout,
     fontWeight: '700',
-    backgroundColor: colors.uSubtext,
+    backgroundColor: colors.logoutButton,
     borderRadius: wp(4),
     paddingHorizontal: wp(5),
     paddingVertical: hp(1),
@@ -819,7 +819,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(12),
     paddingVertical: hp(6),
   },
-  chipText: { fontSize: fp(12), color: colors.uSubHeading, fontWeight: '500' },
+  chipText: { fontSize: fp(12), color: colors.statText, fontWeight: '500' },
   bottomBar: {
     flexDirection: 'row',
     alignItems: 'center',

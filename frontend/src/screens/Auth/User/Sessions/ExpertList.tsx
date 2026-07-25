@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
     marginHorizontal: wp(16),
     marginTop: hp(12),
     marginBottom: hp(10),
-    backgroundColor: colors.surface,
+    backgroundColor: colors.uCard,
     borderRadius: wp(12),
     paddingHorizontal: wp(12),
     borderWidth: 1,

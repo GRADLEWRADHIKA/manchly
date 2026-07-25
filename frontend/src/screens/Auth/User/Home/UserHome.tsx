@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
     marginHorizontal: wp(16),
     marginTop: hp(16),
     marginBottom: hp(8),
-    backgroundColor: colors.secPrimary,
+    backgroundColor: colors.uBottom,
     borderRadius: wp(14),
     padding: wp(14),
   },

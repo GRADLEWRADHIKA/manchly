@@ -1,18 +1,27 @@
 // screens/Auth/User/Products/ProductsScreen.tsx
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView,
   TouchableOpacity, Image, TextInput, ActivityIndicator,
+  Animated, LayoutAnimation, Platform, UIManager,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused, useNavigation, useRoute } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
-import { Search, Star, Bell, BookOpen, Video } from 'lucide-react-native';
+import { Search, Star, BookOpen, Video, ArrowLeft } from 'lucide-react-native';
 import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
 import { fetchCourses } from '../../../../store/CourseSlice';
 import { getAllWebinar } from '../../../../store/WebinarSlice';
 import { listExperts } from '../../../../store/SessionSlice';
+import LinearGradient from 'react-native-linear-gradient';
+
+if (
+  Platform.OS === 'android' &&
+  UIManager.setLayoutAnimationEnabledExperimental
+) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 const fmtPrice = (p: any) => (Number(p) > 0 ? `₹${p}` : 'Free');
 
@@ -123,28 +132,82 @@ const ProductsScreen = () => {
     </View>
   );
 
+  // ── Segmented Tabs (matches PurchasesScreen.tsx SegmentedTabs) ──
+  const slideAnim = useRef(
+    new Animated.Value(activeFilter === 'Courses' ? 0 : 1),
+  ).current;
+
+  useEffect(() => {
+    Animated.spring(slideAnim, {
+      toValue: activeFilter === 'Courses' ? 0 : 1,
+      useNativeDriver: true,
+      friction: 10,
+      tension: 140,
+    }).start();
+  }, [activeFilter]);
+
+  const tabTranslateX = slideAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, wp(164)],
+  });
+
   const FilterRow = (
-    <View style={styles.filterRow}>
-      {(['Courses', 'Webinars'] as const).map(filter => (
-        <TouchableOpacity
-          key={filter}
+    <View style={styles.tabWrapper}>
+      <View style={styles.tabTrack}>
+        <Animated.View
           style={[
-            styles.filterPill,
-            activeFilter === filter && styles.filterPillActive,
+            styles.tabIndicatorContainer,
+            { transform: [{ translateX: tabTranslateX }] },
           ]}
-          onPress={() => setActiveFilter(filter)}
-          activeOpacity={0.8}
         >
-          <Text
-            style={[
-              styles.filterPillText,
-              activeFilter === filter && styles.filterPillTextActive,
-            ]}
-          >
-            {filter}
-          </Text>
-        </TouchableOpacity>
-      ))}
+          <LinearGradient
+            colors={[colors.btnGradientStart, colors.btnGradientEnd]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.tabGradientIndicator}
+          />
+        </Animated.View>
+
+        {(['Courses', 'Webinars'] as const).map(filter => {
+          const isActive = activeFilter === filter;
+          const Icon = filter === 'Courses' ? BookOpen : Video;
+          const count =
+            filter === 'Courses' ? filteredCourses.length : filteredWebinars.length;
+          return (
+            <TouchableOpacity
+              key={filter}
+              onPress={() => {
+                LayoutAnimation.configureNext(
+                  LayoutAnimation.Presets.easeInEaseOut,
+                );
+                setActiveFilter(filter);
+              }}
+              style={styles.tabItem}
+              activeOpacity={0.8}
+            >
+              <Icon
+                size={wp(16)}
+                color={isActive ? colors.white : colors.uSubHeading}
+                strokeWidth={isActive ? 2.2 : 1.6}
+              />
+              <Text style={[styles.tabLabel, isActive && styles.tabLabelActive]}>
+                {filter}
+              </Text>
+              {count > 0 && (
+                <View
+                  style={[styles.tabCountBadge, isActive && styles.tabCountBadgeActive]}
+                >
+                  <Text
+                    style={[styles.tabCountText, isActive && styles.tabCountTextActive]}
+                  >
+                    {count}
+                  </Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          );
+        })}
+      </View>
     </View>
   );
 
@@ -200,15 +263,11 @@ const ProductsScreen = () => {
     <View style={styles.container}>
       {/* Top Bar */}
       <View style={[styles.topBar, { paddingTop: insets.top }]}>
-        <Text style={styles.brandTitle}>Manchly</Text>
-        <TouchableOpacity
-          style={styles.iconButton}
-          activeOpacity={0.75}
-          onPress={() => navigation.navigate('UserNotification')}
-        >
-          <Bell size={22} color={colors.cText} />
-          <View style={styles.bellDot} />
+        <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={10}>
+          <ArrowLeft size={wp(22)} color={colors.white} />
         </TouchableOpacity>
+        <Text style={styles.headerTitle}>Explore Detail</Text>
+        <View style={{ width: wp(22) }} />
       </View>
 
       <ScrollView
@@ -217,7 +276,6 @@ const ProductsScreen = () => {
       >
         {activeFilter === 'Courses' ? (
           <>
-            <Text style={styles.heroTitle}>Explore Knowledge</Text>
             {SearchBar}
             {FilterRow}
 
@@ -449,6 +507,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.uBg,
   },
+  headerTitle: {
+    fontSize: fp(17),
+    fontWeight: '700',
+    color: colors.white
+  },
   scrollContent: {
     paddingHorizontal: wp(16),
     paddingBottom: hp(30),
@@ -477,7 +540,7 @@ const styles = StyleSheet.create({
     width: wp(6),
     height: wp(6),
     borderRadius: wp(3),
-    backgroundColor: colors.cAccentLight,
+    backgroundColor: colors.statIcon,
   },
   heroTitle: {
     fontSize: fp(22),
@@ -489,10 +552,10 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.cCard,
+    backgroundColor: colors.uCard,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: colors.uCard,
     paddingHorizontal: wp(14),
     height: hp(44),
     gap: wp(10),
@@ -503,56 +566,95 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontSize: fp(13),
   },
-  filterRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(8),
+
+  // ── Segmented Tabs ──
+  tabWrapper: {
     marginBottom: hp(20),
   },
-  filterPill: {
-    paddingHorizontal: wp(18),
-    paddingVertical: hp(8),
-    borderRadius: 99,
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: colors.cBorder,
+  tabTrack: {
+    flexDirection: 'row',
+    backgroundColor: colors.uCard,
+    borderRadius: wp(14),
+    padding: wp(4),
+    position: 'relative',
   },
-  filterPillActive: {
-    backgroundColor: colors.cAccentLight,
-    borderColor: colors.cAccentLight,
+  tabIndicatorContainer: {
+    position: 'absolute',
+    top: wp(4),
+    bottom: wp(4),
+    left: wp(4),
+    width: wp(160),
+    shadowColor: colors.btnGradientStart,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.35,
+    shadowRadius: 6,
+    elevation: 4,
   },
-  filterPillText: {
-    fontSize: fp(12),
+  tabGradientIndicator: {
+    flex: 1,
+    borderRadius: wp(11),
+  },
+  tabItem: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: hp(10),
+    gap: wp(6),
+    zIndex: 1,
+  },
+  tabLabel: {
+    fontSize: fp(13.5),
+    fontWeight: '500',
+    color: colors.uSubHeading,
+  },
+  tabLabelActive: {
+    color: colors.white,
     fontWeight: '600',
-    color: colors.cTextSecondary,
   },
-  filterPillTextActive: {
+  tabCountBadge: {
+    backgroundColor: colors.white,
+    borderRadius: wp(10),
+    paddingHorizontal: wp(7),
+    paddingVertical: hp(1),
+    minWidth: wp(22),
+    alignItems: 'center',
+  },
+  tabCountBadgeActive: {
+    backgroundColor: 'rgba(255,255,255,0.25)',
+  },
+  tabCountText: {
+    fontSize: fp(11),
+    fontWeight: '700',
+    color: colors.uSubHeading,
+  },
+  tabCountTextActive: {
     color: colors.white,
   },
 
   imgPlaceholder: {
-    backgroundColor: colors.cCard,
+    backgroundColor: colors.uBg,
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarInitials: {
     fontSize: fp(16),
     fontWeight: '700',
-    color: colors.cAccentLight,
+    color: colors.uBottom,
   },
   emptyText: {
     fontSize: fp(13),
-    color: colors.cTextMuted,
+    color: colors.uSubtext,
     textAlign: 'center',
     marginVertical: hp(24),
   },
 
   // Featured Course
   featuredCourseCard: {
-    backgroundColor: colors.cSurface,
+    backgroundColor: colors.uCard,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: colors.uCard,
     overflow: 'hidden',
     marginBottom: hp(24),
     padding: wp(14),
@@ -590,7 +692,7 @@ const styles = StyleSheet.create({
   },
   featuredMetaText: {
     fontSize: fp(11),
-    color: colors.cTextSecondary,
+    color: colors.uSubHeading,
     fontWeight: '600',
   },
   featuredCourseTitle: {
@@ -621,13 +723,13 @@ const styles = StyleSheet.create({
     color: colors.white,
   },
   enrollBtn: {
-    backgroundColor: colors.cAccentLight,
+    backgroundColor: colors.uExploreNow,
     paddingHorizontal: wp(16),
     paddingVertical: hp(8),
     borderRadius: 8,
   },
   enrollBtnText: {
-    color: colors.white,
+    color: colors.uExploreNowText,
     fontSize: fp(12),
     fontWeight: '700',
   },
@@ -640,10 +742,10 @@ const styles = StyleSheet.create({
   // Popular Course
   popularCourseCard: {
     flexDirection: 'row',
-    backgroundColor: colors.cSurface,
+    backgroundColor: colors.uCard,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: colors.cBorderLight,
+    borderColor: colors.uCard,
     padding: wp(10),
     gap: wp(12),
     marginBottom: hp(12),
@@ -667,7 +769,7 @@ const styles = StyleSheet.create({
   },
   pillBadgeText: {
     fontSize: fp(8),
-    color: colors.cTextMuted,
+    color: colors.uSubHeading,
     fontWeight: '700',
   },
   popularCourseTitle: {
@@ -678,7 +780,7 @@ const styles = StyleSheet.create({
   },
   courseDurationText: {
     fontSize: fp(10),
-    color: colors.cTextMuted,
+    color: colors.uSubHeading,
     marginBottom: hp(6),
   },
   courseBottomActionRow: {
@@ -699,7 +801,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 0.5,
-    borderColor: colors.cBorder,
+    borderColor: colors.uBg
   },
   addButtonText: {
     color: colors.white,
@@ -709,7 +811,7 @@ const styles = StyleSheet.create({
 
   // Webinar
   webinarWelcomeHeroCard: {
-    backgroundColor: colors.cSurface,
+    backgroundColor: colors.uCard,
     borderRadius: 16,
     padding: wp(16),
     marginTop: hp(16),
@@ -729,7 +831,7 @@ const styles = StyleSheet.create({
   },
   webinarHeroDesc: {
     fontSize: fp(12),
-    color: colors.cTextSecondary,
+    color: colors.white,
     lineHeight: fp(17),
   },
   upcomingCountBadge: {
@@ -740,14 +842,14 @@ const styles = StyleSheet.create({
   },
   upcomingCountText: {
     fontSize: fp(10),
-    color: colors.faaAiPrimary,
+    color: colors.goldDim,
     fontWeight: '600',
   },
   webinarItemCard: {
-    backgroundColor: colors.cSurface,
+    backgroundColor: colors.uCard,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: colors.cBorderLight,
+    borderColor: colors.uCard,
     overflow: 'hidden',
     marginBottom: hp(16),
   },
@@ -780,13 +882,13 @@ const styles = StyleSheet.create({
   },
   webinarItemDesc: {
     fontSize: fp(11),
-    color: colors.cTextSecondary,
+    color: colors.uSubHeading,
     lineHeight: fp(16),
     marginBottom: hp(10),
   },
   webinarMetaLineText: {
     fontSize: fp(11),
-    color: colors.cTextMuted,
+    color: colors.uExploreNowText,
     marginBottom: hp(4),
   },
   registerWebinarBtn: {
@@ -819,16 +921,16 @@ const styles = StyleSheet.create({
   },
   seeAllText: {
     fontSize: fp(12),
-    color: colors.cTextSecondary,
+    color: colors.uSubHeading,
   },
   facultyCircularCard: {
-    backgroundColor: colors.cSurface,
+    backgroundColor: colors.uCard,
     borderRadius: 16,
     padding: wp(20),
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: colors.cBorderLight,
+    borderColor: colors.uCard,
   },
   facultyImageCircle: {
     width: wp(56),
@@ -843,7 +945,7 @@ const styles = StyleSheet.create({
   },
   facultyCardRole: {
     fontSize: fp(11),
-    color: colors.cTextMuted,
+    color: colors.uSubHeading,
     marginTop: hp(2),
   },
 });

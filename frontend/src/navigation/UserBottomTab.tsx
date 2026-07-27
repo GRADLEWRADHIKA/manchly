@@ -11,7 +11,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import colors from '../utils/colors';
 import { wp, hp, fp } from '../utils/responsive';
-import ProductsScreen from '../screens/Auth/User/Products/ProductsScreen';
+import ExploreDetail from '../screens/Auth/User/Explore/ExploreDetail';
 import PurchasesScreen from '../screens/Auth/User/Purchase/PurchasesScreen';
 import {
   House,
@@ -37,7 +37,7 @@ const tabs = [
   { name: 'Home', component: UserHome, label: 'Home', Icon: House },
   {
     name: 'ProductsScreen',
-    component: ProductsScreen,
+    component: ExploreDetail,
     label: 'Explore',
     Icon: Compass,
   },

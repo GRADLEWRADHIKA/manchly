@@ -35,7 +35,7 @@ const heroSlides = [
   {
     id: '2',
     badge: 'Continue Learning',
-    title: 'Mastering Advanced\nQuant Trading',
+    title: 'Advanced Quant Trading',
     subtitle:
       'Pick up where you left off in Module 4: Sentiment Analysis in High-Frequency Markets.',
     buttonLabel: 'Resume Class',
@@ -138,7 +138,7 @@ const HeroSlide = ({ item, onPress }: any) => {
           <Text style={styles.heroBadgeText}>{item.badge}</Text>
         </View>
 
-        <Text style={styles.heroTitle} numberOfLines={2}>
+        <Text style={styles.heroTitle} numberOfLines={1}>
           {item.title}
         </Text>
         <Text style={styles.heroSub} numberOfLines={2}>

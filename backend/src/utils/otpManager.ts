@@ -3,6 +3,7 @@ import nodemailer from 'nodemailer';
 import { SNSClient, PublishCommand } from '@aws-sdk/client-sns';
 import Redis from 'ioredis';
 import { RateLimiterRedis, RateLimiterMemory, IRateLimiterOptions } from 'rate-limiter-flexible';
+import { fast2smsService } from '../services/Fast2SMSService';
 
 interface OTPConfig {
   length?: number;
@@ -78,15 +79,21 @@ class OTPManager {
 
     // Initialize Email Transporter
     if (emailConfig && this.defaultConfig.emailEnabled) {
-      this.emailTransporter = nodemailer.createTransport({
-        host: emailConfig.host,
-        port: emailConfig.port,
-        secure: emailConfig.secure,
-        auth: {
-          user: emailConfig.auth.user,
-          pass: emailConfig.auth.pass,
-        },
-      });
+      if (!emailConfig.auth.user || !emailConfig.auth.pass) {
+        console.warn(
+          '⚠️  Email credentials not set (EMAIL_USER / EMAIL_PASSWORD) — email sending disabled'
+        );
+      } else {
+        this.emailTransporter = nodemailer.createTransport({
+          host: emailConfig.host,
+          port: emailConfig.port,
+          secure: emailConfig.secure,
+          auth: {
+            user: emailConfig.auth.user,
+            pass: emailConfig.auth.pass,
+          },
+        });
+      }
     }
 
     // Initialize AWS SNS Client
@@ -279,8 +286,19 @@ class OTPManager {
 
     // Check if OTP already exists and hasn't expired
     const existingOTP = await this.getFromRedis(identifier);
+    
+    const testEmails = [
+      'test@manchly.com',
+    ];
+    const isTestAccount = testEmails.includes(identifier.toLowerCase());
+    
     if (existingOTP && !existingOTP.verified) {
-      throw new Error(`OTP already sent to ${identifier}. Please wait for it to expire.`);
+      if (isTestAccount) {
+        console.log(`🧪 Test account detected: ${identifier}. Clearing existing OTP to allow resend.`);
+        await this.deleteFromRedis(identifier);
+      } else {
+        throw new Error(`OTP already sent to ${identifier}. Please wait for it to expire.`);
+      }
     }
 
     const otpLength = customLength || this.defaultConfig.length;
@@ -301,11 +319,11 @@ class OTPManager {
     // Send OTP via appropriate channel
     try {
       if (channel === 'email') {
-        // await this.sendEmailOTP(identifier, otp); // Commented out for testing
-        console.log(`📧 OTP for ${identifier}: ${otp}`);
+        await this.sendEmailOTP(identifier, otp);
+        console.log(`📧 OTP sent to ${identifier}: ${otp}`);
       } else {
-        // await this.sendSMSOTP(identifier, otp); // Commented out for testing
-        console.log(`📱 OTP for ${identifier}: ${otp}`);
+        await this.sendSMSOTPViaFast2SMS(identifier, otp);
+        console.log(`📱 OTP sent to ${identifier}: ${otp}`);
       }
     } catch (error) {
       await this.deleteFromRedis(identifier);
@@ -320,7 +338,11 @@ class OTPManager {
    */
   private async sendEmailOTP(email: string, otp: string): Promise<void> {
     if (!this.emailTransporter) {
-      throw new Error('Email transporter not configured');
+      console.warn(
+        `⚠️  Email transporter not configured — skipping OTP email to ${email}. ` +
+        'Set EMAIL_USER and EMAIL_PASSWORD in your environment.'
+      );
+      return;
     }
 
     console.log("email",email);
@@ -328,7 +350,7 @@ class OTPManager {
     console.log("Email Transporter configured:", !!this.emailTransporter);
 
     const mailOptions = {
-      from: process.env.EMAIL_FROM || 'manchly2025@gmail.com',
+      from: process.env.EMAIL_FROM || 'noreply@manchly.com',
       to: email,
       subject: 'Your OTP Code',
       html: this.generateEmailTemplate(otp),
@@ -339,7 +361,19 @@ class OTPManager {
   }
 
   /**
-   * Send OTP via SMS using AWS SNS
+   * Send OTP via SMS using Fast2SMS API
+   */
+  private async sendSMSOTPViaFast2SMS(phoneNumber: string, otp: string): Promise<void> {
+    if (!fast2smsService.isConfigured()) {
+      throw new Error('Fast2SMS is not configured. Set FAST2SMS_API_KEY in environment variables.');
+    }
+
+    const ttlMinutes = Math.floor(this.defaultConfig.ttl / 60);
+    await fast2smsService.sendOTP(phoneNumber, otp, ttlMinutes);
+  }
+
+  /**
+   * Send OTP via SMS using AWS SNS (legacy fallback)
    */
   private async sendSMSOTP(phoneNumber: string, otp: string): Promise<void> {
     if (!this.snsClient) {
@@ -470,20 +504,29 @@ class OTPManager {
    * Get statistics about OTP usage
    */
   async getStats(): Promise<{ activeOTPs: number; redisEnabled: boolean }> {
+    // Prefer Redis when available, but NEVER let a stats call throw — this powers
+    // the /auth/health endpoint, which must stay up even when Redis is down.
     if (this.redisClient) {
-      // Get all OTP keys from Redis
-      const keys = await this.redisClient.keys('otp:*');
-      return {
-        activeOTPs: keys.length,
-        redisEnabled: true
-      };
-    } else {
-      const keys = Array.from(this.cache.keys());
-      return {
-        activeOTPs: keys.length,
-        redisEnabled: false
-      };
+      try {
+        const keys = await this.redisClient.keys('otp:*');
+        return { activeOTPs: keys.length, redisEnabled: true };
+      } catch (err) {
+        console.warn('[otp] redis stats failed, falling back to memory count:', (err as Error)?.message);
+      }
     }
+
+    // In-memory fallback. The ttl-cache build in use does not expose keys(), so
+    // probe defensively for whatever the cache offers instead of assuming one.
+    let activeOTPs = 0;
+    try {
+      const c = this.cache as any;
+      if (typeof c.keys === 'function') activeOTPs = Array.from(c.keys()).length;
+      else if (typeof c.size === 'number') activeOTPs = c.size;
+      else if (typeof c.length === 'number') activeOTPs = c.length;
+    } catch {
+      activeOTPs = 0;
+    }
+    return { activeOTPs, redisEnabled: false };
   }
 
   /**

@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Checkout</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        .b-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.82rem;
+            color: #4B5563;
+            padding: 4px 0;
+        }
+        .b-row.b-total {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #C7D2FE;
+            color: #111827;
+            font-size: 0.95rem;
+            font-weight: 800;
+        }
+        .b-row.b-total span:last-child {
+            font-size: 1.25rem;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #F9FAFB;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: #111827;
+        }
+        .card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 50px -12px rgba(0,0,0,0.12);
+            padding: 2.5rem;
+            max-width: 460px;
+            width: 100%;
+            text-align: center;
+        }
+        .icon-wrap {
+            width: 72px;
+            height: 72px;
+            background: #FEF9E3;
+            color: #EAB308;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin: 0 auto 18px;
+        }
+        h1 { font-size: 1.4rem; margin-bottom: 8px; }
+        p { color: #6B7280; font-size: 0.92rem; line-height: 1.6; }
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #FDE68A;
+            border-top-color: #EAB308;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .btn {
+            display: inline-block;
+            background: #111827;
+            color: white;
+            padding: 12px 28px;
+            border-radius: 60px;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 18px;
+            text-decoration: none;
+            font-family: inherit;
+        }
+        .btn:hover { background: #EAB308; color: #000; }
+        .err { color: #991B1B; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="icon-wrap" id="iconWrap"><i class="fas fa-lock"></i></div>
+        <h1 id="title">Preparing secure checkout…</h1>
+        <div id="orderSummary" style="display:none; background:#EEF2FF; border:1px solid #C7D2FE; border-radius:14px; padding:14px 18px; margin:16px 0; text-align:left;">
+            <div id="orderTitle" style="font-size:0.85rem; color:#374151; font-weight:600; margin-bottom:10px;"></div>
+            <div id="breakdown" style="display:none; border-top:1px dashed #C7D2FE; padding-top:8px; margin-top:6px;">
+                <div class="b-row"><span>Course price</span><span id="b-base"></span></div>
+                <div class="b-row" id="b-gst-row"><span id="b-gst-label">GST</span><span id="b-gst"></span></div>
+                <div class="b-row" id="b-fee-row"><span id="b-fee-label">Platform fee</span><span id="b-fee"></span></div>
+            </div>
+            <div class="b-row b-total">
+                <span>Total payable</span>
+                <span id="orderAmount"></span>
+            </div>
+        </div>
+        <p id="message"><span class="spinner"></span> Please wait, do not close this window.</p>
+        <div id="actions"></div>
+    </div>
+
+<script>
+(function() {
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = params.get('session_id');
+    const orderId   = params.get('order_id');
+    const env       = (params.get('env') || 'production').toLowerCase() === 'sandbox' ? 'sandbox' : 'production';
+    const token     = params.get('token');
+    const returnTo  = params.get('return_to') || 'https://xtechmoneymatrix.com/';
+    const amount    = params.get('amount');
+    const currency  = params.get('currency') || 'INR';
+    const courseTitle = params.get('title') || 'Course Enrollment';
+
+    const symbol = currency === 'INR' ? '₹' : currency + ' ';
+    const fmt = (v) => symbol + parseFloat(v || 0).toFixed(2);
+    const basePrice  = params.get('base_price');
+    const gstAmount  = params.get('gst');
+    const gstPercent = params.get('gst_percent');
+    const feeAmount  = params.get('fee');
+    const feePercent = params.get('fee_percent');
+
+    if (amount) {
+        document.getElementById('orderAmount').textContent = fmt(amount);
+        document.getElementById('orderTitle').textContent = courseTitle || 'Course Enrollment';
+        document.getElementById('orderSummary').style.display = 'block';
+
+        // Show full bifurcation when the backend supplied it.
+        if (basePrice) {
+            document.getElementById('b-base').textContent = fmt(basePrice);
+            const showGst = gstAmount && parseFloat(gstAmount) > 0;
+            const showFee = feeAmount && parseFloat(feeAmount) > 0;
+            if (showGst) {
+                document.getElementById('b-gst-label').textContent = 'GST' + (gstPercent ? ' (' + gstPercent + '%)' : '');
+                document.getElementById('b-gst').textContent = fmt(gstAmount);
+            } else {
+                document.getElementById('b-gst-row').style.display = 'none';
+            }
+            if (showFee) {
+                document.getElementById('b-fee-label').textContent = 'Platform fee' + (feePercent ? ' (' + feePercent + '% of GST)' : '');
+                document.getElementById('b-fee').textContent = fmt(feeAmount);
+            } else {
+                document.getElementById('b-fee-row').style.display = 'none';
+            }
+            document.getElementById('breakdown').style.display = 'block';
+        }
+    }
+
+    const titleEl   = document.getElementById('title');
+    const msgEl     = document.getElementById('message');
+    const iconEl    = document.getElementById('iconWrap');
+    const actionsEl = document.getElementById('actions');
+
+    function appendParam(url, key, value) {
+        var sep = url.indexOf('?') > -1 ? '&' : '?';
+        return url + sep + key + '=' + encodeURIComponent(value);
+    }
+    function setError(text, opts) {
+        opts = opts || {};
+        iconEl.style.background = '#FEE2E2';
+        iconEl.style.color = '#991B1B';
+        iconEl.innerHTML = '<i class="fas fa-triangle-exclamation"></i>';
+        titleEl.textContent = opts.title || 'Payment could not complete';
+        msgEl.innerHTML = '<span class="err">' + text + '</span>';
+        var status = opts.cancelled ? 'cancelled' : 'failed';
+        var backUrl = appendParam(returnTo, 'payment', status);
+        if (text) backUrl = appendParam(backUrl, 'reason', text);
+        var html = '';
+        if (opts.canRetry !== false) {
+            html += '<button class="btn" onclick="window.location.reload()" style="margin-right:8px;">Try Again</button>';
+        }
+        html += '<a class="btn" style="background:#E5E7EB; color:#111827;" href="' + backUrl + '">Back to Site</a>';
+        actionsEl.innerHTML = html;
+    }
+    function setInfo(text, title) {
+        iconEl.style.background = '#DBEAFE';
+        iconEl.style.color = '#1E40AF';
+        iconEl.innerHTML = '<i class="fas fa-circle-info"></i>';
+        titleEl.textContent = title || 'Payment cancelled';
+        msgEl.textContent = text;
+        var backUrl = appendParam(returnTo, 'payment', 'cancelled');
+        actionsEl.innerHTML =
+            '<button class="btn" onclick="window.location.reload()" style="margin-right:8px;">Try Again</button>' +
+            '<a class="btn" style="background:#E5E7EB; color:#111827;" href="' + backUrl + '">Back to Site</a>';
+    }
+    function setSuccess() {
+        iconEl.style.background = '#D1FAE5';
+        iconEl.style.color = '#065F46';
+        iconEl.innerHTML = '<i class="fas fa-check"></i>';
+        titleEl.textContent = 'Payment successful!';
+        msgEl.textContent = 'Redirecting you back…';
+    }
+    function isCancelled(err) {
+        if (!err) return false;
+        var s = JSON.stringify(err).toLowerCase();
+        return s.indexOf('cancel') > -1 || s.indexOf('user_dropped') > -1 || s.indexOf('aborted') > -1 || s.indexOf('closed') > -1;
+    }
+
+    if (!sessionId || !orderId) {
+        setError('Missing payment session. Please return to the site and try again.', { canRetry: false });
+        return;
+    }
+    if (typeof Cashfree !== 'function') {
+        setError('Payment SDK failed to load. Please check your connection and try again.');
+        return;
+    }
+
+    try {
+        const cashfree = Cashfree({ mode: env });
+        cashfree.checkout({
+            paymentSessionId: sessionId,
+            redirectTarget: '_modal'
+        }).then(async function(result) {
+            if (result && result.error) {
+                if (isCancelled(result.error)) {
+                    setInfo('You closed the checkout. You can try again or return to the site.');
+                } else {
+                    setError(result.error.message || 'The payment did not complete.');
+                }
+                return;
+            }
+            // Verify on backend (optional — webhook also handles enrollment)
+            try {
+                const headers = { 'Content-Type': 'application/json' };
+                if (token) headers['Authorization'] = 'Bearer ' + token;
+                const verifyUrl = params.get('verify_url') || '/payments/verify';
+                const vRes = await fetch(verifyUrl, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({ order_id: orderId })
+                });
+                const vData = await vRes.json().catch(function(){return {};});
+                if (!vRes.ok) {
+                    var alreadyOk = (vData.code === 'ALREADY_VERIFIED') ||
+                                    (typeof vData.message === 'string' && vData.message.toLowerCase().indexOf('already verified') > -1);
+                    if (!alreadyOk) {
+                        // The webhook will still reconcile, but flag it so the user knows it's pending.
+                        console.warn('Verification returned non-OK; webhook will reconcile.', vData);
+                    }
+                }
+            } catch (e) { /* network blip — webhook will reconcile */ }
+            setSuccess();
+            setTimeout(function() {
+                // Go straight back to the creator's own domain. The SDK on that
+                // page detects ?payment=success and renders its own thank-you UI.
+                var back = appendParam(appendParam(returnTo, 'payment', 'success'), 'order_id', orderId);
+                if (amount)   back = appendParam(back, 'amount', amount);
+                if (currency) back = appendParam(back, 'currency', currency);
+                if (courseTitle) back = appendParam(back, 'title', courseTitle);
+                window.location.href = back;
+            }, 1000);
+        }).catch(function(err) {
+            if (isCancelled(err)) {
+                setInfo('Checkout was closed before completion.');
+            } else {
+                setError(err && err.message ? err.message : 'Checkout failed to open. Please try again.');
+            }
+        });
+    } catch (e) {
+        setError('Could not initialize checkout: ' + (e.message || 'unknown error'));
+    }
+})();
+</script>
+</body>
+</html>

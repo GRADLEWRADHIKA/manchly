@@ -4,6 +4,15 @@ import { jwtAuth } from "../middleware/jwtAuth";
 
 const router = Router();
 
+// ============ PUBLIC ROUTES (no auth) ============
+
+/**
+ * @route   GET /courses/public
+ * @desc    List published courses (optionally filtered by creator_id)
+ * @access  Public
+ */
+router.get("/public", CourseController.getPublicCourses);
+
 // ============ COURSE ROUTES ============
 
 /**

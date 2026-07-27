@@ -1,32 +1,80 @@
 import { Request, Response } from "express";
 import prisma from "../prismaClient";
 import { ApiResponseHandler } from "../utils/ApiResponseHandler";
-import ZoomMeetingManager from "../utils/zoomManager";
-import EmailService from "../services/EmailService";
-import WhatsAppService from "../services/WhatsAppService";
+import ZoomMeetingManager, {
+  createZoomMeetingManager,
+  getZoomConfigurationStatus,
+} from "../utils/zoomManager";
+import { isCreator, isUser } from "../utils/userTypeHelper";
+import { SettlementService } from "../services/settlementService";
+import { notificationService } from "../services/NotificationService";
+import { cashfreePG } from "../services/cashfreeService";
+import { NotificationController } from "./notificationController";
 import crypto from "crypto";
 import dotenv from "dotenv";
 
 dotenv.config();
 
-const Razorpay = require('razorpay');
+const zoomManager = createZoomMeetingManager();
 
-// Initialize services
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID!,
-  key_secret: process.env.RAZORPAY_KEY_SECRET!
-});
+function ensureZoomConfigured(res: Response): boolean {
+  const status = getZoomConfigurationStatus();
+  if (status.isConfigured) {
+    return true;
+  }
 
-const zoomManager = new ZoomMeetingManager({
-  apiKey: process.env.ZOOM_API_KEY || '',
-  apiSecret: process.env.ZOOM_API_SECRET || '',
-  accountId: process.env.ZOOM_ACCOUNT_ID,
-  oauthClientId: process.env.ZOOM_OAUTH_CLIENT_ID,
-  oauthClientSecret: process.env.ZOOM_OAUTH_CLIENT_SECRET
-});
+  console.error(
+    `[Zoom] Webinar publish blocked — missing configuration: ${status.missing.join(", ")}`
+  );
+  ApiResponseHandler.customError(
+    res,
+    `Zoom is not configured. Missing: ${status.missing.join(", ")}. ${"Set ZOOM_ACCOUNT_ID, ZOOM_CLIENT_ID, and ZOOM_CLIENT_SECRET in your environment."}`,
+    503,
+    "ZOOM_NOT_CONFIGURED",
+    { missing: status.missing }
+  );
+  return false;
+}
 
-const emailService = new EmailService();
-const whatsAppService = new WhatsAppService();
+/** Validates time string in "HH:MM" or "HH:MM:SS" format (e.g. "15:00", "09:30"). Returns trimmed string or null if invalid. */
+function parseTimeString(value: unknown): string | null {
+  if (value == null || typeof value !== "string") return null;
+  const trimmed = value.trim();
+  // HH:MM or H:MM or HH:MM:SS (24h)
+  if (!/^([0-1]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/.test(trimmed)) return null;
+  return trimmed;
+}
+
+/** Converts "HH:MM" or "HH:MM:SS" to minutes since midnight. */
+function timeStringToMinutes(timeStr: string): number {
+  const parts = timeStr.trim().split(":");
+  const h = parseInt(parts[0], 10) || 0;
+  const m = parseInt(parts[1], 10) || 0;
+  return h * 60 + m;
+}
+
+/** Converts minutes since midnight to "HH:MM" (same format as start_time). Wraps past 24h using modulo. */
+function minutesToTimeString(totalMinutes: number): string {
+  const wrapped = ((totalMinutes % (24 * 60)) + (24 * 60)) % (24 * 60);
+  const h = Math.floor(wrapped / 60);
+  const m = wrapped % 60;
+  return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
+}
+
+/** Calculates end_time from start_time (e.g. "15:00") + duration in minutes. Returns "HH:MM". */
+function calculateEndTime(startTimeStr: string, durationMinutes: number): string {
+  const startMins = timeStringToMinutes(startTimeStr);
+  return minutesToTimeString(startMins + durationMinutes);
+}
+
+/** Combines date from scheduled_at with time from start_time (e.g. "15:00"). Returns Date so it's not midnight. */
+function combineDateWithTime(date: Date, timeStr: string): Date {
+  const y = date.getUTCFullYear();
+  const mo = date.getUTCMonth();
+  const d = date.getUTCDate();
+  const [h, m] = timeStr.trim().split(":").map((x) => parseInt(x, 10) || 0);
+  return new Date(Date.UTC(y, mo, d, h, m, 0, 0));
+}
 
 export class WebinarController {
   // ============ WEBINAR MANAGEMENT ============
@@ -44,6 +92,8 @@ export class WebinarController {
       category,
       tags = [],
       scheduled_at,
+      start_time,
+      end_time,
       duration = 60,
       timezone = "UTC",
       max_participants,
@@ -61,15 +111,30 @@ export class WebinarController {
       return ApiResponseHandler.customError(res, "Scheduled date and time is required", 400, "MISSING_SCHEDULE");
     }
 
+    // Validate start_time / end_time format ("15:00" or "15:00:00")
+    const parsedStartTime = start_time != null && start_time !== "" ? parseTimeString(start_time) : null;
+    const parsedEndTime = end_time != null && end_time !== "" ? parseTimeString(end_time) : null;
+    if (start_time != null && start_time !== "" && parsedStartTime === null) {
+      return ApiResponseHandler.customError(res, "start_time must be in HH:MM format (e.g. 15:00)", 400, "INVALID_START_TIME");
+    }
+    if (end_time != null && end_time !== "" && parsedEndTime === null) {
+      return ApiResponseHandler.customError(res, "end_time must be in HH:MM format (e.g. 15:00)", 400, "INVALID_END_TIME");
+    }
+
     // Check if user is a creator
     const user = await prisma.users.findUnique({ where: { id: userId } });
-    if (!user || user.user_type !== "CREATOR") {
+    if (!user || !isCreator(user.user_type)) {
       return ApiResponseHandler.customError(res, "Only creators can create webinars", 403, "FORBIDDEN");
     }
 
     try {
-      // Validate scheduled date is in the future
-      const scheduledDate = new Date(scheduled_at);
+      // scheduled_at = date from scheduled_at + time from start_time (so not 12 AM)
+      let scheduledDate = new Date(scheduled_at);
+      if (parsedStartTime) {
+        scheduledDate = combineDateWithTime(scheduledDate, parsedStartTime);
+      }
+
+      console.log('scheduledDate', scheduledDate);
       if (scheduledDate <= new Date()) {
         return ApiResponseHandler.customError(res, "Scheduled date must be in the future", 400, "INVALID_SCHEDULE");
       }
@@ -77,6 +142,10 @@ export class WebinarController {
       // Create Zoom meeting if status is PUBLISHED
       let zoomMeetingData: any = {};
       if (status === "PUBLISHED") {
+        if (!ensureZoomConfigured(res)) {
+          return;
+        }
+
         try {
           const meeting = await zoomManager.createMeeting('me', {
             topic: title,
@@ -121,6 +190,8 @@ export class WebinarController {
           category,
           tags: Array.isArray(tags) ? tags : [],
           scheduled_at: scheduledDate,
+          start_time: parsedStartTime ?? undefined,
+          end_time: parsedStartTime && (duration !== undefined && duration !== null) ? calculateEndTime(parsedStartTime, Number(duration)) : (parsedEndTime ?? undefined),
           duration,
           timezone,
           max_participants,
@@ -161,7 +232,8 @@ export class WebinarController {
       category,
       status,
       search,
-      upcoming = "true"
+      upcoming = "true",
+      my_webinars
     } = req.query;
 
     try {
@@ -176,8 +248,8 @@ export class WebinarController {
       // Build where clause based on user type
       const whereClause: any = {};
 
-      if (user.user_type === "CREATOR") {
-        // Creators see only their webinars
+      if (isCreator(user.user_type) && my_webinars === "true") {
+        // Creators viewing their own webinars (creator dashboard)
         whereClause.creator_id = userId;
 
         // Apply status filter if provided
@@ -185,7 +257,7 @@ export class WebinarController {
           whereClause.status = status;
         }
       } else {
-        // Regular users see only published webinars
+        // All users (including creators browsing) see only published webinars
         whereClause.status = "PUBLISHED";
       }
 
@@ -222,7 +294,7 @@ export class WebinarController {
                 profile_image: true
               }
             },
-            enrollments: user.user_type === "USER" ? {
+            enrollments: isUser(user.user_type) ? {
               where: { user_id: userId },
               select: {
                 id: true,
@@ -243,7 +315,7 @@ export class WebinarController {
 
       // Add enrollment status for users
       const webinarsWithStatus = webinars.map(webinar => {
-        const isEnrolled = user.user_type === "USER" &&
+        const isEnrolled = isUser(user.user_type) &&
           webinar.enrollments &&
           webinar.enrollments.length > 0;
 
@@ -295,7 +367,7 @@ export class WebinarController {
               profile_image: true
             }
           },
-          enrollments: user.user_type === "USER" ? {
+          enrollments: isUser(user.user_type) ? {
             where: { user_id: userId }
           } : true,
           _count: {
@@ -310,16 +382,18 @@ export class WebinarController {
         return ApiResponseHandler.customError(res, "Webinar not found", 404, "WEBINAR_NOT_FOUND");
       }
 
-      // Check access permissions
-      if (user.user_type === "CREATOR" && webinar.creator_id !== userId) {
+      // Check access permissions — webinar creator always has full access
+      const isOwner = webinar.creator_id === userId;
+
+      if (!isOwner && isCreator(user.user_type)) {
         return ApiResponseHandler.customError(res, "You don't have access to this webinar", 403, "FORBIDDEN");
       }
 
-      if (user.user_type === "USER" && webinar.status !== "PUBLISHED") {
+      if (!isOwner && webinar.status !== "PUBLISHED") {
         return ApiResponseHandler.customError(res, "Webinar not available", 403, "WEBINAR_NOT_AVAILABLE");
       }
 
-      const isEnrolled = user.user_type === "USER" &&
+      const isEnrolled = isUser(user.user_type) &&
         webinar.enrollments &&
         webinar.enrollments.length > 0;
 
@@ -353,6 +427,7 @@ export class WebinarController {
       category,
       tags,
       scheduled_at,
+      start_time,
       duration,
       timezone,
       max_participants,
@@ -384,21 +459,53 @@ export class WebinarController {
       if (duration !== undefined) updateData.duration = duration;
       if (timezone !== undefined) updateData.timezone = timezone;
       if (max_participants !== undefined) updateData.max_participants = max_participants;
+      if (start_time !== undefined) {
+        const parsedStart = parseTimeString(start_time);
+        if (start_time !== "" && parsedStart === null) {
+          return ApiResponseHandler.customError(res, "start_time must be in HH:MM format (e.g. 15:00)", 400, "INVALID_START_TIME");
+        }
+        updateData.start_time = parsedStart;
+      }
 
-      // Handle scheduled date update
+      // Calculate end_time from start_time + duration (same "HH:MM" format)
+      const effectiveStartTime = updateData.start_time ?? (existingWebinar as { start_time?: string | null }).start_time;
+      const effectiveDuration = updateData.duration ?? existingWebinar.duration ?? 0;
+      if (effectiveStartTime && typeof effectiveDuration === "number" && effectiveDuration >= 0) {
+        updateData.end_time = calculateEndTime(effectiveStartTime, effectiveDuration);
+      }
+
+      // scheduled_at = date from scheduled_at + time from start_time (so not 12 AM)
+      const effectiveStartTimeForDate = updateData.start_time ?? (existingWebinar as { start_time?: string | null }).start_time;
       if (scheduled_at) {
-        const scheduledDate = new Date(scheduled_at);
-        if (scheduledDate <= new Date()) {
+        let baseDate = new Date(scheduled_at);
+        if (effectiveStartTimeForDate) {
+          baseDate = combineDateWithTime(baseDate, effectiveStartTimeForDate);
+        }
+        if (baseDate <= new Date()) {
           return ApiResponseHandler.customError(res, "Scheduled date must be in the future", 400, "INVALID_SCHEDULE");
         }
-        updateData.scheduled_at = scheduledDate;
+        updateData.scheduled_at = baseDate;
 
         // Update Zoom meeting if it exists
         if (existingWebinar.zoom_meeting_id) {
           try {
             await zoomManager.updateMeeting(existingWebinar.zoom_meeting_id, {
-              start_time: scheduledDate.toISOString(),
-              duration: duration || existingWebinar.duration || 60
+              start_time: baseDate.toISOString(),
+              duration: duration ?? existingWebinar.duration ?? 60
+            });
+          } catch (error) {
+            console.error('Error updating Zoom meeting:', error);
+          }
+        }
+      } else if (effectiveStartTimeForDate) {
+        // Only start_time updated: combine existing scheduled_at date with new start_time
+        updateData.scheduled_at = combineDateWithTime(existingWebinar.scheduled_at, effectiveStartTimeForDate);
+
+        if (existingWebinar.zoom_meeting_id) {
+          try {
+            await zoomManager.updateMeeting(existingWebinar.zoom_meeting_id, {
+              start_time: updateData.scheduled_at.toISOString(),
+              duration: updateData.duration ?? existingWebinar.duration ?? 60
             });
           } catch (error) {
             console.error('Error updating Zoom meeting:', error);
@@ -413,13 +520,17 @@ export class WebinarController {
 
         // Create Zoom meeting if not exists
         if (!existingWebinar.zoom_meeting_id) {
+          if (!ensureZoomConfigured(res)) {
+            return;
+          }
+
           try {
             const meeting = await zoomManager.createMeeting('me', {
               topic: title || existingWebinar.title,
               agenda: description || existingWebinar.description || '',
               type: 2,
-              start_time: (scheduled_at ? new Date(scheduled_at) : existingWebinar.scheduled_at).toISOString(),
-              duration: duration || existingWebinar.duration || 60,
+              start_time: (updateData.scheduled_at ?? existingWebinar.scheduled_at).toISOString(),
+              duration: duration ?? existingWebinar.duration ?? 60,
               timezone: timezone || existingWebinar.timezone || 'UTC',
               settings: {
                 host_video: true,
@@ -525,7 +636,7 @@ export class WebinarController {
         return ApiResponseHandler.customError(res, "User not found", 404, "USER_NOT_FOUND");
       }
 
-      if (user.user_type !== "USER") {
+      if (!isUser(user.user_type)) {
         return ApiResponseHandler.customError(res, "Only regular users can enroll in webinars", 403, "FORBIDDEN");
       }
 
@@ -611,34 +722,48 @@ export class WebinarController {
         }, "Enrollment successful", 201);
       }
 
-      // Create Razorpay order for paid webinars
-      const amountInPaise = Math.round(webinar.price * 100);
+      // Create Cashfree order for paid webinars
+      const orderId = `webinar_${webinarId}_${Date.now()}`;
+      const orderAmount = parseFloat(Number(req.body.amount || webinar.price).toFixed(2));
 
-      const razorpayOrder = await razorpay.orders.create({
-        amount: amountInPaise,
-        currency: "INR",
-        receipt: `webinar_${Date.now()}`,
-        notes: {
+      const orderRequest = {
+        order_id: orderId,
+        order_amount: orderAmount,
+        order_currency: "INR",
+        customer_details: {
+          customer_id: userId,
+          customer_phone: user.phone || "9999999999",
+          customer_name: user.name || undefined,
+          customer_email: user.email,
+        },
+        order_meta: {
+          return_url: `${process.env.APP_URL || 'https://manchly.com'}/payment/return?order_id={order_id}`,
+          notify_url: `${process.env.APP_URL || 'https://server.manchly.com'}/payments/webhook`,
+        },
+        order_note: `Webinar: ${webinar.title}`,
+        order_tags: {
           user_id: userId,
           webinar_id: webinarId,
-          webinar_title: webinar.title,
-          user_email: user.email
-        }
-      });
+          type: "webinar",
+        },
+      };
+
+      const cashfreeOrder = await cashfreePG.PGCreateOrder(orderRequest);
+      const orderData = cashfreeOrder.data;
 
       // Create transaction record in database
       const transaction = await prisma.webinar_transactions.create({
         data: {
           user_id: userId,
           webinar_id: webinarId,
-          amount: webinar.price,
+          amount: orderAmount,
           currency: "INR",
           status: "PENDING",
-          payment_method: "RAZORPAY",
-          razorpay_order_id: razorpayOrder.id,
-          payment_details: {
-            razorpay_order: razorpayOrder
-          }
+          payment_method: "CASHFREE",
+          cashfree_order_id: orderId,
+          payment_details: JSON.parse(JSON.stringify({
+            cashfree_order: orderData
+          }))
         },
         include: {
           webinar: {
@@ -656,12 +781,13 @@ export class WebinarController {
       // Return order details for frontend
       ApiResponseHandler.success(res, {
         transaction,
-        razorpay_order: {
-          id: razorpayOrder.id,
-          amount: razorpayOrder.amount,
-          currency: razorpayOrder.currency
+        cashfree_order: {
+          order_id: orderData.order_id,
+          payment_session_id: orderData.payment_session_id,
+          order_status: orderData.order_status,
         },
-        razorpay_key_id: process.env.RAZORPAY_KEY_ID,
+        cashfree_pg_app_id: process.env.CASHFREE_PG_APP_ID,
+        cashfree_env: process.env.CASHFREE_PG_ENV || "SANDBOX",
         user_details: {
           name: user.name,
           email: user.email,
@@ -674,10 +800,10 @@ export class WebinarController {
           thumbnail: webinar.thumbnail,
           scheduled_at: webinar.scheduled_at
         }
-      }, "Razorpay order created successfully", 201);
+      }, "Cashfree order created successfully", 201);
 
     } catch (err: any) {
-      console.error("Error creating Razorpay order:", err);
+      console.error("Error creating Cashfree order:", err);
       ApiResponseHandler.unexpectedError(res, err, 500);
     }
   }
@@ -686,21 +812,17 @@ export class WebinarController {
    * Verify payment and create webinar enrollment
    */
   static async verifyWebinarPayment(req: any, res: Response) {
-    const {
-      razorpay_order_id,
-      razorpay_payment_id,
-      razorpay_signature
-    } = req.body;
+    const { order_id } = req.body;
     const userId = req.user.userId;
 
-    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
-      return ApiResponseHandler.customError(res, "Missing payment verification details", 400, "MISSING_PAYMENT_DETAILS");
+    if (!order_id) {
+      return ApiResponseHandler.customError(res, "Missing order_id", 400, "MISSING_ORDER_ID");
     }
 
     try {
       // Find transaction
       const transaction = await prisma.webinar_transactions.findUnique({
-        where: { razorpay_order_id },
+        where: { cashfree_order_id: order_id },
         include: {
           webinar: {
             include: {
@@ -733,42 +855,69 @@ export class WebinarController {
       }
 
       if (transaction.status === "SUCCESS") {
-        return ApiResponseHandler.customError(res, "Payment already verified", 400, "ALREADY_VERIFIED");
-      }
-
-      // Verify signature
-      const generatedSignature = crypto
-        .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET!)
-        .update(`${razorpay_order_id}|${razorpay_payment_id}`)
-        .digest('hex');
-
-      if (generatedSignature !== razorpay_signature) {
-        // Update transaction as failed
-        await prisma.webinar_transactions.update({
-          where: { id: transaction.id },
-          data: {
-            status: "FAILED",
-            failure_reason: "Invalid signature"
+        // Webhook may have already processed this payment — return success
+        const existingEnrollment = await prisma.webinar_enrollments.findUnique({
+          where: {
+            user_id_webinar_id: {
+              user_id: userId,
+              webinar_id: transaction.webinar_id
+            }
+          },
+          include: {
+            webinar: {
+              include: {
+                creator: { select: { id: true, name: true, email: true } }
+              }
+            }
           }
         });
 
-        return ApiResponseHandler.customError(res, "Invalid payment signature", 400, "INVALID_SIGNATURE");
+        return ApiResponseHandler.success(res, {
+          enrollment: existingEnrollment,
+          transaction,
+          message: "Payment already verified and enrollment exists"
+        }, "Payment verified successfully", 200);
       }
 
-      // Fetch payment details from Razorpay
-      const payment = await razorpay.payments.fetch(razorpay_payment_id);
+      // Verify order status with Cashfree server-to-server
+      const orderResponse = await cashfreePG.PGFetchOrder(order_id);
+      const orderData = orderResponse.data;
+
+      if (orderData.order_status !== "PAID") {
+        if (orderData.order_status === "EXPIRED") {
+          await prisma.webinar_transactions.update({
+            where: { id: transaction.id },
+            data: {
+              status: "FAILED",
+              failure_reason: "Order expired"
+            }
+          });
+        }
+        return ApiResponseHandler.customError(res, `Payment not completed. Status: ${orderData.order_status}`, 400, "PAYMENT_NOT_COMPLETED");
+      }
+
+      // Get payment details
+      let paymentInfo = null;
+      try {
+        const paymentsResponse = await cashfreePG.PGOrderFetchPayments(order_id);
+        paymentInfo = paymentsResponse.data;
+      } catch (e) {
+        console.error("Error fetching payment details:", e);
+      }
+
+      const cfPaymentId = paymentInfo?.[0]?.cf_payment_id?.toString() || null;
 
       // Update transaction
       const updatedTransaction = await prisma.webinar_transactions.update({
         where: { id: transaction.id },
         data: {
           status: "SUCCESS",
-          razorpay_payment_id,
-          razorpay_signature,
+          cf_payment_id: cfPaymentId,
           completed_at: new Date(),
-          payment_details: {
-            payment_info: payment
-          }
+          payment_details: JSON.parse(JSON.stringify({
+            order_info: orderData,
+            payment_info: paymentInfo
+          }))
         }
       });
 
@@ -794,16 +943,47 @@ export class WebinarController {
         }
       });
 
+      // Credit creator's wallet
+      SettlementService.creditCreatorWallet({
+        creatorId: transaction.webinar.creator.id,
+        grossAmount: transaction.webinar.price,
+        transactionType: "WEBINAR",
+        transactionId: transaction.id,
+        webinarId: transaction.webinar_id,
+        itemTitle: transaction.webinar.title,
+      }).catch(err => console.error("Wallet credit error:", err));
+
       // Send notifications (don't wait for them)
       WebinarController.sendEnrollmentNotifications(transaction.user, transaction.webinar).catch(err => {
         console.error('Error sending enrollment notifications:', err);
       });
 
-      console.log(`🎉 New webinar enrollment! User ${userId} enrolled in "${transaction.webinar.title}"`);
+      // In-app notifications
+      NotificationController.createNotification({
+        userId,
+        type: "WEBINAR",
+        title: "Webinar Enrolled",
+        message: `You have successfully enrolled in "${transaction.webinar.title}".`,
+        data: { webinarId: transaction.webinar_id },
+      }).catch(err => console.error("Notification error:", err));
+
+      NotificationController.createNotification({
+        userId: transaction.webinar.creator.id,
+        type: "SALE",
+        title: "New Webinar Enrollment",
+        message: `${transaction.user?.name || "A user"} enrolled in your "${transaction.webinar.title}" webinar for Rs. ${transaction.amount}.`,
+        data: { webinarId: transaction.webinar_id, buyerId: userId },
+      }).catch(err => console.error("Notification error:", err));
+
+      console.log(`New webinar enrollment! User ${userId} enrolled in "${transaction.webinar.title}"`);
 
       ApiResponseHandler.success(res, {
         enrollment,
         transaction: updatedTransaction,
+        wallet_info: {
+          title: "Payment received",
+          message: "Money will be submitted to your account after T+1 settlement period"
+        },
         message: "Payment verified and enrollment created successfully"
       }, "Payment verified successfully", 201);
 
@@ -882,11 +1062,11 @@ export class WebinarController {
     try {
       const user = await prisma.users.findUnique({ where: { id: userId } });
 
-      if (!user || user.user_type !== "CREATOR") {
+      if (!user || !isCreator(user.user_type)) {
         return ApiResponseHandler.customError(res, "Only creators can view statistics", 403, "FORBIDDEN");
       }
 
-      const [totalWebinars, publishedWebinars, upcomingWebinars, totalEnrollments] = await Promise.all([
+      const [totalWebinars, publishedWebinars, upcomingWebinars, totalEnrollments, webinarsSold] = await Promise.all([
         prisma.webinars.count({ where: { creator_id: userId } }),
         prisma.webinars.count({ where: { creator_id: userId, status: "PUBLISHED" } }),
         prisma.webinars.count({
@@ -900,6 +1080,14 @@ export class WebinarController {
           where: {
             webinar: {
               creator_id: userId
+            }
+          }
+        }),
+        prisma.webinars.count({
+          where: {
+            creator_id: userId,
+            enrollments: {
+              some: {}
             }
           }
         })
@@ -922,6 +1110,7 @@ export class WebinarController {
           upcoming_webinars: upcomingWebinars,
           draft_webinars: totalWebinars - publishedWebinars,
           total_enrollments: totalEnrollments,
+          webinars_sold: webinarsSold,
           webinars_with_enrollments: webinarEnrollments.map(w => ({
             webinar_id: w.id,
             webinar_title: w.title,
@@ -941,43 +1130,42 @@ export class WebinarController {
   // ============ HELPER METHODS ============
 
   /**
-   * Send enrollment notifications (Email & WhatsApp)
+   * Send enrollment notifications (Email & WhatsApp) using new templates
    */
   private static async sendEnrollmentNotifications(user: any, webinar: any): Promise<void> {
     try {
-      const emailData = {
-        userName: user.name || 'User',
-        userEmail: user.email,
-        webinarTitle: webinar.title,
-        webinarDescription: webinar.description,
-        scheduledAt: webinar.scheduled_at,
-        duration: webinar.duration,
-        zoomJoinUrl: webinar.zoom_join_url || '',
-        zoomPassword: webinar.zoom_password,
-        timezone: webinar.timezone
-      };
+      const scheduledDate = new Date(webinar.scheduled_at);
+      const tz = webinar.timezone || 'Asia/Kolkata';
 
-      // Send email
-      await emailService.sendWebinarEnrollmentEmail(emailData);
-      console.log('✅ Enrollment email sent');
+      const dateStr = scheduledDate.toLocaleDateString('en-IN', {
+        year: 'numeric', month: 'long', day: 'numeric', timeZone: tz,
+      });
+      const dayStr = scheduledDate.toLocaleDateString('en-IN', {
+        weekday: 'long', timeZone: tz,
+      });
+      const timeStr = scheduledDate.toLocaleTimeString('en-IN', {
+        hour: '2-digit', minute: '2-digit', hour12: true, timeZone: tz, timeZoneName: 'short',
+      });
 
-      // Send WhatsApp if phone number exists
-      if (user.phone) {
-        const whatsappData = {
-          userName: user.name || 'User',
-          userPhone: user.phone,
-          webinarTitle: webinar.title,
-          scheduledAt: webinar.scheduled_at,
-          zoomJoinUrl: webinar.zoom_join_url || '',
-          zoomPassword: webinar.zoom_password
-        };
+      // Get creator name
+      const creator = webinar.creator || {};
 
-        await whatsAppService.sendWebinarEnrollmentMessage(whatsappData);
-        console.log('✅ Enrollment WhatsApp message sent');
-      }
+      await notificationService.sendWebinarPurchaseNotification({
+        joineeName: user.name || 'there',
+        joineeEmail: user.email,
+        joineePhone: user.phone || undefined,
+        webinarName: webinar.title,
+        date: dateStr,
+        day: dayStr,
+        time: timeStr,
+        webinarLink: webinar.zoom_join_url || '',
+        password: webinar.zoom_password || '',
+        hostName: creator.name || 'Manchly',
+      });
+
+      console.log('✅ Webinar enrollment notifications sent');
     } catch (error) {
       console.error('Error sending enrollment notifications:', error);
-      // Don't throw error, just log it
     }
   }
 }

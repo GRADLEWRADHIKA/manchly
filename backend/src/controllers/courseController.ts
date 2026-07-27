@@ -2,6 +2,9 @@ import { Request, Response } from "express";
 import prisma from "../prismaClient";
 import { ApiResponseHandler } from "../utils/ApiResponseHandler";
 import MuxManager from "../utils/MuxManager";
+import { UserType } from "@prisma/client";
+import { isCreator, isUser } from "../utils/userTypeHelper";
+import { notificationService } from "../services/NotificationService";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -34,8 +37,6 @@ export class CourseController {
       status = "DRAFT"
     } = req.body;
 
-    console.log("req.user" , req.user );
-
     const userId = req.user.userId;
 
     // Validate required fields
@@ -45,7 +46,7 @@ export class CourseController {
 
     // Check if user is a creator
     const user = await prisma.users.findUnique({ where: { id: userId } });
-    if (!user || user.user_type !== "CREATOR") {
+    if (!user || !isCreator(user.user_type)) {
       return ApiResponseHandler.customError(res, "Only creators can create courses", 403, "FORBIDDEN");
     }
 
@@ -84,6 +85,103 @@ export class CourseController {
   }
 
   /**
+   * Public: list published courses for a creator (no auth required)
+   */
+  static async getPublicCourses(req: Request, res: Response) {
+    const { creator_id, page = 1, limit = 50, category, search } = req.query;
+
+    try {
+      const skip = (Number(page) - 1) * Number(limit);
+
+      const whereClause: any = { status: "PUBLISHED" };
+
+      if (creator_id) {
+        whereClause.creator_id = String(creator_id);
+      }
+
+      if (category) {
+        whereClause.category = String(category);
+      }
+
+      if (search) {
+        whereClause.OR = [
+          { title: { contains: String(search), mode: 'insensitive' } },
+          { description: { contains: String(search), mode: 'insensitive' } }
+        ];
+      }
+
+      const [courses, total] = await Promise.all([
+        prisma.courses.findMany({
+          where: whereClause,
+          skip,
+          take: Number(limit),
+          include: {
+            creator: {
+              select: {
+                id: true,
+                name: true,
+                profile_image: true
+              }
+            },
+            videos: {
+              where: { status: "READY" },
+              select: {
+                id: true,
+                title: true,
+                duration: true,
+                order: true,
+                is_free: true,
+                thumbnail_url: true
+              },
+              orderBy: { order: 'asc' }
+            },
+            _count: { select: { enrollments: true } }
+          },
+          orderBy: { created_at: 'desc' }
+        }),
+        prisma.courses.count({ where: whereClause })
+      ]);
+
+      const publicCourses = courses.map(c => ({
+        id: c.id,
+        title: c.title,
+        description: c.description,
+        thumbnail: c.thumbnail,
+        thumbnail_url: c.thumbnail_url,
+        price: c.price,
+        category: c.category,
+        tags: c.tags,
+        level: c.level,
+        language: c.language,
+        creator: c.creator,
+        total_videos: c.videos.length,
+        total_duration: c.videos.reduce((sum, v) => sum + (v.duration || 0), 0),
+        total_students: c._count.enrollments,
+        videos: c.videos.map(v => ({
+          id: v.id,
+          title: v.title,
+          duration: v.duration,
+          order: v.order,
+          is_free: v.is_free,
+          thumbnail_url: v.thumbnail_url
+        }))
+      }));
+
+      ApiResponseHandler.success(res, {
+        courses: publicCourses,
+        pagination: {
+          page: Number(page),
+          limit: Number(limit),
+          total,
+          total_pages: Math.ceil(total / Number(limit))
+        }
+      }, "Courses retrieved successfully");
+    } catch (err: any) {
+      ApiResponseHandler.unexpectedError(res, err, 500);
+    }
+  }
+
+  /**
    * Get all courses
    * - USER: Can see all published courses
    * - CREATOR: Can see their own courses (all statuses)
@@ -91,37 +189,38 @@ export class CourseController {
   static async getAllCourses(req: any, res: Response) {
     console.log("req.user" , req.user );
     const userId = req.user.userId;
-    const { 
-      page = 1, 
-      limit = 10, 
-      category, 
-      level, 
+    const {
+      page = 1,
+      limit = 10,
+      category,
+      level,
       status,
-      search 
+      search,
+      my_courses
     } = req.query;
 
     try {
       const user = await prisma.users.findUnique({ where: { id: userId } });
-      
+
       if (!user) {
         return ApiResponseHandler.customError(res, "User not found", 404, "USER_NOT_FOUND");
       }
 
       const skip = (Number(page) - 1) * Number(limit);
-      
+
       // Build where clause based on user type
       const whereClause: any = {};
 
-      if (user.user_type === "CREATOR") {
-        // Creators see only their courses
+      if (isCreator(user.user_type) && my_courses === "true") {
+        // Creators viewing their own courses (creator dashboard)
         whereClause.creator_id = userId;
-        
+
         // Apply status filter if provided
         if (status) {
           whereClause.status = status;
         }
       } else {
-        // Regular users see only published courses
+        // All users (including creators browsing) see only published courses
         whereClause.status = "PUBLISHED";
       }
 
@@ -159,6 +258,7 @@ export class CourseController {
               select: {
                 id: true,
                 title: true,
+                description: true,
                 duration: true,
                 status: true,
                 is_free: true,
@@ -170,7 +270,7 @@ export class CourseController {
               },
               orderBy: { order: 'asc' }
             },
-            enrollments: user.user_type === "USER" ? {
+            enrollments: isUser(user.user_type) ? {
               where: { user_id: userId },
               select: {
                 id: true,
@@ -299,15 +399,33 @@ export class CourseController {
               id: true,
               name: true,
               email: true,
-              profile_image: true
+              profile_image: true,
+              kyc_verified: true,
+              instagram_link: true,
+              linkedin_link: true,
+              youtube_link: true,
+              facebook_link: true
             }
           },
           videos: {
+            select: {
+              id: true,
+              title: true,
+              description: true,
+              duration: true,
+              status: true,
+              is_free: true,
+              order: true,
+              thumbnail_url: true,
+              playback_url: true,
+              mux_asset_id: true,
+              mux_upload_id: true
+            },
             orderBy: { order: 'asc' }
           },
-          enrollments: user.user_type === "USER" ? {
+          enrollments: isUser(user.user_type) ? {
             where: { user_id: userId }
-          } : true
+          } : false
         }
       });
 
@@ -315,30 +433,40 @@ export class CourseController {
         return ApiResponseHandler.customError(res, "Course not found", 404, "COURSE_NOT_FOUND");
       }
 
-      // Check access permissions
-      if (user.user_type === "CREATOR" && course.creator_id !== userId) {
+      // Check access permissions — course creator always has full access
+      const isOwner = course.creator_id === userId;
+
+      if (!isOwner && isCreator(user.user_type) && !isUser(user.user_type)) {
         return ApiResponseHandler.customError(res, "You don't have access to this course", 403, "FORBIDDEN");
       }
 
-      if (user.user_type === "USER" && course.status !== "PUBLISHED") {
+      if (!isOwner && course.status !== "PUBLISHED") {
         return ApiResponseHandler.customError(res, "Course not available", 403, "COURSE_NOT_AVAILABLE");
       }
 
-      const isEnrolled = user.user_type === "USER" && 
-                         course.enrollments && 
+      const isEnrolled = isUser(user.user_type) &&
+                         course.enrollments &&
                          course.enrollments.length > 0;
+
+      const totalStudents = await prisma.enrollments.count({
+        where: { course_id: courseId }
+      });
 
       // Filter videos based on enrollment status
       let videosToShow = course.videos;
-      if (user.user_type === "USER" && !isEnrolled) {
+      if (isUser(user.user_type) && !isEnrolled && course.creator_id !== userId) {
         // Show only free videos to non-enrolled users
         videosToShow = course.videos.filter(v => v.is_free);
       }
+
 
       ApiResponseHandler.success(res, {
         course: {
           ...course,
           videos: videosToShow,
+          total_videos: course.videos.length,
+          total_duration: course.videos.reduce((sum, v) => sum + (v.duration || 0), 0),
+          total_students: totalStudents,
           is_enrolled: isEnrolled,
           enrollment_info: isEnrolled ? course.enrollments[0] : null
         }
@@ -407,7 +535,12 @@ export class CourseController {
               id: true,
               name: true,
               email: true,
-              profile_image: true
+              profile_image: true,
+              kyc_verified: true,
+              instagram_link: true,
+              linkedin_link: true,
+              youtube_link: true,
+              facebook_link: true
             }
           },
           videos: true
@@ -758,7 +891,7 @@ export class CourseController {
         return ApiResponseHandler.customError(res, "User not found", 404, "USER_NOT_FOUND");
       }
 
-      if (user.user_type !== "USER") {
+      if (!isUser(user.user_type)) {
         return ApiResponseHandler.customError(res, "Only regular users can enroll in courses", 403, "FORBIDDEN");
       }
 
@@ -835,7 +968,17 @@ export class CourseController {
         }
       });
 
-      ApiResponseHandler.success(res, { 
+      // Send course purchase notification
+      notificationService.sendCoursePurchaseNotification({
+        customerName: user.name || 'there',
+        customerEmail: user.email,
+        customerPhone: user.phone || undefined,
+        courseName: course.title,
+        courseAccessLink: `${process.env.APP_URL || 'https://manchly.com'}/courses/${courseId}`,
+        hostName: enrollment.course.creator?.name || 'Manchly',
+      }).catch(err => console.error('Free course notification error:', err));
+
+      ApiResponseHandler.success(res, {
         enrollment,
         transaction,
         message: "Successfully enrolled in free course"
@@ -994,11 +1137,11 @@ export class CourseController {
     try {
       const user = await prisma.users.findUnique({ where: { id: userId } });
       
-      if (!user || user.user_type !== "CREATOR") {
+      if (!user || !isCreator(user.user_type)) {
         return ApiResponseHandler.customError(res, "Only creators can view statistics", 403, "FORBIDDEN");
       }
 
-      const [totalCourses, publishedCourses, totalEnrollments, totalVideos] = await Promise.all([
+      const [totalCourses, publishedCourses, totalEnrollments, totalVideos, coursesSold] = await Promise.all([
         prisma.courses.count({ where: { creator_id: userId } }),
         prisma.courses.count({ where: { creator_id: userId, status: "PUBLISHED" } }),
         prisma.enrollments.count({
@@ -1012,6 +1155,14 @@ export class CourseController {
           where: {
             course: {
               creator_id: userId
+            }
+          }
+        }),
+        prisma.courses.count({
+          where: {
+            creator_id: userId,
+            enrollments: {
+              some: {}
             }
           }
         })
@@ -1034,6 +1185,7 @@ export class CourseController {
           draft_courses: totalCourses - publishedCourses,
           total_enrollments: totalEnrollments,
           total_videos: totalVideos,
+          courses_sold: coursesSold,
           courses_with_enrollments: courseEnrollments.map(c => ({
             course_id: c.id,
             course_title: c.title,
@@ -1046,4 +1198,3 @@ export class CourseController {
     }
   }
 }
-

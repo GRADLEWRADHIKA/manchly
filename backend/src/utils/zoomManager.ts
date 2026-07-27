@@ -4,11 +4,88 @@ import crypto from 'crypto';
 interface ZoomConfig {
   apiKey: string;
   apiSecret: string;
-  accountId?: string; // For JWT app, use accountId instead of apiKey/apiSecret for OAuth
+  accountId?: string;
   oauthClientId?: string;
   oauthClientSecret?: string;
   redirectUri?: string;
   timeout?: number;
+}
+
+export type ZoomAuthMode = "s2s" | "jwt";
+
+export interface ZoomConfigurationStatus {
+  isConfigured: boolean;
+  mode: ZoomAuthMode | null;
+  missing: string[];
+}
+
+const ZOOM_SETUP_MESSAGE =
+  "Set ZOOM_ACCOUNT_ID, ZOOM_CLIENT_ID, and ZOOM_CLIENT_SECRET " +
+  "(Server-to-Server OAuth) in your environment variables. " +
+  "Legacy JWT auth is also supported via ZOOM_API_KEY and ZOOM_API_SECRET.";
+
+export function resolveZoomConfig(): ZoomConfig {
+  return {
+    apiKey: process.env.ZOOM_API_KEY?.trim() || "",
+    apiSecret: process.env.ZOOM_API_SECRET?.trim() || "",
+    accountId: process.env.ZOOM_ACCOUNT_ID?.trim() || undefined,
+    oauthClientId:
+      process.env.ZOOM_CLIENT_ID?.trim() ||
+      process.env.ZOOM_OAUTH_CLIENT_ID?.trim() ||
+      undefined,
+    oauthClientSecret:
+      process.env.ZOOM_CLIENT_SECRET?.trim() ||
+      process.env.ZOOM_OAUTH_CLIENT_SECRET?.trim() ||
+      undefined,
+    redirectUri: process.env.ZOOM_REDIRECT_URI?.trim(),
+  };
+}
+
+export function getZoomConfigurationStatus(
+  config: ZoomConfig = resolveZoomConfig()
+): ZoomConfigurationStatus {
+  const hasS2S =
+    !!config.accountId && !!config.oauthClientId && !!config.oauthClientSecret;
+  const hasJWT = !!config.apiKey && !!config.apiSecret;
+
+  if (hasS2S) {
+    return { isConfigured: true, mode: "s2s", missing: [] };
+  }
+
+  if (hasJWT) {
+    return { isConfigured: true, mode: "jwt", missing: [] };
+  }
+
+  const missing: string[] = [];
+  const partialS2S =
+    !!config.accountId || !!config.oauthClientId || !!config.oauthClientSecret;
+
+  if (partialS2S || !hasJWT) {
+    if (!config.accountId) missing.push("ZOOM_ACCOUNT_ID");
+    if (!config.oauthClientId) {
+      missing.push("ZOOM_CLIENT_ID (or ZOOM_OAUTH_CLIENT_ID)");
+    }
+    if (!config.oauthClientSecret) {
+      missing.push("ZOOM_CLIENT_SECRET (or ZOOM_OAUTH_CLIENT_SECRET)");
+    }
+  }
+
+  if (!partialS2S && !hasJWT) {
+    return {
+      isConfigured: false,
+      mode: null,
+      missing: [
+        "ZOOM_ACCOUNT_ID",
+        "ZOOM_CLIENT_ID (or ZOOM_OAUTH_CLIENT_ID)",
+        "ZOOM_CLIENT_SECRET (or ZOOM_OAUTH_CLIENT_SECRET)",
+      ],
+    };
+  }
+
+  return { isConfigured: false, mode: null, missing };
+}
+export function createZoomMeetingManager(config: ZoomConfig = resolveZoomConfig()): ZoomMeetingManager {
+  return new ZoomMeetingManager(config);
 }
 
 interface CreateMeetingOptions {
@@ -104,10 +181,24 @@ class ZoomMeetingManager {
   private config: ZoomConfig;
   private accessToken: string | null = null;
   private tokenExpiry: Date | null = null;
+  private configurationStatus: ZoomConfigurationStatus;
 
   constructor(config: ZoomConfig) {
     this.config = config;
-    
+    this.configurationStatus = getZoomConfigurationStatus(config);
+
+    if (!this.configurationStatus.isConfigured) {
+      console.warn(
+        "⚠️  [Zoom] Invalid Zoom configuration — webinar meeting creation is disabled until credentials are set.\n" +
+          `    Missing: ${this.configurationStatus.missing.join(", ")}\n` +
+          `    ${ZOOM_SETUP_MESSAGE}`
+      );
+    } else {
+      console.info(
+        `✅ [Zoom] Configured for ${this.configurationStatus.mode === "s2s" ? "Server-to-Server OAuth" : "legacy JWT"} authentication.`
+      );
+    }
+
     this.client = axios.create({
       baseURL: 'https://api.zoom.us/v2',
       timeout: config.timeout || 30000,
@@ -138,33 +229,51 @@ class ZoomMeetingManager {
       }
     );
   }
+  isConfigured(): boolean {
+    return this.configurationStatus.isConfigured;
+  }
+  private ensureConfigured(): void {
+    if (this.configurationStatus.isConfigured) {
+      return;
+    }
 
-  /**
-   * Authenticate with Zoom API
-   */
+    const missing = this.configurationStatus.missing.join(", ");
+    console.error(
+      `[Zoom] Invalid Zoom configuration. Missing environment variables: ${missing}. ${ZOOM_SETUP_MESSAGE}`
+    );
+    throw new Error(
+      `Invalid Zoom configuration. Missing: ${missing}. ${ZOOM_SETUP_MESSAGE}`
+    );
+  }
+
   private async authenticate(): Promise<void> {
     try {
-      // For Server-to-Server OAuth (Recommended)
-      if (this.config.accountId) {
+      this.ensureConfigured();
+
+      const hasS2S =
+        !!this.config.accountId &&
+        !!this.config.oauthClientId &&
+        !!this.config.oauthClientSecret;
+
+      if (hasS2S) {
         const token = await this.getServerToServerToken();
         this.accessToken = token.access_token;
-        this.tokenExpiry = new Date(Date.now() + (token.expires_in - 60) * 1000); // Subtract 60 seconds for safety
-      } 
-      // For JWT (Legacy)
+        this.tokenExpiry = new Date(Date.now() + (token.expires_in - 60) * 1000);
+      }
+
       else if (this.config.apiKey && this.config.apiSecret) {
         this.accessToken = this.generateJWTToken();
-        this.tokenExpiry = new Date(Date.now() + 59 * 60 * 1000); // JWT tokens expire in 1 hour
+        this.tokenExpiry = new Date(Date.now() + 59 * 60 * 1000);
       } else {
-        throw new Error('Invalid Zoom configuration. Provide either accountId for OAuth or apiKey/apiSecret for JWT.');
+        throw new Error(
+          `Invalid Zoom configuration. Missing: ${this.configurationStatus.missing.join(", ")}. ${ZOOM_SETUP_MESSAGE}`
+        );
       }
     } catch (error) {
-      throw new Error(`Zoom authentication failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Zoom authentication failed: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
   }
 
-  /**
-   * Generate JWT token (Legacy method)
-   */
   private generateJWTToken(): string {
     const payload = {
       iss: this.config.apiKey,
@@ -187,9 +296,6 @@ class ZoomMeetingManager {
     return `${encodedHeader}.${encodedPayload}.${signature}`;
   }
 
-  /**
-   * Get Server-to-Server OAuth token (Recommended)
-   */
   private async getServerToServerToken(): Promise<{ access_token: string; expires_in: number }> {
     const credentials = Buffer.from(`${this.config.oauthClientId}:${this.config.oauthClientSecret}`).toString('base64');
     
@@ -224,6 +330,8 @@ class ZoomMeetingManager {
    */
   async createMeeting(userId: string = 'me', options: CreateMeetingOptions): Promise<Meeting> {
     try {
+      this.ensureConfigured();
+
       const meetingData = {
         topic: options.topic,
         type: options.type || 2, // Default to scheduled meeting
@@ -423,10 +531,7 @@ class ZoomMeetingManager {
       
       // In a real implementation, you would integrate with your email service
       // This is a placeholder for the email sending logic
-      console.log(`Sending invitation email to: ${registrantEmail}`);
-      console.log(`Meeting Topic: ${meeting.topic}`);
-      console.log(`Join URL: ${meeting.join_url}`);
-      console.log(`Password: ${meeting.password}`);
+      // Email invitation placeholder — integrate with email service
       
       // Example integration with nodemailer or other email service
       // await emailService.send({

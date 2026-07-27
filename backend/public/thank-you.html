@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thank You — Payment Successful</title>
+
+    <!-- Meta Pixel Code -->
+    <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', '1318626056797289');
+    fbq('track', 'PageView');
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id=1318626056797289&ev=PageView&noscript=1"
+    /></noscript>
+    <!-- End Meta Pixel Code -->
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #FEFCE8 0%, #F9FAFB 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: #111827;
+        }
+        .card {
+            background: white;
+            border-radius: 28px;
+            box-shadow: 0 25px 60px -15px rgba(0,0,0,0.15);
+            padding: 3rem 2.5rem;
+            max-width: 480px;
+            width: 100%;
+            text-align: center;
+            animation: slideUp 0.5s ease-out;
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .icon-wrap {
+            width: 90px;
+            height: 90px;
+            background: #D1FAE5;
+            color: #065F46;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.4rem;
+            margin: 0 auto 24px;
+            animation: pop 0.6s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        @keyframes pop {
+            0%   { transform: scale(0); }
+            100% { transform: scale(1); }
+        }
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            letter-spacing: -0.02em;
+        }
+        p { color: #6B7280; font-size: 1rem; line-height: 1.6; }
+        .order-box {
+            background: #FEFCE8;
+            border: 1px solid #FDE68A;
+            border-radius: 16px;
+            padding: 14px 20px;
+            margin: 24px 0;
+            text-align: left;
+        }
+        .order-box .label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #92400E;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .order-box .value {
+            font-family: monospace;
+            font-size: 0.88rem;
+            color: #111827;
+            margin-top: 4px;
+            word-break: break-all;
+        }
+        .btn {
+            display: inline-block;
+            background: #111827;
+            color: white;
+            padding: 14px 32px;
+            border-radius: 60px;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: background 0.2s;
+        }
+        .btn:hover { background: #EAB308; color: #000; }
+        .redirect-note {
+            margin-top: 18px;
+            font-size: 0.8rem;
+            color: #9CA3AF;
+        }
+        .countdown { color: #EAB308; font-weight: 700; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="icon-wrap"><i class="fas fa-check"></i></div>
+        <h1>🎉 Payment Successful!</h1>
+        <p>Your enrollment is confirmed. You now have full access to the course.</p>
+
+        <div class="order-box" id="orderBox" style="display:none;">
+            <div class="label">Order ID</div>
+            <div class="value" id="orderId"></div>
+        </div>
+
+        <a id="continueBtn" class="btn" href="#">Continue to Course</a>
+        <p class="redirect-note" id="redirectNote">
+            Redirecting automatically in <span class="countdown" id="countdown">5</span> seconds…
+        </p>
+    </div>
+
+<script>
+(function () {
+    const params  = new URLSearchParams(window.location.search);
+    const orderId = params.get('order_id') || '';
+    const returnTo = params.get('return_to') || '';
+    const amount   = params.get('amount') || '';
+    const currency = params.get('currency') || 'INR';
+
+    // Show order ID
+    if (orderId) {
+        document.getElementById('orderId').textContent = orderId;
+        document.getElementById('orderBox').style.display = 'block';
+    }
+
+    // Fire Meta Pixel Purchase event (standard e-commerce conversion)
+    if (typeof fbq === 'function' && amount) {
+        const value = parseFloat(amount);
+        if (!isNaN(value) && value > 0) {
+            fbq('track', 'Purchase', { value: value, currency: currency });
+        }
+    }
+
+    // Build redirect URL with success status
+    function buildReturnUrl() {
+        if (!returnTo) return null;
+        const sep = returnTo.indexOf('?') > -1 ? '&' : '?';
+        return returnTo + sep + 'payment=success' + (orderId ? '&order_id=' + encodeURIComponent(orderId) : '');
+    }
+
+    const url = buildReturnUrl();
+    const btn = document.getElementById('continueBtn');
+
+    if (!url) {
+        // No return_to — disable auto-redirect
+        btn.href = 'https://manchly.com';
+        btn.textContent = 'Back to Manchly';
+        document.getElementById('redirectNote').style.display = 'none';
+        return;
+    }
+
+    btn.href = url;
+
+    // Auto-redirect after 5 seconds
+    let seconds = 5;
+    const el = document.getElementById('countdown');
+    const tick = setInterval(function () {
+        seconds--;
+        if (el) el.textContent = seconds;
+        if (seconds <= 0) {
+            clearInterval(tick);
+            window.location.href = url;
+        }
+    }, 1000);
+})();
+</script>
+</body>
+</html>

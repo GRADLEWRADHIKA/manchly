@@ -1,23 +1,23 @@
 import { Request, Response } from "express";
 import prisma from "../prismaClient";
 import { ApiResponseHandler } from "../utils/ApiResponseHandler";
+import { isUser, isCreator } from "../utils/userTypeHelper";
+import { SettlementService } from "../services/settlementService";
+import { notificationService } from "../services/NotificationService";
+import { cashfreePG } from "../services/cashfreeService";
+import { sanitizePhoneForCashfree } from "../utils/phone";
+import { NotificationController } from "./notificationController";
+import { processTelegramPaymentSuccess, processTelegramPaymentFailed } from "./telegramController";
+import { processPremiumPaymentSuccess, processPremiumPaymentFailed } from "./subscriptionController";
 import crypto from "crypto";
 import dotenv from "dotenv";
 
 dotenv.config();
 
-const Razorpay = require('razorpay');
-
-// Initialize Razorpay
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID!,
-  key_secret: process.env.RAZORPAY_KEY_SECRET!
-});
-
 export class PaymentController {
-  
+
   /**
-   * Create Razorpay order for course enrollment
+   * Create Cashfree order for course enrollment
    */
   static async createOrder(req: any, res: Response) {
     const { courseId } = req.params;
@@ -26,12 +26,12 @@ export class PaymentController {
     try {
       // Get user details
       const user = await prisma.users.findUnique({ where: { id: userId } });
-      
+
       if (!user) {
         return ApiResponseHandler.customError(res, "User not found", 404, "USER_NOT_FOUND");
       }
 
-      if (user.user_type !== "USER") {
+      if (!isUser(user.user_type)) {
         return ApiResponseHandler.customError(res, "Only regular users can purchase courses", 403, "FORBIDDEN");
       }
 
@@ -71,19 +71,6 @@ export class PaymentController {
         return ApiResponseHandler.customError(res, "Already enrolled in this course", 400, "ALREADY_ENROLLED");
       }
 
-      // Check if there's a pending transaction
-      const pendingTransaction = await prisma.transactions.findFirst({
-        where: {
-          user_id: userId,
-          course_id: courseId,
-          status: "PENDING"
-        }
-      });
-
-      // if (pendingTransaction) {
-      //   return ApiResponseHandler.customError(res, "You already have a pending payment for this course", 400, "PENDING_PAYMENT_EXISTS");
-      // }
-
       // Handle free courses
       if (course.price === 0) {
         // Create transaction record
@@ -108,6 +95,33 @@ export class PaymentController {
           }
         });
 
+        // In-app notifications
+        NotificationController.createNotification({
+          userId,
+          type: "COURSE",
+          title: "Course Enrolled",
+          message: `You have successfully enrolled in "${course.title}". Start learning now!`,
+          data: { courseId },
+        }).catch(err => console.error("Notification error:", err));
+
+        NotificationController.createNotification({
+          userId: course.creator_id,
+          type: "SALE",
+          title: "New Course Enrollment",
+          message: `${user.name || "A user"} enrolled in your "${course.title}" course.`,
+          data: { courseId, buyerId: userId },
+        }).catch(err => console.error("Notification error:", err));
+
+        // Send course purchase notification for free course
+        notificationService.sendCoursePurchaseNotification({
+          customerName: user.name || 'there',
+          customerEmail: user.email,
+          customerPhone: user.phone || undefined,
+          courseName: course.title,
+          courseAccessLink: `${process.env.APP_URL || 'https://manchly.com'}/courses/${courseId}`,
+          hostName: course.creator?.name || 'Manchly',
+        }).catch(err => console.error('Free course notification error:', err));
+
         return ApiResponseHandler.success(res, {
           enrollment,
           transaction,
@@ -115,34 +129,82 @@ export class PaymentController {
         }, "Enrollment successful", 201);
       }
 
-      // Create Razorpay order for paid courses
-      const amountInPaise = Math.round(course.price * 100); // Convert to paise
-      
-      const razorpayOrder = await razorpay.orders.create({
-        amount: amountInPaise,
+      // Create Cashfree order for paid courses
+      // Some courses are billed at the listed price with no GST/platform fee added.
+      const NO_FEE_COURSE_IDS = new Set<string>([
+        // (Sahmad ansari's "YouTube Automation Blueprint" used to be exempt; it
+        // now charges 18% GST + 2%-of-base platform fee like the rest of the
+        // xtechmoneymatrix catalog.)
+      ]);
+      // xtechmoneymatrix catalog (creator: Sahmad ansari — xtechnawada@gmail.com,
+      // drives the xtechmoneymatrix.com landing page). These courses bill the
+      // platform fee as a flat 2% of the base price; every other course keeps the
+      // legacy 5%-of-GST platform fee.
+      const XTECHMONEYMATRIX_CREATOR_ID = '21ac6faa-d579-44f9-8458-7e995adfa90c';
+      const GST_PERCENT = 18;
+      const noFee = NO_FEE_COURSE_IDS.has(courseId);
+      const isXtechMoneyMatrix = course.creator_id === XTECHMONEYMATRIX_CREATOR_ID;
+      const PLATFORM_FEE_PERCENT = isXtechMoneyMatrix ? 2 : 5; // xtechmoneymatrix: 2% of base; others: 5% of GST
+      const basePrice = course.price;
+      const gstAmount = noFee ? 0 : basePrice * (GST_PERCENT / 100);
+      const platformFee = noFee
+        ? 0
+        : isXtechMoneyMatrix
+          ? basePrice * (PLATFORM_FEE_PERCENT / 100)   // 2% of base price
+          : gstAmount * (PLATFORM_FEE_PERCENT / 100);  // 5% of GST amount (legacy)
+      const finalAmount = basePrice + gstAmount + platformFee;
+      const round2 = (n: number) => parseFloat(n.toFixed(2));
+      const finalAmountRounded = round2(finalAmount);
+      const pricingBreakdown = {
+        base_price: round2(basePrice),
+        gst_percent: noFee ? 0 : GST_PERCENT,
+        gst_amount: round2(gstAmount),
+        platform_fee_percent: noFee ? 0 : PLATFORM_FEE_PERCENT,
+        platform_fee_amount: round2(platformFee),
+        total: finalAmountRounded,
         currency: "INR",
-        receipt: `receipt_${Date.now()}`,
-        notes: {
+      };
+
+      const orderId = `course_${courseId}_${Date.now()}`;
+
+      const orderRequest = {
+        order_id: orderId,
+        order_amount: finalAmountRounded,
+        order_currency: "INR",
+        customer_details: {
+          customer_id: userId.slice(0, 50),
+          customer_phone: sanitizePhoneForCashfree(user.phone),
+          customer_name: (user.name || "User").slice(0, 100),
+          customer_email: user.email,
+        },
+        order_meta: {
+          return_url: `${process.env.APP_URL || 'https://manchly.com'}/payment/return?order_id={order_id}`,
+          notify_url: `${process.env.APP_URL || 'https://server.manchly.com'}/payments/webhook`,
+        },
+        order_note: `Course: ${course.title}`,
+        order_tags: {
           user_id: userId,
           course_id: courseId,
-          course_title: course.title,
-          user_email: user.email
-        }
-      });
+          type: "course",
+        },
+      };
+
+      const cashfreeOrder = await cashfreePG.PGCreateOrder(orderRequest);
+      const orderData = cashfreeOrder.data;
 
       // Create transaction record in database
       const transaction = await prisma.transactions.create({
         data: {
           user_id: userId,
           course_id: courseId,
-          amount: course.price,
+          amount: finalAmountRounded,
           currency: "INR",
           status: "PENDING",
-          payment_method: "RAZORPAY",
-          razorpay_order_id: razorpayOrder.id,
-          payment_details: {
-            razorpay_order: razorpayOrder
-          }
+          payment_method: "CASHFREE",
+          cashfree_order_id: orderId,
+          payment_details: JSON.parse(JSON.stringify({
+            cashfree_order: orderData
+          }))
         },
         include: {
           course: {
@@ -159,12 +221,13 @@ export class PaymentController {
       // Return order details for frontend
       ApiResponseHandler.success(res, {
         transaction,
-        razorpay_order: {
-          id: razorpayOrder.id,
-          amount: razorpayOrder.amount,
-          currency: razorpayOrder.currency
+        cashfree_order: {
+          order_id: orderData.order_id,
+          payment_session_id: orderData.payment_session_id,
+          order_status: orderData.order_status,
         },
-        razorpay_key_id: process.env.RAZORPAY_KEY_ID,
+        cashfree_pg_app_id: process.env.CASHFREE_PG_APP_ID,
+        cashfree_env: process.env.CASHFREE_PG_ENV || "SANDBOX",
         user_details: {
           name: user.name,
           email: user.email,
@@ -173,36 +236,37 @@ export class PaymentController {
         course_details: {
           id: course.id,
           title: course.title,
-          price: course.price,
+          price: finalAmountRounded,
+          original_price: course.price,
           thumbnail: course.thumbnail
-        }
-      }, "Razorpay order created successfully", 201);
+        },
+        pricing_breakdown: pricingBreakdown
+      }, "Cashfree order created successfully", 201);
 
     } catch (err: any) {
-      console.error("Error creating Razorpay order:", err);
-      ApiResponseHandler.unexpectedError(res, err, 500);
+      // Log the full Cashfree error for debugging
+      const cfDetail = err?.response?.data || err?.data || err?.message || err;
+      console.error("Error creating Cashfree order:", JSON.stringify(cfDetail, null, 2));
+      const msg = typeof cfDetail === 'object' ? (cfDetail.message || cfDetail.type || JSON.stringify(cfDetail)) : String(cfDetail);
+      ApiResponseHandler.customError(res, msg, 500, "PAYMENT_ORDER_FAILED");
     }
   }
 
   /**
-   * Verify payment and create enrollment
+   * Verify payment by checking order status with Cashfree
    */
   static async verifyPayment(req: any, res: Response) {
-    const { 
-      razorpay_order_id, 
-      razorpay_payment_id, 
-      razorpay_signature 
-    } = req.body;
+    const { order_id } = req.body;
     const userId = req.user.userId;
 
-    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
-      return ApiResponseHandler.customError(res, "Missing payment verification details", 400, "MISSING_PAYMENT_DETAILS");
+    if (!order_id) {
+      return ApiResponseHandler.customError(res, "Missing order_id", 400, "MISSING_ORDER_ID");
     }
 
     try {
       // Find transaction
       const transaction = await prisma.transactions.findUnique({
-        where: { razorpay_order_id },
+        where: { cashfree_order_id: order_id },
         include: {
           course: {
             include: {
@@ -227,42 +291,72 @@ export class PaymentController {
       }
 
       if (transaction.status === "SUCCESS") {
-        return ApiResponseHandler.customError(res, "Payment already verified", 400, "ALREADY_VERIFIED");
-      }
-
-      // Verify signature
-      const generatedSignature = crypto
-        .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET!)
-        .update(`${razorpay_order_id}|${razorpay_payment_id}`)
-        .digest('hex');
-
-      if (generatedSignature !== razorpay_signature) {
-        // Update transaction as failed
-        await prisma.transactions.update({
-          where: { id: transaction.id },
-          data: {
-            status: "FAILED",
-            failure_reason: "Invalid signature"
+        // Webhook may have already processed this payment — return success
+        const existingEnrollment = await prisma.enrollments.findUnique({
+          where: {
+            user_id_course_id: {
+              user_id: userId,
+              course_id: transaction.course_id
+            }
+          },
+          include: {
+            course: {
+              include: {
+                creator: {
+                  select: { id: true, name: true, email: true }
+                },
+                videos: true
+              }
+            }
           }
         });
 
-        return ApiResponseHandler.customError(res, "Invalid payment signature", 400, "INVALID_SIGNATURE");
+        return ApiResponseHandler.success(res, {
+          enrollment: existingEnrollment,
+          transaction,
+          message: "Payment already verified and enrollment exists"
+        }, "Payment verified successfully", 200);
       }
 
-      // Fetch payment details from Razorpay
-      const payment = await razorpay.payments.fetch(razorpay_payment_id);
+      // Verify order status with Cashfree server-to-server
+      const orderResponse = await cashfreePG.PGFetchOrder(order_id);
+      const orderData = orderResponse.data;
+
+      if (orderData.order_status !== "PAID") {
+        if (orderData.order_status === "EXPIRED") {
+          await prisma.transactions.update({
+            where: { id: transaction.id },
+            data: {
+              status: "FAILED",
+              failure_reason: "Order expired"
+            }
+          });
+        }
+        return ApiResponseHandler.customError(res, `Payment not completed. Status: ${orderData.order_status}`, 400, "PAYMENT_NOT_COMPLETED");
+      }
+
+      // Get payment details
+      let paymentInfo = null;
+      try {
+        const paymentsResponse = await cashfreePG.PGOrderFetchPayments(order_id);
+        paymentInfo = paymentsResponse.data;
+      } catch (e) {
+        console.error("Error fetching payment details:", e);
+      }
+
+      const cfPaymentId = paymentInfo?.[0]?.cf_payment_id?.toString() || null;
 
       // Update transaction
       const updatedTransaction = await prisma.transactions.update({
         where: { id: transaction.id },
         data: {
           status: "SUCCESS",
-          razorpay_payment_id,
-          razorpay_signature,
+          cf_payment_id: cfPaymentId,
           completed_at: new Date(),
-          payment_details: {
-            payment_info: payment
-          }
+          payment_details: JSON.parse(JSON.stringify({
+            order_info: orderData,
+            payment_info: paymentInfo
+          }))
         }
       });
 
@@ -289,13 +383,58 @@ export class PaymentController {
         }
       });
 
-      // TODO: Send notification to creator
-      console.log(`🎉 New purchase! User ${userId} purchased course "${transaction.course.title}" for ₹${transaction.amount}`);
-      console.log(`Creator: ${transaction.course.creator.name} (${transaction.course.creator.email})`);
+      // Credit creator's wallet
+      SettlementService.creditCreatorWallet({
+        creatorId: transaction.course.creator.id,
+        grossAmount: transaction.course.price,
+        transactionType: "COURSE",
+        transactionId: transaction.id,
+        courseId: transaction.course_id,
+        itemTitle: transaction.course.title,
+      }).catch(err => console.error("Wallet credit error:", err));
+
+      // Send course purchase notification (Email + WhatsApp)
+      const buyer = await prisma.users.findUnique({
+        where: { id: userId },
+        select: { name: true, email: true, phone: true }
+      });
+      if (buyer) {
+        notificationService.sendCoursePurchaseNotification({
+          customerName: buyer.name || 'there',
+          customerEmail: buyer.email,
+          customerPhone: buyer.phone || undefined,
+          courseName: transaction.course.title,
+          courseAccessLink: `${process.env.APP_URL || 'https://manchly.com'}/courses/${transaction.course_id}`,
+          hostName: transaction.course.creator.name || 'Manchly',
+        }).catch(err => console.error('Course purchase notification error:', err));
+      }
+
+      // In-app notifications
+      NotificationController.createNotification({
+        userId,
+        type: "COURSE",
+        title: "Course Purchased",
+        message: `You have successfully enrolled in "${transaction.course.title}". Start learning now!`,
+        data: { courseId: transaction.course_id },
+      }).catch(err => console.error("Notification error:", err));
+
+      NotificationController.createNotification({
+        userId: transaction.course.creator.id,
+        type: "SALE",
+        title: "New Course Purchase",
+        message: `${buyer?.name || "A user"} purchased your "${transaction.course.title}" course for Rs. ${transaction.amount}.`,
+        data: { courseId: transaction.course_id, buyerId: userId },
+      }).catch(err => console.error("Notification error:", err));
+
+      console.log(`New purchase! User ${userId} purchased course "${transaction.course.title}" for ${transaction.amount}`);
 
       ApiResponseHandler.success(res, {
         enrollment,
         transaction: updatedTransaction,
+        wallet_info: {
+          title: "Payment received",
+          message: "Payment credited to creator's wallet. Creator can withdraw anytime."
+        },
         message: "Payment verified and enrollment created successfully"
       }, "Payment verified successfully", 201);
 
@@ -306,61 +445,121 @@ export class PaymentController {
   }
 
   /**
-   * Razorpay Webhook Handler
+   * Cashfree Webhook Handler
    */
   static async handleWebhook(req: Request, res: Response) {
-    const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
-    const signature = req.headers['x-razorpay-signature'] as string;
+    // Cashfree PG signs webhooks with the Client Secret Key (same key used for API auth),
+    // not a separately-configured webhook secret.
+    const webhookSecret = process.env.CASHFREE_PG_SECRET_KEY;
+    const signature = req.headers['x-webhook-signature'] as string;
+    const timestamp = req.headers['x-webhook-timestamp'] as string;
+    const rawBody = (req as any).rawBody;
+
+    console.log("Payment webhook received:", {
+      hasSignature: !!signature,
+      hasTimestamp: !!timestamp,
+      hasSecret: !!webhookSecret,
+      hasRawBody: !!rawBody,
+      headers: Object.keys(req.headers).filter(h => h.startsWith("x-")),
+    });
 
     try {
-      // Verify webhook signature
-      const generatedSignature = crypto
-        .createHmac('sha256', webhookSecret!)
-        .update(JSON.stringify(req.body))
-        .digest('hex');
-
-      if (generatedSignature !== signature) {
-        return ApiResponseHandler.customError(res, "Invalid webhook signature", 400, "INVALID_SIGNATURE");
+      // If no signature headers, Cashfree might be doing a URL verification ping
+      if (!signature || !timestamp) {
+        console.log("Payment webhook: No signature headers — accepting as verification ping");
+        return res.status(200).json({ status: "ok" });
       }
 
-      const event = req.body.event;
-      const payload = req.body.payload.payment.entity;
+      if (!webhookSecret) {
+        console.error("CASHFREE_PG_SECRET_KEY not configured");
+        return res.status(200).json({ status: "ok" });
+      }
 
-      console.log(`📥 Razorpay Webhook: ${event}`, payload);
+      if (!rawBody) {
+        console.error("Payment webhook: rawBody not available");
+        return res.status(200).json({ status: "ok" });
+      }
 
-      // Handle different events
-      switch (event) {
-        case 'payment.authorized':
-        case 'payment.captured':
-          await PaymentController.handlePaymentSuccess(payload);
+      // Verify webhook signature using raw body
+      // Cashfree signature = HMAC-SHA256(timestamp + rawBody, secret) in base64
+      const signedPayload = timestamp + rawBody;
+      const expectedSignature = crypto
+        .createHmac('sha256', webhookSecret)
+        .update(signedPayload)
+        .digest('base64');
+
+      if (expectedSignature !== signature) {
+        console.error("Payment webhook signature mismatch:", {
+          expected: expectedSignature,
+          received: signature,
+        });
+        // Return 200 to prevent Cashfree from retrying endlessly
+        return res.status(200).json({ status: "ok" });
+      }
+
+      const body = typeof req.body === "object" ? req.body : JSON.parse(rawBody);
+      const eventType = body.type;
+      const data = body.data;
+
+      console.log(`Cashfree Webhook: ${eventType}`, data?.order?.order_id);
+
+      switch (eventType) {
+        case 'PAYMENT_SUCCESS_WEBHOOK':
+          await PaymentController.handlePaymentSuccess(data);
           break;
 
-        case 'payment.failed':
-          await PaymentController.handlePaymentFailed(payload);
+        case 'PAYMENT_FAILED_WEBHOOK':
+          await PaymentController.handlePaymentFailed(data);
+          break;
+
+        case 'PAYMENT_USER_DROPPED_WEBHOOK':
+          console.log(`User dropped payment for order: ${data?.order?.order_id}`);
           break;
 
         default:
-          console.log(`Unhandled webhook event: ${event}`);
+          console.log(`Unhandled webhook event: ${eventType}`);
       }
 
       res.status(200).json({ status: 'ok' });
 
     } catch (err: any) {
       console.error("Webhook error:", err);
-      res.status(500).json({ error: 'Webhook processing failed' });
+      res.status(200).json({ status: 'ok' });
     }
   }
 
   /**
    * Handle successful payment from webhook
    */
-  private static async handlePaymentSuccess(payload: any) {
+  private static async handlePaymentSuccess(data: any) {
     try {
-      const orderId = payload.order_id;
-      const paymentId = payload.id;
+      const orderId = data.order?.order_id;
+      const cfPaymentId = data.payment?.cf_payment_id?.toString();
+
+      if (typeof orderId === "string" && orderId.startsWith("tg_")) {
+        await processTelegramPaymentSuccess(orderId, data);
+        return;
+      }
+
+      // Handle session payments
+      if (typeof orderId === "string" && orderId.startsWith("sess_")) {
+        await PaymentController.handleSessionPaymentSuccess(orderId, cfPaymentId, data);
+        return;
+      }
+
+      // Handle webinar payments
+      if (typeof orderId === "string" && orderId.startsWith("webinar_")) {
+        await PaymentController.handleWebinarPaymentSuccess(orderId, cfPaymentId, data);
+        return;
+      }
+
+      if (typeof orderId === "string" && orderId.startsWith("premium_")) {
+        await processPremiumPaymentSuccess(orderId, cfPaymentId);
+        return;
+      }
 
       const transaction = await prisma.transactions.findUnique({
-        where: { razorpay_order_id: orderId },
+        where: { cashfree_order_id: orderId },
         include: {
           course: {
             include: {
@@ -398,10 +597,10 @@ export class PaymentController {
         where: { id: transaction.id },
         data: {
           status: "SUCCESS",
-          razorpay_payment_id: paymentId,
+          cf_payment_id: cfPaymentId,
           completed_at: new Date(),
           payment_details: {
-            webhook_payload: payload
+            webhook_payload: data
           }
         }
       });
@@ -427,16 +626,34 @@ export class PaymentController {
         });
       }
 
-      // Notify creator
-      console.log(`🎉 PAYMENT SUCCESS WEBHOOK`);
-      console.log(`Student: ${transaction.user.name} (${transaction.user.email})`);
-      console.log(`Course: ${transaction.course.title}`);
-      console.log(`Amount: ₹${transaction.amount}`);
-      console.log(`Creator: ${transaction.course.creator.name} (${transaction.course.creator.email})`);
-      console.log(`Transaction ID: ${transaction.id}`);
-      console.log(`Note: Money will be transferred manually to creator`);
+      // Credit creator's wallet
+      await SettlementService.creditCreatorWallet({
+        creatorId: transaction.course.creator.id,
+        grossAmount: transaction.course.price,
+        transactionType: "COURSE",
+        transactionId: transaction.id,
+        courseId: transaction.course_id,
+        itemTitle: transaction.course.title,
+      });
 
-      // TODO: Send email notification to creator
+      // In-app notifications
+      NotificationController.createNotification({
+        userId: transaction.user_id,
+        type: "COURSE",
+        title: "Course Purchased",
+        message: `You have successfully enrolled in "${transaction.course.title}". Start learning now!`,
+        data: { courseId: transaction.course_id },
+      }).catch(err => console.error("Notification error:", err));
+
+      NotificationController.createNotification({
+        userId: transaction.course.creator.id,
+        type: "SALE",
+        title: "New Course Purchase",
+        message: `${transaction.user?.name || "A user"} purchased your "${transaction.course.title}" course.`,
+        data: { courseId: transaction.course_id, buyerId: transaction.user_id },
+      }).catch(err => console.error("Notification error:", err));
+
+      console.log(`PAYMENT SUCCESS WEBHOOK - Course: ${transaction.course.title}, Amount: ${transaction.amount}, Creator: ${transaction.course.creator.name}`);
 
     } catch (err) {
       console.error("Error handling payment success:", err);
@@ -446,12 +663,34 @@ export class PaymentController {
   /**
    * Handle failed payment from webhook
    */
-  private static async handlePaymentFailed(payload: any) {
+  private static async handlePaymentFailed(data: any) {
     try {
-      const orderId = payload.order_id;
+      const orderId = data.order?.order_id;
+
+      if (typeof orderId === "string" && orderId.startsWith("tg_")) {
+        await processTelegramPaymentFailed(orderId, data);
+        return;
+      }
+
+      // Handle session payment failures
+      if (typeof orderId === "string" && orderId.startsWith("sess_")) {
+        await PaymentController.handleSessionPaymentFailed(orderId, data);
+        return;
+      }
+
+      // Handle webinar payment failures
+      if (typeof orderId === "string" && orderId.startsWith("webinar_")) {
+        await PaymentController.handleWebinarPaymentFailed(orderId, data);
+        return;
+      }
+
+      if (typeof orderId === "string" && orderId.startsWith("premium_")) {
+        await processPremiumPaymentFailed(orderId);
+        return;
+      }
 
       const transaction = await prisma.transactions.findUnique({
-        where: { razorpay_order_id: orderId }
+        where: { cashfree_order_id: orderId }
       });
 
       if (!transaction) {
@@ -464,17 +703,248 @@ export class PaymentController {
         where: { id: transaction.id },
         data: {
           status: "FAILED",
-          failure_reason: payload.error_description || "Payment failed",
+          failure_reason: data.payment?.payment_message || "Payment failed",
           payment_details: {
-            webhook_payload: payload
+            webhook_payload: data
           }
         }
       });
 
-      console.log(`❌ Payment failed for transaction ${transaction.id}`);
+      console.log(`Payment failed for transaction ${transaction.id}`);
 
     } catch (err) {
       console.error("Error handling payment failure:", err);
+    }
+  }
+
+  /**
+   * Handle session payment success from webhook
+   */
+  private static async handleSessionPaymentSuccess(orderId: string, cfPaymentId: string | undefined, data: any) {
+    try {
+      const transaction = await prisma.session_transactions.findUnique({
+        where: { cashfree_order_id: orderId },
+      });
+
+      if (!transaction) {
+        console.error(`Session transaction not found for order ${orderId}`);
+        return;
+      }
+
+      if (transaction.status === "SUCCESS") {
+        console.log(`Session transaction already processed: ${transaction.id}`);
+        return;
+      }
+
+      await prisma.session_transactions.update({
+        where: { id: transaction.id },
+        data: {
+          status: "SUCCESS",
+          cf_payment_id: cfPaymentId || null,
+          completed_at: new Date(),
+          payment_details: { webhook_payload: data },
+        },
+      });
+
+      await prisma.sessions.update({
+        where: { id: transaction.session_id },
+        data: { payment_status: "SUCCESS" },
+      });
+
+      // Credit creator wallet
+      const expert = await prisma.session_experts.findUnique({ where: { id: transaction.expert_id } });
+      if (expert) {
+        await SettlementService.creditCreatorWallet({
+          creatorId: expert.user_id,
+          grossAmount: transaction.amount,
+          transactionType: "SESSION",
+          transactionId: transaction.id,
+          itemTitle: "Session booking",
+        });
+
+        await prisma.session_experts.update({
+          where: { id: expert.id },
+          data: {
+            total_sessions: { increment: 1 },
+            total_earnings: { increment: transaction.amount },
+          },
+        });
+      }
+
+      // In-app notifications
+      NotificationController.createNotification({
+        userId: transaction.user_id,
+        type: "SESSION",
+        title: "Session Booked",
+        message: `Your session has been booked successfully. Payment of Rs. ${transaction.amount} confirmed.`,
+        data: { sessionId: transaction.session_id },
+      }).catch(err => console.error("Notification error:", err));
+
+      if (expert) {
+        NotificationController.createNotification({
+          userId: expert.user_id,
+          type: "SESSION",
+          title: "New Session Booking",
+          message: `A new session has been booked with you. Rs. ${transaction.amount} received.`,
+          data: { sessionId: transaction.session_id },
+        }).catch(err => console.error("Notification error:", err));
+      }
+
+      console.log(`SESSION PAYMENT SUCCESS WEBHOOK - Session: ${transaction.session_id}, Amount: ${transaction.amount}`);
+    } catch (err) {
+      console.error("Error handling session payment success:", err);
+    }
+  }
+
+  /**
+   * Handle session payment failure from webhook
+   */
+  private static async handleSessionPaymentFailed(orderId: string, data: any) {
+    try {
+      const transaction = await prisma.session_transactions.findUnique({
+        where: { cashfree_order_id: orderId },
+      });
+
+      if (!transaction) {
+        console.error(`Session transaction not found for order ${orderId}`);
+        return;
+      }
+
+      await prisma.session_transactions.update({
+        where: { id: transaction.id },
+        data: {
+          status: "FAILED",
+          failure_reason: data.payment?.payment_message || "Payment failed",
+          payment_details: { webhook_payload: data },
+        },
+      });
+
+      await prisma.sessions.update({
+        where: { id: transaction.session_id },
+        data: { status: "CANCELLED", payment_status: "FAILED" },
+      });
+
+      console.log(`Session payment failed for transaction ${transaction.id}`);
+    } catch (err) {
+      console.error("Error handling session payment failure:", err);
+    }
+  }
+
+  /**
+   * Handle webinar payment success from webhook
+   */
+  private static async handleWebinarPaymentSuccess(orderId: string, cfPaymentId: string | undefined, data: any) {
+    try {
+      const transaction = await prisma.webinar_transactions.findUnique({
+        where: { cashfree_order_id: orderId },
+        include: {
+          webinar: {
+            include: {
+              creator: { select: { id: true, name: true, email: true } }
+            }
+          }
+        }
+      });
+
+      if (!transaction) {
+        console.error(`Webinar transaction not found for order ${orderId}`);
+        return;
+      }
+
+      if (transaction.status === "SUCCESS") {
+        console.log(`Webinar transaction already processed: ${transaction.id}`);
+        return;
+      }
+
+      await prisma.webinar_transactions.update({
+        where: { id: transaction.id },
+        data: {
+          status: "SUCCESS",
+          cf_payment_id: cfPaymentId || null,
+          completed_at: new Date(),
+          payment_details: { webhook_payload: data },
+        },
+      });
+
+      // Create enrollment if not exists
+      const existingEnrollment = await prisma.webinar_enrollments.findUnique({
+        where: {
+          user_id_webinar_id: {
+            user_id: transaction.user_id,
+            webinar_id: transaction.webinar_id
+          }
+        }
+      });
+
+      if (!existingEnrollment) {
+        await prisma.webinar_enrollments.create({
+          data: {
+            user_id: transaction.user_id,
+            webinar_id: transaction.webinar_id,
+            transaction_id: transaction.id
+          }
+        });
+      }
+
+      // Credit creator's wallet
+      await SettlementService.creditCreatorWallet({
+        creatorId: transaction.webinar.creator.id,
+        grossAmount: transaction.webinar.price,
+        transactionType: "WEBINAR",
+        transactionId: transaction.id,
+        webinarId: transaction.webinar_id,
+        itemTitle: transaction.webinar.title,
+      });
+
+      // In-app notifications
+      NotificationController.createNotification({
+        userId: transaction.user_id,
+        type: "WEBINAR",
+        title: "Webinar Enrolled",
+        message: `You have successfully enrolled in "${transaction.webinar.title}".`,
+        data: { webinarId: transaction.webinar_id },
+      }).catch(err => console.error("Notification error:", err));
+
+      NotificationController.createNotification({
+        userId: transaction.webinar.creator.id,
+        type: "SALE",
+        title: "New Webinar Enrollment",
+        message: `A user enrolled in your "${transaction.webinar.title}" webinar. Rs. ${transaction.amount} received.`,
+        data: { webinarId: transaction.webinar_id, buyerId: transaction.user_id },
+      }).catch(err => console.error("Notification error:", err));
+
+      console.log(`WEBINAR PAYMENT SUCCESS WEBHOOK - Webinar: ${transaction.webinar.title}, Amount: ${transaction.amount}`);
+    } catch (err) {
+      console.error("Error handling webinar payment success:", err);
+    }
+  }
+
+  /**
+   * Handle webinar payment failure from webhook
+   */
+  private static async handleWebinarPaymentFailed(orderId: string, data: any) {
+    try {
+      const transaction = await prisma.webinar_transactions.findUnique({
+        where: { cashfree_order_id: orderId },
+      });
+
+      if (!transaction) {
+        console.error(`Webinar transaction not found for order ${orderId}`);
+        return;
+      }
+
+      await prisma.webinar_transactions.update({
+        where: { id: transaction.id },
+        data: {
+          status: "FAILED",
+          failure_reason: data.payment?.payment_message || "Payment failed",
+          payment_details: { webhook_payload: data },
+        },
+      });
+
+      console.log(`Webinar payment failed for transaction ${transaction.id}`);
+    } catch (err) {
+      console.error("Error handling webinar payment failure:", err);
     }
   }
 
@@ -487,7 +957,7 @@ export class PaymentController {
 
     try {
       const skip = (Number(page) - 1) * Number(limit);
-      
+
       const whereClause: any = { user_id: userId };
       if (status) {
         whereClause.status = status;
@@ -542,19 +1012,19 @@ export class PaymentController {
 
     try {
       const user = await prisma.users.findUnique({ where: { id: userId } });
-      
-      if (!user || user.user_type !== "CREATOR") {
+
+      if (!user || !isCreator(user.user_type)) {
         return ApiResponseHandler.customError(res, "Only creators can view sales", 403, "FORBIDDEN");
       }
 
       const skip = (Number(page) - 1) * Number(limit);
-      
+
       const whereClause: any = {
         course: {
           creator_id: userId
         }
       };
-      
+
       if (status) {
         whereClause.status = status;
       }
@@ -615,4 +1085,3 @@ export class PaymentController {
     }
   }
 }
-

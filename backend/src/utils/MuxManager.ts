@@ -1,26 +1,96 @@
 import Mux from '@mux/mux-node';
-import { 
-  Video, 
-  Asset, 
-  PlaybackID, 
-  CreateAssetParams, 
-  CreateUploadParams,
-  Upload,
-  Track,
-  InputSettings,
-  CreateSpaceParams,
-  Space,
-  CreateBroadcastParams,
-  Broadcast,
-  LiveStream,
-  CreateLiveStreamParams,
-  UpdateLiveStreamParams,
-  UpdateAssetParams,
-  ListAssetsParams,
-  ListUploadsParams,
-  ListSpacesParams,
-  ListLiveStreamsParams
-} from '@mux/mux-node';
+
+// Type definitions based on Mux SDK usage
+type Asset = any;
+type Upload = any;
+type LiveStream = any;
+type Space = any;
+type Broadcast = any;
+type PlaybackID = {
+  id: string;
+  policy: 'public' | 'signed';
+};
+
+interface CreateAssetParams {
+  input: string | any[];
+  playback_policy?: ('public' | 'signed')[];
+  mp4_support?: 'none' | 'standard';
+  passthrough?: string;
+  test?: boolean;
+  encoding_tier?: 'smart' | 'baseline';
+  master_access?: 'none' | 'temporary';
+  per_title_encode?: boolean;
+}
+
+interface CreateUploadParams {
+  timeout?: number;
+  cors_origin?: string;
+  new_asset_settings?: Partial<CreateAssetParams>;
+  test?: boolean;
+}
+
+interface CreateLiveStreamParams {
+  playback_policy?: ('public' | 'signed')[];
+  new_asset_settings?: Partial<CreateAssetParams>;
+  passthrough?: string;
+  reduced_latency?: boolean;
+  simulcast_targets?: Array<{
+    url: string;
+    stream_key?: string;
+    passthrough?: string;
+  }>;
+  test?: boolean;
+}
+
+interface UpdateLiveStreamParams {
+  passthrough?: string;
+  status?: 'active' | 'idle';
+  playback_policy?: ('public' | 'signed')[];
+  new_asset_settings?: Partial<CreateAssetParams>;
+  reduced_latency?: boolean;
+}
+
+interface UpdateAssetParams {
+  passthrough?: string;
+  playback_policy?: ('public' | 'signed')[];
+}
+
+interface ListAssetsParams {
+  limit?: number;
+  page?: number;
+}
+
+interface ListUploadsParams {
+  limit?: number;
+  page?: number;
+}
+
+interface ListSpacesParams {
+  limit?: number;
+  page?: number;
+}
+
+interface ListLiveStreamsParams {
+  limit?: number;
+  page?: number;
+}
+
+interface CreateSpaceParams {
+  type?: 'server' | 'edge';
+  passthrough?: string;
+  broadcasts?: Array<{
+    passthrough?: string;
+    live_stream_id?: string;
+    layout?: 'gallery' | 'active-speaker';
+    background?: string;
+    resolution?: '1920x1080' | '1280x720' | '640x480';
+  }>;
+}
+
+interface InputSettings {
+  url?: string;
+  [key: string]: any;
+}
 
 // Types for our manager
 interface MuxConfig {
@@ -92,10 +162,12 @@ interface PaginationOptions {
 
 class MuxManager {
   private mux: Mux;
-  private video: Video;
+  private video: Mux['video'];
 
   constructor(config: MuxConfig) {
-    this.mux = new Mux(config.tokenId, config.tokenSecret, {
+    this.mux = new Mux({
+      tokenId: config.tokenId,
+      tokenSecret: config.tokenSecret,
       timeout: config.timeout || 30000,
     });
     this.video = this.mux.video;
@@ -110,8 +182,15 @@ class MuxManager {
    */
   async createAsset(options: CreateAssetOptions): Promise<Asset> {
     try {
-      const createParams: CreateAssetParams = {
-        input: options.input,
+      // Convert input to inputs array format
+      const inputs = Array.isArray(options.input)
+        ? options.input
+        : typeof options.input === 'string'
+        ? [{ url: options.input }]
+        : [];
+
+      const createParams: any = {
+        inputs: inputs,
         playback_policy: options.playback_policy || ['public'],
         mp4_support: options.mp4_support || 'none',
         passthrough: options.passthrough,
@@ -157,7 +236,7 @@ class MuxManager {
    */
   async deleteAsset(assetId: string): Promise<void> {
     try {
-      await this.video.assets.del(assetId);
+      await this.video.assets.delete(assetId);
     } catch (error) {
       throw new Error(`Failed to delete asset ${assetId}: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
@@ -173,8 +252,8 @@ class MuxManager {
         page: options.page || 1,
       };
 
-      const assets = await this.video.assets.list(params);
-      return assets;
+      const response = await this.video.assets.list(params);
+      return response.data || [];
     } catch (error) {
       throw new Error(`Failed to list assets: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
@@ -185,7 +264,7 @@ class MuxManager {
    */
   getAssetPlaybackUrl(asset: Asset, playbackPolicy: 'public' | 'signed' = 'public'): string | null {
     try {
-      const playbackId = asset.playback_ids?.find(p => p.policy === playbackPolicy);
+      const playbackId = asset.playback_ids?.find((p: PlaybackID) => p.policy === playbackPolicy);
       if (!playbackId) return null;
 
       if (playbackPolicy === 'public') {
@@ -204,7 +283,7 @@ class MuxManager {
    */
   getAssetThumbnailUrl(asset: Asset, time: number = 1, width: number = 640): string | null {
     try {
-      const playbackId = asset.playback_ids?.find(p => p.policy === 'public');
+      const playbackId = asset.playback_ids?.find((p: PlaybackID) => p.policy === 'public');
       if (!playbackId) return null;
 
       return `https://image.mux.com/${playbackId.id}/thumbnail.jpg?time=${time}&width=${width}`;
@@ -222,12 +301,15 @@ class MuxManager {
    */
   async createDirectUpload(options: CreateUploadOptions = {}): Promise<Upload> {
     try {
-      const uploadParams: CreateUploadParams = {
+      const uploadParams: any = {
         timeout: options.timeout || 3600,
-        cors_origin: options.cors_origin,
         new_asset_settings: options.new_asset_settings,
         test: options.test || false,
       };
+      
+      if (options.cors_origin) {
+        uploadParams.cors_origin = options.cors_origin;
+      }
 
       const upload = await this.video.uploads.create(uploadParams);
       return upload;
@@ -269,8 +351,8 @@ class MuxManager {
         page: options.page || 1,
       };
 
-      const uploads = await this.video.uploads.list(params);
-      return uploads;
+      const response = await this.video.uploads.list(params);
+      return response.data || [];
     } catch (error) {
       throw new Error(`Failed to list uploads: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
@@ -285,14 +367,17 @@ class MuxManager {
    */
   async createLiveStream(options: CreateLiveStreamOptions = {}): Promise<LiveStream> {
     try {
-      const streamParams: CreateLiveStreamParams = {
+      const streamParams: any = {
         playback_policy: options.playback_policy || ['public'],
-        new_asset_settings: options.new_asset_settings,
         passthrough: options.passthrough,
         reduced_latency: options.reduced_latency,
         simulcast_targets: options.simulcast_targets,
         test: options.test || false,
       };
+      
+      if (options.new_asset_settings) {
+        streamParams.new_asset_settings = options.new_asset_settings;
+      }
 
       const liveStream = await this.video.liveStreams.create(streamParams);
       return liveStream;
@@ -338,7 +423,7 @@ class MuxManager {
    */
   async deleteLiveStream(streamId: string): Promise<void> {
     try {
-      await this.video.liveStreams.del(streamId);
+      await this.video.liveStreams.delete(streamId);
     } catch (error) {
       throw new Error(`Failed to delete live stream ${streamId}: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
@@ -354,8 +439,8 @@ class MuxManager {
         page: options.page || 1,
       };
 
-      const liveStreams = await this.video.liveStreams.list(params);
-      return liveStreams;
+      const response = await this.video.liveStreams.list(params);
+      return response.data || [];
     } catch (error) {
       throw new Error(`Failed to list live streams: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
@@ -366,7 +451,7 @@ class MuxManager {
    */
   getLiveStreamPlaybackUrl(liveStream: LiveStream, playbackPolicy: 'public' | 'signed' = 'public'): string | null {
     try {
-      const playbackId = liveStream.playback_ids?.find(p => p.policy === playbackPolicy);
+      const playbackId = liveStream.playback_ids?.find((p: PlaybackID) => p.policy === playbackPolicy);
       if (!playbackId) return null;
 
       return `https://stream.mux.com/${playbackId.id}.m3u8`;
@@ -400,6 +485,7 @@ class MuxManager {
 
   /**
    * ============ SPACE MANAGEMENT ============
+   * Note: Spaces API may not be available in all Mux SDK versions
    */
 
   /**
@@ -407,13 +493,19 @@ class MuxManager {
    */
   async createSpace(options: CreateSpaceOptions = {}): Promise<Space> {
     try {
+      // Spaces API might not be available - use type assertion
+      const videoAny = this.video as any;
+      if (!videoAny.spaces) {
+        throw new Error('Spaces API is not available in this Mux SDK version');
+      }
+      
       const spaceParams: CreateSpaceParams = {
         type: options.type || 'server',
         passthrough: options.passthrough,
         broadcasts: options.broadcasts,
       };
 
-      const space = await this.video.spaces.create(spaceParams);
+      const space = await videoAny.spaces.create(spaceParams);
       return space;
     } catch (error) {
       throw new Error(`Failed to create space: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -425,7 +517,12 @@ class MuxManager {
    */
   async getSpace(spaceId: string): Promise<Space> {
     try {
-      const space = await this.video.spaces.retrieve(spaceId);
+      const videoAny = this.video as any;
+      if (!videoAny.spaces) {
+        throw new Error('Spaces API is not available in this Mux SDK version');
+      }
+      
+      const space = await videoAny.spaces.retrieve(spaceId);
       return space;
     } catch (error) {
       throw new Error(`Failed to retrieve space ${spaceId}: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -437,7 +534,12 @@ class MuxManager {
    */
   async deleteSpace(spaceId: string): Promise<void> {
     try {
-      await this.video.spaces.del(spaceId);
+      const videoAny = this.video as any;
+      if (!videoAny.spaces) {
+        throw new Error('Spaces API is not available in this Mux SDK version');
+      }
+      
+      await videoAny.spaces.delete(spaceId);
     } catch (error) {
       throw new Error(`Failed to delete space ${spaceId}: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
@@ -448,13 +550,18 @@ class MuxManager {
    */
   async listSpaces(options: PaginationOptions = {}): Promise<Space[]> {
     try {
+      const videoAny = this.video as any;
+      if (!videoAny.spaces) {
+        throw new Error('Spaces API is not available in this Mux SDK version');
+      }
+      
       const params: ListSpacesParams = {
         limit: options.limit || 100,
         page: options.page || 1,
       };
 
-      const spaces = await this.video.spaces.list(params);
-      return spaces;
+      const response = await videoAny.spaces.list(params);
+      return response.data || [];
     } catch (error) {
       throw new Error(`Failed to list spaces: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }

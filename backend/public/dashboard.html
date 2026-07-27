@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard | Manchly</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body class="dashboard-page">
+  <header class="dashboard-header">
+    <h1>Admin Dashboard</h1>
+    <div style="display:flex;align-items:center;gap:1rem;">
+      <span class="user" id="user-email">–</span>
+      <button type="button" class="btn-logout" id="btn-logout">Logout</button>
+    </div>
+  </header>
+
+  <nav class="section-tabs">
+    <button type="button" class="tab active" data-section="overview">Overview</button>
+    <button type="button" class="tab" data-section="users">Users</button>
+    <button type="button" class="tab" data-section="courses">Courses</button>
+    <button type="button" class="tab" data-section="webinars">Webinars</button>
+  </nav>
+
+  <div id="panel-overview" class="dashboard-panel active">
+    <h2 class="section-title">Overview</h2>
+    <div class="stats-grid" id="stats-grid">
+      <div class="stat-card"><span class="label">Total Users</span><span class="value" id="stat-users">–</span></div>
+      <div class="stat-card"><span class="label">Creators</span><span class="value" id="stat-creators">–</span></div>
+      <div class="stat-card"><span class="label">Courses</span><span class="value" id="stat-courses">–</span></div>
+      <div class="stat-card"><span class="label">Published Courses</span><span class="value" id="stat-courses-pub">–</span></div>
+      <div class="stat-card"><span class="label">Course Enrollments</span><span class="value" id="stat-enrollments">–</span></div>
+      <div class="stat-card"><span class="label">Successful Payments</span><span class="value" id="stat-transactions">–</span></div>
+      <div class="stat-card"><span class="label">Webinars</span><span class="value" id="stat-webinars">–</span></div>
+      <div class="stat-card"><span class="label">Webinar Enrollments</span><span class="value" id="stat-webinar-enroll">–</span></div>
+      <div class="stat-card"><span class="label">Total Revenue (₹)</span><span class="value" id="stat-revenue">–</span></div>
+    </div>
+  </div>
+
+  <div id="panel-users" class="dashboard-panel">
+    <h2 class="section-title">Users</h2>
+    <div style="margin-bottom:0.75rem;">
+      <input type="search" id="search-users" placeholder="Search by email, name, phone" class="search-input" />
+      <button type="button" id="btn-search-users" class="btn btn-primary btn-inline">Search</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Email</th>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Type</th>
+            <th>Courses</th>
+            <th>Enrollments</th>
+            <th>Joined</th>
+          </tr>
+        </thead>
+        <tbody id="users-tbody"></tbody>
+      </table>
+    </div>
+    <div class="pagination" id="pagination-users"></div>
+    <div class="user-detail-panel" id="user-detail-panel">
+      <h3 id="detail-title">User details</h3>
+      <div class="user-detail-grid" id="user-detail-content"></div>
+      <div class="detail-actions">
+        <button type="button" class="btn-close" id="btn-close-detail">Close</button>
+        <button type="button" class="btn btn-danger" id="btn-delete-user">Delete User</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="panel-courses" class="dashboard-panel">
+    <h2 class="section-title">Courses</h2>
+    <div style="margin-bottom:0.75rem;">
+      <input type="search" id="search-courses" placeholder="Search by title, category" class="search-input" />
+      <button type="button" id="btn-search-courses" class="btn btn-primary btn-inline">Search</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Creator</th>
+            <th>Status</th>
+            <th>Price (₹)</th>
+            <th>Enrollments</th>
+            <th>Created</th>
+          </tr>
+        </thead>
+        <tbody id="courses-tbody"></tbody>
+      </table>
+    </div>
+    <div class="pagination" id="pagination-courses"></div>
+    <div class="user-detail-panel" id="course-detail-panel">
+      <h3 id="course-detail-title">Course details</h3>
+      <div class="user-detail-grid" id="course-detail-content"></div>
+      <button type="button" class="btn-close" id="btn-close-course-detail">Close</button>
+    </div>
+  </div>
+
+  <div id="panel-webinars" class="dashboard-panel">
+    <h2 class="section-title">Webinars</h2>
+    <div style="margin-bottom:0.75rem;">
+      <input type="search" id="search-webinars" placeholder="Search by title, category" class="search-input" />
+      <button type="button" id="btn-search-webinars" class="btn btn-primary btn-inline">Search</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Creator</th>
+            <th>Status</th>
+            <th>Price (₹)</th>
+            <th>Scheduled</th>
+            <th>Enrollments</th>
+            <th>Created</th>
+          </tr>
+        </thead>
+        <tbody id="webinars-tbody"></tbody>
+      </table>
+    </div>
+    <div class="pagination" id="pagination-webinars"></div>
+    <div class="user-detail-panel" id="webinar-detail-panel">
+      <h3 id="webinar-detail-title">Webinar details</h3>
+      <div class="user-detail-grid" id="webinar-detail-content"></div>
+      <button type="button" class="btn-close" id="btn-close-webinar-detail">Close</button>
+    </div>
+  </div>
+
+  <script src="/js/auth.js"></script>
+  <script>
+    if (!isAuthenticated()) {
+      window.location.href = '/';
+    }
+
+    var currentUsers = [];
+    var currentCourses = [];
+    var currentWebinars = [];
+    var usersPage = 1, coursesPage = 1, webinarsPage = 1;
+    var usersSearch = '', coursesSearch = '', webinarsSearch = '';
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '–';
+      var d = new Date(dateStr);
+      if (isNaN(d.getTime())) return '–';
+      var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+    }
+
+    function formatDateTime(dateStr) {
+      if (!dateStr) return '–';
+      var d = new Date(dateStr);
+      if (isNaN(d.getTime())) return '–';
+      var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      var date = d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+      var hours = d.getHours();
+      var mins = ('0' + d.getMinutes()).slice(-2);
+      var ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12 || 12;
+      return date + ', ' + hours + ':' + mins + ' ' + ampm;
+    }
+
+    // Tab switching
+    document.querySelectorAll('.section-tabs .tab').forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        var section = this.getAttribute('data-section');
+        document.querySelectorAll('.section-tabs .tab').forEach(function(t) { t.classList.remove('active'); });
+        document.querySelectorAll('.dashboard-panel').forEach(function(p) { p.classList.remove('active'); });
+        this.classList.add('active');
+        var panel = document.getElementById('panel-' + section);
+        if (panel) panel.classList.add('active');
+        if (section === 'users') loadUsers(1);
+        if (section === 'courses') loadCourses(1);
+        if (section === 'webinars') loadWebinars(1);
+      });
+    });
+
+    function renderStats(data) {
+      if (!data) return;
+      document.getElementById('stat-users').textContent = data.users.total;
+      document.getElementById('stat-creators').textContent = data.users.creators;
+      document.getElementById('stat-courses').textContent = data.courses.total;
+      document.getElementById('stat-courses-pub').textContent = data.courses.published;
+      document.getElementById('stat-enrollments').textContent = data.courses.enrollments;
+      document.getElementById('stat-transactions').textContent = data.transactions.success;
+      document.getElementById('stat-webinars').textContent = data.webinars.total;
+      document.getElementById('stat-webinar-enroll').textContent = data.webinars.enrollments;
+      document.getElementById('stat-revenue').textContent = data.revenue.toLocaleString('en-IN');
+    }
+
+    function loadStats() {
+      apiFetch(API_BASE + '/admin/stats')
+        .then(function(r) { return r.json(); })
+        .then(function(json) {
+          if (json.success && json.data) renderStats(json.data);
+        })
+        .catch(function(e) { console.error(e); });
+    }
+
+    function renderPagination(containerId, p, loadFn) {
+      var div = document.getElementById(containerId);
+      if (!div) return;
+      if (!p || p.totalPages <= 1) {
+        div.innerHTML = '<span>Page ' + (p ? p.page : 1) + ' of ' + (p ? p.totalPages : 1) + '</span>';
+        return;
+      }
+      div.innerHTML = '<button type="button" data-page="prev"' + (p.page <= 1 ? ' disabled' : '') + '>Previous</button><span>Page ' + p.page + ' of ' + p.totalPages + '</span><button type="button" data-page="next"' + (p.page >= p.totalPages ? ' disabled' : '') + '>Next</button>';
+      div.querySelector('[data-page="prev"]').onclick = function() { loadFn(p.page - 1); };
+      div.querySelector('[data-page="next"]').onclick = function() { loadFn(p.page + 1); };
+    }
+
+    // ——— Users ———
+    function renderUsers(users, pagination) {
+      currentUsers = users || [];
+      var tbody = document.getElementById('users-tbody');
+      if (!users || users.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="loading">No users found</td></tr>';
+        document.getElementById('user-detail-panel').classList.remove('visible');
+        return;
+      }
+      tbody.innerHTML = users.map(function(u, i) {
+        var types = Array.isArray(u.user_type) ? u.user_type : [u.user_type];
+        var badges = types.map(function(t) {
+          return '<span class="badge badge-' + t.toLowerCase() + '">' + t + '</span>';
+        }).join(' ');
+        return '<tr class="user-row clickable-row" data-index="' + i + '"><td>' + (u.email || '–') + '</td><td>' + (u.name || '–') + '</td><td>' + (u.phone || '–') + '</td><td>' + badges + '</td><td>' + (u._count && u._count.courses !== undefined ? u._count.courses : '–') + '</td><td>' + (u._count && u._count.enrollments !== undefined ? u._count.enrollments : '–') + '</td><td class="date-fmt">' + formatDate(u.created_at) + '</td></tr>';
+      }).join('');
+      tbody.querySelectorAll('.user-row').forEach(function(tr) {
+        tr.addEventListener('click', function() {
+          var idx = parseInt(tr.getAttribute('data-index'), 10);
+          showUserDetail(currentUsers[idx]);
+          tbody.querySelectorAll('.user-row').forEach(function(r) { r.classList.remove('selected'); });
+          tr.classList.add('selected');
+        });
+      });
+      document.getElementById('user-detail-panel').classList.remove('visible');
+    }
+
+    function showUserDetail(u) {
+      if (!u) return;
+      var types = Array.isArray(u.user_type) ? u.user_type : [u.user_type];
+      var html = '';
+      html += '<div class="user-detail-item"><span class="label">Email</span><span class="value">' + (u.email || '–') + '</span></div>';
+      html += '<div class="user-detail-item"><span class="label">Name</span><span class="value">' + (u.name || '–') + '</span></div>';
+      html += '<div class="user-detail-item"><span class="label">Phone</span><span class="value">' + (u.phone || '–') + '</span></div>';
+      html += '<div class="user-detail-item"><span class="label">Type</span><span class="value">' + types.join(', ') + '</span></div>';
+      html += '<div class="user-detail-item"><span class="label">Courses created</span><span class="value">' + (u._count && u._count.courses !== undefined ? u._count.courses : '–') + '</span></div>';
+      html += '<div class="user-detail-item"><span class="label">Enrollments</span><span class="value">' + (u._count && u._count.enrollments !== undefined ? u._count.enrollments : '–') + '</span></div>';
+      html += '<div class="user-detail-item"><span class="label">Joined</span><span class="value date-fmt">' + formatDate(u.created_at) + '</span></div>';
+      html += '<div class="user-detail-item"><span class="label">Last login</span><span class="value date-fmt">' + formatDateTime(u.last_login) + '</span></div>';
+      document.getElementById('detail-title').textContent = (u.name || u.email || 'User') + ' – Details';
+      document.getElementById('user-detail-content').innerHTML = html;
+      document.getElementById('user-detail-panel').classList.add('visible');
+      // Remember the user this panel is currently showing, for the Delete button.
+      document.getElementById('user-detail-panel').dataset.userId = u.id || '';
+      document.getElementById('user-detail-panel').dataset.userLabel = u.name || u.email || u.id || '';
+    }
+
+    function loadUsers(page) {
+      usersPage = page || 1;
+      var tbody = document.getElementById('users-tbody');
+      tbody.innerHTML = '<tr><td colspan="7" class="loading">Loading…</td></tr>';
+      var url = API_BASE + '/admin/users?page=' + usersPage + '&limit=20';
+      if (usersSearch) url += '&search=' + encodeURIComponent(usersSearch);
+      apiFetch(url).then(function(r) { return r.json(); }).then(function(json) {
+        if (json.success && json.data) {
+          renderUsers(json.data.users, json.data.pagination);
+          renderPagination('pagination-users', json.data.pagination, loadUsers);
+        } else {
+          tbody.innerHTML = '<tr><td colspan="7" class="error-msg">' + (json.error && json.error.message ? json.error.message : 'Failed to load') + '</td></tr>';
+        }
+      }).catch(function(e) {
+        tbody.innerHTML = '<tr><td colspan="7" class="error-msg">' + (e.message || 'Failed to load users') + '</td></tr>';
+      });
+    }
+
+    // ——— Courses ———
+    function renderCourses(courses, pagination) {
+      currentCourses = courses || [];
+      var tbody = document.getElementById('courses-tbody');
+      if (!courses || courses.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="loading">No courses found</td></tr>';
+        document.getElementById('course-detail-panel').classList.remove('visible');
+        return;
+      }
+      tbody.innerHTML = courses.map(function(c, i) {
+        var creatorName = (c.creator && (c.creator.name || c.creator.email)) || '–';
+        var enrollments = (c._count && c._count.enrollments !== undefined) ? c._count.enrollments : '–';
+        return '<tr class="course-row clickable-row" data-index="' + i + '"><td>' + (c.title || '–') + '</td><td>' + creatorName + '</td><td><span class="badge badge-' + (c.status === 'PUBLISHED' ? 'creator' : 'user') + '">' + c.status + '</span></td><td>' + (c.price != null ? c.price.toLocaleString('en-IN') : '–') + '</td><td>' + enrollments + '</td><td class="date-fmt">' + formatDate(c.created_at) + '</td></tr>';
+      }).join('');
+      tbody.querySelectorAll('.course-row').forEach(function(tr) {
+        tr.addEventListener('click', function() {
+          var idx = parseInt(tr.getAttribute('data-index'), 10);
+          showCourseDetail(currentCourses[idx]);
+          tbody.querySelectorAll('.course-row').forEach(function(r) { r.classList.remove('selected'); });
+          tr.classList.add('selected');
+        });
+      });
+      document.getElementById('course-detail-panel').classList.remove('visible');
+    }
+
+    function showCourseDetail(c) {
+      if (!c) return;
+      var creatorName = (c.creator && (c.creator.name || c.creator.email)) || '–';
+      var html = '';
+      html += '<div class="user-detail-item"><span class="label">Title</span><span class="value">' + (c.title || '–') + '</span></div>';
+      html += '<div class="user-detail-item"><span class="label">Creator</span><span class="value">' + creatorName + '</span></div>';
+      html += '<div class="user-detail-item"><span class="label">Status</span><span class="value">' + (c.status || '–') + '</span></div>';
+      html += '<div class="user-detail-item"><span class="label">Price (₹)</span><span class="value">' + (c.price != null ? c.price.toLocaleString('en-IN') : '–') + '</span></div>';
+      html += '<div class="user-detail-item"><span class="label">Category</span><span class="value">' + (c.category || '–') + '</span></div>';
+      html += '<div class="user-detail-item"><span class="label">Enrollments</span><span class="value">' + (c._count && c._count.enrollments !== undefined ? c._count.enrollments : '–') + '</span></div>';
+      html += '<div class="user-detail-item"><span class="label">Videos</span><span class="value">' + (c._count && c._count.videos !== undefined ? c._count.videos : '–') + '</span></div>';
+      html += '<div class="user-detail-item"><span class="label">Created</span><span class="value date-fmt">' + formatDate(c.created_at) + '</span></div>';
+      html += '<div class="user-detail-item"><span class="label">Published</span><span class="value date-fmt">' + formatDate(c.published_at) + '</span></div>';
+      document.getElementById('course-detail-title').textContent = (c.title || 'Course') + ' – Details';
+      document.getElementById('course-detail-content').innerHTML = html;
+      document.getElementById('course-detail-panel').classList.add('visible');
+    }
+
+    function loadCourses(page) {
+      coursesPage = page || 1;
+      var tbody = document.getElementById('courses-tbody');
+      tbody.innerHTML = '<tr><td colspan="6" class="loading">Loading…</td></tr>';
+      var url = API_BASE + '/admin/courses?page=' + coursesPage + '&limit=20';
+      if (coursesSearch) url += '&search=' + encodeURIComponent(coursesSearch);
+      apiFetch(url).then(function(r) { return r.json(); }).then(function(json) {
+        if (json.success && json.data) {
+          renderCourses(json.data.courses, json.data.pagination);
+          renderPagination('pagination-courses', json.data.pagination, loadCourses);
+        } else {
+          tbody.innerHTML = '<tr><td colspan="6" class="error-msg">' + (json.error && json.error.message ? json.error.message : 'Failed to load') + '</td></tr>';
+        }
+      }).catch(function(e) {
+        tbody.innerHTML = '<tr><td colspan="6" class="error-msg">' + (e.message || 'Failed to load courses') + '</td></tr>';
+      });
+    }
+
+    // ——— Webinars ———
+    function renderWebinars(webinars, pagination) {
+      currentWebinars = webinars || [];
+      var tbody = document.getElementById('webinars-tbody');
+      if (!webinars || webinars.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="loading">No webinars found</td></tr>';
+        document.getElementById('webinar-detail-panel').classList.remove('visible');
+        return;
+      }
+      tbody.innerHTML = webinars.map(function(w, i) {
+        var creatorName = (w.creator && (w.creator.name || w.creator.email)) || '–';
+        var enrollments = (w._count && w._count.enrollments !== undefined) ? w._count.enrollments : '–';
+        return '<tr class="webinar-row clickable-row" data-index="' + i + '"><td>' + (w.title || '–') + '</td><td>' + creatorName + '</td><td><span class="badge badge-' + (w.status === 'PUBLISHED' ? 'creator' : 'user') + '">' + w.status + '</span></td><td>' + (w.price != null ? w.price.toLocaleString('en-IN') : '–') + '</td><td class="date-fmt">' + formatDate(w.scheduled_at) + '</td><td>' + enrollments + '</td><td class="date-fmt">' + formatDate(w.created_at) + '</td></tr>';
+      }).join('');
+      tbody.querySelectorAll('.webinar-row').forEach(function(tr) {
+        tr.addEventListener('click', function() {
+          var idx = parseInt(tr.getAttribute('data-index'), 10);
+          showWebinarDetail(currentWebinars[idx]);
+          tbody.querySelectorAll('.webinar-row').forEach(function(r) { r.classList.remove('selected'); });
+          tr.classList.add('selected');
+        });
+      });
+      document.getElementById('webinar-detail-panel').classList.remove('visible');
+    }
+
+    function showWebinarDetail(w) {
+      if (!w) return;
+      var creatorName = (w.creator && (w.creator.name || w.creator.email)) || '–';
+      var html = '';
+      html += '<div class="user-detail-item"><span class="label">Title</span><span class="value">' + (w.title || '–') + '</span></div>';
+      html += '<div class="user-detail-item"><span class="label">Creator</span><span class="value">' + creatorName + '</span></div>';
+      html += '<div class="user-detail-item"><span class="label">Status</span><span class="value">' + (w.status || '–') + '</span></div>';
+      html += '<div class="user-detail-item"><span class="label">Price (₹)</span><span class="value">' + (w.price != null ? w.price.toLocaleString('en-IN') : '–') + '</span></div>';
+      html += '<div class="user-detail-item"><span class="label">Scheduled</span><span class="value date-fmt">' + formatDateTime(w.scheduled_at) + '</span></div>';
+      html += '<div class="user-detail-item"><span class="label">Duration (min)</span><span class="value">' + (w.duration != null ? w.duration : '–') + '</span></div>';
+      html += '<div class="user-detail-item"><span class="label">Enrollments</span><span class="value">' + (w._count && w._count.enrollments !== undefined ? w._count.enrollments : '–') + '</span></div>';
+      html += '<div class="user-detail-item"><span class="label">Created</span><span class="value date-fmt">' + formatDate(w.created_at) + '</span></div>';
+      document.getElementById('webinar-detail-title').textContent = (w.title || 'Webinar') + ' – Details';
+      document.getElementById('webinar-detail-content').innerHTML = html;
+      document.getElementById('webinar-detail-panel').classList.add('visible');
+    }
+
+    function loadWebinars(page) {
+      webinarsPage = page || 1;
+      var tbody = document.getElementById('webinars-tbody');
+      tbody.innerHTML = '<tr><td colspan="7" class="loading">Loading…</td></tr>';
+      var url = API_BASE + '/admin/webinars?page=' + webinarsPage + '&limit=20';
+      if (webinarsSearch) url += '&search=' + encodeURIComponent(webinarsSearch);
+      apiFetch(url).then(function(r) { return r.json(); }).then(function(json) {
+        if (json.success && json.data) {
+          renderWebinars(json.data.webinars, json.data.pagination);
+          renderPagination('pagination-webinars', json.data.pagination, loadWebinars);
+        } else {
+          tbody.innerHTML = '<tr><td colspan="7" class="error-msg">' + (json.error && json.error.message ? json.error.message : 'Failed to load') + '</td></tr>';
+        }
+      }).catch(function(e) {
+        tbody.innerHTML = '<tr><td colspan="7" class="error-msg">' + (e.message || 'Failed to load webinars') + '</td></tr>';
+      });
+    }
+
+    document.getElementById('btn-logout').onclick = function() {
+      clearToken();
+      window.location.href = '/';
+    };
+
+    document.getElementById('btn-search-users').onclick = function() { usersSearch = document.getElementById('search-users').value.trim(); loadUsers(1); };
+    document.getElementById('search-users').onkeydown = function(e) { if (e.key === 'Enter') { usersSearch = this.value.trim(); loadUsers(1); } };
+
+    document.getElementById('btn-search-courses').onclick = function() { coursesSearch = document.getElementById('search-courses').value.trim(); loadCourses(1); };
+    document.getElementById('search-courses').onkeydown = function(e) { if (e.key === 'Enter') { coursesSearch = this.value.trim(); loadCourses(1); } };
+
+    document.getElementById('btn-search-webinars').onclick = function() { webinarsSearch = document.getElementById('search-webinars').value.trim(); loadWebinars(1); };
+    document.getElementById('search-webinars').onkeydown = function(e) { if (e.key === 'Enter') { webinarsSearch = this.value.trim(); loadWebinars(1); } };
+
+    document.getElementById('btn-close-detail').onclick = function() {
+      document.getElementById('user-detail-panel').classList.remove('visible');
+      document.querySelectorAll('#users-tbody .user-row.selected').forEach(function(r) { r.classList.remove('selected'); });
+    };
+
+    document.getElementById('btn-delete-user').onclick = function() {
+      var panel = document.getElementById('user-detail-panel');
+      var userId = panel.dataset.userId;
+      var label  = panel.dataset.userLabel || 'this user';
+      if (!userId) return;
+      var ok = window.confirm(
+        'Delete ' + label + '?\n\n' +
+        'This permanently removes the user and cascade-deletes all their ' +
+        'enrollments, transactions, and any courses they created. ' +
+        'This cannot be undone.'
+      );
+      if (!ok) return;
+      var btn = this;
+      btn.disabled = true;
+      btn.textContent = 'Deleting…';
+      apiFetch(API_BASE + '/admin/users/' + encodeURIComponent(userId), { method: 'DELETE' })
+        .then(function(r) { return r.json(); })
+        .then(function(json) {
+          if (!json.success) throw new Error((json.error && json.error.message) || 'Delete failed');
+          panel.classList.remove('visible');
+          panel.dataset.userId = '';
+          loadUsers(usersPage);   // refresh table
+        })
+        .catch(function(e) { alert('Delete failed: ' + (e.message || e)); })
+        .finally(function() { btn.disabled = false; btn.textContent = 'Delete User'; });
+    };
+    document.getElementById('btn-close-course-detail').onclick = function() {
+      document.getElementById('course-detail-panel').classList.remove('visible');
+      document.querySelectorAll('#courses-tbody .course-row.selected').forEach(function(r) { r.classList.remove('selected'); });
+    };
+    document.getElementById('btn-close-webinar-detail').onclick = function() {
+      document.getElementById('webinar-detail-panel').classList.remove('visible');
+      document.querySelectorAll('#webinars-tbody .webinar-row.selected').forEach(function(r) { r.classList.remove('selected'); });
+    };
+
+    apiFetch(API_BASE + '/auth/me')
+      .then(function(r) { return r.json(); })
+      .then(function(json) {
+        if (json.success && json.data && json.data.user)
+          document.getElementById('user-email').textContent = json.data.user.email || 'Admin';
+      })
+      .catch(function() {});
+
+    loadStats();
+    loadUsers(1);
+  </script>
+</body>
+</html>

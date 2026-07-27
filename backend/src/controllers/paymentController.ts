@@ -5,6 +5,7 @@ import { isUser, isCreator } from "../utils/userTypeHelper";
 import { SettlementService } from "../services/settlementService";
 import { notificationService } from "../services/NotificationService";
 import { cashfreePG } from "../services/cashfreeService";
+import { sanitizePhoneForCashfree } from "../utils/phone";
 import { NotificationController } from "./notificationController";
 import { processTelegramPaymentSuccess, processTelegramPaymentFailed } from "./telegramController";
 import { processPremiumPaymentSuccess, processPremiumPaymentFailed } from "./subscriptionController";
@@ -172,7 +173,7 @@ export class PaymentController {
         order_currency: "INR",
         customer_details: {
           customer_id: userId.slice(0, 50),
-          customer_phone: (user.phone || "9999999999").replace(/^\+?91/, "").replace(/\D/g, "").slice(-10) || "9999999999",
+          customer_phone: sanitizePhoneForCashfree(user.phone),
           customer_name: (user.name || "User").slice(0, 100),
           customer_email: user.email,
         },

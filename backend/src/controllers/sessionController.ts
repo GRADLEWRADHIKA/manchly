@@ -2,6 +2,7 @@ import { Response } from "express";
 import prisma from "../prismaClient";
 import { JWTRequest } from "../middleware/jwtAuth";
 import { cashfreePG } from "../services/cashfreeService";
+import { sanitizePhoneForCashfree } from "../utils/phone";
 import { SettlementService } from "../services/settlementService";
 import { NotificationController } from "./notificationController";
 import dotenv from "dotenv";
@@ -957,7 +958,7 @@ export class SessionController {
         order_currency: "INR",
         customer_details: {
           customer_id: callerId.slice(0, 50),
-          customer_phone: (user.phone || "9999999999").replace(/^\+?91/, "").replace(/\D/g, "").slice(-10) || "9999999999",
+          customer_phone: sanitizePhoneForCashfree(user.phone),
           customer_name: (user.name || "User").slice(0, 100),
           customer_email: user.email,
         },

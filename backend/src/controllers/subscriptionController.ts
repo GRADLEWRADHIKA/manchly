@@ -4,6 +4,7 @@ import prisma from "../prismaClient";
 import { JWTRequest } from "../middleware/jwtAuth";
 import { ApiResponseHandler } from "../utils/ApiResponseHandler";
 import { cashfreePG } from "../services/cashfreeService";
+import { sanitizePhoneForCashfree } from "../utils/phone";
 import {
   PREMIUM_PLAN,
   PREMIUM_PLAN_DURATION_DAYS,
@@ -95,8 +96,7 @@ export class SubscriptionController {
         order_currency: "INR",
         customer_details: {
           customer_id: userId.slice(0, 50),
-          customer_phone:
-            (user.phone || "9999999999").replace(/^\+?91/, "").replace(/\D/g, "").slice(-10) || "9999999999",
+          customer_phone: sanitizePhoneForCashfree(user.phone),
           customer_name: (user.name || "User").slice(0, 100),
           customer_email: user.email
         },

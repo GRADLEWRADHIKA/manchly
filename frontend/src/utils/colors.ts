@@ -65,6 +65,9 @@ const colors = {
   statText: '#4F60FA',
   statIcon: '#73799B',
   statIcon2: '#BDC2FF',
+  sessionText: '#4F60FA',
+  sessionText2: '#73799B',
+  timeSlotText: '#BDC2FF0D',
   
   // Creator Dark Theme
   cBg: '#0D0D1A',

@@ -27,22 +27,24 @@ const UserHome = () => {
         <LatestCourses />
         <LatestWebinars />
 
-       <TouchableOpacity
-          style={styles.marketPlaceBanner}
-          activeOpacity={0.8}
-          onPress={() => navigation.navigate('BrandMarketplace')}
-        >
-          <View style={styles.marketPlaceIcon}>
-            <Store size={wp(20)} color={colors.textPrimary} />
-          </View>
-          <View style={styles.marketPlaceContent}>
-            <Text style={styles.marketPlaceTitle}>Market Place</Text>
-          </View>
-          <View style={styles.marketPlaceAction}>
-            <Text style={styles.marketPlaceActionText}>Go to Hub</Text>
-            <ChevronRight size={wp(16)} color={colors.textPrimary} />
-          </View>
-        </TouchableOpacity>
+      {/*
+<TouchableOpacity
+  style={styles.marketPlaceBanner}
+  activeOpacity={0.8}
+  onPress={() => navigation.navigate('BrandMarketplace')}
+>
+  <View style={styles.marketPlaceIcon}>
+    <Store size={wp(20)} color={colors.textPrimary} />
+  </View>
+  <View style={styles.marketPlaceContent}>
+    <Text style={styles.marketPlaceTitle}>Market Place</Text>
+  </View>
+  <View style={styles.marketPlaceAction}>
+    <Text style={styles.marketPlaceActionText}>Go to Hub</Text>
+    <ChevronRight size={wp(16)} color={colors.textPrimary} />
+  </View>
+</TouchableOpacity>
+*/}
       </ScrollView>
     </View>
   );

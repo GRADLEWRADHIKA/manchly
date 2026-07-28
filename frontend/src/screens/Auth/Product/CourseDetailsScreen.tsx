@@ -390,7 +390,7 @@ const styles = StyleSheet.create({
   title: { fontSize: fp(24), fontWeight: '700', color: colors.textPrimary },
   instructorRow: { flexDirection: 'row', alignItems: 'center', marginBottom: hp(16) },
   instructor: { color: colors.textSecondary, fontSize: fp(14) },
-  instructorName: { color: colors.info, fontSize: fp(14), fontWeight: '600', textDecorationLine: 'underline' },
+  instructorName: { color: colors.uBottomText, fontSize: fp(14), fontWeight: '600', textDecorationLine: 'underline' },
   section: { marginVertical: hp(16) },
   sectionTitle: { fontSize: fp(18), fontWeight: '600', marginBottom: hp(10), color: colors.textPrimary },
   description: { fontSize: fp(15), lineHeight: fp(22), color: colors.textSecondary },
@@ -466,7 +466,7 @@ const styles = StyleSheet.create({
     marginTop: hp(12),
   },
   policyLink: {
-    color: colors.info,
+    color: colors.uBottomText,
     fontWeight: '500',
   },
 });

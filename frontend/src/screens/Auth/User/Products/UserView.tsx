@@ -467,7 +467,7 @@ const styles = StyleSheet.create({
   },
   sectionCount: {
     fontSize: fp(12),
-    color: colors.textSecondary,
+    color: colors.uSubHeading,
     fontWeight: '500',
   },
 

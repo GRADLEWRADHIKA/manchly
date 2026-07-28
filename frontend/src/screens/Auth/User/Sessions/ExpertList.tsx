@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(12), paddingVertical: hp(6), borderRadius: wp(18),
     backgroundColor: colors.uCard, borderWidth: 1, borderColor: colors.uCard,
   },
-  catChipActive: {backgroundColor: colors.btnGradientStart, borderColor: colors.btnGradientStart},
+  catChipActive: {backgroundColor: colors.statText, borderColor: colors.statText},
   catChipText: {fontSize: fp(11), color: colors.textPrimary, fontWeight: '500'},
   catChipTextActive: {color: colors.textPrimary, fontWeight: '600'},
   searchWrap: {
@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
     marginHorizontal: wp(16),
     marginTop: hp(12),
     marginBottom: hp(10),
-    backgroundColor: colors.surface,
+    backgroundColor: colors.uCard,
     borderRadius: wp(12),
     paddingHorizontal: wp(12),
     borderWidth: 1,

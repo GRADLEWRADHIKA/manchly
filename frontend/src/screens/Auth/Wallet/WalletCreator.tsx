@@ -22,7 +22,6 @@ import {
   AlertTriangle,
   CreditCard,
   X,
-  Check,
 } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 import LinearGradient from 'react-native-linear-gradient';
@@ -249,7 +248,7 @@ const WalletCreator: React.FC = () => {
                 end={{ x: 1, y: 0 }}
                 style={styles.withdrawPillGradient}
               >
-                <Text style={styles.withdrawText}>Request Payout</Text>
+                <Text style={styles.withdrawText}>Withdraw</Text>
               </LinearGradient>
             </TouchableOpacity>
           </View>

@@ -23,6 +23,7 @@ import AppHeader from '../../../../components/AppHeader';
 import {getMySessions, getSessionStats} from '../../../../store/SessionSlice';
 import { LinearGradient } from 'react-native-linear-gradient';
 import ShimmerBox from '../../../../components/ShimmerBox';
+import BrowseIcon from '../../../../image/BrowseIcon';
 
 const SessionsSkeleton = () => (
   <View style={styles.listContent}>
@@ -141,17 +142,17 @@ const UserSessions: React.FC = () => {
       {/* Stats */}
       <View style={styles.statsRow}>
         <View style={styles.statCard}>
-          <PhoneCall size={wp(20)} color={colors.textSecondary} strokeWidth={1.8} />
+          <PhoneCall size={wp(20)} color={colors.uBottomText} strokeWidth={1.8} />
           <Text style={styles.statValue}>{stats.total_sessions}</Text>
           <Text style={styles.statLabel}>SESSIONS</Text>
         </View>
         <View style={styles.statCard}>
-          <Clock size={wp(20)} color={colors.textSecondary} strokeWidth={1.8} />
+          <Clock size={wp(20)} color={colors.uBottomText} strokeWidth={1.8} />
           <Text style={styles.statValue}>{stats.total_minutes}</Text>
           <Text style={styles.statLabel}>MINUTES</Text>
         </View>
         <View style={styles.statCard}>
-          <IndianRupee size={wp(20)} color={colors.textSecondary} strokeWidth={1.8} />
+          <IndianRupee size={wp(20)} color={colors.uBottomText} strokeWidth={1.8} />
           <Text style={styles.statValue}>
             ₹{Number(stats.total_earnings || 0).toFixed(2)}
           </Text>
@@ -165,7 +166,7 @@ const UserSessions: React.FC = () => {
         activeOpacity={0.8}
         onPress={() => navigation.navigate('ExpertList')}>
         <View style={styles.ctaIconWrap}>
-          <PhoneCall size={wp(26)} color={colors.info} strokeWidth={1.8} />
+          <BrowseIcon size={wp(26)} color={colors.info} strokeWidth={1.8} />
         </View>
         <Text style={styles.ctaTitle}>Browse Experts</Text>
         <Text style={styles.ctaSub}>
@@ -264,11 +265,11 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: fp(18),
     fontWeight: '800',
-    color: colors.statText,
+    color: colors.sessionText,
   },
   statLabel: {
     fontSize: fp(9),
-    color: colors.uSubHeading,
+    color: colors.sessionText2,
     fontWeight: '600',
     letterSpacing: 0.3,
   },
@@ -300,7 +301,7 @@ const styles = StyleSheet.create({
   },
   ctaSub: {
     fontSize: fp(12.5),
-    color: colors.uSubHeading,
+    color: '#C5C5D8',
     textAlign: 'center',
     lineHeight: fp(18),
     marginBottom: hp(18),

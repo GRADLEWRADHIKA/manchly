@@ -232,17 +232,17 @@ export default PurchaseWebinarCard;
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.uCard,
     borderRadius: wp(16),
     marginBottom: hp(14),
     overflow: 'hidden',
-    shadowColor: colors.black,
+    shadowColor: colors.uCard,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.07,
     shadowRadius: 10,
     elevation: 4,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.surface,
+    borderColor: colors.uCard,
   },
 
   thumbnailContainer: {
@@ -252,13 +252,13 @@ const styles = StyleSheet.create({
   thumbnail: {
     width: '100%',
     height: hp(170),
-    backgroundColor: colors.textPrimary,
+    backgroundColor: colors.uSubHeading,
   },
 
   thumbnailPlaceholder: {
     width: '100%',
     height: hp(140),
-    backgroundColor: colors.textPrimary,
+    backgroundColor: colors.uBg,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -279,7 +279,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(4),
-    backgroundColor: colors.textPrimary,
+    backgroundColor: colors.uSubHeading,
     paddingHorizontal: wp(10),
     paddingVertical: hp(4),
     borderRadius: wp(8),
@@ -329,17 +329,17 @@ const styles = StyleSheet.create({
   },
 
   tagChip: {
-    backgroundColor: colors.textPrimary,
+    backgroundColor: colors.uSubtext,
     paddingHorizontal: wp(10),
     paddingVertical: hp(3),
     borderRadius: wp(12),
     borderWidth: 1,
-    borderColor: colors.textPrimary,
+    borderColor: colors.uSubtext,
   },
 
   tagText: {
     fontSize: fp(11),
-    color: colors.info,
+    color: colors.uBottomText,
     fontWeight: '500',
   },
 

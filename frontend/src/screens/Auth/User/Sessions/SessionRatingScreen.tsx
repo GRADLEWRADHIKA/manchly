@@ -172,14 +172,14 @@ const styles = StyleSheet.create({
     width: wp(80),
     height: wp(80),
     borderRadius: wp(40),
-    backgroundColor: colors.subtext,
+    backgroundColor: colors.statIcon2,
     alignItems: 'center',
     justifyContent: 'center',
   },
   expertName: {
     fontSize: fp(20),
     fontWeight: '700',
-    color: colors.text,
+    color: colors.white,
   },
   durationText: {
     fontSize: fp(13),
@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
   rateLabel: {
     fontSize: fp(15),
     fontWeight: '600',
-    color: colors.text,
+    color: colors.white,
     marginTop: hp(28),
     marginBottom: hp(14),
   },
@@ -241,6 +241,6 @@ const styles = StyleSheet.create({
   skipBtnText: {
     fontSize: fp(14),
     fontWeight: '500',
-    color: colors.textMuted,
+    color: colors.uSubHeading,
   },
 });

@@ -23,7 +23,7 @@ const CourseCard = ({ item }) => {
           />
         ) : (
           <View style={styles.placeholderThumbnail}>
-            <BookOpen size={wp(28)} color={colors.textMuted} strokeWidth={1.4} />
+            <BookOpen size={wp(28)} color={colors.uBottom} strokeWidth={1.4} />
           </View>
         )}
       </View>

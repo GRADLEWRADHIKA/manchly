@@ -361,11 +361,11 @@ const styles = StyleSheet.create({
     height: hp(180),
   },
   imageFallback: {
-    backgroundColor: colors.cCardLight,
+    backgroundColor: colors.uBottom,
   },
   progressTrack: {
     height: hp(4),
-    backgroundColor: colors.cBorder,
+    backgroundColor: colors.statText,
     borderRadius: 99,
     overflow: 'hidden',
   },
@@ -376,27 +376,27 @@ const styles = StyleSheet.create({
 
   // ── Ongoing ─────────────────────────────────────────────────────────────────
   ongoingCard: {
-    backgroundColor: colors.cSurface,
+    backgroundColor: colors.uCard,
     borderRadius: wp(16),
     marginBottom: hp(16),
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: colors.uCard,
   },
   featuredBadge: {
     position: 'absolute',
     bottom: hp(12),
     left: wp(12),
-    backgroundColor: colors.cAccentMuted,
+    backgroundColor: colors.uSubHeading,
     borderWidth: 1,
-    borderColor: colors.cAccentLight,
+    borderColor: colors.uSubHeading,
     borderRadius: 99,
     paddingHorizontal: wp(10),
     paddingVertical: hp(4),
   },
   featuredBadgeText: {
     fontSize: fp(9),
-    color: colors.cText,
+    color: colors.uSubHeading,
     fontWeight: '700',
     letterSpacing: 0.5,
   },
@@ -415,12 +415,12 @@ const styles = StyleSheet.create({
   priorityText: {
     fontSize: fp(10),
     fontWeight: '700',
-    color: colors.cAccentLight,
+    color: colors.uExploreNowText,
     letterSpacing: 0.5,
   },
   priorityRightText: {
     fontSize: fp(11),
-    color: colors.cTextMuted,
+    color: colors.uExploreNowText,
   },
   ongoingTitle: {
     fontSize: fp(20),
@@ -440,7 +440,7 @@ const styles = StyleSheet.create({
   },
   moduleText: {
     fontSize: fp(13),
-    color: colors.cTextSecondary,
+    color: colors.uSubHeading,
     flex: 1,
   },
   progressLabelRow: {
@@ -452,7 +452,7 @@ const styles = StyleSheet.create({
   },
   progressLabel: {
     fontSize: fp(11),
-    color: colors.cTextSecondary,
+    color: colors.uSubHeading,
   },
   progressPercent: {
     fontSize: fp(11),
@@ -468,7 +468,7 @@ const styles = StyleSheet.create({
   },
   ongoingMetaText: {
     fontSize: fp(11),
-    color: colors.cTextMuted,
+    color: colors.uSubHeading,
   },
   resumeBtnWrapper: {
     marginHorizontal: wp(14),

@@ -5,7 +5,8 @@ const colors = {
   gold: '#F0C040',
   goldDim: '#F0C04018',
   textPrimary: '#FFFFFF',
-  primaryDark: '#1A1A1A',
+  primaryDark: '#1A1A1A'
+  ,
 
   primary: '#000000',
   secPrimary: '#692626',
@@ -64,7 +65,10 @@ const colors = {
   statText: '#4F60FA',
   statIcon: '#73799B',
   statIcon2: '#BDC2FF',
-
+  sessionText: '#4F60FA',
+  sessionText2: '#73799B',
+  timeSlotText: '#BDC2FF0D',
+  
   // Creator Dark Theme
   cBg: '#0D0D1A',
   cSurface: '#141428',

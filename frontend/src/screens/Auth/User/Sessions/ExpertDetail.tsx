@@ -488,7 +488,7 @@ const ExpertDetail: React.FC = () => {
         {/* Select Date */}
         <View style={styles.section}>
           <View style={styles.sectionHeaderRow}>
-            <Calendar size={wp(16)} color={colors.text} strokeWidth={1.8} />
+            <Calendar size={wp(16)} color={colors.uSubHeading} strokeWidth={1.8} />
             <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>
               Select Date
             </Text>
@@ -543,7 +543,7 @@ const ExpertDetail: React.FC = () => {
         {/* Select Time */}
         <View style={styles.section}>
           <View style={styles.sectionHeaderRow}>
-            <Clock size={wp(16)} color={colors.textPrimary} strokeWidth={1.8} />
+            <Clock size={wp(16)} color={colors.uSubHeading} strokeWidth={1.8} />
             <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>
               Select Time
             </Text>
@@ -679,10 +679,10 @@ const styles = StyleSheet.create({
     height: wp(14),
     borderRadius: wp(7),
     borderWidth: 2,
-    borderColor: colors.uSubtext,
+    borderColor: colors.uCard,
   },
   profileInfo: { marginLeft: wp(14), flex: 1 },
-  profileName: { fontSize: fp(17), fontWeight: '700', color: colors.textPrimary },
+  profileName: { fontSize: fp(17), fontWeight: '700', color: colors.white },
   profileProf: {
     fontSize: fp(12),
     color: colors.uSubHeading,
@@ -701,18 +701,18 @@ const styles = StyleSheet.create({
     marginTop: hp(16),
     paddingTop: hp(14),
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.uCard,
+    borderTopColor: colors.uBg,
     justifyContent: 'space-around',
   },
   statBox: { alignItems: 'center', gap: hp(3) },
-  statVal: { fontSize: fp(14), fontWeight: '700', color: colors.textPrimary },
-  statLbl: { fontSize: fp(10), color: colors.textPrimary },
-  statDiv: { width: 1, backgroundColor: colors.surface },
+  statVal: { fontSize: fp(14), fontWeight: '700', color: colors.white },
+  statLbl: { fontSize: fp(10), color: colors.uSubHeading },
+  statDiv: { width: 1, backgroundColor: colors.uBg },
   section: { marginTop: hp(18), paddingHorizontal: wp(16) },
   sectionTitle: {
     fontSize: fp(15),
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: colors.white,
     marginBottom: hp(10),
   },
   aboutText: {
@@ -727,7 +727,7 @@ const styles = StyleSheet.create({
     marginTop: hp(10),
     paddingHorizontal: wp(16),
   },
-  langText: { fontSize: fp(12), color: colors.textPrimary },
+  langText: { fontSize: fp(12), color: colors.uSubHeading },
   videoRateCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -739,7 +739,7 @@ const styles = StyleSheet.create({
   videoRateText: {
     fontSize: fp(14),
     fontWeight: '700',
-    color: colors.uSubHeading,
+    color: colors.white,
   },
   sectionHeaderRow: {
     flexDirection: 'row',
@@ -753,25 +753,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: hp(12),
     borderRadius: wp(14),
-    backgroundColor: colors.textPrimary,
+    backgroundColor: colors.uCard,
     borderWidth: 1.5,
-    borderColor: colors.surface,
+    borderColor: colors.uCard,
   },
   dateCardActive: {
     backgroundColor: colors.btnGradientStart,
     borderColor: colors.btnGradientEnd,
   },
-  dateDay: { fontSize: fp(11), fontWeight: '600', color: colors.textSecondary },
-  dateDayActive: { color: 'rgba(255,255,255,0.7)' },
+  dateDay: { fontSize: fp(11), fontWeight: '600', color: colors.uSubHeading },
+  dateDayActive: { color: 'rgba(255,255,255,0.8)' },
   dateNum: {
     fontSize: fp(20),
     fontWeight: '800',
-    color: colors.text,
+    color: colors.white,
     marginVertical: hp(2),
   },
-  dateNumActive: { color: colors.textPrimary },
-  dateMonth: { fontSize: fp(10), fontWeight: '500', color: colors.textMuted },
-  dateMonthActive: { color: 'rgba(255,255,255,0.7)' },
+  dateNumActive: { color: colors.white },
+  dateMonth: { fontSize: fp(10), fontWeight: '500', color: colors.uSubHeading },
+  dateMonthActive: { color: 'rgba(255,255,255,0.8)' },
   timeGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -783,27 +783,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: hp(12),
     borderRadius: wp(12),
-    backgroundColor: colors.uExploreNow,
+    backgroundColor: colors.timeSlotText,
     borderWidth: 1,
-    borderColor: colors.uExploreNow,
+    borderColor: colors.timeSlotText,
   },
   timeSlotActive: {
-    backgroundColor: colors.uCard,
+    backgroundColor: '#5161F8',
     borderColor: colors.uCard,
   },
   timeSlotBooked: {
-    backgroundColor: '#f1f5f9',
-    borderColor: '#e2e8f0',
+    backgroundColor: colors.timeSlotText,
+    borderColor: colors.timeSlotText,
     opacity: 0.7,
   },
-  timeText: { fontSize: fp(11), fontWeight: '600', color: colors.textPrimary },
-  timeTextActive: { color: colors.textPrimary },
-  timeTextBooked: { color: colors.muted, textDecorationLine: 'line-through' },
+  timeText: { fontSize: fp(11), fontWeight: '600', color: colors.uSubHeading },
+  timeTextActive: { color: colors.uBottomText },
+  timeTextBooked: { color: colors.uBottomText, textDecorationLine: 'line-through' },
   bookedLabel: {
     fontSize: fp(5),
-    color: colors.info,
+    color: colors.textLogout,
     fontWeight: '700',
-    backgroundColor: colors.error,
+    backgroundColor: colors.logoutButton,
     borderRadius: wp(4),
     paddingHorizontal: wp(5),
     paddingVertical: hp(1),
@@ -814,12 +814,12 @@ const styles = StyleSheet.create({
   },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: wp(8) },
   chip: {
-    backgroundColor: colors.info + '10',
+    backgroundColor: colors.uCard,
     borderRadius: wp(12),
     paddingHorizontal: wp(12),
     paddingVertical: hp(6),
   },
-  chipText: { fontSize: fp(12), color: colors.textPrimary, fontWeight: '500' },
+  chipText: { fontSize: fp(12), color: colors.statText, fontWeight: '500' },
   bottomBar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -830,10 +830,10 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.surface,
   },
-  bottomPrice: { fontSize: fp(16), fontWeight: '700', color: colors.textPrimary },
+  bottomPrice: { fontSize: fp(16), fontWeight: '700', color: colors.white },
   bottomSubText: {
     fontSize: fp(11),
-    color: colors.textPrimary,
+    color: colors.uSubHeading,
     marginTop: hp(2),
   },
   bottomBtnWrapper: {
@@ -849,5 +849,5 @@ const styles = StyleSheet.create({
     gap: wp(8),
   },
   bottomBtnDisabled: { opacity: 0.4 },
-  bottomBtnText: { fontSize: fp(14), fontWeight: '700', color: colors.textPrimary },
+  bottomBtnText: { fontSize: fp(14), fontWeight: '700', color: colors.white },
 });

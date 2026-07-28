@@ -145,7 +145,7 @@ const tabStyles = StyleSheet.create({
   },
   track: {
     flexDirection: 'row',
-    backgroundColor: colors.bg,
+    backgroundColor: colors.uCard,
     borderRadius: wp(14),
     padding: wp(4),
     position: 'relative',
@@ -212,10 +212,10 @@ const tabStyles = StyleSheet.create({
   countText: {
     fontSize: fp(11),
     fontWeight: '700',
-    color: colors.textSecondary,
+    color: colors.uSubHeading,
   },
   countTextActive: {
-    color: colors.white,
+    color: colors.uSubtext,
   },
 });
 
@@ -379,15 +379,6 @@ const PurchasesScreen = () => {
           { paddingTop: insets.top + hp(4) },
         ]}>
         <Text style={styles.headerTitle}>My Purchases</Text>
-        <Pressable
-          style={({ pressed }) => [
-            styles.instaBtn,
-            pressed && styles.instaBtnPressed,
-          ]}
-          onPress={() => Linking.openURL('https://www.instagram.com/manchly_app')}
-          accessibilityLabel="Instagram">
-          <Instagram size={wp(18)} color={colors.white} strokeWidth={2} />
-        </Pressable>
       </View>
       <View style={styles.headerEdge} />
 
@@ -504,20 +495,6 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: wp(18),
     zIndex: 10,
   },
-  instaBtn: {
-    width: wp(40),
-    height: wp(40),
-    borderRadius: wp(14),
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
-  },
-  instaBtnPressed: {
-    backgroundColor: colors.textPrimary,
-    transform: [{ scale: 0.93 }],
-  },
 
   listContent: {
     padding: wp(16),
@@ -547,7 +524,7 @@ const styles = StyleSheet.create({
     width: wp(72),
     height: wp(72),
     borderRadius: wp(36),
-    backgroundColor: '#1E3A5F0A',
+    backgroundColor: colors.uCard,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: hp(16),

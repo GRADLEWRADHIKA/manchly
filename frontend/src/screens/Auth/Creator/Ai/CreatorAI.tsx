@@ -53,30 +53,6 @@ const AI_TOOLS = [
     description: 'Generate structured educational scripts with clear learning outcomes.',
   },
   {
-    id: 'quiz',
-    icon: HelpCircle,
-    title: 'Quiz Generator',
-    description: 'Turn any content into engaging assessments and interactive quizzes.',
-  },
-  {
-    id: 'social-posts',
-    icon: Share2,
-    title: 'Social Posts',
-    description: 'Create viral-ready content for LinkedIn, X, and Instagram in seconds.',
-  },
-  {
-    id: 'email-series',
-    icon: Mail,
-    title: 'Email Series',
-    description: 'Draft high-converting nurture sequences and newsletters.',
-  },
-  {
-    id: 'session-prep',
-    icon: Calendar,
-    title: 'Session Prep',
-    description: 'Organize agendas and talking points for your next workshop.',
-  },
-  {
     id: 'product-suggestion',
     icon: Lightbulb,
     title: 'Product Suggestion',
@@ -111,18 +87,6 @@ const AI_TOOLS = [
     icon: Sparkles,
     title: 'Webinar Enhancer',
     description: 'Polish webinar titles, descriptions, and outcomes for better conversions.',
-  },
-  {
-    id: 'expert-bio',
-    icon: UserCircle2,
-    title: 'Expert Bio Writer',
-    description: 'Generate a professional short and full bio for your expert profile.',
-  },
-  {
-    id: 'session-enhance',
-    icon: Wand2,
-    title: 'Session Enhancer',
-    description: 'Enhance session headlines, bios, and product descriptions.',
   },
   {
     id: 'moderate',

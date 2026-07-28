@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(20),
   },
   mainHeader: {
-    borderRadius: wp(30),
+    borderRadius: wp(25),
     shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.18,
@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
   },
   mainHeaderGradient: {
     paddingVertical: hp(16),
-    borderRadius: wp(30),
+    borderRadius: wp(25),
     alignItems: 'center',
     justifyContent: 'center',
   },

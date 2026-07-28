@@ -11,7 +11,7 @@ import {
 import colors from '../../../utils/colors';
 import { wp, hp, fp } from '../../../utils/responsive';
 import AppHeaderWithBack from '../../../components/AppHeaderWithBack';
-import { User2, Camera } from 'lucide-react-native';
+import { User2, Camera, CheckCircle2, Clock } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { Controller, useForm } from 'react-hook-form';
@@ -224,6 +224,23 @@ const UserProfile = () => {
               )}
             />
           </View>
+        </View>
+        
+        {/* Stats Cards */}
+        <View style={styles.statCard}>
+          <View style={styles.statIconWrap}>
+            <CheckCircle2 size={wp(18)} color={colors.textPrimary} />
+          </View>
+          <Text style={styles.statLabel}>COURSES COMPLETED</Text>
+          <Text style={styles.statValue}>24</Text>
+        </View>
+
+        <View style={styles.statCard}>
+          <View style={styles.statIconWrap}>
+            <Clock size={wp(18)} color={colors.textPrimary} />
+          </View>
+          <Text style={styles.statLabel}>HOURS LEARNED</Text>
+          <Text style={styles.statValue}>158</Text>
         </View>
 
        {/* Action Buttons */}

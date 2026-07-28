@@ -17,11 +17,11 @@ import {
 import {
   Bell,
   ChevronRight,
-  Sparkles,
-  Bot,
+  //Sparkles,
+  //Bot,
   BookOpen,
   Users,
-  Award,
+  //Award,
   Calendar,
   AtSign,
   Video as VideoIcon,
@@ -33,7 +33,7 @@ import { wp, hp, fp } from '../../../../utils/responsive';
 import KycCard from './KeyCard';
 import { useSelector, useDispatch } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Toast from 'react-native-toast-message';
+//import Toast from 'react-native-toast-message';
 import LinearGradient from 'react-native-linear-gradient';
 import RocketIcon from '../../../../components/RocketIcon';
 import { getCreatorSales } from '../../../../store/PaymentSlice';
@@ -341,7 +341,7 @@ const CreatorHome = () => {
                 end={{x: 1, y: 0}}
                 style={styles.ctaButton}
               >
-                <Text style={styles.ctaText}>Complete Checklist</Text>
+                <Text style={styles.ctaText}>Get</Text>
                 <ChevronRight size={wp(18)} color={colors.primary} />
               </LinearGradient>
             </TouchableOpacity>
@@ -383,29 +383,31 @@ const CreatorHome = () => {
             </TouchableOpacity>
           </View>
         </View>
+ 
+  {/*
+<View style={styles.sectionPadding}>
+  <LinearGradient
+    colors={['#1A1A1A', '#141414']}
+    start={{ x: 0, y: 0 }}
+    end={{ x: 1, y: 1 }}
+    style={styles.aiCard}
+  >
+    <View style={styles.aiBadge}>
+      <Bot size={wp(14)} color={colors.golden} />
+      <Text style={styles.aiBadgeText}>AI CONTENT ASSISTANT</Text>
+    </View>
 
-        {/* AI Content Assistant */}
-        <View style={styles.sectionPadding}>
-          <LinearGradient
-            colors={['#1A1A1A', '#141414']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.aiCard}
-          >
-            <View style={styles.aiBadge}>
-              <Bot size={wp(14)} color={colors.golden} />
-              <Text style={styles.aiBadgeText}>AI CONTENT ASSISTANT</Text>
-            </View>
-            <Text style={styles.aiTitle}>Suggested: Host a Live Q&A</Text>
-            <Text style={styles.aiDescription}>
-              Based on your recent engagement spikes on Thursday evenings, a
-              live session could increase your retention by up to 15%. Your
-              subscribers are asking about "Color Grading Workflow".
-            </Text>
-          </LinearGradient>
-        </View>
-      </ScrollView>
+    <Text style={styles.aiTitle}>Suggested: Host a Live Q&A</Text>
 
+    <Text style={styles.aiDescription}>
+      Based on your recent engagement spikes on Thursday evenings, a
+      live session could increase your retention by up to 15%. Your
+      subscribers are asking about "Color Grading Workflow".
+    </Text>
+  </LinearGradient>
+</View>
+*/}
+</ScrollView>
       {showIntroVideo ? (
         <View style={isFullScreen ? styles.fullScreenVideoContainer : styles.floatingVideoContainer}>
           <View style={isFullScreen ? styles.expandedVideoWrap : styles.miniVideoWrap}>

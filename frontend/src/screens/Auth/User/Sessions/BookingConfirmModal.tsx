@@ -142,11 +142,11 @@ export default BookingConfirmModal;
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: colors.uCard,
+    backgroundColor: 'rgba(13, 17, 43, 0.85)',
     justifyContent: 'flex-end',
   },
   content: {
-    backgroundColor: colors.textPrimary,
+    backgroundColor: colors.uCard,
     borderTopLeftRadius: wp(20),
     borderTopRightRadius: wp(20),
     padding: wp(20),
@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: fp(18),
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: colors.white,
     textAlign: 'center',
     marginBottom: hp(16),
   },
@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
     width: wp(44),
     height: wp(44),
     borderRadius: wp(22),
-    backgroundColor: colors.statIcon,
+    backgroundColor: colors.uSubtext,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
   sub: { fontSize: fp(12), color: colors.uSubHeading, marginTop: hp(2) },
   divider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: '#898BA8',
+    backgroundColor: colors.uSubtext,
     marginVertical: hp(16),
   },
   row: {
@@ -188,13 +188,13 @@ const styles = StyleSheet.create({
     marginBottom: hp(12),
   },
   label: { fontSize: fp(13), color: colors.uSubHeading, flex: 1 },
-  value: { fontSize: fp(14), fontWeight: '600', color: colors.statText },
-  totalValue: { fontSize: fp(14), fontWeight: '800', color: colors.statText },
+  value: { fontSize: fp(14), fontWeight: '600', color: colors.white },
+  totalValue: { fontSize: fp(14), fontWeight: '800', color: colors.btnGradientStart },
   note: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(8),
-    backgroundColor: colors.success + '10',
+    backgroundColor: 'rgba(76, 175, 80, 0.1)',
     borderRadius: wp(10),
     padding: wp(12),
     marginTop: hp(4),
@@ -219,6 +219,6 @@ const styles = StyleSheet.create({
   cancelBtnText: {
     fontSize: fp(14),
     fontWeight: '500',
-    color: colors.uBg,
+    color: colors.white,
   },
 });

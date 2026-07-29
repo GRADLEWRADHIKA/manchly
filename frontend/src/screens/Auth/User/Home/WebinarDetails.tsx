@@ -40,6 +40,7 @@ import { wp, hp, fp } from '../../../../utils/responsive';
 import TermsModal from '../../../../components/TermsModal';
 import PrivacyModal from '../../../../components/PrivacyModal';
 import RefundPolicyModal from '../../../../components/RefundPolicyModal';
+import LinearGradient from 'react-native-linear-gradient'; // <-- Added Import
 
 const WebinarDetails = () => {
   const { params } = useRoute<any>();
@@ -370,22 +371,31 @@ const WebinarDetails = () => {
 
       <View style={styles.bottomBar}>
         {data?.is_enrolled ? (
-          <View style={[styles.buyButton, { backgroundColor: colors.success }]}>
+          <View style={[styles.buyButtonWrapper, { backgroundColor: colors.success || '#4CAF50' }]}>
             <Text style={styles.buyText}>Already Enrolled</Text>
           </View>
         ) : (
           <TouchableOpacity
-            style={styles.buyButton}
+            style={styles.buyButtonWrapper}
             onPress={onVerifyWebinar}
             disabled={loading}
+            activeOpacity={0.85}
           >
-            {loading ? (
-              <ActivityIndicator color={colors.textPrimary} size={'small'} />
-            ) : (
-              <Text style={styles.buyText}>
-                Purchase for ₹{total.toFixed(2)}
-              </Text>
-            )}
+            {/* Added LinearGradient here */}
+            <LinearGradient
+              colors={[colors.btnGradientStart || '#F0C040', colors.btnGradientEnd || '#E6A820']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.buyButtonGradient}
+            >
+              {loading ? (
+                <ActivityIndicator color={'#FFFFFF'} size={'small'} />
+              ) : (
+                <Text style={styles.buyText}>
+                  Purchase for ₹{total.toFixed(2)}
+                </Text>
+              )}
+            </LinearGradient>
           </TouchableOpacity>
         )}
       </View>
@@ -434,7 +444,7 @@ const styles = StyleSheet.create({
   thumbnailWrapper: {
     width: '100%',
     height: hp(220),
-    backgroundColor: colors.surface,
+    backgroundColor: colors.uCard,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -501,7 +511,7 @@ const styles = StyleSheet.create({
   },
 
   priceBox: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.uCard,
     color: colors.textPrimary,
     padding: wp(16),
     borderRadius: wp(12),
@@ -567,14 +577,18 @@ const styles = StyleSheet.create({
     borderColor: colors.uBg,
     marginBottom: hp(10),
   },
-  buyButton: {
-    backgroundColor: colors.textPrimary,
-    paddingVertical: hp(14),
+  // Modified styles for Button with Gradient
+  buyButtonWrapper: {
     borderRadius: wp(10),
+    overflow: 'hidden',
+  },
+  buyButtonGradient: {
+    paddingVertical: hp(14),
     alignItems: 'center',
+    justifyContent: 'center',
   },
   buyText: {
-    color: colors.textPrimary,
+    color: '#FFFFFF', // Ensures strong contrast against the gradient
     fontWeight: '700',
     fontSize: fp(16),
   },

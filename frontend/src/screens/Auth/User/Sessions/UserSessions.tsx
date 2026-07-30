@@ -111,17 +111,17 @@ const UserSessions: React.FC = () => {
       {/* Stats */}
       <View style={styles.statsRow}>
         <View style={styles.statCard}>
-          <PhoneCall size={wp(20)} color={colors.uBottomText} strokeWidth={1.8} />
+          <PhoneCall size={wp(20)} color={colors.uSubHeading} strokeWidth={1.8} />
           <Text style={styles.statValue}>{stats.total_sessions}</Text>
           <Text style={styles.statLabel}>SESSIONS</Text>
         </View>
         <View style={styles.statCard}>
-          <Clock size={wp(20)} color={colors.uBottomText} strokeWidth={1.8} />
+          <Clock size={wp(20)} color={colors.uSubHeading} strokeWidth={1.8} />
           <Text style={styles.statValue}>{stats.total_minutes}</Text>
           <Text style={styles.statLabel}>MINUTES</Text>
         </View>
         <View style={styles.statCard}>
-          <IndianRupee size={wp(20)} color={colors.uBottomText} strokeWidth={1.8} />
+          <IndianRupee size={wp(20)} color={colors.uSubHeading} strokeWidth={1.8} />
           <Text style={styles.statValue}>
             ₹{Number(stats.total_earnings || 0).toFixed(2)}
           </Text>

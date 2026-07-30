@@ -187,7 +187,7 @@ const ProductsScreen = () => {
             >
               <Icon
                 size={wp(16)}
-                color={isActive ? colors.white : colors.uSubHeading}
+                color={isActive ? colors.white : colors.textSecondary}
                 strokeWidth={isActive ? 2.2 : 1.6}
               />
               <Text style={[styles.tabLabel, isActive && styles.tabLabelActive]}>
@@ -606,10 +606,10 @@ const styles = StyleSheet.create({
   tabLabel: {
     fontSize: fp(13.5),
     fontWeight: '500',
-    color: colors.uSubHeading,
+    color: colors.textPrimary,
   },
   tabLabelActive: {
-    color: colors.white,
+    color: colors.textPrimary,
     fontWeight: '600',
   },
   tabCountBadge: {
@@ -629,7 +629,7 @@ const styles = StyleSheet.create({
     color: colors.uSubHeading,
   },
   tabCountTextActive: {
-    color: colors.white,
+    color: colors.uSubtext,
   },
 
   imgPlaceholder: {
@@ -861,7 +861,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: hp(10),
     right: wp(10),
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: colors.goldDim,
     paddingHorizontal: wp(8),
     paddingVertical: hp(4),
     borderRadius: 6,
@@ -888,13 +888,13 @@ const styles = StyleSheet.create({
   },
   webinarMetaLineText: {
     fontSize: fp(11),
-    color: colors.uExploreNowText,
+    color: colors.uSubHeading,
     marginBottom: hp(4),
   },
   registerWebinarBtn: {
     backgroundColor: 'rgba(255,255,255,0.05)',
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: colors.uCard,
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',

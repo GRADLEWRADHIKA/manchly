@@ -797,8 +797,8 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   timeText: { fontSize: fp(11), fontWeight: '600', color: colors.uSubHeading },
-  timeTextActive: { color: colors.uBottomText },
-  timeTextBooked: { color: colors.uBottomText, textDecorationLine: 'line-through' },
+  timeTextActive: { color: colors.white },
+  timeTextBooked: { color: colors.uSubHeading, textDecorationLine: 'line-through' },
   bookedLabel: {
     fontSize: fp(5),
     color: colors.textLogout,
@@ -819,7 +819,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(12),
     paddingVertical: hp(6),
   },
-  chipText: { fontSize: fp(12), color: colors.statText, fontWeight: '500' },
+  chipText: { fontSize: fp(12), color: colors.white, fontWeight: '500' },
   bottomBar: {
     flexDirection: 'row',
     alignItems: 'center',

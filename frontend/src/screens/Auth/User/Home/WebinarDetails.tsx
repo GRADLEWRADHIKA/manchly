@@ -527,6 +527,7 @@ const styles = StyleSheet.create({
   },
   priceValue: {
     fontWeight: '600',
+    color: colors.textPrimary,
   },
   totalRow: {
     borderTopWidth: wp(1),
@@ -544,7 +545,7 @@ const styles = StyleSheet.create({
   totalValue: {
     fontSize: fp(18),
     fontWeight: '800',
-    color: colors.uSubtext,
+    color: colors.statText,
   },
   participants: {
     fontSize: fp(14),
@@ -601,7 +602,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(15),
   },
   policyLink: {
-    color: colors.uSubtext,
+    color: colors.statText,
     fontWeight: '500',
   },
 });

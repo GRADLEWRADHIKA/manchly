@@ -78,3 +78,13 @@ export function unwrap(body) {
   if (body && typeof body === "object" && "data" in body) return body.data;
   return body;
 }
+
+// Helper for Promise.allSettled results.
+// Returns the unwrapped payload when fulfilled, otherwise null.
+export function val(result) {
+  if (!result || result.status !== "fulfilled") {
+    return null;
+  }
+
+  return unwrap(result.value);
+}

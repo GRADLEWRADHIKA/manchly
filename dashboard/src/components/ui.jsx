@@ -303,11 +303,17 @@ export function Toaster() {
 
 /* ---------------- Avatar ---------------- */
 export function Avatar({ src, name = "", size = 40, online }) {
+  const [broken, setBroken] = useState(false);
   const initials = name.split(" ").map((w) => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase() || "?";
   return (
-    <div style={{ position: "relative", width: size, height: size, flexShrink: 0 }}>
-      {src ? (
-        <img src={src} alt={name} style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover" }} />
+    <div style={{ position: "relative", width: size, height: size, flexShrink: 0, overflow: "visible" }}>
+      {src && !broken ? (
+        <img
+          src={src}
+          alt=""
+          onError={() => setBroken(true)}
+          style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover", display: "block" }}
+        />
       ) : (
         <div style={{ width: size, height: size, borderRadius: "50%", background: colors.gradients.indigo, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: size * 0.38 }}>
           {initials}

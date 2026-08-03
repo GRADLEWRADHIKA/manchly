@@ -115,6 +115,7 @@ export default function StudioScreen() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [thumbUploading, setThumbUploading] = useState(false);
+  const [coverDrag, setCoverDrag] = useState(false);
   const [deleteCourse, setDeleteCourse] = useState(null);
 
   // lesson form modal
@@ -524,59 +525,115 @@ export default function StudioScreen() {
       )}
 
       {/* ---------- Course create/edit modal ---------- */}
-      <Modal open={!!courseModal} onClose={() => setCourseModal(null)} title={courseModal === "create" ? "New Course" : "Edit Course"} width={560}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <Modal open={!!courseModal} onClose={() => setCourseModal(null)} title="" width={580}>
+        {/* Header */}
+        <div style={{ display: "flex", alignItems: "center", gap: 14, margin: "-6px 0 20px" }}>
+          <span style={{ width: 46, height: 46, borderRadius: 13, background: G.orange, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 6px 16px rgba(245,166,35,0.35)", flexShrink: 0 }}>
+            <GraduationCap size={23} color="#fff" />
+          </span>
           <div>
-            <label style={lbl}>Course Title</label>
-            <input style={inp} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="e.g. Advanced Options Trading" />
-            <div style={{ marginTop: 6 }}>
+            <div style={{ fontSize: 19, fontWeight: 900 }}>{courseModal === "create" ? "New Course" : "Edit Course"}</div>
+            <div style={{ fontSize: 13, color: colors.typography.secondaryText }}>
+              {courseModal === "create" ? "Set up the basics — you'll add lessons next" : "Update details, then save"}
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+          {/* Cover */}
+          <div
+            className={`cs-cover ${form.thumbnail ? "has-img" : ""} ${coverDrag ? "drag" : ""}`}
+            onClick={() => thumbRef.current?.click()}
+            onDragOver={(e) => { e.preventDefault(); setCoverDrag(true); }}
+            onDragLeave={() => setCoverDrag(false)}
+            onDrop={(e) => { e.preventDefault(); setCoverDrag(false); uploadImage(e.dataTransfer.files?.[0], (url) => setForm((f) => ({ ...f, thumbnail: url })), setThumbUploading); }}
+            style={form.thumbnail ? { background: `url(${form.thumbnail}) center/cover` } : undefined}
+          >
+            {thumbUploading ? (
+              <><Spinner size={22} /><span style={{ fontSize: 13, fontWeight: 700, color: "#92400E" }}>Uploading…</span></>
+            ) : form.thumbnail ? (
+              <span className="cs-cover-overlay"><UploadCloud size={16} /> Change cover</span>
+            ) : (
+              <>
+                <UploadCloud size={26} color="#D69C3F" />
+                <span style={{ fontSize: 14, fontWeight: 800, color: "#92400E" }}>Add a course cover</span>
+                <span style={{ fontSize: 12, color: "#B45309" }}>Drop an image or click · 16:9 recommended</span>
+              </>
+            )}
+          </div>
+          <input ref={thumbRef} type="file" accept="image/*" hidden onChange={(e) => { uploadImage(e.target.files?.[0], (url) => setForm((f) => ({ ...f, thumbnail: url })), setThumbUploading); e.target.value = ""; }} />
+
+          {/* Title */}
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <label style={lbl}>Course Title</label>
               <AiEnhance text={form.title} kind="title" tone="punchy" onUse={(t) => setForm((f) => ({ ...f, title: t }))} />
+            </div>
+            <input className="cs-input" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="e.g. Advanced Options Trading" autoFocus />
+          </div>
+
+          {/* Price + payout preview */}
+          <div>
+            <label style={lbl}>Price</label>
+            <div style={{ display: "grid", gridTemplateColumns: "180px 1fr", gap: 14, alignItems: "center" }}>
+              <div style={{ position: "relative" }}>
+                <span style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", fontWeight: 900, color: "#92400E" }}>₹</span>
+                <input className="cs-input" style={{ paddingLeft: 30, fontWeight: 800 }} inputMode="numeric" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value.replace(/[^\d.]/g, "") })} placeholder="999" />
+              </div>
+              <div style={{ fontSize: 12.5, color: colors.typography.secondaryText, lineHeight: 1.55 }}>
+                {Number(form.price) > 0 ? (
+                  <>Learners pay <b style={{ color: colors.typography.primaryText }}>{formatCurrency((Number(form.price) * 1.2).toFixed(0))}</b> (incl. 18% GST + 2% fee) · you keep <b style={{ color: "#15803D" }}>{formatCurrency((Number(form.price) * 0.9).toFixed(0))}</b> (90%)</>
+                ) : (
+                  <>Set <b>0</b> to make this a <b style={{ color: "#15803D" }}>free course</b></>
+                )}
+              </div>
             </div>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
-            <div>
-              <label style={lbl}>Price (INR)</label>
-              <input style={inp} inputMode="numeric" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value.replace(/[^\d.]/g, "") })} placeholder="999" />
-            </div>
+          {/* Level + Status */}
+          <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: 14 }}>
             <div>
               <label style={lbl}>Level</label>
-              <select style={inp} value={form.level} onChange={(e) => setForm({ ...form, level: e.target.value })}>
-                <option>Beginner</option><option>Intermediate</option><option>Advanced</option>
-              </select>
+              <div className="cs-seg">
+                {["Beginner", "Intermediate", "Advanced"].map((l) => (
+                  <button key={l} className={form.level === l ? "on" : ""} onClick={() => setForm({ ...form, level: l })}>{l}</button>
+                ))}
+              </div>
             </div>
             <div>
               <label style={lbl}>Status</label>
-              <select style={inp} value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
-                <option value="DRAFT">Draft</option><option value="PUBLISHED">Published</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label style={lbl}>Thumbnail</label>
-            <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-              <div style={{ width: 108, height: 68, borderRadius: 10, flexShrink: 0, background: form.thumbnail ? `url(${form.thumbnail}) center/cover` : "#F3F4F6", border: `1px solid ${colors.base.border}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                {!form.thumbnail && <BookOpen size={20} color="#9CA3AF" />}
+              <div className="cs-seg">
+                <button className={form.status === "DRAFT" ? "on" : ""} onClick={() => setForm({ ...form, status: "DRAFT" })}>
+                  <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#F59E0B" }} /> Draft
+                </button>
+                <button className={form.status === "PUBLISHED" ? "on green" : ""} onClick={() => setForm({ ...form, status: "PUBLISHED" })}>
+                  <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#22C55E" }} /> Published
+                </button>
               </div>
-              <GoldBtn ghost loading={thumbUploading} onClick={() => thumbRef.current?.click()}>
-                <UploadCloud size={15} /> {form.thumbnail ? "Change" : "Upload"}
-              </GoldBtn>
-              <input ref={thumbRef} type="file" accept="image/*" hidden onChange={(e) => uploadImage(e.target.files?.[0], (url) => setForm((f) => ({ ...f, thumbnail: url })), setThumbUploading)} />
+              <div style={{ fontSize: 11.5, color: colors.typography.secondaryText, marginTop: 5 }}>
+                {form.status === "PUBLISHED" ? "Visible to learners in Explore" : "Hidden until you publish"}
+              </div>
             </div>
           </div>
 
+          {/* Description */}
           <div>
-            <label style={lbl}>Description</label>
-            <textarea style={{ ...inp, minHeight: 90, resize: "vertical" }} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="What will students learn? (5–200 characters)" />
-            <div style={{ marginTop: 6 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <label style={lbl}>Description</label>
               <AiEnhance text={form.description} kind="description" tone="conversational" onUse={(t) => setForm((f) => ({ ...f, description: t }))} />
             </div>
+            <textarea className="cs-input" style={{ minHeight: 92, resize: "vertical" }} maxLength={200} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="What will students learn?" />
+            <div style={{ textAlign: "right", fontSize: 11.5, color: form.description.length < 5 ? "#DC2626" : colors.typography.secondaryText, marginTop: 4 }}>
+              {form.description.length}/200{form.description.length < 5 ? " · at least 5 characters" : ""}
+            </div>
           </div>
 
-          <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 4 }}>
-            <GoldBtn ghost onClick={() => setCourseModal(null)}>Cancel</GoldBtn>
-            <GoldBtn loading={saving} onClick={saveCourse}>{courseModal === "create" ? "Create Course" : "Save Changes"}</GoldBtn>
+          {/* Footer */}
+          <div style={{ display: "flex", gap: 10, borderTop: `1px solid ${colors.base.border}`, paddingTop: 16 }}>
+            <GoldBtn ghost onClick={() => setCourseModal(null)} style={{ flex: "0 0 auto" }}>Cancel</GoldBtn>
+            <GoldBtn loading={saving} onClick={saveCourse} style={{ flex: 1, justifyContent: "center", padding: "12px 18px" }}>
+              {courseModal === "create" ? <><Plus size={16} /> Create Course</> : "Save Changes"}
+            </GoldBtn>
           </div>
         </div>
       </Modal>
@@ -591,16 +648,16 @@ export default function StudioScreen() {
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <div>
             <label style={lbl}>Lesson Title</label>
-            <input style={inp} value={lessonForm.title} onChange={(e) => setLessonForm({ ...lessonForm, title: e.target.value })} />
+            <input className="cs-input" value={lessonForm.title} onChange={(e) => setLessonForm({ ...lessonForm, title: e.target.value })} />
           </div>
           <div>
             <label style={lbl}>Description</label>
-            <textarea style={{ ...inp, minHeight: 70, resize: "vertical" }} value={lessonForm.description} onChange={(e) => setLessonForm({ ...lessonForm, description: e.target.value })} />
+            <textarea className="cs-input" style={{ minHeight: 70, resize: "vertical" }} value={lessonForm.description} onChange={(e) => setLessonForm({ ...lessonForm, description: e.target.value })} />
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "110px 1fr", gap: 12, alignItems: "end" }}>
             <div>
               <label style={lbl}>Order</label>
-              <input style={inp} inputMode="numeric" value={lessonForm.order} onChange={(e) => setLessonForm({ ...lessonForm, order: e.target.value.replace(/\D/g, "") })} />
+              <input className="cs-input" inputMode="numeric" value={lessonForm.order} onChange={(e) => setLessonForm({ ...lessonForm, order: e.target.value.replace(/\D/g, "") })} />
             </div>
             <div>
               <label style={lbl}>Lesson Thumbnail (optional)</label>

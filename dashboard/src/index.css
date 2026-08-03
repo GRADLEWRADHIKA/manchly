@@ -449,3 +449,89 @@ button {
   transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
 }
 .cs-dropzone:hover, .cs-dropzone.drag { border-color: #F5A623; background: #FFF4DF; transform: scale(1.005); }
+
+/* ============ Studio modal polish ============ */
+.cs-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px 14px;
+  border-radius: 11px;
+  border: 1.5px solid #E5E7EB;
+  font-size: 14.5px;
+  outline: none;
+  font-family: inherit;
+  background: #fff;
+  color: #1F2937;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.cs-input:focus {
+  border-color: #F5A623;
+  box-shadow: 0 0 0 4px rgba(245, 166, 35, 0.14);
+}
+.cs-input::placeholder { color: #B7BCC5; }
+
+.cs-seg {
+  display: flex;
+  background: #F3F4F6;
+  border-radius: 11px;
+  padding: 4px;
+  gap: 4px;
+}
+.cs-seg button {
+  flex: 1;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  padding: 9px 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #6B7280;
+  cursor: pointer;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.cs-seg button.on {
+  background: #fff;
+  color: #92400E;
+  box-shadow: 0 2px 8px rgba(31, 41, 55, 0.12);
+}
+.cs-seg button.on.green { color: #15803D; }
+
+.cs-cover {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 6.5;
+  border-radius: 14px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px dashed #E2C58A;
+  background: #FFFBF2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.cs-cover:hover, .cs-cover.drag { border-color: #F5A623; background: #FFF4DF; }
+.cs-cover.has-img { border-style: solid; border-color: #E5E7EB; }
+.cs-cover .cs-cover-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 10, 14, 0.45);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 800;
+  font-size: 13.5px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.cs-cover.has-img:hover .cs-cover-overlay { opacity: 1; }

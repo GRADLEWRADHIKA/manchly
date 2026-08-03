@@ -45,8 +45,6 @@ import PaymentsDashboard from "./PaymentsDashboard";
 import WalletScreen from "./screens/creator/WalletScreen";
 import CreateKycDashboard from "./CreateKycDashboard.jsx";
 import AIAssistant from "./AIAssistant";
-import GroupsPanel from "./GroupsPanel";
-import TelegramChannels from "./TelegramChannels";
 import HelpCenter from "./HelpCenter";
 import CreatorOverview from "./CreatorOverview";
 import AdminPanel from "./AdminPanel";
@@ -164,8 +162,6 @@ export default function App() {
           <Route path="wallet" element={<WalletScreen />} />
           <Route path="kyc" element={<CreateKycDashboard />} />
           <Route path="notifications" element={<Notifications role="creator" />} />
-          <Route path="community" element={<GroupsPanel currentUser={user} />} />
-          <Route path="telegram" element={<TelegramChannels />} />
           <Route path="help" element={<HelpCenter role="CREATOR" />} />
           <Route path="settings" element={<CreatorProfile />} />
         </Route>

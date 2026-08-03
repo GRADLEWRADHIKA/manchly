@@ -21,8 +21,6 @@ export const CREATOR_KEY_TO_PATH = {
   kyc: "/creator/kyc",
   "kyc-verification": "/creator/kyc",
   notifications: "/creator/notifications",
-  community: "/creator/community",
-  telegram: "/creator/telegram",
   help: "/creator/help",
   settings: "/creator/settings",
 };

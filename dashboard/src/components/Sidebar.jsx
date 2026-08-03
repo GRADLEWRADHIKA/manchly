@@ -5,14 +5,12 @@ import {
   MonitorPlay,
   Users,
   CreditCard,
-  UsersRound,
   Settings,
   LogOut,
   Sparkles,
   Wallet,
   ShieldCheck,
   Bell,
-  Landmark,
   LifeBuoy,
   Clapperboard,
 } from "lucide-react";
@@ -30,8 +28,6 @@ const MENU_ITEMS = [
   { key: "wallet", label: "Wallet & Payouts", icon: Wallet },
   { key: "kyc", label: "KYC", icon: ShieldCheck },
   { key: "notifications", label: "Notifications", icon: Bell },
-  { key: "community", label: "Community", icon: UsersRound },
-  { key: "telegram", label: "Telegram", icon: Landmark },
   { key: "help", label: "Help Center", icon: LifeBuoy },
   { key: "settings", label: "Profile & Settings", icon: Settings },
 ];

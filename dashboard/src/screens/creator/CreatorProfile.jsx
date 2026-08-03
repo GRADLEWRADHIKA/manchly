@@ -8,6 +8,7 @@ import { apiFetch, unwrap } from "../../utils/api";
 import colors from "../../utils/colors";
 import { useAuth } from "../../context/AuthContext";
 import { Avatar, GradientButton, Field, TextInput, Modal, ProgressBar, Badge } from "../../components/ui";
+import { LegalModal } from "../../components/LegalModals";
 import { toast } from "../../utils/toast";
 import { formatCurrency } from "../../utils/formatters";
 
@@ -29,6 +30,7 @@ export default function CreatorProfile() {
   const [uploading, setUploading] = useState(false);
   const [kycWarn, setKycWarn] = useState(false);
   const [confirmLogout, setConfirmLogout] = useState(false);
+  const [legalDoc, setLegalDoc] = useState(null);
   const [hissa, setHissa] = useState(10000);
 
   const completion = useMemo(() => {
@@ -200,6 +202,18 @@ export default function CreatorProfile() {
           <LogOut size={15} /> Logout
         </GradientButton>
       </div>
+
+      {/* Legal */}
+      <div style={{ display: "flex", gap: 18, marginTop: 20, flexWrap: "wrap", alignItems: "center" }}>
+        <span style={{ fontSize: 12.5, fontWeight: 800, letterSpacing: 0.8, textTransform: "uppercase", color: colors.typography.secondaryText }}>Legal</span>
+        {[["terms", "Terms of Service"], ["privacy", "Privacy Policy"], ["refund", "Refund Policy"]].map(([key, label]) => (
+          <button key={key} onClick={() => setLegalDoc(key)} style={{ background: "transparent", border: "none", padding: 0, cursor: "pointer", color: colors.brand.actionBlue, fontWeight: 700, fontSize: 13.5, textDecoration: "underline", textUnderlineOffset: 2 }}>
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {legalDoc && <LegalModal doc={legalDoc} onClose={() => setLegalDoc(null)} />}
 
       {/* KYC reset warning */}
       <Modal open={kycWarn} onClose={() => setKycWarn(false)} title="KYC Will Be Reset" width={420}>

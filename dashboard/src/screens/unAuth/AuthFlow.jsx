@@ -9,6 +9,7 @@ import colors from "../../utils/colors";
 import { GradientButton, OtpInput, TextInput, Field, Badge } from "../../components/ui";
 import { toast } from "../../utils/toast";
 import { useAuth, roleOf } from "../../context/AuthContext";
+import { LegalFooter } from "../../components/LegalModals";
 import LoginForm from "./LoginForm";
 
 const isPhone = (v) => /^\d{10}$/.test(v);
@@ -195,12 +196,7 @@ export default function AuthFlow() {
     </button>
   );
 
-  const legal = (
-    <p style={{ fontSize: 11.5, color: "rgba(255,255,255,0.45)", textAlign: "center", marginTop: 20, lineHeight: 1.6 }}>
-      By continuing, you agree to our <b>Terms of Service</b>, <b>Privacy Policy</b> &amp; <b>Refund Policy</b>.
-      <br />Agnivora Digital Pvt Ltd · help@manchly.com
-    </p>
-  );
+  const legal = <LegalFooter linkColor="#F3C36B" />;
 
   return (
     <div

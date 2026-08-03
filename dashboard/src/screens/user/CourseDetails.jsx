@@ -7,6 +7,7 @@ import { apiFetch, unwrap } from "../../utils/api";
 import { runPurchase, priceBreakdown } from "../../utils/payments";
 import colors from "../../utils/colors";
 import { GradientButton, FullLoader, Badge } from "../../components/ui";
+import { LegalModal } from "../../components/LegalModals";
 import { toast } from "../../utils/toast";
 import { formatCurrency } from "../../utils/formatters";
 import HlsVideo from "../../components/HlsVideo";
@@ -18,6 +19,7 @@ export default function CourseDetails() {
   const [enrolled, setEnrolled] = useState(false);
   const [loading, setLoading] = useState(true);
   const [paying, setPaying] = useState(false);
+  const [legalDoc, setLegalDoc] = useState(null);
 
   const load = async () => {
     try {
@@ -170,10 +172,21 @@ export default function CourseDetails() {
           )}
 
           <p style={{ fontSize: 11.5, color: colors.user.subHeading, marginTop: 14, lineHeight: 1.6 }}>
-            Secure payment via Cashfree. Refunds only for duplicate or failed transactions within 48 hours — see Refund Policy.
+            Secure payment via Cashfree. Refunds only for duplicate or failed transactions within 48 hours — see{" "}
+            {[["terms", "Terms"], ["privacy", "Privacy"], ["refund", "Refund Policy"]].map(([key, label], i) => (
+              <React.Fragment key={key}>
+                {i > 0 && " · "}
+                <button onClick={() => setLegalDoc(key)} style={{ background: "transparent", border: "none", padding: 0, cursor: "pointer", color: colors.user.accentSoft, fontWeight: 700, fontSize: "inherit", textDecoration: "underline", textUnderlineOffset: 2 }}>
+                  {label}
+                </button>
+              </React.Fragment>
+            ))}
+            .
           </p>
         </div>
       </div>
+
+      {legalDoc && <LegalModal doc={legalDoc} dark onClose={() => setLegalDoc(null)} />}
     </div>
   );
 }

@@ -7,6 +7,7 @@ import { apiFetch, unwrap } from "../../utils/api";
 import { openCheckout, pollVerify, priceBreakdown } from "../../utils/payments";
 import colors from "../../utils/colors";
 import { GradientButton, FullLoader, Badge } from "../../components/ui";
+import { LegalModal } from "../../components/LegalModals";
 import { toast } from "../../utils/toast";
 import { formatCurrency } from "../../utils/formatters";
 
@@ -33,6 +34,7 @@ export default function WebinarDetails() {
   const [loading, setLoading] = useState(!location.state?.webinar);
   const [paying, setPaying] = useState(false);
   const [enrolled, setEnrolled] = useState(!!location.state?.webinar?.is_enrolled);
+  const [legalDoc, setLegalDoc] = useState(null);
 
   useEffect(() => {
     apiFetch(`/webinars/${webinarId}`)
@@ -175,10 +177,21 @@ export default function WebinarDetails() {
             </GradientButton>
           )}
           <p style={{ fontSize: 11.5, color: colors.user.subHeading, marginTop: 14, lineHeight: 1.6 }}>
-            Secure payment via Cashfree · Terms, Privacy & Refund Policy apply.
+            Secure payment via Cashfree ·{" "}
+            {[["terms", "Terms"], ["privacy", "Privacy"], ["refund", "Refund Policy"]].map(([key, label], i) => (
+              <React.Fragment key={key}>
+                {i > 0 && " · "}
+                <button onClick={() => setLegalDoc(key)} style={{ background: "transparent", border: "none", padding: 0, cursor: "pointer", color: colors.user.accentSoft, fontWeight: 700, fontSize: "inherit", textDecoration: "underline", textUnderlineOffset: 2 }}>
+                  {label}
+                </button>
+              </React.Fragment>
+            ))}{" "}
+            apply.
           </p>
         </div>
       </div>
+
+      {legalDoc && <LegalModal doc={legalDoc} dark onClose={() => setLegalDoc(null)} />}
     </div>
   );
 }

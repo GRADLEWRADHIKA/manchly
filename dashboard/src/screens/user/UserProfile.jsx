@@ -2,11 +2,12 @@
 // edit, WhatsApp support, legal links, logout.
 import React, { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Camera, LogOut, LifeBuoy, FileText } from "lucide-react";
+import { Camera, LogOut, LifeBuoy, FileText, ScrollText, ShieldCheck, ReceiptText } from "lucide-react";
 import { apiFetch, unwrap } from "../../utils/api";
 import colors from "../../utils/colors";
 import { useAuth } from "../../context/AuthContext";
 import { Avatar, GradientButton, Field, TextInput, Modal } from "../../components/ui";
+import { LegalModal } from "../../components/LegalModals";
 import { toast } from "../../utils/toast";
 
 const SUPPORT_WA = "916363790659";
@@ -18,6 +19,7 @@ export default function UserProfile() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [confirmLogout, setConfirmLogout] = useState(false);
+  const [legalDoc, setLegalDoc] = useState(null);
   const fileRef = useRef(null);
 
   const uploadAvatar = async (file) => {
@@ -88,10 +90,21 @@ export default function UserProfile() {
         <div style={row} onClick={() => navigate("/app/notifications")}>
           <FileText size={18} color={colors.user.accentSoft} /> Notifications
         </div>
+        <div style={row} onClick={() => setLegalDoc("terms")}>
+          <ScrollText size={18} color={colors.user.accentSoft} /> Terms of Service
+        </div>
+        <div style={row} onClick={() => setLegalDoc("privacy")}>
+          <ShieldCheck size={18} color={colors.user.accentSoft} /> Privacy Policy
+        </div>
+        <div style={row} onClick={() => setLegalDoc("refund")}>
+          <ReceiptText size={18} color={colors.user.accentSoft} /> Refund Policy
+        </div>
         <div style={{ ...row, color: "#F87171" }} onClick={() => setConfirmLogout(true)}>
           <LogOut size={18} /> Logout
         </div>
       </div>
+
+      {legalDoc && <LegalModal doc={legalDoc} dark onClose={() => setLegalDoc(null)} />}
 
       <p style={{ textAlign: "center", color: colors.user.subHeading, fontSize: 12, marginTop: 26 }}>
         Manchly Web · Agnivora Digital Pvt Ltd · help@manchly.com

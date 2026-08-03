@@ -392,13 +392,13 @@ export default function DashboardScreen({ user, onNavigate, onLogout }) {
                 color: colors.typography.primaryText,
               }}
             >
-              Welcome back,{" "}
+              Your{" "}
               <span
                 style={{
                   color: colors.brand.primaryOrange,
                 }}
               >
-                {user?.name || "Creator"}
+                Dashboard
               </span>
             </h1>
 

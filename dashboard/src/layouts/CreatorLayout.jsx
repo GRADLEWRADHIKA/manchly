@@ -3,6 +3,7 @@
 import React from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
+import CreatorTopbar from "../components/CreatorTopbar";
 import colors from "../utils/colors";
 import { useAuth } from "../context/AuthContext";
 import { CREATOR_KEY_TO_PATH, creatorPathFor } from "../utils/creatorNav";
@@ -30,6 +31,7 @@ export default function CreatorLayout() {
         }}
       />
       <div style={{ flex: 1, minWidth: 0 }}>
+        <CreatorTopbar />
         <Outlet />
       </div>
     </div>

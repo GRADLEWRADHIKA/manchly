@@ -134,23 +134,12 @@ export default function DashboardScreen({ user, onNavigate, onLogout }) {
 
   const loadNotifications = useCallback(async () => {
     try {
-      const response = await apiFetch("/chat/conversations");
-
+      const response = await apiFetch("/notifications/unread-count");
       const data = unwrap(response);
-
-      const conversations = Array.isArray(data)
-        ? data
-        : data?.conversations || [];
-
-      const unread = conversations.some(
-        (conversation) =>
-          (conversation.unread_count || conversation.unreadCount || 0) > 0,
-      );
-
-      setHasUnreadNotifications(unread);
+      const count = Number(data?.count ?? data?.unread_count ?? data ?? 0) || 0;
+      setHasUnreadNotifications(count > 0);
     } catch (error) {
       console.error("Failed to load notifications", error);
-
       setHasUnreadNotifications(false);
     }
   }, []);

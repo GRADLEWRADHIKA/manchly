@@ -2,7 +2,7 @@
 // the mobile app's user theme (Home / Explore / Sessions / Learning tabs).
 import React, { useEffect, useState } from "react";
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
-import { Bell, MessageCircle, Search, Store } from "lucide-react";
+import { Bell, Search, Store } from "lucide-react";
 import colors from "../utils/colors";
 import { useAuth, canAccessMarketplace } from "../context/AuthContext";
 import { apiFetch, unwrap } from "../utils/api";
@@ -98,9 +98,6 @@ export default function UserLayout() {
 
           <button style={iconBtn} onClick={() => navigate("/app/explore")} title="Search">
             <Search size={18} />
-          </button>
-          <button style={iconBtn} onClick={() => navigate("/app/chat")} title="Messages">
-            <MessageCircle size={18} />
           </button>
           <button style={iconBtn} onClick={() => navigate("/app/notifications")} title="Notifications">
             <Bell size={18} />

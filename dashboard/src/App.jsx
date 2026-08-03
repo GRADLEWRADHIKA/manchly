@@ -45,7 +45,6 @@ import PaymentsDashboard from "./PaymentsDashboard";
 import CreatorSettlementsPortal from "./CreatorSettlementsPortal";
 import CreateKycDashboard from "./CreateKycDashboard.jsx";
 import AIAssistant from "./AIAssistant";
-import ChatPanel from "./ChatPanel";
 import GroupsPanel from "./GroupsPanel";
 import TelegramChannels from "./TelegramChannels";
 import HelpCenter from "./HelpCenter";
@@ -146,7 +145,6 @@ export default function App() {
           <Route path="experts/:expertId" element={<ExpertDetail />} />
           <Route path="marketplace" element={<Marketplace />} />
           <Route path="notifications" element={<Notifications role="user" />} />
-          <Route path="chat" element={<div style={{ margin: "-28px -24px -80px" }}><ChatPanel currentUser={user} /></div>} />
           <Route path="profile" element={<UserProfile />} />
           <Route path="rate/:sessionId" element={<SessionRating />} />
         </Route>
@@ -165,7 +163,6 @@ export default function App() {
           <Route path="payments" element={<PaymentsDashboard role="CREATOR" />} />
           <Route path="wallet" element={<CreatorSettlementsPortal />} />
           <Route path="kyc" element={<CreateKycDashboard />} />
-          <Route path="chat" element={<ChatPanel currentUser={user} />} />
           <Route path="notifications" element={<Notifications role="creator" />} />
           <Route path="community" element={<GroupsPanel currentUser={user} />} />
           <Route path="telegram" element={<TelegramChannels />} />

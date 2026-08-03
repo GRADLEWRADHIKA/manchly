@@ -20,7 +20,6 @@ export const CREATOR_KEY_TO_PATH = {
   withdraw: "/creator/wallet",
   kyc: "/creator/kyc",
   "kyc-verification": "/creator/kyc",
-  chat: "/creator/chat",
   notifications: "/creator/notifications",
   community: "/creator/community",
   telegram: "/creator/telegram",

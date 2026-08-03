@@ -467,13 +467,10 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
 
   const loadNotifications = useCallback(async () => {
     try {
-      const response = await apiFetch("/chat/conversations");
+      const response = await apiFetch("/notifications/unread-count");
       const data = unwrap(response);
-      const conversations = Array.isArray(data) ? data : data?.conversations || [];
-      const unread = conversations.some(
-        (c) => (c.unread_count || c.unreadCount || 0) > 0,
-      );
-      setHasUnreadNotifications(unread);
+      const count = Number(data?.count ?? data?.unread_count ?? data ?? 0) || 0;
+      setHasUnreadNotifications(count > 0);
     } catch (err) {
       console.error("Failed to load notifications", err);
       setHasUnreadNotifications(false);

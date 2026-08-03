@@ -297,9 +297,9 @@ export default function StudioScreen() {
 
       {/* Stats */}
       <div style={{ display: "flex", gap: 14, marginBottom: 26, flexWrap: "wrap" }}>
-        <StatCard icon={GraduationCap} label="Total Courses" value={stats?.total_courses ?? courses.length} tint="#3B82F6" />
+        <StatCard icon={GraduationCap} label="Total Courses" value={stats?.total_courses ?? courses.length} tint="#D69C3F" />
         <StatCard icon={CheckCircle2} label="Published" value={stats?.published_courses ?? courses.filter((c) => c.status === "PUBLISHED").length} tint="#22C55E" />
-        <StatCard icon={Users} label="Enrollments" value={stats?.total_enrollments ?? 0} tint="#8B5CF6" />
+        <StatCard icon={Users} label="Enrollments" value={stats?.total_enrollments ?? 0} tint="#F97316" />
         <StatCard icon={IndianRupee} label="Course Revenue" value={formatCurrency(stats?.revenue ?? 0)} tint="#F5A623" />
       </div>
 
@@ -327,7 +327,7 @@ export default function StudioScreen() {
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {courses.map((c) => (
                 <button key={c.id} className={`cs-course-item ${c.id === selectedId ? "active" : ""}`} onClick={() => setSelectedId(c.id)}>
-                  <div style={{ width: 58, height: 44, borderRadius: 9, flexShrink: 0, background: c.thumbnail ? `url(${c.thumbnail}) center/cover` : G.heroNavy, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <div style={{ width: 58, height: 44, borderRadius: 9, flexShrink: 0, background: c.thumbnail ? `url(${c.thumbnail}) center/cover` : G.heroGold, display: "flex", alignItems: "center", justifyContent: "center" }}>
                     {!c.thumbnail && <BookOpen size={17} color="rgba(255,255,255,0.7)" />}
                   </div>
                   <div style={{ minWidth: 0, flex: 1 }}>
@@ -351,7 +351,7 @@ export default function StudioScreen() {
                 {/* Course header */}
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 14, flexWrap: "wrap", borderBottom: `1px solid ${colors.base.border}`, paddingBottom: 18, marginBottom: 18 }}>
                   <div style={{ display: "flex", gap: 14, minWidth: 0 }}>
-                    <div style={{ width: 96, height: 66, borderRadius: 12, flexShrink: 0, background: detail.thumbnail ? `url(${detail.thumbnail}) center/cover` : G.heroNavy, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <div style={{ width: 96, height: 66, borderRadius: 12, flexShrink: 0, background: detail.thumbnail ? `url(${detail.thumbnail}) center/cover` : G.heroGold, display: "flex", alignItems: "center", justifyContent: "center" }}>
                       {!detail.thumbnail && <BookOpen size={22} color="rgba(255,255,255,0.7)" />}
                     </div>
                     <div style={{ minWidth: 0 }}>

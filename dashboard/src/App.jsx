@@ -40,7 +40,7 @@ import CoursesScreen from "./screens/Auth/Creator/CoursesScreen";
 import CreatorProfile from "./screens/creator/CreatorProfile";
 import StudioScreen from "./screens/creator/StudioScreen";
 import WebinarsScreen from "./screens/creator/WebinarsScreen";
-import SessionHubCreator from "./SessionHubCreator";
+import SessionsScreen from "./screens/creator/SessionsScreen";
 import PaymentsDashboard from "./PaymentsDashboard";
 import CreatorSettlementsPortal from "./CreatorSettlementsPortal";
 import CreateKycDashboard from "./CreateKycDashboard.jsx";
@@ -158,7 +158,7 @@ export default function App() {
           <Route path="overview" element={<CreatorOverview user={user} />} />
           <Route path="studio" element={<StudioScreen />} />
           <Route path="webinars" element={<WebinarsScreen />} />
-          <Route path="sessions" element={<SessionHubCreator />} />
+          <Route path="sessions" element={<SessionsScreen />} />
           <Route path="ai" element={<AIAssistant />} />
           <Route path="payments" element={<PaymentsDashboard role="CREATOR" />} />
           <Route path="wallet" element={<CreatorSettlementsPortal />} />

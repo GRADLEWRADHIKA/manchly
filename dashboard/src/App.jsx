@@ -42,7 +42,7 @@ import StudioScreen from "./screens/creator/StudioScreen";
 import WebinarsScreen from "./screens/creator/WebinarsScreen";
 import SessionsScreen from "./screens/creator/SessionsScreen";
 import PaymentsDashboard from "./PaymentsDashboard";
-import CreatorSettlementsPortal from "./CreatorSettlementsPortal";
+import WalletScreen from "./screens/creator/WalletScreen";
 import CreateKycDashboard from "./CreateKycDashboard.jsx";
 import AIAssistant from "./AIAssistant";
 import GroupsPanel from "./GroupsPanel";
@@ -161,7 +161,7 @@ export default function App() {
           <Route path="sessions" element={<SessionsScreen />} />
           <Route path="ai" element={<AIAssistant />} />
           <Route path="payments" element={<PaymentsDashboard role="CREATOR" />} />
-          <Route path="wallet" element={<CreatorSettlementsPortal />} />
+          <Route path="wallet" element={<WalletScreen />} />
           <Route path="kyc" element={<CreateKycDashboard />} />
           <Route path="notifications" element={<Notifications role="creator" />} />
           <Route path="community" element={<GroupsPanel currentUser={user} />} />

@@ -15,7 +15,6 @@ export const CREATOR_KEY_TO_PATH = {
   "webinar-create": "/creator/webinars",
   sessions: "/creator/sessions",
   ai: "/creator/ai",
-  payments: "/creator/payments",
   wallet: "/creator/wallet",
   withdraw: "/creator/wallet",
   kyc: "/creator/kyc",

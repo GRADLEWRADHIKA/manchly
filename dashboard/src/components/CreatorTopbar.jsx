@@ -119,8 +119,8 @@ export default function CreatorTopbar({
           )}
         </button>
 
-        <div onClick={() => navigate("/creator/settings")} style={{ cursor: "pointer" }} title="Profile & Settings">
-          <Avatar src={user?.profile_image} name={user?.name || "C"} size={38} />
+        <div onClick={() => navigate("/creator/settings")} style={{ cursor: "pointer", display: "flex" }} title="Profile & Settings">
+          <Avatar src={user?.profile_image} name={user?.name || "C"} size={30} />
         </div>
       </div>
     </div>

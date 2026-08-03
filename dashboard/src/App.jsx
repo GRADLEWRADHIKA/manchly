@@ -38,7 +38,7 @@ import CreatorLayout from "./layouts/CreatorLayout";
 import DashboardScreen from "./screens/Auth/Creator/DashboardScreen";
 import CoursesScreen from "./screens/Auth/Creator/CoursesScreen";
 import CreatorProfile from "./screens/creator/CreatorProfile";
-import CourseStudio from "./CourseStudio";
+import StudioScreen from "./screens/creator/StudioScreen";
 import WebinarManager from "./WebinarManager";
 import SessionHubCreator from "./SessionHubCreator";
 import PaymentsDashboard from "./PaymentsDashboard";
@@ -156,7 +156,7 @@ export default function App() {
 
         <Route path="/creator" element={<RequireAuth roles={["CREATOR"]}><CreatorLayout /></RequireAuth>}>
           <Route path="overview" element={<CreatorOverview user={user} />} />
-          <Route path="studio" element={<CourseStudio />} />
+          <Route path="studio" element={<StudioScreen />} />
           <Route path="webinars" element={<WebinarManager />} />
           <Route path="sessions" element={<SessionHubCreator />} />
           <Route path="ai" element={<AIAssistant />} />

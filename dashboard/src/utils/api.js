@@ -1,22 +1,25 @@
 // Shared API base + helpers for the Manchly dashboard.
 //
-// Base resolution (so the same build works locally AND when hosted behind a
-// Cloudflare tunnel / served by the backend):
-//   1. VITE_API_BASE if provided (explicit override).
-//   2. Otherwise, if the page is served from anything other than a local dev
-//      box, the API is assumed to live on the SAME origin (tunnel / backend).
-//   3. Otherwise fall back to the local backend on :8080 (vite dev on :5173).
+// The backend target comes from backendConfig.js (USE_LOCAL_BACKEND toggle,
+// production https://server.manchly.com by default — same as the mobile app).
+//
+// In `npm run dev`, requests go through the vite proxy at /__api (same origin,
+// so the production server's CORS allowlist never gets in the way); the proxy
+// target in vite.config.js reads the same toggle. Production builds call the
+// backend directly (VITE_API_BASE can still override, e.g. for a staging box).
+import { BASE_URL } from "./backendConfig";
+
 function resolveBase() {
   const env = (import.meta.env && import.meta.env.VITE_API_BASE) || "";
   if (env) return env.replace(/\/$/, "");
-  if (typeof window !== "undefined" && window.location) {
-    const h = window.location.hostname;
-    if (h && h !== "localhost" && h !== "127.0.0.1") return window.location.origin;
-  }
-  return "http://localhost:8080";
+  if (import.meta.env && import.meta.env.DEV) return "/__api";
+  return BASE_URL.replace(/\/$/, "");
 }
 
 export const API_BASE = resolveBase();
+
+// Absolute backend origin (websockets, share links) — never the proxy path.
+export const BACKEND_ORIGIN = BASE_URL.replace(/\/$/, "");
 
 // The dashboard has historically stored the JWT under a couple of keys.
 export function getToken() {

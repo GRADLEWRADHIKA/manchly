@@ -2,7 +2,11 @@
 // (manApp/src/services/SocketService.ts). Connects with the JWT, emits
 // user_online, re-attaches listeners on reconnect, tracks online users.
 import { io } from "socket.io-client";
-import { API_BASE, getToken } from "./api";
+import { BACKEND_ORIGIN, getToken } from "./api";
+
+// Dev: connect same-origin so the vite ws proxy (/socket.io) forwards to the
+// backend picked in backendConfig.js. Prod builds connect directly.
+const SOCKET_URL = import.meta.env.DEV ? window.location.origin : BACKEND_ORIGIN;
 
 let socket = null;
 const listeners = new Map(); // event -> Set<cb>
@@ -18,7 +22,7 @@ export function connectSocket() {
   if (socket?.connected) return socket;
   if (socket) socket.disconnect();
 
-  socket = io(API_BASE, {
+  socket = io(SOCKET_URL, {
     auth: { token },
     transports: ["websocket"],
     reconnection: true,

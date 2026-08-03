@@ -421,7 +421,7 @@ const iconButtonStyle = {
   cursor: "pointer",
 };
 
-export default function CoursesScreen({ user, onNavigate }) {
+export default function CoursesScreen({ user, onNavigate, onLogout }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -558,7 +558,7 @@ export default function CoursesScreen({ user, onNavigate }) {
   if (loading) {
     return (
       <div style={{ display: "flex", backgroundColor: colors.base.appBackground, minHeight: "100vh" }}>
-        <Sidebar active="courses" onNavigate={onNavigate} onLogout={() => console.log("logout")} />
+        <Sidebar active="courses" onNavigate={onNavigate} onLogout={onLogout} />
         <div
           style={{
             flex: 1, minWidth: 0, display: "flex",
@@ -574,7 +574,7 @@ export default function CoursesScreen({ user, onNavigate }) {
 
   return (
     <div style={{ display: "flex", backgroundColor: colors.base.appBackground, minHeight: "100vh" }}>
-      <Sidebar active="courses" onNavigate={onNavigate} onLogout={() => console.log("logout")} />
+      <Sidebar active="courses" onNavigate={onNavigate} onLogout={onLogout} />
 
       <div style={{ flex: 1, minWidth: 0, padding: 32 }}>
         <TopHeader

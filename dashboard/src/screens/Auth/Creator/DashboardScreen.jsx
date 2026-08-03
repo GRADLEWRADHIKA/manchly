@@ -20,7 +20,7 @@ function val(result) {
   return unwrap(result.value);
 }
 
-function VerificationBanner({ isKycVerified }) {
+function VerificationBanner({ isKycVerified, onVerify }) {
   if (isKycVerified) {
     return (
       <div
@@ -100,6 +100,7 @@ function VerificationBanner({ isKycVerified }) {
       {/* Verify Button */}
       <button
         type="button"
+        onClick={onVerify}
         style={{
           background: colors.brand.actionBlue,
           color: colors.typography.white,
@@ -116,7 +117,7 @@ function VerificationBanner({ isKycVerified }) {
   );
 }
 
-export default function DashboardScreen({ user, onNavigate }) {
+export default function DashboardScreen({ user, onNavigate, onLogout }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -343,7 +344,7 @@ export default function DashboardScreen({ user, onNavigate }) {
       <Sidebar
         active="dashboard"
         onNavigate={onNavigate}
-        onLogout={() => console.log("logout")}
+        onLogout={onLogout}
       />
 
       <div
@@ -358,12 +359,12 @@ export default function DashboardScreen({ user, onNavigate }) {
           totalRevenue={totalEarnings}
           walletBalance={walletBalance}
           hasUnreadNotifications={hasUnreadNotifications}
-          onWithdraw={() => console.log("Withdraw")}
+          onWithdraw={() => onNavigate?.("withdraw")}
           onNotifications={handleNotifications}
         />
 
         {/* Verification Banner */}
-        <VerificationBanner isKycVerified={isKycVerified} />
+        <VerificationBanner isKycVerified={isKycVerified} onVerify={() => onNavigate?.("kyc")} />
         {/* Error */}
         {error && (
           <div
@@ -432,53 +433,30 @@ export default function DashboardScreen({ user, onNavigate }) {
               alignItems: "center",
             }}
           >
-            <button
-              type="button"
-              style={{
-                background: colors.brand.primaryOrange,
-                color: colors.typography.white,
-                border: "none",
-                borderRadius: 9999,
-                padding: "10px 18px",
-                fontSize: 15,
-                fontWeight: 700,
-                cursor: "pointer",
-              }}
-            >
-              + Course
-            </button>
-
-            <button
-              type="button"
-              style={{
-                background: colors.brand.primaryOrange,
-                color: colors.typography.white,
-                border: "none",
-                borderRadius: 9999,
-                padding: "10px 18px",
-                fontSize: 15,
-                fontWeight: 700,
-                cursor: "pointer",
-              }}
-            >
-              + Webinar
-            </button>
-
-            <button
-              type="button"
-              style={{
-                background: colors.brand.primaryOrange,
-                color: colors.typography.white,
-                border: "none",
-                borderRadius: 9999,
-                padding: "10px 18px",
-                fontSize: 15,
-                fontWeight: 700,
-                cursor: "pointer",
-              }}
-            >
-              + 1:1 Session
-            </button>
+            {[
+              ["+ Course", "course-create"],
+              ["+ Webinar", "webinar-create"],
+              ["+ 1:1 Session", "sessions"],
+            ].map(([label, key]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => onNavigate?.(key)}
+                style={{
+                  background: colors.gradients.orange,
+                  color: colors.typography.white,
+                  border: "none",
+                  borderRadius: 9999,
+                  padding: "10px 18px",
+                  fontSize: 15,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  boxShadow: "0 4px 14px rgba(245,166,35,0.35)",
+                }}
+              >
+                {label}
+              </button>
+            ))}
           </div>
         </div>
         {/* Revenue Cards */}

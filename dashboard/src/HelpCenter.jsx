@@ -1,3 +1,6 @@
+// Help & Legal — light creator-suite design: gold hero with WhatsApp CTA,
+// contact-channel card grid, and a numbered policy reader (Terms / Privacy /
+// Refund content mirrors the mobile app's policy modals).
 import { useState } from "react";
 import {
   LifeBuoy,
@@ -8,21 +11,12 @@ import {
   FileText,
   ShieldCheck,
   RotateCcw,
-  ExternalLink,
+  ArrowUpRight,
   Clock,
 } from "lucide-react";
+import colors from "./utils/colors";
 
-const T = {
-  bg: "#000000",
-  card: "#111111",
-  elevated: "#0A0A0A",
-  orange: "#FFC107",
-  green: "#10B981",
-  blue: "#3B82F6",
-  border: "rgba(255,255,255,0.1)",
-  textPri: "#FFFFFF",
-  textSec: "#A1A1AA",
-};
+const G = colors.gradients;
 
 // ── Real Manchly support / brand details (from the mobile app) ──
 const SUPPORT_PHONE = "6363790659";
@@ -76,123 +70,209 @@ const TABS = [
 export default function HelpCenter({ role = "USER" }) {
   const [tab, setTab] = useState("support");
   const roleWord = String(role).toUpperCase() === "CREATOR" ? "Creator" : "User";
+  const waMessage = `Hello, I am a ${roleWord}, I need help with Manchly.`;
+
+  const CHANNELS = [
+    {
+      key: "whatsapp",
+      title: "WhatsApp Support",
+      sub: `+91 ${SUPPORT_PHONE}`,
+      note: "Fastest replies",
+      icon: MessageCircle,
+      tint: "#059669",
+      tintBg: "#ECFDF5",
+      href: waLink(waMessage),
+      external: true,
+    },
+    {
+      key: "email",
+      title: "Email Support",
+      sub: SUPPORT_EMAIL,
+      note: "Replies within 24 hours",
+      icon: Mail,
+      tint: "#2563EB",
+      tintBg: "#EFF6FF",
+      href: `mailto:${SUPPORT_EMAIL}`,
+    },
+    {
+      key: "phone",
+      title: "Call Us",
+      sub: `+91 ${SUPPORT_PHONE}`,
+      note: "Mon–Sat · 10am–6pm IST",
+      noteIcon: Clock,
+      icon: Phone,
+      tint: "#B45309",
+      tintBg: "#FFFBEB",
+      href: `tel:+91${SUPPORT_PHONE}`,
+    },
+    {
+      key: "instagram",
+      title: "Instagram",
+      sub: "@manchly_app",
+      note: "News, tips & updates",
+      icon: Share2,
+      tint: "#DB2777",
+      tintBg: "#FDF2F8",
+      href: INSTAGRAM,
+      external: true,
+    },
+  ];
 
   return (
-    <div style={{ maxWidth: 820, margin: "0 auto" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 18 }}>
-        <div style={{ width: 46, height: 46, borderRadius: 12, background: "rgba(255,193,7,0.12)", border: `1px solid ${T.border}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <LifeBuoy size={22} color={T.orange} />
-        </div>
-        <div>
-          <h2 style={{ margin: 0, fontSize: 22, fontWeight: 900 }}>Help & Legal</h2>
-          <p style={{ margin: "3px 0 0", color: T.textSec, fontSize: 13 }}>Support, contact and Manchly's policies.</p>
-        </div>
-      </div>
+    <div style={{ padding: 32, color: colors.typography.primaryText }}>
+      <style>{`
+        .hc-card { transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease; }
+        .hc-card:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(17,24,39,0.09); border-color: #E2C58A !important; }
+        .hc-card:hover .hc-arrow { opacity: 1; transform: translate(0,0); }
+        .hc-tab { transition: background .15s ease, color .15s ease, border-color .15s ease; }
+        .hc-tab:hover { border-color: #E2C58A; color: #92400E; }
+      `}</style>
 
-      {/* tabs */}
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 18 }}>
-        {TABS.map((t) => {
-          const on = tab === t.key;
-          return (
-            <button key={t.key} onClick={() => setTab(t.key)}
-              style={{ display: "flex", alignItems: "center", gap: 7, background: on ? T.orange : T.card, color: on ? "#000" : T.textSec, border: `1px solid ${on ? T.orange : T.border}`, padding: "8px 14px", borderRadius: 999, cursor: "pointer", fontWeight: 700, fontSize: 12.5 }}>
-              <t.icon size={14} /> {t.label}
-            </button>
-          );
-        })}
-      </div>
-
-      {tab === "support" ? (
-        <div style={{ display: "grid", gap: 14 }}>
-          {/* WhatsApp */}
-          <a href={waLink(`Hello, I am a ${roleWord}, I need help with Manchly.`)} target="_blank" rel="noreferrer"
-            style={{ ...row, textDecoration: "none" }}>
-            <Icon bg="rgba(16,185,129,0.15)" color={T.green}><MessageCircle size={20} /></Icon>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 800, fontSize: 14.5 }}>WhatsApp Support</div>
-              <div style={{ color: T.textSec, fontSize: 12.5 }}>Chat with us — +91 {SUPPORT_PHONE}</div>
-            </div>
-            <ExternalLink size={16} color={T.textSec} />
-          </a>
-
-          {/* Email */}
-          <a href={`mailto:${SUPPORT_EMAIL}`} style={{ ...row, textDecoration: "none" }}>
-            <Icon bg="rgba(59,130,246,0.15)" color={T.blue}><Mail size={20} /></Icon>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 800, fontSize: 14.5 }}>Email Support</div>
-              <div style={{ color: T.textSec, fontSize: 12.5 }}>{SUPPORT_EMAIL}</div>
-            </div>
-            <ExternalLink size={16} color={T.textSec} />
-          </a>
-
-          {/* Phone + hours */}
-          <div style={row}>
-            <Icon bg="rgba(255,193,7,0.15)" color={T.orange}><Phone size={20} /></Icon>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 800, fontSize: 14.5 }}>Phone</div>
-              <div style={{ color: T.textSec, fontSize: 12.5 }}>+91 {SUPPORT_PHONE}</div>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 5, color: T.textSec, fontSize: 11.5 }}>
-              <Clock size={13} /> Mon–Sat, 10am–6pm IST
-            </div>
-          </div>
-
-          {/* Instagram / social */}
-          <a href={INSTAGRAM} target="_blank" rel="noreferrer" style={{ ...row, textDecoration: "none" }}>
-            <Icon bg="rgba(225,48,108,0.15)" color="#E1306C"><Share2 size={20} /></Icon>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 800, fontSize: 14.5 }}>Follow us on Instagram</div>
-              <div style={{ color: T.textSec, fontSize: 12.5 }}>@manchly_app</div>
-            </div>
-            <ExternalLink size={16} color={T.textSec} />
-          </a>
-
-          <p style={{ color: T.textSec, fontSize: 11.5, textAlign: "center", marginTop: 4 }}>
-            {COMPANY} · Madhepura, Bihar, India
+      <div style={{ maxWidth: 960, margin: "0 auto" }}>
+        {/* Header */}
+        <div style={{ marginBottom: 20 }}>
+          <h1 style={{ margin: 0, fontSize: 27, fontWeight: 900 }}>
+            Help &{" "}
+            <span style={{ background: G.orange, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+              Legal
+            </span>
+          </h1>
+          <p style={{ margin: "4px 0 0", color: colors.typography.secondaryText, fontSize: 14 }}>
+            Support, contact and Manchly's policies.
           </p>
         </div>
-      ) : (
-        <Policy sections={tab === "terms" ? TERMS : tab === "privacy" ? PRIVACY : REFUND} />
-      )}
+
+        {/* Tabs */}
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 22 }}>
+          {TABS.map((t) => {
+            const on = tab === t.key;
+            return (
+              <button
+                key={t.key}
+                className={on ? undefined : "hc-tab"}
+                onClick={() => setTab(t.key)}
+                style={{
+                  display: "flex", alignItems: "center", gap: 7,
+                  background: on ? G.orange : "#fff",
+                  color: on ? "#fff" : colors.typography.secondaryText,
+                  border: `1px solid ${on ? "transparent" : colors.base.border}`,
+                  boxShadow: on ? "0 6px 16px rgba(245,166,35,0.3)" : "none",
+                  padding: "9px 16px", borderRadius: 999, cursor: "pointer",
+                  fontWeight: 800, fontSize: 12.5, fontFamily: "inherit",
+                }}
+              >
+                <t.icon size={14} /> {t.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {tab === "support" ? (
+          <>
+            {/* Hero */}
+            <div
+              style={{
+                background: G.heroGold, borderRadius: 22, padding: "26px 30px",
+                color: "#fff", marginBottom: 22, display: "flex",
+                justifyContent: "space-between", alignItems: "center", gap: 20, flexWrap: "wrap",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                <div style={{ width: 52, height: 52, borderRadius: 15, background: "rgba(255,255,255,0.16)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <LifeBuoy size={26} />
+                </div>
+                <div>
+                  <div style={{ fontSize: 19, fontWeight: 900 }}>We're here to help</div>
+                  <div style={{ fontSize: 13.5, opacity: 0.85, marginTop: 3 }}>
+                    Questions about payouts, courses or your account? Reach us on any channel below.
+                  </div>
+                </div>
+              </div>
+              <a
+                href={waLink(waMessage)}
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: 8,
+                  background: "#fff", color: "#92400E", textDecoration: "none",
+                  borderRadius: 12, padding: "11px 20px", fontWeight: 800, fontSize: 13.5,
+                  boxShadow: "0 6px 16px rgba(0,0,0,0.18)", flexShrink: 0,
+                }}
+              >
+                <MessageCircle size={16} /> Chat on WhatsApp
+              </a>
+            </div>
+
+            {/* Contact channels */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 16 }}>
+              {CHANNELS.map((c) => (
+                <a
+                  key={c.key}
+                  className="hc-card"
+                  href={c.href}
+                  target={c.external ? "_blank" : undefined}
+                  rel={c.external ? "noreferrer" : undefined}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 15,
+                    background: "#fff", border: `1px solid ${colors.base.border}`,
+                    borderRadius: 18, padding: "18px 20px",
+                    textDecoration: "none", color: colors.typography.primaryText,
+                  }}
+                >
+                  <div style={{ width: 46, height: 46, borderRadius: 13, background: c.tintBg, color: c.tint, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <c.icon size={21} />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 800, fontSize: 15 }}>{c.title}</div>
+                    <div style={{ color: colors.typography.secondaryText, fontSize: 13, marginTop: 2 }}>{c.sub}</div>
+                    <div style={{ display: "inline-flex", alignItems: "center", gap: 5, marginTop: 8, background: c.tintBg, color: c.tint, borderRadius: 999, padding: "3px 10px", fontSize: 11, fontWeight: 700 }}>
+                      {c.noteIcon ? <c.noteIcon size={11} /> : null}
+                      {c.note}
+                    </div>
+                  </div>
+                  <ArrowUpRight
+                    className="hc-arrow"
+                    size={18}
+                    color={colors.typography.secondaryText}
+                    style={{ opacity: 0.35, transform: "translate(-3px, 3px)", transition: "opacity .16s ease, transform .16s ease", flexShrink: 0 }}
+                  />
+                </a>
+              ))}
+            </div>
+
+            <p style={{ color: "#9CA3AF", fontSize: 12, textAlign: "center", marginTop: 26 }}>
+              {COMPANY} · Madhepura, Bihar, India
+            </p>
+          </>
+        ) : (
+          <Policy sections={tab === "terms" ? TERMS : tab === "privacy" ? PRIVACY : REFUND} />
+        )}
+      </div>
     </div>
   );
 }
 
 function Policy({ sections }) {
   return (
-    <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, padding: "22px 24px", maxHeight: "70vh", overflowY: "auto" }}>
+    <div style={{ background: "#fff", border: `1px solid ${colors.base.border}`, borderRadius: 18, padding: "26px 30px", maxHeight: "70vh", overflowY: "auto" }}>
       {sections.map(([title, paras], i) => (
-        <div key={i} style={{ marginBottom: 18 }}>
-          <h3 style={{ margin: "0 0 8px", fontSize: 14.5, fontWeight: 800, color: T.orange }}>
-            {i + 1}. {title}
-          </h3>
-          {paras.map((p, j) => (
-            <p key={j} style={{ margin: "0 0 7px", color: T.textSec, fontSize: 13, lineHeight: 1.55 }}>{p}</p>
-          ))}
+        <div key={i} style={{ display: "flex", gap: 14, marginBottom: 22 }}>
+          <div style={{ width: 28, height: 28, borderRadius: 9, background: "#FFFBEB", border: "1px solid #FDE68A", color: "#B45309", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12.5, fontWeight: 800, flexShrink: 0 }}>
+            {i + 1}
+          </div>
+          <div style={{ minWidth: 0 }}>
+            <h3 style={{ margin: "4px 0 8px", fontSize: 15, fontWeight: 800, color: colors.typography.primaryText }}>
+              {title}
+            </h3>
+            {paras.map((p, j) => (
+              <p key={j} style={{ margin: "0 0 7px", color: colors.typography.secondaryText, fontSize: 13.5, lineHeight: 1.6 }}>{p}</p>
+            ))}
+          </div>
         </div>
       ))}
-      <p style={{ color: "#71717A", fontSize: 11, marginTop: 4 }}>
+      <p style={{ color: "#9CA3AF", fontSize: 11.5, margin: "2px 0 0", paddingLeft: 42 }}>
         Last updated periodically by {COMPANY}. Continued use of Manchly constitutes acceptance.
       </p>
     </div>
   );
 }
-
-function Icon({ bg, color, children }) {
-  return (
-    <div style={{ width: 42, height: 42, borderRadius: 11, background: bg, color, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-      {children}
-    </div>
-  );
-}
-
-const row = {
-  display: "flex",
-  alignItems: "center",
-  gap: 14,
-  background: T.card,
-  border: `1px solid ${T.border}`,
-  borderRadius: 14,
-  padding: "14px 16px",
-  color: T.textPri,
-};

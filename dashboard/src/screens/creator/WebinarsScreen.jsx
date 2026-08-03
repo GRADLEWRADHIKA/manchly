@@ -245,15 +245,15 @@ export default function WebinarsScreen() {
 
       {/* Stats */}
       <div style={{ display: "flex", gap: 14, marginBottom: 24, flexWrap: "wrap" }}>
-        <StatCard icon={MonitorPlay} label="Total Webinars" value={stats?.total_webinars ?? webinars.length} tint="#8B5CF6" />
-        <StatCard icon={CalendarDays} label="Upcoming" value={stats?.upcoming_webinars ?? webinars.filter((w) => !isPast(w) && w.status !== "DRAFT").length} tint="#3B82F6" />
+        <StatCard icon={MonitorPlay} label="Total Webinars" value={stats?.total_webinars ?? webinars.length} tint="#D69C3F" />
+        <StatCard icon={CalendarDays} label="Upcoming" value={stats?.upcoming_webinars ?? webinars.filter((w) => !isPast(w) && w.status !== "DRAFT").length} tint="#F97316" />
         <StatCard icon={Users} label="Seats Sold" value={stats?.webinars_sold ?? stats?.total_enrollments ?? 0} tint="#22C55E" />
         <StatCard icon={IndianRupee} label="Webinar Revenue" value={formatCurrency(stats?.revenue ?? 0)} tint="#F5A623" />
       </div>
 
       {/* Next webinar hero */}
       {nextUp && (
-        <div style={{ background: G.heroDusk, borderRadius: 20, padding: "24px 28px", color: "#fff", marginBottom: 26, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 20, flexWrap: "wrap" }}>
+        <div style={{ background: G.heroGold, borderRadius: 20, padding: "24px 28px", color: "#fff", marginBottom: 26, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 20, flexWrap: "wrap" }}>
           <div style={{ minWidth: 0 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 800, letterSpacing: 1, textTransform: "uppercase", opacity: 0.85 }}>
               <Radio size={13} color={isLive(nextUp) ? "#F87171" : "#fff"} /> {isLive(nextUp) ? "Live now" : "Next webinar"}
@@ -269,7 +269,7 @@ export default function WebinarsScreen() {
             {nextUp.zoom_start_url ? (
               <button
                 onClick={() => window.open(nextUp.zoom_start_url, "_blank")}
-                style={{ border: "none", cursor: "pointer", borderRadius: 12, padding: "13px 22px", fontWeight: 900, fontSize: 14.5, fontFamily: "inherit", background: "#fff", color: "#3B2E8C", display: "inline-flex", alignItems: "center", gap: 8, boxShadow: "0 8px 22px rgba(0,0,0,0.3)" }}
+                style={{ border: "none", cursor: "pointer", borderRadius: 12, padding: "13px 22px", fontWeight: 900, fontSize: 14.5, fontFamily: "inherit", background: "#fff", color: "#92400E", display: "inline-flex", alignItems: "center", gap: 8, boxShadow: "0 8px 22px rgba(0,0,0,0.3)" }}
               >
                 <Video size={17} /> Start Meeting
               </button>
@@ -316,7 +316,7 @@ export default function WebinarsScreen() {
             return (
               <div key={w.id} style={{ background: "#fff", border: `1px solid ${live ? "#FCA5A5" : colors.base.border}`, borderRadius: 18, overflow: "hidden", boxShadow: live ? "0 10px 30px rgba(239,68,68,0.15)" : "0 4px 14px rgba(31,41,55,0.05)" }}>
                 {/* banner */}
-                <div style={{ height: 130, position: "relative", background: w.thumbnail ? `url(${w.thumbnail}) center/cover` : G.heroDusk }}>
+                <div style={{ height: 130, position: "relative", background: w.thumbnail ? `url(${w.thumbnail}) center/cover` : G.heroGold }}>
                   {s && (
                     <span style={{ position: "absolute", top: 12, left: 12, background: "#fff", borderRadius: 12, padding: "7px 12px", textAlign: "center", lineHeight: 1.1, boxShadow: "0 4px 12px rgba(0,0,0,0.25)" }}>
                       <span style={{ display: "block", fontSize: 17, fontWeight: 900, color: "#1F2937" }}>{s.getDate()}</span>
@@ -343,15 +343,15 @@ export default function WebinarsScreen() {
                   {Array.isArray(w.tags) && w.tags.length > 0 && (
                     <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 9 }}>
                       {w.tags.slice(0, 3).map((t, i) => (
-                        <span key={i} style={{ background: "#F5F3FF", color: "#6D28D9", borderRadius: 99, padding: "3px 10px", fontSize: 11, fontWeight: 700 }}>#{t}</span>
+                        <span key={i} style={{ background: "#FFF8EC", color: "#B45309", borderRadius: 99, padding: "3px 10px", fontSize: 11, fontWeight: 700 }}>#{t}</span>
                       ))}
                     </div>
                   )}
 
                   {/* Zoom creds */}
                   {w.zoom_meeting_id && (
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#F0F7FF", border: "1px solid #BFDBFE", borderRadius: 10, padding: "8px 12px", marginTop: 12, fontSize: 12.5 }}>
-                      <span style={{ color: "#1D4ED8" }}>Zoom <b>{w.zoom_meeting_id}</b> · Pass <b>{w.zoom_password || "—"}</b></span>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#FFF8EC", border: "1px solid #F0DDB0", borderRadius: 10, padding: "8px 12px", marginTop: 12, fontSize: 12.5 }}>
+                      <span style={{ color: "#92400E" }}>Zoom <b>{w.zoom_meeting_id}</b> · Pass <b>{w.zoom_password || "—"}</b></span>
                       <button className="cs-icon-btn" style={{ width: 28, height: 28 }} title="Copy Zoom credentials" onClick={() => copyZoom(w)}><Copy size={13} /></button>
                     </div>
                   )}
@@ -377,7 +377,7 @@ export default function WebinarsScreen() {
       {/* ---------- Schedule/Edit modal ---------- */}
       <Modal open={!!modal} onClose={() => setModal(null)} title="" width={600}>
         <div style={{ display: "flex", alignItems: "center", gap: 14, margin: "-6px 0 20px" }}>
-          <span style={{ width: 46, height: 46, borderRadius: 13, background: G.purple, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 6px 16px rgba(139,92,246,0.35)", flexShrink: 0 }}>
+          <span style={{ width: 46, height: 46, borderRadius: 13, background: G.orange, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 6px 16px rgba(245,166,35,0.35)", flexShrink: 0 }}>
             <MonitorPlay size={22} color="#fff" />
           </span>
           <div>
@@ -442,9 +442,9 @@ export default function WebinarsScreen() {
             <label style={lbl}>Tags <span style={{ fontWeight: 600, textTransform: "none" }}>(up to 3)</span></label>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
               {form.tags.map((t) => (
-                <span key={t} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#F5F3FF", color: "#6D28D9", borderRadius: 99, padding: "6px 12px", fontSize: 12.5, fontWeight: 700 }}>
+                <span key={t} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#FFF8EC", color: "#B45309", borderRadius: 99, padding: "6px 12px", fontSize: 12.5, fontWeight: 700 }}>
                   #{t}
-                  <button onClick={() => setForm((f) => ({ ...f, tags: f.tags.filter((x) => x !== t) }))} style={{ background: "transparent", border: "none", cursor: "pointer", color: "#6D28D9", padding: 0, display: "flex" }}><X size={12} /></button>
+                  <button onClick={() => setForm((f) => ({ ...f, tags: f.tags.filter((x) => x !== t) }))} style={{ background: "transparent", border: "none", cursor: "pointer", color: "#B45309", padding: 0, display: "flex" }}><X size={12} /></button>
                 </span>
               ))}
               {form.tags.length < 3 && (

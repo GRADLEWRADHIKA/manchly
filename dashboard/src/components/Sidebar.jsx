@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   LayoutDashboard,
   BookOpen,
@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 
 import colors from "../utils/colors";
+import { Modal } from "./ui";
 
 const MENU_ITEMS = [
   { key: "dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -35,6 +36,7 @@ export default function Sidebar({
   onNavigate,
   onLogout,
 }) {
+  const [confirmLogout, setConfirmLogout] = useState(false);
   return (
     <aside
       style={{
@@ -136,7 +138,7 @@ export default function Sidebar({
         }}
       >
         <button
-          onClick={onLogout}
+          onClick={() => setConfirmLogout(true)}
           style={{
             width: "100%",
             display: "flex",
@@ -154,6 +156,27 @@ export default function Sidebar({
           Log out
         </button>
       </div>
+
+      {/* Logout confirmation */}
+      <Modal open={confirmLogout} onClose={() => setConfirmLogout(false)} title="Log out?" width={380}>
+        <p style={{ margin: "0 0 18px", color: colors.typography.secondaryText, fontSize: 14, lineHeight: 1.6 }}>
+          You'll be signed out of Manchly Creator Suite on this device.
+        </p>
+        <div style={{ display: "flex", gap: 10 }}>
+          <button
+            onClick={() => setConfirmLogout(false)}
+            style={{ flex: 1, border: `1.5px solid ${colors.base.border}`, background: "#fff", color: colors.typography.primaryText, borderRadius: 12, padding: "11px 16px", fontSize: 14, fontWeight: 800, cursor: "pointer", fontFamily: "inherit" }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => { setConfirmLogout(false); onLogout?.(); }}
+            style={{ flex: 1, border: "none", background: colors.gradients.danger, color: "#fff", borderRadius: 12, padding: "11px 16px", fontSize: 14, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 6px 16px rgba(220,38,38,0.3)" }}
+          >
+            <LogOut size={15} /> Log out
+          </button>
+        </div>
+      </Modal>
     </aside>
   );
 }

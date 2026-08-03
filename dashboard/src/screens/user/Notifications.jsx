@@ -1,23 +1,36 @@
-// Notifications — filter tabs, unread styling, mark one/all read, realtime
-// prepend via socket, deep-link actions (course/webinar/session).
+// Notifications — role-themed (creator: light suite + gold, user: dark navy +
+// indigo). Filter tabs with counts, unread accents, tinted type icons, mark
+// one/all read, realtime prepend via socket, deep-link actions.
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { CheckCheck, BellOff } from "lucide-react";
 import { apiFetch, unwrap } from "../../utils/api";
 import { onSocket } from "../../utils/socket";
 import colors from "../../utils/colors";
 import { useAuth } from "../../context/AuthContext";
-import { FullLoader, EmptyState, GradientButton } from "../../components/ui";
+import { FullLoader } from "../../components/ui";
 import { timeAgo } from "../../utils/formatters";
+
+const G = colors.gradients;
 
 const TYPE_META = {
   course: { icon: "📚", color: "#3B82F6" },
   webinar: { icon: "📡", color: "#8B5CF6" },
   session: { icon: "📞", color: "#10B981" },
-  sale: { icon: "💰", color: "#F0C040" },
+  sale: { icon: "💰", color: "#D69C3F" },
   expert: { icon: "🧑‍🏫", color: "#60A5FA" },
-  system: { icon: "⚙️", color: "#9CA3AF" },
+  system: { icon: "⚙️", color: "#6B7280" },
 };
 const TABS = ["All", "Courses", "Sessions", "Webinars", "System"];
+
+const matchTab = (n, tab) => {
+  const t = String(n.type || "").toLowerCase();
+  if (tab === "All") return true;
+  if (tab === "Courses") return t === "course";
+  if (tab === "Sessions") return t === "session" || t === "expert";
+  if (tab === "Webinars") return t === "webinar";
+  return t === "system" || t === "sale";
+};
 
 export default function Notifications({ role = "user" }) {
   const navigate = useNavigate();
@@ -57,7 +70,7 @@ export default function Notifications({ role = "user" }) {
     setItems((prev) => prev.map((x) => ((x.id || x._id) === id ? { ...x, is_read: true } : x)));
     const d = parseData(n);
     const base = effRole === "creator" ? "/creator" : "/app";
-    if (d.courseId) navigate(`${effRole === "creator" ? "/creator/courses" : `/app/course/${d.courseId}`}`);
+    if (d.courseId) navigate(effRole === "creator" ? "/creator/studio" : `/app/course/${d.courseId}`);
     else if (d.webinarId) navigate(effRole === "creator" ? "/creator/webinars" : `/app/webinar/${d.webinarId}`);
     else if (d.sessionId) navigate(`${base}/sessions`);
   };
@@ -70,61 +83,127 @@ export default function Notifications({ role = "user" }) {
     } catch { /* ignore */ }
   };
 
-  const filtered = tab === "All" ? items : items.filter((n) => {
-    const t = String(n.type || "").toLowerCase();
-    if (tab === "Courses") return t === "course";
-    if (tab === "Sessions") return t === "session" || t === "expert";
-    if (tab === "Webinars") return t === "webinar";
-    return t === "system" || t === "sale";
-  });
+  const unreadCount = items.filter((n) => !n.is_read).length;
+  const filtered = items.filter((n) => matchTab(n, tab));
+
+  /* ---- role theme ---- */
+  const T = dark
+    ? {
+        pageColor: "#fff", cardBg: colors.user.card, cardBorder: colors.user.border,
+        unreadBg: "rgba(90,104,243,0.1)", unreadBorder: "rgba(90,104,243,0.55)",
+        sub: colors.user.subHeading, pillOn: G.indigo, pillOnColor: "#fff",
+        pillOff: "transparent", pillOffColor: colors.user.subHeading, pillBorder: colors.user.border,
+        markColor: colors.user.accentSoft, countBg: G.indigo, iconBgAlpha: "22",
+      }
+    : {
+        pageColor: colors.typography.primaryText, cardBg: "#fff", cardBorder: colors.base.border,
+        unreadBg: "#FFFBF2", unreadBorder: "#E2C58A",
+        sub: colors.typography.secondaryText, pillOn: G.orange, pillOnColor: "#fff",
+        pillOff: "#fff", pillOffColor: colors.typography.secondaryText, pillBorder: colors.base.border,
+        markColor: "#B45309", countBg: G.orange, iconBgAlpha: "1A",
+      };
 
   if (loading) return <FullLoader label="Loading notifications..." />;
 
-  const cardBg = dark ? colors.user.card : "#fff";
-  const border = dark ? colors.user.border : colors.base.border;
-  const subColor = dark ? colors.user.subHeading : colors.typography.secondaryText;
-
   return (
-    <div style={{ maxWidth: 720, margin: "0 auto", color: dark ? "#fff" : colors.typography.primaryText, padding: dark ? 0 : 28 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
-        <h1 style={{ margin: 0, fontSize: 24, fontWeight: 900 }}>Notifications</h1>
-        <button onClick={markAll} style={{ background: "transparent", border: "none", color: dark ? colors.user.accentSoft : colors.brand.actionBlue, fontWeight: 700, cursor: "pointer", fontSize: 13 }}>
-          Mark all as read
-        </button>
-      </div>
-
-      <div style={{ display: "flex", gap: 8, marginBottom: 18, flexWrap: "wrap" }}>
-        {TABS.map((t) => (
-          <button key={t} onClick={() => setTab(t)} style={{ padding: "7px 16px", borderRadius: 999, fontSize: 12.5, fontWeight: 700, cursor: "pointer", border: `1px solid ${tab === t ? "transparent" : border}`, background: tab === t ? colors.gradients.indigo : "transparent", color: tab === t ? "#fff" : subColor }}>
-            {t}
+    <div style={{ maxWidth: 760, margin: "0 auto", color: T.pageColor, padding: dark ? 0 : 32 }}>
+      {/* Header */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18, flexWrap: "wrap", gap: 10 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <h1 style={{ margin: 0, fontSize: 25, fontWeight: 900 }}>Notifications</h1>
+          {unreadCount > 0 && (
+            <span style={{ background: T.countBg, color: "#fff", borderRadius: 99, padding: "3px 12px", fontSize: 12.5, fontWeight: 900 }}>
+              {unreadCount} new
+            </span>
+          )}
+        </div>
+        {unreadCount > 0 && (
+          <button
+            onClick={markAll}
+            style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "transparent", border: `1.5px solid ${T.pillBorder}`, borderRadius: 99, padding: "7px 16px", color: T.markColor, fontWeight: 800, cursor: "pointer", fontSize: 12.5, fontFamily: "inherit" }}
+          >
+            <CheckCheck size={14} /> Mark all as read
           </button>
-        ))}
+        )}
       </div>
 
+      {/* Filter tabs with counts */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
+        {TABS.map((t) => {
+          const count = items.filter((n) => matchTab(n, t) && !n.is_read).length;
+          const on = tab === t;
+          return (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 7,
+                padding: "8px 18px", borderRadius: 999, fontSize: 13, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
+                border: `1.5px solid ${on ? "transparent" : T.pillBorder}`,
+                background: on ? T.pillOn : T.pillOff,
+                color: on ? T.pillOnColor : T.pillOffColor,
+                boxShadow: on ? "0 4px 14px rgba(0,0,0,0.15)" : "none",
+                transition: "all 0.15s ease",
+              }}
+            >
+              {t}
+              {count > 0 && (
+                <span style={{ background: on ? "rgba(255,255,255,0.3)" : `${dark ? "#5A68F3" : "#F5A623"}22`, color: on ? "#fff" : dark ? "#BDC2FF" : "#B45309", borderRadius: 99, padding: "1px 8px", fontSize: 11, fontWeight: 900 }}>
+                  {count}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* List */}
       {filtered.length === 0 ? (
-        <EmptyState icon="🔔" title="No notifications" subtitle="You're all caught up!" />
+        <div style={{ textAlign: "center", padding: "70px 20px", background: T.cardBg, border: `1px solid ${T.cardBorder}`, borderRadius: 18 }}>
+          <BellOff size={36} color={T.sub} style={{ marginBottom: 12 }} />
+          <div style={{ fontSize: 17, fontWeight: 900 }}>All caught up!</div>
+          <div style={{ color: T.sub, fontSize: 13.5, marginTop: 5 }}>
+            {tab === "All" ? "New sales, bookings and updates will appear here." : `No ${tab.toLowerCase()} notifications.`}
+          </div>
+        </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {filtered.map((n) => {
             const meta = TYPE_META[String(n.type || "system").toLowerCase()] || TYPE_META.system;
             const d = parseData(n);
-            const action = d.courseId ? "View Course" : d.webinarId ? "Join Webinar" : d.sessionId ? "View Session" : null;
+            const action = d.courseId ? "View Course" : d.webinarId ? "View Webinar" : d.sessionId ? "View Session" : null;
+            const unread = !n.is_read;
             return (
               <div
                 key={n.id || n._id}
                 onClick={() => open(n)}
-                style={{ display: "flex", gap: 14, background: cardBg, border: `1px solid ${border}`, borderLeft: `4px solid ${meta.color}`, borderRadius: 14, padding: "14px 16px", cursor: "pointer", opacity: n.is_read ? 0.72 : 1 }}
+                className="mn-lift"
+                style={{
+                  display: "flex", gap: 14, alignItems: "flex-start",
+                  background: unread ? T.unreadBg : T.cardBg,
+                  border: `1px solid ${unread ? T.unreadBorder : T.cardBorder}`,
+                  borderLeft: `4px solid ${unread ? meta.color : "transparent"}`,
+                  borderRadius: 14, padding: "15px 18px", cursor: "pointer",
+                }}
               >
-                <span style={{ fontSize: 22 }}>{meta.icon}</span>
+                <span style={{ width: 42, height: 42, borderRadius: 12, flexShrink: 0, background: `${meta.color}${T.iconBgAlpha}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 19 }}>
+                  {meta.icon}
+                </span>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
-                    <span style={{ fontWeight: n.is_read ? 600 : 900, fontSize: 14.5 }}>{n.title}</span>
-                    <span style={{ color: subColor, fontSize: 11.5, whiteSpace: "nowrap" }}>{timeAgo(n.createdAt || n.created_at)}</span>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "baseline" }}>
+                    <span style={{ fontWeight: unread ? 900 : 700, fontSize: 14.5, display: "flex", alignItems: "center", gap: 8 }}>
+                      {n.title}
+                      {unread && <span style={{ width: 8, height: 8, borderRadius: "50%", background: meta.color, flexShrink: 0 }} />}
+                    </span>
+                    <span style={{ color: T.sub, fontSize: 11.5, whiteSpace: "nowrap", fontWeight: 600 }}>{timeAgo(n.createdAt || n.created_at)}</span>
                   </div>
-                  <div style={{ color: subColor, fontSize: 13, marginTop: 4 }}>{n.message}</div>
-                  {action && <div style={{ marginTop: 8 }}><GradientButton size="sm">{action}</GradientButton></div>}
+                  <div style={{ color: T.sub, fontSize: 13.5, marginTop: 4, lineHeight: 1.55 }}>{n.message}</div>
+                  {action && (
+                    <span style={{ display: "inline-block", marginTop: 9, color: meta.color, fontWeight: 800, fontSize: 12.5 }}>
+                      {action} →
+                    </span>
+                  )}
                 </div>
-                {!n.is_read && <span style={{ width: 9, height: 9, borderRadius: "50%", background: meta.color, marginTop: 6, flexShrink: 0 }} />}
               </div>
             );
           })}

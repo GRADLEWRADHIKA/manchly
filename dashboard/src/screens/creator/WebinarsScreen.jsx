@@ -5,11 +5,11 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import {
   Plus, Pencil, Trash2, Share2, Video, Users, IndianRupee, CalendarDays,
-  Clock, Radio, Copy, Search, MonitorPlay, Sparkles, X,
+  Clock, Radio, Copy, Search, MonitorPlay, X,
 } from "lucide-react";
 import { apiFetch, unwrap } from "../../utils/api";
 import colors from "../../utils/colors";
-import { Modal, Badge, Spinner, EmptyState } from "../../components/ui";
+import { Modal, Badge, EmptyState } from "../../components/ui";
 import { GoldBtn, StatCard, AiEnhance, CoverUpload, lbl } from "../../components/creatorUi";
 import { toast } from "../../utils/toast";
 import { formatCurrency } from "../../utils/formatters";
@@ -69,7 +69,6 @@ export default function WebinarsScreen() {
   const [tagInput, setTagInput] = useState("");
   const [saving, setSaving] = useState(false);
   const [thumbUploading, setThumbUploading] = useState(false);
-  const [describeBusy, setDescribeBusy] = useState(false);
   const [toDelete, setToDelete] = useState(null);
   const thumbRef = useRef(null);
   const now = useNow(30000);
@@ -154,23 +153,6 @@ export default function WebinarsScreen() {
       toast.error(e.message);
     } finally {
       setThumbUploading(false);
-    }
-  };
-
-  const aiDescribe = async () => {
-    if (!form.title.trim()) return toast.info("Add a title first");
-    setDescribeBusy(true);
-    try {
-      const res = unwrap(await apiFetch("/ai/webinar/describe", { method: "POST", body: JSON.stringify({ title: form.title.trim() }) }));
-      const text = res?.description || res?.text || res?.enhanced;
-      if (text) {
-        setForm((f) => ({ ...f, description: String(text).slice(0, 200) }));
-        toast.success("Description generated");
-      } else toast.info("No description returned");
-    } catch (e) {
-      toast.error(e.message);
-    } finally {
-      setDescribeBusy(false);
     }
   };
 
@@ -465,12 +447,7 @@ export default function WebinarsScreen() {
           <div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
               <label style={lbl}>Description</label>
-              <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
-                <button onClick={aiDescribe} disabled={describeBusy} style={{ background: "transparent", border: "none", color: "#7C3AED", fontWeight: 800, fontSize: 12, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 5, padding: 0, fontFamily: "inherit" }}>
-                  {describeBusy ? <Spinner size={12} /> : <Sparkles size={13} />} Generate from title
-                </button>
-                <AiEnhance endpoint="/ai/webinar/enhance" text={form.description} kind="description" tone="conversational" onUse={(t) => setForm((f) => ({ ...f, description: t }))} />
-              </div>
+              <AiEnhance endpoint="/ai/webinar/enhance" text={form.description} kind="description" tone="conversational" onUse={(t) => setForm((f) => ({ ...f, description: t }))} />
             </div>
             <textarea className="cs-input" style={{ minHeight: 88, resize: "vertical" }} maxLength={200} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="What will attendees learn in this live session?" />
             <div style={{ textAlign: "right", fontSize: 11.5, color: form.description.length < 5 ? "#DC2626" : colors.typography.secondaryText, marginTop: 4 }}>

@@ -13,89 +13,10 @@ import colors from "../../utils/colors";
 import { Modal, Badge, Spinner, EmptyState } from "../../components/ui";
 import HlsVideo from "../../components/HlsVideo";
 import { toast } from "../../utils/toast";
+import { GoldBtn, StatCard, AiEnhance, lbl } from "../../components/creatorUi";
 import { formatCurrency } from "../../utils/formatters";
 
 const G = colors.gradients;
-
-/* ---------- small building blocks ---------- */
-
-function GoldBtn({ children, onClick, loading, disabled, ghost, danger, style = {} }) {
-  return (
-    <button
-      onClick={onClick}
-      disabled={loading || disabled}
-      style={{
-        border: ghost ? `1.5px solid ${danger ? "#FCA5A5" : "#E2C58A"}` : "none",
-        background: ghost ? "#fff" : danger ? G.danger : G.orange,
-        color: ghost ? (danger ? "#DC2626" : "#B45309") : "#fff",
-        borderRadius: 12, padding: "10px 18px", fontSize: 14, fontWeight: 800,
-        cursor: loading || disabled ? "not-allowed" : "pointer", fontFamily: "inherit",
-        display: "inline-flex", alignItems: "center", gap: 8,
-        boxShadow: ghost ? "none" : "0 6px 16px rgba(245,166,35,0.3)",
-        opacity: disabled ? 0.55 : 1,
-        ...style,
-      }}
-    >
-      {loading ? <Spinner size={14} light={!ghost} /> : null}
-      {children}
-    </button>
-  );
-}
-
-const inp = {
-  width: "100%", boxSizing: "border-box", padding: "11px 14px", borderRadius: 10,
-  border: `1.5px solid ${colors.base.border}`, fontSize: 14.5, outline: "none", fontFamily: "inherit",
-};
-const lbl = { display: "block", fontSize: 11.5, fontWeight: 800, letterSpacing: 0.7, textTransform: "uppercase", color: colors.typography.secondaryText, marginBottom: 6 };
-
-function StatCard({ icon: Icon, label, value, tint }) {
-  return (
-    <div style={{ flex: 1, background: "#fff", border: `1px solid ${colors.base.border}`, borderRadius: 16, padding: "16px 18px", display: "flex", alignItems: "center", gap: 14 }}>
-      <span style={{ width: 42, height: 42, borderRadius: 12, background: `${tint}18`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-        <Icon size={20} color={tint} />
-      </span>
-      <span>
-        <div style={{ fontSize: 21, fontWeight: 900, color: colors.typography.primaryText }}>{value}</div>
-        <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 0.6, textTransform: "uppercase", color: colors.typography.secondaryText }}>{label}</div>
-      </span>
-    </div>
-  );
-}
-
-// AI enhance helper — POST /ai/course/enhance, shows suggestion with Use/Keep.
-function AiEnhance({ text, kind, tone, onUse }) {
-  const [busy, setBusy] = useState(false);
-  const [suggestion, setSuggestion] = useState(null);
-  const run = async () => {
-    if (!text?.trim()) return toast.info("Write something first, then enhance it");
-    setBusy(true);
-    try {
-      const res = unwrap(await apiFetch("/ai/course/enhance", { method: "POST", body: JSON.stringify({ text, kind, tone }) }));
-      setSuggestion(res?.enhanced || res?.text || null);
-      if (!res?.enhanced) toast.info("No suggestion returned");
-    } catch (e) {
-      toast.error(e.message);
-    } finally {
-      setBusy(false);
-    }
-  };
-  return (
-    <div>
-      <button onClick={run} disabled={busy} style={{ background: "transparent", border: "none", color: "#7C3AED", fontWeight: 800, fontSize: 12, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 5, padding: 0, fontFamily: "inherit" }}>
-        {busy ? <Spinner size={12} /> : <Sparkles size={13} />} Enhance with AI
-      </button>
-      {suggestion && (
-        <div style={{ marginTop: 8, background: "#F5F3FF", border: "1px solid #DDD6FE", borderRadius: 10, padding: "10px 12px", fontSize: 13.5, color: "#4C1D95" }}>
-          {suggestion}
-          <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
-            <button onClick={() => { onUse(suggestion); setSuggestion(null); }} style={{ background: "#7C3AED", color: "#fff", border: "none", borderRadius: 8, padding: "5px 14px", fontWeight: 800, fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>Use this</button>
-            <button onClick={() => setSuggestion(null)} style={{ background: "transparent", border: "none", color: "#6D28D9", fontWeight: 700, fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>Keep original</button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
 
 /* ---------- main screen ---------- */
 
@@ -572,21 +493,12 @@ export default function StudioScreen() {
             <input className="cs-input" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="e.g. Advanced Options Trading" autoFocus />
           </div>
 
-          {/* Price + payout preview */}
-          <div>
-            <label style={lbl}>Price</label>
-            <div style={{ display: "grid", gridTemplateColumns: "180px 1fr", gap: 14, alignItems: "center" }}>
-              <div style={{ position: "relative" }}>
-                <span style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", fontWeight: 900, color: "#92400E" }}>₹</span>
-                <input className="cs-input" style={{ paddingLeft: 30, fontWeight: 800 }} inputMode="numeric" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value.replace(/[^\d.]/g, "") })} placeholder="999" />
-              </div>
-              <div style={{ fontSize: 12.5, color: colors.typography.secondaryText, lineHeight: 1.55 }}>
-                {Number(form.price) > 0 ? (
-                  <>Learners pay <b style={{ color: colors.typography.primaryText }}>{formatCurrency((Number(form.price) * 1.2).toFixed(0))}</b> (incl. 18% GST + 2% fee) · you keep <b style={{ color: "#15803D" }}>{formatCurrency((Number(form.price) * 0.9).toFixed(0))}</b> (90%)</>
-                ) : (
-                  <>Set <b>0</b> to make this a <b style={{ color: "#15803D" }}>free course</b></>
-                )}
-              </div>
+          {/* Price */}
+          <div style={{ maxWidth: 200 }}>
+            <label style={lbl}>Price (INR)</label>
+            <div style={{ position: "relative" }}>
+              <span style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", fontWeight: 900, color: "#92400E" }}>₹</span>
+              <input className="cs-input" style={{ paddingLeft: 30, fontWeight: 800 }} inputMode="numeric" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value.replace(/[^\d.]/g, "") })} placeholder="999" />
             </div>
           </div>
 

@@ -28,8 +28,7 @@ router.post("/session/enhance",             AIController.sessionEnhance);
 router.post("/session/product-suggestions", AIController.sessionProductSuggestions);
 router.post("/session/follow-up-message",   AIController.sessionFollowUpMessage);
 
-// Chat + general
-router.post("/chat/suggest-reply",   AIController.chatSuggestReply);
+// General
 router.post("/moderate",             AIController.moderate);
 router.post("/lesson/summarize",     AIController.lessonSummarize);
 

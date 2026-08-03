@@ -14,7 +14,6 @@ import notifee, { EventType } from '@notifee/react-native';
 import { store } from '../store/Store';
 import { updateProfile, getCurrentUser } from '../store/UserSlice';
 import { getUnreadCount, addRealtimeNotification } from '../store/NotificationSlice';
-import { addSocketMessage } from '../store/ChatSlice';
 import SocketService from '../services/SocketService';
 import CallListener, { setNavigationRef } from '../components/CallListener';
 import { useDispatch } from 'react-redux';
@@ -193,20 +192,14 @@ const Router = () => {
       console.warn('Socket error:', data.message);
     };
 
-    const handleNewMessage = (msg: any) => {
-      dispatch(addSocketMessage(msg));
-    };
-
     SocketService.on('new_notification', handleNewNotification);
     SocketService.on('user_status', handleUserStatus);
     SocketService.on('error', handleSocketError);
-    SocketService.on('new_message', handleNewMessage);
 
     return () => {
       SocketService.off('new_notification', handleNewNotification);
       SocketService.off('user_status', handleUserStatus);
       SocketService.off('error', handleSocketError);
-      SocketService.off('new_message', handleNewMessage);
     };
   }, [token]);
 

@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import React, { useEffect, useRef, useState } from 'react';
-import { useRoute } from '@react-navigation/native';
+import { useRoute, useNavigation } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 import colors from '../../../../utils/colors';
 import AppHeaderWithBack from '../../../../components/AppHeaderWithBack';
@@ -25,7 +25,9 @@ import {
   createWebinarEnroll,
   getWebinarById,
   createWebinarVerify,
+  reviewWebinar,
 } from '../../../../store/WebinarSlice';
+import RateWebinarModal from '../../../../components/RateWebinarModal';
 import { useDispatch, useSelector } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
 import { CFPaymentGatewayService } from 'react-native-cashfree-pg-sdk';
@@ -44,6 +46,7 @@ import RefundPolicyModal from '../../../../components/RefundPolicyModal';
 
 const WebinarDetails = () => {
   const { params } = useRoute<any>();
+  const navigation = useNavigation<any>();
   const webinarId = params?.webinarId || params?.id || params?.data?.id;
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
   const [loading, setLoading] = useState(false);
@@ -56,6 +59,7 @@ const WebinarDetails = () => {
   const [showTerms, setShowTerms] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showRefund, setShowRefund] = useState(false);
+  const [showRate, setShowRate] = useState(false);
 
   useEffect(() => {
     if (!params?.data && webinarId) {
@@ -145,6 +149,14 @@ const WebinarDetails = () => {
             type: 'success',
             text1: 'Payment Successful',
             text2: 'You have successfully enrolled in this webinar.',
+          });
+
+          navigation.navigate('PurchaseThankYou', {
+            productType: 'webinar',
+            title: data?.title,
+            whatsappUrl: data?.whatsapp_community_url,
+            message: data?.thankyou_message,
+            contentRoute: 'PurchasesScreen',
           });
         } catch (err: any) {
           Toast.show({
@@ -369,11 +381,28 @@ const WebinarDetails = () => {
       <PrivacyModal visible={showPrivacy} onClose={() => setShowPrivacy(false)} />
       <RefundPolicyModal visible={showRefund} onClose={() => setShowRefund(false)} />
 
+      <RateWebinarModal
+        visible={showRate}
+        onClose={() => setShowRate(false)}
+        webinarTitle={data?.title || 'this webinar'}
+        onSubmit={(rating, comment) =>
+          dispatch(
+            reviewWebinar({ webinarId: data?.id || webinarId, rating, comment }),
+          ).unwrap()
+        }
+      />
+
       <View style={styles.bottomBar}>
         {data?.is_enrolled ? (
-          <View style={[styles.buyButton, { backgroundColor: colors.success }]}>
-            <Text style={styles.buyText}>Already Enrolled</Text>
-          </View>
+          <TouchableOpacity
+            style={styles.buyButtonWrapper}
+            onPress={() => setShowRate(true)}
+            activeOpacity={0.85}
+          >
+            <View style={[styles.buyButton, { backgroundColor: colors.success }]}>
+              <Text style={styles.buyText}>Rate this webinar</Text>
+            </View>
+          </TouchableOpacity>
         ) : (
           <TouchableOpacity
             style={styles.buyButtonWrapper}

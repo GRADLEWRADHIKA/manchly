@@ -30,6 +30,8 @@ import { pick, types } from '@react-native-documents/picker';
 import { uploadShipDoc } from '../../../../../store/Common';
 import moment from 'moment-timezone';
 import FacingIssues from '../Course/components/FacingIssues';
+import AccessExpiryField, { AccessPolicy } from '../../../../../components/AccessExpiryField';
+import CommunityLinkField from '../../../../../components/CommunityLinkField';
 import {
   CirclePlus,
   Calendar,
@@ -56,6 +58,16 @@ const CreateWebinarScreen = () => {
   const [tagInput, setTagInput] = useState('');
   const [tagList, setTagList] = useState<string[]>(updatedata?.tags || []);
   const [isTimePickerVisible, setTimePickerVisibility] = useState(false);
+  const [accessPolicy, setAccessPolicy] = useState<AccessPolicy>({
+    access_duration_days: updatedata?.access_duration_days ?? null,
+    access_expires_at: updatedata?.access_expires_at ?? null,
+  });
+  const [whatsappUrl, setWhatsappUrl] = useState(
+    updatedata?.whatsapp_community_url || '',
+  );
+  const [thankYouMsg, setThankYouMsg] = useState(
+    updatedata?.thankyou_message || '',
+  );
   const showDatePicker = () => {
     setDatePickerVisibility(true);
   };
@@ -172,6 +184,10 @@ const CreateWebinarScreen = () => {
       timezone: moment.tz.guess() || 'Asia/Kolkata',
       max_participants: Number(data?.max_participants),
       status: data?.status,
+      access_duration_days: accessPolicy.access_duration_days,
+      access_expires_at: accessPolicy.access_expires_at,
+      whatsapp_community_url: whatsappUrl.trim() || null,
+      thankyou_message: thankYouMsg.trim() || null,
     };
     dispatch(createWebinar(payload))
       .unwrap()
@@ -204,6 +220,10 @@ const CreateWebinarScreen = () => {
         timezone: data?.timezone || moment.tz.guess() || 'Asia/Kolkata',
         max_participants: Number(data?.max_participants),
         status: data?.status,
+        access_duration_days: accessPolicy.access_duration_days,
+        access_expires_at: accessPolicy.access_expires_at,
+        whatsapp_community_url: whatsappUrl.trim() || null,
+        thankyou_message: thankYouMsg.trim() || null,
       },
     };
     dispatch(updateWebinar(payload))
@@ -696,6 +716,19 @@ const CreateWebinarScreen = () => {
                   multiline
                 />
               )}
+            />
+
+            <AccessExpiryField
+              initialDurationDays={updatedata?.access_duration_days ?? null}
+              initialExpiresAt={updatedata?.access_expires_at ?? null}
+              onChange={setAccessPolicy}
+            />
+
+            <CommunityLinkField
+              whatsappUrl={whatsappUrl}
+              onChangeWhatsapp={setWhatsappUrl}
+              message={thankYouMsg}
+              onChangeMessage={setThankYouMsg}
             />
 
             </View>

@@ -90,6 +90,13 @@ router.delete("/videos/:videoId", jwtAuth, CourseController.deleteVideo);
 router.post("/:courseId/enroll", jwtAuth, CourseController.enrollInCourse);
 
 /**
+ * @route   POST /api/courses/:courseId/grant
+ * @desc    Manually grant a user access to a course without payment (Creator-owner or Admin)
+ * @access  Protected (Creator/Admin)
+ */
+router.post("/:courseId/grant", jwtAuth, CourseController.grantCourseAccess);
+
+/**
  * @route   GET /api/courses/enrolled
  * @desc    Get user's enrolled courses
  * @access  Protected

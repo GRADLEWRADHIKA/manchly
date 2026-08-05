@@ -119,6 +119,10 @@ router.put("/profile", authenticateToken, AuthController.updateProfile);
 // 12. Get Current User
 router.get("/me", authenticateToken, AuthController.getCurrentUser);
 
+// Device management (Feature #2)
+router.get("/devices", authenticateToken, AuthController.getMyDevices);
+router.delete("/devices/:device_id", authenticateToken, AuthController.removeDevice);
+
 // ─── Utility routes ────────────────────────────────────────────────────────────
 
 // 13. Check if user exists by email or phone

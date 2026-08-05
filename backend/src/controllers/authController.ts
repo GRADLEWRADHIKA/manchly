@@ -6,11 +6,12 @@ import bcrypt from "bcrypt";
 import OTPManager from "../utils/otpManager";
 import { ApiResponseHandler } from "../utils/ApiResponseHandler";
 import { issueAccessToken, serializeAuthUser } from "../utils/userSerializer";
+import { registerDevice, DEFAULT_DEVICE_LIMIT } from "../utils/deviceManager";
 import dotenv from "dotenv";
 
 dotenv.config();
 
-const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_SECRET = process.env.JWT_SECRET as string;
 if (!JWT_SECRET) {
   throw new Error("JWT_SECRET environment variable is required");
 }
@@ -421,7 +422,7 @@ export class AuthController {
 
   // ── 6. Verify OTP and issue JWT ──────────────────────────────────────────────
   static async verifyOTP(req: Request, res: Response) {
-    const { email, phone_number, code, purpose = "login", user_type, fcm_token } = req.body;
+    const { email, phone_number, code, purpose = "login", user_type, fcm_token, device_id, device_name, platform } = req.body;
 
     if (!code) return ApiResponseHandler.customError(res, "OTP code is required", 400, "MISSING_OTP_CODE");
     if (!email && !phone_number) return ApiResponseHandler.customError(res, "Email or phone number is required", 400, "MISSING_IDENTIFIER");
@@ -452,7 +453,23 @@ export class AuthController {
         return ApiResponseHandler.success(res, { reset_token: resetToken, purpose: "password_reset" }, "OTP verified successfully");
       }
 
-      const token = issueAccessToken(user.id, user.email);
+      // Device-limited login (Feature #2): register this device (evicting the
+      // least-recently-used one if over the limit) and bind it to the token.
+      let boundDeviceId: string | undefined;
+      if (device_id) {
+        try {
+          await registerDevice(
+            user.id,
+            { device_id, device_name, platform },
+            user.device_limit ?? DEFAULT_DEVICE_LIMIT,
+          );
+          boundDeviceId = device_id;
+        } catch (e) {
+          console.error("registerDevice error:", e);
+        }
+      }
+
+      const token = issueAccessToken(user.id, user.email, boundDeviceId);
       const updatedUser = await prisma.users.update({
         where: { id: user.id },
         data: { last_login: new Date(), ...(fcm_token && { fcm_token }) },
@@ -580,6 +597,40 @@ export class AuthController {
       });
       if (!user) return ApiResponseHandler.customError(res, "User not found", 404, "USER_NOT_FOUND");
       ApiResponseHandler.success(res, { user: serializeAuthUser(user) }, "User data retrieved successfully");
+    } catch (err: any) {
+      ApiResponseHandler.unexpectedError(res, err, 500);
+    }
+  }
+
+  // ── Device management (Feature #2) ───────────────────────────────────────────
+  static async getMyDevices(req: any, res: Response) {
+    try {
+      const userId = req.user.userId;
+      const [devices, user] = await Promise.all([
+        prisma.user_devices.findMany({
+          where: { user_id: userId },
+          orderBy: { last_seen_at: "desc" },
+        }),
+        prisma.users.findUnique({ where: { id: userId }, select: { device_limit: true } }),
+      ]);
+      ApiResponseHandler.success(
+        res,
+        { devices, limit: user?.device_limit ?? DEFAULT_DEVICE_LIMIT },
+        "Devices retrieved successfully",
+      );
+    } catch (err: any) {
+      ApiResponseHandler.unexpectedError(res, err, 500);
+    }
+  }
+
+  static async removeDevice(req: any, res: Response) {
+    try {
+      const userId = req.user.userId;
+      const { device_id } = req.params;
+      await prisma.user_devices.deleteMany({
+        where: { user_id: userId, device_id },
+      });
+      ApiResponseHandler.success(res, {}, "Device removed successfully");
     } catch (err: any) {
       ApiResponseHandler.unexpectedError(res, err, 500);
     }

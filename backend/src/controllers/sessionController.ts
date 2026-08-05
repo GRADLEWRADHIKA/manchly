@@ -125,6 +125,25 @@ export class SessionController {
         return res.status(403).json({ error: "Only the caller can rate the session" });
       }
 
+      // One review per session — also prevents inflating the expert's average
+      const existingReview = await prisma.session_reviews.findUnique({
+        where: { session_id },
+      });
+      if (existingReview) {
+        return res.status(400).json({ error: "You have already reviewed this session" });
+      }
+
+      // Persist the review (rating + written feedback)
+      const review = await prisma.session_reviews.create({
+        data: {
+          session_id,
+          reviewer_id: userId,
+          expert_id: session.receiver_id,
+          rating,
+          comment: feedback?.trim() || null,
+        },
+      });
+
       // Update expert's rating (running average)
       const expert = await prisma.session_experts.findUnique({ where: { user_id: session.receiver_id } });
       if (expert) {
@@ -152,13 +171,51 @@ export class SessionController {
       return res.json({
         data: {
           message: "Rating submitted successfully",
-          rating,
-          feedback: feedback || null,
+          review,
         },
       });
     } catch (err: any) {
       console.error("rateSession error:", err);
       return res.status(500).json({ error: "Failed to submit rating" });
+    }
+  }
+
+  // List reviews for an expert (most recent first) with reviewer info
+  static async getExpertReviews(req: JWTRequest, res: Response) {
+    try {
+      const { expert_id } = req.params;
+
+      const reviews = await prisma.session_reviews.findMany({
+        where: { expert_id },
+        orderBy: { created_at: "desc" },
+        take: 50,
+      });
+
+      const reviewerIds = [...new Set(reviews.map(r => r.reviewer_id))];
+      const users = reviewerIds.length
+        ? await prisma.users.findMany({
+            where: { id: { in: reviewerIds } },
+            select: { id: true, name: true, profile_image: true },
+          })
+        : [];
+      const userMap = new Map(users.map(u => [u.id, u]));
+
+      const data = reviews.map(r => ({
+        id: r.id,
+        rating: r.rating,
+        comment: r.comment,
+        created_at: r.created_at,
+        reviewer: userMap.get(r.reviewer_id) || null,
+      }));
+
+      const average = reviews.length
+        ? Math.round((reviews.reduce((s, r) => s + r.rating, 0) / reviews.length) * 10) / 10
+        : 0;
+
+      return res.json({ data: { reviews: data, count: reviews.length, average } });
+    } catch (err: any) {
+      console.error("getExpertReviews error:", err);
+      return res.status(500).json({ error: "Failed to fetch reviews" });
     }
   }
 

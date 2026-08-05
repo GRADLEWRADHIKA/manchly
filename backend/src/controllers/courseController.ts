@@ -5,6 +5,8 @@ import MuxManager from "../utils/MuxManager";
 import { UserType } from "@prisma/client";
 import { isCreator, isUser } from "../utils/userTypeHelper";
 import { notificationService } from "../services/NotificationService";
+import { NotificationController } from "./notificationController";
+import { isAccessExpired, computeAccessExpiry, parseAccessPolicyInput } from "../utils/accessExpiry";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -50,6 +52,9 @@ export class CourseController {
       return ApiResponseHandler.customError(res, "Only creators can create courses", 403, "FORBIDDEN");
     }
 
+    // Optional access-expiry policy (Feature #8)
+    const accessPolicy = parseAccessPolicyInput(req.body);
+
     try {
       const course = await prisma.courses.create({
         data: {
@@ -64,7 +69,11 @@ export class CourseController {
           language,
           status,
           creator_id: userId,
-          published_at: status === "PUBLISHED" ? new Date() : null
+          published_at: status === "PUBLISHED" ? new Date() : null,
+          access_duration_days: accessPolicy.access_duration_days,
+          access_expires_at: accessPolicy.access_expires_at,
+          whatsapp_community_url: req.body.whatsapp_community_url?.trim() || null,
+          thankyou_message: req.body.thankyou_message?.trim() || null
         },
         include: {
           creator: {
@@ -444,18 +453,30 @@ export class CourseController {
         return ApiResponseHandler.customError(res, "Course not available", 403, "COURSE_NOT_AVAILABLE");
       }
 
-      const isEnrolled = isUser(user.user_type) &&
+      const enrollment = isUser(user.user_type) &&
                          course.enrollments &&
-                         course.enrollments.length > 0;
+                         course.enrollments.length > 0
+                         ? course.enrollments[0]
+                         : null;
+
+      // Access-expiry (Feature #8): an expired enrollment loses content access
+      const accessExpired = enrollment
+        ? isAccessExpired(course, enrollment.enrolled_at)
+        : false;
+      const accessExpiresAt = enrollment
+        ? computeAccessExpiry(course, enrollment.enrolled_at)
+        : null;
+
+      const isEnrolled = !!enrollment && !accessExpired;
 
       const totalStudents = await prisma.enrollments.count({
         where: { course_id: courseId }
       });
 
-      // Filter videos based on enrollment status
+      // Filter videos based on enrollment status (expired == not enrolled)
       let videosToShow = course.videos;
       if (isUser(user.user_type) && !isEnrolled && course.creator_id !== userId) {
-        // Show only free videos to non-enrolled users
+        // Show only free videos to non-enrolled (or expired) users
         videosToShow = course.videos.filter(v => v.is_free);
       }
 
@@ -468,7 +489,9 @@ export class CourseController {
           total_duration: course.videos.reduce((sum, v) => sum + (v.duration || 0), 0),
           total_students: totalStudents,
           is_enrolled: isEnrolled,
-          enrollment_info: isEnrolled ? course.enrollments[0] : null
+          access_expired: accessExpired,
+          access_expires_at: accessExpiresAt,
+          enrollment_info: enrollment
         }
       }, "Course retrieved successfully");
     } catch (err: any) {
@@ -524,6 +547,19 @@ export class CourseController {
         if (status === "PUBLISHED" && !existingCourse.published_at) {
           updateData.published_at = new Date();
         }
+      }
+      // Access-expiry policy (Feature #8) — only touch when the client sends a field
+      if (req.body.access_duration_days !== undefined) {
+        updateData.access_duration_days = parseAccessPolicyInput(req.body).access_duration_days;
+      }
+      if (req.body.access_expires_at !== undefined) {
+        updateData.access_expires_at = parseAccessPolicyInput(req.body).access_expires_at;
+      }
+      if (req.body.whatsapp_community_url !== undefined) {
+        updateData.whatsapp_community_url = req.body.whatsapp_community_url?.trim() || null;
+      }
+      if (req.body.thankyou_message !== undefined) {
+        updateData.thankyou_message = req.body.thankyou_message?.trim() || null;
       }
 
       const course = await prisma.courses.update({
@@ -983,6 +1019,78 @@ export class CourseController {
         transaction,
         message: "Successfully enrolled in free course"
       }, "Successfully enrolled in course", 201);
+    } catch (err: any) {
+      ApiResponseHandler.unexpectedError(res, err, 500);
+    }
+  }
+
+  /**
+   * Manually grant a user access to a course without payment.
+   * Allowed for the course owner (creator) or an ADMIN.
+   * The target user is identified by `user_id` or `phone` in the body.
+   * Creates an enrollment with a null `transaction_id`, which is how a
+   * manual/comp grant is distinguished from a paid or free enrollment
+   * (both of those always carry a transaction_id).
+   */
+  static async grantCourseAccess(req: any, res: Response) {
+    const { courseId } = req.params;
+    const requesterId = req.user.userId;
+    const { user_id, phone } = req.body;
+
+    try {
+      if (!user_id && !phone) {
+        return ApiResponseHandler.customError(res, "Provide a user_id or phone to grant access to", 400, "MISSING_TARGET");
+      }
+
+      const course = await prisma.courses.findUnique({ where: { id: courseId } });
+      if (!course) {
+        return ApiResponseHandler.customError(res, "Course not found", 404, "COURSE_NOT_FOUND");
+      }
+
+      // Authorization: only the course owner or an admin may grant access
+      const requester = await prisma.users.findUnique({
+        where: { id: requesterId },
+        select: { user_type: true },
+      });
+      const isAdmin = requester?.user_type?.includes(UserType.ADMIN) ?? false;
+      if (course.creator_id !== requesterId && !isAdmin) {
+        return ApiResponseHandler.customError(res, "You don't have permission to grant access to this course", 403, "FORBIDDEN");
+      }
+
+      // Resolve the target user
+      const targetUser = user_id
+        ? await prisma.users.findUnique({ where: { id: user_id } })
+        : await prisma.users.findFirst({ where: { phone } });
+      if (!targetUser) {
+        return ApiResponseHandler.customError(res, "No user found for the given identifier", 404, "USER_NOT_FOUND");
+      }
+
+      // Idempotent: if the user already has access, return the existing enrollment
+      const existing = await prisma.enrollments.findUnique({
+        where: { user_id_course_id: { user_id: targetUser.id, course_id: courseId } },
+      });
+      if (existing) {
+        return ApiResponseHandler.success(res, { enrollment: existing, alreadyEnrolled: true }, "User already has access to this course", 200);
+      }
+
+      // Create a manual enrollment (no payment — transaction_id stays null)
+      const enrollment = await prisma.enrollments.create({
+        data: {
+          user_id: targetUser.id,
+          course_id: courseId,
+        },
+      });
+
+      // Notify the user they've been granted access
+      NotificationController.createNotification({
+        userId: targetUser.id,
+        type: "COURSE",
+        title: "Course Access Granted",
+        message: `You've been given access to "${course.title}".`,
+        data: { courseId },
+      }).catch(err => console.error("Notification error:", err));
+
+      return ApiResponseHandler.success(res, { enrollment }, "Access granted successfully", 201);
     } catch (err: any) {
       ApiResponseHandler.unexpectedError(res, err, 500);
     }

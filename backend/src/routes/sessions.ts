@@ -31,6 +31,7 @@ router.get("/availability/:expert_id", jwtAuth, SessionController.getExpertAvail
 router.get("/experts", jwtAuth, SessionController.listExperts);
 router.get("/experts/:expert_id", jwtAuth, SessionController.getExpertDetail);
 router.get("/experts/:expert_id/booked-slots", jwtAuth, SessionController.getBookedSlots);
+router.get("/experts/:expert_id/reviews", jwtAuth, SessionController.getExpertReviews);
 
 // Session Products (Creator)
 router.post("/products", jwtAuth, SessionController.createProduct);

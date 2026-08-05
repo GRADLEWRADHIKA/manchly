@@ -4,7 +4,7 @@ import { users } from "@prisma/client";
 
 dotenv.config();
 
-const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_SECRET = process.env.JWT_SECRET as string;
 if (!JWT_SECRET) {
   throw new Error("JWT_SECRET environment variable is required");
 }
@@ -30,11 +30,16 @@ type AuthUserSource = Pick<
   | "facebook_link"
 >;
 
-export function issueAccessToken(userId: string, email?: string | null): string {
+export function issueAccessToken(
+  userId: string,
+  email?: string | null,
+  deviceId?: string,
+): string {
   return jwt.sign(
     {
       userId,
       email: email || undefined,
+      ...(deviceId && { deviceId }),
       type: "access"
     },
     JWT_SECRET,

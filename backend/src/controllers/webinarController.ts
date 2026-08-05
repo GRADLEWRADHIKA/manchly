@@ -10,12 +10,21 @@ import { SettlementService } from "../services/settlementService";
 import { notificationService } from "../services/NotificationService";
 import { cashfreePG } from "../services/cashfreeService";
 import { NotificationController } from "./notificationController";
+import { isAccessExpired, computeAccessExpiry, parseAccessPolicyInput } from "../utils/accessExpiry";
+import MuxManager from "../utils/MuxManager";
 import crypto from "crypto";
 import dotenv from "dotenv";
 
 dotenv.config();
 
 const zoomManager = createZoomMeetingManager();
+
+const muxManager = new MuxManager({
+  tokenId: process.env.MUX_TOKEN_ID!,
+  tokenSecret: process.env.MUX_TOKEN_SECRET!,
+  webhookSecret: process.env.MUX_WEBHOOK_SECRET,
+  timeout: 30000,
+});
 
 function ensureZoomConfigured(res: Response): boolean {
   const status = getZoomConfigurationStatus();
@@ -198,6 +207,10 @@ export class WebinarController {
           status,
           creator_id: userId,
           published_at: status === "PUBLISHED" ? new Date() : null,
+          access_duration_days: parseAccessPolicyInput(req.body).access_duration_days,
+          access_expires_at: parseAccessPolicyInput(req.body).access_expires_at,
+          whatsapp_community_url: req.body.whatsapp_community_url?.trim() || null,
+          thankyou_message: req.body.thankyou_message?.trim() || null,
           ...zoomMeetingData
         },
         include: {
@@ -393,15 +406,29 @@ export class WebinarController {
         return ApiResponseHandler.customError(res, "Webinar not available", 403, "WEBINAR_NOT_AVAILABLE");
       }
 
-      const isEnrolled = isUser(user.user_type) &&
+      const enrollment = isUser(user.user_type) &&
         webinar.enrollments &&
-        webinar.enrollments.length > 0;
+        webinar.enrollments.length > 0
+        ? webinar.enrollments[0]
+        : null;
+
+      // Access-expiry (Feature #8): an expired enrollment loses access
+      const accessExpired = enrollment
+        ? isAccessExpired(webinar, enrollment.enrolled_at)
+        : false;
+      const accessExpiresAt = enrollment
+        ? computeAccessExpiry(webinar, enrollment.enrolled_at)
+        : null;
+
+      const isEnrolled = !!enrollment && !accessExpired;
 
       ApiResponseHandler.success(res, {
         webinar: {
           ...webinar,
           is_enrolled: isEnrolled,
-          enrollment_info: isEnrolled ? webinar.enrollments[0] : null,
+          access_expired: accessExpired,
+          access_expires_at: accessExpiresAt,
+          enrollment_info: enrollment,
           enrollment_count: webinar._count.enrollments,
           is_full: webinar.max_participants ? webinar._count.enrollments >= webinar.max_participants : false
         }
@@ -459,6 +486,18 @@ export class WebinarController {
       if (duration !== undefined) updateData.duration = duration;
       if (timezone !== undefined) updateData.timezone = timezone;
       if (max_participants !== undefined) updateData.max_participants = max_participants;
+      if (req.body.access_duration_days !== undefined) {
+        updateData.access_duration_days = parseAccessPolicyInput(req.body).access_duration_days;
+      }
+      if (req.body.access_expires_at !== undefined) {
+        updateData.access_expires_at = parseAccessPolicyInput(req.body).access_expires_at;
+      }
+      if (req.body.whatsapp_community_url !== undefined) {
+        updateData.whatsapp_community_url = req.body.whatsapp_community_url?.trim() || null;
+      }
+      if (req.body.thankyou_message !== undefined) {
+        updateData.thankyou_message = req.body.thankyou_message?.trim() || null;
+      }
       if (start_time !== undefined) {
         const parsedStart = parseTimeString(start_time);
         if (start_time !== "" && parsedStart === null) {
@@ -989,6 +1028,309 @@ export class WebinarController {
 
     } catch (err: any) {
       console.error("Error verifying payment:", err);
+      ApiResponseHandler.unexpectedError(res, err, 500);
+    }
+  }
+
+  /**
+   * Manually grant a user access to a webinar without payment.
+   * Allowed for the webinar owner (creator) or an ADMIN.
+   * The target user is identified by `user_id` or `phone` in the body.
+   * Creates a webinar_enrollment with a null `transaction_id`, which is how a
+   * manual/comp grant is distinguished from a paid enrollment.
+   */
+  static async grantWebinarAccess(req: any, res: Response) {
+    const { webinarId } = req.params;
+    const requesterId = req.user.userId;
+    const { user_id, phone } = req.body;
+
+    try {
+      if (!user_id && !phone) {
+        return ApiResponseHandler.customError(res, "Provide a user_id or phone to grant access to", 400, "MISSING_TARGET");
+      }
+
+      const webinar = await prisma.webinars.findUnique({ where: { id: webinarId } });
+      if (!webinar) {
+        return ApiResponseHandler.customError(res, "Webinar not found", 404, "WEBINAR_NOT_FOUND");
+      }
+
+      // Authorization: only the webinar owner or an admin may grant access
+      const requester = await prisma.users.findUnique({
+        where: { id: requesterId },
+        select: { user_type: true },
+      });
+      const isAdmin = requester?.user_type?.some(t => t === "ADMIN") ?? false;
+      if (webinar.creator_id !== requesterId && !isAdmin) {
+        return ApiResponseHandler.customError(res, "You don't have permission to grant access to this webinar", 403, "FORBIDDEN");
+      }
+
+      // Resolve the target user
+      const targetUser = user_id
+        ? await prisma.users.findUnique({ where: { id: user_id } })
+        : await prisma.users.findFirst({ where: { phone } });
+      if (!targetUser) {
+        return ApiResponseHandler.customError(res, "No user found for the given identifier", 404, "USER_NOT_FOUND");
+      }
+
+      // Idempotent: if the user already has access, return the existing enrollment
+      const existing = await prisma.webinar_enrollments.findUnique({
+        where: { user_id_webinar_id: { user_id: targetUser.id, webinar_id: webinarId } },
+      });
+      if (existing) {
+        return ApiResponseHandler.success(res, { enrollment: existing, alreadyEnrolled: true }, "User already has access to this webinar", 200);
+      }
+
+      // Create a manual enrollment (no payment — transaction_id stays null)
+      const enrollment = await prisma.webinar_enrollments.create({
+        data: {
+          user_id: targetUser.id,
+          webinar_id: webinarId,
+        },
+      });
+
+      // Notify the user they've been granted access
+      NotificationController.createNotification({
+        userId: targetUser.id,
+        type: "WEBINAR",
+        title: "Webinar Access Granted",
+        message: `You've been given access to "${webinar.title}".`,
+        data: { webinarId },
+      }).catch(err => console.error("Notification error:", err));
+
+      return ApiResponseHandler.success(res, { enrollment }, "Access granted successfully", 201);
+    } catch (err: any) {
+      ApiResponseHandler.unexpectedError(res, err, 500);
+    }
+  }
+
+  /**
+   * Submit (or update) a review for a webinar. Only enrolled users may review.
+   */
+  static async reviewWebinar(req: any, res: Response) {
+    try {
+      const userId = req.user.userId;
+      const { webinarId } = req.params;
+      const { rating, comment } = req.body;
+
+      if (!rating || rating < 1 || rating > 5) {
+        return ApiResponseHandler.customError(res, "Rating must be between 1 and 5", 400, "INVALID_RATING");
+      }
+
+      const webinar = await prisma.webinars.findUnique({ where: { id: webinarId } });
+      if (!webinar) {
+        return ApiResponseHandler.customError(res, "Webinar not found", 404, "WEBINAR_NOT_FOUND");
+      }
+
+      // Only enrolled users can review
+      const enrollment = await prisma.webinar_enrollments.findUnique({
+        where: { user_id_webinar_id: { user_id: userId, webinar_id: webinarId } },
+      });
+      if (!enrollment) {
+        return ApiResponseHandler.customError(res, "Only enrolled users can review this webinar", 403, "NOT_ENROLLED");
+      }
+
+      const existing = await prisma.webinar_reviews.findUnique({
+        where: { webinar_id_reviewer_id: { webinar_id: webinarId, reviewer_id: userId } },
+      });
+
+      const review = existing
+        ? await prisma.webinar_reviews.update({
+            where: { id: existing.id },
+            data: { rating, comment: comment?.trim() || null },
+          })
+        : await prisma.webinar_reviews.create({
+            data: {
+              webinar_id: webinarId,
+              reviewer_id: userId,
+              creator_id: webinar.creator_id,
+              rating,
+              comment: comment?.trim() || null,
+            },
+          });
+
+      // Notify the creator only when a review is first created
+      if (!existing) {
+        NotificationController.createNotification({
+          userId: webinar.creator_id,
+          type: "WEBINAR",
+          title: "New Webinar Review",
+          message: `You received a ${rating}-star review on "${webinar.title}".`,
+          data: { webinarId, rating },
+        }).catch(err => console.error("Notification error:", err));
+      }
+
+      return ApiResponseHandler.success(
+        res,
+        { review, updated: !!existing },
+        existing ? "Review updated" : "Review submitted",
+        existing ? 200 : 201,
+      );
+    } catch (err: any) {
+      ApiResponseHandler.unexpectedError(res, err, 500);
+    }
+  }
+
+  /**
+   * List reviews for a webinar (most recent first) with reviewer info.
+   */
+  static async getWebinarReviews(req: any, res: Response) {
+    try {
+      const { webinarId } = req.params;
+
+      const reviews = await prisma.webinar_reviews.findMany({
+        where: { webinar_id: webinarId },
+        orderBy: { created_at: "desc" },
+        take: 50,
+      });
+
+      const reviewerIds = [...new Set(reviews.map(r => r.reviewer_id))];
+      const users = reviewerIds.length
+        ? await prisma.users.findMany({
+            where: { id: { in: reviewerIds } },
+            select: { id: true, name: true, profile_image: true },
+          })
+        : [];
+      const userMap = new Map(users.map(u => [u.id, u]));
+
+      const data = reviews.map(r => ({
+        id: r.id,
+        rating: r.rating,
+        comment: r.comment,
+        created_at: r.created_at,
+        reviewer: userMap.get(r.reviewer_id) || null,
+      }));
+      const average = reviews.length
+        ? Math.round((reviews.reduce((s, r) => s + r.rating, 0) / reviews.length) * 10) / 10
+        : 0;
+
+      return ApiResponseHandler.success(res, { reviews: data, count: reviews.length, average }, "Reviews retrieved");
+    } catch (err: any) {
+      ApiResponseHandler.unexpectedError(res, err, 500);
+    }
+  }
+
+  /**
+   * Publish a webinar's recording as a course and auto-enroll its registrants
+   * (Feature #7). Creator-owner or admin. The recording is ingested into Mux from
+   * `recording_url` (must be a URL Mux can pull — e.g. a Zoom download URL with an
+   * access token, or a re-hosted file).
+   */
+  static async publishRecording(req: any, res: Response) {
+    try {
+      const userId = req.user.userId;
+      const { webinarId } = req.params;
+      const {
+        recording_url,
+        title,
+        description,
+        price = 0,
+        auto_enroll = true,
+        publish = true,
+        access_duration_days,
+        access_expires_at,
+      } = req.body;
+
+      if (!recording_url) {
+        return ApiResponseHandler.customError(res, "recording_url is required", 400, "MISSING_RECORDING_URL");
+      }
+
+      const webinar = await prisma.webinars.findUnique({ where: { id: webinarId } });
+      if (!webinar) {
+        return ApiResponseHandler.customError(res, "Webinar not found", 404, "WEBINAR_NOT_FOUND");
+      }
+
+      // Authorization: only the webinar owner or an admin may publish
+      const requester = await prisma.users.findUnique({
+        where: { id: userId },
+        select: { user_type: true },
+      });
+      const isAdmin = requester?.user_type?.some(t => t === "ADMIN") ?? false;
+      if (webinar.creator_id !== userId && !isAdmin) {
+        return ApiResponseHandler.customError(res, "You don't have permission to publish this webinar's recording", 403, "FORBIDDEN");
+      }
+
+      // Ingest the recording into Mux (Mux pulls from the URL)
+      let asset: any;
+      try {
+        asset = await muxManager.createAsset({ input: recording_url });
+      } catch (e: any) {
+        return ApiResponseHandler.customError(res, `Failed to ingest recording into Mux: ${e?.message || "unknown error"}`, 502, "MUX_INGEST_FAILED");
+      }
+      const playbackId = asset?.playback_ids?.[0]?.id || null;
+
+      const accessPolicy = parseAccessPolicyInput({ access_duration_days, access_expires_at });
+      const courseTitle = title?.trim() || `${webinar.title} (Recording)`;
+
+      // Create the course from the webinar's metadata
+      const course = await prisma.courses.create({
+        data: {
+          title: courseTitle,
+          description: description?.trim() || webinar.description || null,
+          thumbnail: webinar.thumbnail,
+          thumbnail_url: webinar.thumbnail_url,
+          price: Number(price) || 0,
+          category: "webinar-recording",
+          status: publish ? "PUBLISHED" : "DRAFT",
+          creator_id: webinar.creator_id,
+          published_at: publish ? new Date() : null,
+          access_duration_days: accessPolicy.access_duration_days,
+          access_expires_at: accessPolicy.access_expires_at,
+          whatsapp_community_url: webinar.whatsapp_community_url,
+          thankyou_message: webinar.thankyou_message,
+        },
+      });
+
+      // Attach the recording as the course's first video
+      const video = await prisma.videos.create({
+        data: {
+          course_id: course.id,
+          title: courseTitle,
+          description: webinar.description || null,
+          mux_asset_id: asset?.id || null,
+          mux_playback_id: playbackId,
+          playback_url: playbackId ? `https://stream.mux.com/${playbackId}.m3u8` : null,
+          thumbnail_url: playbackId ? `https://image.mux.com/${playbackId}/thumbnail.jpg` : webinar.thumbnail_url,
+          duration: asset?.duration ? Math.round(asset.duration) : null,
+          status: asset?.status === "ready" ? "READY" : "PROCESSING",
+          order: 0,
+          is_free: false,
+        },
+      });
+
+      // Auto-enroll all webinar registrants into the new course
+      let enrolledCount = 0;
+      if (auto_enroll) {
+        const registrants = await prisma.webinar_enrollments.findMany({
+          where: { webinar_id: webinarId },
+          select: { user_id: true },
+        });
+        if (registrants.length) {
+          const result = await prisma.enrollments.createMany({
+            data: registrants.map(r => ({ user_id: r.user_id, course_id: course.id })),
+            skipDuplicates: true,
+          });
+          enrolledCount = result.count;
+
+          // Notify each registrant the recording is available (fire-and-forget)
+          registrants.forEach(r => {
+            NotificationController.createNotification({
+              userId: r.user_id,
+              type: "COURSE",
+              title: "Webinar Recording Available",
+              message: `The recording of "${webinar.title}" is now available as a course.`,
+              data: { courseId: course.id },
+            }).catch(err => console.error("Notification error:", err));
+          });
+        }
+      }
+
+      return ApiResponseHandler.success(
+        res,
+        { course, video, enrolled_count: enrolledCount },
+        "Recording published as course",
+        201,
+      );
+    } catch (err: any) {
       ApiResponseHandler.unexpectedError(res, err, 500);
     }
   }

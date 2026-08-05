@@ -58,6 +58,34 @@ router.post("/:webinarId/enroll", jwtAuth, WebinarController.createWebinarOrder)
 router.post("/payment/verify", jwtAuth, WebinarController.verifyWebinarPayment);
 
 /**
+ * @route   POST /api/webinars/:webinarId/grant
+ * @desc    Manually grant a user access to a webinar without payment (Creator-owner or Admin)
+ * @access  Protected (Creator/Admin)
+ */
+router.post("/:webinarId/grant", jwtAuth, WebinarController.grantWebinarAccess);
+
+/**
+ * @route   POST /api/webinars/:webinarId/review
+ * @desc    Submit or update a review for a webinar (enrolled users only)
+ * @access  Protected (USER)
+ */
+router.post("/:webinarId/review", jwtAuth, WebinarController.reviewWebinar);
+
+/**
+ * @route   GET /api/webinars/:webinarId/reviews
+ * @desc    List reviews for a webinar
+ * @access  Protected
+ */
+router.get("/:webinarId/reviews", jwtAuth, WebinarController.getWebinarReviews);
+
+/**
+ * @route   POST /api/webinars/:webinarId/publish-recording
+ * @desc    Publish a webinar's recording as a course + auto-enroll registrants (owner/admin)
+ * @access  Protected (Creator/Admin)
+ */
+router.post("/:webinarId/publish-recording", jwtAuth, WebinarController.publishRecording);
+
+/**
  * @route   GET /api/webinars/enrolled/me
  * @desc    Get user's enrolled webinars
  * @access  Protected

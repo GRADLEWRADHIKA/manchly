@@ -7,6 +7,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import colors from "../utils/colors";
+import scaleImage from "../assets/Images/scaleImage.png";
 
 export default function ScaleImpactBanner() {
   const features = [
@@ -161,21 +162,16 @@ export default function ScaleImpactBanner() {
           alignItems: "center",
         }}
       >
-        <div
+       <img
+          src={scaleImage}
+          alt="Illustration of a creator team celebrating growth"
           style={{
-            width: 320,
-            height: 260,
-            borderRadius: 20,
-            background:
-              "linear-gradient(135deg,#F8FAFF 0%,#EEF5FF 45%,#FFF4EA 100%)",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            fontSize: 100,
+            width: "100%",
+            maxWidth: 420,
+            height: "auto",
+            objectFit: "contain",
           }}
-        >
-          🚀
-        </div>
+        />
       </div>
     </div>
   );

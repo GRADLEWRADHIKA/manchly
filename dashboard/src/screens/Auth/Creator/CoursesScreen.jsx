@@ -18,6 +18,7 @@ import { apiFetch, unwrap } from "../../../utils/api";
 import colors from "../../../utils/colors";
 import Sidebar from "../../../components/Sidebar";
 import TopHeader from "../../../components/TopHeader";
+import computer from "../../../assets/Images/computer.png";
 
 // Helper — mirrors the pattern used on DashboardScreen
 function val(result) {
@@ -651,7 +652,7 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
               display: "flex", alignItems: "center", justifyContent: "center",
             }}
           >
-            <HeroIllustration />
+            <img src={computer} style={{ width: "100%", maxWidth: 320, objectFit: "contain" }} />
           </div>
         </div>
 

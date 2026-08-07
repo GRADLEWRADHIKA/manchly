@@ -270,7 +270,8 @@ function CourseCard({ course, onEdit, onView, onDuplicate, onMore }) {
   const title = course?.title || course?.name || "Untitled course";
   const category = course?.category || course?.tags?.[0] || null;
   const isPublished =
-    course?.status === "published" || course?.is_published === true;
+    String(course?.status || "").toLowerCase() === "published" ||
+  course?.is_published === true;
   const price = course?.price ?? 0;
   const lessons = course?.lessons_count ?? course?.total_lessons ?? course?.videos?.length ?? 0;
   const students = course?.enrolled_count ?? course?.students_count ?? course?.total_students ?? 0;
@@ -523,7 +524,7 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
 
     if (statusFilter !== "all") {
       list = list.filter((c) => {
-        const isPublished = c?.status === "published" || c?.is_published === true;
+       const isPublished = String(c?.status || "").toLowerCase() === "published" || c?.is_published === true;
         return statusFilter === "published" ? isPublished : !isPublished;
       });
     }

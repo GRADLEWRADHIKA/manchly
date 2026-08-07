@@ -17,7 +17,7 @@ import CallManager from "./components/CallManager";
 // Auth
 import AuthFlow from "./screens/unAuth/AuthFlow";
 
-// User side (new)
+// User side
 import UserLayout from "./layouts/UserLayout";
 import UserHome from "./screens/user/UserHome";
 import Explore from "./screens/user/Explore";
@@ -32,8 +32,9 @@ import UserProfile from "./screens/user/UserProfile";
 import Notifications from "./screens/user/Notifications";
 import SessionRating from "./screens/user/SessionRating";
 import CallRoom from "./screens/CallRoom";
+import UserHelpCenter from "./screens/user/UserHelpCenter";
 
-// Creator side — Radhika's screens + legacy feature screens
+// Creator side
 import CreatorLayout from "./layouts/CreatorLayout";
 import DashboardScreen from "./screens/Auth/Creator/DashboardScreen";
 import CoursesScreen from "./screens/Auth/Creator/CoursesScreen";
@@ -66,8 +67,7 @@ function HomeRedirect() {
   return <Navigate to={role === "CREATOR" ? "/creator" : role === "ADMIN" ? "/admin" : "/app"} replace />;
 }
 
-// Deep links: /course/:id and /webinar/:id (same shape as manchly.chottu.link).
-// Logged out → park the destination and send to auth (app parity).
+// Deep links: /course/:id and /webinar/:id
 function DeepLink({ kind }) {
   const { isAuthed, booted } = useAuth();
   const params = useParams();
@@ -81,8 +81,7 @@ function DeepLink({ kind }) {
   return <Navigate to={dest} replace />;
 }
 
-// Radhika's dashboard screens render their own Sidebar, so they mount
-// standalone with the shared key→path navigation map.
+// Standalone wrapper for Creator screens embedding their own sidebar
 function StandaloneCreatorScreen({ Screen }) {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
@@ -98,7 +97,7 @@ function StandaloneCreatorScreen({ Screen }) {
   );
 }
 
-// Global realtime toasts (new notifications) — mirrors the app's bell updates.
+// Global realtime toasts
 function NotificationBridge() {
   const { isAuthed } = useAuth();
   useEffect(() => {
@@ -123,7 +122,7 @@ export default function App() {
         <Route path="/" element={<HomeRedirect />} />
         <Route path="/auth" element={<AuthFlow />} />
 
-        {/* Deep links (chottu.link shape) */}
+        {/* Deep links */}
         <Route path="/course/:courseId" element={<DeepLink kind="course" />} />
         <Route path="/webinar/:webinarId" element={<DeepLink kind="webinar" />} />
 
@@ -131,7 +130,7 @@ export default function App() {
         <Route path="/call" element={<RequireAuth><CallRoom /></RequireAuth>} />
 
         {/* ---------- USER SHELL ---------- */}
-        <Route path="/app" element={<RequireAuth roles={["USER"]}><UserLayout /></RequireAuth>}>
+        <Route path="/app" element={<RequireAuth roles={["USER", "BRAND", "AGENCY"]}><UserLayout /></RequireAuth>}>
           <Route index element={<UserHome />} />
           <Route path="explore" element={<Explore />} />
           <Route path="course/:courseId" element={<CourseDetails />} />
@@ -143,15 +142,18 @@ export default function App() {
           <Route path="marketplace" element={<Marketplace />} />
           <Route path="notifications" element={<Notifications role="user" />} />
           <Route path="profile" element={<UserProfile />} />
+          <Route path="settings" element={<UserProfile />} />
           <Route path="rate/:sessionId" element={<SessionRating />} />
+          <Route path="help" element={<UserHelpCenter />} />
         </Route>
 
         {/* ---------- CREATOR SHELL ---------- */}
-        {/* Dashboard + Courses render standalone (they embed the sidebar). */}
+        {/* Standalone screens that mount their own custom sidebar */}
         <Route path="/creator" element={<RequireAuth roles={["CREATOR"]}><StandaloneCreatorScreen Screen={DashboardScreen} /></RequireAuth>} />
         <Route path="/creator/courses" element={<RequireAuth roles={["CREATOR"]}><StandaloneCreatorScreen Screen={CoursesScreen} /></RequireAuth>} />
 
-        <Route path="/creator" element={<RequireAuth roles={["CREATOR"]}><CreatorLayout /></RequireAuth>}>
+        {/* Layout-wrapped creator routes */}
+        <Route path="/creator/*" element={<RequireAuth roles={["CREATOR"]}><CreatorLayout /></RequireAuth>}>
           <Route path="overview" element={<CreatorOverview user={user} />} />
           <Route path="studio" element={<StudioScreen />} />
           <Route path="webinars" element={<WebinarsScreen />} />

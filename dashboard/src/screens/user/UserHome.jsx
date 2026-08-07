@@ -10,6 +10,7 @@ import colors from "../../utils/colors";
 import { useAuth } from "../../context/AuthContext";
 import { Avatar, ProgressBar } from "../../components/ui";
 import { formatCurrency } from "../../utils/formatters";
+import UserSidebar from "./UserSidebar";
 
 function greeting() {
   const h = new Date().getHours();
@@ -127,186 +128,194 @@ export default function UserHome() {
   const isToday = (dt) => dt && new Date(dt).toDateString() === new Date().toDateString();
 
   return (
-    <div>
-      {/* Greeting */}
-      <div className="uh-fade" style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 24 }}>
-        <div className="uh-avatar-ring">
-          <Avatar src={user?.profile_image} name={user?.name || "U"} size={54} />
-        </div>
-        <div>
-          <div style={{ fontSize: 22, fontWeight: 900, letterSpacing: -0.3 }}>
-            {greeting()}, {firstName} 👋
-          </div>
-          <div style={{ color: colors.user.subHeading, fontSize: 13.5, marginTop: 2 }}>
-            {new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" })} · what will you learn today?
-          </div>
-        </div>
-      </div>
+    <div style={{ display: "flex", width: "100%", minHeight: "100vh", background: colors?.user?.bg || "transparent" }}>
+      {/* Sidebar Navigation */}
+      <UserSidebar />
 
-      {/* Hero carousel */}
-      <div
-        key={slide}
-        className="uh-fade"
-        onClick={() => navigate(hero.to)}
-        style={{
-          background: hero.gradient, borderRadius: 22, padding: "38px 38px", cursor: "pointer",
-          position: "relative", overflow: "hidden", minHeight: 170,
-        }}
-      >
-        <div style={{ position: "absolute", top: -70, right: -40, width: 260, height: 260, borderRadius: "50%", background: "rgba(255,255,255,0.07)" }} />
-        <div style={{ position: "absolute", bottom: -90, right: 120, width: 200, height: 200, borderRadius: "50%", background: "rgba(255,255,255,0.05)" }} />
-        <div style={{ position: "absolute", right: 46, top: "50%", transform: "translateY(-50%)", fontSize: 84, opacity: 0.55 }}>{hero.emoji}</div>
-
-        <h2 style={{ margin: 0, fontSize: 30, fontWeight: 900, maxWidth: 540, letterSpacing: -0.5, position: "relative" }}>{hero.title}</h2>
-        <p style={{ margin: "10px 0 22px", opacity: 0.85, fontSize: 15.5, maxWidth: 460, position: "relative" }}>{hero.subtitle}</p>
-        <button className="uh-cta">{hero.cta} <ChevronRight size={16} /></button>
-
-        <div style={{ position: "absolute", bottom: 16, right: 22, display: "flex", gap: 6 }}>
-          {HERO_SLIDES.map((_, i) => (
-            <span
-              key={i}
-              onClick={(e) => { e.stopPropagation(); setSlide(i); }}
-              style={{ width: i === slide ? 24 : 8, height: 8, borderRadius: 99, background: i === slide ? "#fff" : "rgba(255,255,255,0.4)", transition: "width 0.25s ease", cursor: "pointer" }}
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* Continue learning */}
-      {inProgress.length > 0 && (
-        <Section title="Continue Learning" onSeeAll={() => navigate("/app/learning")} delay={60}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 16 }}>
-            {inProgress.map((en) => {
-              const c = en.course;
-              return (
-                <div key={en.id || c.id} className="uh-card" onClick={() => navigate(`/app/player/${c.id}`)} style={{ display: "flex" }}>
-                  <div style={{ width: 116, flexShrink: 0, position: "relative", overflow: "hidden" }}>
-                    <div className="uh-thumb" style={{ position: "absolute", inset: 0, background: c.thumbnail ? `url(${c.thumbnail}) center/cover` : colors.gradients.heroNavy }} />
-                    <PlayCircle size={30} style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", color: "rgba(255,255,255,0.92)", filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.5))" }} />
-                  </div>
-                  <div style={{ padding: "14px 16px", flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 800, fontSize: 14.5, lineHeight: 1.35, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{c.title}</div>
-                    <div style={{ display: "flex", justifyContent: "space-between", color: colors.user.subHeading, fontSize: 12, margin: "8px 0 6px" }}>
-                      <span>{en.progress}% complete</span>
-                      <span style={{ color: colors.user.accentSoft, fontWeight: 700 }}>Resume →</span>
-                    </div>
-                    <ProgressBar percent={en.progress} height={6} />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </Section>
-      )}
-
-      {/* Top experts */}
-      <Section title="Top Experts" onSeeAll={() => navigate("/app/sessions")} delay={120}>
-        {loading ? (
-          <Skeleton height={190} count={5} />
-        ) : experts.length === 0 ? (
-          <div style={{ color: colors.user.subHeading, fontSize: 14 }}>Experts will appear here soon.</div>
-        ) : (
-          <div style={{ display: "flex", gap: 14, overflowX: "auto", paddingBottom: 8 }}>
-            {experts.map((e) => (
-              <div
-                key={e.id}
-                className="uh-card"
-                onClick={() => navigate(`/app/experts/${e.id}`, { state: { expert: e } })}
-                style={{ minWidth: 168, padding: 18, textAlign: "center", flexShrink: 0 }}
-              >
-                <div style={{ display: "flex", justifyContent: "center", marginBottom: 10, position: "relative" }}>
-                  <Avatar src={e.user?.profile_image || e.profile_image} name={e.user?.name || e.name || "E"} size={64} />
-                  {!!e.is_available && (
-                    <span className="uh-online-dot" style={{ position: "absolute", bottom: 2, right: "calc(50% - 30px)", width: 13, height: 13, borderRadius: "50%", background: "#22C55E", border: "2.5px solid #1A1E38" }} />
-                  )}
-                </div>
-                <div style={{ fontWeight: 800, fontSize: 14 }}>{e.user?.name || e.name}</div>
-                <div style={{ color: colors.user.subHeading, fontSize: 12, marginTop: 3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{e.profession || e.category}</div>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 9, fontSize: 12, color: colors.user.subHeading }}>
-                  <span style={{ display: "flex", alignItems: "center", gap: 3 }}><Star size={11} color="#F0C040" /> {e.rating || "New"}</span>
-                  <span style={{ color: colors.user.accentSoft, fontWeight: 800 }}>₹{e.video_rate || 0}/min</span>
-                </div>
+      {/* Main Content Area */}
+      <main style={{ flex: 1, minWidth: 0, padding: "28px 32px", overflowY: "auto" }}>
+        <div style={{ width: "100%", maxWidth: 1200, margin: "0 auto", boxSizing: "border-box" }}>
+          {/* Greeting */}
+          <div className="uh-fade" style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 24 }}>
+            <div className="uh-avatar-ring">
+              <Avatar src={user?.profile_image} name={user?.name || "U"} size={54} />
+            </div>
+            <div>
+              <div style={{ fontSize: 22, fontWeight: 900, letterSpacing: -0.3 }}>
+                {greeting()}, {firstName} 👋
               </div>
-            ))}
-          </div>
-        )}
-      </Section>
-
-      {/* Latest courses */}
-      <Section title="Latest Courses" onSeeAll={() => navigate("/app/explore")} delay={180}>
-        {loading ? (
-          <Skeleton height={230} />
-        ) : courses.length === 0 ? (
-          <div style={{ color: colors.user.subHeading, fontSize: 14 }}>No courses yet — check back soon.</div>
-        ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))", gap: 16 }}>
-            {courses.slice(0, 8).map((c) => {
-              const lessons = c.videos?.length ?? c.total_videos ?? 0;
-              const mins = Array.isArray(c.videos) && c.videos.length ? Math.round(c.videos.reduce((s, v) => s + (Number(v.duration) || 0), 0) / 60) : 0;
-              return (
-                <div key={c.id} className="uh-card" onClick={() => navigate(`/app/course/${c.id}`)}>
-                  <div style={{ height: 136, position: "relative", overflow: "hidden" }}>
-                    <div className="uh-thumb" style={{ position: "absolute", inset: 0, background: c.thumbnail ? `url(${c.thumbnail}) center/cover` : colors.gradients.heroNavy, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      {!c.thumbnail && <BookOpen size={34} color="rgba(255,255,255,0.55)" />}
-                    </div>
-                    {c.level && (
-                      <span style={{ position: "absolute", top: 10, left: 10, background: "rgba(8,12,37,0.7)", backdropFilter: "blur(4px)", padding: "3px 10px", borderRadius: 99, fontSize: 11, fontWeight: 700 }}>{c.level}</span>
-                    )}
-                    <span style={{ position: "absolute", bottom: 10, right: 10, background: Number(c.price) > 0 ? "rgba(8,12,37,0.75)" : "rgba(16,185,129,0.85)", backdropFilter: "blur(4px)", padding: "4px 12px", borderRadius: 99, fontSize: 12.5, fontWeight: 900 }}>
-                      {Number(c.price) > 0 ? formatCurrency(c.price) : "Free"}
-                    </span>
-                  </div>
-                  <div style={{ padding: 14 }}>
-                    <div style={{ fontWeight: 800, fontSize: 14.5, lineHeight: 1.35, minHeight: 39, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{c.title}</div>
-                    <div style={{ color: colors.user.subHeading, fontSize: 12.5, marginTop: 6 }}>by {c.creator?.name || "Creator"}</div>
-                    <div style={{ display: "flex", gap: 12, marginTop: 9, color: colors.user.subHeading, fontSize: 12 }}>
-                      <span style={{ display: "flex", alignItems: "center", gap: 4 }}><PlayCircle size={12} /> {lessons} lessons</span>
-                      {mins > 0 && <span style={{ display: "flex", alignItems: "center", gap: 4 }}><Clock size={12} /> {mins} min</span>}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </Section>
-
-      {/* Upcoming webinars */}
-      <Section title="Upcoming Webinars" onSeeAll={() => navigate("/app/explore?tab=webinars")} delay={240}>
-        {loading ? (
-          <Skeleton height={200} count={3} />
-        ) : webinars.length === 0 ? (
-          <div className="uh-card" style={{ cursor: "default", padding: 30, textAlign: "center", background: colors.gradients.heroDusk, border: "none" }}>
-            <div style={{ fontSize: 30, marginBottom: 8 }}>📡</div>
-            <div style={{ fontWeight: 800, fontSize: 16.5 }}>Webinars Coming Soon!</div>
-            <div style={{ opacity: 0.75, fontSize: 13.5, marginTop: 4 }}>Live sessions from creators will appear here.</div>
-          </div>
-        ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))", gap: 16 }}>
-            {webinars.map((w) => (
-              <div key={w.id} className="uh-card" onClick={() => navigate(`/app/webinar/${w.id}`)}>
-                <div style={{ height: 124, position: "relative", overflow: "hidden" }}>
-                  <div className="uh-thumb" style={{ position: "absolute", inset: 0, background: w.thumbnail ? `url(${w.thumbnail}) center/cover` : colors.gradients.purple }} />
-                  <span style={{ position: "absolute", top: 10, left: 10, background: isToday(w.scheduled_at) ? "rgba(239,68,68,0.9)" : "rgba(8,12,37,0.7)", backdropFilter: "blur(4px)", padding: "4px 11px", borderRadius: 99, fontSize: 11.5, fontWeight: 800, display: "flex", alignItems: "center", gap: 5 }}>
-                    <Radio size={11} /> {isToday(w.scheduled_at) ? "Today" : w.scheduled_at ? new Date(w.scheduled_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" }) : "Live"}
-                  </span>
-                  <span style={{ position: "absolute", bottom: 10, right: 10, background: Number(w.price) > 0 ? "rgba(8,12,37,0.75)" : "rgba(16,185,129,0.85)", backdropFilter: "blur(4px)", padding: "4px 12px", borderRadius: 99, fontSize: 12.5, fontWeight: 900 }}>
-                    {Number(w.price) > 0 ? formatCurrency(w.price) : "Free"}
-                  </span>
-                </div>
-                <div style={{ padding: 14 }}>
-                  <div style={{ fontWeight: 800, fontSize: 14.5, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{w.title}</div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6, color: colors.user.subHeading, fontSize: 12.5, marginTop: 7 }}>
-                    <CalendarDays size={12} />
-                    {w.scheduled_at ? new Date(w.scheduled_at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "TBA"}
-                    <span>· {w.creator?.name || "Creator"}</span>
-                  </div>
-                </div>
+              <div style={{ color: colors.user.subHeading, fontSize: 13.5, marginTop: 2 }}>
+                {new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" })} · what will you learn today?
               </div>
-            ))}
+            </div>
           </div>
-        )}
-      </Section>
+
+          {/* Hero carousel */}
+          <div
+            key={slide}
+            className="uh-fade"
+            onClick={() => navigate(hero.to)}
+            style={{
+              background: hero.gradient, borderRadius: 22, padding: "38px 38px", cursor: "pointer",
+              position: "relative", overflow: "hidden", minHeight: 170,
+            }}
+          >
+            <div style={{ position: "absolute", top: -70, right: -40, width: 260, height: 260, borderRadius: "50%", background: "rgba(255,255,255,0.07)" }} />
+            <div style={{ position: "absolute", bottom: -90, right: 120, width: 200, height: 200, borderRadius: "50%", background: "rgba(255,255,255,0.05)" }} />
+            <div style={{ position: "absolute", right: 46, top: "50%", transform: "translateY(-50%)", fontSize: 84, opacity: 0.55 }}>{hero.emoji}</div>
+
+            <h2 style={{ margin: 0, fontSize: 30, fontWeight: 900, maxWidth: 540, letterSpacing: -0.5, position: "relative" }}>{hero.title}</h2>
+            <p style={{ margin: "10px 0 22px", opacity: 0.85, fontSize: 15.5, maxWidth: 460, position: "relative" }}>{hero.subtitle}</p>
+            <button className="uh-cta">{hero.cta} <ChevronRight size={16} /></button>
+
+            <div style={{ position: "absolute", bottom: 16, right: 22, display: "flex", gap: 6 }}>
+              {HERO_SLIDES.map((_, i) => (
+                <span
+                  key={i}
+                  onClick={(e) => { e.stopPropagation(); setSlide(i); }}
+                  style={{ width: i === slide ? 24 : 8, height: 8, borderRadius: 99, background: i === slide ? "#fff" : "rgba(255,255,255,0.4)", transition: "width 0.25s ease", cursor: "pointer" }}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Continue learning */}
+          {inProgress.length > 0 && (
+            <Section title="Continue Learning" onSeeAll={() => navigate("/app/learning")} delay={60}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 16 }}>
+                {inProgress.map((en) => {
+                  const c = en.course;
+                  return (
+                    <div key={en.id || c.id} className="uh-card" onClick={() => navigate(`/app/player/${c.id}`)} style={{ display: "flex" }}>
+                      <div style={{ width: 116, flexShrink: 0, position: "relative", overflow: "hidden" }}>
+                        <div className="uh-thumb" style={{ position: "absolute", inset: 0, background: c.thumbnail ? `url(${c.thumbnail}) center/cover` : colors.gradients.heroNavy }} />
+                        <PlayCircle size={30} style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", color: "rgba(255,255,255,0.92)", filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.5))" }} />
+                      </div>
+                      <div style={{ padding: "14px 16px", flex: 1, minWidth: 0 }}>
+                        <div style={{ fontWeight: 800, fontSize: 14.5, lineHeight: 1.35, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{c.title}</div>
+                        <div style={{ display: "flex", justifyContent: "space-between", color: colors.user.subHeading, fontSize: 12, margin: "8px 0 6px" }}>
+                          <span>{en.progress}% complete</span>
+                          <span style={{ color: colors.user.accentSoft, fontWeight: 700 }}>Resume →</span>
+                        </div>
+                        <ProgressBar percent={en.progress} height={6} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </Section>
+          )}
+
+          {/* Top experts */}
+          <Section title="Top Experts" onSeeAll={() => navigate("/app/sessions")} delay={120}>
+            {loading ? (
+              <Skeleton height={190} count={5} />
+            ) : experts.length === 0 ? (
+              <div style={{ color: colors.user.subHeading, fontSize: 14 }}>Experts will appear here soon.</div>
+            ) : (
+              <div style={{ display: "flex", gap: 14, overflowX: "auto", paddingBottom: 8 }}>
+                {experts.map((e) => (
+                  <div
+                    key={e.id}
+                    className="uh-card"
+                    onClick={() => navigate(`/app/experts/${e.id}`, { state: { expert: e } })}
+                    style={{ minWidth: 168, padding: 18, textAlign: "center", flexShrink: 0 }}
+                  >
+                    <div style={{ display: "flex", justifyContent: "center", marginBottom: 10, position: "relative" }}>
+                      <Avatar src={e.user?.profile_image || e.profile_image} name={e.user?.name || e.name || "E"} size={64} />
+                      {!!e.is_available && (
+                        <span className="uh-online-dot" style={{ position: "absolute", bottom: 2, right: "calc(50% - 30px)", width: 13, height: 13, borderRadius: "50%", background: "#22C55E", border: "2.5px solid #1A1E38" }} />
+                      )}
+                    </div>
+                    <div style={{ fontWeight: 800, fontSize: 14 }}>{e.user?.name || e.name}</div>
+                    <div style={{ color: colors.user.subHeading, fontSize: 12, marginTop: 3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{e.profession || e.category}</div>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 9, fontSize: 12, color: colors.user.subHeading }}>
+                      <span style={{ display: "flex", alignItems: "center", gap: 3 }}><Star size={11} color="#F0C040" /> {e.rating || "New"}</span>
+                      <span style={{ color: colors.user.accentSoft, fontWeight: 800 }}>₹{e.video_rate || 0}/min</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Section>
+
+          {/* Latest courses */}
+          <Section title="Latest Courses" onSeeAll={() => navigate("/app/explore")} delay={180}>
+            {loading ? (
+              <Skeleton height={230} />
+            ) : courses.length === 0 ? (
+              <div style={{ color: colors.user.subHeading, fontSize: 14 }}>No courses yet — check back soon.</div>
+            ) : (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))", gap: 16 }}>
+                {courses.slice(0, 8).map((c) => {
+                  const lessons = c.videos?.length ?? c.total_videos ?? 0;
+                  const mins = Array.isArray(c.videos) && c.videos.length ? Math.round(c.videos.reduce((s, v) => s + (Number(v.duration) || 0), 0) / 60) : 0;
+                  return (
+                    <div key={c.id} className="uh-card" onClick={() => navigate(`/app/course/${c.id}`)}>
+                      <div style={{ height: 136, position: "relative", overflow: "hidden" }}>
+                        <div className="uh-thumb" style={{ position: "absolute", inset: 0, background: c.thumbnail ? `url(${c.thumbnail}) center/cover` : colors.gradients.heroNavy, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          {!c.thumbnail && <BookOpen size={34} color="rgba(255,255,255,0.55)" />}
+                        </div>
+                        {c.level && (
+                          <span style={{ position: "absolute", top: 10, left: 10, background: "rgba(8,12,37,0.7)", backdropFilter: "blur(4px)", padding: "3px 10px", borderRadius: 99, fontSize: 11, fontWeight: 700 }}>{c.level}</span>
+                        )}
+                        <span style={{ position: "absolute", bottom: 10, right: 10, background: Number(c.price) > 0 ? "rgba(8,12,37,0.75)" : "rgba(16,185,129,0.85)", backdropFilter: "blur(4px)", padding: "4px 12px", borderRadius: 99, fontSize: 12.5, fontWeight: 900 }}>
+                          {Number(c.price) > 0 ? formatCurrency(c.price) : "Free"}
+                        </span>
+                      </div>
+                      <div style={{ padding: 14 }}>
+                        <div style={{ fontWeight: 800, fontSize: 14.5, lineHeight: 1.35, minHeight: 39, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{c.title}</div>
+                        <div style={{ color: colors.user.subHeading, fontSize: 12.5, marginTop: 6 }}>by {c.creator?.name || "Creator"}</div>
+                        <div style={{ display: "flex", gap: 12, marginTop: 9, color: colors.user.subHeading, fontSize: 12 }}>
+                          <span style={{ display: "flex", alignItems: "center", gap: 4 }}><PlayCircle size={12} /> {lessons} lessons</span>
+                          {mins > 0 && <span style={{ display: "flex", alignItems: "center", gap: 4 }}><Clock size={12} /> {mins} min</span>}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </Section>
+
+          {/* Upcoming webinars */}
+          <Section title="Upcoming Webinars" onSeeAll={() => navigate("/app/explore?tab=webinars")} delay={240}>
+            {loading ? (
+              <Skeleton height={200} count={3} />
+            ) : webinars.length === 0 ? (
+              <div className="uh-card" style={{ cursor: "default", padding: 30, textAlign: "center", background: colors.gradients.heroDusk, border: "none" }}>
+                <div style={{ fontSize: 30, marginBottom: 8 }}>📡</div>
+                <div style={{ fontWeight: 800, fontSize: 16.5 }}>Webinars Coming Soon!</div>
+                <div style={{ opacity: 0.75, fontSize: 13.5, marginTop: 4 }}>Live sessions from creators will appear here.</div>
+              </div>
+            ) : (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))", gap: 16 }}>
+                {webinars.map((w) => (
+                  <div key={w.id} className="uh-card" onClick={() => navigate(`/app/webinar/${w.id}`)}>
+                    <div style={{ height: 124, position: "relative", overflow: "hidden" }}>
+                      <div className="uh-thumb" style={{ position: "absolute", inset: 0, background: w.thumbnail ? `url(${w.thumbnail}) center/cover` : colors.gradients.purple }} />
+                      <span style={{ position: "absolute", top: 10, left: 10, background: isToday(w.scheduled_at) ? "rgba(239,68,68,0.9)" : "rgba(8,12,37,0.7)", backdropFilter: "blur(4px)", padding: "4px 11px", borderRadius: 99, fontSize: 11.5, fontWeight: 800, display: "flex", alignItems: "center", gap: 5 }}>
+                        <Radio size={11} /> {isToday(w.scheduled_at) ? "Today" : w.scheduled_at ? new Date(w.scheduled_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" }) : "Live"}
+                      </span>
+                      <span style={{ position: "absolute", bottom: 10, right: 10, background: Number(w.price) > 0 ? "rgba(8,12,37,0.75)" : "rgba(16,185,129,0.85)", backdropFilter: "blur(4px)", padding: "4px 12px", borderRadius: 99, fontSize: 12.5, fontWeight: 900 }}>
+                        {Number(w.price) > 0 ? formatCurrency(w.price) : "Free"}
+                      </span>
+                    </div>
+                    <div style={{ padding: 14 }}>
+                      <div style={{ fontWeight: 800, fontSize: 14.5, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{w.title}</div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, color: colors.user.subHeading, fontSize: 12.5, marginTop: 7 }}>
+                        <CalendarDays size={12} />
+                        {w.scheduled_at ? new Date(w.scheduled_at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "TBA"}
+                        <span>· {w.creator?.name || "Creator"}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Section>
+        </div>
+      </main>
     </div>
   );
 }

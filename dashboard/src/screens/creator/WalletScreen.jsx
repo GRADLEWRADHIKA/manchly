@@ -22,6 +22,16 @@ const SETTLE_COLORS = { COMPLETED: "#16A34A", SETTLED: "#16A34A", PENDING: "#B45
 
 const mask = (n) => (n ? `••••${String(n).slice(-4)}` : "—");
 
+// Case/field-name-tolerant truthiness check — handles booleans (true/"true"),
+// and status strings in any casing ("verified" / "VERIFIED" / "Verified").
+function isVerifiedFlag(...candidates) {
+  for (const value of candidates) {
+    if (value === true || value === "true") return true;
+    if (typeof value === "string" && value.toUpperCase() === "VERIFIED") return true;
+  }
+  return false;
+}
+
 export default function WalletScreen() {
   const navigate = useNavigate();
   const [wallet, setWallet] = useState(null);
@@ -53,29 +63,71 @@ export default function WalletScreen() {
       apiFetch("/kyc/status"),
       apiFetch("/settlements/my-settlements?page=1&limit=30"),
     ]);
+
     if (w.status === "fulfilled") {
       const d = unwrap(w.value);
       const wd = d?.wallet || d;
       setWallet(wd);
       setEntries(wd?.entries || wd?.transactions || d?.entries || d?.transactions || []);
+    } else {
+      console.error("Failed to load wallet:", w.reason);
     }
-    if (b.status === "fulfilled") setBreakdown(unwrap(b.value));
+
+    if (b.status === "fulfilled") {
+      setBreakdown(unwrap(b.value));
+    } else {
+      console.error("Failed to load earnings breakdown:", b.reason);
+    }
+
     if (ba.status === "fulfilled") {
       const d = unwrap(ba.value);
-      setBank(d?.bank_account || d?.account || (d && (d.account_number || d.ifsc_code) ? d : null));
+      // DIAGNOSTIC: confirm the real field names/casing the backend actually
+      // returns here, then trim this log once verified.
+      console.log("RAW bank-account response:", d);
+      setBank(d?.bank_account || d?.account || d?.bankAccount || (d && (d.account_number || d.ifsc_code) ? d : null));
+    } else {
+      console.error("Failed to load bank account:", ba.reason);
     }
-    if (k.status === "fulfilled") setKyc(unwrap(k.value));
+
+    if (k.status === "fulfilled") {
+      const d = unwrap(k.value);
+      // DIAGNOSTIC: confirm the real field names/casing the backend actually
+      // returns here, then trim this log once verified.
+      console.log("RAW kyc/status response:", d);
+      setKyc(d);
+    } else {
+      console.error("Failed to load KYC status:", k.reason);
+    }
+
     if (st.status === "fulfilled") {
       const d = unwrap(st.value);
       setSettlements(d?.settlements || (Array.isArray(d) ? d : []));
+    } else {
+      console.error("Failed to load settlements:", st.reason);
     }
+
     setLoading(false);
     setRefreshing(false);
   }, []);
   useEffect(() => { load(); }, [load]);
 
-  const kycVerified = !!(kyc?.verified ?? kyc?.is_verified ?? kyc?.kyc_verified ?? (kyc?.status === "verified"));
-  const bankVerified = !!(bank?.is_verified ?? bank?.verified);
+  // Tolerant of boolean flags in either casing AND status strings in any
+  // casing ("verified" / "VERIFIED" / "Verified") — a mismatch here was
+  // silently forcing both of these to false regardless of actual KYC/bank state.
+  const kycVerified = isVerifiedFlag(
+    kyc?.verified,
+    kyc?.is_verified,
+    kyc?.kyc_verified,
+    kyc?.status,
+    kyc?.kyc_status,
+  );
+  const bankVerified = isVerifiedFlag(
+    bank?.is_verified,
+    bank?.verified,
+    bank?.verification_status,
+    bank?.status,
+  );
+
   const available = Number(wallet?.available_balance ?? wallet?.balance ?? 0);
   const totalEarned = Number(wallet?.total_net_earnings ?? breakdown?.total_earnings ?? 0);
   const pending = Number(wallet?.pending_settlement ?? 0);

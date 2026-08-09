@@ -34,12 +34,14 @@ export function issueAccessToken(
   userId: string,
   email?: string | null,
   deviceId?: string,
+  userType?: string,
 ): string {
   return jwt.sign(
     {
       userId,
       email: email || undefined,
       ...(deviceId && { deviceId }),
+      ...(userType && { userType }),
       type: "access"
     },
     JWT_SECRET,

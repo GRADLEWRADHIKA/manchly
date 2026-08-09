@@ -26,9 +26,14 @@ export async function jwtAuth(req: JWTRequest, res: Response, next: NextFunction
     // while their device is still registered. Legacy tokens (no deviceId) skip
     // this check, so existing sessions keep working.
     if (payload.deviceId) {
-      const device = await prisma.user_devices.findUnique({
+      // Per-role sessions (Feature #2): match on user_type when the token carries
+      // it. Legacy device-bound tokens (no userType) fall back to a device-id-only
+      // match so pre-existing sessions keep working.
+      const device = await prisma.user_devices.findFirst({
         where: {
-          user_id_device_id: { user_id: payload.userId, device_id: payload.deviceId },
+          user_id: payload.userId,
+          device_id: payload.deviceId,
+          ...(payload.userType && { user_type: payload.userType }),
         },
         select: { id: true },
       });

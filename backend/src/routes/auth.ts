@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
 import rateLimit from "express-rate-limit";
 import { AuthController } from "../controllers/authController";
+import prisma from "../prismaClient";
 
 dotenv.config();
 const router = express.Router();
@@ -68,9 +69,30 @@ const authenticateToken = (req: any, res: any, next: any) => {
     return res.status(401).json({ error: "Access token required" });
   }
 
-  jwt.verify(token, JWT_SECRET, (err: any, user: any) => {
+  jwt.verify(token, JWT_SECRET, async (err: any, user: any) => {
     if (err) {
       return res.status(403).json({ error: "Invalid or expired token" });
+    }
+    // Per-device revocation (Feature #2): device-bound tokens are only valid
+    // while their device is still registered for that role. Legacy tokens
+    // (no deviceId) skip this check. Fails open on a DB error to avoid locking
+    // users out on a transient blip.
+    if (user?.deviceId) {
+      try {
+        const device = await prisma.user_devices.findFirst({
+          where: {
+            user_id: user.userId,
+            device_id: user.deviceId,
+            ...(user.userType && { user_type: user.userType }),
+          },
+          select: { id: true },
+        });
+        if (!device) {
+          return res.status(401).json({ error: "Device access revoked. Please log in again.", code: "DEVICE_REVOKED" });
+        }
+      } catch (e) {
+        console.error("authenticateToken device check error:", e);
+      }
     }
     req.user = user;
     next();

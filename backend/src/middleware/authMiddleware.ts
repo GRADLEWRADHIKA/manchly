@@ -35,6 +35,7 @@ export default async function authMiddleware(
       id?: string;
       email?: string;
       deviceId?: string;
+      userType?: string;
     };
     const userId = payload.userId || payload.sub || payload.id;
     if (!userId) {
@@ -45,9 +46,13 @@ export default async function authMiddleware(
     // Per-device revocation (Feature #2): device-bound tokens are only valid
     // while their device is still registered. Legacy tokens skip this check.
     if (payload.deviceId) {
-      const device = await prisma.user_devices.findUnique({
+      // Per-role sessions (Feature #2): match on user_type when present; legacy
+      // device-bound tokens (no userType) fall back to a device-id-only match.
+      const device = await prisma.user_devices.findFirst({
         where: {
-          user_id_device_id: { user_id: userId, device_id: payload.deviceId },
+          user_id: userId,
+          device_id: payload.deviceId,
+          ...(payload.userType && { user_type: payload.userType }),
         },
         select: { id: true },
       });

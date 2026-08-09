@@ -510,14 +510,15 @@ model session_experts {
 model user_devices {
   id           String   @id @default(uuid())
   user_id      String
+  user_type    String   @default("USER")
   device_id    String
   device_name  String?
   platform     String?
   last_seen_at DateTime @default(now())
   created_at   DateTime @default(now())
 
-  @@unique([user_id, device_id])
-  @@index([user_id])
+  @@unique([user_id, user_type, device_id])
+  @@index([user_id, user_type])
   @@map("user_devices")
 }
 

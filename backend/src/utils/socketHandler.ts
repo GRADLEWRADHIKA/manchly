@@ -8,6 +8,7 @@ import { firebaseService } from "../services/FirebaseService";
 interface AuthenticatedSocket extends Socket {
     userId?: string;
     userType?: string;
+    deviceId?: string;
 }
 
 let ioInstance: SocketIOServer | null = null;
@@ -41,6 +42,7 @@ export const initializeSocketIO = (httpServer: HTTPServer | HTTPSServer) => {
             const decoded = jwt.verify(token, jwtSecret) as any;
             socket.userId = decoded.userId;
             socket.userType = decoded.userType;
+            socket.deviceId = decoded.deviceId;
 
             next();
         } catch (error) {
@@ -56,6 +58,12 @@ export const initializeSocketIO = (httpServer: HTTPServer | HTTPSServer) => {
 
         // Join personal room for receiving calls
         socket.join(`user_${socket.userId}`);
+
+        // Join a device-specific room so we can force-logout THIS device only
+        // when its session is evicted by a login on another device (Feature #2).
+        if (socket.deviceId) {
+            socket.join(`device_${socket.deviceId}`);
+        }
 
         // Expert calls a user (ring)
         socket.on("call_user", async (data: {

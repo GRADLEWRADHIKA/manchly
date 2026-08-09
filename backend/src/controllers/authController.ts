@@ -453,13 +453,18 @@ export class AuthController {
         return ApiResponseHandler.success(res, { reset_token: resetToken, purpose: "password_reset" }, "OTP verified successfully");
       }
 
-      // Device-limited login (Feature #2): register this device (evicting the
-      // least-recently-used one if over the limit) and bind it to the token.
+      // Device-limited login (Feature #2): sessions are scoped per user type
+      // (role), so the Creator and User sides each get an INDEPENDENT device
+      // limit. Registers this device under the role selected at login, evicting
+      // that role's least-recently-used device if over the limit, and binds both
+      // the device id and the role into the token.
+      const sessionRole = String(user_type).toUpperCase() === "CREATOR" ? "CREATOR" : "USER";
       let boundDeviceId: string | undefined;
       if (device_id) {
         try {
           await registerDevice(
             user.id,
+            sessionRole,
             { device_id, device_name, platform },
             user.device_limit ?? DEFAULT_DEVICE_LIMIT,
           );
@@ -469,7 +474,7 @@ export class AuthController {
         }
       }
 
-      const token = issueAccessToken(user.id, user.email, boundDeviceId);
+      const token = issueAccessToken(user.id, user.email, boundDeviceId, sessionRole);
       const updatedUser = await prisma.users.update({
         where: { id: user.id },
         data: { last_login: new Date(), ...(fcm_token && { fcm_token }) },

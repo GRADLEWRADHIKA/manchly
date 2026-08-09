@@ -42,17 +42,26 @@ const addTokenInterceptor = (axiosInstance: any) => {
     (response: any) => response,
     (error: any) => {
       const status = error?.response?.status;
+      const code = error?.response?.data?.code;
 
       if (status === 401 || status === 403) {
         const currentToken = store?.getState()?.userReducer?.token;
         if (currentToken) {
           // Token is expired, invalid, or forbidden — log the user out
           store?.dispatch({ type: 'User/logout' });
+          const deviceRevoked = code === 'DEVICE_REVOKED';
           Toast.show({
             type: 'error',
-            text1: status === 401 ? 'Session Expired' : 'Access Denied',
-            text2: 'Please login again',
+            text1: deviceRevoked
+              ? 'Logged out'
+              : status === 401
+              ? 'Session Expired'
+              : 'Access Denied',
+            text2: deviceRevoked
+              ? 'Your account was signed in on another device.'
+              : 'Please login again',
             position: 'top',
+            visibilityTime: 5000,
           });
         }
       }

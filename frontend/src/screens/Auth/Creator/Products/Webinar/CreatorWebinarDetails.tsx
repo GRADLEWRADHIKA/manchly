@@ -8,7 +8,7 @@ import {
   Share,
   ActivityIndicator,
 } from 'react-native';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import Toast from 'react-native-toast-message';
@@ -25,10 +25,18 @@ import {
   Video,
   Copy,
   Share2,
+  UserPlus,
+  Film,
 } from 'lucide-react-native';
 import { wp, hp, fp } from '../../../../../utils/responsive';
 import AppHeaderWithBack from '../../../../../components/AppHeaderWithBack';
-import { getWebinarById } from '../../../../../store/WebinarSlice';
+import AddUserModal from '../../../../../components/AddUserModal';
+import PublishRecordingModal from '../../../../../components/PublishRecordingModal';
+import {
+  getWebinarById,
+  grantWebinarAccess,
+  publishWebinarRecording,
+} from '../../../../../store/WebinarSlice';
 import { createDynamicLink } from 'react-native-chottulink-sdk';
 
 const WebinarDetails = () => {
@@ -39,6 +47,8 @@ const WebinarDetails = () => {
     (state: any) => state.webinarReducer?.current,
   );
   const webinarId = params?.webinarId || params?.id || params?.data?.id;
+  const [showAddUser, setShowAddUser] = useState(false);
+  const [showPublish, setShowPublish] = useState(false);
   const data = params?.data || webinarFromStore;
   const webinarLink = `https://manchly.chottu.link/webinar/${data?.id}`;
   const hasThumbnail = !!data?.thumbnail_url;
@@ -133,6 +143,24 @@ const WebinarDetails = () => {
             <Share2 size={wp(14)} color={colors.white} />
             <Text style={styles.linkActionText}>Share Link</Text>
           </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.linkActionButton}
+            onPress={() => setShowAddUser(true)}
+            activeOpacity={0.85}
+          >
+            <UserPlus size={wp(14)} color={colors.white} />
+            <Text style={styles.linkActionText}>Add User</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.linkActionButton}
+            onPress={() => setShowPublish(true)}
+            activeOpacity={0.85}
+          >
+            <Film size={wp(14)} color={colors.white} />
+            <Text style={styles.linkActionText}>Publish Recording</Text>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.row}>
@@ -205,6 +233,31 @@ const WebinarDetails = () => {
         </View>
       </ScrollView>
 
+      <AddUserModal
+        visible={showAddUser}
+        onClose={() => setShowAddUser(false)}
+        productTitle={data?.title || 'this webinar'}
+        productType="webinar"
+        onGrant={phone =>
+          dispatch(
+            grantWebinarAccess({ webinarId: data?.id || webinarId, phone }),
+          ).unwrap()
+        }
+      />
+
+      <PublishRecordingModal
+        visible={showPublish}
+        onClose={() => setShowPublish(false)}
+        webinarTitle={data?.title || 'this webinar'}
+        onPublish={args =>
+          dispatch(
+            publishWebinarRecording({
+              webinarId: data?.id || webinarId,
+              ...args,
+            }),
+          ).unwrap()
+        }
+      />
     </View>
   );
 };

@@ -3,6 +3,7 @@ import Toast from 'react-native-toast-message';
 import { instance } from '../utils/AxiosInstance';
 import NotificationService from '../services/NotificationService';
 import { getApiErrorMessage } from '../utils/apiError';
+import { getDeviceInfo } from '../utils/device';
 
 export interface taskState {
   user: any;
@@ -65,7 +66,9 @@ export const sendOtpEmail = createAsyncThunk(
 export const verifyOtp = createAsyncThunk('verifyOtp', async (data: object) => {
   try {
     const url = 'auth/verify-otp';
-    const requestBody = data;
+    // Attach a stable device id so the backend can enforce the device limit
+    const device = await getDeviceInfo();
+    const requestBody = { ...data, ...device };
     const response = await instance.post(url, requestBody);
     return response;
   } catch (error) {

@@ -27,6 +27,7 @@ import {
 import Orientation from 'react-native-orientation-locker';
 import { wp, hp, fp } from '../utils/responsive';
 import colors from '../utils/colors';
+import VideoWatermark from './VideoWatermark';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const CONTROLS_TIMEOUT = 4000;
@@ -41,6 +42,8 @@ interface YouTubePlayerProps {
   style?: any;
   showCloseButton?: boolean;
   onProgressChange?: (currentTime: number, duration: number) => void;
+  /** Per-viewer identity overlaid as an anti-piracy watermark (Feature #1). */
+  watermark?: string;
 }
 
 const formatTime = (seconds: number): string => {
@@ -59,6 +62,7 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({
   style,
   showCloseButton = true,
   onProgressChange,
+  watermark,
 }) => {
   const videoRef = useRef<any>(null);
   const controlsTimeout = useRef<any>(null);
@@ -270,6 +274,9 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({
         ignoreSilentSwitch="obey"
         progressUpdateInterval={250}
       />
+
+      {/* Anti-piracy watermark (Feature #1) */}
+      {watermark ? <VideoWatermark text={watermark} /> : null}
 
       {/* Double-tap areas */}
       <View style={styles.tapAreasContainer}>

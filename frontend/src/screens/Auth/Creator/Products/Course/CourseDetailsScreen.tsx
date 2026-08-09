@@ -26,6 +26,7 @@ import {
   Trash2,
   Clock,
   Calendar,
+  UserPlus,
 } from 'lucide-react-native';
 import {Menu} from 'react-native-paper';
 import colors from '../../../../../utils/colors';
@@ -33,7 +34,8 @@ import AiButton from '../../../../../components/AiButton';
 import LandingCopyModal from '../../../../../components/ai/LandingCopyModal';
 import {wp, hp, fp} from '../../../../../utils/responsive';
 import AppHeaderWithBack from '../../../../../components/AppHeaderWithBack';
-import {getCourseById} from '../../../../../store/CourseSlice';
+import {getCourseById, grantCourseAccess} from '../../../../../store/CourseSlice';
+import AddUserModal from '../../../../../components/AddUserModal';
 import {createPaymentOrder, verifyPayment} from '../../../../../store/PaymentSlice';
 import {getEnrolledCourses} from '../../../../../store/EnrollmentSlice';
 
@@ -58,6 +60,7 @@ const CourseDetailsScreen: React.FC = () => {
   const [showLandingCopy, setShowLandingCopy] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuKey, setMenuKey] = useState(0);
+  const [showAddUser, setShowAddUser] = useState(false);
 
   // fromCreate flag + fallback data passed from CreateCourse
   const fromCreate: boolean = route.params?.fromCreate ?? false;
@@ -261,6 +264,15 @@ const CourseDetailsScreen: React.FC = () => {
                   <Share2 size={wp(16)} color={colors.cSuccess} />
                   <Text style={[styles.menuItemText, {color: colors.cSuccess}]}>Share</Text>
                 </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.menuItem}
+                  onPress={() => {
+                    closeMenu();
+                    setTimeout(() => setShowAddUser(true), 350);
+                  }}>
+                  <UserPlus size={wp(16)} color={colors.gold} />
+                  <Text style={[styles.menuItemText, {color: colors.gold}]}>Add user</Text>
+                </TouchableOpacity>
                 <View style={styles.menuDivider} />
                 <TouchableOpacity
                   style={styles.menuItem}
@@ -287,6 +299,18 @@ const CourseDetailsScreen: React.FC = () => {
             <Text style={styles.progressMotivation}>Keep going! You're doing great 🚀</Text>
           </View>
         </ScrollView>
+
+        <AddUserModal
+          visible={showAddUser}
+          onClose={() => setShowAddUser(false)}
+          productTitle={displayCourse?.title || 'this course'}
+          productType="course"
+          onGrant={phone =>
+            dispatch(
+              grantCourseAccess({courseId: displayCourse?.id || courseId, phone}),
+            ).unwrap()
+          }
+        />
 
         <LandingCopyModal
           visible={showLandingCopy}

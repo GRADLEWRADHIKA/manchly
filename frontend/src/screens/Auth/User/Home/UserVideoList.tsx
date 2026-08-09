@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import {
   StyleSheet,
   Text,
@@ -14,12 +14,13 @@ import {
 import colors from '../../../../utils/colors';
 import AppHeaderWithBack from '../../../../components/AppHeaderWithBack';
 import { useRoute } from '@react-navigation/native';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
 import { getCourseById } from '../../../../store/CourseSlice';
 import { updateCourseProgress } from '../../../../store/EnrollmentSlice';
 import YouTubePlayer from '../../../../components/YouTubePlayer';
-import { Play, Clock } from 'lucide-react-native';
+import { Play, Clock, CalendarX } from 'lucide-react-native';
+import { buildWatermark } from '../../../../utils/watermark';
 import LinearGradient from 'react-native-linear-gradient';
 import { wp, hp, fp } from '../../../../utils/responsive';
 
@@ -28,9 +29,13 @@ const UserVideoList = () => {
   const data = route?.params?.item?.course;
   const [loading, setLoading] = useState(false);
   const [videoList, setVideoList] = useState<any[]>([]);
+  const [accessExpired, setAccessExpired] = useState(false);
+  const [accessExpiresAt, setAccessExpiresAt] = useState<string | null>(null);
   const [selectedVideo, setSelectedVideo] = useState<any>(null);
   const [lastSavedProgress, setLastSavedProgress] = useState(-1);
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
+  const currentUser = useSelector((state: any) => state.userReducer?.user);
+  const watermarkText = useMemo(() => buildWatermark(currentUser), [currentUser]);
 
   const handleProgressChange = (currentTime: number, totalDuration: number) => {
     const courseId = data?.id;
@@ -57,6 +62,8 @@ const UserVideoList = () => {
       .unwrap()
       .then(response => {
         setVideoList(response?.course?.videos || []);
+        setAccessExpired(!!response?.course?.access_expired);
+        setAccessExpiresAt(response?.course?.access_expires_at || null);
         setLoading(false);
       })
       .catch(error => {
@@ -106,6 +113,26 @@ const UserVideoList = () => {
     <View style={styles.container}>
       <AppHeaderWithBack title={data?.title || 'Videos'} bgColor={colors.uBg} />
 
+      {accessExpired && (
+        <View style={styles.expiredBanner}>
+          <CalendarX color={colors.white} size={wp(18)} />
+          <View style={{ flex: 1 }}>
+            <Text style={styles.expiredTitle}>Access expired</Text>
+            <Text style={styles.expiredSub}>
+              {accessExpiresAt
+                ? `Your access to this course ended on ${new Date(
+                    accessExpiresAt,
+                  ).toLocaleDateString('en-IN', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric',
+                  })}.`
+                : 'Your access to this course has ended.'}
+            </Text>
+          </View>
+        </View>
+      )}
+
       {loading ? (
         <View style={styles.loaderContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
@@ -119,7 +146,11 @@ const UserVideoList = () => {
         />
       ) : (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>No videos available</Text>
+          <Text style={styles.emptyText}>
+            {accessExpired
+              ? 'This course is no longer available on your account.'
+              : 'No videos available'}
+          </Text>
         </View>
       )}
 
@@ -140,6 +171,7 @@ const UserVideoList = () => {
                 onClose={() => setSelectedVideo(null)}
                 autoPlay
                 onProgressChange={handleProgressChange}
+                watermark={watermarkText}
               />
             </View>
           )}
@@ -200,6 +232,26 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  expiredBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(10),
+    backgroundColor: '#B91C1C',
+    marginHorizontal: wp(16),
+    marginTop: hp(12),
+    padding: wp(14),
+    borderRadius: wp(12),
+  },
+  expiredTitle: {
+    fontSize: fp(14),
+    fontWeight: '700',
+    color: colors.white,
+  },
+  expiredSub: {
+    fontSize: fp(12),
+    color: 'rgba(255,255,255,0.85)',
+    marginTop: hp(2),
   },
   listContainer: {
     padding: wp(16),

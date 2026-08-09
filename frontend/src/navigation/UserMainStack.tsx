@@ -12,6 +12,7 @@ import WalletCreator from '../screens/Auth/Wallet/WalletCreator';
 import UserBottomTab from './UserBottomTab';
 import UserSettingsDetails from '../screens/Auth/User/Settings/UserSettingDetails';
 import CourseDetailsScreen from '../screens/Auth/Product/CourseDetailsScreen';
+import PurchaseThankYou from '../screens/Auth/Product/PurchaseThankYou';
 import UserCourseSearch from '../screens/Auth/User/Search/UserCourseSearch';
 import UserVideoList from '../screens/Auth/User/Home/UserVideoList';
 import WebinarDetails from '../screens/Auth/User/Home/WebinarDetails';
@@ -46,6 +47,7 @@ const UserMainStack = () => {
       <Stack.Screen name="UserProfile" component={UserProfile} />
       <Stack.Screen name="Dashboard" component={Dashboard} />
       <Stack.Screen name="SuperThank" component={SuperThank} />
+      <Stack.Screen name="PurchaseThankYou" component={PurchaseThankYou} />
       <Stack.Screen name="Wallet" component={Wallet} />
       <Stack.Screen name="CreateProducts" component={CreateProducts} />
       <Stack.Screen name="CreateWebinar" component={CreateWebinarScreen} />

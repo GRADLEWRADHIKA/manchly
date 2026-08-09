@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -31,6 +31,7 @@ import colors from '../../../utils/colors';
 import { wp, hp, fp } from '../../../utils/responsive';
 import AppHeaderWithBack from '../../../components/AppHeaderWithBack';
 import YouTubePlayer from '../../../components/YouTubePlayer';
+import { buildWatermark } from '../../../utils/watermark';
 import { getCourseById } from '../../../store/CourseSlice';
 import { createPaymentOrder, verifyPayment } from '../../../store/PaymentSlice';
 import { getEnrolledCourses } from '../../../store/EnrollmentSlice';
@@ -53,6 +54,7 @@ const CourseDetailsScreen: React.FC = () => {
   );
   const { loading } = useSelector((state: any) => state.paymentReducer);
   const { user } = useSelector((state: any) => state.userReducer);
+  const watermarkText = useMemo(() => buildWatermark(user), [user]);
   const [purchasing, setPurchasing] = useState(false);
   const [courseLoading, setCourseLoading] = useState(true);
   const [showTerms, setShowTerms] = useState(false);
@@ -105,16 +107,13 @@ const CourseDetailsScreen: React.FC = () => {
             { type: 'course_purchase', courseId },
           );
 
-          Alert.alert('Success', 'Course purchased successfully!', [
-            {
-              text: 'View My Courses',
-              onPress: () =>
-                navigation.navigate('UserBottomTab', {
-                  screen: 'PurchasesScreen',
-                }),
-            },
-            { text: 'OK' },
-          ]);
+          navigation.navigate('PurchaseThankYou', {
+            productType: 'course',
+            title: course?.title,
+            whatsappUrl: course?.whatsapp_community_url,
+            message: course?.thankyou_message,
+            contentRoute: 'PurchasesScreen',
+          });
         } catch (err: any) {
           Alert.alert(
             'Verification Failed',
@@ -218,6 +217,7 @@ const CourseDetailsScreen: React.FC = () => {
             autoPlay
             showCloseButton={false}
             style={styles.heroPlayer}
+            watermark={watermarkText}
           />
         ) : (
           course.thumbnail ? (

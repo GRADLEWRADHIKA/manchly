@@ -17,6 +17,8 @@ import colors from '../../../../../utils/colors';
 import { wp, hp, fp } from '../../../../../utils/responsive';
 import { useForm, Controller } from 'react-hook-form';
 import { createCourse, updateCourse } from '../../../../../store/CourseSlice';
+import AccessExpiryField, { AccessPolicy } from '../../../../../components/AccessExpiryField';
+import CommunityLinkField from '../../../../../components/CommunityLinkField';
 import { ThunkDispatch } from '@reduxjs/toolkit';
 import { useDispatch } from 'react-redux';
 import CustomTextInput from '../../../../../components/CustomInput';
@@ -43,6 +45,16 @@ const CreateCourse = () => {
   const isUpdated = route?.params?.isUpdated;
   const updateData = route?.params?.data;
   const [uploading, setUploading] = useState(false);
+  const [accessPolicy, setAccessPolicy] = useState<AccessPolicy>({
+    access_duration_days: updateData?.access_duration_days ?? null,
+    access_expires_at: updateData?.access_expires_at ?? null,
+  });
+  const [whatsappUrl, setWhatsappUrl] = useState(
+    updateData?.whatsapp_community_url || '',
+  );
+  const [thankYouMsg, setThankYouMsg] = useState(
+    updateData?.thankyou_message || '',
+  );
   const {
     control,
     handleSubmit,
@@ -117,6 +129,10 @@ const CreateCourse = () => {
         level: data?.level,
         status: data?.status,
         thumbnail: data?.thumbnail,
+        access_duration_days: accessPolicy.access_duration_days,
+        access_expires_at: accessPolicy.access_expires_at,
+        whatsapp_community_url: whatsappUrl.trim() || null,
+        thankyou_message: thankYouMsg.trim() || null,
       }),
     )
       .unwrap()
@@ -154,6 +170,10 @@ const CreateCourse = () => {
           level: data?.level,
           status: data?.status,
           thumbnail: data?.thumbnail,
+          access_duration_days: accessPolicy.access_duration_days,
+          access_expires_at: accessPolicy.access_expires_at,
+          whatsapp_community_url: whatsappUrl.trim() || null,
+          thankyou_message: thankYouMsg.trim() || null,
         },
       }),
     )
@@ -403,6 +423,19 @@ const CreateCourse = () => {
                 multiline
               />
             )}
+          />
+
+          <AccessExpiryField
+            initialDurationDays={updateData?.access_duration_days ?? null}
+            initialExpiresAt={updateData?.access_expires_at ?? null}
+            onChange={setAccessPolicy}
+          />
+
+          <CommunityLinkField
+            whatsappUrl={whatsappUrl}
+            onChangeWhatsapp={setWhatsappUrl}
+            message={thankYouMsg}
+            onChangeMessage={setThankYouMsg}
           />
 
           <FacingIssues

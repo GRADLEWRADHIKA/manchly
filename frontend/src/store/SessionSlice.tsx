@@ -319,6 +319,20 @@ export const rateSession = createAsyncThunk(
   },
 );
 
+export const getExpertReviews = createAsyncThunk(
+  'session/getExpertReviews',
+  async (expertId: string, {rejectWithValue}) => {
+    try {
+      const res = await instance.get(`sessions/experts/${expertId}/reviews`);
+      return res.data?.data;
+    } catch (error: any) {
+      return rejectWithValue(
+        error?.response?.data?.error || 'Failed to fetch reviews',
+      );
+    }
+  },
+);
+
 export const getDashboardStats = createAsyncThunk(
   'session/getDashboard',
   async () => {

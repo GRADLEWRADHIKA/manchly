@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -31,6 +31,7 @@ import colors from '../../../utils/colors';
 import { wp, hp, fp } from '../../../utils/responsive';
 import AppHeaderWithBack from '../../../components/AppHeaderWithBack';
 import YouTubePlayer from '../../../components/YouTubePlayer';
+import { buildWatermark } from '../../../utils/watermark';
 import { getCourseById } from '../../../store/CourseSlice';
 import { createPaymentOrder, verifyPayment } from '../../../store/PaymentSlice';
 import { getEnrolledCourses } from '../../../store/EnrollmentSlice';
@@ -53,6 +54,7 @@ const CourseDetailsScreen: React.FC = () => {
   );
   const { loading } = useSelector((state: any) => state.paymentReducer);
   const { user } = useSelector((state: any) => state.userReducer);
+  const watermarkText = useMemo(() => buildWatermark(user), [user]);
   const [purchasing, setPurchasing] = useState(false);
   const [courseLoading, setCourseLoading] = useState(true);
   const [showTerms, setShowTerms] = useState(false);
@@ -105,16 +107,13 @@ const CourseDetailsScreen: React.FC = () => {
             { type: 'course_purchase', courseId },
           );
 
-          Alert.alert('Success', 'Course purchased successfully!', [
-            {
-              text: 'View My Courses',
-              onPress: () =>
-                navigation.navigate('UserBottomTab', {
-                  screen: 'PurchasesScreen',
-                }),
-            },
-            { text: 'OK' },
-          ]);
+          navigation.navigate('PurchaseThankYou', {
+            productType: 'course',
+            title: course?.title,
+            whatsappUrl: course?.whatsapp_community_url,
+            message: course?.thankyou_message,
+            contentRoute: 'PurchasesScreen',
+          });
         } catch (err: any) {
           Alert.alert(
             'Verification Failed',
@@ -218,13 +217,14 @@ const CourseDetailsScreen: React.FC = () => {
             autoPlay
             showCloseButton={false}
             style={styles.heroPlayer}
+            watermark={watermarkText}
           />
         ) : (
           course.thumbnail ? (
             <Image source={{ uri: course.thumbnail }} style={styles.thumbnail} />
           ) : (
             <View style={styles.thumbnailPlaceholder}>
-              <BookOpen size={wp(44)} color={colors.uSubHeading} strokeWidth={1.2} />
+              <BookOpen size={wp(44)} color={colors.btnGradientStart} strokeWidth={1.2} />
               <Text style={styles.placeholderText}>{course.title || 'Course'}</Text>
             </View>
           )
@@ -376,7 +376,7 @@ const styles = StyleSheet.create({
   placeholderText: {
     fontSize: fp(15),
     fontWeight: '600',
-    color: colors.uSubHeading,
+    color: colors.uExploreNow,
     opacity: 0.6,
     paddingHorizontal: wp(30),
     textAlign: 'center',
@@ -401,34 +401,36 @@ const styles = StyleSheet.create({
   priceBox: {
     backgroundColor: colors.uCard,
     padding: wp(16),
-    borderRadius: wp(12),
+    borderRadius: wp(14),
     marginTop: hp(20),
     borderWidth: 1,
-    borderColor: colors.uCard,
+    borderColor: colors.uSubtext,
   },
   priceRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginVertical: hp(6),
   },
-  priceLabel: { color: colors.uSubHeading },
-  priceValue: { fontWeight: '600', color: colors.textPrimary },
+  priceLabel: { color: colors.uSubHeading, fontSize: fp(14) },
+  priceValue: { fontWeight: '600', color: colors.textPrimary, fontSize: fp(14) },
 
   totalRow: {
     borderTopWidth: wp(1),
-    borderColor: colors.border,
-    marginTop: hp(10),
-    paddingTop: hp(10),
+    borderColor: colors.uSubtext,
+    marginTop: hp(12),
+    paddingTop: hp(12),
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
   },
-  totalLabel: { fontSize: fp(16), fontWeight: '700' , color: colors.textPrimary},
-  totalValue: { fontSize: fp(18), fontWeight: '800', color: colors.uBottomText },
+  totalLabel: { fontSize: fp(16), fontWeight: '700', color: colors.textPrimary },
+  totalValue: { fontSize: fp(18), fontWeight: '800', color: colors.statText },
 
   bottomBar: {
     padding: wp(16),
     borderTopWidth: wp(1),
-    borderColor: colors.border,
+    borderColor: colors.uSubtext,
+    backgroundColor: colors.uBg,
   },
   // --- Updated Button Styles ---
   purchaseButtonWrapper: {

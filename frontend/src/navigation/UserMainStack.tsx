@@ -12,6 +12,7 @@ import WalletCreator from '../screens/Auth/Wallet/WalletCreator';
 import UserBottomTab from './UserBottomTab';
 import UserSettingsDetails from '../screens/Auth/User/Settings/UserSettingDetails';
 import CourseDetailsScreen from '../screens/Auth/Product/CourseDetailsScreen';
+import PurchaseThankYou from '../screens/Auth/Product/PurchaseThankYou';
 import UserCourseSearch from '../screens/Auth/User/Search/UserCourseSearch';
 import UserVideoList from '../screens/Auth/User/Home/UserVideoList';
 import WebinarDetails from '../screens/Auth/User/Home/WebinarDetails';
@@ -23,11 +24,11 @@ import ExpertList from '../screens/Auth/User/Sessions/ExpertList';
 import ExpertDetail from '../screens/Auth/User/Sessions/ExpertDetail';
 import SessionRatingScreen from '../screens/Auth/User/Sessions/SessionRatingScreen';
 import UserNotification from '../screens/Auth/User/Notifications/UserNotification';
-import ChatThread from '../screens/Auth/User/Chat/ChatThread';
 import SettlementHistory from '../screens/Auth/Creator/Wallet/SettlementHistory';
 import ProductsScreen from '../screens/Auth/User/Products/ProductsScreen';
 import PurchasesScreen from '../screens/Auth/User/Purchase/PurchasesScreen';
 import BrandMarketplace from '../screens/Auth/User/Marketplace/BrandMarketplace';
+import ExploreDetail from '../screens/Auth/User/Explore/ExploreDetail';
 
 const Stack = createNativeStackNavigator();
 
@@ -46,6 +47,7 @@ const UserMainStack = () => {
       <Stack.Screen name="UserProfile" component={UserProfile} />
       <Stack.Screen name="Dashboard" component={Dashboard} />
       <Stack.Screen name="SuperThank" component={SuperThank} />
+      <Stack.Screen name="PurchaseThankYou" component={PurchaseThankYou} />
       <Stack.Screen name="Wallet" component={Wallet} />
       <Stack.Screen name="CreateProducts" component={CreateProducts} />
       <Stack.Screen name="CreateWebinar" component={CreateWebinarScreen} />
@@ -69,8 +71,8 @@ const UserMainStack = () => {
       <Stack.Screen name="SessionRatingScreen" component={SessionRatingScreen} />
       <Stack.Screen name="UserNotification" component={UserNotification} />
       <Stack.Screen name="SettlementHistory" component={SettlementHistory} />
-      <Stack.Screen name="ChatThread" component={ChatThread} />
       <Stack.Screen name="BrandMarketplace" component={BrandMarketplace} />
+      <Stack.Screen name="ExploreDetail" component={ExploreDetail} />
     </Stack.Navigator>
   );
 };

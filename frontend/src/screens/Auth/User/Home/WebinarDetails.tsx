@@ -8,7 +8,8 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import React, { useEffect, useRef, useState } from 'react';
-import { useRoute } from '@react-navigation/native';
+import { useRoute, useNavigation } from '@react-navigation/native';
+import LinearGradient from 'react-native-linear-gradient';
 import colors from '../../../../utils/colors';
 import AppHeaderWithBack from '../../../../components/AppHeaderWithBack';
 import {
@@ -24,7 +25,9 @@ import {
   createWebinarEnroll,
   getWebinarById,
   createWebinarVerify,
+  reviewWebinar,
 } from '../../../../store/WebinarSlice';
+import RateWebinarModal from '../../../../components/RateWebinarModal';
 import { useDispatch, useSelector } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
 import { CFPaymentGatewayService } from 'react-native-cashfree-pg-sdk';
@@ -40,10 +43,10 @@ import { wp, hp, fp } from '../../../../utils/responsive';
 import TermsModal from '../../../../components/TermsModal';
 import PrivacyModal from '../../../../components/PrivacyModal';
 import RefundPolicyModal from '../../../../components/RefundPolicyModal';
-import LinearGradient from 'react-native-linear-gradient'; // <-- Added Import
 
 const WebinarDetails = () => {
   const { params } = useRoute<any>();
+  const navigation = useNavigation<any>();
   const webinarId = params?.webinarId || params?.id || params?.data?.id;
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
   const [loading, setLoading] = useState(false);
@@ -56,6 +59,7 @@ const WebinarDetails = () => {
   const [showTerms, setShowTerms] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showRefund, setShowRefund] = useState(false);
+  const [showRate, setShowRate] = useState(false);
 
   useEffect(() => {
     if (!params?.data && webinarId) {
@@ -145,6 +149,14 @@ const WebinarDetails = () => {
             type: 'success',
             text1: 'Payment Successful',
             text2: 'You have successfully enrolled in this webinar.',
+          });
+
+          navigation.navigate('PurchaseThankYou', {
+            productType: 'webinar',
+            title: data?.title,
+            whatsappUrl: data?.whatsapp_community_url,
+            message: data?.thankyou_message,
+            contentRoute: 'PurchasesScreen',
           });
         } catch (err: any) {
           Toast.show({
@@ -369,11 +381,28 @@ const WebinarDetails = () => {
       <PrivacyModal visible={showPrivacy} onClose={() => setShowPrivacy(false)} />
       <RefundPolicyModal visible={showRefund} onClose={() => setShowRefund(false)} />
 
+      <RateWebinarModal
+        visible={showRate}
+        onClose={() => setShowRate(false)}
+        webinarTitle={data?.title || 'this webinar'}
+        onSubmit={(rating, comment) =>
+          dispatch(
+            reviewWebinar({ webinarId: data?.id || webinarId, rating, comment }),
+          ).unwrap()
+        }
+      />
+
       <View style={styles.bottomBar}>
         {data?.is_enrolled ? (
-          <View style={[styles.buyButtonWrapper, { backgroundColor: colors.success || '#4CAF50' }]}>
-            <Text style={styles.buyText}>Already Enrolled</Text>
-          </View>
+          <TouchableOpacity
+            style={styles.buyButtonWrapper}
+            onPress={() => setShowRate(true)}
+            activeOpacity={0.85}
+          >
+            <View style={[styles.buyButton, { backgroundColor: colors.success }]}>
+              <Text style={styles.buyText}>Rate this webinar</Text>
+            </View>
+          </TouchableOpacity>
         ) : (
           <TouchableOpacity
             style={styles.buyButtonWrapper}
@@ -381,15 +410,14 @@ const WebinarDetails = () => {
             disabled={loading}
             activeOpacity={0.85}
           >
-            {/* Added LinearGradient here */}
             <LinearGradient
-              colors={[colors.btnGradientStart || '#F0C040', colors.btnGradientEnd || '#E6A820']}
+              colors={[colors.btnGradientStart, colors.btnGradientEnd]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
-              style={styles.buyButtonGradient}
+              style={styles.buyButton}
             >
               {loading ? (
-                <ActivityIndicator color={'#FFFFFF'} size={'small'} />
+                <ActivityIndicator color={colors.white} size={'small'} />
               ) : (
                 <Text style={styles.buyText}>
                   Purchase for ₹{total.toFixed(2)}
@@ -512,10 +540,11 @@ const styles = StyleSheet.create({
 
   priceBox: {
     backgroundColor: colors.uCard,
-    color: colors.textPrimary,
     padding: wp(16),
-    borderRadius: wp(12),
+    borderRadius: wp(14),
     marginHorizontal: wp(15),
+    borderWidth: 1,
+    borderColor: colors.uSubtext,
   },
   priceRow: {
     flexDirection: 'row',
@@ -523,19 +552,22 @@ const styles = StyleSheet.create({
     marginVertical: hp(6),
   },
   priceLabel: {
-    color: colors.textPrimary,
+    color: colors.uSubHeading,
+    fontSize: fp(14),
   },
   priceValue: {
     fontWeight: '600',
     color: colors.textPrimary,
+    fontSize: fp(14),
   },
   totalRow: {
     borderTopWidth: wp(1),
-    borderColor: colors.textPrimary,
-    marginTop: hp(10),
-    paddingTop: hp(10),
+    borderColor: colors.uSubtext,
+    marginTop: hp(12),
+    paddingTop: hp(12),
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
   },
   totalLabel: {
     fontSize: fp(16),
@@ -578,24 +610,24 @@ const styles = StyleSheet.create({
     borderColor: colors.uBg,
     marginBottom: hp(10),
   },
-  // Modified styles for Button with Gradient
   buyButtonWrapper: {
-    borderRadius: wp(10),
+    borderRadius: wp(12),
     overflow: 'hidden',
   },
-  buyButtonGradient: {
+  buyButton: {
     paddingVertical: hp(14),
+    borderRadius: wp(12),
     alignItems: 'center',
     justifyContent: 'center',
   },
   buyText: {
-    color: '#FFFFFF', // Ensures strong contrast against the gradient
+    color: colors.white,
     fontWeight: '700',
     fontSize: fp(16),
   },
   policyText: {
     fontSize: fp(12),
-    color: colors.textPrimary,
+    color: colors.uSubHeading,
     textAlign: 'center',
     lineHeight: fp(18),
     marginTop: hp(12),
@@ -603,6 +635,6 @@ const styles = StyleSheet.create({
   },
   policyLink: {
     color: colors.statText,
-    fontWeight: '500',
+    fontWeight: '600',
   },
 });

@@ -14,10 +14,10 @@ import notifee, { EventType } from '@notifee/react-native';
 import { store } from '../store/Store';
 import { updateProfile, getCurrentUser } from '../store/UserSlice';
 import { getUnreadCount, addRealtimeNotification } from '../store/NotificationSlice';
-import { addSocketMessage } from '../store/ChatSlice';
 import SocketService from '../services/SocketService';
 import CallListener, { setNavigationRef } from '../components/CallListener';
 import { useDispatch } from 'react-redux';
+import Toast from 'react-native-toast-message';
 import { navigationRef } from './navigationRef';
 
 const PREFIXES = ['https://manchly.chottu.link', 'http://manchly.chottu.link', 'manchly://'];
@@ -193,20 +193,31 @@ const Router = () => {
       console.warn('Socket error:', data.message);
     };
 
-    const handleNewMessage = (msg: any) => {
-      dispatch(addSocketMessage(msg));
+    // Device-limited login (Feature #2): backend pushes this when THIS device's
+    // session is evicted by a login on another device. Log out immediately and
+    // show a clear reason — no waiting for the next API call.
+    const handleForceLogout = (data: { message?: string }) => {
+      Toast.show({
+        type: 'error',
+        text1: 'Logged out',
+        text2:
+          data?.message || 'Your account was signed in on another device.',
+        position: 'top',
+        visibilityTime: 5000,
+      });
+      dispatch({ type: 'User/logout' });
     };
 
     SocketService.on('new_notification', handleNewNotification);
     SocketService.on('user_status', handleUserStatus);
     SocketService.on('error', handleSocketError);
-    SocketService.on('new_message', handleNewMessage);
+    SocketService.on('force_logout', handleForceLogout);
 
     return () => {
       SocketService.off('new_notification', handleNewNotification);
       SocketService.off('user_status', handleUserStatus);
       SocketService.off('error', handleSocketError);
-      SocketService.off('new_message', handleNewMessage);
+      SocketService.off('force_logout', handleForceLogout);
     };
   }, [token]);
 

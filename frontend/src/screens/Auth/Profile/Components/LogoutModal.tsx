@@ -40,7 +40,7 @@ const LogoutModal: React.FC<Props> = ({ visible, onCancel, onConfirm, variant = 
 
           <Text style={[styles.title, isDark && styles.titleDark]}>Log Out</Text>
           <Text style={[styles.message, isDark && styles.messageDark]}>
-            Are you sure you want to log out of Munchly?
+            Are you sure you want to log out of Manchly?
           </Text>
 
           <View style={styles.actions}>

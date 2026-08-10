@@ -5,7 +5,6 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  ActivityIndicator,
 } from 'react-native';
 import {useNavigation, useIsFocused} from '@react-navigation/native';
 import {useDispatch, useSelector} from 'react-redux';
@@ -23,7 +22,39 @@ import {wp, hp, fp} from '../../../../utils/responsive';
 import AppHeader from '../../../../components/AppHeader';
 import {getMySessions, getSessionStats} from '../../../../store/SessionSlice';
 import { LinearGradient } from 'react-native-linear-gradient';
+import ShimmerBox from '../../../../components/ShimmerBox';
 import BrowseIcon from '../../../../image/BrowseIcon';
+
+const SessionsSkeleton = () => (
+  <View style={styles.listContent}>
+    {/* Stats row */}
+    <View style={styles.statsRow}>
+      {[0, 1, 2].map(i => (
+        <ShimmerBox key={i} height={hp(92)} radius={wp(14)} style={{flex: 1}} />
+      ))}
+    </View>
+    {/* CTA card */}
+    <ShimmerBox
+      height={hp(232)}
+      radius={wp(20)}
+      style={{marginBottom: hp(20)}}
+    />
+    {/* Section title */}
+    <View style={styles.sectionRow}>
+      <ShimmerBox width={wp(150)} height={hp(18)} radius={wp(5)} />
+      <ShimmerBox width={wp(60)} height={hp(14)} radius={wp(5)} />
+    </View>
+    {/* Session cards */}
+    {[0, 1, 2].map(i => (
+      <ShimmerBox
+        key={i}
+        height={hp(104)}
+        radius={wp(14)}
+        style={{marginBottom: hp(10)}}
+      />
+    ))}
+  </View>
+);
 
 const UserSessions: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -181,9 +212,7 @@ const UserSessions: React.FC = () => {
       <AppHeader title="My journey" />
 
       {loading && sessions.length === 0 ? (
-        <View style={styles.loaderWrap}>
-          <ActivityIndicator size="large" color={colors.info} />
-        </View>
+        <SessionsSkeleton />
       ) : (
         <FlatList
           data={sessions}

@@ -32,7 +32,7 @@ import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
 import AppHeaderWithBack from '../../../../components/AppHeaderWithBack';
 import { instance } from '../../../../utils/AxiosInstance';
-import { getExpertDetail, bookSession, verifySessionPayment, getExpertAvailability } from '../../../../store/SessionSlice';
+import { getExpertDetail, bookSession, verifySessionPayment, getExpertAvailability, getExpertReviews } from '../../../../store/SessionSlice';
 import SocketService from '../../../../services/SocketService';
 import BookingConfirmModal from './BookingConfirmModal';
 
@@ -55,6 +55,7 @@ const ExpertDetail: React.FC = () => {
   const [bookedSlots, setBookedSlots] = useState<Set<string>>(new Set());
   const pendingOrderRef = useRef<string | null>(null);
   const [availability, setAvailability] = useState<any[]>([]);
+  const [reviews, setReviews] = useState<any[]>([]);
 
   useEffect(() => {
     if (!expert?.id) return;
@@ -174,6 +175,16 @@ const ExpertDetail: React.FC = () => {
         .catch(() => {});
     }
   }, []);
+
+  // Fetch this expert's reviews (keyed by the expert's user_id)
+  useEffect(() => {
+    const expertUserId = expert?.user_id || expertParam?.user_id;
+    if (!expertUserId) return;
+    dispatch(getExpertReviews(expertUserId))
+      .unwrap()
+      .then((res: any) => setReviews(res?.reviews || []))
+      .catch(() => {});
+  }, [expert?.user_id]);
 
   // Fetch booked slots when date changes
   useEffect(() => {
@@ -453,6 +464,36 @@ const ExpertDetail: React.FC = () => {
           </View>
         )}
 
+        {/* Reviews */}
+        {reviews.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Reviews ({reviews.length})</Text>
+            {reviews.slice(0, 5).map((r: any) => (
+              <View key={r.id} style={styles.reviewCard}>
+                <View style={styles.reviewHeader}>
+                  <Text style={styles.reviewName} numberOfLines={1}>
+                    {r.reviewer?.name || 'Anonymous'}
+                  </Text>
+                  <View style={styles.reviewStars}>
+                    {[1, 2, 3, 4, 5].map(i => (
+                      <Star
+                        key={i}
+                        size={wp(12)}
+                        color={colors.golden}
+                        fill={i <= r.rating ? colors.golden : 'transparent'}
+                        strokeWidth={1.5}
+                      />
+                    ))}
+                  </View>
+                </View>
+                {!!r.comment && (
+                  <Text style={styles.reviewComment}>{r.comment}</Text>
+                )}
+              </View>
+            ))}
+          </View>
+        )}
+
         {/* Languages */}
         {expert?.languages?.length > 0 && (
           <View style={styles.langRow}>
@@ -709,6 +750,31 @@ const styles = StyleSheet.create({
   statLbl: { fontSize: fp(10), color: colors.uSubHeading },
   statDiv: { width: 1, backgroundColor: colors.uBg },
   section: { marginTop: hp(18), paddingHorizontal: wp(16) },
+  reviewCard: {
+    backgroundColor: colors.uCard,
+    borderRadius: wp(12),
+    padding: wp(12),
+    marginTop: hp(8),
+  },
+  reviewHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  reviewName: {
+    fontSize: fp(13),
+    fontWeight: '600',
+    color: colors.white,
+    flex: 1,
+    marginRight: wp(8),
+  },
+  reviewStars: { flexDirection: 'row', gap: wp(2) },
+  reviewComment: {
+    fontSize: fp(12),
+    color: colors.uSubHeading,
+    marginTop: hp(6),
+    lineHeight: fp(17),
+  },
   sectionTitle: {
     fontSize: fp(15),
     fontWeight: '700',

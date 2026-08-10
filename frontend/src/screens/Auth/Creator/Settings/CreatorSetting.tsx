@@ -154,7 +154,10 @@ const CreatorSetting: React.FC = () => {
           return null;
         }),
         instance.get('settlements/bank-account').catch((e: any) => {
-          console.log('Bank API error:', e?.response?.status);
+          // 404 = creator hasn't saved bank details yet (expected), not an error
+          if (e?.response?.status !== 404) {
+            console.log('Bank API error:', e?.response?.status);
+          }
           return null;
         }),
       ]);

@@ -142,7 +142,7 @@ const EmptyWebinarCard = () => {
       </View>
       <Pressable style={({ pressed }) => [pressed && { opacity: 0.95 }]}>
         <LinearGradient
-          colors={['#2A2416', '#4A3A1A', '#0F0F0F']}
+          colors={['#232A52', '#1A1E38', '#0D112B']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.emptyCard}
@@ -156,7 +156,7 @@ const EmptyWebinarCard = () => {
               { transform: [{ scale: pulseAnim }, { translateY: floatAnim }] },
             ]}
           >
-            <Video size={wp(30)} color={colors.gold} strokeWidth={1.8} />
+            <Video size={wp(30)} color={colors.btnGradientStart} strokeWidth={1.8} />
           </Animated.View>
 
           <View style={styles.sparkleRow}>
@@ -169,11 +169,16 @@ const EmptyWebinarCard = () => {
             Live sessions with experts are on the way.{'\n'}
             Be the first to know when they go live!
           </Text>   
-          <View style={styles.notifyBtn}>
-            <Bell size={wp(14)} color={colors.uBg} strokeWidth={2} />
+          <LinearGradient
+            colors={[colors.btnGradientStart, colors.btnGradientEnd]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.notifyBtn}
+          >
+            <Bell size={wp(14)} color={colors.white} strokeWidth={2} />
             <Text style={styles.notifyBtnText}>Notify Me</Text>
-            <ArrowRight size={wp(14)} color={colors.uBg} strokeWidth={2} />
-          </View>
+            <ArrowRight size={wp(14)} color={colors.white} strokeWidth={2} />
+          </LinearGradient>
         </LinearGradient>
       </Pressable>
     </View>
@@ -337,7 +342,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: 'rgba(123,136,221,0.25)',
   },
   decoCircle1: {
     position: 'absolute',
@@ -387,7 +392,6 @@ const styles = StyleSheet.create({
   notifyBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.uBg,
     paddingHorizontal: wp(20),
     paddingVertical: hp(10),
     borderRadius: wp(25),
@@ -396,6 +400,6 @@ const styles = StyleSheet.create({
   notifyBtnText: {
     fontSize: fp(13),
     fontWeight: '700',
-    color: colors.uSubHeading,
+    color: colors.white,
   },
 });

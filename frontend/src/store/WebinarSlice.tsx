@@ -169,6 +169,102 @@ export const getEnrolledWebinar = createAsyncThunk(
   },
 );
 
+// Submit / update a webinar review ---------
+export const reviewWebinar = createAsyncThunk(
+  'webinar/review',
+  async (
+    { webinarId, rating, comment }: { webinarId: string; rating: number; comment?: string },
+    { rejectWithValue },
+  ) => {
+    try {
+      const res = await instance.post(`webinars/${webinarId}/review`, { rating, comment });
+      Toast.show({ type: 'success', text1: 'Thanks for your feedback!', position: 'top' });
+      return res.data?.data;
+    } catch (e: any) {
+      const msg =
+        e?.response?.data?.message || e?.response?.data?.error || 'Failed to submit review';
+      Toast.show({ type: 'error', text1: msg, position: 'top' });
+      return rejectWithValue(msg);
+    }
+  },
+);
+
+// List reviews for a webinar ---------
+export const getWebinarReviews = createAsyncThunk(
+  'webinar/getReviews',
+  async (webinarId: string, { rejectWithValue }) => {
+    try {
+      const res = await instance.get(`webinars/${webinarId}/reviews`);
+      return res.data?.data;
+    } catch (e: any) {
+      return rejectWithValue(e?.response?.data?.message || 'Failed to fetch reviews');
+    }
+  },
+);
+
+// Publish a webinar recording as a course + auto-enroll registrants ---------
+export const publishWebinarRecording = createAsyncThunk(
+  'webinar/publishRecording',
+  async (
+    {
+      webinarId,
+      recording_url,
+      title,
+      price,
+      auto_enroll,
+    }: {
+      webinarId: string;
+      recording_url: string;
+      title?: string;
+      price?: number;
+      auto_enroll?: boolean;
+    },
+    { rejectWithValue },
+  ) => {
+    try {
+      const res = await instance.post(`webinars/${webinarId}/publish-recording`, {
+        recording_url,
+        title,
+        price,
+        auto_enroll,
+      });
+      const count = res.data?.data?.enrolled_count ?? 0;
+      Toast.show({
+        type: 'success',
+        text1: 'Recording published',
+        text2: count ? `${count} registrant(s) given access` : undefined,
+        position: 'top',
+      });
+      return res.data?.data;
+    } catch (e: any) {
+      const msg = e?.response?.data?.message || 'Failed to publish recording';
+      Toast.show({ type: 'error', text1: msg, position: 'top' });
+      return rejectWithValue(msg);
+    }
+  },
+);
+
+// Manually grant a user access to a webinar (creator/owner) ---------
+export const grantWebinarAccess = createAsyncThunk(
+  'webinar/grantAccess',
+  async ({ webinarId, phone }: { webinarId: string; phone: string }, { rejectWithValue }) => {
+    try {
+      const res = await instance.post(`webinars/${webinarId}/grant`, { phone });
+      const alreadyEnrolled = res.data?.data?.alreadyEnrolled;
+      Toast.show({
+        type: 'success',
+        text1: alreadyEnrolled ? 'User already has access' : 'Access granted',
+        position: 'top',
+      });
+      return res.data?.data;
+    } catch (e: any) {
+      const msg = e?.response?.data?.message || 'Failed to grant access';
+      Toast.show({ type: 'error', text1: msg, position: 'top' });
+      return rejectWithValue(msg);
+    }
+  },
+);
+
 // Get Creator Webinar Stats
 export const getCreatorWebinarStats = createAsyncThunk(
   'webinar/creatorStats',

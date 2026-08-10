@@ -7,7 +7,6 @@ import {
   StyleSheet,
   Image,
   Linking,
-  Dimensions,
 } from 'react-native';
 import {
   useFocusEffect,
@@ -17,23 +16,20 @@ import {
 import {
   Bell,
   ChevronRight,
-  //Sparkles,
-  //Bot,
+  Bot,
   BookOpen,
   Users,
-  //Award,
   Calendar,
-  AtSign,
+  Instagram,
   Video as VideoIcon,
-  Phone,
 } from 'lucide-react-native';
 import Svg, { Circle as SvgCircle, Path as SvgPath } from 'react-native-svg';
 import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
 import KycCard from './KeyCard';
+import QuickActions from './QuickActions';
 import { useSelector, useDispatch } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-//import Toast from 'react-native-toast-message';
 import LinearGradient from 'react-native-linear-gradient';
 import RocketIcon from '../../../../components/RocketIcon';
 import { getCreatorSales } from '../../../../store/PaymentSlice';
@@ -46,25 +42,19 @@ import {
   getCreatorWebinarStats,
 } from '../../../../store/WebinarSlice';
 import { instance } from '../../../../utils/AxiosInstance';
-import Video from 'react-native-video';
-import { X, Play, Maximize2 } from 'lucide-react-native';
+import { Play } from 'lucide-react-native';
 import { clearJustLoggedIn } from '../../../../store/UserSlice';
-
-const INTRO_VIDEO_URL =
-  'https://stream.mux.com/aiFSECiPT501KG02eutUYBTKc8aPPOz27ikxTnTHaKJJ00.m3u8';
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+import FloatingIntroVideo from '../../../../components/FloatingIntroVideo';
 
 const CreatorHome = () => {
   const navigation = useNavigation<any>();
   const dispatch = useDispatch<any>();
   const { user } = useSelector((state: any) => state.userReducer);
-  const { totalRevenue } = useSelector((state: any) => state.paymentReducer);
   const { creatorStats } = useSelector((state: any) => state.coursesReducer);
   const { creatorWebinarStats } = useSelector(
     (state: any) => state.webinarReducer,
   );
   const insets = useSafeAreaInsets();
-  const [bankAccount, setBankAccount] = useState<any>(null);
   const [walletLoading, setWalletLoading] = useState(true);
   const [walletData, setWalletData] = useState<any>(null);
   const { justLoggedIn } = useSelector((state: any) => state.userReducer);
@@ -72,7 +62,6 @@ const CreatorHome = () => {
   const [courses, setCourses] = useState<any[]>([]);
   const [webiniarData, setWebinarData] = useState<any[]>([]);
   const [showIntroVideo, setShowIntroVideo] = useState(false);
-  const [isFullScreen, setIsFullScreen] = useState(false);
 
   useEffect(() => {
     if (justLoggedIn) {
@@ -134,12 +123,14 @@ const CreatorHome = () => {
           return null;
         }),
         instance.get('settlements/bank-account').catch((e: any) => {
-          console.log('Bank API error:', e?.response?.status);
+          // 404 = creator hasn't saved bank details yet (expected), not an error
+          if (e?.response?.status !== 404) {
+            console.log('Bank API error:', e?.response?.status);
+          }
           return null;
         }),
       ]);
       setWalletData(walletRes?.data?.data?.wallet || null);
-      setBankAccount(bankRes?.data?.data?.bankAccount || null);
     } catch (error) {
       console.log('Error fetching wallet:', error);
     } finally {
@@ -172,7 +163,6 @@ const CreatorHome = () => {
 
   const initials = user?.name ? user.name.charAt(0).toUpperCase() : 'C';
 
-  const withdrawableBalance = walletData?.available_balance || 0;
   const totalRevenueAmount = walletData?.total_net_earnings || 0;
 
   const formatAmount = (amount: number) => {
@@ -216,9 +206,11 @@ const CreatorHome = () => {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.bellBtn}
-              onPress={() => Linking.openURL('https://www.instagram.com/manchly_app')}
+              onPress={() =>
+                Linking.openURL('https://www.instagram.com/manchly_app')
+              }
             >
-              <AtSign size={wp(20)} color={colors.white} />
+              <Instagram size={wp(20)} color={colors.white} />
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.bellBtn}
@@ -337,11 +329,11 @@ const CreatorHome = () => {
             >
               <LinearGradient
                 colors={['#F3C36B', '#D49A3D']}
-                start={{x: 0, y: 0}}
-                end={{x: 1, y: 0}}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
                 style={styles.ctaButton}
               >
-                <Text style={styles.ctaText}>Get Started</Text>
+                <Text style={styles.ctaText}>Create Course</Text>
                 <ChevronRight size={wp(18)} color={colors.primary} />
               </LinearGradient>
             </TouchableOpacity>
@@ -349,105 +341,35 @@ const CreatorHome = () => {
         </View>
 
         {/* Quick Actions */}
+        <QuickActions />
+
         <View style={styles.sectionPadding}>
-          <Text style={styles.sectionTitle}>Quick Actions</Text>
-          <View style={styles.quickActionsRow}>
-            <TouchableOpacity
-              activeOpacity={0.85}
-              style={styles.quickActionCard}
-              onPress={() => {
-                if (user?.kyc_verified) {
-                  navigation.navigate('CreateWebinar');
-                } else {
-                  navigation.navigate('KYCVerificationScreen');
-                }
-              }}
-            >
-              <View style={styles.quickActionIconWrap}>
-                <VideoIcon size={wp(20)} color="#F2E4BC" />
-              </View>
-              <Text style={styles.quickActionText}>Go live</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              activeOpacity={0.85}
-              style={styles.quickActionCard}
-              onPress={() =>
-                navigation.navigate('ProductsScreen', { initialTab: 'Sessions' })
-              }
-            >
-              <View style={styles.quickActionIconWrap}>
-                <Phone size={wp(20)} color="#F2E4BC" />
-              </View>
-              <Text style={styles.quickActionText}>1:1 Sessions</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
- 
-  {/*
-<View style={styles.sectionPadding}>
-  <LinearGradient
-    colors={['#1A1A1A', '#141414']}
-    start={{ x: 0, y: 0 }}
-    end={{ x: 1, y: 1 }}
-    style={styles.aiCard}
-  >
-    <View style={styles.aiBadge}>
-      <Bot size={wp(14)} color={colors.golden} />
-      <Text style={styles.aiBadgeText}>AI CONTENT ASSISTANT</Text>
-    </View>
-
-    <Text style={styles.aiTitle}>Suggested: Host a Live Q&A</Text>
-
-    <Text style={styles.aiDescription}>
-      Based on your recent engagement spikes on Thursday evenings, a
-      live session could increase your retention by up to 15%. Your
-      subscribers are asking about "Color Grading Workflow".
-    </Text>
-  </LinearGradient>
-</View>
-*/}
-</ScrollView>
-      {showIntroVideo ? (
-        <View style={isFullScreen ? styles.fullScreenVideoContainer : styles.floatingVideoContainer}>
-          <View style={isFullScreen ? styles.expandedVideoWrap : styles.miniVideoWrap}>
-            <View style={styles.videoButtonsRow}>
-              <TouchableOpacity
-                style={styles.videoActionButton}
-                onPress={() => setIsFullScreen(!isFullScreen)}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              >
-                <Maximize2 size={wp(14)} color={colors.white} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.videoActionButton}
-                onPress={() => {
-                  setShowIntroVideo(false);
-                  setIsFullScreen(false);
-                }}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              >
-                <X size={wp(16)} color={colors.white} />
-              </TouchableOpacity>
+          <LinearGradient
+            colors={['#1A1A1A', '#141414']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.aiCard}
+          >
+            <View style={styles.aiBadge}>
+              <Bot size={wp(14)} color={colors.golden} />
+              <Text style={styles.aiBadgeText}>AI CONTENT ASSISTANT</Text>
             </View>
-            <Video
-              source={{ uri: INTRO_VIDEO_URL }}
-              style={styles.floatingVideo}
-              resizeMode={isFullScreen ? 'contain' : 'cover'}
-              paused={false}
-              controls={false}
-              muted={false}
-              playWhenInactive={false}
-              playInBackground={false}
-              ignoreSilentSwitch="obey"
-              onEnd={() => {
-                setShowIntroVideo(false);
-                setIsFullScreen(false);
-              }}
-            />
-          </View>
+
+            <Text style={styles.aiTitle}>Suggested: Host a Live Q&A</Text>
+
+            <Text style={styles.aiDescription}>
+              Based on your recent engagement spikes on Thursday evenings, a
+              live session could increase your retention by up to 15%. Your
+              subscribers are asking about "Color Grading Workflow".
+            </Text>
+          </LinearGradient>
         </View>
-      ) : null}
+      </ScrollView>
+
+      <FloatingIntroVideo
+        visible={showIntroVideo}
+        onClose={() => setShowIntroVideo(false)}
+      />
     </View>
   );
 };
@@ -656,41 +578,6 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
 
-  // Quick Actions
-  sectionTitle: {
-    fontSize: fp(17),
-    fontWeight: '800',
-    color: colors.white,
-    marginBottom: hp(12),
-  },
-  quickActionsRow: {
-    flexDirection: 'row',
-    gap: wp(12),
-  },
-  quickActionCard: {
-    flex: 1,
-    backgroundColor: '#141414',
-    borderRadius: wp(16),
-    paddingVertical: hp(18),
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
-  },
-  quickActionIconWrap: {
-    width: wp(44),
-    height: wp(44),
-    borderRadius: wp(22),
-    backgroundColor: 'rgba(214,156,64,0.18)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: hp(8),
-  },
-  quickActionText: {
-    fontSize: fp(13),
-    fontWeight: '700',
-    color: '#D5C4AB',
-  },
-
   // AI Content Assistant
   aiCard: {
     borderRadius: wp(20),
@@ -755,61 +642,5 @@ const styles = StyleSheet.create({
     fontSize: fp(13.5),
     fontWeight: '700',
     color: '#D69C40',
-  },
-
-  // Floating Intro Video
-  floatingVideoContainer: {
-    position: 'absolute',
-    bottom: hp(16),
-    right: wp(12),
-    width: SCREEN_WIDTH * 0.35,
-    aspectRatio: 9 / 16,
-    borderRadius: wp(12),
-    overflow: 'hidden',
-    backgroundColor: colors.black,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 10,
-  },
-  fullScreenVideoContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.85)',
-    zIndex: 100,
-  },
-  expandedVideoWrap: {
-    width: SCREEN_WIDTH * 0.75,
-    aspectRatio: 9 / 16,
-    borderRadius: wp(16),
-    overflow: 'hidden',
-    backgroundColor: colors.black,
-  },
-  miniVideoWrap: {
-    width: '100%',
-    height: '100%',
-  },
-  videoButtonsRow: {
-    position: 'absolute',
-    top: wp(8),
-    right: wp(8),
-    zIndex: 10,
-    flexDirection: 'row',
-    gap: wp(8),
-  },
-  videoActionButton: {
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    borderRadius: wp(14),
-    padding: wp(6),
-  },
-  floatingVideo: {
-    width: '100%',
-    height: '100%',
   },
 });

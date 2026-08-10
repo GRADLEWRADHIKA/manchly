@@ -12,6 +12,7 @@ import { cashfreePG } from "../services/cashfreeService";
 import { NotificationController } from "./notificationController";
 import { isAccessExpired, computeAccessExpiry, parseAccessPolicyInput } from "../utils/accessExpiry";
 import MuxManager from "../utils/MuxManager";
+import { resolveUserByIdOrPhone } from "../utils/userLookup";
 import crypto from "crypto";
 import dotenv from "dotenv";
 
@@ -422,9 +423,23 @@ export class WebinarController {
 
       const isEnrolled = !!enrollment && !accessExpired;
 
+      // Feature #8: the expiry gate must actually withhold the Zoom join
+      // credentials, not just flip a flag. Only the owner or a currently-enrolled
+      // (non-expired) user may see the join URL/password; the host start URL is
+      // owner-only. Without this, expired — and even non-enrolled — viewers could
+      // read the join link straight off the response.
+      const canJoin = isOwner || isEnrolled;
+      const safeWebinar: any = { ...webinar };
+      safeWebinar.zoom_start_url = isOwner ? webinar.zoom_start_url : null;
+      if (!canJoin) {
+        safeWebinar.zoom_join_url = null;
+        safeWebinar.zoom_password = null;
+        safeWebinar.zoom_meeting_id = null;
+      }
+
       ApiResponseHandler.success(res, {
         webinar: {
-          ...webinar,
+          ...safeWebinar,
           is_enrolled: isEnrolled,
           access_expired: accessExpired,
           access_expires_at: accessExpiresAt,
@@ -1064,10 +1079,10 @@ export class WebinarController {
         return ApiResponseHandler.customError(res, "You don't have permission to grant access to this webinar", 403, "FORBIDDEN");
       }
 
-      // Resolve the target user
-      const targetUser = user_id
-        ? await prisma.users.findUnique({ where: { id: user_id } })
-        : await prisma.users.findFirst({ where: { phone } });
+      // Resolve the target user (tolerates country-code/format differences in
+      // how the phone was stored — a bare 10-digit lookup still matches a
+      // stored "+91…" variant of the same number).
+      const targetUser = await resolveUserByIdOrPhone({ user_id, phone });
       if (!targetUser) {
         return ApiResponseHandler.customError(res, "No user found for the given identifier", 404, "USER_NOT_FOUND");
       }
@@ -1080,13 +1095,26 @@ export class WebinarController {
         return ApiResponseHandler.success(res, { enrollment: existing, alreadyEnrolled: true }, "User already has access to this webinar", 200);
       }
 
-      // Create a manual enrollment (no payment — transaction_id stays null)
-      const enrollment = await prisma.webinar_enrollments.create({
-        data: {
-          user_id: targetUser.id,
-          webinar_id: webinarId,
-        },
-      });
+      // Create a manual enrollment (no payment — transaction_id stays null).
+      // Guard the race where two concurrent grants both pass the check above:
+      // the unique constraint then just means "already enrolled", not a 500.
+      let enrollment;
+      try {
+        enrollment = await prisma.webinar_enrollments.create({
+          data: {
+            user_id: targetUser.id,
+            webinar_id: webinarId,
+          },
+        });
+      } catch (createErr: any) {
+        if (createErr?.code === "P2002") {
+          const now = await prisma.webinar_enrollments.findUnique({
+            where: { user_id_webinar_id: { user_id: targetUser.id, webinar_id: webinarId } },
+          });
+          return ApiResponseHandler.success(res, { enrollment: now, alreadyEnrolled: true }, "User already has access to this webinar", 200);
+        }
+        throw createErr;
+      }
 
       // Notify the user they've been granted access
       NotificationController.createNotification({
@@ -1112,13 +1140,20 @@ export class WebinarController {
       const { webinarId } = req.params;
       const { rating, comment } = req.body;
 
-      if (!rating || rating < 1 || rating > 5) {
-        return ApiResponseHandler.customError(res, "Rating must be between 1 and 5", 400, "INVALID_RATING");
+      if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+        return ApiResponseHandler.customError(res, "Rating must be an integer between 1 and 5", 400, "INVALID_RATING");
       }
 
       const webinar = await prisma.webinars.findUnique({ where: { id: webinarId } });
       if (!webinar) {
         return ApiResponseHandler.customError(res, "Webinar not found", 404, "WEBINAR_NOT_FOUND");
+      }
+
+      // A webinar can only be reviewed once it has actually taken place — block
+      // reviews on cancelled or not-yet-started webinars from skewing the average.
+      // (Webinars are never marked COMPLETED in code, so gate on the schedule.)
+      if (webinar.status === "CANCELLED" || webinar.scheduled_at.getTime() > Date.now()) {
+        return ApiResponseHandler.customError(res, "You can review a webinar only after it has taken place", 400, "WEBINAR_NOT_STARTED");
       }
 
       // Only enrolled users can review
@@ -1133,20 +1168,20 @@ export class WebinarController {
         where: { webinar_id_reviewer_id: { webinar_id: webinarId, reviewer_id: userId } },
       });
 
-      const review = existing
-        ? await prisma.webinar_reviews.update({
-            where: { id: existing.id },
-            data: { rating, comment: comment?.trim() || null },
-          })
-        : await prisma.webinar_reviews.create({
-            data: {
-              webinar_id: webinarId,
-              reviewer_id: userId,
-              creator_id: webinar.creator_id,
-              rating,
-              comment: comment?.trim() || null,
-            },
-          });
+      // upsert is atomic on the (webinar_id, reviewer_id) unique key, so a
+      // concurrent double-submit updates the row instead of 500-ing on the
+      // constraint.
+      const review = await prisma.webinar_reviews.upsert({
+        where: { webinar_id_reviewer_id: { webinar_id: webinarId, reviewer_id: userId } },
+        update: { rating, comment: comment?.trim() || null },
+        create: {
+          webinar_id: webinarId,
+          reviewer_id: userId,
+          creator_id: webinar.creator_id,
+          rating,
+          comment: comment?.trim() || null,
+        },
+      });
 
       // Notify the creator only when a review is first created
       if (!existing) {
@@ -1199,11 +1234,17 @@ export class WebinarController {
         created_at: r.created_at,
         reviewer: userMap.get(r.reviewer_id) || null,
       }));
-      const average = reviews.length
-        ? Math.round((reviews.reduce((s, r) => s + r.rating, 0) / reviews.length) * 10) / 10
-        : 0;
+      // Count + average over ALL reviews, not just the 50 returned for display.
+      // For webinars this is the only average source (no cached field), so the
+      // truncated math would otherwise be wrong past 50 reviews.
+      const agg = await prisma.webinar_reviews.aggregate({
+        where: { webinar_id: webinarId },
+        _avg: { rating: true },
+        _count: true,
+      });
+      const average = Math.round((agg._avg.rating ?? 0) * 10) / 10;
 
-      return ApiResponseHandler.success(res, { reviews: data, count: reviews.length, average }, "Reviews retrieved");
+      return ApiResponseHandler.success(res, { reviews: data, count: agg._count, average }, "Reviews retrieved");
     } catch (err: any) {
       ApiResponseHandler.unexpectedError(res, err, 500);
     }

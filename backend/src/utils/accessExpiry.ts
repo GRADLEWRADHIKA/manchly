@@ -63,11 +63,14 @@ export function parseAccessPolicyInput(body: any): {
   access_duration_days: number | null;
   access_expires_at: Date | null;
 } {
+  // Cap the duration so an absurd value (e.g. via a direct API call) can't
+  // overflow the Date range in computeAccessExpiry and flip to "never expires".
+  const MAX_DURATION_DAYS = 36500; // 100 years
   let days: number | null = null;
   const rawDays = body?.access_duration_days;
   if (rawDays !== undefined && rawDays !== null && rawDays !== '') {
     const n = Number(rawDays);
-    days = Number.isFinite(n) && n > 0 ? Math.floor(n) : null;
+    days = Number.isFinite(n) && n > 0 ? Math.min(Math.floor(n), MAX_DURATION_DAYS) : null;
   }
 
   let date: Date | null = null;

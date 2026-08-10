@@ -112,8 +112,8 @@ export class SessionController {
         return res.status(400).json({ error: "session_id and rating are required" });
       }
 
-      if (rating < 1 || rating > 5) {
-        return res.status(400).json({ error: "Rating must be between 1 and 5" });
+      if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+        return res.status(400).json({ error: "Rating must be an integer between 1 and 5" });
       }
 
       const session = await prisma.sessions.findUnique({ where: { id: session_id } });
@@ -125,6 +125,12 @@ export class SessionController {
         return res.status(403).json({ error: "Only the caller can rate the session" });
       }
 
+      // Only completed sessions can be rated — stops a call that never happened
+      // (PENDING / MISSED / CANCELLED) from skewing the expert's average.
+      if (session.status !== "COMPLETED") {
+        return res.status(400).json({ error: "Only completed sessions can be rated" });
+      }
+
       // One review per session — also prevents inflating the expert's average
       const existingReview = await prisma.session_reviews.findUnique({
         where: { session_id },
@@ -133,30 +139,45 @@ export class SessionController {
         return res.status(400).json({ error: "You have already reviewed this session" });
       }
 
-      // Persist the review (rating + written feedback)
-      const review = await prisma.session_reviews.create({
-        data: {
-          session_id,
-          reviewer_id: userId,
-          expert_id: session.receiver_id,
-          rating,
-          comment: feedback?.trim() || null,
-        },
-      });
+      // Persist the review and refresh the expert's cached average atomically.
+      // The average is recomputed from an aggregate over all reviews (not folded
+      // into the previously-rounded value) so it never drifts, and the whole
+      // thing runs in a transaction so a failed update can't leave the cache
+      // stale. A concurrent duplicate hits the session_id unique constraint
+      // (P2002) and is reported as "already reviewed" instead of a 500.
+      let review;
+      try {
+        review = await prisma.$transaction(async (tx) => {
+          const created = await tx.session_reviews.create({
+            data: {
+              session_id,
+              reviewer_id: userId,
+              expert_id: session.receiver_id,
+              rating,
+              comment: feedback?.trim() || null,
+            },
+          });
 
-      // Update expert's rating (running average)
-      const expert = await prisma.session_experts.findUnique({ where: { user_id: session.receiver_id } });
-      if (expert) {
-        const newCount = expert.review_count + 1;
-        const newRating = ((expert.rating * expert.review_count) + rating) / newCount;
+          const agg = await tx.session_reviews.aggregate({
+            where: { expert_id: session.receiver_id },
+            _avg: { rating: true },
+            _count: true,
+          });
+          await tx.session_experts.updateMany({
+            where: { user_id: session.receiver_id },
+            data: {
+              rating: Math.round((agg._avg.rating ?? 0) * 10) / 10,
+              review_count: agg._count,
+            },
+          });
 
-        await prisma.session_experts.update({
-          where: { user_id: session.receiver_id },
-          data: {
-            rating: Math.round(newRating * 10) / 10,
-            review_count: newCount,
-          },
+          return created;
         });
+      } catch (createErr: any) {
+        if (createErr?.code === "P2002") {
+          return res.status(400).json({ error: "You have already reviewed this session" });
+        }
+        throw createErr;
       }
 
       // Notify the expert about the review
@@ -208,11 +229,17 @@ export class SessionController {
         reviewer: userMap.get(r.reviewer_id) || null,
       }));
 
-      const average = reviews.length
-        ? Math.round((reviews.reduce((s, r) => s + r.rating, 0) / reviews.length) * 10) / 10
-        : 0;
+      // Count + average over ALL reviews for this expert, not just the 50 most
+      // recent returned for display, so the headline number isn't recency-biased
+      // or capped at 50.
+      const agg = await prisma.session_reviews.aggregate({
+        where: { expert_id },
+        _avg: { rating: true },
+        _count: true,
+      });
+      const average = Math.round((agg._avg.rating ?? 0) * 10) / 10;
 
-      return res.json({ data: { reviews: data, count: reviews.length, average } });
+      return res.json({ data: { reviews: data, count: agg._count, average } });
     } catch (err: any) {
       console.error("getExpertReviews error:", err);
       return res.status(500).json({ error: "Failed to fetch reviews" });

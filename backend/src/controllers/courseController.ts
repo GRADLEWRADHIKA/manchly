@@ -7,6 +7,7 @@ import { isCreator, isUser } from "../utils/userTypeHelper";
 import { notificationService } from "../services/NotificationService";
 import { NotificationController } from "./notificationController";
 import { isAccessExpired, computeAccessExpiry, parseAccessPolicyInput } from "../utils/accessExpiry";
+import { resolveUserByIdOrPhone } from "../utils/userLookup";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -1057,10 +1058,10 @@ export class CourseController {
         return ApiResponseHandler.customError(res, "You don't have permission to grant access to this course", 403, "FORBIDDEN");
       }
 
-      // Resolve the target user
-      const targetUser = user_id
-        ? await prisma.users.findUnique({ where: { id: user_id } })
-        : await prisma.users.findFirst({ where: { phone } });
+      // Resolve the target user (tolerates country-code/format differences in
+      // how the phone was stored — a bare 10-digit lookup still matches a
+      // stored "+91…" variant of the same number).
+      const targetUser = await resolveUserByIdOrPhone({ user_id, phone });
       if (!targetUser) {
         return ApiResponseHandler.customError(res, "No user found for the given identifier", 404, "USER_NOT_FOUND");
       }
@@ -1073,13 +1074,26 @@ export class CourseController {
         return ApiResponseHandler.success(res, { enrollment: existing, alreadyEnrolled: true }, "User already has access to this course", 200);
       }
 
-      // Create a manual enrollment (no payment — transaction_id stays null)
-      const enrollment = await prisma.enrollments.create({
-        data: {
-          user_id: targetUser.id,
-          course_id: courseId,
-        },
-      });
+      // Create a manual enrollment (no payment — transaction_id stays null).
+      // Guard the race where two concurrent grants both pass the check above:
+      // the unique constraint then just means "already enrolled", not a 500.
+      let enrollment;
+      try {
+        enrollment = await prisma.enrollments.create({
+          data: {
+            user_id: targetUser.id,
+            course_id: courseId,
+          },
+        });
+      } catch (createErr: any) {
+        if (createErr?.code === "P2002") {
+          const now = await prisma.enrollments.findUnique({
+            where: { user_id_course_id: { user_id: targetUser.id, course_id: courseId } },
+          });
+          return ApiResponseHandler.success(res, { enrollment: now, alreadyEnrolled: true }, "User already has access to this course", 200);
+        }
+        throw createErr;
+      }
 
       // Notify the user they've been granted access
       NotificationController.createNotification({

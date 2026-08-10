@@ -60,8 +60,6 @@ export default function Explore() {
     fetchPage(next, search, tab, true);
   };
 
-  const [featured, ...rest] = tab === "courses" && !search ? items : [null, ...items];
-
   const cardBase = {
     background: colors.user.card,
     border: `1px solid ${colors.user.border}`,
@@ -72,7 +70,7 @@ export default function Explore() {
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: colors.user.bg, color: colors.user.text }}>
-      <UserSidebar />
+      
 
       <main style={{ flex: 1, padding: "28px 32px", overflowY: "auto" }}>
         <h1 style={{ margin: "0 0 18px", fontSize: 26, fontWeight: 900 }}>Explore</h1>
@@ -98,7 +96,7 @@ export default function Explore() {
                 padding: "12px 36px", borderRadius: 999, border: "none", cursor: "pointer",
                 fontSize: 16, fontWeight: 800, textTransform: "capitalize",
                 background: tab === t ? colors.gradients.indigo : "transparent",
-                color: tab === t ? "#fff" : colors.user.subHeading,transition: "all 0.2s ease",
+                color: tab === t ? "#fff" : colors.user.subHeading, transition: "all 0.2s ease",
               }}
             >
               {t}
@@ -116,27 +114,9 @@ export default function Explore() {
           <EmptyState icon="🔍" title={`No ${tab} found`} subtitle={search ? `Nothing matches "${search}"` : "Check back soon."} />
         ) : tab === "courses" ? (
           <>
-            {/* Featured */}
-            {featured && (
-              <div
-                onClick={() => navigate(`/app/course/${featured.id}`)}
-                style={{ ...cardBase, display: "flex", marginBottom: 22, background: colors.gradients.heroNavy, minHeight: 190 }}
-              >
-                <div style={{ flex: 1, padding: 26 }}>
-                  <Badge color="#F0C040" bg="rgba(240,192,64,0.15)">⭐ Featured</Badge>
-                  <h2 style={{ margin: "12px 0 8px", fontSize: 23, fontWeight: 900 }}>{featured.title}</h2>
-                  <p style={{ margin: 0, opacity: 0.8, fontSize: 14, maxWidth: 520, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{featured.description}</p>
-                  <div style={{ display: "flex", alignItems: "center", gap: 16, marginTop: 16 }}>
-                    <span style={{ fontSize: 20, fontWeight: 900 }}>{Number(featured.price) > 0 ? formatCurrency(featured.price) : "Free"}</span>
-                    <GradientButton size="sm" gradient={colors.gradients.gold}>Enroll Now</GradientButton>
-                  </div>
-                </div>
-                {featured.thumbnail && <div style={{ width: 280, background: `url(${featured.thumbnail}) center/cover` }} />}
-              </div>
-            )}
             <h3 style={{ margin: "0 0 14px", fontSize: 16, fontWeight: 800, color: colors.user.subHeading }}>Popular Courses</h3>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 16 }}>
-              {(search ? items : rest).map((c) => {
+              {items.map((c) => {
                 const duration = Array.isArray(c.videos) && c.videos.length ? Math.round(c.videos.reduce((s, v) => s + (Number(v.duration) || 0), 0) / 60) : c.duration || 0;
                 return (
                   <div key={c.id} style={cardBase} onClick={() => navigate(`/app/course/${c.id}`)}>

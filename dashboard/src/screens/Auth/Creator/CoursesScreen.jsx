@@ -100,9 +100,7 @@ function VerificationBanner({ isKycVerified, onVerify }) {
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        <span style={{ color: colors.brand.actionBlue, fontSize: 18 }}>
-          🛡️
-        </span>
+        <span style={{ color: colors.brand.actionBlue, fontSize: 18 }}>🛡️</span>
         <span
           style={{
             color: colors.brand.actionBlue,
@@ -138,24 +136,74 @@ function HeroIllustration() {
   return (
     <svg
       viewBox="0 0 320 240"
-      style={{ width: "100%", height: "100%", maxWidth: 320, objectFit: "contain" }}
+      style={{
+        width: "100%",
+        height: "100%",
+        maxWidth: 320,
+        objectFit: "contain",
+      }}
     >
       <rect
-        x="40" y="30" width="220" height="150" rx="20"
-        fill={colors.charts?.purple || "#8b5cf6"} opacity="0.12"
+        x="40"
+        y="30"
+        width="220"
+        height="150"
+        rx="20"
+        fill={colors.charts?.purple || "#8b5cf6"}
+        opacity="0.12"
         transform="rotate(-6 150 105)"
       />
       <rect
-        x="55" y="45" width="210" height="140" rx="18"
-        fill="#ffffff" stroke={colors.base.border} strokeWidth="1.5"
+        x="55"
+        y="45"
+        width="210"
+        height="140"
+        rx="18"
+        fill="#ffffff"
+        stroke={colors.base.border}
+        strokeWidth="1.5"
       />
-      <rect x="72" y="62" width="176" height="90" rx="10" fill={colors.brand.primaryOrange} opacity="0.1" />
+      <rect
+        x="72"
+        y="62"
+        width="176"
+        height="90"
+        rx="10"
+        fill={colors.brand.primaryOrange}
+        opacity="0.1"
+      />
       <circle cx="160" cy="107" r="26" fill={colors.brand.primaryOrange} />
       <path d="M152 94 L176 107 L152 120 Z" fill={colors.typography.white} />
-      <rect x="72" y="162" width="176" height="6" rx="3" fill={colors.base.border} />
-      <rect x="72" y="162" width="96" height="6" rx="3" fill={colors.brand.primaryOrange} />
-      <circle cx="270" cy="55" r="8" fill={colors.charts?.teal || "#14b8a6"} opacity="0.7" />
-      <circle cx="45" cy="190" r="6" fill={colors.charts?.blue || "#3b82f6"} opacity="0.7" />
+      <rect
+        x="72"
+        y="162"
+        width="176"
+        height="6"
+        rx="3"
+        fill={colors.base.border}
+      />
+      <rect
+        x="72"
+        y="162"
+        width="96"
+        height="6"
+        rx="3"
+        fill={colors.brand.primaryOrange}
+      />
+      <circle
+        cx="270"
+        cy="55"
+        r="8"
+        fill={colors.charts?.teal || "#14b8a6"}
+        opacity="0.7"
+      />
+      <circle
+        cx="45"
+        cy="190"
+        r="6"
+        fill={colors.charts?.blue || "#3b82f6"}
+        opacity="0.7"
+      />
     </svg>
   );
 }
@@ -170,7 +218,14 @@ function StatCard({ icon: Icon, label, value, subtext, iconColor }) {
         padding: 20,
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          marginBottom: 10,
+        }}
+      >
         <Icon size={16} color={iconColor} />
         <span
           style={{
@@ -184,11 +239,23 @@ function StatCard({ icon: Icon, label, value, subtext, iconColor }) {
           {label}
         </span>
       </div>
-      <div style={{ fontSize: 24, fontWeight: 700, color: colors.typography.primaryText }}>
+      <div
+        style={{
+          fontSize: 24,
+          fontWeight: 700,
+          color: colors.typography.primaryText,
+        }}
+      >
         {value}
       </div>
       {subtext && (
-        <div style={{ fontSize: 12, color: colors.typography.secondaryText, marginTop: 4 }}>
+        <div
+          style={{
+            fontSize: 12,
+            color: colors.typography.secondaryText,
+            marginTop: 4,
+          }}
+        >
           {subtext}
         </div>
       )}
@@ -209,12 +276,18 @@ function HealthGauge({ score }) {
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
       <circle
-        cx={size / 2} cy={size / 2} r={radius}
-        fill="none" stroke={colors.base.border} strokeWidth={stroke}
+        cx={size / 2}
+        cy={size / 2}
+        r={radius}
+        fill="none"
+        stroke={colors.base.border}
+        strokeWidth={stroke}
       />
       {score != null && (
         <circle
-          cx={size / 2} cy={size / 2} r={radius}
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
           fill="none"
           stroke={colors.brand.primaryOrange}
           strokeWidth={stroke}
@@ -225,15 +298,21 @@ function HealthGauge({ score }) {
         />
       )}
       <text
-        x="50%" y="46%" textAnchor="middle"
-        fontSize="26" fontWeight="700"
+        x="50%"
+        y="46%"
+        textAnchor="middle"
+        fontSize="26"
+        fontWeight="700"
         fill={colors.typography.primaryText}
       >
         {score != null ? score : "--"}
       </text>
       <text
-        x="50%" y="62%" textAnchor="middle"
-        fontSize="11" fill={colors.typography.secondaryText}
+        x="50%"
+        y="62%"
+        textAnchor="middle"
+        fontSize="11"
+        fill={colors.typography.secondaryText}
       >
         /100
       </text>
@@ -243,12 +322,35 @@ function HealthGauge({ score }) {
 
 function HealthMetricRow({ label, value, dotColor }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 0" }}>
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        padding: "6px 0",
+      }}
+    >
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        <span style={{ width: 8, height: 8, borderRadius: "50%", background: dotColor, display: "inline-block" }} />
-        <span style={{ fontSize: 13, color: colors.typography.secondaryText }}>{label}</span>
+        <span
+          style={{
+            width: 8,
+            height: 8,
+            borderRadius: "50%",
+            background: dotColor,
+            display: "inline-block",
+          }}
+        />
+        <span style={{ fontSize: 13, color: colors.typography.secondaryText }}>
+          {label}
+        </span>
       </div>
-      <span style={{ fontSize: 13, fontWeight: 700, color: colors.typography.primaryText }}>
+      <span
+        style={{
+          fontSize: 13,
+          fontWeight: 700,
+          color: colors.typography.primaryText,
+        }}
+      >
         {value != null ? `${value}/100` : "--"}
       </span>
     </div>
@@ -257,9 +359,24 @@ function HealthMetricRow({ label, value, dotColor }) {
 
 function InsightRow({ label, value }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 0" }}>
-      <span style={{ fontSize: 13, color: colors.typography.secondaryText }}>{label}</span>
-      <span style={{ fontSize: 13, fontWeight: 700, color: colors.typography.primaryText }}>
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        padding: "8px 0",
+      }}
+    >
+      <span style={{ fontSize: 13, color: colors.typography.secondaryText }}>
+        {label}
+      </span>
+      <span
+        style={{
+          fontSize: 13,
+          fontWeight: 700,
+          color: colors.typography.primaryText,
+        }}
+      >
         {value ?? "--"}
       </span>
     </div>
@@ -271,15 +388,25 @@ function CourseCard({ course, onEdit, onView, onDuplicate, onMore }) {
   const category = course?.category || course?.tags?.[0] || null;
   const isPublished =
     String(course?.status || "").toLowerCase() === "published" ||
-  course?.is_published === true;
+    course?.is_published === true;
   const price = course?.price ?? 0;
-  const lessons = course?.lessons_count ?? course?.total_lessons ?? course?.videos?.length ?? 0;
-  const students = course?.enrolled_count ?? course?.students_count ?? course?.total_students ?? 0;
+  const lessons =
+    course?.lessons_count ??
+    course?.total_lessons ??
+    course?.videos?.length ??
+    0;
+  const students =
+    course?.enrolled_count ??
+    course?.students_count ??
+    course?.total_students ??
+    0;
   const rating = course?.rating ?? course?.average_rating ?? null;
   const reviewCount = course?.reviews_count ?? course?.rating_count ?? null;
-  const progress = course?.completion_percentage ?? course?.setup_progress ?? null;
+  const progress =
+    course?.completion_percentage ?? course?.setup_progress ?? null;
   const updated = timeAgo(course?.updated_at || course?.updatedAt);
-  const thumbnail = course?.thumbnail_url || course?.thumbnail || course?.cover_image || null;
+  const thumbnail =
+    course?.thumbnail_url || course?.thumbnail || course?.cover_image || null;
 
   return (
     <div
@@ -309,12 +436,16 @@ function CourseCard({ course, onEdit, onView, onDuplicate, onMore }) {
           justifyContent: "center",
         }}
       >
-        {!thumbnail && <BookOpen size={22} color={colors.typography.secondaryText} />}
+        {!thumbnail && (
+          <BookOpen size={22} color={colors.typography.secondaryText} />
+        )}
       </div>
 
       {/* Main info */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: "flex", gap: 8, marginBottom: 6, flexWrap: "wrap" }}>
+        <div
+          style={{ display: "flex", gap: 8, marginBottom: 6, flexWrap: "wrap" }}
+        >
           {category && (
             <span
               style={{
@@ -335,8 +466,12 @@ function CourseCard({ course, onEdit, onView, onDuplicate, onMore }) {
               fontSize: 11,
               fontWeight: 700,
               textTransform: "uppercase",
-              color: isPublished ? colors.brand.successGreen : colors.typography.secondaryText,
-              background: isPublished ? "rgba(34,197,94,0.1)" : "rgba(0,0,0,0.06)",
+              color: isPublished
+                ? colors.brand.successGreen
+                : colors.typography.secondaryText,
+              background: isPublished
+                ? "rgba(34,197,94,0.1)"
+                : "rgba(0,0,0,0.06)",
               borderRadius: 6,
               padding: "2px 8px",
             }}
@@ -345,41 +480,104 @@ function CourseCard({ course, onEdit, onView, onDuplicate, onMore }) {
           </span>
         </div>
 
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
-          <span style={{ fontSize: 15, fontWeight: 700, color: colors.typography.primaryText }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "baseline",
+            gap: 8,
+          }}
+        >
+          <span
+            style={{
+              fontSize: 15,
+              fontWeight: 700,
+              color: colors.typography.primaryText,
+            }}
+          >
             {title}
           </span>
-          <span style={{ fontSize: 15, fontWeight: 700, color: colors.brand.primaryOrange, whiteSpace: "nowrap" }}>
+          <span
+            style={{
+              fontSize: 15,
+              fontWeight: 700,
+              color: colors.brand.primaryOrange,
+              whiteSpace: "nowrap",
+            }}
+          >
             {formatCurrency(price)}
           </span>
         </div>
 
-        <div style={{ display: "flex", gap: 14, marginTop: 6, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 12, color: colors.typography.secondaryText, display: "flex", alignItems: "center", gap: 4 }}>
+        <div
+          style={{ display: "flex", gap: 14, marginTop: 6, flexWrap: "wrap" }}
+        >
+          <span
+            style={{
+              fontSize: 12,
+              color: colors.typography.secondaryText,
+              display: "flex",
+              alignItems: "center",
+              gap: 4,
+            }}
+          >
             <BookOpen size={13} /> {lessons} Lessons
           </span>
-          <span style={{ fontSize: 12, color: colors.typography.secondaryText, display: "flex", alignItems: "center", gap: 4 }}>
+          <span
+            style={{
+              fontSize: 12,
+              color: colors.typography.secondaryText,
+              display: "flex",
+              alignItems: "center",
+              gap: 4,
+            }}
+          >
             <Users size={13} /> {students} Students
           </span>
           {rating != null ? (
-            <span style={{ fontSize: 12, color: colors.typography.secondaryText, display: "flex", alignItems: "center", gap: 4 }}>
-              <Star size={13} color={colors.brand.primaryOrange} fill={colors.brand.primaryOrange} />
+            <span
+              style={{
+                fontSize: 12,
+                color: colors.typography.secondaryText,
+                display: "flex",
+                alignItems: "center",
+                gap: 4,
+              }}
+            >
+              <Star
+                size={13}
+                color={colors.brand.primaryOrange}
+                fill={colors.brand.primaryOrange}
+              />
               {rating} {reviewCount != null ? `(${reviewCount})` : ""}
             </span>
           ) : (
-            <span style={{ fontSize: 12, color: colors.typography.secondaryText }}>No ratings yet</span>
+            <span
+              style={{ fontSize: 12, color: colors.typography.secondaryText }}
+            >
+              No ratings yet
+            </span>
           )}
         </div>
 
         {progress != null && (
           <div style={{ marginTop: 10 }}>
-            <div style={{ width: "100%", height: 6, borderRadius: 3, background: "rgba(0,0,0,0.06)" }}>
+            <div
+              style={{
+                width: "100%",
+                height: 6,
+                borderRadius: 3,
+                background: "rgba(0,0,0,0.06)",
+              }}
+            >
               <div
                 style={{
                   width: `${Math.max(0, Math.min(100, progress))}%`,
                   height: "100%",
                   borderRadius: 3,
-                  background: isPublished ? colors.brand.successGreen : colors.brand.primaryOrange,
+                  background: isPublished
+                    ? colors.brand.successGreen
+                    : colors.brand.primaryOrange,
                 }}
               />
             </div>
@@ -388,23 +586,51 @@ function CourseCard({ course, onEdit, onView, onDuplicate, onMore }) {
       </div>
 
       {/* Actions */}
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8, flexShrink: 0 }}>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "flex-end",
+          gap: 8,
+          flexShrink: 0,
+        }}
+      >
         <div style={{ display: "flex", gap: 6 }}>
-          <button onClick={() => onEdit?.(course)} title="Analytics" style={iconButtonStyle}>
+          <button
+            onClick={() => onEdit?.(course)}
+            title="Analytics"
+            style={iconButtonStyle}
+          >
             <BarChart2 size={15} color={colors.typography.secondaryText} />
           </button>
-          <button onClick={() => onView?.(course)} title="View" style={iconButtonStyle}>
+          <button
+            onClick={() => onView?.(course)}
+            title="View"
+            style={iconButtonStyle}
+          >
             <Eye size={15} color={colors.typography.secondaryText} />
           </button>
-          <button onClick={() => onDuplicate?.(course)} title="Duplicate" style={iconButtonStyle}>
+          <button
+            onClick={() => onDuplicate?.(course)}
+            title="Duplicate"
+            style={iconButtonStyle}
+          >
             <Copy size={15} color={colors.typography.secondaryText} />
           </button>
-          <button onClick={() => onMore?.(course)} title="More" style={iconButtonStyle}>
+          <button
+            onClick={() => onMore?.(course)}
+            title="More"
+            style={iconButtonStyle}
+          >
             <MoreHorizontal size={15} color={colors.typography.secondaryText} />
           </button>
         </div>
         {updated && (
-          <span style={{ fontSize: 11, color: colors.typography.secondaryText }}>{updated}</span>
+          <span
+            style={{ fontSize: 11, color: colors.typography.secondaryText }}
+          >
+            {updated}
+          </span>
         )}
       </div>
     </div>
@@ -451,7 +677,17 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
     ]);
 
     const coursesData = val(courses);
-    setCourseList(Array.isArray(coursesData) ? coursesData : coursesData?.courses || []);
+    const allCourses = Array.isArray(coursesData)
+      ? coursesData
+      : coursesData?.courses || [];
+      
+    const myCourses = allCourses.filter(
+      (c) =>
+        c?.creator_id === user?.id ||
+        c?.creator?.id === user?.id ||
+        c?.user_id === user?.id,
+    );
+    setCourseList(myCourses);
 
     setCourseStats(val(stats)?.statistics || val(stats) || null);
 
@@ -487,7 +723,11 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
   // ---- Derived values (all from real API data — "--" / 0 shown when absent) ----
 
   const isKycVerified = kycStatus
-    ? !!(kycStatus.verified ?? kycStatus.is_verified ?? kycStatus.status === "verified")
+    ? !!(
+        kycStatus.verified ??
+        kycStatus.is_verified ??
+        kycStatus.status === "verified"
+      )
     : !!user?.kyc_verified;
 
   const totalCourses = courseStats?.total_courses ?? courseList.length ?? 0;
@@ -495,7 +735,8 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
   const draftCourses = Math.max(totalCourses - publishedCourses, 0);
 
   const totalRevenue = courseStats?.revenue ?? 0;
-  const totalUsers = courseStats?.total_students ?? courseStats?.total_enrollments ?? null;
+  const totalUsers =
+    courseStats?.total_students ?? courseStats?.total_enrollments ?? null;
   const avgRating = courseStats?.average_rating ?? null;
   const completionRate = courseStats?.completion_rate ?? null;
 
@@ -505,26 +746,45 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
   const accessibilityScore = courseStats?.accessibility_score ?? null;
   const publishReadiness = courseStats?.publish_readiness_score ?? null;
 
-  const profileCompletion = courseStats?.profile_completion ?? user?.profile_completion ?? null;
+  const profileCompletion =
+    courseStats?.profile_completion ?? user?.profile_completion ?? null;
   const kycLabel = isKycVerified ? "Verified" : "Pending";
-  const monthlyGrowth = courseStats?.monthly_growth != null ? `${courseStats.monthly_growth}%` : null;
-  const conversionRate = courseStats?.conversion_rate != null ? `${courseStats.conversion_rate}%` : null;
-  const refundRate = courseStats?.refund_rate != null ? `${courseStats.refund_rate}%` : null;
-  const avgOrderValue = courseStats?.avg_order_value != null ? formatCurrency(courseStats.avg_order_value) : null;
+  const monthlyGrowth =
+    courseStats?.monthly_growth != null
+      ? `${courseStats.monthly_growth}%`
+      : null;
+  const conversionRate =
+    courseStats?.conversion_rate != null
+      ? `${courseStats.conversion_rate}%`
+      : null;
+  const refundRate =
+    courseStats?.refund_rate != null ? `${courseStats.refund_rate}%` : null;
+  const avgOrderValue =
+    courseStats?.avg_order_value != null
+      ? formatCurrency(courseStats.avg_order_value)
+      : null;
 
   // Lifetime earnings / withdrawable balance for the top header come from the wallet endpoint —
   // it's the account-wide source of truth, not course-specific revenue.
   const lifetimeEarnings =
-    walletData?.lifetime_earnings ?? walletData?.total_earnings ?? walletData?.total_revenue ?? 0;
+    walletData?.lifetime_earnings ??
+    walletData?.total_earnings ??
+    walletData?.total_revenue ??
+    0;
   const walletBalance =
-    walletData?.available_balance ?? walletData?.balance ?? walletData?.available ?? 0;
+    walletData?.available_balance ??
+    walletData?.balance ??
+    walletData?.available ??
+    0;
 
   const filteredCourses = useMemo(() => {
     let list = [...courseList];
 
     if (statusFilter !== "all") {
       list = list.filter((c) => {
-       const isPublished = String(c?.status || "").toLowerCase() === "published" || c?.is_published === true;
+        const isPublished =
+          String(c?.status || "").toLowerCase() === "published" ||
+          c?.is_published === true;
         return statusFilter === "published" ? isPublished : !isPublished;
       });
     }
@@ -549,19 +809,32 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
   const handleVerify = () => onNavigate?.("kyc-verification");
   const handleWithdraw = () => onNavigate?.("withdraw");
   const handleNotifications = () => onNavigate?.("notifications");
-  const handleCourseEdit = (course) => onNavigate?.("course-analytics", { courseId: course?.id });
-  const handleCourseView = (course) => onNavigate?.("course-preview", { courseId: course?.id });
-  const handleCourseDuplicate = (course) => onNavigate?.("course-duplicate", { courseId: course?.id });
-  const handleCourseMore = (course) => onNavigate?.("course-manage", { courseId: course?.id });
+  const handleCourseEdit = (course) =>
+    onNavigate?.("course-analytics", { courseId: course?.id });
+  const handleCourseView = (course) =>
+    onNavigate?.("course-preview", { courseId: course?.id });
+  const handleCourseDuplicate = (course) =>
+    onNavigate?.("course-duplicate", { courseId: course?.id });
+  const handleCourseMore = (course) =>
+    onNavigate?.("course-manage", { courseId: course?.id });
 
   if (loading) {
     return (
-      <div style={{ display: "flex", backgroundColor: colors.base.appBackground, minHeight: "100vh" }}>
+      <div
+        style={{
+          display: "flex",
+          backgroundColor: colors.base.appBackground,
+          minHeight: "100vh",
+        }}
+      >
         <Sidebar active="courses" onNavigate={onNavigate} onLogout={onLogout} />
         <div
           style={{
-            flex: 1, minWidth: 0, display: "flex",
-            justifyContent: "center", alignItems: "center",
+            flex: 1,
+            minWidth: 0,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
             color: colors.typography.primary,
           }}
         >
@@ -572,7 +845,13 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
   }
 
   return (
-    <div style={{ display: "flex", backgroundColor: colors.base.appBackground, minHeight: "100vh" }}>
+    <div
+      style={{
+        display: "flex",
+        backgroundColor: colors.base.appBackground,
+        minHeight: "100vh",
+      }}
+    >
       <Sidebar active="courses" onNavigate={onNavigate} onLogout={onLogout} />
 
       <div style={{ flex: 1, minWidth: 0, padding: 32 }}>
@@ -584,7 +863,10 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
           onNotifications={handleNotifications}
         />
 
-        <VerificationBanner isKycVerified={isKycVerified} onVerify={handleVerify} />
+        <VerificationBanner
+          isKycVerified={isKycVerified}
+          onVerify={handleVerify}
+        />
 
         {error && <div style={{ color: "red", padding: 16 }}>{error}</div>}
 
@@ -602,11 +884,21 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
             marginBottom: 32,
           }}
         >
-          <div style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 560 }}>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 16,
+              maxWidth: 560,
+            }}
+          >
             <span
               style={{
-                textTransform: "uppercase", fontSize: 12, fontWeight: 700,
-                letterSpacing: 1, color: colors.brand.primaryOrange,
+                textTransform: "uppercase",
+                fontSize: 12,
+                fontWeight: 700,
+                letterSpacing: 1,
+                color: colors.brand.primaryOrange,
               }}
             >
               Course Studio
@@ -614,18 +906,25 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
 
             <h1
               style={{
-                margin: 0, fontSize: 40, fontWeight: 800, lineHeight: 1.15,
+                margin: 0,
+                fontSize: 40,
+                fontWeight: 800,
+                lineHeight: 1.15,
                 color: colors.typography.primaryText,
               }}
             >
               Create Once. Sell Forever.
               <br />
-              <span style={{ color: colors.brand.primaryOrange }}>Scale Infinitely.</span>
+              <span style={{ color: colors.brand.primaryOrange }}>
+                Scale Infinitely.
+              </span>
             </h1>
 
             <p
               style={{
-                margin: 0, fontSize: 16, lineHeight: 1.5,
+                margin: 0,
+                fontSize: 16,
+                lineHeight: 1.5,
                 color: colors.typography.secondaryText,
               }}
             >
@@ -637,10 +936,16 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
               type="button"
               onClick={handleNewCourse}
               style={{
-                alignSelf: "flex-start", marginTop: 8,
-                background: colors.brand.primaryOrange, color: colors.typography.white,
-                border: "none", borderRadius: 9999, padding: "12px 24px",
-                fontSize: 15, fontWeight: 700, cursor: "pointer",
+                alignSelf: "flex-start",
+                marginTop: 8,
+                background: colors.brand.primaryOrange,
+                color: colors.typography.white,
+                border: "none",
+                borderRadius: 9999,
+                padding: "12px 24px",
+                fontSize: 15,
+                fontWeight: 700,
+                cursor: "pointer",
               }}
             >
               + New Course
@@ -649,11 +954,18 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
 
           <div
             style={{
-              flexShrink: 0, width: 320, height: 240,
-              display: "flex", alignItems: "center", justifyContent: "center",
+              flexShrink: 0,
+              width: 320,
+              height: 240,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
             }}
           >
-            <img src={computer} style={{ width: "100%", maxWidth: 320, objectFit: "contain" }} />
+            <img
+              src={computer}
+              style={{ width: "100%", maxWidth: 320, objectFit: "contain" }}
+            />
           </div>
         </div>
 
@@ -715,27 +1027,61 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
               padding: 20,
             }}
           >
-            <div style={{ fontSize: 14, fontWeight: 700, color: colors.typography.primaryText, marginBottom: 12 }}>
+            <div
+              style={{
+                fontSize: 14,
+                fontWeight: 700,
+                color: colors.typography.primaryText,
+                marginBottom: 12,
+              }}
+            >
               Course Health
             </div>
 
-            <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                marginBottom: 12,
+              }}
+            >
               <HealthGauge score={healthScore} />
             </div>
 
-            <HealthMetricRow label="Content Quality" value={contentQuality} dotColor={colors.brand.successGreen} />
-            <HealthMetricRow label="SEO Score" value={seoScore} dotColor={colors.brand.primaryOrange} />
-            <HealthMetricRow label="Accessibility" value={accessibilityScore} dotColor={colors.charts?.teal} />
-            <HealthMetricRow label="Publish Readiness" value={publishReadiness} dotColor={colors.charts?.purple} />
+            <HealthMetricRow
+              label="Content Quality"
+              value={contentQuality}
+              dotColor={colors.brand.successGreen}
+            />
+            <HealthMetricRow
+              label="SEO Score"
+              value={seoScore}
+              dotColor={colors.brand.primaryOrange}
+            />
+            <HealthMetricRow
+              label="Accessibility"
+              value={accessibilityScore}
+              dotColor={colors.charts?.teal}
+            />
+            <HealthMetricRow
+              label="Publish Readiness"
+              value={publishReadiness}
+              dotColor={colors.charts?.purple}
+            />
 
             <button
               type="button"
               onClick={() => onNavigate?.("course-health")}
               style={{
-                marginTop: 14, width: "100%",
-                background: colors.brand.primaryOrange, color: colors.typography.white,
-                border: "none", borderRadius: 10, padding: "10px 0",
-                fontWeight: 700, cursor: "pointer",
+                marginTop: 14,
+                width: "100%",
+                background: colors.brand.primaryOrange,
+                color: colors.typography.white,
+                border: "none",
+                borderRadius: 10,
+                padding: "10px 0",
+                fontWeight: 700,
+                cursor: "pointer",
               }}
             >
               Improve Score
@@ -751,28 +1097,67 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
               padding: 20,
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-              <span style={{ fontSize: 14, fontWeight: 700, color: colors.typography.primaryText }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: 12,
+              }}
+            >
+              <span
+                style={{
+                  fontSize: 14,
+                  fontWeight: 700,
+                  color: colors.typography.primaryText,
+                }}
+              >
                 Creator Insights
               </span>
               <button
                 onClick={() => onNavigate?.("creator-insights")}
-                style={{ background: "none", border: "none", color: colors.brand.primaryOrange, fontSize: 12, fontWeight: 700, cursor: "pointer" }}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: colors.brand.primaryOrange,
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
               >
                 View All →
               </button>
             </div>
 
             <div style={{ marginBottom: 12 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: colors.typography.secondaryText, marginBottom: 6 }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  fontSize: 12,
+                  color: colors.typography.secondaryText,
+                  marginBottom: 6,
+                }}
+              >
                 <span>Profile Completion</span>
-                <span>{profileCompletion != null ? `${profileCompletion}%` : "--"}</span>
+                <span>
+                  {profileCompletion != null ? `${profileCompletion}%` : "--"}
+                </span>
               </div>
-              <div style={{ width: "100%", height: 6, borderRadius: 3, background: "rgba(0,0,0,0.06)" }}>
+              <div
+                style={{
+                  width: "100%",
+                  height: 6,
+                  borderRadius: 3,
+                  background: "rgba(0,0,0,0.06)",
+                }}
+              >
                 <div
                   style={{
                     width: `${profileCompletion != null ? Math.max(0, Math.min(100, profileCompletion)) : 0}%`,
-                    height: "100%", borderRadius: 3, background: colors.brand.primaryOrange,
+                    height: "100%",
+                    borderRadius: 3,
+                    background: colors.brand.primaryOrange,
                   }}
                 />
               </div>
@@ -794,15 +1179,42 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
               padding: 20,
             }}
           >
-            <div style={{ fontSize: 14, fontWeight: 700, color: colors.typography.primaryText, marginBottom: 12 }}>
+            <div
+              style={{
+                fontSize: 14,
+                fontWeight: 700,
+                color: colors.typography.primaryText,
+                marginBottom: 12,
+              }}
+            >
               AI Recommendations
             </div>
 
             {[
-              { icon: Sparkles, label: "Add more lessons", target: "course-create", color: colors.charts?.purple },
-              { icon: BarChart2, label: "Course Health", target: "course-health", color: colors.charts?.blue },
-              { icon: MessageSquare, label: "Feedback", target: "course-feedback", color: colors.brand.primaryOrange },
-              { icon: TrendingUp, label: "Revenue", target: "course-revenue", color: colors.brand.successGreen },
+              {
+                icon: Sparkles,
+                label: "Add more lessons",
+                target: "course-create",
+                color: colors.charts?.purple,
+              },
+              {
+                icon: BarChart2,
+                label: "Course Health",
+                target: "course-health",
+                color: colors.charts?.blue,
+              },
+              {
+                icon: MessageSquare,
+                label: "Feedback",
+                target: "course-feedback",
+                color: colors.brand.primaryOrange,
+              },
+              {
+                icon: TrendingUp,
+                label: "Revenue",
+                target: "course-revenue",
+                color: colors.brand.successGreen,
+              },
             ].map((item) => {
               const Icon = item.icon;
               return (
@@ -810,21 +1222,37 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
                   key={item.label}
                   onClick={() => onNavigate?.(item.target)}
                   style={{
-                    width: "100%", display: "flex", alignItems: "center", gap: 10,
-                    background: "none", border: "none", cursor: "pointer",
-                    padding: "10px 0", textAlign: "left",
+                    width: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    padding: "10px 0",
+                    textAlign: "left",
                   }}
                 >
                   <span
                     style={{
-                      width: 30, height: 30, borderRadius: 8,
+                      width: 30,
+                      height: 30,
+                      borderRadius: 8,
                       background: "rgba(0,0,0,0.04)",
-                      display: "flex", alignItems: "center", justifyContent: "center",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
                     }}
                   >
                     <Icon size={15} color={item.color} />
                   </span>
-                  <span style={{ fontSize: 13, fontWeight: 600, color: colors.typography.primaryText }}>
+                  <span
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 600,
+                      color: colors.typography.primaryText,
+                    }}
+                  >
                     {item.label}
                   </span>
                 </button>
@@ -834,7 +1262,14 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
         </div>
 
         {/* Your Courses + right-side summary */}
-        <div style={{ display: "grid", gridTemplateColumns: "3fr 1fr", gap: 16, alignItems: "start" }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "3fr 1fr",
+            gap: 16,
+            alignItems: "start",
+          }}
+        >
           {/* Course list */}
           <div
             style={{
@@ -844,19 +1279,39 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
               padding: 20,
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <span style={{ fontSize: 15, fontWeight: 700, color: colors.typography.primaryText }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: 16,
+              }}
+            >
+              <span
+                style={{
+                  fontSize: 15,
+                  fontWeight: 700,
+                  color: colors.typography.primaryText,
+                }}
+              >
                 Your Courses ({filteredCourses.length})
               </span>
 
               <div style={{ display: "flex", gap: 8 }}>
                 <select
                   value={statusFilter}
-                  onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
+                  onChange={(e) => {
+                    setStatusFilter(e.target.value);
+                    setCurrentPage(1);
+                  }}
                   style={{
-                    border: `1px solid ${colors.base.border}`, borderRadius: 999,
-                    padding: "6px 12px", fontSize: 12, color: colors.typography.primaryText,
-                    background: colors.base.cardBackground, cursor: "pointer",
+                    border: `1px solid ${colors.base.border}`,
+                    borderRadius: 999,
+                    padding: "6px 12px",
+                    fontSize: 12,
+                    color: colors.typography.primaryText,
+                    background: colors.base.cardBackground,
+                    cursor: "pointer",
                   }}
                 >
                   <option value="all">Filters: All</option>
@@ -866,11 +1321,18 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
 
                 <select
                   value={sortOrder}
-                  onChange={(e) => { setSortOrder(e.target.value); setCurrentPage(1); }}
+                  onChange={(e) => {
+                    setSortOrder(e.target.value);
+                    setCurrentPage(1);
+                  }}
                   style={{
-                    border: `1px solid ${colors.base.border}`, borderRadius: 999,
-                    padding: "6px 12px", fontSize: 12, color: colors.typography.primaryText,
-                    background: colors.base.cardBackground, cursor: "pointer",
+                    border: `1px solid ${colors.base.border}`,
+                    borderRadius: 999,
+                    padding: "6px 12px",
+                    fontSize: 12,
+                    color: colors.typography.primaryText,
+                    background: colors.base.cardBackground,
+                    cursor: "pointer",
                   }}
                 >
                   <option value="newest">Newest First</option>
@@ -882,7 +1344,14 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
             </div>
 
             {visibleCourses.length === 0 ? (
-              <div style={{ padding: "32px 0", textAlign: "center", color: colors.typography.secondaryText, fontSize: 14 }}>
+              <div
+                style={{
+                  padding: "32px 0",
+                  textAlign: "center",
+                  color: colors.typography.secondaryText,
+                  fontSize: 14,
+                }}
+              >
                 No courses yet. Create your first course to see it here.
               </div>
             ) : (
@@ -899,39 +1368,74 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
             )}
 
             {filteredCourses.length > 0 && (
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 16 }}>
-                <span style={{ fontSize: 12, color: colors.typography.secondaryText }}>
-                  Showing {pageStart + 1} to {Math.min(pageStart + pageSize, filteredCourses.length)} of {filteredCourses.length} courses
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginTop: 16,
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: 12,
+                    color: colors.typography.secondaryText,
+                  }}
+                >
+                  Showing {pageStart + 1} to{" "}
+                  {Math.min(pageStart + pageSize, filteredCourses.length)} of{" "}
+                  {filteredCourses.length} courses
                 </span>
 
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                   <button
                     onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
-                    style={{ ...iconButtonStyle, opacity: currentPage === 1 ? 0.4 : 1 }}
+                    style={{
+                      ...iconButtonStyle,
+                      opacity: currentPage === 1 ? 0.4 : 1,
+                    }}
                   >
                     <ChevronLeft size={14} />
                   </button>
 
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                    <button
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      style={{
-                        width: 28, height: 28, borderRadius: 8, border: "none",
-                        background: page === currentPage ? colors.brand.primaryOrange : "rgba(0,0,0,0.04)",
-                        color: page === currentPage ? colors.typography.white : colors.typography.primaryText,
-                        fontSize: 12, fontWeight: 700, cursor: "pointer",
-                      }}
-                    >
-                      {page}
-                    </button>
-                  ))}
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                    (page) => (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        style={{
+                          width: 28,
+                          height: 28,
+                          borderRadius: 8,
+                          border: "none",
+                          background:
+                            page === currentPage
+                              ? colors.brand.primaryOrange
+                              : "rgba(0,0,0,0.04)",
+                          color:
+                            page === currentPage
+                              ? colors.typography.white
+                              : colors.typography.primaryText,
+                          fontSize: 12,
+                          fontWeight: 700,
+                          cursor: "pointer",
+                        }}
+                      >
+                        {page}
+                      </button>
+                    ),
+                  )}
 
                   <button
-                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    onClick={() =>
+                      setCurrentPage((p) => Math.min(totalPages, p + 1))
+                    }
                     disabled={currentPage === totalPages}
-                    style={{ ...iconButtonStyle, opacity: currentPage === totalPages ? 0.4 : 1 }}
+                    style={{
+                      ...iconButtonStyle,
+                      opacity: currentPage === totalPages ? 0.4 : 1,
+                    }}
                   >
                     <ChevronRight size={14} />
                   </button>
@@ -950,16 +1454,42 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
                 padding: 18,
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  marginBottom: 6,
+                }}
+              >
                 <BookOpen size={16} color={colors.charts?.blue} />
-                <span style={{ fontSize: 12, fontWeight: 600, color: colors.typography.secondaryText, textTransform: "uppercase" }}>
+                <span
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: colors.typography.secondaryText,
+                    textTransform: "uppercase",
+                  }}
+                >
                   Total Courses
                 </span>
               </div>
-              <div style={{ fontSize: 24, fontWeight: 700, color: colors.typography.primaryText }}>
+              <div
+                style={{
+                  fontSize: 24,
+                  fontWeight: 700,
+                  color: colors.typography.primaryText,
+                }}
+              >
                 {totalCourses}
               </div>
-              <div style={{ fontSize: 12, color: colors.typography.secondaryText, marginTop: 4 }}>
+              <div
+                style={{
+                  fontSize: 12,
+                  color: colors.typography.secondaryText,
+                  marginTop: 4,
+                }}
+              >
                 {publishedCourses} published · {draftCourses} draft
               </div>
             </div>
@@ -972,16 +1502,42 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
                 padding: 18,
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  marginBottom: 6,
+                }}
+              >
                 <BookOpen size={16} color={colors.brand.successGreen} />
-                <span style={{ fontSize: 12, fontWeight: 600, color: colors.typography.secondaryText, textTransform: "uppercase" }}>
+                <span
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: colors.typography.secondaryText,
+                    textTransform: "uppercase",
+                  }}
+                >
                   Published Courses
                 </span>
               </div>
-              <div style={{ fontSize: 24, fontWeight: 700, color: colors.typography.primaryText }}>
+              <div
+                style={{
+                  fontSize: 24,
+                  fontWeight: 700,
+                  color: colors.typography.primaryText,
+                }}
+              >
                 {publishedCourses}
               </div>
-              <div style={{ fontSize: 12, color: colors.typography.secondaryText, marginTop: 4 }}>
+              <div
+                style={{
+                  fontSize: 12,
+                  color: colors.typography.secondaryText,
+                  marginTop: 4,
+                }}
+              >
                 Currently live
               </div>
             </div>
@@ -994,16 +1550,42 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
                 padding: 18,
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  marginBottom: 6,
+                }}
+              >
                 <BookOpen size={16} color={colors.brand.primaryOrange} />
-                <span style={{ fontSize: 12, fontWeight: 600, color: colors.typography.secondaryText, textTransform: "uppercase" }}>
+                <span
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: colors.typography.secondaryText,
+                    textTransform: "uppercase",
+                  }}
+                >
                   Draft Courses
                 </span>
               </div>
-              <div style={{ fontSize: 24, fontWeight: 700, color: colors.typography.primaryText }}>
+              <div
+                style={{
+                  fontSize: 24,
+                  fontWeight: 700,
+                  color: colors.typography.primaryText,
+                }}
+              >
                 {draftCourses}
               </div>
-              <div style={{ fontSize: 12, color: colors.typography.secondaryText, marginTop: 4 }}>
+              <div
+                style={{
+                  fontSize: 12,
+                  color: colors.typography.secondaryText,
+                  marginTop: 4,
+                }}
+              >
                 {draftCourses} in progress
               </div>
             </div>

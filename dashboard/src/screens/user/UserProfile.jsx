@@ -71,7 +71,7 @@ export default function UserProfile() {
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: colors.user.bg, color: "#FFFFFF" }}>
-      <UserSidebar />
+     
 
       <main style={{ flex: 1, padding: "28px 32px", overflowY: "auto" }}>
         <div style={{ maxWidth: 560, margin: "0 auto" }}>

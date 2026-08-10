@@ -1,18 +1,18 @@
-import React, {useState} from "react";
+import React, { useState } from "react";
 import {
-    LifeBuoy,
-    MessageCircle,
-    Mail,
-    Phone,
-    Share2,
-    FileText,
-    ShieldCheck,
-    RotateCcw,
-    ArrowUpRight,
-    Clock,
-    X,
-    ExternalLink
-} from "lucide-react"
+  LifeBuoy,
+  MessageCircle,
+  Mail,
+  Phone,
+  Share2,
+  FileText,
+  ShieldCheck,
+  RotateCcw,
+  ArrowUpRight,
+  Clock,
+  X,
+  ExternalLink
+} from "lucide-react";
 import colors from "../../utils/colors";
 import UserSidebar from "./UserSidebar";
 
@@ -23,7 +23,7 @@ const SUPPORT_EMAIL = "help@manchly.com";
 const INSTAGRAM = "https://www.instagram.com/manchly_app";
 const COMPANY = "Agnivora Digital Pvt Ltd";
 
- const waLink = (msg) =>
+const waLink = (msg) =>
   `https://wa.me/91${SUPPORT_PHONE}?text=${encodeURIComponent(msg)}`;
 
 // ── Policy Content Structure ──
@@ -61,21 +61,20 @@ const REFUND = [
 ];
 
 const TABS = [
-    {key: 'support', label: "Support & Contact", icon: LifeBuoy},
-    {key: 'terms', label: "Terms of Service", icon: FileText},
-    {key: 'privacy', label: "Privacy Policy", icon: ShieldCheck},
-    {key: 'refund', label: "Refund Policy", icon: RotateCcw},
+  { key: 'support', label: "Support & Contact", icon: LifeBuoy },
+  { key: 'terms', label: "Terms of Service", icon: FileText },
+  { key: 'privacy', label: "Privacy Policy", icon: ShieldCheck },
+  { key: 'refund', label: "Refund Policy", icon: RotateCcw },
 ];
 
+export default function HelpCenter() {
+  const [tab, setTab] = useState("support");
+  const [activeModelDoc, setActiveModalDoc] = useState(null);
 
-export default function HelpCenter(){
-    const [tab, setTab] = useState("support");
-    const [activeModelDoc, setActiveModalDoc] = useState(null);
+  const waMessage = "Hello, I am a Learner on Manchly and I need help with my account";
 
-    const waMessage = "Hello, I am a Learner on Manchly and I need help with my account";
-
-    const CHANNELS = [
-        {
+  const CHANNELS = [
+    {
       key: "whatsapp",
       title: "WhatsApp Support",
       sub: `+91 ${SUPPORT_PHONE}`,
@@ -135,8 +134,6 @@ export default function HelpCenter(){
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: T.bg, color: T.text }}>
-      <UserSidebar />
-
       <main style={{ flex: 1, padding: "28px 32px", overflowY: "auto" }}>
         <style>{`
           .hc-card { transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
@@ -195,7 +192,7 @@ export default function HelpCenter(){
                   border: `1px solid ${T.border}`,
                   borderRadius: 20, padding: "26px 30px",
                   color: "#FFF", marginBottom: 22, display: "flex",
-                  justify: "space-between", alignItems: "center", gap: 20, flexWrap: "wrap",
+                  justifyContent: "space-between", alignItems: "center", gap: 20, flexWrap: "wrap",
                   boxShadow: "0 10px 30px rgba(0,0,0,0.3)",
                 }}
               >
@@ -259,19 +256,6 @@ export default function HelpCenter(){
                     />
                   </a>
                 ))}
-              </div>
-
-              {/* Legal Quick-Launch Bar */}
-              <div style={{ marginTop: 28, background: T.cardBg, border: `1px solid ${T.border}`, borderRadius: 18, padding: "18px 22px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 14 }}>
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 800 }}>Need formal policy documents?</div>
-                  <div style={{ fontSize: 12.5, color: T.sub, marginTop: 2 }}>View full legal terms, user privacy, and refund policies in a popup window.</div>
-                </div>
-                <div style={{ display: "flex", gap: 10 }}>
-                  <button onClick={() => setActiveModalDoc("terms")} style={{ background: "rgba(255,255,255,0.06)", border: `1px solid ${T.border}`, color: "#FFF", borderRadius: 8, padding: "6px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>Terms</button>
-                  <button onClick={() => setActiveModalDoc("privacy")} style={{ background: "rgba(255,255,255,0.06)", border: `1px solid ${T.border}`, color: "#FFF", borderRadius: 8, padding: "6px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>Privacy</button>
-                  <button onClick={() => setActiveModalDoc("refund")} style={{ background: "rgba(255,255,255,0.06)", border: `1px solid ${T.border}`, color: "#FFF", borderRadius: 8, padding: "6px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>Refunds</button>
-                </div>
               </div>
 
               <LegalFooter color="rgba(255,255,255,0.4)" linkColor={colors.user.accentSoft} dark={true} />

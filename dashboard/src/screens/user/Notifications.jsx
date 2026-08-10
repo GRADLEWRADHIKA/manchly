@@ -105,7 +105,7 @@ export default function Notifications({ role = "user" }) {
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: dark ? colors.user.bg : "transparent", color: T.pageColor }}>
-      {dark && <UserSidebar />}
+      
 
       <main style={{ flex: 1, padding: dark ? "28px 32px" : 0, overflowY: "auto" }}>
         <div style={{ maxWidth: 760, margin: "0 auto", color: T.pageColor, padding: dark ? 0 : 32 }}>

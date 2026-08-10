@@ -1,7 +1,3 @@
-// Unified creator-suite top bar shown on every /creator page.
-// Left: greeting + date. Right: lifetime earnings chip · Withdraw · bell with
-// live unread badge · avatar. Self-fetches wallet + unread count unless the
-// host screen supplies them (Radhika's Dashboard/Courses pass their own).
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Bell, ArrowDownToLine } from "lucide-react";
@@ -33,6 +29,32 @@ export default function CreatorTopbar({
   const selfFetch = totalRevenue === null;
   const [earnings, setEarnings] = useState(totalRevenue ?? 0);
   const [unread, setUnread] = useState(0);
+
+  // ---------- Meta Pixel Initialization ----------
+  useEffect(() => {
+    if (!window.fbq) {
+      !(function (f, b, e, v, n, t, s) {
+        if (f.fbq) return;
+        n = f.fbq = function () {
+          n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
+        };
+        if (!f._fbq) f._fbq = n;
+        n.push = n;
+        n.loaded = !0;
+        n.version = "2.0";
+        n.queue = [];
+        t = b.createElement(e);
+        t.async = !0;
+        t.src = v;
+        s = b.getElementsByTagName(e)[0];
+        s.parentNode.insertBefore(t, s);
+      })(window, document, "script", "https://connect.facebook.net/en_US/fbevents.js");
+
+      window.fbq("init", "1934937467197429");
+    }
+    window.fbq("track", "PageView");
+  }, []);
+  // -----------------------------------------------
 
   useEffect(() => {
     if (!selfFetch) return;
@@ -102,21 +124,6 @@ export default function CreatorTopbar({
           }}
         >
           <ArrowDownToLine size={14} /> Withdraw
-        </button>
-
-        <button
-          onClick={onNotifications || (() => navigate("/creator/notifications"))}
-          title="Notifications"
-          style={{
-            position: "relative", width: 38, height: 38, borderRadius: "50%",
-            border: `1px solid ${colors.base.border}`, background: "#fff", cursor: "pointer",
-            display: "flex", alignItems: "center", justifyContent: "center", color: colors.typography.primaryText,
-          }}
-        >
-          <Bell size={17} />
-          {showDot && (
-            <span style={{ position: "absolute", top: 5, right: 6, minWidth: 9, height: 9, borderRadius: 99, background: G.danger, border: "2px solid #fff" }} />
-          )}
         </button>
 
         <div onClick={() => navigate("/creator/settings")} style={{ cursor: "pointer", display: "flex" }} title="Profile & Settings">

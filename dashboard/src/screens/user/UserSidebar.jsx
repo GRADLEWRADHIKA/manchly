@@ -6,8 +6,6 @@ import {
   BookOpen,
   PlayCircle,
   Users,
-  Radio,
-  Sparkles,
   Bell,
   LifeBuoy,
   Settings,
@@ -45,7 +43,7 @@ export default function UserSidebar() {
           borderRight: `1px solid ${colors.user?.border || "rgba(255, 255, 255, 0.08)"}`,
           display: "flex",
           flexDirection: "column",
-          justify: "space-between",
+          justifyContent: "space-between",
           flexShrink: 0,
           position: "sticky",
           top: 0,
@@ -176,11 +174,17 @@ export default function UserSidebar() {
             onClose={() => setConfirmLogout(false)}
             title="Log out?"
             width={380}
+            dark={true}
+            style={{
+              background: colors.user?.card || "#111827",
+              color: colors.user?.text || "#FFFFFF",
+              border: `1px solid ${colors.user?.border || "rgba(255, 255, 255, 0.12)"}`,
+            }}
           >
             <p
               style={{
-                margin: "0 0 18px",
-                color: colors.user?.subHeading || "#73799B",
+                margin: "0 0 20px",
+                color: colors.user?.subHeading || "rgba(255, 255, 255, 0.65)",
                 fontSize: 14,
                 lineHeight: 1.6,
               }}
@@ -192,15 +196,16 @@ export default function UserSidebar() {
                 onClick={() => setConfirmLogout(false)}
                 style={{
                   flex: 1,
-                  border: `1.5px solid ${colors.user?.border || "rgba(255, 255, 255, 0.08)"}`,
-                  background: colors.user?.card || "#1A1E38",
+                  border: `1px solid ${colors.user?.border || "rgba(255, 255, 255, 0.12)"}`,
+                  background: "rgba(255, 255, 255, 0.06)",
                   color: colors.user?.text || "#FFFFFF",
                   borderRadius: 12,
                   padding: "11px 16px",
                   fontSize: 14,
-                  fontWeight: 800,
+                  fontWeight: 700,
                   cursor: "pointer",
                   fontFamily: "inherit",
+                  transition: "all 0.15s ease",
                 }}
               >
                 Cancel

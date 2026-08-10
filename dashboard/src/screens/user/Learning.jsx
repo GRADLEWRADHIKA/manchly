@@ -37,10 +37,10 @@ export default function Learning() {
     <button
       onClick={() => setTab(t)}
       style={{
-        padding: "9px 24px", borderRadius: 999, border: "none", cursor: "pointer", fontSize: 14, fontWeight: 800,
+        padding: "12px 36px", borderRadius: 999, border: "none", cursor: "pointer", fontSize: 16, fontWeight: 800,
         background: tab === t ? colors.gradients.indigo : "transparent",
         color: tab === t ? "#fff" : colors.user.subHeading,
-        display: "flex", alignItems: "center", gap: 8,
+        display: "flex", alignItems: "center", gap: 8, transition: "all 0.2s ease",
       }}
     >
       {label}
@@ -50,7 +50,7 @@ export default function Learning() {
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: colors.user.bg, color: colors.user.text }}>
-      <UserSidebar />
+      
 
       <main style={{ flex: 1, padding: "28px 32px", overflowY: "auto" }}>
         <h1 style={{ margin: "0 0 18px", fontSize: 26, fontWeight: 900 }}>My Purchases</h1>

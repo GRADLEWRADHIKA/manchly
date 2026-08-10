@@ -58,7 +58,7 @@ export default function Sessions() {
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: colors.user.bg, color: colors.user.text }}>
-      <UserSidebar />
+    
 
       <main style={{ flex: 1, padding: "28px 32px", overflowY: "auto" }}>
         <h1 style={{ margin: "0 0 18px", fontSize: 26, fontWeight: 900 }}>My Journey</h1>

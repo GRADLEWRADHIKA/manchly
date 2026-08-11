@@ -72,6 +72,16 @@ const WebinarDetails = () => {
   const platformFee = (price * 2) / 100;
   const total = price + gst + platformFee;
 
+  // A webinar can only be rated once it has actually taken place (mirrors the
+  // backend rule). Showing the rate button on an upcoming webinar would just
+  // produce a 400 on submit, so gate it here.
+  const scheduledMs = data?.scheduled_at ? new Date(data.scheduled_at).getTime() : 0;
+  const canRate =
+    !!data?.is_enrolled &&
+    data?.status !== 'CANCELLED' &&
+    scheduledMs > 0 &&
+    scheduledMs <= Date.now();
+
   const [timeLeft, setTimeLeft] = useState<string>('');
 
   useEffect(() => {
@@ -394,15 +404,23 @@ const WebinarDetails = () => {
 
       <View style={styles.bottomBar}>
         {data?.is_enrolled ? (
-          <TouchableOpacity
-            style={styles.buyButtonWrapper}
-            onPress={() => setShowRate(true)}
-            activeOpacity={0.85}
-          >
-            <View style={[styles.buyButton, { backgroundColor: colors.success }]}>
-              <Text style={styles.buyText}>Rate this webinar</Text>
+          canRate ? (
+            <TouchableOpacity
+              style={styles.buyButtonWrapper}
+              onPress={() => setShowRate(true)}
+              activeOpacity={0.85}
+            >
+              <View style={[styles.buyButton, { backgroundColor: colors.success }]}>
+                <Text style={styles.buyText}>Rate this webinar</Text>
+              </View>
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.buyButtonWrapper}>
+              <View style={[styles.buyButton, { backgroundColor: colors.uCard }]}>
+                <Text style={styles.buyText}>Enrolled - Rate after it ends</Text>
+              </View>
             </View>
-          </TouchableOpacity>
+          )
         ) : (
           <TouchableOpacity
             style={styles.buyButtonWrapper}

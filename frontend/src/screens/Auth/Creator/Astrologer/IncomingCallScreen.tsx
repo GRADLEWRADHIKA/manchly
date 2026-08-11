@@ -23,7 +23,7 @@ const IncomingCallScreen: React.FC = () => {
   const dispatch = useDispatch<any>();
   const {user} = useSelector((state: any) => state.userReducer);
 
-  const {callID, callerName, mode, sessionId, callerId} = route.params || {};
+  const {callID, callerName, callerImage, mode, sessionId, callerId} = route.params || {};
 
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const ringtoneRef = useRef<Sound | null>(null);
@@ -103,6 +103,10 @@ const IncomingCallScreen: React.FC = () => {
       mode,
       sessionId,
       otherUserId: callerId,
+      // Carry the expert's identity through so the post-call rating screen
+      // shows who was rated (the "caller" here is the expert who rang the user).
+      expertName: callerName,
+      expertImage: callerImage,
     });
   };
 

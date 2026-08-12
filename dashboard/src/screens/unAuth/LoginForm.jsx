@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import S from "./authStyles";
 import { API_BASE as API } from "../../utils/api";
+import FingerprintJS from "@fingerprintjs/fingerprintjs";
 
 export default function LoginForm({ onAuthSuccess, switchSignup }) {
   // Form Data State
@@ -12,7 +13,18 @@ export default function LoginForm({ onAuthSuccess, switchSignup }) {
   // UI States
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [sessionNotice, setSessionNotice] = useState("");
   const [showPass, setShowPass] = useState(false);
+
+  // Detect session invalidation from URL redirect (e.g., logged in on another device)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("reason") === "session_expired") {
+      setSessionNotice(
+        "You were logged out because your account was accessed from another device."
+      );
+    }
+  }, []);
 
   // Input Handler
   const handleInput = (key) => (e) => {
@@ -31,7 +43,8 @@ export default function LoginForm({ onAuthSuccess, switchSignup }) {
   };
 
   // Login Handler
-  const handleLogin = async () => {
+  const handleLogin = async (e) => {
+    if (e) e.preventDefault();
     if (loading) return;
 
     const err = validate();
@@ -42,9 +55,20 @@ export default function LoginForm({ onAuthSuccess, switchSignup }) {
 
     setLoading(true);
 
+    // Generate unique device fingerprint to track active device sessions
+    let deviceId = "";
+    try {
+      const fp = await FingerprintJS.load();
+      const result = await fp.get();
+      deviceId = result.visitorId;
+    } catch (_) {
+      // Fallback if adblockers block fingerprinting script
+    }
+
     const payload = {
       email: form.email.trim(),
       password: form.password,
+      deviceId, // Pass fingerprint hash to backend
     };
 
     try {
@@ -88,6 +112,16 @@ export default function LoginForm({ onAuthSuccess, switchSignup }) {
           email: form.email.trim(),
         };
 
+      // Store token in localStorage
+      if (token) {
+        localStorage.setItem("manchly_token", token);
+      }
+
+      // Clear any session notice from URL
+      if (window.location.search.includes("reason=session_expired")) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+
       // Notify parent component
       onAuthSuccess?.({
         ...user,
@@ -102,19 +136,35 @@ export default function LoginForm({ onAuthSuccess, switchSignup }) {
   };
 
   return (
-    <div
+    <form
+      onSubmit={handleLogin}
       style={{
         display: "flex",
         flexDirection: "column",
         gap: 12,
       }}
     >
-      {/* Error */}
-      {error && (
-        <div style={S.errorBox}>
-          ⚠️ {error}
+      {/* Forced Logout Notice */}
+      {sessionNotice && (
+        <div
+          style={
+            S.noticeBox || {
+              backgroundColor: "rgba(245, 158, 11, 0.12)",
+              border: "1px solid #f59e0b",
+              color: "#b45309",
+              padding: "10px 14px",
+              borderRadius: 8,
+              fontSize: 13,
+              fontWeight: 500,
+            }
+          }
+        >
+          ⚠️ {sessionNotice}
         </div>
       )}
+
+      {/* Error Message */}
+      {error && <div style={S.errorBox}>⚠️ {error}</div>}
 
       {/* Email */}
       <div>
@@ -159,8 +209,7 @@ export default function LoginForm({ onAuthSuccess, switchSignup }) {
 
       {/* Login Button */}
       <button
-        type="button"
-        onClick={handleLogin}
+        type="submit"
         disabled={loading}
         style={{
           ...S.btn,
@@ -175,14 +224,10 @@ export default function LoginForm({ onAuthSuccess, switchSignup }) {
       {/* Signup Link */}
       <p style={S.switchHint}>
         Don't have an account?{" "}
-        <button
-          type="button"
-          onClick={switchSignup}
-          style={S.switchLink}
-        >
+        <button type="button" onClick={switchSignup} style={S.switchLink}>
           Sign up
         </button>
       </p>
-    </div>
+    </form>
   );
 }

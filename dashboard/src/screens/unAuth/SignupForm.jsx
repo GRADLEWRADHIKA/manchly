@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import S from "./authStyles";
 import { API_BASE as API } from "../../utils/api";
+import FingerprintJS from "@fingerprintjs/fingerprintjs";
 
 export default function SignupForm({ onAuthSuccess, switchToLogin }) {
   // Form Data State
@@ -19,7 +20,7 @@ export default function SignupForm({ onAuthSuccess, switchToLogin }) {
   // Input Handler
   const handleInput = (key) => (e) => {
     setError(""); // clear errors when the user starts typing
-    setForm({ ...form, [key]: e.target.value });
+    setForm((prev) => ({ ...prev, [key]: e.target.value }));
   };
 
   // Validation Check
@@ -32,20 +33,34 @@ export default function SignupForm({ onAuthSuccess, switchToLogin }) {
   };
 
   // Submission Handler
-  const handleSignup = async () => {
+  const handleSignup = async (e) => {
+    if (e) e.preventDefault();
+    if (loading) return;
+
     const err = validate();
     if (err) {
       setError(err);
       return;
     }
-    
+
     setLoading(true);
+
+    // Generate unique device fingerprint to send to backend for device tracking / signup limits
+    let deviceId = "";
+    try {
+      const fp = await FingerprintJS.load();
+      const result = await fp.get();
+      deviceId = result.visitorId;
+    } catch (_) {
+      // Fallback if fingerprinting is blocked by client
+    }
 
     const payload = {
       name: form.name.trim(),
       email: form.email.trim(),
       password: form.password,
       phone: form.phone.trim(),
+      deviceId, // Pass browser/hardware fingerprint to backend
     };
 
     try {
@@ -78,6 +93,11 @@ export default function SignupForm({ onAuthSuccess, switchToLogin }) {
           phone: form.phone.trim(),
         };
 
+      // Store auth token in localStorage on successful signup
+      if (token) {
+        localStorage.setItem("manchly_token", token);
+      }
+
       onAuthSuccess?.({ ...user, token });
     } catch (err) {
       console.error("[Signup] error:", err);
@@ -86,114 +106,107 @@ export default function SignupForm({ onAuthSuccess, switchToLogin }) {
       setLoading(false);
     }
   };
-  
+
   return (
-  <div
-    style={{
-      display: "flex",
-      flexDirection: "column",
-      gap: 12,
-    }}
-  >
-    {/* Error Banner */}
-    {error && (
-      <div style={S.errorBox}>
-        ⚠️ {error}
-      </div>
-    )}
-
-    {/* Full Name */}
-    <div>
-      <label style={S.label}>Full Name</label>
-      <input
-        type="text"
-        placeholder="John Doe"
-        value={form.name}
-        onChange={handleInput("name")}
-        style={S.input}
-        autoComplete="name"
-      />
-    </div>
-
-    {/* Email */}
-    <div>
-      <label style={S.label}>Email Address</label>
-      <input
-        type="email"
-        placeholder="user@example.com"
-        value={form.email}
-        onChange={handleInput("email")}
-        style={S.input}
-        autoComplete="email"
-      />
-    </div>
-
-    {/* Password */}
-    <div>
-      <label style={S.label}>Password</label>
-
-      <div style={{ position: "relative" }}>
-        <input
-          type={showPass ? "text" : "password"}
-          placeholder="Create a password"
-          value={form.password}
-          onChange={handleInput("password")}
-          style={{
-            ...S.input,
-            paddingRight: 44,
-          }}
-          autoComplete="new-password"
-        />
-
-        <button
-          type="button"
-          onClick={() => setShowPass((prev) => !prev)}
-          style={S.eyeBtn}
-          tabIndex={-1}
-        >
-          {showPass ? "🙈" : "👁️"}
-        </button>
-      </div>
-    </div>
-
-    {/* Phone Number */}
-    <div>
-      <label style={S.label}>Phone Number</label>
-      <input
-        type="tel"
-        placeholder="9876543210"
-        value={form.phone}
-        onChange={handleInput("phone")}
-        style={S.input}
-        autoComplete="tel"
-      />
-    </div>
-
-    {/* Submit Button */}
-    <button
-      type="button"
-      onClick={handleSignup}
-      disabled={loading}
+    <form
+      onSubmit={handleSignup}
       style={{
-        ...S.btn,
-        marginTop: 20,
-        opacity: loading ? 0.7 : 1,
-        cursor: loading ? "not-allowed" : "pointer",
+        display: "flex",
+        flexDirection: "column",
+        gap: 12,
       }}
     >
-      {loading ? "Creating account..." : "Create Account"}
-    </button>
+      {/* Error Banner */}
+      {error && <div style={S.errorBox}>⚠️ {error}</div>}
 
-    {/* Footer */}
-    <p style={S.switchHint}>
-      Already have an account?{" "}
+      {/* Full Name */}
+      <div>
+        <label style={S.label}>Full Name</label>
+        <input
+          type="text"
+          placeholder="John Doe"
+          value={form.name}
+          onChange={handleInput("name")}
+          style={S.input}
+          autoComplete="name"
+        />
+      </div>
+
+      {/* Email */}
+      <div>
+        <label style={S.label}>Email Address</label>
+        <input
+          type="email"
+          placeholder="user@example.com"
+          value={form.email}
+          onChange={handleInput("email")}
+          style={S.input}
+          autoComplete="email"
+        />
+      </div>
+
+      {/* Password */}
+      <div>
+        <label style={S.label}>Password</label>
+
+        <div style={{ position: "relative" }}>
+          <input
+            type={showPass ? "text" : "password"}
+            placeholder="Create a password"
+            value={form.password}
+            onChange={handleInput("password")}
+            style={{
+              ...S.input,
+              paddingRight: 44,
+            }}
+            autoComplete="new-password"
+          />
+
+          <button
+            type="button"
+            onClick={() => setShowPass((prev) => !prev)}
+            style={S.eyeBtn}
+            tabIndex={-1}
+          >
+            {showPass ? "🙈" : "👁️"}
+          </button>
+        </div>
+      </div>
+
+      {/* Phone Number */}
+      <div>
+        <label style={S.label}>Phone Number</label>
+        <input
+          type="tel"
+          placeholder="9876543210"
+          value={form.phone}
+          onChange={handleInput("phone")}
+          style={S.input}
+          autoComplete="tel"
+        />
+      </div>
+
+      {/* Submit Button */}
       <button
-        type="button"
-        onClick={switchToLogin}
-        style={S.switchLink}
+        type="submit"
+        disabled={loading}
+        style={{
+          ...S.btn,
+          marginTop: 20,
+          opacity: loading ? 0.7 : 1,
+          cursor: loading ? "not-allowed" : "pointer",
+        }}
       >
-        Log in
+        {loading ? "Creating account..." : "Create Account"}
       </button>
-    </p>
-  </div>
-);
+
+      {/* Footer */}
+      <p style={S.switchHint}>
+        Already have an account?{" "}
+        <button type="button" onClick={switchToLogin} style={S.switchLink}>
+          Log in
+        </button>
+      </p>
+    </form>
+  );
+}

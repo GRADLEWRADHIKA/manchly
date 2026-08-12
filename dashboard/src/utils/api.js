@@ -41,6 +41,7 @@ export function authHeaders(extra = {}) {
 // fetch wrapper:
 //  - prepends API_BASE to a relative path ("/notifications/creator")
 //  - injects the bearer token + JSON content-type (skipped for FormData)
+//  - intercepts 401 Unauthorized to handle multi-device session terminations
 //  - parses JSON and throws Error(message) on a non-2xx response
 export async function apiFetch(path, opts = {}) {
   const url = /^https?:\/\//.test(path) ? path : `${API_BASE}${path}`;
@@ -61,6 +62,19 @@ export async function apiFetch(path, opts = {}) {
   }
 
   if (!res.ok) {
+    // Catch 401 Unauthorized (Session invalidated by backend or logged in elsewhere)
+    if (res.status === 401) {
+      clearToken();
+
+      // Avoid infinite redirect loop if the request was an initial login attempt or already on /login
+      const isLoginEndpoint = path.includes("/login") || path.includes("/auth/login");
+      const isLoginPage = window.location.pathname.includes("/login");
+
+      if (!isLoginEndpoint && !isLoginPage) {
+        window.location.href = "/login?reason=session_expired";
+      }
+    }
+
     const msg =
       body?.error?.message ||
       body?.message ||

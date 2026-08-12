@@ -11,8 +11,9 @@
   },
   "dependencies": {
     "@cashfreepayments/cashfree-js": "^1.0.7",
+    "@fingerprintjs/fingerprintjs": "^5.2.0",
     "@zegocloud/zego-uikit-prebuilt": "^2.18.1",
-    "hls.js": "^1.6.16",
+    "hls.js": "^1.6.18",
     "lucide-react": "^1.16.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",

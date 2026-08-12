@@ -13,6 +13,7 @@ import TopProducts from "../../../components/TopProducts";
 import ScaleImpactBanner from "../../../components/ScaleImpactBanner";
 import Sidebar from "../../../components/Sidebar";
 import TopHeader from "../../../components/TopHeader";
+import FloatingIntroVideo from "../../../components/FloatingIntroVideo";
 
 // Helper function
 function val(result) {
@@ -121,6 +122,9 @@ export default function DashboardScreen({ user, onNavigate, onLogout }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // State for floating intro video visibility
+  const [showIntroVideo, setShowIntroVideo] = useState(true);
+
   // State for different dashboard modules
   const [dashboard, setDashboard] = useState(null); 
   const [walletData, setWalletData] = useState(null);
@@ -130,7 +134,6 @@ export default function DashboardScreen({ user, onNavigate, onLogout }) {
   const [earningsBreakdown, setEarningsBreakdown] = useState(null); 
   const [kycStatus, setKycStatus] = useState(null); 
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
-
 
   const loadNotifications = useCallback(async () => {
     try {
@@ -224,54 +227,17 @@ export default function DashboardScreen({ user, onNavigate, onLogout }) {
 
   const revenueChartData = earningsBreakdown?.monthly ||
     dashboard?.monthly_revenue || [
-      {
-        month: "Jan",
-        courses: 0,
-        webinars: 0,
-        sessions: 0,
-      },
-      {
-        month: "Feb",
-        courses: 0,
-        webinars: 0,
-        sessions: 0,
-      },
-      {
-        month: "Mar",
-        courses: 0,
-        webinars: 0,
-        sessions: 0,
-      },
-      {
-        month: "Apr",
-        courses: 0,
-        webinars: 0,
-        sessions: 0,
-      },
-      {
-        month: "May",
-        courses: 0,
-        webinars: 0,
-        sessions: 0,
-      },
-      {
-        month: "Jun",
-        courses: 0,
-        webinars: 0,
-        sessions: 0,
-      },
-      {
-        month: "Jul",
-        courses: 0,
-        webinars: 0,
-        sessions: 0,
-      },
+      { month: "Jan", courses: 0, webinars: 0, sessions: 0 },
+      { month: "Feb", courses: 0, webinars: 0, sessions: 0 },
+      { month: "Mar", courses: 0, webinars: 0, sessions: 0 },
+      { month: "Apr", courses: 0, webinars: 0, sessions: 0 },
+      { month: "May", courses: 0, webinars: 0, sessions: 0 },
+      { month: "Jun", courses: 0, webinars: 0, sessions: 0 },
+      { month: "Jul", courses: 0, webinars: 0, sessions: 0 },
     ];
 
   const handleTimeframeChange = (timeframe) => {
     console.log("Selected timeframe:", timeframe);
-
-    // Later you can fetch 7M / 1Y / All data here
   };
 
   const totalStudents = dashboard?.total_students ?? 0;
@@ -291,18 +257,9 @@ export default function DashboardScreen({ user, onNavigate, onLogout }) {
   ];
 
   const productPerformanceData = [
-    {
-      name: "React Native Course",
-      value: courseRevenue,
-    },
-    {
-      name: "Live Webinars",
-      value: webinarRevenue,
-    },
-    {
-      name: "1:1 Sessions",
-      value: sessionRevenue,
-    },
+    { name: "React Native Course", value: courseRevenue },
+    { name: "Live Webinars", value: webinarRevenue },
+    { name: "1:1 Sessions", value: sessionRevenue },
   ];
 
   const maxProductRevenue = Math.max(
@@ -328,6 +285,7 @@ export default function DashboardScreen({ user, onNavigate, onLogout }) {
         display: "flex",
         backgroundColor: colors.base.appBackground,
         minHeight: "100vh",
+        position: "relative",
       }}
     >
       <Sidebar
@@ -354,6 +312,7 @@ export default function DashboardScreen({ user, onNavigate, onLogout }) {
 
         {/* Verification Banner */}
         <VerificationBanner isKycVerified={isKycVerified} onVerify={() => onNavigate?.("kyc")} />
+        
         {/* Error */}
         {error && (
           <div
@@ -448,6 +407,7 @@ export default function DashboardScreen({ user, onNavigate, onLogout }) {
             ))}
           </div>
         </div>
+
         {/* Revenue Cards */}
         <div
           style={{
@@ -516,11 +476,7 @@ export default function DashboardScreen({ user, onNavigate, onLogout }) {
         </div>
 
         {/* Products Summary */}
-        <div
-          style={{
-            marginTop: 32,
-          }}
-        >
+        <div style={{ marginTop: 32 }}>
           <div
             style={{
               marginBottom: 18,
@@ -588,7 +544,6 @@ export default function DashboardScreen({ user, onNavigate, onLogout }) {
         </div>
 
         {/* Secondary Data Visualizations */}
-
         <div
           style={{
             display: "grid",
@@ -607,7 +562,6 @@ export default function DashboardScreen({ user, onNavigate, onLogout }) {
         </div>
 
         {/* Activity & Ranking */}
-
         <div
           style={{
             display: "grid",
@@ -623,11 +577,14 @@ export default function DashboardScreen({ user, onNavigate, onLogout }) {
         </div>
 
         {/* Scale Your Impact Banner */}
-
         <ScaleImpactBanner />
-
-        {/* Your remaining dashboard components will be added here */}
       </div>
+
+      {/* Floating Onboarding / Intro Video Widget */}
+      <FloatingIntroVideo
+        visible={showIntroVideo}
+        onClose={() => setShowIntroVideo(false)}
+      />
     </div>
   );
 }

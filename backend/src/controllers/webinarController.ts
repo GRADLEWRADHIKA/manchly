@@ -12,7 +12,7 @@ import { cashfreePG } from "../services/cashfreeService";
 import { NotificationController } from "./notificationController";
 import { isAccessExpired, computeAccessExpiry, parseAccessPolicyInput } from "../utils/accessExpiry";
 import MuxManager from "../utils/MuxManager";
-import { resolveUserByIdOrPhone } from "../utils/userLookup";
+import { resolveUser } from "../utils/userLookup";
 import crypto from "crypto";
 import dotenv from "dotenv";
 
@@ -209,6 +209,7 @@ export class WebinarController {
           creator_id: userId,
           published_at: status === "PUBLISHED" ? new Date() : null,
           access_duration_days: parseAccessPolicyInput(req.body).access_duration_days,
+          access_duration_unit: parseAccessPolicyInput(req.body).access_duration_unit,
           access_expires_at: parseAccessPolicyInput(req.body).access_expires_at,
           whatsapp_community_url: req.body.whatsapp_community_url?.trim() || null,
           thankyou_message: req.body.thankyou_message?.trim() || null,
@@ -502,7 +503,9 @@ export class WebinarController {
       if (timezone !== undefined) updateData.timezone = timezone;
       if (max_participants !== undefined) updateData.max_participants = max_participants;
       if (req.body.access_duration_days !== undefined) {
-        updateData.access_duration_days = parseAccessPolicyInput(req.body).access_duration_days;
+        const parsed = parseAccessPolicyInput(req.body);
+        updateData.access_duration_days = parsed.access_duration_days;
+        updateData.access_duration_unit = parsed.access_duration_unit;
       }
       if (req.body.access_expires_at !== undefined) {
         updateData.access_expires_at = parseAccessPolicyInput(req.body).access_expires_at;
@@ -1050,18 +1053,18 @@ export class WebinarController {
   /**
    * Manually grant a user access to a webinar without payment.
    * Allowed for the webinar owner (creator) or an ADMIN.
-   * The target user is identified by `user_id` or `phone` in the body.
+   * The target user is identified by `user_id`, `email`, or `phone` in the body.
    * Creates a webinar_enrollment with a null `transaction_id`, which is how a
    * manual/comp grant is distinguished from a paid enrollment.
    */
   static async grantWebinarAccess(req: any, res: Response) {
     const { webinarId } = req.params;
     const requesterId = req.user.userId;
-    const { user_id, phone } = req.body;
+    const { user_id, phone, email } = req.body;
 
     try {
-      if (!user_id && !phone) {
-        return ApiResponseHandler.customError(res, "Provide a user_id or phone to grant access to", 400, "MISSING_TARGET");
+      if (!user_id && !phone && !email) {
+        return ApiResponseHandler.customError(res, "Provide a user_id, phone, or email to grant access to", 400, "MISSING_TARGET");
       }
 
       const webinar = await prisma.webinars.findUnique({ where: { id: webinarId } });
@@ -1082,7 +1085,7 @@ export class WebinarController {
       // Resolve the target user (tolerates country-code/format differences in
       // how the phone was stored — a bare 10-digit lookup still matches a
       // stored "+91…" variant of the same number).
-      const targetUser = await resolveUserByIdOrPhone({ user_id, phone });
+      const targetUser = await resolveUser({ user_id, phone, email });
       if (!targetUser) {
         return ApiResponseHandler.customError(res, "No user found for the given identifier", 404, "USER_NOT_FOUND");
       }
@@ -1268,6 +1271,7 @@ export class WebinarController {
         auto_enroll = true,
         publish = true,
         access_duration_days,
+        access_duration_unit,
         access_expires_at,
       } = req.body;
 
@@ -1299,7 +1303,7 @@ export class WebinarController {
       }
       const playbackId = asset?.playback_ids?.[0]?.id || null;
 
-      const accessPolicy = parseAccessPolicyInput({ access_duration_days, access_expires_at });
+      const accessPolicy = parseAccessPolicyInput({ access_duration_days, access_duration_unit, access_expires_at });
       const courseTitle = title?.trim() || `${webinar.title} (Recording)`;
 
       // Create the course from the webinar's metadata
@@ -1315,6 +1319,7 @@ export class WebinarController {
           creator_id: webinar.creator_id,
           published_at: publish ? new Date() : null,
           access_duration_days: accessPolicy.access_duration_days,
+          access_duration_unit: accessPolicy.access_duration_unit,
           access_expires_at: accessPolicy.access_expires_at,
           whatsapp_community_url: webinar.whatsapp_community_url,
           thankyou_message: webinar.thankyou_message,

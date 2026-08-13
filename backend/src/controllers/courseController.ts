@@ -7,7 +7,7 @@ import { isCreator, isUser } from "../utils/userTypeHelper";
 import { notificationService } from "../services/NotificationService";
 import { NotificationController } from "./notificationController";
 import { isAccessExpired, computeAccessExpiry, parseAccessPolicyInput } from "../utils/accessExpiry";
-import { resolveUserByIdOrPhone } from "../utils/userLookup";
+import { resolveUser } from "../utils/userLookup";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -72,6 +72,7 @@ export class CourseController {
           creator_id: userId,
           published_at: status === "PUBLISHED" ? new Date() : null,
           access_duration_days: accessPolicy.access_duration_days,
+          access_duration_unit: accessPolicy.access_duration_unit,
           access_expires_at: accessPolicy.access_expires_at,
           whatsapp_community_url: req.body.whatsapp_community_url?.trim() || null,
           thankyou_message: req.body.thankyou_message?.trim() || null
@@ -551,7 +552,9 @@ export class CourseController {
       }
       // Access-expiry policy (Feature #8) — only touch when the client sends a field
       if (req.body.access_duration_days !== undefined) {
-        updateData.access_duration_days = parseAccessPolicyInput(req.body).access_duration_days;
+        const parsed = parseAccessPolicyInput(req.body);
+        updateData.access_duration_days = parsed.access_duration_days;
+        updateData.access_duration_unit = parsed.access_duration_unit;
       }
       if (req.body.access_expires_at !== undefined) {
         updateData.access_expires_at = parseAccessPolicyInput(req.body).access_expires_at;
@@ -1028,7 +1031,7 @@ export class CourseController {
   /**
    * Manually grant a user access to a course without payment.
    * Allowed for the course owner (creator) or an ADMIN.
-   * The target user is identified by `user_id` or `phone` in the body.
+   * The target user is identified by `user_id`, `email`, or `phone` in the body.
    * Creates an enrollment with a null `transaction_id`, which is how a
    * manual/comp grant is distinguished from a paid or free enrollment
    * (both of those always carry a transaction_id).
@@ -1036,11 +1039,11 @@ export class CourseController {
   static async grantCourseAccess(req: any, res: Response) {
     const { courseId } = req.params;
     const requesterId = req.user.userId;
-    const { user_id, phone } = req.body;
+    const { user_id, phone, email } = req.body;
 
     try {
-      if (!user_id && !phone) {
-        return ApiResponseHandler.customError(res, "Provide a user_id or phone to grant access to", 400, "MISSING_TARGET");
+      if (!user_id && !phone && !email) {
+        return ApiResponseHandler.customError(res, "Provide a user_id, phone, or email to grant access to", 400, "MISSING_TARGET");
       }
 
       const course = await prisma.courses.findUnique({ where: { id: courseId } });
@@ -1061,7 +1064,7 @@ export class CourseController {
       // Resolve the target user (tolerates country-code/format differences in
       // how the phone was stored — a bare 10-digit lookup still matches a
       // stored "+91…" variant of the same number).
-      const targetUser = await resolveUserByIdOrPhone({ user_id, phone });
+      const targetUser = await resolveUser({ user_id, phone, email });
       if (!targetUser) {
         return ApiResponseHandler.customError(res, "No user found for the given identifier", 404, "USER_NOT_FOUND");
       }

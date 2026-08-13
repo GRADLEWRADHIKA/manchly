@@ -238,9 +238,9 @@ const WebinarDetails = () => {
         onClose={() => setShowAddUser(false)}
         productTitle={data?.title || 'this webinar'}
         productType="webinar"
-        onGrant={phone =>
+        onGrant={identifier =>
           dispatch(
-            grantWebinarAccess({ webinarId: data?.id || webinarId, phone }),
+            grantWebinarAccess({ webinarId: data?.id || webinarId, ...identifier }),
           ).unwrap()
         }
       />

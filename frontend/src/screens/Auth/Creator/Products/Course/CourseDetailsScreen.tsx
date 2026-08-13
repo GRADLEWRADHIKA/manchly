@@ -305,9 +305,9 @@ const CourseDetailsScreen: React.FC = () => {
           onClose={() => setShowAddUser(false)}
           productTitle={displayCourse?.title || 'this course'}
           productType="course"
-          onGrant={phone =>
+          onGrant={identifier =>
             dispatch(
-              grantCourseAccess({courseId: displayCourse?.id || courseId, phone}),
+              grantCourseAccess({courseId: displayCourse?.id || courseId, ...identifier}),
             ).unwrap()
           }
         />

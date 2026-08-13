@@ -114,9 +114,12 @@ export const deleteCourse = createAsyncThunk(
 // Manually grant a user access to a course (creator/owner) ---------
 export const grantCourseAccess = createAsyncThunk(
   'courses/grantAccess',
-  async ({ courseId, phone }: { courseId: string; phone: string }, { rejectWithValue }) => {
+  async (
+    { courseId, phone, email }: { courseId: string; phone?: string; email?: string },
+    { rejectWithValue },
+  ) => {
     try {
-      const res = await instance.post(`courses/${courseId}/grant`, { phone });
+      const res = await instance.post(`courses/${courseId}/grant`, { phone, email });
       const alreadyEnrolled = res.data?.data?.alreadyEnrolled;
       Toast.show({
         type: 'success',

@@ -135,7 +135,7 @@ const UserVideoList = () => {
 
       {loading ? (
         <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
+          <ActivityIndicator size="large" color={colors.white} />
         </View>
       ) : videoList.length > 0 ? (
         <FlatList

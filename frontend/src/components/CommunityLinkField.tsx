@@ -84,14 +84,14 @@ const styles = StyleSheet.create({
     marginBottom: hp(8),
   },
   input: {
-    backgroundColor: colors.cBg,
+    backgroundColor: colors.inputBg,
     borderRadius: wp(12),
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: 'rgba(255,255,255,0.08)',
     paddingHorizontal: wp(14),
     paddingVertical: hp(11),
     fontSize: fp(14),
-    color: colors.white,
+    color: colors.textPrimary,
   },
   textArea: {
     minHeight: hp(72),

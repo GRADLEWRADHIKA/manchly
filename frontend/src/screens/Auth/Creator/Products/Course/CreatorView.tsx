@@ -14,8 +14,9 @@ import { wp, hp, fp } from '../../../../../utils/responsive';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
-import { deleteCourse, fetchCourses } from '../../../../../store/CourseSlice';
+import { deleteCourse, fetchCourses, grantCourseAccess } from '../../../../../store/CourseSlice';
 import DynamicModal from '../../../../../components/CommonModal';
+import AddUserModal from '../../../../../components/AddUserModal';
 import CourseCard from './CourseCard';
 import { Bell, BookOpen, Search, UserCircle, Instagram, X, Plus } from 'lucide-react-native';
 import { FAB } from 'react-native-paper';
@@ -44,6 +45,9 @@ const CreatorView: React.FC<{embedded?: boolean}> = ({embedded = false}) => {
   const [showModal, setShowModal] = useState(false);
   const [courseId, setCourseId] = useState('');
   const [deleteLoader, setDeleteLoader] = useState(false);
+
+  const [showAddUser, setShowAddUser] = useState(false);
+  const [addUserCourse, setAddUserCourse] = useState<any>(null);
 
   // Fetch courses from API
   const fetchData = useCallback((pageNum: number, search: string, refresh = false) => {
@@ -136,6 +140,10 @@ const CreatorView: React.FC<{embedded?: boolean}> = ({embedded = false}) => {
         setCourseId(item?.id);
       }}
       onView={() => navigation.navigate('CourseVideoList', { item })}
+      onAddUser={() => {
+        setAddUserCourse(item);
+        setShowAddUser(true);
+      }}
     />
   );
 
@@ -267,6 +275,18 @@ const CreatorView: React.FC<{embedded?: boolean}> = ({embedded = false}) => {
         onCancel={() => setShowModal(false)}
         onDelete={handleDelete}
         loading={deleteLoader}
+      />
+
+      <AddUserModal
+        visible={showAddUser}
+        onClose={() => setShowAddUser(false)}
+        productTitle={addUserCourse?.title || 'this course'}
+        productType="course"
+        onGrant={identifier =>
+          dispatch(
+            grantCourseAccess({ courseId: addUserCourse?.id, ...identifier }),
+          ).unwrap()
+        }
       />
     </View>
   );

@@ -47,6 +47,7 @@ const CreateCourse = () => {
   const [uploading, setUploading] = useState(false);
   const [accessPolicy, setAccessPolicy] = useState<AccessPolicy>({
     access_duration_days: updateData?.access_duration_days ?? null,
+    access_duration_unit: updateData?.access_duration_unit ?? null,
     access_expires_at: updateData?.access_expires_at ?? null,
   });
   const [whatsappUrl, setWhatsappUrl] = useState(
@@ -130,6 +131,7 @@ const CreateCourse = () => {
         status: data?.status,
         thumbnail: data?.thumbnail,
         access_duration_days: accessPolicy.access_duration_days,
+        access_duration_unit: accessPolicy.access_duration_unit,
         access_expires_at: accessPolicy.access_expires_at,
         whatsapp_community_url: whatsappUrl.trim() || null,
         thankyou_message: thankYouMsg.trim() || null,
@@ -171,6 +173,7 @@ const CreateCourse = () => {
           status: data?.status,
           thumbnail: data?.thumbnail,
           access_duration_days: accessPolicy.access_duration_days,
+          access_duration_unit: accessPolicy.access_duration_unit,
           access_expires_at: accessPolicy.access_expires_at,
           whatsapp_community_url: whatsappUrl.trim() || null,
           thankyou_message: thankYouMsg.trim() || null,
@@ -427,6 +430,7 @@ const CreateCourse = () => {
 
           <AccessExpiryField
             initialDurationDays={updateData?.access_duration_days ?? null}
+            initialDurationUnit={updateData?.access_duration_unit ?? null}
             initialExpiresAt={updateData?.access_expires_at ?? null}
             onChange={setAccessPolicy}
           />

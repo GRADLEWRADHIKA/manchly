@@ -60,6 +60,7 @@ const CreateWebinarScreen = () => {
   const [isTimePickerVisible, setTimePickerVisibility] = useState(false);
   const [accessPolicy, setAccessPolicy] = useState<AccessPolicy>({
     access_duration_days: updatedata?.access_duration_days ?? null,
+    access_duration_unit: updatedata?.access_duration_unit ?? null,
     access_expires_at: updatedata?.access_expires_at ?? null,
   });
   const [whatsappUrl, setWhatsappUrl] = useState(
@@ -185,6 +186,7 @@ const CreateWebinarScreen = () => {
       max_participants: Number(data?.max_participants),
       status: data?.status,
       access_duration_days: accessPolicy.access_duration_days,
+      access_duration_unit: accessPolicy.access_duration_unit,
       access_expires_at: accessPolicy.access_expires_at,
       whatsapp_community_url: whatsappUrl.trim() || null,
       thankyou_message: thankYouMsg.trim() || null,
@@ -221,6 +223,7 @@ const CreateWebinarScreen = () => {
         max_participants: Number(data?.max_participants),
         status: data?.status,
         access_duration_days: accessPolicy.access_duration_days,
+        access_duration_unit: accessPolicy.access_duration_unit,
         access_expires_at: accessPolicy.access_expires_at,
         whatsapp_community_url: whatsappUrl.trim() || null,
         thankyou_message: thankYouMsg.trim() || null,
@@ -720,6 +723,7 @@ const CreateWebinarScreen = () => {
 
             <AccessExpiryField
               initialDurationDays={updatedata?.access_duration_days ?? null}
+              initialDurationUnit={updatedata?.access_duration_unit ?? null}
               initialExpiresAt={updatedata?.access_expires_at ?? null}
               onChange={setAccessPolicy}
             />

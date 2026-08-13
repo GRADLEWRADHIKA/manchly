@@ -140,7 +140,7 @@ const PurchaseWebinarCard = ({ item }) => {
             <View style={styles.metaItem}>
               <Calendar
                 size={wp(14)}
-                color={colors.secPrimary}
+                color={colors.uBottomText}
                 strokeWidth={1.8}
               />
               <Text style={styles.metaText}>
@@ -174,9 +174,9 @@ const PurchaseWebinarCard = ({ item }) => {
                 activeOpacity={0.7}
               >
                 {showCredentials ? (
-                  <EyeOff size={wp(18)} color={colors.textSecondary} />
+                  <EyeOff size={wp(18)} color={colors.uSubHeading} />
                 ) : (
-                  <Eye size={wp(18)} color={colors.textSecondary} />
+                  <Eye size={wp(18)} color={colors.uSubHeading} />
                 )}
               </TouchableOpacity>
               <TouchableOpacity
@@ -184,7 +184,7 @@ const PurchaseWebinarCard = ({ item }) => {
                 onPress={handleCopyCredentials}
                 activeOpacity={0.7}
               >
-                <Copy size={wp(16)} color={colors.secPrimary} />
+                <Copy size={wp(16)} color={colors.uBottomText} />
               </TouchableOpacity>
             </View>
           </View>
@@ -251,13 +251,13 @@ const styles = StyleSheet.create({
 
   thumbnail: {
     width: '100%',
-    height: hp(170),
+    height: hp(110),
     backgroundColor: colors.uSubHeading,
   },
 
   thumbnailPlaceholder: {
     width: '100%',
-    height: hp(140),
+    height: hp(110),
     backgroundColor: colors.uBg,
     alignItems: 'center',
     justifyContent: 'center',
@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: hp(50),
+    height: hp(40),
     backgroundColor: 'rgba(0,0,0,0.15)',
   },
 
@@ -311,14 +311,14 @@ const styles = StyleSheet.create({
   },
 
   content: {
-    padding: wp(14),
+    padding: wp(12),
   },
 
   title: {
-    fontSize: fp(16),
+    fontSize: fp(15),
     fontWeight: '600',
     color: colors.textPrimary,
-    lineHeight: fp(22),
+    lineHeight: fp(20),
   },
 
   tagContainer: {
@@ -344,7 +344,7 @@ const styles = StyleSheet.create({
   },
 
   metaSection: {
-    marginTop: hp(12),
+    marginTop: hp(8),
   },
 
   metaRow: {
@@ -365,12 +365,12 @@ const styles = StyleSheet.create({
   },
 
   credentialsBox: {
-    marginTop: hp(12),
-    backgroundColor: colors.textPrimary,
+    marginTop: hp(10),
+    backgroundColor: colors.uSubtext,
     borderRadius: wp(10),
-    padding: wp(12),
+    padding: wp(10),
     borderWidth: 1,
-    borderColor: colors.textPrimary,
+    borderColor: 'rgba(255,255,255,0.08)',
   },
   credentialsRow: {
     flexDirection: 'row',
@@ -383,7 +383,7 @@ const styles = StyleSheet.create({
   },
   credentialLabel: {
     fontSize: fp(10.5),
-    color: colors.textPrimary,
+    color: colors.uSubHeading,
     fontWeight: '500',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -392,6 +392,7 @@ const styles = StyleSheet.create({
     fontSize: fp(13),
     color: colors.textPrimary,
     fontWeight: '700',
+    letterSpacing: 0.5,
   },
   eyeBtn: {
     padding: wp(8),
@@ -400,12 +401,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(4),
-    backgroundColor: colors.white,
+    backgroundColor: 'rgba(79,96,250,0.15)',
     paddingHorizontal: wp(12),
     paddingVertical: hp(8),
     borderRadius: wp(8),
     borderWidth: 1,
-    borderColor: colors.info,
+    borderColor: colors.uBottomText,
   },
   copyText: {
     fontSize: fp(12),
@@ -417,10 +418,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: hp(14),
-    paddingTop: hp(12),
+    marginTop: hp(10),
+    paddingTop: hp(10),
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#f0f2f5',
+    borderTopColor: 'rgba(255,255,255,0.08)',
   },
 
   priceContainer: {

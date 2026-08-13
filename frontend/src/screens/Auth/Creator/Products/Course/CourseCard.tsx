@@ -18,6 +18,7 @@ import {
   ImageIcon,
   MoreVertical,
   Eye,
+  UserPlus,
 } from 'lucide-react-native';
 import { Menu } from 'react-native-paper';
 import colors from '../../../../../utils/colors';
@@ -42,9 +43,10 @@ interface Props {
   onEdit: () => void;
   onDelete: () => void;
   onView: () => void;
+  onAddUser: () => void;
 }
 
-const CourseCard: React.FC<Props> = ({ item, onEdit, onDelete, onView }) => {
+const CourseCard: React.FC<Props> = ({ item, onEdit, onDelete, onView, onAddUser }) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const navigation = useNavigation<any>();
   const hasThumbnail = !!(item.thumbnail_url || item.thumbnail);
@@ -189,6 +191,10 @@ const CourseCard: React.FC<Props> = ({ item, onEdit, onDelete, onView }) => {
           <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); setTimeout(handleShare, 350); }}>
             <Share2 size={wp(17)} color={colors.success} strokeWidth={1.8} />
             <Text style={[styles.menuItemText, { color: colors.success }]}>Share</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); setTimeout(onAddUser, 350); }}>
+            <UserPlus size={wp(17)} color={colors.gold} strokeWidth={1.8} />
+            <Text style={[styles.menuItemText, { color: colors.gold }]}>Add user</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); setTimeout(onDelete, 350); }}>
             <Trash2 size={wp(17)} color={colors.error} strokeWidth={1.8} />

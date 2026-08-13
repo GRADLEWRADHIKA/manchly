@@ -143,20 +143,39 @@ const CourseDetailsScreen: React.FC = () => {
   const handlePurchase = async () => {
     if (!course) return;
 
-    if (price === 0) {
-      Alert.alert('Info', 'This is a free course. Feature coming soon!');
-      return;
-    }
-
     try {
       setPurchasing(true);
 
-      // Step 1: Create order on backend
+      // Step 1: Create order on backend. For free courses the backend enrolls
+      // the user immediately and returns no Cashfree order.
       const orderResponse = await dispatch(
         createPaymentOrder(courseId),
       ).unwrap();
 
       const { cashfree_order, cashfree_env } = orderResponse || {};
+
+      // Free course → enrolled server-side, no payment step needed.
+      if (!cashfree_order) {
+        await dispatch(getEnrolledCourses({}));
+
+        NotificationService.displayNotification(
+          'Course Enrolled Successfully',
+          `You have successfully enrolled in "${
+            course?.title || 'your course'
+          }". Start learning now!`,
+          { type: 'course_purchase', courseId },
+        );
+
+        setPurchasing(false);
+        navigation.navigate('PurchaseThankYou', {
+          productType: 'course',
+          title: course?.title,
+          whatsappUrl: course?.whatsapp_community_url,
+          message: course?.thankyou_message,
+          contentRoute: 'PurchasesScreen',
+        });
+        return;
+      }
 
       if (!cashfree_order?.payment_session_id || !cashfree_order?.order_id) {
         throw new Error('Invalid payment order');
@@ -197,7 +216,7 @@ const CourseDetailsScreen: React.FC = () => {
       <View style={styles.container}>
         <AppHeaderWithBack title="Course Details" bgColor={colors.uBg} />
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
+          <ActivityIndicator size="large" color={colors.white} />
         </View>
       </View>
     );

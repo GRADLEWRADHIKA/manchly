@@ -247,9 +247,12 @@ export const publishWebinarRecording = createAsyncThunk(
 // Manually grant a user access to a webinar (creator/owner) ---------
 export const grantWebinarAccess = createAsyncThunk(
   'webinar/grantAccess',
-  async ({ webinarId, phone }: { webinarId: string; phone: string }, { rejectWithValue }) => {
+  async (
+    { webinarId, phone, email }: { webinarId: string; phone?: string; email?: string },
+    { rejectWithValue },
+  ) => {
     try {
-      const res = await instance.post(`webinars/${webinarId}/grant`, { phone });
+      const res = await instance.post(`webinars/${webinarId}/grant`, { phone, email });
       const alreadyEnrolled = res.data?.data?.alreadyEnrolled;
       Toast.show({
         type: 'success',

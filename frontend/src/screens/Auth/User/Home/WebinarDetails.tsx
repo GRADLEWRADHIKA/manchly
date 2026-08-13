@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import React, { useEffect, useRef, useState } from 'react';
-import { useRoute, useNavigation } from '@react-navigation/native';
+import { useRoute, useNavigation, useIsFocused } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 import colors from '../../../../utils/colors';
 import AppHeaderWithBack from '../../../../components/AppHeaderWithBack';
@@ -54,18 +54,26 @@ const WebinarDetails = () => {
   const webinarFromStore = useSelector(
     (state: any) => state.webinarReducer?.current,
   );
-  const data = params?.data || webinarFromStore;
+  const isFocused = useIsFocused();
+  // Prefer the freshly-fetched detail for THIS webinar (it carries the
+  // per-user `is_enrolled` flag). `params.data` from a list is only a fast
+  // placeholder and doesn't reflect enrollment.
+  const data =
+    webinarFromStore?.id === webinarId ? webinarFromStore : params?.data || webinarFromStore;
   const hasThumbnail = !!data?.thumbnail_url;
   const [showTerms, setShowTerms] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showRefund, setShowRefund] = useState(false);
   const [showRate, setShowRate] = useState(false);
 
+  // Always refresh on focus so `is_enrolled` is accurate — even when the
+  // screen was opened with a stale `params.data`, and after returning from a
+  // successful enrollment.
   useEffect(() => {
-    if (!params?.data && webinarId) {
+    if (webinarId && isFocused) {
       dispatch(getWebinarById(webinarId));
     }
-  }, [dispatch, params?.data, webinarId]);
+  }, [dispatch, webinarId, isFocused]);
 
   const price = Number(data?.price || 0);
   const gst = (price * 18) / 100;

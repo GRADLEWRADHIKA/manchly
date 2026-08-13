@@ -13,13 +13,16 @@ import { wp, hp, fp } from '../utils/responsive';
 
 export type AccessPolicy = {
   access_duration_days: number | null;
+  access_duration_unit: string | null;
   access_expires_at: string | null;
 };
 
 type Mode = 'none' | 'days' | 'date';
+type Unit = 'day' | 'month' | 'year';
 
 type Props = {
   initialDurationDays?: number | null;
+  initialDurationUnit?: string | null;
   initialExpiresAt?: string | null;
   onChange: (policy: AccessPolicy) => void;
 };
@@ -30,8 +33,18 @@ const OPTIONS: { key: Mode; label: string; Icon: any }[] = [
   { key: 'date', label: 'Fixed date', Icon: CalendarClock },
 ];
 
+const UNITS: { key: Unit; label: string }[] = [
+  { key: 'day', label: 'Days' },
+  { key: 'month', label: 'Months' },
+  { key: 'year', label: 'Years' },
+];
+
+const normalizeUnit = (u?: string | null): Unit =>
+  u === 'month' || u === 'year' ? u : 'day';
+
 const AccessExpiryField: React.FC<Props> = ({
   initialDurationDays,
+  initialDurationUnit,
   initialExpiresAt,
   onChange,
 }) => {
@@ -45,43 +58,61 @@ const AccessExpiryField: React.FC<Props> = ({
   const [daysText, setDaysText] = useState(
     initialDurationDays ? String(initialDurationDays) : '',
   );
+  const [unit, setUnit] = useState<Unit>(normalizeUnit(initialDurationUnit));
   const [date, setDate] = useState<Date | null>(
     initialExpiresAt ? new Date(initialExpiresAt) : null,
   );
   const [pickerVisible, setPickerVisible] = useState(false);
 
-  const emit = (nextMode: Mode, nextDays: string, nextDate: Date | null) => {
+  const emit = (
+    nextMode: Mode,
+    nextDays: string,
+    nextDate: Date | null,
+    nextUnit: Unit,
+  ) => {
     if (nextMode === 'days') {
       const n = parseInt(nextDays, 10);
+      const valid = Number.isFinite(n) && n > 0;
       onChange({
-        access_duration_days: Number.isFinite(n) && n > 0 ? n : null,
+        access_duration_days: valid ? n : null,
+        access_duration_unit: valid ? nextUnit : null,
         access_expires_at: null,
       });
     } else if (nextMode === 'date') {
       onChange({
         access_duration_days: null,
+        access_duration_unit: null,
         access_expires_at: nextDate ? nextDate.toISOString() : null,
       });
     } else {
-      onChange({ access_duration_days: null, access_expires_at: null });
+      onChange({
+        access_duration_days: null,
+        access_duration_unit: null,
+        access_expires_at: null,
+      });
     }
   };
 
   const selectMode = (m: Mode) => {
     setMode(m);
-    emit(m, daysText, date);
+    emit(m, daysText, date, unit);
   };
 
   const onDaysChange = (t: string) => {
     const clean = t.replace(/[^0-9]/g, '');
     setDaysText(clean);
-    emit('days', clean, date);
+    emit('days', clean, date, unit);
+  };
+
+  const selectUnit = (u: Unit) => {
+    setUnit(u);
+    emit('days', daysText, date, u);
   };
 
   const onDatePicked = (picked: Date) => {
     setPickerVisible(false);
     setDate(picked);
-    emit('date', daysText, picked);
+    emit('date', daysText, picked, unit);
   };
 
   const formatDate = (d: Date) =>
@@ -90,6 +121,13 @@ const AccessExpiryField: React.FC<Props> = ({
       month: 'short',
       year: 'numeric',
     });
+
+  const durationSummary = () => {
+    const n = parseInt(daysText, 10);
+    if (!Number.isFinite(n) || n <= 0) return 'after purchase';
+    const word = unit + (n === 1 ? '' : 's');
+    return `Access ends ${n} ${word} after purchase`;
+  };
 
   return (
     <View style={styles.wrap}>
@@ -121,18 +159,40 @@ const AccessExpiryField: React.FC<Props> = ({
       </View>
 
       {mode === 'days' && (
-        <View style={styles.daysRow}>
-          <TextInput
-            style={styles.daysInput}
-            placeholder="30"
-            placeholderTextColor={colors.textMuted}
-            keyboardType="number-pad"
-            value={daysText}
-            onChangeText={onDaysChange}
-            maxLength={5}
-          />
-          <Text style={styles.daysSuffix}>days from purchase</Text>
-        </View>
+        <>
+          <View style={styles.daysRow}>
+            <TextInput
+              style={styles.daysInput}
+              placeholder="1"
+              placeholderTextColor={colors.textMuted}
+              keyboardType="number-pad"
+              value={daysText}
+              onChangeText={onDaysChange}
+              maxLength={5}
+            />
+            <View style={styles.unitSelector}>
+              {UNITS.map(({ key, label }) => {
+                const active = unit === key;
+                return (
+                  <TouchableOpacity
+                    key={key}
+                    style={[styles.unitPill, active && styles.unitPillActive]}
+                    onPress={() => selectUnit(key)}
+                    activeOpacity={0.85}>
+                    <Text
+                      style={[
+                        styles.unitPillText,
+                        active && styles.unitPillTextActive,
+                      ]}>
+                      {label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+          <Text style={styles.daysSuffix}>{durationSummary()}</Text>
+        </>
       )}
 
       {mode === 'date' && (
@@ -210,7 +270,7 @@ const styles = StyleSheet.create({
     marginTop: hp(12),
   },
   daysInput: {
-    width: wp(80),
+    width: wp(64),
     backgroundColor: colors.cBg,
     borderRadius: wp(10),
     borderWidth: 1,
@@ -221,9 +281,36 @@ const styles = StyleSheet.create({
     color: colors.white,
     textAlign: 'center',
   },
+  unitSelector: {
+    flex: 1,
+    flexDirection: 'row',
+    backgroundColor: colors.cBg,
+    borderRadius: wp(10),
+    padding: wp(3),
+    gap: wp(3),
+  },
+  unitPill: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: hp(8),
+    borderRadius: wp(8),
+  },
+  unitPillActive: {
+    backgroundColor: colors.gold,
+  },
+  unitPillText: {
+    fontSize: fp(12),
+    fontWeight: '600',
+    color: colors.textMuted,
+  },
+  unitPillTextActive: {
+    color: colors.cBg,
+  },
   daysSuffix: {
-    fontSize: fp(13),
+    fontSize: fp(12.5),
     color: colors.textSecondary,
+    marginTop: hp(8),
   },
   dateBtn: {
     flexDirection: 'row',

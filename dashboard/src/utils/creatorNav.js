@@ -6,7 +6,7 @@ export const CREATOR_KEY_TO_PATH = {
   overview: "/creator/overview",
   courses: "/creator/courses",
   studio: "/creator/studio",
-  "course-create": "/creator/studio",
+  "course-create": "/creator/courses/new",
   "course-analytics": "/creator/studio",
   "course-preview": "/creator/studio",
   "course-duplicate": "/creator/studio",
@@ -14,6 +14,9 @@ export const CREATOR_KEY_TO_PATH = {
   webinars: "/creator/webinars",
   "webinar-create": "/creator/webinars",
   sessions: "/creator/sessions",
+  "creator-hub": "/creator/hub",  // ← Added
+  creator: "/creator/hub",        // ← Added fallback for "creator"
+  community: "/creator/community",// ← Added
   ai: "/creator/ai",
   wallet: "/creator/wallet",
   withdraw: "/creator/wallet",
@@ -24,6 +27,15 @@ export const CREATOR_KEY_TO_PATH = {
   settings: "/creator/settings",
 };
 
-export function creatorPathFor(key) {
+// Keys whose destination needs a courseId baked into the URL.
+// params is the second argument onNavigate(key, params) is called with.
+const CREATOR_DYNAMIC_KEY_TO_PATH = {
+  "course-create-video": (params) => `/creator/courses/new/${params?.courseId}/video`,
+  "course-create-preview": (params) => `/creator/courses/new/${params?.courseId}/preview`,
+};
+
+export function creatorPathFor(key, params) {
+  const dynamic = CREATOR_DYNAMIC_KEY_TO_PATH[key];
+  if (dynamic) return dynamic(params);
   return CREATOR_KEY_TO_PATH[key] || "/creator";
 }

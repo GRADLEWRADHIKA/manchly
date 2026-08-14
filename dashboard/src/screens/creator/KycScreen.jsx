@@ -1,13 +1,14 @@
 // KYC Verification — light creator-suite redesign, fully dynamic.
 // PAN-based verification (name + DOB locked from profile, matched against PAN
 // records server-side), live status, verified state with unlocked benefits,
-// bank verification pointer to Wallet & Payouts.
+// bank verification pointer to Wallet & Payouts. Automatically detects DOB/Name changes
+// to require re-KYC.
 import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ShieldCheck, ShieldAlert, Lock, IndianRupee, MonitorPlay, Phone, Pencil, CheckCircle2, Landmark } from "lucide-react";
+import { ShieldCheck, ShieldAlert, Lock, IndianRupee, MonitorPlay, Phone, Pencil, CheckCircle2, Landmark, RefreshCw } from "lucide-react";
 import { apiFetch, unwrap } from "../../utils/api";
 import colors from "../../utils/colors";
-import { Badge, Spinner } from "../../components/ui";
+import { Badge } from "../../components/ui";
 import { GoldBtn, lbl } from "../../components/creatorUi";
 import { useAuth } from "../../context/AuthContext";
 import { toast } from "../../utils/toast";
@@ -30,12 +31,23 @@ export default function KycScreen() {
       .then((r) => setStatus(unwrap(r)))
       .catch(() => {})
       .finally(() => setLoading(false)), []);
+
   useEffect(() => { load(); }, [load]);
 
-  const verified = !!(status?.kyc_verified ?? user?.kyc_verified);
   const dob = user?.dob ? String(user.dob).slice(0, 10) : "";
   const profileIncomplete = !user?.name || !dob;
   const panValid = PAN_RE.test(pan);
+
+  // Compare verified details stored on backend vs current profile values
+  const verifiedDob = status?.verified_dob || status?.user_dob ? String(status?.verified_dob || status?.user_dob).slice(0, 10) : null;
+  const verifiedName = status?.verified_name || status?.user_name || null;
+
+  const dobChanged = !!(status?.kyc_verified && verifiedDob && verifiedDob !== dob);
+  const nameChanged = !!(status?.kyc_verified && verifiedName && verifiedName.trim().toLowerCase() !== (user?.name || "").trim().toLowerCase());
+  const requiresReverification = status?.requires_reverification || dobChanged || nameChanged;
+
+  // Fully verified only if verified on server AND profile details haven't changed since
+  const verified = !!(status?.kyc_verified ?? user?.kyc_verified) && !requiresReverification;
 
   const submit = async () => {
     if (!panValid) return toast.error("Enter a valid PAN (e.g. ABCDE1234F)");
@@ -125,19 +137,36 @@ export default function KycScreen() {
           </p>
         </div>
       ) : (
-        /* ---------- NOT VERIFIED ---------- */
+        /* ---------- NOT VERIFIED / RE-VERIFICATION REQUIRED ---------- */
         <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr", gap: 20, alignItems: "start" }}>
           {/* Form */}
           <div style={card}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
-              <span style={{ width: 42, height: 42, borderRadius: 12, background: "#FFF8EC", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <ShieldAlert size={20} color="#B45309" />
+              <span style={{ width: 42, height: 42, borderRadius: 12, background: requiresReverification ? "#FEF2F2" : "#FFF8EC", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                {requiresReverification ? <RefreshCw size={20} color="#DC2626" /> : <ShieldAlert size={20} color="#B45309" />}
               </span>
               <div>
-                <div style={{ fontWeight: 900, fontSize: 16.5 }}>Verify your PAN</div>
+                <div style={{ fontWeight: 900, fontSize: 16.5 }}>
+                  {requiresReverification ? "Re-Verify your PAN" : "Verify your PAN"}
+                </div>
                 <div style={{ fontSize: 12.5, color: colors.typography.secondaryText }}>Instant verification against income-tax records</div>
               </div>
             </div>
+
+            {/* Re-verification trigger alert */}
+            {requiresReverification && (
+              <div style={{ background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: 12, padding: "12px 14px", marginBottom: 16, display: "flex", alignItems: "start", gap: 10 }}>
+                <ShieldAlert size={18} color="#DC2626" style={{ flexShrink: 0, marginTop: 2 }} />
+                <div style={{ fontSize: 12.5, color: "#991B1B", lineHeight: 1.5 }}>
+                  <span style={{ fontWeight: 800 }}>Re-verification required: </span>
+                  {dobChanged && nameChanged
+                    ? "Your Name and Date of Birth were modified in Profile Settings. Please re-verify your PAN."
+                    : dobChanged
+                    ? "Your Date of Birth was modified in Profile Settings. Please re-verify your PAN to match your updated profile."
+                    : "Your Full Name was modified in Profile Settings. Please re-verify your PAN."}
+                </div>
+              </div>
+            )}
 
             {profileIncomplete && (
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, background: "#FFFBEB", border: "1px solid #FDE68A", borderRadius: 12, padding: "11px 14px", marginBottom: 16, flexWrap: "wrap" }}>
@@ -189,7 +218,7 @@ export default function KycScreen() {
               )}
 
               <GoldBtn loading={submitting} disabled={!panValid || profileIncomplete} onClick={submit} style={{ justifyContent: "center", padding: "13px 18px" }}>
-                <ShieldCheck size={16} /> Verify PAN
+                <ShieldCheck size={16} /> {requiresReverification ? "Re-Verify PAN" : "Verify PAN"}
               </GoldBtn>
             </div>
           </div>

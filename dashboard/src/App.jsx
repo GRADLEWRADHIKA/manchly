@@ -1,15 +1,12 @@
-// Manchly web app — role-routed shells mirroring the mobile app:
-//   /auth       → OTP auth wizard (role select → OTP → signup)
-//   /app/*      → USER (also BRAND/AGENCY) shell, dark navy + indigo gradients
-//   /creator/*  → CREATOR shell (light Creator Suite + gold gradients)
-//   /admin      → admin panel
-//   /course/:id, /webinar/:id → deep links (saved & replayed if logged out)
 import React, { useEffect } from "react";
 import { Routes, Route, Navigate, useNavigate, useParams, useLocation } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 
 import { useAuth } from "./context/AuthContext";
+import { logout } from "./store/authSlice";
 import { creatorPathFor } from "./utils/creatorNav";
 import { onSocket } from "./utils/socket";
+import socketService from "./services/socketService";
 import { toast } from "./utils/toast";
 import { Toaster, FullLoader } from "./components/ui";
 import CallManager from "./components/CallManager";
@@ -48,6 +45,11 @@ import AiScreen from "./screens/creator/AiScreen";
 import HelpCenter from "./HelpCenter";
 import CreatorOverview from "./CreatorOverview";
 import AdminPanel from "./AdminPanel";
+import CourseCreateScreen from "./screens/Auth/Creator/CourseCreateScreen";
+import CourseVideoScreen from "./screens/Auth/Creator/CourseVideoScreen";
+import CoursePreviewScreen from "./screens/Auth/Creator/CoursePreiewScreen";
+import CommunityScreen from "./screens/creator/CommunityScreen";
+import CreatorHubScreen from "./screens/creator/CreatorHubScreen";
 
 function RequireAuth({ children, roles }) {
   const { isAuthed, booted, role } = useAuth();
@@ -88,7 +90,7 @@ function StandaloneCreatorScreen({ Screen }) {
   return (
     <Screen
       user={user}
-      onNavigate={(key) => navigate(creatorPathFor(key))}
+      onNavigate={(key, params) => navigate(creatorPathFor(key, params))}
       onLogout={() => {
         logout();
         navigate("/auth", { replace: true });
@@ -109,6 +111,88 @@ function NotificationBridge() {
   return null;
 }
 
+// Real-time Single Device Session Bridge
+function ForceLogoutBridge() {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const reduxToken = useSelector((s) => s.auth?.token);
+  const { isAuthed, logout: ctxLogout, token: ctxToken } = useAuth();
+
+  const activeToken = reduxToken || ctxToken;
+  const authed = isAuthed || !!reduxToken;
+
+  // 1. Socket Listener for 'force_logout' & 'device_revoked'
+  useEffect(() => {
+    if (!authed || !activeToken) {
+      socketService.disconnect();
+      return;
+    }
+
+    // Connect socket with active token
+    socketService.connect(activeToken);
+
+    const handleForceLogout = (data) => {
+      const msg =
+        data?.message ||
+        "Your account was signed in on another device. You have been logged out.";
+
+      toast.error(msg, { duration: 5000 });
+
+      // Synchronize logout across Redux and AuthContext
+      dispatch(logout());
+      ctxLogout();
+      socketService.disconnect();
+
+      // Clear storage
+      localStorage.removeItem("manchly_token");
+      localStorage.removeItem("auth_token");
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+
+      navigate("/auth", { replace: true });
+    };
+
+    socketService.on("force_logout", handleForceLogout);
+    socketService.on("device_revoked", handleForceLogout);
+
+    return () => {
+      socketService.off("force_logout", handleForceLogout);
+      socketService.off("device_revoked", handleForceLogout);
+    };
+  }, [authed, activeToken, dispatch, ctxLogout, navigate]);
+
+  // 2. Global Axios Custom Events & Multi-Tab Synchronization
+  useEffect(() => {
+    const handleGlobalLogoutEvent = () => {
+      dispatch(logout());
+      ctxLogout();
+      socketService.disconnect();
+      navigate("/auth", { replace: true });
+    };
+
+    const handleStorageChange = (e) => {
+      if (
+        (e.key === "manchly_token" || e.key === "token" || e.key === "auth_token") &&
+        !e.newValue
+      ) {
+        handleGlobalLogoutEvent();
+      }
+    };
+
+    window.addEventListener("manchly:force-logout", handleGlobalLogoutEvent);
+    window.addEventListener("manchly:device-conflict", handleGlobalLogoutEvent);
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("manchly:force-logout", handleGlobalLogoutEvent);
+      window.removeEventListener("manchly:device-conflict", handleGlobalLogoutEvent);
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, [dispatch, ctxLogout, navigate]);
+
+  return null;
+}
+
 export default function App() {
   const { user } = useAuth();
 
@@ -116,6 +200,7 @@ export default function App() {
     <>
       <Toaster />
       <NotificationBridge />
+      <ForceLogoutBridge />
       <CallManager />
 
       <Routes>
@@ -151,6 +236,13 @@ export default function App() {
         {/* Standalone screens that mount their own custom sidebar */}
         <Route path="/creator" element={<RequireAuth roles={["CREATOR"]}><StandaloneCreatorScreen Screen={DashboardScreen} /></RequireAuth>} />
         <Route path="/creator/courses" element={<RequireAuth roles={["CREATOR"]}><StandaloneCreatorScreen Screen={CoursesScreen} /></RequireAuth>} />
+        <Route path="/creator/courses/new" element={<RequireAuth roles={["CREATOR"]}><StandaloneCreatorScreen Screen={CourseCreateScreen} /></RequireAuth>} />
+        <Route path="/creator/courses/new/:courseId/video" element={<RequireAuth roles={["CREATOR"]}><StandaloneCreatorScreen Screen={CourseVideoScreen} /></RequireAuth>} />
+        <Route path="/creator/courses/new/:courseId/preview" element={<RequireAuth roles={["CREATOR"]}><StandaloneCreatorScreen Screen={CoursePreviewScreen} /></RequireAuth>} />
+
+        <Route path="/creator/hub" element={<RequireAuth roles={["CREATOR"]}><StandaloneCreatorScreen Screen={CreatorHubScreen} /></RequireAuth>} />
+        <Route path="/creator/creator-hub" element={<RequireAuth roles={["CREATOR"]}><StandaloneCreatorScreen Screen={CreatorHubScreen} /></RequireAuth>} />
+        <Route path="/creator/community" element={<RequireAuth roles={["CREATOR"]}><StandaloneCreatorScreen Screen={CommunityScreen} /></RequireAuth>} />
 
         {/* Layout-wrapped creator routes */}
         <Route path="/creator/*" element={<RequireAuth roles={["CREATOR"]}><CreatorLayout /></RequireAuth>}>

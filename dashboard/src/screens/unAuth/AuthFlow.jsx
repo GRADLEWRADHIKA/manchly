@@ -13,6 +13,7 @@ import { toast } from "../../utils/toast";
 import { useAuth, roleOf } from "../../context/AuthContext";
 import { LegalFooter } from "../../components/LegalModals";
 import LoginForm from "./LoginForm";
+import { getDeviceId } from "../../utils/deviceId";
 
 const isPhone = (v) => /^\d{10}$/.test(v);
 const isEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
@@ -152,7 +153,7 @@ export default function AuthFlow() {
       const { email, phone } = idPayload();
       const res = await apiFetch("/auth/verify-otp", {
         method: "POST",
-        body: JSON.stringify({ email, phone_number: phone, code: otp, purpose: "login", user_type: selectedType }),
+        body: JSON.stringify({ email, phone_number: phone, code: otp, purpose: "login", user_type: selectedType, device_id: getDeviceId() }),
       });
       finishLogin(res);
     } catch (err) {

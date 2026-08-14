@@ -13,6 +13,7 @@ import {
   Bell,
   LifeBuoy,
   Clapperboard,
+  StarIcon
 } from "lucide-react";
 
 import colors from "../utils/colors";
@@ -21,15 +22,17 @@ import { Modal } from "./ui";
 const MENU_ITEMS = [
   { key: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { key: "courses", label: "Courses", icon: BookOpen },
-  { key: "studio", label: "Course Studio", icon: Clapperboard },
+  //{ key: "studio", label: "Courses", icon: Clapperboard },
   { key: "webinars", label: "Webinars", icon: MonitorPlay },
   { key: "sessions", label: "1:1 Sessions", icon: Users },
+  { key: "creator-hub", label: "Creator Hub", icon: StarIcon },
   { key: "ai", label: "AI Assistant", icon: Sparkles },
-  { key: "wallet", label: "Wallet & Payouts", icon: Wallet },
-  { key: "kyc", label: "KYC", icon: ShieldCheck },
-  { key: "notifications", label: "Notifications", icon: Bell },
+  { key: "wallet", label: "Payouts", icon: Wallet },
+  //{ key: "kyc", label: "KYC", icon: ShieldCheck },
+  { key: "community", label: "Community", icon: Users },
+  //{ key: "notifications", label: "Notifications", icon: Bell },
+  { key: "settings", label: "Settings", icon: Settings },
   { key: "help", label: "Help Center", icon: LifeBuoy },
-  { key: "settings", label: "Profile & Settings", icon: Settings },
 ];
 
 export default function Sidebar({
@@ -49,7 +52,7 @@ export default function Sidebar({
           borderRight: `1px solid ${colors.base.border}`,
           display: "flex",
           flexDirection: "column",
-          justify: "space-between",
+          justifyContent: "space-between",
           flexShrink: 0,
           position: "sticky",
           top: 0,
@@ -97,7 +100,7 @@ export default function Sidebar({
           >
             {MENU_ITEMS.map((item) => {
               const Icon = item.icon;
-              const isActive = item.key === active;
+              const isActive = item.key === active || (item.key === "creator-hub" && active === "creator");
 
               return (
                 <button

@@ -69,6 +69,8 @@ export default function LoginForm({ onAuthSuccess, switchSignup }) {
       email: form.email.trim(),
       password: form.password,
       deviceId, // Pass fingerprint hash to backend
+      device_id: deviceId, // Fallback alias if backend uses snake_case
+      platform: "web",
     };
 
     try {

@@ -1,13 +1,5 @@
-// Shared API base + helpers for the Manchly dashboard.
-//
-// The backend target comes from backendConfig.js (USE_LOCAL_BACKEND toggle,
-// production https://server.manchly.com by default — same as the mobile app).
-//
-// In `npm run dev`, requests go through the vite proxy at /__api (same origin,
-// so the production server's CORS allowlist never gets in the way); the proxy
-// target in vite.config.js reads the same toggle. Production builds call the
-// backend directly (VITE_API_BASE can still override, e.g. for a staging box).
 import { BASE_URL } from "./backendConfig";
+import { getDeviceId } from "./deviceId";
 
 function resolveBase() {
   const env = (import.meta.env && import.meta.env.VITE_API_BASE) || "";
@@ -32,8 +24,12 @@ export function getToken() {
 
 export function authHeaders(extra = {}) {
   const t = getToken();
+  const deviceId = getDeviceId(); // never regenerated once set
   return {
     ...(t ? { Authorization: `Bearer ${t}` } : {}),
+    // Attach device fingerprint on every request so the backend can detect
+    // when a session is being used from a different browser/device.
+    "X-Device-Id": deviceId,
     ...extra,
   };
 }
@@ -62,7 +58,23 @@ export async function apiFetch(path, opts = {}) {
   }
 
   if (!res.ok) {
-    // Catch 401 Unauthorized (Session invalidated by backend or logged in elsewhere)
+    // ── DEVICE_CONFLICT — fired on HTTP 403 + code=DEVICE_CONFLICT ──────────
+    // AuthContext listens for this event and shows a non-dismissable modal,
+    // clears tokens, and navigates to /auth after 3 s (or on user clicking OK).
+    // Nothing per-component needs to handle this.
+    if (res.status === 403 && body?.code === "DEVICE_CONFLICT") {
+      window.dispatchEvent(
+        new CustomEvent("manchly:device-conflict", {
+          detail: {
+            message:
+              body?.message ||
+              "You have been logged out because your account was signed in on another device or browser.",
+          },
+        }),
+      );
+    }
+
+    // ── Session expired / unauthorized ──────────────────────────────────────
     if (res.status === 401) {
       clearToken();
 

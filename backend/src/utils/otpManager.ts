@@ -49,6 +49,28 @@ interface RedisConfig {
   db?: number;
 }
 
+/**
+ * Accounts used for manual QA. These skip the real email/SMS send and have
+ * their OTP returned in the API response so it can be auto-filled — see
+ * `isTestOtpAutofillEnabled()` for when that is allowed.
+ */
+const TEST_ACCOUNTS = [
+  'test@manchly.com',
+];
+
+export function isTestAccount(identifier: string): boolean {
+  return TEST_ACCOUNTS.includes(identifier.trim().toLowerCase());
+}
+
+/**
+ * Returning an OTP in the HTTP response is an auth bypass for that account, so
+ * it is off in production unless explicitly opted into.
+ */
+export function isTestOtpAutofillEnabled(): boolean {
+  if (process.env.ALLOW_TEST_OTP_AUTOFILL === 'true') return true;
+  return process.env.NODE_ENV !== 'production';
+}
+
 class OTPManager {
   private cache: TTLCache<string, OTPData>;
   private defaultConfig: Required<OTPConfig>;
@@ -287,13 +309,10 @@ class OTPManager {
     // Check if OTP already exists and hasn't expired
     const existingOTP = await this.getFromRedis(identifier);
     
-    const testEmails = [
-      'test@manchly.com',
-    ];
-    const isTestAccount = testEmails.includes(identifier.toLowerCase());
-    
+    const testAccount = isTestAccount(identifier);
+
     if (existingOTP && !existingOTP.verified) {
-      if (isTestAccount) {
+      if (testAccount) {
         console.log(`🧪 Test account detected: ${identifier}. Clearing existing OTP to allow resend.`);
         await this.deleteFromRedis(identifier);
       } else {
@@ -316,6 +335,13 @@ class OTPManager {
     // Store OTP data
     await this.storeInRedis(identifier, otpData);
     
+    // Test accounts never receive a real message — the OTP is handed back to
+    // the caller instead, so there is no inbox to depend on.
+    if (testAccount) {
+      console.log(`🧪 Test account ${identifier}: skipping ${channel} send, OTP is ${otp}`);
+      return otp;
+    }
+
     // Send OTP via appropriate channel
     try {
       if (channel === 'email') {

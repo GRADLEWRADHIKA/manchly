@@ -3,131 +3,251 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Dashboard | Manchly</title>
+  <title>Admin Console | Manchly</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/css/style.css" />
 </head>
 <body class="dashboard-page">
-  <header class="dashboard-header">
-    <h1>Admin Dashboard</h1>
-    <div style="display:flex;align-items:center;gap:1rem;">
-      <span class="user" id="user-email">–</span>
-      <button type="button" class="btn-logout" id="btn-logout">Logout</button>
-    </div>
-  </header>
 
-  <nav class="section-tabs">
-    <button type="button" class="tab active" data-section="overview">Overview</button>
-    <button type="button" class="tab" data-section="users">Users</button>
-    <button type="button" class="tab" data-section="courses">Courses</button>
-    <button type="button" class="tab" data-section="webinars">Webinars</button>
-  </nav>
+  <!-- ───────────────── Sidebar ───────────────── -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-mark">Manchly</div>
+      <div class="brand-sub">Admin Console</div>
+    </div>
 
-  <div id="panel-overview" class="dashboard-panel active">
-    <h2 class="section-title">Overview</h2>
-    <div class="stats-grid" id="stats-grid">
-      <div class="stat-card"><span class="label">Total Users</span><span class="value" id="stat-users">–</span></div>
-      <div class="stat-card"><span class="label">Creators</span><span class="value" id="stat-creators">–</span></div>
-      <div class="stat-card"><span class="label">Courses</span><span class="value" id="stat-courses">–</span></div>
-      <div class="stat-card"><span class="label">Published Courses</span><span class="value" id="stat-courses-pub">–</span></div>
-      <div class="stat-card"><span class="label">Course Enrollments</span><span class="value" id="stat-enrollments">–</span></div>
-      <div class="stat-card"><span class="label">Successful Payments</span><span class="value" id="stat-transactions">–</span></div>
-      <div class="stat-card"><span class="label">Webinars</span><span class="value" id="stat-webinars">–</span></div>
-      <div class="stat-card"><span class="label">Webinar Enrollments</span><span class="value" id="stat-webinar-enroll">–</span></div>
-      <div class="stat-card"><span class="label">Total Revenue (₹)</span><span class="value" id="stat-revenue">–</span></div>
-    </div>
-  </div>
+    <nav class="sidebar-nav">
+      <button type="button" class="nav-item active" data-section="overview">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+        <span>Overview</span>
+      </button>
+      <button type="button" class="nav-item" data-section="users">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>Users</span>
+      </button>
+      <button type="button" class="nav-item" data-section="courses">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        <span>Courses</span>
+      </button>
+      <button type="button" class="nav-item" data-section="webinars">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="14" height="14" rx="2.5"/><path d="m22 8-6 4 6 4z"/></svg>
+        <span>Webinars</span>
+      </button>
+    </nav>
 
-  <div id="panel-users" class="dashboard-panel">
-    <h2 class="section-title">Users</h2>
-    <div style="margin-bottom:0.75rem;">
-      <input type="search" id="search-users" placeholder="Search by email, name, phone" class="search-input" />
-      <button type="button" id="btn-search-users" class="btn btn-primary btn-inline">Search</button>
+    <div class="sidebar-foot">
+      <button type="button" class="btn-logout" id="btn-logout">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
+        <span>Log out</span>
+      </button>
     </div>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Email</th>
-            <th>Name</th>
-            <th>Phone</th>
-            <th>Type</th>
-            <th>Courses</th>
-            <th>Enrollments</th>
-            <th>Joined</th>
-          </tr>
-        </thead>
-        <tbody id="users-tbody"></tbody>
-      </table>
-    </div>
-    <div class="pagination" id="pagination-users"></div>
-    <div class="user-detail-panel" id="user-detail-panel">
-      <h3 id="detail-title">User details</h3>
-      <div class="user-detail-grid" id="user-detail-content"></div>
-      <div class="detail-actions">
-        <button type="button" class="btn-close" id="btn-close-detail">Close</button>
-        <button type="button" class="btn btn-danger" id="btn-delete-user">Delete User</button>
+  </aside>
+
+  <!-- ───────────────── Main ───────────────── -->
+  <div class="main">
+
+    <header class="topbar">
+      <div>
+        <p class="greeting" id="greeting">Welcome back 👋</p>
+        <p class="greeting-date" id="greeting-date">–</p>
       </div>
-    </div>
-  </div>
+      <div class="topbar-right">
+        <div class="topbar-stat">
+          <span class="label">Total Revenue</span>
+          <span class="value" id="topbar-revenue">₹–</span>
+        </div>
+        <div class="topbar-divider"></div>
+        <div class="user-chip">
+          <div class="avatar" id="avatar">A</div>
+          <span class="user" id="user-email">–</span>
+        </div>
+      </div>
+    </header>
 
-  <div id="panel-courses" class="dashboard-panel">
-    <h2 class="section-title">Courses</h2>
-    <div style="margin-bottom:0.75rem;">
-      <input type="search" id="search-courses" placeholder="Search by title, category" class="search-input" />
-      <button type="button" id="btn-search-courses" class="btn btn-primary btn-inline">Search</button>
-    </div>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Title</th>
-            <th>Creator</th>
-            <th>Status</th>
-            <th>Price (₹)</th>
-            <th>Enrollments</th>
-            <th>Created</th>
-          </tr>
-        </thead>
-        <tbody id="courses-tbody"></tbody>
-      </table>
-    </div>
-    <div class="pagination" id="pagination-courses"></div>
-    <div class="user-detail-panel" id="course-detail-panel">
-      <h3 id="course-detail-title">Course details</h3>
-      <div class="user-detail-grid" id="course-detail-content"></div>
-      <button type="button" class="btn-close" id="btn-close-course-detail">Close</button>
-    </div>
-  </div>
+    <div class="content">
 
-  <div id="panel-webinars" class="dashboard-panel">
-    <h2 class="section-title">Webinars</h2>
-    <div style="margin-bottom:0.75rem;">
-      <input type="search" id="search-webinars" placeholder="Search by title, category" class="search-input" />
-      <button type="button" id="btn-search-webinars" class="btn btn-primary btn-inline">Search</button>
-    </div>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Title</th>
-            <th>Creator</th>
-            <th>Status</th>
-            <th>Price (₹)</th>
-            <th>Scheduled</th>
-            <th>Enrollments</th>
-            <th>Created</th>
-          </tr>
-        </thead>
-        <tbody id="webinars-tbody"></tbody>
-      </table>
-    </div>
-    <div class="pagination" id="pagination-webinars"></div>
-    <div class="user-detail-panel" id="webinar-detail-panel">
-      <h3 id="webinar-detail-title">Webinar details</h3>
-      <div class="user-detail-grid" id="webinar-detail-content"></div>
-      <button type="button" class="btn-close" id="btn-close-webinar-detail">Close</button>
-    </div>
-  </div>
+      <!-- ───── Overview ───── -->
+      <div id="panel-overview" class="dashboard-panel active">
+        <div class="panel-head">
+          <h2 class="section-title">Platform <em>Overview</em></h2>
+          <p class="section-sub">Users, content, and revenue across Manchly — at a glance.</p>
+        </div>
+
+        <div class="stats-grid" id="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon tint-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+            <span class="value" id="stat-users">–</span>
+            <span class="label">Total Users</span>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon tint-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6 4.6 1.9-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/><path d="M18 15l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9z"/></svg></div>
+            <span class="value" id="stat-creators">–</span>
+            <span class="label">Creators</span>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon tint-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
+            <span class="value" id="stat-courses">–</span>
+            <span class="label">Courses</span>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon tint-amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.5 2.5 2.5 4.5-5"/></svg></div>
+            <span class="value" id="stat-courses-pub">–</span>
+            <span class="label">Published Courses</span>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon tint-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M19 8v6"/><path d="M22 11h-6"/></svg></div>
+            <span class="value" id="stat-enrollments">–</span>
+            <span class="label">Course Enrollments</span>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon tint-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20"/></svg></div>
+            <span class="value" id="stat-transactions">–</span>
+            <span class="label">Successful Payments</span>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon tint-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="14" height="14" rx="2.5"/><path d="m22 8-6 4 6 4z"/></svg></div>
+            <span class="value" id="stat-webinars">–</span>
+            <span class="label">Webinars</span>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon tint-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9a3 3 0 0 0 0 6v3a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3a3 3 0 0 1 0-6V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2z"/><path d="M13 5v14"/></svg></div>
+            <span class="value" id="stat-webinar-enroll">–</span>
+            <span class="label">Webinar Enrollments</span>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon tint-amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12"/><path d="M6 9h12"/><path d="M6 4c6 0 8 1.6 8 4.5S12 13 6 13c3.5 0 6 3 9 7"/></svg></div>
+            <span class="value" id="stat-revenue">–</span>
+            <span class="label">Total Revenue (₹)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ───── Users ───── -->
+      <div id="panel-users" class="dashboard-panel">
+        <div class="panel-head">
+          <h2 class="section-title">Users</h2>
+          <p class="section-sub">Search accounts, review activity, and manage access.</p>
+        </div>
+
+        <div class="toolbar">
+          <div class="search-field">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            <input type="search" id="search-users" placeholder="Search by email, name, phone" class="search-input" />
+          </div>
+          <button type="button" id="btn-search-users" class="btn btn-primary btn-inline">Search</button>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Email</th>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Type</th>
+                <th>Courses</th>
+                <th>Enrollments</th>
+                <th>Joined</th>
+              </tr>
+            </thead>
+            <tbody id="users-tbody"></tbody>
+          </table>
+        </div>
+        <div class="pagination" id="pagination-users"></div>
+
+        <div class="user-detail-panel" id="user-detail-panel">
+          <h3 id="detail-title">User details</h3>
+          <div class="user-detail-grid" id="user-detail-content"></div>
+          <div class="detail-actions">
+            <button type="button" class="btn-close" id="btn-close-detail">Close</button>
+            <button type="button" class="btn-danger" id="btn-delete-user">Delete User</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ───── Courses ───── -->
+      <div id="panel-courses" class="dashboard-panel">
+        <div class="panel-head">
+          <h2 class="section-title">Courses</h2>
+          <p class="section-sub">Every course on the platform, with creator and enrollment counts.</p>
+        </div>
+
+        <div class="toolbar">
+          <div class="search-field">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            <input type="search" id="search-courses" placeholder="Search by title, category" class="search-input" />
+          </div>
+          <button type="button" id="btn-search-courses" class="btn btn-primary btn-inline">Search</button>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Creator</th>
+                <th>Status</th>
+                <th>Price (₹)</th>
+                <th>Enrollments</th>
+                <th>Created</th>
+              </tr>
+            </thead>
+            <tbody id="courses-tbody"></tbody>
+          </table>
+        </div>
+        <div class="pagination" id="pagination-courses"></div>
+
+        <div class="user-detail-panel" id="course-detail-panel">
+          <h3 id="course-detail-title">Course details</h3>
+          <div class="user-detail-grid" id="course-detail-content"></div>
+          <button type="button" class="btn-close" id="btn-close-course-detail">Close</button>
+        </div>
+      </div>
+
+      <!-- ───── Webinars ───── -->
+      <div id="panel-webinars" class="dashboard-panel">
+        <div class="panel-head">
+          <h2 class="section-title">Webinars</h2>
+          <p class="section-sub">Scheduled and past sessions across all creators.</p>
+        </div>
+
+        <div class="toolbar">
+          <div class="search-field">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            <input type="search" id="search-webinars" placeholder="Search by title, category" class="search-input" />
+          </div>
+          <button type="button" id="btn-search-webinars" class="btn btn-primary btn-inline">Search</button>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Creator</th>
+                <th>Status</th>
+                <th>Price (₹)</th>
+                <th>Scheduled</th>
+                <th>Enrollments</th>
+                <th>Created</th>
+              </tr>
+            </thead>
+            <tbody id="webinars-tbody"></tbody>
+          </table>
+        </div>
+        <div class="pagination" id="pagination-webinars"></div>
+
+        <div class="user-detail-panel" id="webinar-detail-panel">
+          <h3 id="webinar-detail-title">Webinar details</h3>
+          <div class="user-detail-grid" id="webinar-detail-content"></div>
+          <button type="button" class="btn-close" id="btn-close-webinar-detail">Close</button>
+        </div>
+      </div>
+
+    </div><!-- /.content -->
+  </div><!-- /.main -->
 
   <script src="/js/auth.js"></script>
   <script>
@@ -162,11 +282,23 @@
       return date + ', ' + hours + ':' + mins + ' ' + ampm;
     }
 
-    // Tab switching
-    document.querySelectorAll('.section-tabs .tab').forEach(function(tab) {
-      tab.addEventListener('click', function() {
+    // Greeting + today's date in the topbar
+    (function initGreeting() {
+      var now = new Date();
+      var hour = now.getHours();
+      var part = hour < 12 ? 'Good morning' : (hour < 17 ? 'Good afternoon' : 'Good evening');
+      document.getElementById('greeting').textContent = part + ', Admin 👋';
+      var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+      var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      document.getElementById('greeting-date').textContent =
+        days[now.getDay()] + ', ' + now.getDate() + ' ' + months[now.getMonth()];
+    })();
+
+    // Sidebar navigation
+    document.querySelectorAll('.sidebar-nav .nav-item').forEach(function(item) {
+      item.addEventListener('click', function() {
         var section = this.getAttribute('data-section');
-        document.querySelectorAll('.section-tabs .tab').forEach(function(t) { t.classList.remove('active'); });
+        document.querySelectorAll('.sidebar-nav .nav-item').forEach(function(t) { t.classList.remove('active'); });
         document.querySelectorAll('.dashboard-panel').forEach(function(p) { p.classList.remove('active'); });
         this.classList.add('active');
         var panel = document.getElementById('panel-' + section);
@@ -187,7 +319,9 @@
       document.getElementById('stat-transactions').textContent = data.transactions.success;
       document.getElementById('stat-webinars').textContent = data.webinars.total;
       document.getElementById('stat-webinar-enroll').textContent = data.webinars.enrollments;
-      document.getElementById('stat-revenue').textContent = data.revenue.toLocaleString('en-IN');
+      var revenue = data.revenue.toLocaleString('en-IN');
+      document.getElementById('stat-revenue').textContent = revenue;
+      document.getElementById('topbar-revenue').textContent = '₹' + revenue;
     }
 
     function loadStats() {
@@ -454,8 +588,18 @@
     apiFetch(API_BASE + '/auth/me')
       .then(function(r) { return r.json(); })
       .then(function(json) {
-        if (json.success && json.data && json.data.user)
-          document.getElementById('user-email').textContent = json.data.user.email || 'Admin';
+        if (json.success && json.data && json.data.user) {
+          var user = json.data.user;
+          var label = user.email || 'Admin';
+          document.getElementById('user-email').textContent = label;
+          var initialSource = user.name || user.email || 'A';
+          document.getElementById('avatar').textContent = initialSource.charAt(0).toUpperCase();
+          if (user.name) {
+            var hour = new Date().getHours();
+            var part = hour < 12 ? 'Good morning' : (hour < 17 ? 'Good afternoon' : 'Good evening');
+            document.getElementById('greeting').textContent = part + ', ' + user.name + ' 👋';
+          }
+        }
       })
       .catch(function() {});
 

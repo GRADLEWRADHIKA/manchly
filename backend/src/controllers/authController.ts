@@ -3,7 +3,7 @@ import prisma from "../prismaClient";
 import { UserType } from "@prisma/client";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
-import OTPManager from "../utils/otpManager";
+import OTPManager, { isTestAccount, isTestOtpAutofillEnabled } from "../utils/otpManager";
 import { ApiResponseHandler } from "../utils/ApiResponseHandler";
 import { issueAccessToken, serializeAuthUser } from "../utils/userSerializer";
 import { registerDevice, DEFAULT_DEVICE_LIMIT } from "../utils/deviceManager";
@@ -381,8 +381,16 @@ export class AuthController {
         }
       }
 
-      await otpManager.sendOTP(email, 6, "email");
-      ApiResponseHandler.success(res, { purpose, expires_in: "10 minutes" }, "OTP sent successfully to your email");
+      const otp = await otpManager.sendOTP(email, 6, "email");
+
+      // Test accounts get the OTP back so the client can auto-fill it; no real
+      // email is sent for them.
+      const autofill = isTestAccount(email) && isTestOtpAutofillEnabled();
+      ApiResponseHandler.success(
+        res,
+        { purpose, expires_in: "10 minutes", ...(autofill ? { otp } : {}) },
+        autofill ? "Test account — OTP auto-filled" : "OTP sent successfully to your email",
+      );
     } catch (err: any) {
       if (err.message.includes("Rate limit exceeded")) return ApiResponseHandler.customError(res, "Too many OTP requests. Please try again later.", 429, "RATE_LIMIT_EXCEEDED");
       if (err.message.includes("OTP already sent")) return ApiResponseHandler.customError(res, "OTP already sent. Please wait for it to expire or use the existing one.", 400, "OTP_ALREADY_SENT");

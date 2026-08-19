@@ -276,9 +276,19 @@ export default function DashboardScreen({ user, onNavigate, onLogout }) {
           {/* Right Side */}
           <div
             style={{
-              display: "flex",
-              gap: 12,
-              alignItems: "center",
+              border: "none",
+            cursor: "pointer",
+            borderRadius: 11,
+            padding: "9px 16px",
+            fontWeight: 800,
+            fontSize: 13,
+            fontFamily: "inherit",
+            color: "#fff",
+            background: colors.orange,
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 7,
+            //boxShadow: "0 4px 12px rgba(245,166,35,0.3)",
             }}
           >
             {[
@@ -477,7 +487,7 @@ export default function DashboardScreen({ user, onNavigate, onLogout }) {
         </div>
 
         {/* Scale Your Impact Banner */}
-        <ScaleImpactBanner />
+        <ScaleImpactBanner phoneNumber = "916363790659"/>
       </div>
     </div>
   );

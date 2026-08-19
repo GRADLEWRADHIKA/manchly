@@ -26,7 +26,6 @@ export default function CourseCVideoScreen({
   onNavigate,
   courseId: propCourseId,
 }) {
-  // Resolve active course ID from props or local storage
   const [resolvedCourseId] = useState(() => {
     const clean =
       typeof propCourseId === "object"
@@ -51,7 +50,6 @@ export default function CourseCVideoScreen({
   const [fetching, setFetching] = useState(false);
   const [error, setError] = useState("");
 
-  // Fetch existing course videos on mount
   useEffect(() => {
     if (!resolvedCourseId) return;
 
@@ -105,8 +103,6 @@ export default function CourseCVideoScreen({
     setError("");
 
     try {
-      // 1. Create the video record — matches the confirmed working schema
-      //    (title, description, order, is_free — no file/url yet)
       const createPayload = {
         title: lessonTitle.trim(),
         description: lessonDescription.trim() || "Lesson video",
@@ -121,13 +117,11 @@ export default function CourseCVideoScreen({
       });
       const created = unwrap ? unwrap(createRes) : createRes;
 
-      // Server returns a Mux direct-upload URL + the new video's id
       const uploadUrl = created?.upload_url || created?.uploadUrl;
       const videoId = created?.video?.id || created?.video_id || created?.id;
 
       if (!uploadUrl) throw new Error("Server didn't return an upload URL.");
 
-      // 2. PUT the raw file straight to Mux — NOT to /upload
       const muxRes = await fetch(uploadUrl, {
         method: "PUT",
         body: selectedFile,
@@ -147,7 +141,6 @@ export default function CourseCVideoScreen({
         },
       ]);
 
-      // Reset form
       setLessonTitle("");
       setLessonDescription("");
       setIsFree(false);
@@ -170,12 +163,26 @@ export default function CourseCVideoScreen({
         typeof videoId === "string" &&
         !videoId.toString().startsWith("17")
       ) {
-        await apiFetch(`/courses/videos/${videoId}`, { method: "DELETE" }); //[cite: 1]
+        await apiFetch(`/courses/videos/${videoId}`, { method: "DELETE" });
       }
       setVideos((prev) => prev.filter((_, i) => i !== index));
     } catch (err) {
       console.error("Failed to delete video:", err);
       setError("Failed to delete video lesson.");
+    }
+  };
+
+  const handleStepClick = (index) => {
+    if (index === 1) return;
+
+    if (index === 0) {
+      onNavigate?.("course-create", { courseId: resolvedCourseId });
+    } else if (index === 2) {
+      if (videos.length === 0) {
+        setError("Please add at least one video lesson before proceeding to preview.");
+        return;
+      }
+      onNavigate?.("course-create-preview", { courseId: resolvedCourseId });
     }
   };
 
@@ -239,7 +246,11 @@ export default function CourseCVideoScreen({
           Upload and manage video lessons for your course.
         </p>
 
-        <Stepper steps={WIZARD_STEPS} activeIndex={1} />
+        <Stepper 
+          steps={WIZARD_STEPS} 
+          activeIndex={1} 
+          onStepClick={handleStepClick} 
+        />
 
         <div
           style={{

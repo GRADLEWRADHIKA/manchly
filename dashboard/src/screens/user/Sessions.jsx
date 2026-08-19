@@ -6,7 +6,6 @@ import { onSocket } from "../../utils/socket";
 import colors from "../../utils/colors";
 import { Avatar, FullLoader, GradientButton, EmptyState, Badge } from "../../components/ui";
 import { formatCurrency } from "../../utils/formatters";
-import UserSidebar from "./UserSidebar";
 
 const CATEGORIES = ["All", "Business Consulting", "Career Guidance", "Finance & Tax", "Health & Wellness", "Astrology", "Technology", "Life Coach"];
 
@@ -51,15 +50,13 @@ export default function Sessions() {
 
   const statCard = (label, value) => (
     <div style={{ flex: 1, background: colors.user.card, border: `1px solid ${colors.user.border}`, borderRadius: 16, padding: 18, textAlign: "center" }}>
-      <div style={{ fontSize: 24, fontWeight: 900, background: colors.gradients.indigo, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>{value}</div>
+      <div style={{ fontSize: 24, fontWeight: 900, background: colors.user.accent, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>{value}</div>
       <div style={{ color: colors.user.subHeading, fontSize: 11.5, fontWeight: 800, letterSpacing: 1, textTransform: "uppercase", marginTop: 4 }}>{label}</div>
     </div>
   );
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: colors.user.bg, color: colors.user.text }}>
-    
-
       <main style={{ flex: 1, padding: "28px 32px", overflowY: "auto" }}>
         <h1 style={{ margin: "0 0 18px", fontSize: 26, fontWeight: 900 }}>My Journey</h1>
 
@@ -70,11 +67,11 @@ export default function Sessions() {
           {statCard("Spent", formatCurrency(stats?.total_earnings ?? 0))}
         </div>
 
-        {/* Experts */}
-        <div style={{ background: colors.gradients.heroDusk, borderRadius: 18, padding: "22px 24px", marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        {/* Experts Header Banner */}
+        <div style={{ background: colors.gradients.heroWarm, borderRadius: 18, padding: "22px 24px", marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
-            <div style={{ fontSize: 19, fontWeight: 900 }}>Talk to an Expert 1:1</div>
-            <div style={{ opacity: 0.8, fontSize: 13.5, marginTop: 4 }}>Live video sessions, billed per minute of actual call</div>
+            <div style={{ fontSize: 19, fontWeight: 900, color: colors.user.nav }}>Talk to an Expert 1:1</div>
+            <div style={{ opacity: 0.8, fontSize: 13.5, marginTop: 4, color: colors.user.accentSoft }}>Live video sessions, billed per minute of actual call</div>
           </div>
         </div>
 
@@ -97,7 +94,7 @@ export default function Sessions() {
               style={{
                 padding: "7px 16px", borderRadius: 999, fontSize: 12.5, fontWeight: 700, cursor: "pointer",
                 border: `1px solid ${category === c ? "transparent" : colors.user.border}`,
-                background: category === c ? colors.gradients.indigo : "transparent",
+                background: category === c ? colors.gradients.heroWarm : "transparent",
                 color: category === c ? "#fff" : colors.user.subHeading,
               }}
             >
@@ -122,10 +119,18 @@ export default function Sessions() {
                     <span>· {e.total_sessions || 0} sessions</span>
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
-                    <span style={{ fontWeight: 900, color: colors.user.accentSoft, fontSize: 14 }}>₹{e.video_rate || 0}/min</span>
-                    <GradientButton size="sm" disabled={!e.is_available} onClick={() => navigate(`/app/experts/${e.id}`, { state: { expert: e } })}>
+                    <span style={{ fontWeight: 900, color: colors.user.accent, fontSize: 14 }}>₹{e.video_rate || 0}/min</span>
+                    
+                    {/* BOOK BUTTON WITH GREEN GRADIENT */}
+                    <GradientButton 
+                      size="sm" 
+                      disabled={!e.is_available} 
+                      gradient={e.is_available ? colors.gradients.greenButtonDark : undefined}
+                      onClick={() => navigate(`/app/experts/${e.id}`, { state: { expert: e } })}
+                    >
                       {e.is_available ? "Book" : "Offline"}
                     </GradientButton>
+
                   </div>
                 </div>
               </div>
@@ -152,7 +157,7 @@ export default function Sessions() {
                     </div>
                   </div>
                   <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                    {s.duration > 0 && <Badge color={colors.user.accentSoft} bg="rgba(189,194,255,0.1)">{s.duration} min</Badge>}
+                    {s.duration > 0 && <Badge color={colors.user.accent} bg="rgba(189,194,255,0.1)">{s.duration} min</Badge>}
                     {s.amount > 0 && <Badge color="#F0C040" bg="rgba(240,192,64,0.1)">{formatCurrency(s.amount)}</Badge>}
                     <Badge color={STATUS_COLORS[status] || "#9CA3AF"}>{status || "—"}</Badge>
                   </div>

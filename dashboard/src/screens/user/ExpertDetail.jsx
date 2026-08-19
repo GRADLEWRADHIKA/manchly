@@ -84,7 +84,6 @@ export default function ExpertDetail() {
 
   const daySlots = useMemo(() => {
     const dow = date.getDay(); // 0 sun
-    // availability may be: flat array of slots, {weekly_schedule:[{day_of_week, slots}]}, {availability: [...]}
     const raw = availability?.weekly_schedule || availability?.availability || availability;
     let ranges = [];
     if (Array.isArray(raw)) {
@@ -104,12 +103,12 @@ export default function ExpertDetail() {
         }
       }
     }
-    if (ranges.length === 0) ranges = [["10:00", "18:00"]]; // app-parity default grid
+    if (ranges.length === 0) ranges = [["10:00", "18:00"]];
     return [...new Set(ranges.flatMap(([s, e]) => toSlots(s, e)))].sort();
   }, [availability, date]);
 
   if (loading && !expert) return <FullLoader label="Loading expert..." />;
-  if (!expert) return <div style={{ padding: 40, textAlign: "center" }}>Expert not found.</div>;
+  if (!expert) return <div style={{ padding: 40, textAlign: "center", color: colors.user.subHeading }}>Expert not found.</div>;
 
   const rate = Number(expert.video_rate) || 0;
   const total = rate * DUR;
@@ -159,26 +158,31 @@ export default function ExpertDetail() {
   };
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1.3fr", gap: 26, alignItems: "start" }}>
-      {/* Profile */}
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1.3fr", gap: 26, alignItems: "start", color: colors.user.text }}>
+      {/* Profile Card */}
       <div style={{ background: colors.user.card, border: `1px solid ${colors.user.border}`, borderRadius: 18, padding: 24 }}>
         <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
           <Avatar src={expert.user?.profile_image || expert.profile_image} name={name} size={76} online={!!expert.is_available} />
           <div>
-            <h1 style={{ margin: 0, fontSize: 22, fontWeight: 900 }}>{name}</h1>
+            <h1 style={{ margin: 0, fontSize: 22, fontWeight: 900, color: colors.user.text }}>{name}</h1>
             <div style={{ color: colors.user.subHeading, fontSize: 14 }}>{expert.profession}</div>
-            <Badge color={expert.is_available ? "#22C55E" : "#9CA3AF"}>{expert.is_available ? "Online" : "Offline"}</Badge>
+            <div style={{ marginTop: 6 }}>
+              <Badge color={expert.is_available ? "#22C55E" : "#9CA3AF"} bg={expert.is_available ? "rgba(34, 197, 94, 0.12)" : "rgba(156, 163, 175, 0.12)"}>
+                {expert.is_available ? "Online" : "Offline"}
+              </Badge>
+            </div>
           </div>
         </div>
 
+        {/* Stats */}
         <div style={{ display: "flex", gap: 10, marginTop: 18 }}>
           {[
             [`★ ${expert.rating || "New"}`, "Rating"],
             [`${expert.experience || 0} yrs`, "Experience"],
             [expert.total_sessions || 0, "Sessions"],
           ].map(([v, l]) => (
-            <div key={l} style={{ flex: 1, background: colors.user.cardSoft, borderRadius: 12, padding: 12, textAlign: "center" }}>
-              <div style={{ fontWeight: 900, fontSize: 16 }}>{v}</div>
+            <div key={l} style={{ flex: 1, background: colors.user.cardSoft, border: `1px solid ${colors.user.border}`, borderRadius: 12, padding: 12, textAlign: "center" }}>
+              <div style={{ fontWeight: 900, fontSize: 16, color: colors.user.text }}>{v}</div>
               <div style={{ color: colors.user.subHeading, fontSize: 11, textTransform: "uppercase", letterSpacing: 0.6, marginTop: 2 }}>{l}</div>
             </div>
           ))}
@@ -186,8 +190,8 @@ export default function ExpertDetail() {
 
         {expert.bio && (
           <>
-            <h3 style={{ margin: "18px 0 6px", fontSize: 15, fontWeight: 800 }}>About</h3>
-            <p style={{ margin: 0, color: "rgba(255,255,255,0.78)", fontSize: 13.5, lineHeight: 1.65 }}>{expert.bio}</p>
+            <h3 style={{ margin: "18px 0 6px", fontSize: 15, fontWeight: 800, color: colors.user.text }}>About</h3>
+            <p style={{ margin: 0, color: colors.user.subHeading, fontSize: 13.5, lineHeight: 1.65 }}>{expert.bio}</p>
           </>
         )}
         {Array.isArray(expert.languages) && expert.languages.length > 0 && (
@@ -197,21 +201,24 @@ export default function ExpertDetail() {
         )}
         {Array.isArray(expert.categories) && expert.categories.length > 0 && (
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 12 }}>
-            {expert.categories.map((c, i) => <Badge key={i} color={colors.user.accentSoft} bg="rgba(189,194,255,0.1)">{c}</Badge>)}
+            {expert.categories.map((c, i) => (
+              <Badge key={i} color={colors.user.accent} bg="rgba(189,194,255,0.1)">{c}</Badge>
+            ))}
           </div>
         )}
 
-        <div style={{ marginTop: 18, background: "rgba(79,96,250,0.12)", border: "1px solid rgba(79,96,250,0.35)", borderRadius: 12, padding: 14, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <span style={{ fontWeight: 800, fontSize: 14 }}>📹 Video Call</span>
-          <span style={{ fontWeight: 900, fontSize: 16, color: colors.user.accentSoft }}>₹{rate}/min</span>
+        {/* Mode & Rate Banner */}
+        <div style={{ marginTop: 18, background: colors.user.cardSoft, border: `1px solid ${colors.user.border}`, borderRadius: 12, padding: 14, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <span style={{ fontWeight: 800, fontSize: 14, color: colors.user.text }}>📹 Video Call</span>
+          <span style={{ fontWeight: 900, fontSize: 16, color: colors.user.accent }}>₹{rate}/min</span>
         </div>
       </div>
 
-      {/* Booking */}
+      {/* Booking Card */}
       <div style={{ background: colors.user.card, border: `1px solid ${colors.user.border}`, borderRadius: 18, padding: 24 }}>
-        <h2 style={{ margin: "0 0 14px", fontSize: 18, fontWeight: 900 }}>Book a Video Session</h2>
+        <h2 style={{ margin: "0 0 14px", fontSize: 18, fontWeight: 900, color: colors.user.text }}>Book a Video Session</h2>
 
-        {/* Dates */}
+        {/* 7-Day Date Picker */}
         <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 6 }}>
           {next7Days().map((d) => {
             const sel = d.toDateString() === date.toDateString();
@@ -222,8 +229,9 @@ export default function ExpertDetail() {
                 style={{
                   minWidth: 66, padding: "10px 8px", borderRadius: 12, cursor: "pointer",
                   border: `1px solid ${sel ? "transparent" : colors.user.border}`,
-                  background: sel ? colors.gradients.indigo : "transparent",
-                  color: sel ? "#fff" : colors.user.subHeading, textAlign: "center",
+                  background: sel ? colors.gradients.heroWarm : "transparent",
+                  color: sel ? "#FFFFFF" : colors.user.subHeading, textAlign: "center",
+                  transition: "all 0.15s ease",
                 }}
               >
                 <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase" }}>{d.toDateString() === new Date().toDateString() ? "Today" : d.toLocaleDateString("en-IN", { weekday: "short" })}</div>
@@ -233,7 +241,7 @@ export default function ExpertDetail() {
           })}
         </div>
 
-        {/* Slots */}
+        {/* Time Slots */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(88px, 1fr))", gap: 8, marginTop: 16 }}>
           {daySlots.map((t) => {
             const state = slotState(t);
@@ -247,9 +255,10 @@ export default function ExpertDetail() {
                   padding: "10px 6px", borderRadius: 10, fontSize: 13, fontWeight: 700,
                   cursor: state === "open" ? "pointer" : "not-allowed",
                   border: `1px solid ${sel ? "transparent" : colors.user.border}`,
-                  background: sel ? colors.gradients.indigo : "rgba(189,194,255,0.05)",
-                  color: state === "open" ? "#fff" : "rgba(255,255,255,0.28)",
+                  background: sel ? colors.gradients.heroWarm : state === "open" ? "rgba(43,82,246,0.04)" : colors.user.cardSoft,
+                  color: sel ? "#FFFFFF" : state === "open" ? colors.user.text : colors.user.subHeading,
                   textDecoration: state === "booked" ? "line-through" : "none",
+                  transition: "all 0.15s ease",
                 }}
                 title={state === "booked" ? "Booked" : state === "passed" ? "Passed" : t}
               >
@@ -259,23 +268,24 @@ export default function ExpertDetail() {
           })}
         </div>
 
+        {/* Summary Footer Bar */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 22, borderTop: `1px solid ${colors.user.border}`, paddingTop: 16 }}>
           <div>
-            <div style={{ fontWeight: 900, fontSize: 17 }}>₹{rate}/min</div>
+            <div style={{ fontWeight: 900, fontSize: 17, color: colors.user.text }}>₹{rate}/min</div>
             <div style={{ color: colors.user.subHeading, fontSize: 12.5 }}>
               {time ? `${date.toLocaleDateString("en-IN", { day: "numeric", month: "short" })} · ${time} · ${DUR} min` : "Pick a time slot"}
             </div>
           </div>
-          <GradientButton disabled={!time} onClick={() => setConfirm(true)}>Book Now</GradientButton>
+          <GradientButton disabled={!time} gradient={time ? colors.gradients.greenButton : undefined} onClick={() => setConfirm(true)}>Book Now</GradientButton>
         </div>
       </div>
 
-      {/* Confirm modal */}
+      {/* Confirmation Modal */}
       <Modal open={confirm} onClose={() => setConfirm(false)} title="Confirm Booking" dark>
         <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}>
           <Avatar name={name} src={expert.user?.profile_image} size={52} />
           <div>
-            <div style={{ fontWeight: 900 }}>{name}</div>
+            <div style={{ fontWeight: 900, color: colors.user.text }}>{name}</div>
             <div style={{ color: colors.user.subHeading, fontSize: 13 }}>{expert.profession}</div>
           </div>
         </div>
@@ -285,15 +295,15 @@ export default function ExpertDetail() {
           ["Duration", `${DUR} minutes`],
           ["Total", formatCurrency(total)],
         ].map(([l, v]) => (
-          <div key={l} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", fontSize: 14, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+          <div key={l} style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", fontSize: 14, borderBottom: `1px solid ${colors.user.border}` }}>
             <span style={{ color: colors.user.subHeading }}>{l}</span>
-            <span style={{ fontWeight: 700 }}>{v}</span>
+            <span style={{ fontWeight: 700, color: colors.user.text }}>{v}</span>
           </div>
         ))}
-        <p style={{ fontSize: 12, color: colors.user.subHeading, margin: "12px 0 16px", display: "flex", alignItems: "center", gap: 6 }}>
+        <p style={{ fontSize: 12, color: colors.user.subHeading, margin: "14px 0 16px", display: "flex", alignItems: "center", gap: 6 }}>
           <BadgeCheck size={14} color="#22C55E" /> Secure session. Billed per minute of actual call.
         </p>
-        <GradientButton full size="lg" loading={booking} onClick={book}>
+        <GradientButton full size="lg" loading={booking} gradient={time ? colors.gradients.greenButton : undefined} onClick={book}>
           Pay {formatCurrency(total)} & Book
         </GradientButton>
       </Modal>

@@ -42,23 +42,56 @@ export default function Player() {
 
   return (
     <div>
-      <button onClick={() => navigate(-1)} style={{ background: "transparent", border: "none", color: colors.user.subHeading, cursor: "pointer", display: "flex", alignItems: "center", gap: 6, marginBottom: 14, padding: 0, fontSize: 13.5, fontWeight: 700 }}>
+      <button 
+        onClick={() => navigate(-1)} 
+        style={{ 
+          background: "transparent", 
+          border: "none", 
+          color: colors.user.subHeading, 
+          cursor: "pointer", 
+          display: "flex", 
+          alignItems: "center", 
+          gap: 6, 
+          marginBottom: 14, 
+          padding: 0, 
+          fontSize: 13.5, 
+          fontWeight: 700 
+        }}
+      >
         <ArrowLeft size={16} /> Back
       </button>
 
       <div style={{ display: "grid", gridTemplateColumns: "1.8fr 1fr", gap: 22, alignItems: "start" }}>
         <div>
           {active?.playback_url ? (
-            <HlsVideo key={active.id} src={active.playback_url} poster={active.thumbnail_url || course.thumbnail} autoPlay onProgress={onProgress} style={{ aspectRatio: "16/9" }} />
+            <HlsVideo 
+              key={active.id} 
+              src={active.playback_url} 
+              poster={active.thumbnail_url || course.thumbnail} 
+              autoPlay 
+              onProgress={onProgress} 
+              style={{ aspectRatio: "16/9" }} 
+            />
           ) : (
-            <div style={{ aspectRatio: "16/9", borderRadius: 14, background: colors.user.card, display: "flex", alignItems: "center", justifyContent: "center", color: colors.user.subHeading }}>
+            <div 
+              style={{ 
+                aspectRatio: "16/9", 
+                borderRadius: 14, 
+                background: colors.user.card, 
+                border: `1px solid ${colors.user.border}`,
+                display: "flex", 
+                alignItems: "center", 
+                justifyContent: "center", 
+                color: colors.user.subHeading 
+              }}
+            >
               {active ? "This lesson is still processing…" : "No lessons yet"}
             </div>
           )}
           {active && (
             <>
-              <h2 style={{ margin: "16px 0 6px", fontSize: 21, fontWeight: 900 }}>{active.title}</h2>
-              <p style={{ margin: 0, color: "rgba(255,255,255,0.75)", fontSize: 14, lineHeight: 1.65, whiteSpace: "pre-wrap" }}>{active.description}</p>
+              <h2 style={{ margin: "16px 0 6px", fontSize: 21, fontWeight: 900, color: colors.user.text }}>{active.title}</h2>
+              <p style={{ margin: 0, color: colors.user.subHeading, fontSize: 14, lineHeight: 1.65, whiteSpace: "pre-wrap" }}>{active.description}</p>
             </>
           )}
         </div>
@@ -73,18 +106,38 @@ export default function Player() {
               <div
                 key={v.id || i}
                 onClick={() => { setActive(v); lastSent.current = -1; }}
-                style={{ display: "flex", gap: 12, background: colors.user.card, border: `1px solid ${colors.user.border}`, borderRadius: 12, padding: 10, cursor: "pointer" }}
+                style={{ 
+                  display: "flex", 
+                  gap: 12, 
+                  background: colors.user.card, 
+                  border: `1px solid ${colors.user.border}`, 
+                  borderRadius: 12, 
+                  padding: 10, 
+                  cursor: "pointer" 
+                }}
               >
-                <div style={{ width: 92, height: 56, borderRadius: 8, flexShrink: 0, background: v.thumbnail_url ? `url(${v.thumbnail_url}) center/cover` : colors.gradients.heroNavy, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
-                  <PlayCircle size={22} color="rgba(255,255,255,0.85)" />
+                <div 
+                  style={{ 
+                    width: 92, 
+                    height: 56, 
+                    borderRadius: 8, 
+                    flexShrink: 0, 
+                    background: v.thumbnail_url ? `url(${v.thumbnail_url}) center/cover` : colors.gradients.heroWarm, 
+                    display: "flex", 
+                    alignItems: "center", 
+                    justifyContent: "center", 
+                    position: "relative" 
+                  }}
+                >
+                  <PlayCircle size={22} color="#FFFFFF" />
                   {v.duration > 0 && (
-                    <span style={{ position: "absolute", bottom: 4, right: 4, background: "rgba(0,0,0,0.7)", borderRadius: 4, fontSize: 10, padding: "1px 5px" }}>
+                    <span style={{ position: "absolute", bottom: 4, right: 4, background: "rgba(0,0,0,0.75)", color: "#FFFFFF", borderRadius: 4, fontSize: 10, padding: "1px 5px", fontWeight: 700 }}>
                       {Math.floor(v.duration / 60)}:{String(Math.floor(v.duration % 60)).padStart(2, "0")}
                     </span>
                   )}
                 </div>
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ fontWeight: 700, fontSize: 13.5, lineHeight: 1.35 }}>{v.title}</div>
+                  <div style={{ fontWeight: 700, fontSize: 13.5, lineHeight: 1.35, color: colors.user.text }}>{v.title}</div>
                   <div style={{ color: colors.user.subHeading, fontSize: 12, marginTop: 4, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{v.description}</div>
                 </div>
               </div>

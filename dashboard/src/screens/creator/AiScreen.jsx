@@ -3,6 +3,7 @@
 // posts to the live /ai endpoint, and renders results with copy/regenerate.
 // Payload shapes match manBackend aiController exactly.
 import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Search, Sparkles, Copy, RefreshCw, ArrowLeft } from "lucide-react";
 import { apiFetch, unwrap } from "../../utils/api";
 import colors from "../../utils/colors";
@@ -222,6 +223,7 @@ function ResultBlock({ label, value, tint }) {
 /* ---------- main ---------- */
 
 export default function AiScreen() {
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [cat, setCat] = useState("All");
   const [provider, setProvider] = useState(null);

@@ -1,5 +1,3 @@
-// User profile & settings — avatar upload (POST /upload → Supabase URL), name
-// edit, WhatsApp support, legal links, logout.
 import React, { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Camera, LogOut, LifeBuoy, FileText, ScrollText, ShieldCheck, ReceiptText } from "lucide-react";
@@ -9,7 +7,6 @@ import { useAuth } from "../../context/AuthContext";
 import { Avatar, GradientButton, Field, TextInput, Modal } from "../../components/ui";
 import { LegalModal } from "../../components/LegalModals";
 import { toast } from "../../utils/toast";
-import UserSidebar from "./UserSidebar";
 
 const SUPPORT_WA = "916363790659";
 
@@ -67,17 +64,31 @@ export default function UserProfile() {
     cursor: "pointer",
     fontSize: 14.5,
     fontWeight: 600,
+    color: colors.user.text,
+  };
+
+  const disabledInputStyle = {
+    color: colors.user.text,
+    opacity: 0.8,
+    WebkitTextFillColor: colors.user.text,
   };
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: colors.user.bg, color: "#FFFFFF" }}>
-     
-
+    <div style={{ display: "flex", minHeight: "100vh", background: colors.user.bg, color: colors.user.text }}>
       <main style={{ flex: 1, padding: "28px 32px", overflowY: "auto" }}>
         <div style={{ maxWidth: 560, margin: "0 auto" }}>
-          <h1 style={{ margin: "0 0 22px", fontSize: 26, fontWeight: 900 }}>My Profile</h1>
+          <h1 style={{ margin: "0 0 22px", fontSize: 26, fontWeight: 900, color: colors.user.text }}>My Profile</h1>
 
-          <div style={{ background: colors.gradients.heroNavy, borderRadius: 18, padding: 26, textAlign: "center", marginBottom: 22 }}>
+          <div
+            style={{
+              background: colors.gradients?.heroWarm || "linear-gradient(135deg, #101828 0%, #1E293B 100%)",
+              borderRadius: 18,
+              padding: 26,
+              textAlign: "center",
+              marginBottom: 22,
+              border: `1px solid ${colors.user.border}`,
+            }}
+          >
             <div style={{ position: "relative", display: "inline-block" }}>
               <Avatar src={user?.profile_image} name={user?.name || "U"} size={92} />
               <button
@@ -89,9 +100,9 @@ export default function UserProfile() {
                   width: 30,
                   height: 30,
                   borderRadius: "50%",
-                  background: colors.gradients.indigo,
-                  border: "2px solid #fff",
-                  color: "#fff",
+                  background: colors.gradients?.greenButtonDark || "#2B52F6",
+                  border: "2px solid #FFFFFF",
+                  color: "#FFFFFF",
                   cursor: "pointer",
                   display: "flex",
                   alignItems: "center",
@@ -102,43 +113,43 @@ export default function UserProfile() {
               </button>
               <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => uploadAvatar(e.target.files?.[0])} />
             </div>
-            <div style={{ fontWeight: 900, fontSize: 19, marginTop: 10 }}>{user?.name}</div>
-            <div style={{ opacity: 0.75, fontSize: 13 }}>{user?.email}</div>
+            <div style={{ fontWeight: 900, fontSize: 19, marginTop: 10, color: "#FFFFFF" }}>{user?.name}</div>
+            <div style={{ fontSize: 13, color: "rgba(255, 255, 255, 0.75)" }}>{user?.email}</div>
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 24 }}>
             <Field label="Full Name">
-              <TextInput dark value={name} onChange={(e) => setName(e.target.value)} />
+              <TextInput value={name} onChange={(e) => setName(e.target.value)} style={{ color: colors.user.text }} />
             </Field>
             <Field label="Email">
-              <TextInput dark value={user?.email || ""} disabled style={{ opacity: 0.55 }} />
+              <TextInput value={user?.email || ""} disabled style={disabledInputStyle} />
             </Field>
             <Field label="Phone">
-              <TextInput dark value={user?.phone || ""} disabled style={{ opacity: 0.55 }} />
+              <TextInput value={user?.phone || ""} disabled style={disabledInputStyle} />
             </Field>
-            <GradientButton loading={saving} onClick={save}>
+            <GradientButton loading={saving} gradient={colors.gradients.greenButtonDark} onClick={save}>
               Save Changes
             </GradientButton>
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             <div style={row} onClick={() => window.open(`https://wa.me/${SUPPORT_WA}?text=${encodeURIComponent("Hello, I am a User, I need help.")}`, "_blank")}>
-              <LifeBuoy size={18} color={colors.user.accentSoft} /> Help & Support (WhatsApp)
+              <LifeBuoy size={18} color={colors.navItems.explore || colors.user.accent} /> Help & Support (WhatsApp)
             </div>
             <div style={row} onClick={() => navigate("/app/notifications")}>
-              <FileText size={18} color={colors.user.accentSoft} /> Notifications
+              <FileText size={18} color={colors.navItems.communities || colors.user.accent} /> Notifications
             </div>
             <div style={row} onClick={() => setLegalDoc("terms")}>
-              <ScrollText size={18} color={colors.user.accentSoft} /> Terms of Service
+              <ScrollText size={18} color={colors.navItems.myLearning || colors.user.accent} /> Terms of Service
             </div>
             <div style={row} onClick={() => setLegalDoc("privacy")}>
-              <ShieldCheck size={18} color={colors.user.accentSoft} /> Privacy Policy
+              <ShieldCheck size={18} color={colors.navItems.sessions || colors.user.accent} /> Privacy Policy
             </div>
             <div style={row} onClick={() => setLegalDoc("refund")}>
-              <ReceiptText size={18} color={colors.user.accentSoft} /> Refund Policy
+              <ReceiptText size={18} color={colors.navItems.saved || colors.user.accent} /> Refund Policy
             </div>
             <div style={{ ...row, color: "#F87171" }} onClick={() => setConfirmLogout(true)}>
-              <LogOut size={18} /> Logout
+              <LogOut size={18} color="#F87171" /> Logout
             </div>
           </div>
 
@@ -151,7 +162,7 @@ export default function UserProfile() {
           <Modal open={confirmLogout} onClose={() => setConfirmLogout(false)} title="Log out?" dark width={380}>
             <p style={{ color: colors.user.subHeading, fontSize: 14, marginTop: 0 }}>Are you sure you want to log out?</p>
             <div style={{ display: "flex", gap: 10 }}>
-              <GradientButton full gradient={colors.gradients.danger} onClick={() => { logout(); navigate("/auth", { replace: true }); }}>
+              <GradientButton full gradient={colors.gradients?.danger || "linear-gradient(135deg, #EF4444 0%, #DC2626 100%)"} onClick={() => { logout(); navigate("/auth", { replace: true }); }}>
                 Logout
               </GradientButton>
               <GradientButton full gradient="rgba(255,255,255,0.12)" onClick={() => setConfirmLogout(false)}>

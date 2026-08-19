@@ -62,6 +62,24 @@ export default function CourseCreateScreen({ user, onNavigate }) {
     }
   };
 
+  // Add this inside CourseCreateScreen component
+const handleStepClick = (index) => {
+  if (index === 0) return; // Already on Course Details
+
+  const courseId = typeof localStorage !== "undefined" ? localStorage.getItem("activeCourseId") : null;
+
+  if (!courseId) {
+    setError("Please fill out the details and click 'Save & Continue' to create your course draft first.");
+    return;
+  }
+
+  if (index === 1) {
+    onNavigate?.("course-create-video", { courseId });
+  } else if (index === 2) {
+    onNavigate?.("course-create-preview", { courseId });
+  }
+};
+
   const handleSaveAndContinue = async () => {
     if (!form.title.trim()) return setError("Give your course a title before continuing.");
     setSaving(true);
@@ -147,7 +165,7 @@ export default function CourseCreateScreen({ user, onNavigate }) {
           Provide the basic details to set up your course.
         </p>
 
-        <Stepper steps={WIZARD_STEPS} activeIndex={0} />
+        <Stepper steps={WIZARD_STEPS} activeIndex={0}onStepClick={handleStepClick}  />
 
         <div style={{ background: "#fff", borderRadius: 16, border: `1px solid ${colors.base.border}`, padding: 32 }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>

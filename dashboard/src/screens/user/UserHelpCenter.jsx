@@ -127,7 +127,7 @@ export default function HelpCenter() {
     bg: colors.user.bg,
     cardBg: colors.user.card,
     border: colors.user.border,
-    text: "#FFFFFF",
+    text: colors.user.text,
     sub: colors.user.subHeading,
     accent: colors.user.accentSoft,
   };
@@ -148,11 +148,11 @@ export default function HelpCenter() {
           <div style={{ marginBottom: 22 }}>
             <h1 style={{ margin: 0, fontSize: 27, fontWeight: 900 }}>
               Help &{" "}
-              <span style={{ background: G.indigo, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+              <span style={{ background: G.buttonBlue, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
                 Legal Center
               </span>
             </h1>
-            <p style={{ margin: "5px 0 0", color: T.sub, fontSize: 14 }}>
+            <p style={{ margin: "5px 0 0", color: T.cardBg, fontSize: 14 }}>
               Need assistance with your courses, purchases, or account? We are here to help.
             </p>
           </div>
@@ -168,7 +168,7 @@ export default function HelpCenter() {
                   onClick={() => setTab(t.key)}
                   style={{
                     display: "flex", alignItems: "center", gap: 8,
-                    background: on ? G.indigo : T.cardBg,
+                    background: on ? G.heroWarm : T.cardBg,
                     color: on ? "#FFF" : T.sub,
                     border: `1px solid ${on ? "transparent" : T.border}`,
                     boxShadow: on ? "0 4px 18px rgba(90,104,243,0.35)" : "none",
@@ -188,10 +188,10 @@ export default function HelpCenter() {
               {/* WhatsApp Hero Card */}
               <div
                 style={{
-                  background: "linear-gradient(135deg, #1E1B4B 0%, #111827 100%)",
+                  background: colors.user.card,
                   border: `1px solid ${T.border}`,
                   borderRadius: 20, padding: "26px 30px",
-                  color: "#FFF", marginBottom: 22, display: "flex",
+                  color: colors.user.text, marginBottom: 22, display: "flex",
                   justifyContent: "space-between", alignItems: "center", gap: 20, flexWrap: "wrap",
                   boxShadow: "0 10px 30px rgba(0,0,0,0.3)",
                 }}
@@ -289,12 +289,6 @@ function InlinePolicyViewer({ sections, docKey, onOpenModal }) {
           <h2 style={{ margin: 0, fontSize: 18, fontWeight: 900 }}>{titles[docKey]}</h2>
           <span style={{ fontSize: 12, color: colors.user.subHeading }}>{COMPANY} · Manchly Platform</span>
         </div>
-        <button
-          onClick={onOpenModal}
-          style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(90,104,243,0.15)", border: "1px solid rgba(90,104,243,0.4)", color: "#BDC2FF", borderRadius: 8, padding: "6px 14px", fontSize: 12, fontWeight: 800, cursor: "pointer" }}
-        >
-          <ExternalLink size={13} /> Open in Modal
-        </button>
       </div>
 
       {sections.map(([title, paras], i) => (

@@ -18,8 +18,6 @@ import colors from "../../../utils/colors";
 import Sidebar from "../../../components/Sidebar";
 import TopHeader from "../../../components/TopHeader";
 import computer from "../../../assets/Images/computer.png";
-import {Modal, Spinner} from "../../../components/ui";
-import { GoldBtn, AiEnhance, lbl } from "../../../components/creatorUi";
 import { formatCurrency, timeAgo } from "../../../utils/formatters";
 import VerificationBanner from "../../../components/VerificationBanner";
 import StatCard from "./components/StatCard";
@@ -62,42 +60,68 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
   const pageSize = 5;
 
   const loadCourses = useCallback(async () => {
-    setLoading(true);
-    setError("");
+  setLoading(true);
+  setError("");
 
-    const [courses, stats, wallet, kyc] = await Promise.allSettled([
-      apiFetch("/courses"),
-      apiFetch("/courses/stats/creator"),
-      apiFetch("/settlements/wallet"),
-      apiFetch("/kyc/status"),
-    ]);
+  const [courses, stats, wallet, kyc] = await Promise.allSettled([
+    apiFetch("/courses"),
+    apiFetch("/courses/stats/creator"),
+    apiFetch("/settlements/wallet"),
+    apiFetch("/kyc/status"),
+  ]);
 
-    const coursesData = val(courses);
-    const allCourses = Array.isArray(coursesData)
-      ? coursesData
-      : coursesData?.courses || [];
-      
-    const myCourses = allCourses.filter(
-      (c) =>
-        c?.creator_id === user?.id ||
-        c?.creator?.id === user?.id ||
-        c?.user_id === user?.id,
-    );
-    setCourseList(myCourses);
+  const coursesData = val(courses);
+  const allCourses = Array.isArray(coursesData)
+    ? coursesData
+    : coursesData?.courses || [];
 
-    setCourseStats(val(stats)?.statistics || val(stats) || null);
+  // 1. Extract normalized current user ID (checking .id, ._id, and user_id)
+  const currentUserId = user?.id ?? user?._id ?? user?.user_id;
 
-    const wd = val(wallet);
-    setWalletData(wd?.wallet || wd || null);
+  const myCourses = allCourses.filter((c) => {
+    // If no user object exists, return all courses received from the backend
+    if (!currentUserId) return true;
 
-    setKycStatus(val(kyc));
+    const targetIdStr = String(currentUserId);
 
-    if ([courses, stats, wallet, kyc].every((r) => r.status === "rejected")) {
-      setError("Unable to connect to the server.");
-    }
+    // 2. Gather all possible creator/owner ID representations from the course object
+    const possibleCreatorIds = [
+      c?.creator_id,
+      c?.creator?.id,
+      c?.creator?._id,
+      c?.user_id,
+      c?.userId,
+      c?.creatorId,
+      c?.author_id,
+      c?.authorId,
+      c?.created_by,
+      c?.createdBy,
+    ]
+      .filter((val) => val !== undefined && val !== null)
+      .map((val) => String(val));
 
-    setLoading(false);
-  }, []);
+    // 3. Fallback: If backend returns courses without creator metadata, preserve them
+    if (possibleCreatorIds.length === 0) return true;
+
+    // 4. Loose string match comparison
+    return possibleCreatorIds.includes(targetIdStr);
+  });
+
+  setCourseList(myCourses);
+
+  setCourseStats(val(stats)?.statistics || val(stats) || null);
+
+  const wd = val(wallet);
+  setWalletData(wd?.wallet || wd || null);
+
+  setKycStatus(val(kyc));
+
+  if ([courses, stats, wallet, kyc].every((r) => r.status === "rejected")) {
+    setError("Unable to connect to the server.");
+  }
+
+  setLoading(false);
+}, [user]);
 
   const loadNotifications = useCallback(async () => {
     try {

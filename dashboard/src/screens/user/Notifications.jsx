@@ -7,7 +7,7 @@ import colors from "../../utils/colors";
 import { useAuth } from "../../context/AuthContext";
 import { FullLoader } from "../../components/ui";
 import { timeAgo } from "../../utils/formatters";
-import UserSidebar from "./UserSidebar";
+
 
 const G = colors.gradients;
 
@@ -87,34 +87,50 @@ export default function Notifications({ role = "user" }) {
   /* ---- role theme ---- */
   const T = dark
     ? {
-        pageColor: "#fff", cardBg: colors.user.card, cardBorder: colors.user.border,
-        unreadBg: "rgba(90,104,243,0.1)", unreadBorder: "rgba(90,104,243,0.55)",
-        sub: colors.user.subHeading, pillOn: G.indigo, pillOnColor: "#fff",
-        pillOff: "transparent", pillOffColor: colors.user.subHeading, pillBorder: colors.user.border,
-        markColor: colors.user.accentSoft, countBg: G.indigo, iconBgAlpha: "22",
+        pageColor: colors.user.text,
+        cardBg: colors.user.card,
+        cardBorder: colors.user.border,
+        unreadBg: "rgba(90,104,243,0.1)",
+        unreadBorder: "rgba(90,104,243,0.55)",
+        sub: colors.user.subHeading,
+        pillOn: G.indigo,
+        pillOnColor: "#FFFFFF",
+        pillOff: "transparent",
+        pillOffColor: colors.user.subHeading,
+        pillBorder: colors.user.border,
+        markColor: colors.user.accent,
+        countBg: G.heroWarm,
+        iconBgAlpha: "22",
       }
     : {
-        pageColor: colors.typography.primaryText, cardBg: "#fff", cardBorder: colors.base.border,
-        unreadBg: "#FFFBF2", unreadBorder: "#E2C58A",
-        sub: colors.typography.secondaryText, pillOn: G.orange, pillOnColor: "#fff",
-        pillOff: "#fff", pillOffColor: colors.typography.secondaryText, pillBorder: colors.base.border,
-        markColor: "#B45309", countBg: G.orange, iconBgAlpha: "1A",
+        pageColor: colors.typography.primaryText,
+        cardBg: "#FFFFFF",
+        cardBorder: colors.user.border,
+        unreadBg: "#FFFBF2",
+        unreadBorder: "#E2C58A",
+        sub: colors.typography.secondaryText,
+        pillOn: G.orange,
+        pillOnColor: "#FFFFFF",
+        pillOff: "#FFFFFF",
+        pillOffColor: colors.typography.secondaryText,
+        pillBorder: colors.user.border,
+        markColor: "#B45309",
+        countBg: G.orange,
+        iconBgAlpha: "1A",
       };
 
   if (loading) return <FullLoader label="Loading notifications..." />;
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: dark ? colors.user.bg : "transparent", color: T.pageColor }}>
-      
-
       <main style={{ flex: 1, padding: dark ? "28px 32px" : 0, overflowY: "auto" }}>
         <div style={{ maxWidth: 760, margin: "0 auto", color: T.pageColor, padding: dark ? 0 : 32 }}>
           {/* Header */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18, flexWrap: "wrap", gap: 10 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <h1 style={{ margin: 0, fontSize: 25, fontWeight: 900 }}>Notifications</h1>
+              <h1 style={{ margin: 0, fontSize: 25, fontWeight: 900, color: T.pageColor }}>Notifications</h1>
               {unreadCount > 0 && (
-                <span style={{ background: T.countBg, color: "#fff", borderRadius: 99, padding: "3px 12px", fontSize: 12.5, fontWeight: 900 }}>
+                <span style={{ background: T.countBg, color: "#FFFFFF", borderRadius: 99, padding: "3px 12px", fontSize: 12.5, fontWeight: 900 }}>
                   {unreadCount} new
                 </span>
               )}
@@ -142,15 +158,15 @@ export default function Notifications({ role = "user" }) {
                     display: "inline-flex", alignItems: "center", gap: 7,
                     padding: "8px 18px", borderRadius: 999, fontSize: 13, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
                     border: `1.5px solid ${on ? "transparent" : T.pillBorder}`,
-                    background: on ? T.pillOn : T.pillOff,
-                    color: on ? T.pillOnColor : T.pillOffColor,
+                    background: on ? colors.user.accent : T.pillOff,
+                    color: on ? colors.user.text : T.pillOffColor,
                     boxShadow: on ? "0 4px 14px rgba(0,0,0,0.15)" : "none",
                     transition: "all 0.15s ease",
                   }}
                 >
                   {t}
                   {count > 0 && (
-                    <span style={{ background: on ? "rgba(255,255,255,0.3)" : `${dark ? "#5A68F3" : "#F5A623"}22`, color: on ? "#fff" : dark ? "#BDC2FF" : "#B45309", borderRadius: 99, padding: "1px 8px", fontSize: 11, fontWeight: 900 }}>
+                    <span style={{ background: on ? "rgba(255,255,255,0.3)" : `${dark ? colors.user.accent : "#F5A623"}22`, color: on ? "#FFFFFF" : dark ? colors.user.accent : "#B45309", borderRadius: 99, padding: "1px 8px", fontSize: 11, fontWeight: 900 }}>
                       {count}
                     </span>
                   )}
@@ -161,9 +177,9 @@ export default function Notifications({ role = "user" }) {
 
           {/* List */}
           {filtered.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "70px 20px", background: T.cardBg, border: `1px solid ${T.cardBorder}`, borderRadius: 18 }}>
+            <div style={{ textAlign: "center", padding: "70px 20px", background: colors.user.card, border: `1px solid ${colors.user1.Border}`, borderRadius: 18 }}>
               <BellOff size={36} color={T.sub} style={{ marginBottom: 12 }} />
-              <div style={{ fontSize: 17, fontWeight: 900 }}>All caught up!</div>
+              <div style={{ fontSize: 17, fontWeight: 900, color: T.pageColor }}>All caught up!</div>
               <div style={{ color: T.sub, fontSize: 13.5, marginTop: 5 }}>
                 {tab === "All" ? "New sales, bookings and updates will appear here." : `No ${tab.toLowerCase()} notifications.`}
               </div>
@@ -193,7 +209,7 @@ export default function Notifications({ role = "user" }) {
                     </span>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "baseline" }}>
-                        <span style={{ fontWeight: unread ? 900 : 700, fontSize: 14.5, display: "flex", alignItems: "center", gap: 8 }}>
+                        <span style={{ fontWeight: unread ? 900 : 700, fontSize: 14.5, display: "flex", alignItems: "center", gap: 8, color: T.pageColor }}>
                           {n.title}
                           {unread && <span style={{ width: 8, height: 8, borderRadius: "50%", background: meta.color, flexShrink: 0 }} />}
                         </span>

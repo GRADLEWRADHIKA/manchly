@@ -18,6 +18,9 @@ import { formatCurrency } from "../../utils/formatters";
 
 const G = colors.gradients;
 
+const dayNameToNum = (day) => (DAYS.indexOf(day) + 1) % 7; // Monday=1 ... Sunday=0
+const toDayOfWeek = (s) => (s.day_of_week != null ? Number(s.day_of_week) : dayNameToNum(s.day));
+
 const CATEGORIES = ["Business Consulting", "Career Guidance", "Finance & Tax", "Legal Advice", "Health & Wellness", "Fitness Coach", "Astrology", "Education & Tutoring", "Technology", "Marketing", "Design", "Life Coach"];
 const LANGUAGES = ["Hindi", "English", "Tamil", "Telugu", "Bengali", "Marathi", "Gujarati", "Kannada"];
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
@@ -163,28 +166,52 @@ export default function SessionsScreen() {
   };
 
   /* ---------- slots ---------- */
-  const saveSlot = async () => {
-    if (slotForm.end_time <= slotForm.start_time) return toast.error("End time must be after start time");
-    setSlotSaving(true);
-    try {
-      await apiFetch("/sessions/availability/slot", { method: "POST", body: JSON.stringify(slotForm) });
-      toast.success("Slot added");
-      setSlotModal(false);
-      load();
-    } catch (e) {
-      toast.error(e.message);
-    } finally {
-      setSlotSaving(false);
-    }
-  };
-  const deleteSlot = async (slot) => {
-    try {
-      await apiFetch(`/sessions/availability/${slot.id}`, { method: "DELETE" });
-      setSlots((s) => s.filter((x) => x.id !== slot.id));
-    } catch (e) {
-      toast.error(e.message);
-    }
-  };
+ const saveSlot = async () => {
+  if (slotForm.end_time <= slotForm.start_time) {
+    return toast.error("End time must be after start time");
+  }
+
+  // Parse and validate day_of_week
+  const newDayNum = Number(dayNameToNum(slotForm.day));
+  if (isNaN(newDayNum)) {
+    return toast.error("Invalid day selected");
+  }
+
+  setSlotSaving(true);
+  try {
+    // 1. Clean existing slots
+    const existing = (slots || []).map((s) => ({
+      day_of_week: Number(toDayOfWeek(s)),
+      start: String(s.start_time ?? s.start ?? "").slice(0, 5),
+      end: String(s.end_time ?? s.end ?? "").slice(0, 5),
+    })).filter((s) => !isNaN(s.day_of_week) && s.start && s.end);
+
+    // 2. Format new slot
+    const newSlot = {
+      day_of_week: newDayNum,
+      start: String(slotForm.start_time).slice(0, 5),
+      end: String(slotForm.end_time).slice(0, 5),
+    };
+
+    const payload = { slots: [...existing, newSlot] };
+
+    // Console log payload before fetch to inspect for NaN or malformed times
+    console.log("Sending Availability Payload:", payload);
+
+    await apiFetch("/sessions/availability", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+
+    toast.success("Slot added");
+    setSlotModal(false);
+    load();
+  } catch (e) {
+    toast.error(e.message || "Failed to save slot");
+  } finally {
+    setSlotSaving(false);
+  }
+};
 
   /* ---------- products ---------- */
   const parseProduct = (p) => {

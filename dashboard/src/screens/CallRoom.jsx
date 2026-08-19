@@ -96,7 +96,7 @@ export default function CallRoom() {
       {zegoReady ? (
         <div ref={containerRef} style={{ flex: 1 }} />
       ) : (
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 14, background: colors.gradients.heroNavy }}>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 14, background: colors.gradients.heroWarm }}>
           <div style={{ fontSize: 46 }}>📹</div>
           <div style={{ fontWeight: 900, fontSize: 19 }}>Call in progress</div>
           <p style={{ maxWidth: 420, textAlign: "center", opacity: 0.7, fontSize: 13.5, lineHeight: 1.7 }}>

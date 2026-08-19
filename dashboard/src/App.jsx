@@ -30,6 +30,8 @@ import Notifications from "./screens/user/Notifications";
 import SessionRating from "./screens/user/SessionRating";
 import CallRoom from "./screens/CallRoom";
 import UserHelpCenter from "./screens/user/UserHelpCenter";
+import UserCommunityScreen from "./screens/user/UserCommunityScreen.jsx";
+import UserHubScreen from "./screens/user/UserHubScreen.jsx";
 
 // Creator side
 import CreatorLayout from "./layouts/CreatorLayout";
@@ -50,6 +52,7 @@ import CourseVideoScreen from "./screens/Auth/Creator/CourseVideoScreen";
 import CoursePreviewScreen from "./screens/Auth/Creator/CoursePreiewScreen";
 import CommunityScreen from "./screens/creator/CommunityScreen";
 import CreatorHubScreen from "./screens/creator/CreatorHubScreen";
+import CoursePlannerScreen from "./screens/creator/CourseplannerScreen";
 
 function RequireAuth({ children, roles }) {
   const { isAuthed, booted, role } = useAuth();
@@ -230,6 +233,8 @@ export default function App() {
           <Route path="settings" element={<UserProfile />} />
           <Route path="rate/:sessionId" element={<SessionRating />} />
           <Route path="help" element={<UserHelpCenter />} />
+          <Route path="communities" element={<UserCommunityScreen />} />
+          <Route path="useHub" element={<UserHubScreen />} />
         </Route>
 
         {/* ---------- CREATOR SHELL ---------- */}
@@ -251,6 +256,7 @@ export default function App() {
           <Route path="webinars" element={<WebinarsScreen />} />
           <Route path="sessions" element={<SessionsScreen />} />
           <Route path="ai" element={<AiScreen />} />
+          <Route path="course-planner" element={<CoursePlannerScreen />} />
           <Route path="wallet" element={<WalletScreen />} />
           <Route path="kyc" element={<KycScreen />} />
           <Route path="notifications" element={<Notifications role="creator" />} />

@@ -9,13 +9,21 @@ import {
 import colors from "../utils/colors";
 import scaleImage from "../assets/Images/scaleImage.png";
 
-export default function ScaleImpactBanner() {
+export default function ScaleImpactBanner({ phoneNumber = "919876543210" }) {
   const features = [
     { icon: TrendingUp },
     { icon: Users },
     { icon: Megaphone },
     { icon: Sparkles },
   ];
+
+  const handleBookConsultation = () => {
+    const cleanNumber = phoneNumber.replace(/\D/g, "");
+    const message = encodeURIComponent(
+      "Hi! I would like to book a free consultation to grow my creator business on Manchly."
+    );
+    window.open(`https://wa.me/${cleanNumber}?text=${message}`, "_blank", "noopener,noreferrer");
+  };
 
   return (
     <div
@@ -124,6 +132,7 @@ export default function ScaleImpactBanner() {
         <div>
           <button
             type="button"
+            onClick={handleBookConsultation}
             style={{
               background: colors.brand.actionBlue,
               color: colors.typography.white,
@@ -162,7 +171,7 @@ export default function ScaleImpactBanner() {
           alignItems: "center",
         }}
       >
-       <img
+        <img
           src={scaleImage}
           alt="Illustration of a creator team celebrating growth"
           style={{

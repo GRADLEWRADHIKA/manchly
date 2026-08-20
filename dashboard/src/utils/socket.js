@@ -1,7 +1,7 @@
 import { io } from "socket.io-client";
 import { BACKEND_ORIGIN, getToken } from "./api";
+import { getDeviceId } from "./deviceId";
 
-// 1. Connect directly to your backend origin (http://localhost:8080 in dev)
 const SOCKET_URL = BACKEND_ORIGIN;
 
 let socket = null;
@@ -18,9 +18,14 @@ export function connectSocket() {
   if (socket?.connected) return socket;
   if (socket) socket.disconnect();
 
+  const deviceId = getDeviceId();
+
   socket = io(SOCKET_URL, {
-    auth: { token },
-    // 2. Add polling fallback so handshake succeeds before upgrading to WebSocket
+    // 1. Pass both JWT token and unique deviceId in auth handshake
+    auth: { 
+      token,
+      deviceId 
+    },
     transports: ["polling", "websocket"],
     reconnection: true,
     reconnectionAttempts: 10,
@@ -29,13 +34,31 @@ export function connectSocket() {
 
   socket.on("connect", () => {
     socket.emit("user_online");
-    // re-attach every registered listener after (re)connect
+
+    // Re-attach registered listeners on reconnect
     for (const [event, cbs] of listeners) {
       for (const cb of cbs) {
         socket.off(event, cb);
         socket.on(event, cb);
       }
     }
+  });
+
+  // 2. Real-time Single Device Logout Listener
+  // Catches active invalidation when logged in from another device
+  socket.on("force_logout", (data) => {
+    const message =
+      data?.message ||
+      "You have been logged out because your account was signed in on another device.";
+
+    // Emit the same window event used by your Axios interceptor
+    window.dispatchEvent(
+      new CustomEvent("manchly:force-logout", {
+        detail: { message },
+      })
+    );
+
+    disconnectSocket();
   });
 
   socket.on("user_status", ({ userId, status }) => {

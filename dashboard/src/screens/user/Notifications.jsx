@@ -8,7 +8,6 @@ import { useAuth } from "../../context/AuthContext";
 import { FullLoader } from "../../components/ui";
 import { timeAgo } from "../../utils/formatters";
 
-
 const G = colors.gradients;
 
 const TYPE_META = {
@@ -35,6 +34,16 @@ export default function Notifications({ role = "user" }) {
   const { role: authRole } = useAuth();
   const effRole = role || (authRole === "CREATOR" ? "creator" : "user");
   const dark = effRole === "user";
+
+  // Active tab gradient according to role
+  const activeTabBg =
+    effRole === "creator"
+      ? "linear-gradient(135deg, #F7B733 0%, #F5A623 55%, #ED8F03 100%)"
+      : "linear-gradient(135deg, #86EFAC 0%, #4ADE80 100%)";
+
+  // Active tab text color (dark text for light green gradient, white text for orange)
+  const activeTabTextColor = effRole === "creator" ? "#FFFFFF" : "#0F172A";
+
   const [items, setItems] = useState([]);
   const [tab, setTab] = useState("All");
   const [loading, setLoading] = useState(true);
@@ -87,33 +96,33 @@ export default function Notifications({ role = "user" }) {
   /* ---- role theme ---- */
   const T = dark
     ? {
-        pageColor: colors.user.text,
-        cardBg: colors.user.card,
-        cardBorder: colors.user.border,
+        pageColor: colors.user?.text || "#FFFFFF",
+        cardBg: colors.user?.card || "#1E293B",
+        cardBorder: colors.user?.border || "rgba(255,255,255,0.1)",
         unreadBg: "rgba(90,104,243,0.1)",
         unreadBorder: "rgba(90,104,243,0.55)",
-        sub: colors.user.subHeading,
+        sub: colors.user?.subHeading || "#94A3B8",
         pillOn: G.indigo,
         pillOnColor: "#FFFFFF",
         pillOff: "transparent",
-        pillOffColor: colors.user.subHeading,
-        pillBorder: colors.user.border,
-        markColor: colors.user.accent,
+        pillOffColor: colors.user?.subHeading || "#94A3B8",
+        pillBorder: colors.user?.border || "rgba(255,255,255,0.1)",
+        markColor: colors.user?.accent || "#6366F1",
         countBg: G.heroWarm,
         iconBgAlpha: "22",
       }
     : {
-        pageColor: colors.typography.primaryText,
+        pageColor: colors.typography?.primaryText || "#0F172A",
         cardBg: "#FFFFFF",
-        cardBorder: colors.user.border,
+        cardBorder: colors.user?.border || "#E2E8F0",
         unreadBg: "#FFFBF2",
         unreadBorder: "#E2C58A",
-        sub: colors.typography.secondaryText,
+        sub: colors.typography?.secondaryText || "#64748B",
         pillOn: G.orange,
         pillOnColor: "#FFFFFF",
         pillOff: "#FFFFFF",
-        pillOffColor: colors.typography.secondaryText,
-        pillBorder: colors.user.border,
+        pillOffColor: colors.typography?.secondaryText || "#64748B",
+        pillBorder: colors.user?.border || "#E2E8F0",
         markColor: "#B45309",
         countBg: G.orange,
         iconBgAlpha: "1A",
@@ -122,7 +131,7 @@ export default function Notifications({ role = "user" }) {
   if (loading) return <FullLoader label="Loading notifications..." />;
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: dark ? colors.user.bg : "transparent", color: T.pageColor }}>
+    <div style={{ display: "flex", minHeight: "100vh", background: dark ? colors.user?.bg : "transparent", color: T.pageColor }}>
       <main style={{ flex: 1, padding: dark ? "28px 32px" : 0, overflowY: "auto" }}>
         <div style={{ maxWidth: 760, margin: "0 auto", color: T.pageColor, padding: dark ? 0 : 32 }}>
           {/* Header */}
@@ -158,15 +167,27 @@ export default function Notifications({ role = "user" }) {
                     display: "inline-flex", alignItems: "center", gap: 7,
                     padding: "8px 18px", borderRadius: 999, fontSize: 13, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
                     border: `1.5px solid ${on ? "transparent" : T.pillBorder}`,
-                    background: on ? colors.user.accent : T.pillOff,
-                    color: on ? colors.user.text : T.pillOffColor,
-                    boxShadow: on ? "0 4px 14px rgba(0,0,0,0.15)" : "none",
+                    background: on ? activeTabBg : T.pillOff,
+                    color: on ? activeTabTextColor : T.pillOffColor,
+                    boxShadow: on ? "0 4px 14px rgba(0,0,0,0.12)" : "none",
                     transition: "all 0.15s ease",
                   }}
                 >
                   {t}
                   {count > 0 && (
-                    <span style={{ background: on ? "rgba(255,255,255,0.3)" : `${dark ? colors.user.accent : "#F5A623"}22`, color: on ? "#FFFFFF" : dark ? colors.user.accent : "#B45309", borderRadius: 99, padding: "1px 8px", fontSize: 11, fontWeight: 900 }}>
+                    <span style={{
+                      background: on
+                        ? effRole === "creator"
+                          ? "rgba(255, 255, 255, 0.3)"
+                          : "rgba(15, 23, 42, 0.15)"
+                        : `${dark ? colors.user?.accent : "#F5A623"}22`,
+                      color: on
+                        ? activeTabTextColor
+                        : dark
+                        ? colors.user?.accent
+                        : "#B45309",
+                      borderRadius: 99, padding: "1px 8px", fontSize: 11, fontWeight: 900
+                    }}>
                       {count}
                     </span>
                   )}
@@ -177,7 +198,7 @@ export default function Notifications({ role = "user" }) {
 
           {/* List */}
           {filtered.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "70px 20px", background: colors.user.card, border: `1px solid ${colors.user1.Border}`, borderRadius: 18 }}>
+            <div style={{ textAlign: "center", padding: "70px 20px", background: T.cardBg, border: `1px solid ${T.cardBorder}`, borderRadius: 18 }}>
               <BellOff size={36} color={T.sub} style={{ marginBottom: 12 }} />
               <div style={{ fontSize: 17, fontWeight: 900, color: T.pageColor }}>All caught up!</div>
               <div style={{ color: T.sub, fontSize: 13.5, marginTop: 5 }}>

@@ -1,6 +1,3 @@
-// App-parity auth: role selection → phone/email + OTP → signup.
-// Split-screen design: brand hero panel (left) + wizard panel (right) with
-// step indicator, animated phase transitions, and gold hover interactions.
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
@@ -176,7 +173,7 @@ export default function AuthFlow() {
     try {
       const res = await apiFetch("/auth/signup", {
         method: "POST",
-        body: JSON.stringify({ name: name.trim(), email: email.trim(), phone: phone.trim(), dob, user_type: effectiveRole, company_name: isBusiness ? company.trim() : undefined }),
+        body: JSON.stringify({ name: name.trim(), email: email.trim(), phone: phone.trim(), dob, user_type: effectiveRole, company_name: isBusiness ? company.trim() : undefined, device_id: getDeviceId() }),
       });
       const payload = unwrap(res);
       if (payload?.token) {

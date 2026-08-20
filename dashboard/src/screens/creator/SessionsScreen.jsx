@@ -1,7 +1,3 @@
-// 1:1 Sessions (creator) — light creator-suite redesign, fully dynamic:
-// expert onboarding/registration (+AI enhance), availability toggle with
-// socket broadcast, stats, Active/History session list with Call action,
-// weekly availability slot manager, bookable session products CRUD.
 import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -11,14 +7,14 @@ import {
 import { apiFetch, unwrap } from "../../utils/api";
 import { emitSocket } from "../../utils/socket";
 import colors from "../../utils/colors";
-import { Modal, Badge, Avatar, EmptyState, Spinner } from "../../components/ui";
+import { Modal, Badge, Avatar, EmptyState } from "../../components/ui";
 import { GoldBtn, StatCard, AiEnhance, lbl } from "../../components/creatorUi";
 import { toast } from "../../utils/toast";
 import { formatCurrency } from "../../utils/formatters";
 
 const G = colors.gradients;
 
-const dayNameToNum = (day) => (DAYS.indexOf(day) + 1) % 7; // Monday=1 ... Sunday=0
+const dayNameToNum = (day) => (DAYS.indexOf(day) + 1) % 7; 
 const toDayOfWeek = (s) => (s.day_of_week != null ? Number(s.day_of_week) : dayNameToNum(s.day));
 
 const CATEGORIES = ["Business Consulting", "Career Guidance", "Finance & Tax", "Legal Advice", "Health & Wellness", "Fitness Coach", "Astrology", "Education & Tutoring", "Technology", "Marketing", "Design", "Life Coach"];
@@ -182,15 +178,15 @@ export default function SessionsScreen() {
     // 1. Clean existing slots
     const existing = (slots || []).map((s) => ({
       day_of_week: Number(toDayOfWeek(s)),
-      start: String(s.start_time ?? s.start ?? "").slice(0, 5),
-      end: String(s.end_time ?? s.end ?? "").slice(0, 5),
+      start_time: String(s.start_time ?? s.start ?? "").slice(0, 5),
+      end_time: String(s.end_time ?? s.end ?? "").slice(0, 5),
     })).filter((s) => !isNaN(s.day_of_week) && s.start && s.end);
 
     // 2. Format new slot
     const newSlot = {
       day_of_week: newDayNum,
-      start: String(slotForm.start_time).slice(0, 5),
-      end: String(slotForm.end_time).slice(0, 5),
+      start_time: String(slotForm.start_time).slice(0, 5),
+      end_time: String(slotForm.end_time).slice(0, 5),
     };
 
     const payload = { slots: [...existing, newSlot] };

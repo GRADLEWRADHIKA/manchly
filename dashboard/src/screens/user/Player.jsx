@@ -7,10 +7,12 @@ import { apiFetch, unwrap } from "../../utils/api";
 import colors from "../../utils/colors";
 import { FullLoader, EmptyState } from "../../components/ui";
 import HlsVideo from "../../components/HlsVideo";
+import {useAuth} from "../../context/AuthContext";
 
 export default function Player() {
   const { courseId } = useParams();
   const navigate = useNavigate();
+  const {user} = useAuth();
   const [course, setCourse] = useState(null);
   const [active, setActive] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -39,6 +41,8 @@ export default function Player() {
 
   const videos = (course.videos || []).slice().sort((a, b) => (a.order || 0) - (b.order || 0));
   const upNext = videos.filter((v) => v.id !== active?.id);
+  const phoneLast4 = user?.phone ? String(user.phone).replace(/\D/g, "").slice(-4) : "";
+  const watermarkText = user ? `${user.name}${phoneLast4 ? ` • ${phoneLast4}` : ""}` : undefined;
 
   return (
     <div>
@@ -70,6 +74,7 @@ export default function Player() {
               poster={active.thumbnail_url || course.thumbnail} 
               autoPlay 
               onProgress={onProgress} 
+              watermarkText={watermarkText}
               style={{ aspectRatio: "16/9" }} 
             />
           ) : (

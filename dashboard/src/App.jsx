@@ -5,8 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useAuth } from "./context/AuthContext";
 import { logout } from "./store/authSlice";
 import { creatorPathFor } from "./utils/creatorNav";
-import { onSocket } from "./utils/socket";
-import socketService from "./services/socketService";
+import { connectSocket, onSocket, disconnectSocket } from "./utils/socket";
 import { toast } from "./utils/toast";
 import { Toaster, FullLoader } from "./components/ui";
 import CallManager from "./components/CallManager";
@@ -114,7 +113,6 @@ function NotificationBridge() {
   return null;
 }
 
-// Real-time Single Device Session Bridge
 function ForceLogoutBridge() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -127,12 +125,13 @@ function ForceLogoutBridge() {
   // 1. Socket Listener for 'force_logout' & 'device_revoked'
   useEffect(() => {
     if (!authed || !activeToken) {
-      socketService.disconnect();
+      disconnectSocket();
       return;
     }
 
-    // Connect socket with active token
-    socketService.connect(activeToken);
+    // connectSocket() reads the token from localStorage internally — see
+    // note above if Redux/localStorage token sync ever becomes an issue.
+    connectSocket();
 
     const handleForceLogout = (data) => {
       const msg =
@@ -144,7 +143,7 @@ function ForceLogoutBridge() {
       // Synchronize logout across Redux and AuthContext
       dispatch(logout());
       ctxLogout();
-      socketService.disconnect();
+      disconnectSocket();
 
       // Clear storage
       localStorage.removeItem("manchly_token");
@@ -155,21 +154,30 @@ function ForceLogoutBridge() {
       navigate("/auth", { replace: true });
     };
 
-    socketService.on("force_logout", handleForceLogout);
-    socketService.on("device_revoked", handleForceLogout);
+    // onSocket returns its own unsubscribe function — no separate offSocket needed
+    const unsubForceLogout = onSocket("force_logout", handleForceLogout);
+    const unsubDeviceRevoked = onSocket("device_revoked", handleForceLogout);
 
     return () => {
-      socketService.off("force_logout", handleForceLogout);
-      socketService.off("device_revoked", handleForceLogout);
+      unsubForceLogout();
+      unsubDeviceRevoked();
     };
   }, [authed, activeToken, dispatch, ctxLogout, navigate]);
 
-  // 2. Global Axios Custom Events & Multi-Tab Synchronization
+  // 2. Global Axios Custom Events & Multi-Tab Synchronization — unchanged
   useEffect(() => {
-    const handleGlobalLogoutEvent = () => {
+    const handleGlobalLogoutEvent = (e) => {
+      const msg =
+        e?.detail?.message ||
+        "Your account was signed in on another device. You have been logged out.";
+      toast.error(msg, { duration: 5000 });
       dispatch(logout());
       ctxLogout();
-      socketService.disconnect();
+      disconnectSocket();
+      localStorage.removeItem("manchly_token");
+      localStorage.removeItem("auth_token");
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
       navigate("/auth", { replace: true });
     };
 

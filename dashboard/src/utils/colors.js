@@ -105,6 +105,7 @@ const colors = {
 
   gradients: {
     gold: "linear-gradient(135deg, #F3C36B 0%, #D49A3D 100%)",
+    heroGold: "linear-gradient(135deg, #F3C36B 0%, #D69C3F 55%, #92400E 100%)",
     greenButton: "linear-gradient(135deg, #86EFAC 0%, #4ADE80 100%)",
     greenButtonDark: "linear-gradient(135deg, #4ADE80 0%, #16A34A 100%)",
     goldSoft: "linear-gradient(135deg, #F8DEAE 0%, #D69C3F 100%)",

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import S from "./authStyles";
 import { API_BASE as API } from "../../utils/api";
+import { getDeviceId } from "../../utils/deviceId";
 import FingerprintJS from "@fingerprintjs/fingerprintjs";
 
 export default function LoginForm({ onAuthSuccess, switchSignup }) {
@@ -55,21 +56,14 @@ export default function LoginForm({ onAuthSuccess, switchSignup }) {
 
     setLoading(true);
 
-    // Generate unique device fingerprint to track active device sessions
-    let deviceId = "";
-    try {
-      const fp = await FingerprintJS.load();
-      const result = await fp.get();
-      deviceId = result.visitorId;
-    } catch (_) {
-      // Fallback if adblockers block fingerprinting script
-    }
+    // Use persistent deviceId from localStorage (with fingerprint fallback)
+    const deviceId = getDeviceId();
 
     const payload = {
       email: form.email.trim(),
       password: form.password,
-      deviceId, // Pass fingerprint hash to backend
-      device_id: deviceId, // Fallback alias if backend uses snake_case
+      deviceId, // camelCase
+      device_id: deviceId, // snake_case
       platform: "web",
     };
 

@@ -1,6 +1,7 @@
 import { configureStore } from "@reduxjs/toolkit";
 import authReducer from "./authSlice";
-import { injectStore } from "../utils/axiosInstance";
+import { injectStore as injectAxiosStore } from "../utils/axiosInstance";
+import { injectStore as injectApiStore } from "../../src/utils/api";
 
 export const store = configureStore({
   reducer: {
@@ -8,7 +9,6 @@ export const store = configureStore({
   },
 });
 
-// Inject store into Axios interceptors AFTER creation.
-// axiosInstance cannot import store directly (circular), so it exposes
-// a setter that we call here, after both modules have been initialised.
-injectStore(store);
+
+injectAxiosStore(store);
+injectApiStore(store);

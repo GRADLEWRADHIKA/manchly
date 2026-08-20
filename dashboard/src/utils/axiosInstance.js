@@ -11,18 +11,29 @@ const axiosInstance = axios.create({
 });
 
 let _store = null;
+let isLoggingOut = false; // Flag to prevent multiple concurrent toasts/logouts
+
 export const injectStore = (store) => {
   _store = store;
 };
 
-// Trigger unified logout across Redux, AuthContext, and LocalStorage
+// Unified logout trigger guarded against execution loops
 function _triggerGlobalLogout(reasonMessage) {
+  if (isLoggingOut) return;
+  isLoggingOut = true;
+
   if (_store) _store.dispatch(logout());
+
   window.dispatchEvent(
     new CustomEvent("manchly:force-logout", {
       detail: { message: reasonMessage },
     })
   );
+
+  // Reset guard flag after navigation completes
+  setTimeout(() => {
+    isLoggingOut = false;
+  }, 2000);
 }
 
 // ─── REQUEST INTERCEPTOR ──────────────────────────────────────────────────────
@@ -50,33 +61,46 @@ axiosInstance.interceptors.response.use(
   (error) => {
     const status = error.response?.status;
     const data = error.response?.data;
+    const requestUrl = error.config?.url || "";
+
+    // Bypass session logout logic for login/registration attempts
+    const isAuthRequest =
+      requestUrl.includes("/auth/login") ||
+      requestUrl.includes("/auth/register") ||
+      requestUrl.includes("/auth/forgot-password");
+
+    if (isAuthRequest) {
+      return Promise.reject(error);
+    }
 
     // ── a) 403 + DEVICE_CONFLICT ─────────────────────────────────────────────
     if (status === 403 && data?.code === "DEVICE_CONFLICT") {
       const msg =
         data?.message ||
         "You have been logged out because your account was signed in on another device.";
-      toast.error(msg, { duration: 5000 });
+      
+      if (!isLoggingOut) toast.error(msg, { duration: 5000 });
       _triggerGlobalLogout(msg);
       return Promise.reject(error);
     }
 
-    // ── b) 401 + DEVICE_REVOKED ──────────────────────────────────────────────
+    // ── b) 401/403 + DEVICE_REVOKED ──────────────────────────────────────────
     if ((status === 401 || status === 403) && data?.code === "DEVICE_REVOKED") {
       const msg =
         data?.message ||
         "Your account was signed in on another device. You have been logged out.";
-      toast.error(msg, { duration: 5000 });
+      
+      if (!isLoggingOut) toast.error(msg, { duration: 5000 });
       _triggerGlobalLogout(msg);
       return Promise.reject(error);
     }
 
-    // ── c) 401 generic ───────────────────────────────────────────────────────
+    // ── c) Generic 401 Session Expiration ───────────────────────────────────
     if (status === 401) {
-      toast.error("Your session has expired. Please login again.", {
-        duration: 5000,
-      });
-      _triggerGlobalLogout("Session expired");
+      const msg = "Your session has expired. Please login again.";
+      
+      if (!isLoggingOut) toast.error(msg, { duration: 5000 });
+      _triggerGlobalLogout(msg);
       return Promise.reject(error);
     }
 

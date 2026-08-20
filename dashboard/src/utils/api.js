@@ -1,5 +1,6 @@
 import { BASE_URL } from "./backendConfig";
 import { getDeviceId } from "./deviceId";
+import { toast } from "./toast";
 
 function resolveBase() {
   const env = (import.meta.env && import.meta.env.VITE_API_BASE) || "";
@@ -13,6 +14,15 @@ export const API_BASE = resolveBase();
 // Absolute backend origin (websockets, share links) — never the proxy path.
 export const BACKEND_ORIGIN = BASE_URL.replace(/\/$/, "");
 
+// ── Store injector ──────────────────────────────────────────────────────────
+// apiFetch needs to dispatch Redux logout() on DEVICE_REVOKED / expired
+// sessions, same as axiosInstance.js does. Call injectStore(store) once from
+// store/index.js, alongside the existing injectStore call for axiosInstance.
+let _store = null;
+export const injectStore = (store) => {
+  _store = store;
+};
+
 // The dashboard has historically stored the JWT under a couple of keys.
 export function getToken() {
   return (
@@ -20,6 +30,12 @@ export function getToken() {
     localStorage.getItem("token") ||
     ""
   );
+}
+
+function clearToken() {
+  localStorage.removeItem("manchly_token");
+  localStorage.removeItem("auth_token");
+  localStorage.removeItem("token");
 }
 
 export function authHeaders(extra = {}) {
@@ -34,11 +50,20 @@ export function authHeaders(extra = {}) {
   };
 }
 
-// fetch wrapper:
-//  - prepends API_BASE to a relative path ("/notifications/creator")
-//  - injects the bearer token + JSON content-type (skipped for FormData)
-//  - intercepts 401 Unauthorized to handle multi-device session terminations
-//  - parses JSON and throws Error(message) on a non-2xx response
+function dispatchLogout() {
+  if (_store) {
+    import("../store/authSlice").then(({ logout }) => {
+      _store.dispatch(logout());
+    });
+  }
+}
+
+function redirectToAuth() {
+  if (!window.location.pathname.startsWith("/auth")) {
+    window.location.href = "/auth?reason=session_expired";
+  }
+}
+
 export async function apiFetch(path, opts = {}) {
   const url = /^https?:\/\//.test(path) ? path : `${API_BASE}${path}`;
   const isForm = opts.body instanceof FormData;
@@ -58,10 +83,6 @@ export async function apiFetch(path, opts = {}) {
   }
 
   if (!res.ok) {
-    // ── DEVICE_CONFLICT — fired on HTTP 403 + code=DEVICE_CONFLICT ──────────
-    // AuthContext listens for this event and shows a non-dismissable modal,
-    // clears tokens, and navigates to /auth after 3 s (or on user clicking OK).
-    // Nothing per-component needs to handle this.
     if (res.status === 403 && body?.code === "DEVICE_CONFLICT") {
       window.dispatchEvent(
         new CustomEvent("manchly:device-conflict", {
@@ -74,16 +95,29 @@ export async function apiFetch(path, opts = {}) {
       );
     }
 
-    // ── Session expired / unauthorized ──────────────────────────────────────
-    if (res.status === 401) {
+    else if ((res.status === 401 || res.status === 403) && body?.code === "DEVICE_REVOKED") {
       clearToken();
+      dispatchLogout();
+      toast.error(
+        body?.message ||
+          "Your account was signed in on another device. You have been logged out.",
+        { duration: 5000 },
+      );
+      redirectToAuth();
+    }
 
-      // Avoid infinite redirect loop if the request was an initial login attempt or already on /login
+    // ── Session expired / unauthorized (generic) ─────────────────────────────
+    else if (res.status === 401) {
+      clearToken();
+      dispatchLogout();
+
+      // Avoid infinite redirect loop if the request was an initial login attempt or already on /auth
       const isLoginEndpoint = path.includes("/login") || path.includes("/auth/login");
-      const isLoginPage = window.location.pathname.includes("/login");
+      const isAuthPage = window.location.pathname.startsWith("/auth");
 
-      if (!isLoginEndpoint && !isLoginPage) {
-        window.location.href = "/login?reason=session_expired";
+      if (!isLoginEndpoint && !isAuthPage) {
+        toast.error("Your session has expired. Please login again.", { duration: 5000 });
+        redirectToAuth();
       }
     }
 
@@ -100,9 +134,6 @@ export async function apiFetch(path, opts = {}) {
   return body;
 }
 
-// Most endpoints wrap their payload as { success, message, data, timestamp }.
-// The /ai endpoints instead return { provider, data, latency_ms }. Both expose
-// the useful payload under `.data`, so this unwrap handles them uniformly.
 export function unwrap(body) {
   if (body && typeof body === "object" && "data" in body) return body.data;
   return body;

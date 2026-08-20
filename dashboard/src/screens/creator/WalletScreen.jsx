@@ -1,7 +1,3 @@
-// Wallet & Payouts — light creator-suite redesign, fully dynamic:
-// balance hero + gated withdrawal, earnings breakdown, settlement ledger +
-// wallet transactions, beneficiary bank account (add/edit + penny-less
-// verification), KYC gate banner, 90/10 share note.
 import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {

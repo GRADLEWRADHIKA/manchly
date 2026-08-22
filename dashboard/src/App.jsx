@@ -52,6 +52,7 @@ import CoursePreviewScreen from "./screens/Auth/Creator/CoursePreiewScreen";
 import CommunityScreen from "./screens/creator/CommunityScreen";
 import CreatorHubScreen from "./screens/creator/CreatorHubScreen";
 import CoursePlannerScreen from "./screens/creator/CourseplannerScreen";
+import CourseStatsScreen from "./screens/Auth/Creator/components/CoursesStatCard.jsx";
 
 function RequireAuth({ children, roles }) {
   const { isAuthed, booted, role } = useAuth();
@@ -122,15 +123,12 @@ function ForceLogoutBridge() {
   const activeToken = reduxToken || ctxToken;
   const authed = isAuthed || !!reduxToken;
 
-  // 1. Socket Listener for 'force_logout' & 'device_revoked'
   useEffect(() => {
     if (!authed || !activeToken) {
       disconnectSocket();
       return;
     }
 
-    // connectSocket() reads the token from localStorage internally — see
-    // note above if Redux/localStorage token sync ever becomes an issue.
     connectSocket();
 
     const handleForceLogout = (data) => {
@@ -140,12 +138,10 @@ function ForceLogoutBridge() {
 
       toast.error(msg, { duration: 5000 });
 
-      // Synchronize logout across Redux and AuthContext
       dispatch(logout());
       ctxLogout();
       disconnectSocket();
 
-      // Clear storage
       localStorage.removeItem("manchly_token");
       localStorage.removeItem("auth_token");
       localStorage.removeItem("token");
@@ -154,7 +150,6 @@ function ForceLogoutBridge() {
       navigate("/auth", { replace: true });
     };
 
-    // onSocket returns its own unsubscribe function — no separate offSocket needed
     const unsubForceLogout = onSocket("force_logout", handleForceLogout);
     const unsubDeviceRevoked = onSocket("device_revoked", handleForceLogout);
 
@@ -164,7 +159,6 @@ function ForceLogoutBridge() {
     };
   }, [authed, activeToken, dispatch, ctxLogout, navigate]);
 
-  // 2. Global Axios Custom Events & Multi-Tab Synchronization — unchanged
   useEffect(() => {
     const handleGlobalLogoutEvent = (e) => {
       const msg =
@@ -249,6 +243,7 @@ export default function App() {
         {/* Standalone screens that mount their own custom sidebar */}
         <Route path="/creator" element={<RequireAuth roles={["CREATOR"]}><StandaloneCreatorScreen Screen={DashboardScreen} /></RequireAuth>} />
         <Route path="/creator/courses" element={<RequireAuth roles={["CREATOR"]}><StandaloneCreatorScreen Screen={CoursesScreen} /></RequireAuth>} />
+        <Route path="/creator/courses/stats" element={<RequireAuth roles={["CREATOR"]}><StandaloneCreatorScreen Screen={CourseStatsScreen} /></RequireAuth>} />
         <Route path="/creator/courses/new" element={<RequireAuth roles={["CREATOR"]}><StandaloneCreatorScreen Screen={CourseCreateScreen} /></RequireAuth>} />
         <Route path="/creator/courses/new/:courseId/video" element={<RequireAuth roles={["CREATOR"]}><StandaloneCreatorScreen Screen={CourseVideoScreen} /></RequireAuth>} />
         <Route path="/creator/courses/new/:courseId/preview" element={<RequireAuth roles={["CREATOR"]}><StandaloneCreatorScreen Screen={CoursePreviewScreen} /></RequireAuth>} />

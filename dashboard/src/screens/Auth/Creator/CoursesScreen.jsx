@@ -2,38 +2,31 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import {
   BookOpen,
   Users,
-  Star,
   TrendingUp,
   ChevronLeft,
   ChevronRight,
-  BarChart2,
-  Sparkles,
-  MessageSquare,
   DollarSign,
-  GraduationCap,
-  UploadCloud,
+  Rocket,
+  ArrowRight,
 } from "lucide-react";
 import { apiFetch, unwrap } from "../../../utils/api";
 import colors from "../../../utils/colors";
 import Sidebar from "../../../components/Sidebar";
 import TopHeader from "../../../components/TopHeader";
-import computer from "../../../assets/Images/computer.png";
-import { formatCurrency, timeAgo } from "../../../utils/formatters";
+import { formatCurrency } from "../../../utils/formatters";
 import VerificationBanner from "../../../components/VerificationBanner";
 import StatCard from "./components/StatCard";
-import HealthGauge from "./components/HealthGauge";
-import HealthMetricRow from "./components/HealthMetricRow";
 import InsightRow from "./components/InsightRow";
 import CourseCard from "./components/CourseCard";
-// Helper — mirrors the pattern used on DashboardScreen
+
 function val(result) {
   if (result.status !== "fulfilled") return null;
   return unwrap(result.value);
 }
 
 const iconButtonStyle = {
-  width: 28,
-  height: 28,
+  width: 32,
+  height: 32,
   borderRadius: 8,
   border: "none",
   background: "rgba(0,0,0,0.04)",
@@ -53,75 +46,67 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
   const [kycStatus, setKycStatus] = useState(null);
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
 
-  // Filter / sort / pagination — all operate on real fetched data, nothing fabricated.
-  const [statusFilter, setStatusFilter] = useState("all"); // all | published | draft
-  const [sortOrder, setSortOrder] = useState("newest"); // newest | oldest | price_desc | price_asc
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [sortOrder, setSortOrder] = useState("newest");
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 5;
+  const pageSize = 6;
 
   const loadCourses = useCallback(async () => {
-  setLoading(true);
-  setError("");
+    setLoading(true);
+    setError("");
 
-  const [courses, stats, wallet, kyc] = await Promise.allSettled([
-    apiFetch("/courses"),
-    apiFetch("/courses/stats/creator"),
-    apiFetch("/settlements/wallet"),
-    apiFetch("/kyc/status"),
-  ]);
+    const [courses, stats, wallet, kyc] = await Promise.allSettled([
+      apiFetch("/courses"),
+      apiFetch("/courses/stats/creator"),
+      apiFetch("/settlements/wallet"),
+      apiFetch("/kyc/status"),
+    ]);
 
-  const coursesData = val(courses);
-  const allCourses = Array.isArray(coursesData)
-    ? coursesData
-    : coursesData?.courses || [];
+    const coursesData = val(courses);
+    const allCourses = Array.isArray(coursesData)
+      ? coursesData
+      : coursesData?.courses || [];
 
-  // 1. Extract normalized current user ID (checking .id, ._id, and user_id)
-  const currentUserId = user?.id ?? user?._id ?? user?.user_id;
+    const currentUserId = user?.id ?? user?._id ?? user?.user_id;
 
-  const myCourses = allCourses.filter((c) => {
-    // If no user object exists, return all courses received from the backend
-    if (!currentUserId) return true;
+    const myCourses = allCourses.filter((c) => {
+      if (!currentUserId) return true;
 
-    const targetIdStr = String(currentUserId);
+      const targetIdStr = String(currentUserId);
 
-    // 2. Gather all possible creator/owner ID representations from the course object
-    const possibleCreatorIds = [
-      c?.creator_id,
-      c?.creator?.id,
-      c?.creator?._id,
-      c?.user_id,
-      c?.userId,
-      c?.creatorId,
-      c?.author_id,
-      c?.authorId,
-      c?.created_by,
-      c?.createdBy,
-    ]
-      .filter((val) => val !== undefined && val !== null)
-      .map((val) => String(val));
+      const possibleCreatorIds = [
+        c?.creator_id,
+        c?.creator?.id,
+        c?.creator?._id,
+        c?.user_id,
+        c?.userId,
+        c?.creatorId,
+        c?.author_id,
+        c?.authorId,
+        c?.created_by,
+        c?.createdBy,
+      ]
+        .filter((v) => v !== undefined && v !== null)
+        .map((v) => String(v));
 
-    // 3. Fallback: If backend returns courses without creator metadata, preserve them
-    if (possibleCreatorIds.length === 0) return true;
+      if (possibleCreatorIds.length === 0) return true;
+      return possibleCreatorIds.includes(targetIdStr);
+    });
 
-    // 4. Loose string match comparison
-    return possibleCreatorIds.includes(targetIdStr);
-  });
+    setCourseList(myCourses);
+    setCourseStats(val(stats)?.statistics || val(stats) || null);
 
-  setCourseList(myCourses);
+    const wd = val(wallet);
+    setWalletData(wd?.wallet || wd || null);
 
-  setCourseStats(val(stats)?.statistics || val(stats) || null);
+    setKycStatus(val(kyc));
 
-  const wd = val(wallet);
-  setWalletData(wd?.wallet || wd || null);
+    if ([courses, stats, wallet, kyc].every((r) => r.status === "rejected")) {
+      setError("Unable to connect to the server.");
+    }
 
-  setKycStatus(val(kyc));
-
-  if ([courses, stats, wallet, kyc].every((r) => r.status === "rejected")) {
-    setError("Unable to connect to the server.");
-  }
-
-  setLoading(false);
-}, [user]);
+    setLoading(false);
+  }, [user]);
 
   const loadNotifications = useCallback(async () => {
     try {
@@ -140,8 +125,6 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
     loadNotifications();
   }, [loadCourses, loadNotifications]);
 
-  // ---- Derived values (all from real API data — "--" / 0 shown when absent) ----
-
   const isKycVerified = kycStatus
     ? !!(
         kycStatus.verified ??
@@ -150,21 +133,13 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
       )
     : !!user?.kyc_verified;
 
-  const totalCourses = courseStats?.total_courses ?? courseList.length ?? 0;
-  const publishedCourses = courseStats?.published_courses ?? 0;
-  const draftCourses = Math.max(totalCourses - publishedCourses, 0);
-
   const totalRevenue = courseStats?.revenue ?? 0;
   const totalUsers =
     courseStats?.total_students ?? courseStats?.total_enrollments ?? null;
-  const avgRating = courseStats?.average_rating ?? null;
+  const totalCourses = courseStats?.total_courses ?? courseList.length ?? 0;
+  const publishedCourses = courseStats?.published_courses ?? 0;
+  const draftCourses = Math.max(totalCourses - publishedCourses, 0);
   const completionRate = courseStats?.completion_rate ?? null;
-
-  const healthScore = courseStats?.health_score ?? null;
-  const contentQuality = courseStats?.content_quality_score ?? null;
-  const seoScore = courseStats?.seo_score ?? null;
-  const accessibilityScore = courseStats?.accessibility_score ?? null;
-  const publishReadiness = courseStats?.publish_readiness_score ?? null;
 
   const profileCompletion =
     courseStats?.profile_completion ?? user?.profile_completion ?? null;
@@ -184,8 +159,6 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
       ? formatCurrency(courseStats.avg_order_value)
       : null;
 
-  // Lifetime earnings / withdrawable balance for the top header come from the wallet endpoint —
-  // it's the account-wide source of truth, not course-specific revenue.
   const lifetimeEarnings =
     walletData?.lifetime_earnings ??
     walletData?.total_earnings ??
@@ -255,7 +228,7 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            color: colors.typography.primary,
+            color: colors.typography.primaryText,
           }}
         >
           Loading courses...
@@ -288,7 +261,11 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
           onVerify={handleVerify}
         />
 
-        {error && <div style={{ color: "red", padding: 16 }}>{error}</div>}
+        {error && (
+          <div style={{ color: colors.brand.errorRed || "red", padding: 16 }}>
+            {error}
+          </div>
+        )}
 
         {/* Hero Section */}
         <div
@@ -302,6 +279,7 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
             borderRadius: 24,
             padding: 40,
             marginBottom: 32,
+            border: `1px solid ${colors.base.border}`,
           }}
         >
           <div
@@ -361,11 +339,13 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
                 background: colors.brand.primaryOrange,
                 color: colors.typography.white,
                 border: "none",
-                borderRadius: 9999,
-                padding: "12px 24px",
+                borderRadius: 99,
+                padding: "10px 18px",
                 fontSize: 15,
                 fontWeight: 700,
                 cursor: "pointer",
+                boxShadow: "0 4px 14px rgba(255, 107, 0, 0.25)",
+                transition: "transform 0.15s ease",
               }}
             >
               + New Course
@@ -373,19 +353,92 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
           </div>
 
           <div
+            onClick={() => onNavigate?.("course-planner")}
             style={{
               flexShrink: 0,
               width: 320,
-              height: 240,
+              height: 250,
+              background: `linear-gradient(135deg, ${colors.base.cardBackground} 0%, rgba(255,107,0,0.1) 100%)`,
+              border: `1.5px solid ${colors.brand.primaryOrange}`,
+              borderRadius: 16,
+              padding: 20,
+              cursor: "pointer",
+              boxShadow: "0 8px 24px rgba(255,107,0,0.14)",
               display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
+              flexDirection: "column",
+              justifyContent: "space-between",
             }}
           >
-            <img
-              src={computer}
-              style={{ width: "100%", maxWidth: 320, objectFit: "contain" }}
-            />
+            <div>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  marginBottom: 10,
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <Rocket size={18} color={colors.brand.primaryOrange} />
+                  <span
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 800,
+                      color: colors.brand.primaryOrange,
+                      letterSpacing: 0.8,
+                    }}
+                  >
+                    AI PLANNER
+                  </span>
+                </div>
+                <span
+                  style={{
+                    background: colors.brand.primaryOrange,
+                    color: colors.typography.white,
+                    fontSize: 10,
+                    fontWeight: 800,
+                    padding: "2px 8px",
+                    borderRadius: 999,
+                  }}
+                >
+                  NEW
+                </span>
+              </div>
+              <div
+                style={{
+                  fontSize: 16,
+                  fontWeight: 800,
+                  color: colors.typography.primaryText,
+                  lineHeight: 1.2,
+                  marginBottom: 6,
+                }}
+              >
+                Plan Your Next Course
+              </div>
+              <div
+                style={{
+                  fontSize: 12,
+                  color: colors.typography.secondaryText,
+                  lineHeight: 1.4,
+                  marginBottom: 14,
+                }}
+              >
+                Generate an AI-driven curriculum, target audience strategy, and
+                launch timeline in seconds.
+              </div>
+            </div>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                fontSize: 13,
+                fontWeight: 700,
+                color: colors.brand.primaryOrange,
+              }}
+            >
+              Launch Planner <ArrowRight size={14} />
+            </div>
           </div>
         </div>
 
@@ -413,11 +466,11 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
             subtext="--vs last month"
           />
           <StatCard
-            icon={Star}
-            iconColor={colors.brand.primaryOrange}
-            label="Avg Rating"
-            value={avgRating != null ? avgRating : "--"}
-            subtext={avgRating != null ? null : "No ratings yet"}
+            icon={BookOpen}
+            iconColor={colors.charts?.blue}
+            label="Total Courses"
+            value={totalCourses}
+            subtext={`${publishedCourses} published · ${draftCourses} draft`}
           />
           <StatCard
             icon={TrendingUp}
@@ -428,93 +481,15 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
           />
         </div>
 
-        {/* Health / Insights / AI Recommendations */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr 1fr",
-            gap: 16,
-            marginBottom: 24,
-            alignItems: "start",
-          }}
-        >
-          {/* Course Health */}
+        {/* Your Courses + Creator Insights Row */}
+        <div style={{ display: "grid", gridTemplateColumns: "4fr 1fr", gap: 20, alignItems: "start" }}>
+          {/* Your Courses */}
           <div
             style={{
               background: colors.base.cardBackground,
               border: `1px solid ${colors.base.border}`,
-              borderRadius: 16,
-              padding: 20,
-            }}
-          >
-            <div
-              style={{
-                fontSize: 14,
-                fontWeight: 700,
-                color: colors.typography.primaryText,
-                marginBottom: 12,
-              }}
-            >
-              Course Health
-            </div>
-
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                marginBottom: 12,
-              }}
-            >
-              <HealthGauge score={healthScore} />
-            </div>
-
-            <HealthMetricRow
-              label="Content Quality"
-              value={contentQuality}
-              dotColor={colors.brand.successGreen}
-            />
-            <HealthMetricRow
-              label="SEO Score"
-              value={seoScore}
-              dotColor={colors.brand.primaryOrange}
-            />
-            <HealthMetricRow
-              label="Accessibility"
-              value={accessibilityScore}
-              dotColor={colors.charts?.teal}
-            />
-            <HealthMetricRow
-              label="Publish Readiness"
-              value={publishReadiness}
-              dotColor={colors.charts?.purple}
-            />
-
-            <button
-              type="button"
-              onClick={() => onNavigate?.("course-health")}
-              style={{
-                marginTop: 14,
-                width: "100%",
-                background: colors.brand.primaryOrange,
-                color: colors.typography.white,
-                border: "none",
-                borderRadius: 10,
-                padding: "10px 0",
-                fontWeight: 700,
-                cursor: "pointer",
-              }}
-            >
-              Improve Score
-            </button>
-          </div>
-
-          {/* Creator Insights */}
-          <div
-            style={{
-              background: colors.base.cardBackground,
-              border: `1px solid ${colors.base.border}`,
-              borderRadius: 16,
-              padding: 20,
+              borderRadius: 20,
+              padding: 24,
             }}
           >
             <div
@@ -522,202 +497,20 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                marginBottom: 12,
+                marginBottom: 20,
               }}
             >
               <span
                 style={{
-                  fontSize: 14,
-                  fontWeight: 700,
-                  color: colors.typography.primaryText,
-                }}
-              >
-                Creator Insights
-              </span>
-              <button
-                onClick={() => onNavigate?.("creator-insights")}
-                style={{
-                  background: "none",
-                  border: "none",
-                  color: colors.brand.primaryOrange,
-                  fontSize: 12,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                }}
-              >
-                View All →
-              </button>
-            </div>
-
-            <div style={{ marginBottom: 12 }}>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  fontSize: 12,
-                  color: colors.typography.secondaryText,
-                  marginBottom: 6,
-                }}
-              >
-                <span>Profile Completion</span>
-                <span>
-                  {profileCompletion != null ? `${profileCompletion}%` : "--"}
-                </span>
-              </div>
-              <div
-                style={{
-                  width: "100%",
-                  height: 6,
-                  borderRadius: 3,
-                  background: "rgba(0,0,0,0.06)",
-                }}
-              >
-                <div
-                  style={{
-                    width: `${profileCompletion != null ? Math.max(0, Math.min(100, profileCompletion)) : 0}%`,
-                    height: "100%",
-                    borderRadius: 3,
-                    background: colors.brand.primaryOrange,
-                  }}
-                />
-              </div>
-            </div>
-
-            <InsightRow label="KYC Status" value={kycLabel} />
-            <InsightRow label="Monthly Growth" value={monthlyGrowth} />
-            <InsightRow label="Conversion Rate" value={conversionRate} />
-            <InsightRow label="Refund Rate" value={refundRate} />
-            <InsightRow label="Avg. Order Value" value={avgOrderValue} />
-          </div>
-
-          {/* AI Recommendations — navigational shortcuts, not analytics values */}
-          <div
-            style={{
-              background: colors.base.cardBackground,
-              border: `1px solid ${colors.base.border}`,
-              borderRadius: 16,
-              padding: 20,
-            }}
-          >
-            <div
-              style={{
-                fontSize: 14,
-                fontWeight: 700,
-                color: colors.typography.primaryText,
-                marginBottom: 12,
-              }}
-            >
-              AI Recommendations
-            </div>
-
-            {[
-              {
-                icon: Sparkles,
-                label: "Add more lessons",
-                target: "course-create",
-                color: colors.charts?.purple,
-              },
-              {
-                icon: BarChart2,
-                label: "Course Health",
-                target: "course-health",
-                color: colors.charts?.blue,
-              },
-              {
-                icon: MessageSquare,
-                label: "Feedback",
-                target: "course-feedback",
-                color: colors.brand.primaryOrange,
-              },
-              {
-                icon: TrendingUp,
-                label: "Revenue",
-                target: "course-revenue",
-                color: colors.brand.successGreen,
-              },
-            ].map((item) => {
-              const Icon = item.icon;
-              return (
-                <button
-                  key={item.label}
-                  onClick={() => onNavigate?.(item.target)}
-                  style={{
-                    width: "100%",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 10,
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    padding: "10px 0",
-                    textAlign: "left",
-                  }}
-                >
-                  <span
-                    style={{
-                      width: 30,
-                      height: 30,
-                      borderRadius: 8,
-                      background: "rgba(0,0,0,0.04)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <Icon size={15} color={item.color} />
-                  </span>
-                  <span
-                    style={{
-                      fontSize: 13,
-                      fontWeight: 600,
-                      color: colors.typography.primaryText,
-                    }}
-                  >
-                    {item.label}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Your Courses + right-side summary */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "3fr 1fr",
-            gap: 16,
-            alignItems: "start",
-          }}
-        >
-          {/* Course list */}
-          <div
-            style={{
-              background: colors.base.cardBackground,
-              border: `1px solid ${colors.base.border}`,
-              borderRadius: 16,
-              padding: 20,
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: 16,
-              }}
-            >
-              <span
-                style={{
-                  fontSize: 15,
-                  fontWeight: 700,
+                  fontSize: 18,
+                  fontWeight: 800,
                   color: colors.typography.primaryText,
                 }}
               >
                 Your Courses ({filteredCourses.length})
               </span>
 
-              <div style={{ display: "flex", gap: 8 }}>
+              <div style={{ display: "flex", gap: 10 }}>
                 <select
                   value={statusFilter}
                   onChange={(e) => {
@@ -726,9 +519,10 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
                   }}
                   style={{
                     border: `1px solid ${colors.base.border}`,
-                    borderRadius: 999,
-                    padding: "6px 12px",
-                    fontSize: 12,
+                    borderRadius: 10,
+                    padding: "8px 14px",
+                    fontSize: 13,
+                    fontWeight: 600,
                     color: colors.typography.primaryText,
                     background: colors.base.cardBackground,
                     cursor: "pointer",
@@ -747,9 +541,10 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
                   }}
                   style={{
                     border: `1px solid ${colors.base.border}`,
-                    borderRadius: 999,
-                    padding: "6px 12px",
-                    fontSize: 12,
+                    borderRadius: 10,
+                    padding: "8px 14px",
+                    fontSize: 13,
+                    fontWeight: 600,
                     color: colors.typography.primaryText,
                     background: colors.base.cardBackground,
                     cursor: "pointer",
@@ -763,10 +558,11 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
               </div>
             </div>
 
+            {/* Grid Container Wrapper */}
             {visibleCourses.length === 0 ? (
               <div
                 style={{
-                  padding: "32px 0",
+                  padding: "40px 0",
                   textAlign: "center",
                   color: colors.typography.secondaryText,
                   fontSize: 14,
@@ -775,16 +571,24 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
                 No courses yet. Create your first course to see it here.
               </div>
             ) : (
-              visibleCourses.map((course) => (
-                <CourseCard
-                  key={course?.id || course?._id || course?.title}
-                  course={course}
-                  onEdit={handleCourseEdit}
-                  onView={handleCourseView}
-                  onDuplicate={handleCourseDuplicate}
-                  onMore={handleCourseMore}
-                />
-              ))
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
+                  gap: 20,
+                }}
+              >
+                {visibleCourses.map((course) => (
+                  <CourseCard
+                    key={course?.id || course?._id || course?.title}
+                    course={course}
+                    onEdit={handleCourseEdit}
+                    onView={handleCourseView}
+                    onDuplicate={handleCourseDuplicate}
+                    onMore={handleCourseMore}
+                  />
+                ))}
+              </div>
             )}
 
             {filteredCourses.length > 0 && (
@@ -793,12 +597,14 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
-                  marginTop: 16,
+                  marginTop: 24,
+                  paddingTop: 16,
+                  borderTop: `1px solid ${colors.base.border}`,
                 }}
               >
                 <span
                   style={{
-                    fontSize: 12,
+                    fontSize: 13,
                     color: colors.typography.secondaryText,
                   }}
                 >
@@ -816,7 +622,7 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
                       opacity: currentPage === 1 ? 0.4 : 1,
                     }}
                   >
-                    <ChevronLeft size={14} />
+                    <ChevronLeft size={16} />
                   </button>
 
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(
@@ -825,8 +631,8 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
                         key={page}
                         onClick={() => setCurrentPage(page)}
                         style={{
-                          width: 28,
-                          height: 28,
+                          width: 32,
+                          height: 32,
                           borderRadius: 8,
                           border: "none",
                           background:
@@ -837,7 +643,7 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
                             page === currentPage
                               ? colors.typography.white
                               : colors.typography.primaryText,
-                          fontSize: 12,
+                          fontSize: 13,
                           fontWeight: 700,
                           cursor: "pointer",
                         }}
@@ -857,157 +663,100 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
                       opacity: currentPage === totalPages ? 0.4 : 1,
                     }}
                   >
-                    <ChevronRight size={14} />
+                    <ChevronRight size={16} />
                   </button>
                 </div>
               </div>
             )}
           </div>
 
-          {/* Right-side summary cards — derived from real courseStats/courseList, no fabricated figures */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            <div
-              style={{
-                background: colors.base.cardBackground,
-                border: `1px solid ${colors.base.border}`,
-                borderRadius: 16,
-                padding: 18,
-              }}
-            >
+          {/* Creator Insights */}
+          <div
+            style={{
+              position: "relative",
+              background: `linear-gradient(135deg, ${colors.base.cardBackground} 0%, rgba(255, 107, 0, 0.08) 100%)`,
+              border: `1.5px solid ${colors.brand.primaryOrange}`,
+              borderRadius: 16,
+              padding: 20,
+              cursor: "pointer",
+              boxShadow: "0 8px 24px rgba(255, 107, 0, 0.12)",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+            }}
+          >
+            <div>
               <div
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: 8,
-                  marginBottom: 6,
+                  justifyContent: "space-between",
+                  marginBottom: 10,
                 }}
               >
-                <BookOpen size={16} color={colors.charts?.blue} />
                 <span
                   style={{
-                    fontSize: 12,
-                    fontWeight: 600,
-                    color: colors.typography.secondaryText,
-                    textTransform: "uppercase",
+                    fontSize: 11,
+                    fontWeight: 800,
+                    color: colors.brand.primaryOrange,
+                    letterSpacing: 0.8,
                   }}
                 >
-                  Total Courses
+                  Creator Insights
+                </span>
+                <span
+                  style={{
+                    background: colors.brand.primaryOrange,
+                    color: colors.typography.white,
+                    fontSize: 10,
+                    fontWeight: 800,
+                    padding: "2px 8px",
+                    borderRadius: 999,
+                  }}
+                >
+                  NEW
                 </span>
               </div>
-              <div
-                style={{
-                  fontSize: 24,
-                  fontWeight: 700,
-                  color: colors.typography.primaryText,
-                }}
-              >
-                {totalCourses}
-              </div>
-              <div
-                style={{
-                  fontSize: 12,
-                  color: colors.typography.secondaryText,
-                  marginTop: 4,
-                }}
-              >
-                {publishedCourses} published · {draftCourses} draft
-              </div>
-            </div>
 
-            <div
-              style={{
-                background: colors.base.cardBackground,
-                border: `1px solid ${colors.base.border}`,
-                borderRadius: 16,
-                padding: 18,
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  marginBottom: 6,
-                }}
-              >
-                <BookOpen size={16} color={colors.brand.successGreen} />
-                <span
+              <div style={{ marginBottom: 12 }}>
+                <div
                   style={{
-                    fontSize: 12,
-                    fontWeight: 600,
-                    color: colors.typography.secondaryText,
-                    textTransform: "uppercase",
+                    fontSize: 16,
+                    fontWeight: 800,
+                    color: colors.typography.primaryText,
+                    lineHeight: 1.2,
+                    marginBottom: 6,
                   }}
                 >
-                  Published Courses
-                </span>
+                  <span>Profile Completion</span>
+                  <span>
+                    {profileCompletion != null ? `${profileCompletion}%` : "--"}
+                  </span>
+                </div>
+                <div
+                  style={{
+                    width: "100%",
+                    height: 6,
+                    borderRadius: 3,
+                    background: "rgba(0,0,0,0.06)",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: `${profileCompletion != null ? Math.max(0, Math.min(100, profileCompletion)) : 0}%`,
+                      height: "100%",
+                      borderRadius: 3,
+                      background: colors.brand.primaryOrange,
+                    }}
+                  />
+                </div>
               </div>
-              <div
-                style={{
-                  fontSize: 24,
-                  fontWeight: 700,
-                  color: colors.typography.primaryText,
-                }}
-              >
-                {publishedCourses}
-              </div>
-              <div
-                style={{
-                  fontSize: 12,
-                  color: colors.typography.secondaryText,
-                  marginTop: 4,
-                }}
-              >
-                Currently live
-              </div>
-            </div>
 
-            <div
-              style={{
-                background: colors.base.cardBackground,
-                border: `1px solid ${colors.base.border}`,
-                borderRadius: 16,
-                padding: 18,
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  marginBottom: 6,
-                }}
-              >
-                <BookOpen size={16} color={colors.brand.primaryOrange} />
-                <span
-                  style={{
-                    fontSize: 12,
-                    fontWeight: 600,
-                    color: colors.typography.secondaryText,
-                    textTransform: "uppercase",
-                  }}
-                >
-                  Draft Courses
-                </span>
-              </div>
-              <div
-                style={{
-                  fontSize: 24,
-                  fontWeight: 700,
-                  color: colors.typography.primaryText,
-                }}
-              >
-                {draftCourses}
-              </div>
-              <div
-                style={{
-                  fontSize: 12,
-                  color: colors.typography.secondaryText,
-                  marginTop: 4,
-                }}
-              >
-                {draftCourses} in progress
-              </div>
+              <InsightRow label="KYC Status" value={kycLabel} />
+              <InsightRow label="Monthly Growth" value={monthlyGrowth} />
+              <InsightRow label="Conversion Rate" value={conversionRate} />
+              <InsightRow label="Refund Rate" value={refundRate} />
+              <InsightRow label="Avg. Order Value" value={avgOrderValue} />
             </div>
           </div>
         </div>

@@ -9,11 +9,12 @@ import {
   LogOut,
   Sparkles,
   Wallet,
-  ShieldCheck,
-  Bell,
+  //ShieldCheck,
+  //Bell,
   LifeBuoy,
-  Clapperboard,
-  StarIcon
+  //Clapperboard,
+  StarIcon,
+  Rocket
 } from "lucide-react";
 
 import colors from "../utils/colors";
@@ -27,6 +28,7 @@ const MENU_ITEMS = [
   { key: "sessions", label: "1:1 Sessions", icon: Users },
   { key: "creator-hub", label: "Creator Hub", icon: StarIcon },
   { key: "ai", label: "AI Assistant", icon: Sparkles },
+  //{ key: "course-planner", label: "Course Planner", icon: Rocket },
   { key: "wallet", label: "Payouts", icon: Wallet },
   //{ key: "kyc", label: "KYC", icon: ShieldCheck },
   { key: "community", label: "Community", icon: Users },

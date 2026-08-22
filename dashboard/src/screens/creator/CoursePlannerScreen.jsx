@@ -1,8 +1,3 @@
-// AI Course Planner — niche → full go-to-market plan (10 sections).
-// Restyled to match the light Creator Suite theme. Calls the backend's
-// POST /ai/course/plan (aiController.coursePlan) — no API key or prompt
-// logic lives on the client; the backend owns the system prompt, schema,
-// and the "mock"-provider fallback when no AI key is configured.
 import { useState, useRef, useEffect } from "react";
 import { Sparkles, Rocket } from "lucide-react";
 import { apiFetch, unwrap } from "../../utils/api";
@@ -10,104 +5,6 @@ import colors from "../../utils/colors";
 
 const G = colors.gradients;
 
-// ─── DEMO DATA (client-side only — "View demo plan" needs no network call) ───
-const DEMO = {
-  niche: "Instagram Reels for Coaches & Consultants",
-  course_idea: {
-    title: "Reels Se Revenue: Instagram Growth Masterclass for Indian Coaches",
-    tagline: "Learn how to create viral Reels in 30 mins/day and turn followers into paying clients — even if you have zero editing skills.",
-    why_it_sells: "India now has 3.5 Crore+ coaches, consultants, and knowledge entrepreneurs but 94% of them make less than ₹50,000/month because they don't have a consistent content engine. Instagram Reels is the #1 organic distribution channel in India right now — with 3x the reach of feed posts — yet most coaches still post static images and wonder why nobody's buying. The course taps into a proven emotional trigger: coaches already KNOW they need content but feel overwhelmed, under-skilled, and embarrassed to appear on camera. This course removes every barrier (scripting, editing, confidence, strategy) in a step-by-step system that matches the Indian creator's workflow, bandwidth, and budget."
-  },
-  course_structure: {
-    total_modules: 6,
-    total_lessons: 24,
-    modules: [
-      { module_number: 1, module_title: "The Reels Mindset: From Coach to Creator", lessons: ["Why 90% of coaches fail at content (and the 3-shift fix)", "The Creator-Coach Identity: You're a brand, not just a service", "Setting your Content North Star — niche, audience, transformation promise", "Your 30-day content commitment framework"] },
-      { module_number: 2, module_title: "Scripting Reels That Stop the Scroll", lessons: ["The 3-second hook formula that works for Indian audiences", "5 viral Reels formats every coach must master (hook-teach-CTA)", "Scripting in Hinglish: How to write naturally and authentically", "Building your swipe file: 50 hooks you can steal and adapt"] },
-      { module_number: 3, module_title: "Shoot Like a Pro (with Your Phone)", lessons: ["Zero-budget studio setup: lighting, sound, background on ₹2,000", "Camera confidence: On-camera presence training for introverted coaches", "Shoot 7 Reels in one sitting — the batch creation system", "B-roll, talking head, text-overlay: when to use which format"] },
-      { module_number: 4, module_title: "Edit Fast, Look Professional", lessons: ["CapCut masterclass: edit a Reel in under 15 minutes", "Trending audio strategy: how to find viral sounds in India", "Captions, subtitles, and text overlays that boost watch time", "Thumbnail, cover image, and grid aesthetic for authority positioning"] },
-      { module_number: 5, module_title: "The Distribution & Growth Engine", lessons: ["The Instagram algorithm decoded for coaches in 2024", "Hashtag strategy: niche vs. broad — what actually works in India", "Collaboration & shoutout strategy to 10x reach without paid ads", "Converting views to DMs: the CTA system that brings warm leads daily"] },
-      { module_number: 6, module_title: "Monetise Your Audience with Manchly", lessons: ["Turning followers into a paid community on Manchly", "Launching your first digital product using Reels as traffic", "Setting up automated lead magnets and WhatsApp funnels", "Building a ₹1L/month content-to-client system: the full stack"] }
-    ]
-  },
-  content_creation: {
-    lessons: [
-      { lesson_number: 1, title: "Why 90% of Coaches Fail at Content (And the 3-Shift Fix)", hook: "Aapne last month kitne Reels banaye? Ek? Shayad do? Aur kitne clients aaye unse?\nMost coaches treat content like homework. We're going to make it your #1 sales machine.", key_points: ["The 3 false beliefs killing your content: 'I need fancy equipment', 'I'm not interesting enough', 'I don't have time'", "Content is a leverage tool, not a task — one Reel can sell to 10,000 people simultaneously while you sleep", "The only metric that matters in month 1: consistency score — not views, not likes, just shipping frequency"], retention_mechanism: "End with a live audit: share your last Reel in the community and get feedback within 24 hours. Creates immediate investment in completing Module 2." },
-      { lesson_number: 2, title: "The 3-Second Hook Formula That Works for Indian Audiences", hook: "Maine ek Reel banaya — 14 words in the caption, 3-second hook, zero paid promotion. 2.3 lakh views.\nYour hook is 70% of your Reel's success. Get this wrong, nothing else matters.", key_points: ["The PAIN-PATTERN-PROMISE hook structure: open with a pain statement your audience says to themselves at 2am", "Indian-specific hooks that go viral: 'Mujhe pehle kisi ne nahi bataya', 'Ye galti mat karna', 'Agar aap [profession] ho toh...'", "The curiosity gap technique: say exactly enough to force the viewer to watch till the end"], retention_mechanism: "Assignment: write 5 hook variations for your best-performing post. Share in Manchly community for peer scoring. Top 3 hooks get featured in the next live session." },
-      { lesson_number: 3, title: "Zero-Budget Studio Setup: Lighting, Sound & Background on ₹2,000", hook: "Mera pehla viral Reel ek ₹0 setup mein shoot hua tha — bedroom wall, phone on a glass, afternoon sunlight. 80,000 views.\nEquipment is the last reason you should delay posting.", key_points: ["Natural light beats ring lights every time — the window-to-face 45° angle formula that costs ₹0", "The ₹599 mic hack (Maono lavalier on Amazon) that makes you sound like a studio recording vs. the hollow echo of built-in mics", "Background psychology: a clean wall with a single plant communicates 'expert' better than a branded banner"], retention_mechanism: "Post a before/after setup photo in the community. Reaction voting creates social proof momentum and gamifies the learning experience." }
-    ]
-  },
-  offer_creation: {
-    headline: "Reels Se Revenue — India's First Course for Coaches Who Want Clients, Not Just Followers",
-    subheadline: "A 6-module, 24-lesson system to go from 'posting randomly' to a content engine that brings 5–10 warm leads every week.",
-    description: "You're an amazing coach. You have the knowledge, the results, the testimonials. But your Instagram is either dead or growing painfully slowly — and you know that if you could just crack content, your entire business would transform. Every day you delay, your competitor is posting Reels and taking the clients that should be yours. Reels Se Revenue is a hands-on, India-specific system that takes you from camera-shy and inconsistent to confident, strategic, and converting — in 30 days. You'll get the exact scripts, editing workflows, growth strategies, and Manchly monetisation playbook that top Indian coaches are using to cross ₹1 lakh/month from content alone.",
-    pricing_strategy: {
-      low_ticket: { price: "₹2,999", what_included: "Full 6-module recorded course, community access for 3 months, 50-hook swipe file PDF, CapCut template pack (10 templates), lifetime updates", psychology: "Priced below the ₹3,000 psychological barrier — impulse-buy territory. No spousal approval needed. Recoverable with just one new client, which kills the ROI objection entirely." },
-      high_ticket: { price: "₹12,999", what_included: "Everything in base + 4 live group coaching calls/month, personal Reel audit by instructor, Manchly setup done-with-you session, priority community support, 1-year access + all future modules", psychology: "Anchored at 4x base price but positioned as 'done-with-you', not just a course. Live calls create accountability and dramatically improve completion rate. Targets coaches earning ₹30k+/month who clearly see the opportunity cost." }
-    }
-  },
-  target_audience: {
-    age_group: "24–42 years",
-    gender_split: "62% Female, 38% Male (female coaches over-index on self-development content and Instagram vs. male coaches who lean YouTube)",
-    top_cities: ["Bengaluru", "Mumbai", "Delhi NCR", "Hyderabad", "Pune", "Chennai", "Ahmedabad"],
-    meta_interests: ["Online coaching / life coaching", "Digital marketing (broad)", "Personal development & self-improvement", "Entrepreneurship India / StartupIndia", "Instagram marketing / social media marketing", "Yoga, fitness, and wellness (for health coaches)"],
-    google_audiences: ["In-market: Online education & e-learning", "In-market: Business services (coaching/consulting)", "Affinity: Social media enthusiasts", "Custom intent: 'how to grow Instagram as a coach India'"],
-    pain_points: ["Posting consistently but getting only 200–500 views per Reel with zero inbound DMs", "Camera shy and not confident appearing on video — feel like 'big influencers' are a different breed", "Spending 3+ hours making one Reel and still not happy with the output", "No clear system — posting randomly, no content calendar, no funnel from content to paid offer"]
-  },
-  ad_strategy: {
-    meta: {
-      creatives: [
-        { angle: "Pain", hook: "Agar aap roz post kar rahe ho aur phir bhi ek bhi DM nahi aa raha — toh problem content ki nahi, STRATEGY ki hai.", copy: "Maine 6 mahine tak daily post kiya. Views aate the, likes aate the — clients? Zero.\n\nFir maine ek cheez badli: mera hook.\n\nAgle 30 din mein 11 coaches ne mujhse direct message kiya.\n\nReels Se Revenue course mein main aapko exactly woh 3-second hook formula de raha hoon jo Indian audiences ke saath work karta hai.\n\n📌 ₹2,999 mein. Ek client se recover hota hai.", cta: "Join Now — ₹2,999" },
-        { angle: "Aspiration", hook: "Imagine karo: subah uthke phone uthao aur 7 DMs dekho — sab coaches jo aapka next program join karna chahte hain. Yeh possible hai.", copy: "Top Indian coaches jo aaj Instagram se ₹1–3L/month kama rahe hain — unka ek common secret hai.\n\nWoh Reels ko 'content' ki tarah nahi treat karte. Woh isko ek SALES SYSTEM ki tarah treat karte hain.\n\nReels Se Revenue mein aap seekhoge:\n✅ 30 min/day mein Reel banao\n✅ Aisa hook likho jo scroll rokke\n✅ DMs ko clients mein convert karo\n✅ Manchly pe paid community launch karo\n\nLimited seats — batch closes Sunday.", cta: "Enroll Today" },
-        { angle: "Authority", hook: "Maine 200+ Indian coaches ko sikhaya hai Reels se ₹50,000–₹2,00,000/month kaise kamaya jaata hai. Aaj aapki baari hai.", copy: "Priya Sharma, a Delhi-based relationship coach, had 1,200 Instagram followers when she joined Reels Se Revenue.\n\n60 days later: 8,400 followers. 22 new coaching clients. ₹1.8L in course sales.\n\nEvery lesson comes with templates, real Indian examples, and a community of 1,000+ coaches doing this live.\n\n📲 Course opens this week. ₹2,999 only.", cta: "See Full Course" }
-      ],
-      funnel: {
-        tof: "Run Pain + Aspiration angle Reels as video ads (6–15 sec hook versions). Objective: Video Views. Target: Interest-based — coaches, self-help, digital marketing in IN. Budget: 60% of Meta spend. Goal: build a 95% video-view custom audience for MOF retargeting within 7–10 days.",
-        mof: "Retarget 95% video viewers + Instagram profile visitors (last 60 days) with Authority angle + free lead magnet ('50 Viral Reel Hooks for Coaches' PDF). Objective: Lead Generation via Meta Lead Form. Budget: 25% of spend. Expected CPL: ₹80–₹150.",
-        bof: "Retarget lead magnet downloaders + website visitors (last 14 days) + DM'd but not converted. Run direct offer ad with scarcity ('Batch closes Sunday / 50 seats left'). Objective: Purchase or WhatsApp message. Budget: 15% of spend. Expected ROAS: 4–6x."
-      }
-    },
-    google: {
-      keyword_clusters: [
-        { cluster_name: "Problem-Aware (High Intent)", keywords: ["how to grow instagram as a coach india", "instagram reels for coaches", "how to get clients through instagram reels", "instagram marketing for consultants india"] },
-        { cluster_name: "Solution-Aware (Course Seekers)", keywords: ["instagram reels course india", "social media marketing course for coaches", "online course instagram growth india", "best instagram course for consultants"] },
-        { cluster_name: "Competitor + Brand Adjacent", keywords: ["nas.io india alternative", "manchly course platform", "creator monetization india course", "instagram coaching program india"] }
-      ],
-      intent_strategy: "Focus exclusively on bottom-of-funnel Search campaigns with exact match + phrase match only — no broad match. Budget: ₹15,000/month on Google (Phase 1). Run YouTube pre-roll using the Pain angle creative to capture coaches watching 'how to grow Instagram' content. Skip Display until ₹50k+/month budget — too broad for this niche. Google captures intent; Meta creates it."
-    }
-  },
-  audience_sizing: {
-    tam: "~3.5 Crore (35M)",
-    sam: "~42 Lakh (4.2M)",
-    som: "~2.1 Lakh (210K) — Year 1",
-    estimated_reachable: "80,000–1,20,000 unique users reachable in Year 1 via Manchly's paid + organic mix",
-    meta_estimated_reach: "18M–24M on Meta (interest-based, India)",
-    logic: "TAM = All active coaches, consultants, and knowledge entrepreneurs in India (~35M per IIM/coaching reports). SAM = Those active on Instagram AND showing intent to monetize expertise (Meta Audience Insights: 'online coaching' + 'digital marketing' interests IN = ~22M, filtered by income bracket and age = ~4.2M). SOM = Realistically reachable in Year 1 with ₹3–5L annual marketing budget = ~5% of SAM = 2.1L. At 0.5% conversion, that's 1,050 course sales at ₹2,999 = ₹31.4L in Year 1 from paid alone — conservative baseline."
-  },
-  revenue_forecast: {
-    assumed_ctr: "2.8% (Meta Reels ad, India)",
-    assumed_cvr: "3.2% (landing page to purchase — Indian edtech benchmark)",
-    cost_per_lead: "₹90–₹130",
-    cost_per_sale: "₹800–₹1,400 (blended, low-ticket)",
-    budget_scenarios: [
-      { budget: "₹30,000/mo", leads: "230–330", sales: "18–25", revenue: "₹54,000–₹74,000", roas: "1.8–2.5x" },
-      { budget: "₹75,000/mo", leads: "575–830", sales: "46–64", revenue: "₹1,38,000–₹1,92,000", roas: "1.8–2.6x" },
-      { budget: "₹1,50,000/mo", leads: "1,150–1,650", sales: "92–128", revenue: "₹2,76,000–₹3,84,000", roas: "1.8–2.6x" }
-    ]
-  },
-  scaling_plan: {
-    scale_trigger: "Scale ad spend by 20–30% every 7 days ONLY when: (1) ROAS holds above 1.8x for 5 consecutive days, (2) CPL stays below ₹150, (3) landing page CVR is above 2.5%. Never scale more than 30% in a single step — Meta's algorithm needs 3–4 days to re-optimize. If ROAS drops below 1.5x for 3 straight days, pause and rotate creative before touching budget.",
-    budget_allocation: "Meta 70% / Google Search 20% / YouTube Pre-roll 10% at launch. Shift to Meta 60% / Google 15% / YouTube 10% / Retargeting 15% once you have 10,000+ monthly website visitors. Always maintain minimum 3 active creatives per ad set and rotate every 14–21 days to prevent ad fatigue.",
-    retargeting_logic: "3-layer stack — Layer 1 (7-day): Hottest — website visitors + checkout abandoners → direct offer with urgency. Layer 2 (14-day): Warm — lead magnet downloaders + 95% video viewers → testimonial/social proof creative. Layer 3 (30-day): Cool — Instagram engagers + 50% video viewers → value content Reel to re-warm. Frequency cap: max 3 impressions per person per 7 days. Always exclude existing buyers via custom audience upload.",
-    ltv_optimization: "Base LTV = ₹2,999. Increase to ₹8,000–₹15,000 per customer via: (1) Upsell to ₹12,999 VIP at checkout via order bump, (2) Monthly Manchly community at ₹499/month post-completion, (3) Advanced 'Reels to Revenue 2.0' at ₹5,999 in Month 4 via email + WhatsApp sequence, (4) Affiliate program — 20% commission for referrals tracked via Manchly, (5) Annual cohort live program at ₹24,999 for top performers. Target blended LTV: ₹6,500 within 12 months of first purchase."
-  },
-  growth_hacks: [
-    { hack: "WhatsApp Broadcast as a Free Lead Magnet Funnel", mechanism: "Offer '50 Viral Reel Hooks for Coaches' PDF free in exchange for WhatsApp number. Deliver via WhatsApp (not email — 4x open rates in India). Run a 5-day nurture sequence ending with the course pitch. Use Manchly CRM or Interakt to automate. Zero ad cost when done via organic bio link.", expected_impact: "CPL drops to ₹0 for organic traffic. WhatsApp leads convert at 6–9% vs. 3% for email. Expected 200–400 warm leads/month from organic alone with consistent Reels posting." },
-    { hack: "Collaboration Reel Series with 5 Micro-Coach Influencers", mechanism: "Partner with 5 coaches (10K–50K followers, complementary niches — fitness, parenting, finance). Each creates a Reel: 'The one thing I wish I knew about Instagram 2 years ago' tagging your account. No money exchanged — you promote their service to your list in return. Each collab Reel typically drives 500–2,000 new followers.", expected_impact: "2,500–10,000 new targeted followers in 30 days at ₹0 ad spend. Minimum 50–150 new course leads from collaboration traffic per month." },
-    { hack: "Student Testimonial Reel Factory", mechanism: "At Day 7 and Day 30 of the course, prompt students with an exact script: 'Record a 30-second Reel on what changed — we'll feature you on Manchly's account and send a free 1:1 audit.' Collect 10–20 UGC testimonial Reels per cohort and use as both organic content AND ad creatives. UGC ads outperform brand ads by 4x in India.", expected_impact: "Free ad creative pipeline forever. UGC testimonial ads expected to cut CPL by 35–50% vs. brand-produced creatives. Social proof flywheel accelerates with every new cohort." },
-    { hack: "Manchly Community 7-Day Reel Challenge (Virality Loop)", mechanism: "Every student who completes the course joins a '7-Day Reel Challenge' inside Manchly. Daily prompt + peer accountability + a leaderboard (most views wins a free 1:1 session). Students post publicly tagging Manchly. Winning Reel gets featured on Manchly's main Instagram — guaranteed 10,000+ views as prize.", expected_impact: "30–50% course completion rate vs. 5% industry average due to gamification. Each cohort generates 50–100 public Reels tagging Manchly = 5L–20L combined organic impressions at zero ad spend." }
-  ]
-};
 
 const SECTIONS = [
   { key: "course_idea", label: "Course Idea", icon: "💡" },
@@ -135,7 +32,7 @@ function useProgress(loading) {
     start.current = performance.now();
     const tick = (now) => {
       const elapsed = (now - start.current) / 1000;
-      const val = 99 * (1 - Math.exp(-elapsed / 10));
+      const val = 99 * (1 - Math.exp(-elapsed / 45));
       setPct(val);
       raf.current = requestAnimationFrame(tick);
     };
@@ -295,14 +192,6 @@ export default function CoursePlannerScreen() {
             </div>
           )}
 
-          <div style={{ textAlign: "center", marginTop: 18 }}>
-            <button
-              onClick={() => { setPlan(DEMO); setPlanNiche(DEMO.niche); setSection("course_idea"); }}
-              style={{ background: "none", border: "none", cursor: "pointer", color: colors.typography.secondaryText, fontSize: 12, textDecoration: "underline" }}
-            >
-              View demo plan (Instagram Reels for Coaches) →
-            </button>
-          </div>
         </div>
       )}
 
@@ -330,11 +219,6 @@ export default function CoursePlannerScreen() {
                 <span style={{ fontSize: 13 }}>{s.icon}</span><span>{s.label}</span>
               </button>
             ))}
-            {plan === DEMO && (
-              <div style={{ margin: "10px 4px 0", fontSize: 11, color: colors.brand.successGreen, background: `${colors.brand.successGreen}14`, border: `1px solid ${colors.brand.successGreen}33`, borderRadius: 8, padding: "7px 10px" }}>
-                ✦ Demo Plan
-              </div>
-            )}
           </div>
 
           {/* Content */}

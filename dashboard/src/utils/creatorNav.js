@@ -5,6 +5,8 @@ export const CREATOR_KEY_TO_PATH = {
   dashboard: "/creator",
   overview: "/creator/overview",
   courses: "/creator/courses",
+  coursestats: "/creator/courses/stats",
+  "course-stats": "/creator/courses/stats",
   studio: "/creator/studio",
   "course-create": "/creator/courses/new",
   "course-analytics": "/creator/studio",
@@ -18,6 +20,7 @@ export const CREATOR_KEY_TO_PATH = {
   creator: "/creator/hub",        // ← Added fallback for "creator"
   community: "/creator/community",// ← Added
   ai: "/creator/ai",
+  "course-planner": "/creator/course-planner",
   wallet: "/creator/wallet",
   withdraw: "/creator/wallet",
   kyc: "/creator/kyc",

@@ -15,6 +15,19 @@ let ioInstance: SocketIOServer | null = null;
 
 export const getIO = (): SocketIOServer | null => ioInstance;
 
+export const emitForceLogout = (userId: string, message = "Your account was signed in on another device. You have been logged out.") => {
+    if (ioInstance && userId) {
+        ioInstance.to("user_" + userId).emit("force_logout", {
+            message,
+            code: "DEVICE_REVOKED"
+        });
+        ioInstance.to("user_" + userId).emit("device_revoked", {
+            message,
+            code: "DEVICE_REVOKED"
+        });
+    }
+};
+
 export const initializeSocketIO = (httpServer: HTTPServer | HTTPSServer) => {
     const io = new SocketIOServer(httpServer, {
         cors: {
@@ -22,6 +35,7 @@ export const initializeSocketIO = (httpServer: HTTPServer | HTTPSServer) => {
             methods: ["GET", "POST"],
         },
     });
+    ioInstance = io;
 
     // Authentication middleware for Socket.io
     io.use(async (socket: AuthenticatedSocket, next) => {
@@ -45,6 +59,9 @@ export const initializeSocketIO = (httpServer: HTTPServer | HTTPSServer) => {
     // Connection handler
     io.on("connection", (socket: AuthenticatedSocket) => {
         console.log(`User connected: ${socket.userId}`);
+        if (socket.userId) {
+            socket.join("user_" + socket.userId);
+        }
 
         // Join conversation rooms
         socket.on("join_conversation", async (conversationId: string) => {

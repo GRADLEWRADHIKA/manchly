@@ -11,7 +11,6 @@ model users {
   email                     String                        @unique
   name                      String?
   phone                     String?                       @unique
-  password                  String?                       // bcrypt hash; null for pre-migration accounts
   created_at                DateTime                      @default(now())
   updated_at                DateTime                      @updatedAt
   last_login                DateTime?
@@ -33,6 +32,8 @@ model users {
   isPremium                 Boolean                       @default(false) @map("is_premium")
   freeViewsCount            Int                           @default(0) @map("free_views_count")
   premiumExpiresAt          DateTime?                     @map("premium_expires_at")
+  password                  String?
+  device_limit              Int?
   conversation_participants conversation_participants[]
   courses                   courses[]
   bank_account              creator_bank_accounts?
@@ -59,26 +60,31 @@ model users {
 }
 
 model courses {
-  id            String         @id @default(uuid())
-  title         String
-  description   String?
-  thumbnail     String?
-  price         Float          @default(0)
-  status        CourseStatus   @default(DRAFT)
-  creator_id    String
-  category      String?
-  tags          String[]       @default([])
-  duration      Int?
-  level         String?
-  language      String?        @default("English")
-  created_at    DateTime       @default(now())
-  updated_at    DateTime       @updatedAt
-  published_at  DateTime?
-  thumbnail_url String?
-  creator       users          @relation(fields: [creator_id], references: [id], onDelete: Cascade)
-  enrollments   enrollments[]
-  transactions  transactions[]
-  videos        videos[]
+  id                     String         @id @default(uuid())
+  title                  String
+  description            String?
+  thumbnail              String?
+  price                  Float          @default(0)
+  status                 CourseStatus   @default(DRAFT)
+  creator_id             String
+  category               String?
+  tags                   String[]       @default([])
+  duration               Int?
+  level                  String?
+  language               String?        @default("English")
+  created_at             DateTime       @default(now())
+  updated_at             DateTime       @updatedAt
+  published_at           DateTime?
+  thumbnail_url          String?
+  access_duration_days   Int?
+  access_expires_at      DateTime?
+  whatsapp_community_url String?
+  thankyou_message       String?
+  access_duration_unit   String?
+  creator                users          @relation(fields: [creator_id], references: [id], onDelete: Cascade)
+  enrollments            enrollments[]
+  transactions           transactions[]
+  videos                 videos[]
 
   @@index([creator_id])
   @@index([status])
@@ -154,32 +160,37 @@ model enrollments {
 }
 
 model webinars {
-  id               String                 @id @default(uuid())
-  title            String
-  description      String?
-  thumbnail        String?
-  thumbnail_url    String?
-  price            Float                  @default(0)
-  status           WebinarStatus          @default(DRAFT)
-  creator_id       String
-  category         String?
-  tags             String[]               @default([])
-  scheduled_at     DateTime
-  duration         Int?
-  timezone         String?                @default("UTC")
-  zoom_meeting_id  String?                @unique
-  zoom_join_url    String?
-  zoom_start_url   String?
-  zoom_password    String?
-  max_participants Int?
-  created_at       DateTime               @default(now())
-  updated_at       DateTime               @updatedAt
-  published_at     DateTime?
-  start_time       String?
-  end_time         String?
-  enrollments      webinar_enrollments[]
-  transactions     webinar_transactions[]
-  creator          users                  @relation(fields: [creator_id], references: [id], onDelete: Cascade)
+  id                     String                 @id @default(uuid())
+  title                  String
+  description            String?
+  thumbnail              String?
+  thumbnail_url          String?
+  price                  Float                  @default(0)
+  status                 WebinarStatus          @default(DRAFT)
+  creator_id             String
+  category               String?
+  tags                   String[]               @default([])
+  scheduled_at           DateTime
+  duration               Int?
+  timezone               String?                @default("UTC")
+  zoom_meeting_id        String?                @unique
+  zoom_join_url          String?
+  zoom_start_url         String?
+  zoom_password          String?
+  max_participants       Int?
+  created_at             DateTime               @default(now())
+  updated_at             DateTime               @updatedAt
+  published_at           DateTime?
+  start_time             String?
+  end_time               String?
+  access_duration_days   Int?
+  access_expires_at      DateTime?
+  whatsapp_community_url String?
+  thankyou_message       String?
+  access_duration_unit   String?
+  enrollments            webinar_enrollments[]
+  transactions           webinar_transactions[]
+  creator                users                  @relation(fields: [creator_id], references: [id], onDelete: Cascade)
 
   @@index([creator_id])
   @@index([status])
@@ -687,6 +698,47 @@ model telegram_subscriptions {
   @@index([buyer_telegram_id])
   @@index([status])
   @@map("telegram_subscriptions")
+}
+
+model session_reviews {
+  id          String   @id
+  session_id  String   @unique
+  reviewer_id String
+  expert_id   String
+  rating      Int
+  comment     String?
+  created_at  DateTime @default(now())
+
+  @@index([expert_id])
+  @@index([reviewer_id])
+}
+
+model user_devices {
+  id           String   @id
+  user_id      String
+  device_id    String
+  device_name  String?
+  platform     String?
+  last_seen_at DateTime @default(now())
+  created_at   DateTime @default(now())
+  user_type    String   @default("USER")
+
+  @@unique([user_id, user_type, device_id])
+  @@index([user_id, user_type])
+}
+
+model webinar_reviews {
+  id          String   @id
+  webinar_id  String
+  reviewer_id String
+  creator_id  String
+  rating      Int
+  comment     String?
+  created_at  DateTime @default(now())
+
+  @@unique([webinar_id, reviewer_id])
+  @@index([creator_id])
+  @@index([webinar_id])
 }
 
 enum UserType {

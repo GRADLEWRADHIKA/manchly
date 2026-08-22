@@ -27,11 +27,12 @@ type AuthUserSource = Pick<
   | "facebook_link"
 >;
 
-export function issueAccessToken(userId: string, email?: string | null): string {
+export function issueAccessToken(userId: string, email?: string | null, deviceId?: string | null): string {
   return jwt.sign(
     {
       userId,
       email: email || undefined,
+      device_id: deviceId || undefined,
       type: "access"
     },
     JWT_SECRET,

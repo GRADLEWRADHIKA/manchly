@@ -6,6 +6,8 @@ import bcrypt from "bcrypt";
 import OTPManager from "../utils/otpManager";
 import { ApiResponseHandler } from "../utils/ApiResponseHandler";
 import { issueAccessToken, serializeAuthUser } from "../utils/userSerializer";
+import { setActiveDevice } from "../lib/redisClient";
+import { emitForceLogout } from "../utils/socketHandler";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -221,7 +223,12 @@ export class AuthController {
         select: AUTH_USER_SELECT, // password excluded
       });
 
-      const token = issueAccessToken(user.id, user.email);
+      const deviceId = req.body.device_id || (req.headers["x-device-id"] as string) || "";
+      if (deviceId) {
+        await setActiveDevice(user.id, String(deviceId));
+      }
+
+      const token = issueAccessToken(user.id, user.email, deviceId);
       return ApiResponseHandler.success(
         res,
         { token, user: serializeAuthUser(user) },
@@ -238,6 +245,7 @@ export class AuthController {
   // ── 2. Login — email + password ─────────────────────────────────────────────
   static async login(req: Request, res: Response) {
     const { email, password, tab, fcm_token } = req.body;
+    const deviceId = req.body.device_id || (req.headers["x-device-id"] as string) || "";
 
     if (!email)
       return ApiResponseHandler.customError(res, "Email is required", 400, "MISSING_EMAIL");
@@ -287,8 +295,14 @@ export class AuthController {
         }
       }
 
+      // Enforce single-device session: kick previous active device
+      if (deviceId) {
+        emitForceLogout(userWithPassword.id, "Your account was signed in on another device. You have been logged out.");
+        await setActiveDevice(userWithPassword.id, String(deviceId));
+      }
+
       // Issue token + update last_login
-      const token = issueAccessToken(userWithPassword.id, userWithPassword.email);
+      const token = issueAccessToken(userWithPassword.id, userWithPassword.email, deviceId);
       const updatedUser = await prisma.users.update({
         where: { id: userWithPassword.id },
         data: {
@@ -419,6 +433,7 @@ export class AuthController {
   // ── 6. Verify OTP and issue JWT ──────────────────────────────────────────────
   static async verifyOTP(req: Request, res: Response) {
     const { email, phone_number, code, purpose = "login", user_type, fcm_token } = req.body;
+    const deviceId = req.body.device_id || (req.headers["x-device-id"] as string) || "";
 
     if (!code) return ApiResponseHandler.customError(res, "OTP code is required", 400, "MISSING_OTP_CODE");
     if (!email && !phone_number) return ApiResponseHandler.customError(res, "Email or phone number is required", 400, "MISSING_IDENTIFIER");
@@ -451,7 +466,13 @@ export class AuthController {
         return ApiResponseHandler.success(res, { reset_token: resetToken, purpose: "password_reset" }, "OTP verified successfully");
       }
 
-      const token = issueAccessToken(user.id, user.email);
+      // Enforce single-device session
+      if (deviceId) {
+        emitForceLogout(user.id, "Your account was signed in on another device. You have been logged out.");
+        await setActiveDevice(user.id, String(deviceId));
+      }
+
+      const token = issueAccessToken(user.id, user.email, deviceId);
       const updatedUser = await prisma.users.update({
         where: { id: user.id },
         data: { last_login: new Date(), ...(fcm_token && { fcm_token }) },
@@ -477,28 +498,6 @@ export class AuthController {
       ApiResponseHandler.unexpectedError(res, err, 500);
     }
   }
-static async signup(req: Request, res: Response) {
-  try {
-    console.log("========== SIGNUP REQUEST ==========");
-    console.log("Request Body:", req.body);
-
-    console.log("Name:", req.body.name);
-    console.log("Email:", req.body.email);
-    console.log("Phone:", req.body.phone);
-    console.log("Role:", req.body.role);
-
-    const { name, email, phone, role } = req.body;
-
-    // Rest of your signup logic...
-
-  } catch (err: any) {
-    console.error("========== SIGNUP ERROR ==========");
-    console.error(err);
-    console.error(err.stack);
-
-    ApiResponseHandler.unexpectedError(res, err, 500);
-  }
-}
 
   // ── 8. Check OTP Status ──────────────────────────────────────────────────────
   static async checkOTPStatus(req: Request, res: Response) {

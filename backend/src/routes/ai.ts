@@ -15,6 +15,7 @@ router.post("/course/generate-meta",  AIController.courseGenerateMeta);
 router.post("/course/enhance",        AIController.courseEnhance);
 router.post("/course/quiz",           AIController.courseQuiz);
 router.post("/course/landing-copy",   AIController.courseLandingCopy);
+router.post("/course/plan", AIController.coursePlan);
 
 // Webinar
 router.post("/webinar/describe",            AIController.webinarDescribe);

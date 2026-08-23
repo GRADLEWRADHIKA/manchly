@@ -15,6 +15,7 @@ import CourseVideoList from '../screens/Auth/Creator/Products/Course/CourseVideo
 import CreatorSettingsDetails from '../screens/Auth/Creator/Settings/CreatorSettingDetails';
 import KYCVerificationScreen from '../screens/Auth/Creator/Kyc/KYCVerificationScreen';
 import CourseDetailsScreen from '../screens/Auth/Creator/Products/Course/CourseDetailsScreen';
+import CoursePreviewScreen from '../screens/Auth/Creator/Products/Course/CoursePreviewScreen';
 import CreatorNotification from '../screens/Auth/Creator/Notification/CreatorNotification';
 import BankDetails from '../screens/Auth/Creator/BankDetails/BankDetails';
 import CreatorWebinarDetails from '../screens/Auth/Creator/Products/Webinar/CreatorWebinarDetails';
@@ -59,6 +60,10 @@ const CreatorMainStack = () => {
         <Stack.Screen
           name="CourseDetailsScreen"
           component={CourseDetailsScreen}
+        />
+        <Stack.Screen
+          name="CoursePreviewScreen"
+          component={CoursePreviewScreen}
         />
         <Stack.Screen
           name="CreatorNotification"

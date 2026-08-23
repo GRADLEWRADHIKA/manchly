@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
 
   // Bottom sheet
   sheet: {
-    backgroundColor: colors.white,
+    backgroundColor: '#1A1A1A',
     borderTopLeftRadius: wp(20),
     borderTopRightRadius: wp(20),
     maxHeight: '75%',
@@ -217,13 +217,13 @@ const styles = StyleSheet.create({
     paddingTop: hp(10),
     paddingBottom: hp(6),
     borderBottomWidth: 1,
-    borderBottomColor: colors.borderLight,
+    borderBottomColor: 'rgba(255,255,255,0.08)',
   },
   sheetHandle: {
     width: wp(36),
     height: hp(4),
     borderRadius: wp(2),
-    backgroundColor: colors.borderLight,
+    backgroundColor: 'rgba(255,255,255,0.2)',
     marginBottom: hp(6),
   },
   dismissBtn: {
@@ -239,7 +239,7 @@ const styles = StyleSheet.create({
 
   // Original
   originalBlock: {
-    backgroundColor: colors.surface,
+    backgroundColor: 'rgba(255,255,255,0.06)',
     borderRadius: wp(10),
     padding: wp(12),
     marginBottom: hp(12),
@@ -247,35 +247,35 @@ const styles = StyleSheet.create({
   sectionLabel: {
     fontSize: fp(10),
     fontWeight: '700',
-    color: colors.textMuted,
+    color: 'rgba(255,255,255,0.5)',
     textTransform: 'uppercase',
     marginBottom: hp(4),
   },
   originalText: {
     fontSize: fp(14),
-    color: colors.textSecondary,
+    color: 'rgba(255,255,255,0.6)',
     lineHeight: fp(21),
   },
 
   // Enhanced
   enhancedBlock: {
-    backgroundColor: colors.faaAiPrimary + '08',
+    backgroundColor: 'rgba(96,165,250,0.1)',
     borderRadius: wp(10),
     padding: wp(12),
     borderLeftWidth: 3,
-    borderLeftColor: colors.faaAiPrimary,
+    borderLeftColor: '#60A5FA',
     marginBottom: hp(10),
   },
   enhancedLabel: {
     fontSize: fp(10),
     fontWeight: '700',
-    color: colors.faaAiPrimary,
+    color: '#60A5FA',
     textTransform: 'uppercase',
     marginBottom: hp(4),
   },
   enhancedText: {
     fontSize: fp(14),
-    color: colors.text,
+    color: '#FFFFFF',
     lineHeight: fp(21),
     marginBottom: hp(10),
   },
@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     alignSelf: 'flex-end',
     gap: wp(6),
-    backgroundColor: colors.faaAiPrimary,
+    backgroundColor: '#60A5FA',
     paddingHorizontal: wp(16),
     paddingVertical: hp(8),
     borderRadius: wp(10),
@@ -298,7 +298,7 @@ const styles = StyleSheet.create({
   // Summary
   summary: {
     fontSize: fp(12),
-    color: colors.textMuted,
+    color: 'rgba(255,255,255,0.5)',
     fontStyle: 'italic',
     marginBottom: hp(12),
     lineHeight: fp(18),
@@ -308,7 +308,7 @@ const styles = StyleSheet.create({
   altLabel: {
     fontSize: fp(10),
     fontWeight: '700',
-    color: colors.textMuted,
+    color: 'rgba(255,255,255,0.5)',
     textTransform: 'uppercase',
     marginBottom: hp(6),
   },
@@ -320,17 +320,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: colors.surface,
+    backgroundColor: 'rgba(255,255,255,0.06)',
     borderRadius: wp(10),
     paddingHorizontal: wp(12),
     paddingVertical: hp(10),
     borderWidth: 1,
-    borderColor: colors.borderLight,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
   altText: {
     flex: 1,
     fontSize: fp(13),
-    color: colors.textSecondary,
+    color: 'rgba(255,255,255,0.7)',
     lineHeight: fp(19),
     marginRight: wp(8),
   },
@@ -341,11 +341,11 @@ const styles = StyleSheet.create({
     paddingVertical: hp(12),
     borderRadius: wp(10),
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: 'rgba(255,255,255,0.2)',
   },
   keepBtnText: {
     fontSize: fp(13),
     fontWeight: '600',
-    color: colors.textSecondary,
+    color: 'rgba(255,255,255,0.7)',
   },
 });

@@ -35,7 +35,7 @@ const UserVideoList = () => {
   const [lastSavedProgress, setLastSavedProgress] = useState(-1);
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
   const currentUser = useSelector((state: any) => state.userReducer?.user);
-  const watermarkText = useMemo(() => buildWatermark(currentUser), [currentUser]);
+  const watermarkText = useMemo(() => buildWatermark(data?.creator), [data?.creator]);
 
   const handleProgressChange = (currentTime: number, totalDuration: number) => {
     const courseId = data?.id;

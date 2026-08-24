@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { apiFetch, unwrap } from "../../../utils/api";
 import colors from "../../../utils/colors";
+import computer from "../../../assets/Images/computer.png";
 import Sidebar from "../../../components/Sidebar";
 import TopHeader from "../../../components/TopHeader";
 import { formatCurrency } from "../../../utils/formatters";
@@ -141,8 +142,6 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
   const draftCourses = Math.max(totalCourses - publishedCourses, 0);
   const completionRate = courseStats?.completion_rate ?? null;
 
-  const profileCompletion =
-    courseStats?.profile_completion ?? user?.profile_completion ?? null;
   const kycLabel = isKycVerified ? "Verified" : "Pending";
   const monthlyGrowth =
     courseStats?.monthly_growth != null
@@ -203,7 +202,7 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
   const handleWithdraw = () => onNavigate?.("withdraw");
   const handleNotifications = () => onNavigate?.("notifications");
   const handleCourseEdit = (course) =>
-    onNavigate?.("course-analytics", { courseId: course?.id });
+    onNavigate?.("course-studio", { courseId: course?.id });
   const handleCourseView = (course) =>
     onNavigate?.("course-preview", { courseId: course?.id });
   const handleCourseDuplicate = (course) =>
@@ -339,8 +338,8 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
                 background: colors.brand.primaryOrange,
                 color: colors.typography.white,
                 border: "none",
-                borderRadius: 99,
-                padding: "10px 18px",
+                borderRadius: 12,
+                padding: "12px 20px",
                 fontSize: 15,
                 fontWeight: 700,
                 cursor: "pointer",
@@ -352,94 +351,16 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
             </button>
           </div>
 
-          <div
-            onClick={() => onNavigate?.("course-planner")}
+          <img
+            src={computer}
+            alt="Course Computer Illustration"
             style={{
+              width: 350,
+              maxHeight: 250,
+              objectFit: "contain",
               flexShrink: 0,
-              width: 320,
-              height: 250,
-              background: `linear-gradient(135deg, ${colors.base.cardBackground} 0%, rgba(255,107,0,0.1) 100%)`,
-              border: `1.5px solid ${colors.brand.primaryOrange}`,
-              borderRadius: 16,
-              padding: 20,
-              cursor: "pointer",
-              boxShadow: "0 8px 24px rgba(255,107,0,0.14)",
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "space-between",
             }}
-          >
-            <div>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  marginBottom: 10,
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <Rocket size={18} color={colors.brand.primaryOrange} />
-                  <span
-                    style={{
-                      fontSize: 11,
-                      fontWeight: 800,
-                      color: colors.brand.primaryOrange,
-                      letterSpacing: 0.8,
-                    }}
-                  >
-                    AI PLANNER
-                  </span>
-                </div>
-                <span
-                  style={{
-                    background: colors.brand.primaryOrange,
-                    color: colors.typography.white,
-                    fontSize: 10,
-                    fontWeight: 800,
-                    padding: "2px 8px",
-                    borderRadius: 999,
-                  }}
-                >
-                  NEW
-                </span>
-              </div>
-              <div
-                style={{
-                  fontSize: 16,
-                  fontWeight: 800,
-                  color: colors.typography.primaryText,
-                  lineHeight: 1.2,
-                  marginBottom: 6,
-                }}
-              >
-                Plan Your Next Course
-              </div>
-              <div
-                style={{
-                  fontSize: 12,
-                  color: colors.typography.secondaryText,
-                  lineHeight: 1.4,
-                  marginBottom: 14,
-                }}
-              >
-                Generate an AI-driven curriculum, target audience strategy, and
-                launch timeline in seconds.
-              </div>
-            </div>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-                fontSize: 13,
-                fontWeight: 700,
-                color: colors.brand.primaryOrange,
-              }}
-            >
-              Launch Planner <ArrowRight size={14} />
-            </div>
-          </div>
+          />
         </div>
 
         {/* Stats Row */}
@@ -481,7 +402,7 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
           />
         </div>
 
-        {/* Your Courses + Creator Insights Row */}
+        {/* Your Courses + Right Sidebar (Insights & AI Planner) Row */}
         <div style={{ display: "grid", gridTemplateColumns: "4fr 1fr", gap: 20, alignItems: "start" }}>
           {/* Your Courses */}
           <div
@@ -670,55 +591,102 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
             )}
           </div>
 
-          {/* Creator Insights */}
-          <div
-            style={{
-              position: "relative",
-              background: `linear-gradient(135deg, ${colors.base.cardBackground} 0%, rgba(255, 107, 0, 0.08) 100%)`,
-              border: `1.5px solid ${colors.brand.primaryOrange}`,
-              borderRadius: 16,
-              padding: 20,
-              cursor: "pointer",
-              boxShadow: "0 8px 24px rgba(255, 107, 0, 0.12)",
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "space-between",
-            }}
-          >
-            <div>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  marginBottom: 10,
-                }}
-              >
-                <span
+          {/* Right Side Column */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+            {/* Creator Insights Card */}
+            <div
+              style={{
+                position: "relative",
+                background: `linear-gradient(135deg, ${colors.base.cardBackground} 0%, rgba(255, 107, 0, 0.08) 100%)`,
+                border: `1.5px solid ${colors.brand.primaryOrange}`,
+                borderRadius: 16,
+                padding: 20,
+                boxShadow: "0 8px 24px rgba(255, 107, 0, 0.12)",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+              }}
+            >
+              <div>
+                <div
                   style={{
-                    fontSize: 11,
-                    fontWeight: 800,
-                    color: colors.brand.primaryOrange,
-                    letterSpacing: 0.8,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    marginBottom: 10,
                   }}
                 >
-                  Creator Insights
-                </span>
-                <span
-                  style={{
-                    background: colors.brand.primaryOrange,
-                    color: colors.typography.white,
-                    fontSize: 10,
-                    fontWeight: 800,
-                    padding: "2px 8px",
-                    borderRadius: 999,
-                  }}
-                >
-                  NEW
-                </span>
-              </div>
+                  <span
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 800,
+                      color: colors.brand.primaryOrange,
+                      letterSpacing: 0.8,
+                    }}
+                  >
+                    CREATOR INSIGHTS
+                  </span>
+                </div>
 
-              <div style={{ marginBottom: 12 }}>
+                <InsightRow label="KYC Status" value={kycLabel} />
+                <InsightRow label="Monthly Growth" value={monthlyGrowth} />
+                <InsightRow label="Conversion Rate" value={conversionRate} />
+                <InsightRow label="Refund Rate" value={refundRate} />
+                <InsightRow label="Avg. Order Value" value={avgOrderValue} />
+              </div>
+            </div>
+
+            {/* AI Planner Card */}
+            <div
+              onClick={() => onNavigate?.("course-planner")}
+              style={{
+                position: "relative",
+                background: `linear-gradient(135deg, ${colors.base.cardBackground} 0%, rgba(255,107,0,0.1) 100%)`,
+                border: `1.5px solid ${colors.brand.primaryOrange}`,
+                borderRadius: 16,
+                padding: 20,
+                cursor: "pointer",
+                boxShadow: "0 8px 24px rgba(255,107,0,0.14)",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+              }}
+            >
+              <div>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    marginBottom: 10,
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <Rocket size={18} color={colors.brand.primaryOrange} />
+                    <span
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 800,
+                        color: colors.brand.primaryOrange,
+                        letterSpacing: 0.8,
+                      }}
+                    >
+                      AI PLANNER
+                    </span>
+                  </div>
+                  <span
+                    style={{
+                      background: colors.brand.primaryOrange,
+                      color: colors.typography.white,
+                      fontSize: 10,
+                      fontWeight: 800,
+                      padding: "2px 8px",
+                      borderRadius: 999,
+                    }}
+                  >
+                    NEW
+                  </span>
+                </div>
                 <div
                   style={{
                     fontSize: 16,
@@ -728,35 +696,32 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
                     marginBottom: 6,
                   }}
                 >
-                  <span>Profile Completion</span>
-                  <span>
-                    {profileCompletion != null ? `${profileCompletion}%` : "--"}
-                  </span>
+                  Plan Your Next Course
                 </div>
                 <div
                   style={{
-                    width: "100%",
-                    height: 6,
-                    borderRadius: 3,
-                    background: "rgba(0,0,0,0.06)",
+                    fontSize: 12,
+                    color: colors.typography.secondaryText,
+                    lineHeight: 1.4,
+                    marginBottom: 14,
                   }}
                 >
-                  <div
-                    style={{
-                      width: `${profileCompletion != null ? Math.max(0, Math.min(100, profileCompletion)) : 0}%`,
-                      height: "100%",
-                      borderRadius: 3,
-                      background: colors.brand.primaryOrange,
-                    }}
-                  />
+                  Generate an AI-driven curriculum, target audience strategy, and
+                  launch timeline in seconds.
                 </div>
               </div>
-
-              <InsightRow label="KYC Status" value={kycLabel} />
-              <InsightRow label="Monthly Growth" value={monthlyGrowth} />
-              <InsightRow label="Conversion Rate" value={conversionRate} />
-              <InsightRow label="Refund Rate" value={refundRate} />
-              <InsightRow label="Avg. Order Value" value={avgOrderValue} />
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: colors.brand.primaryOrange,
+                }}
+              >
+                Launch Planner <ArrowRight size={14} />
+              </div>
             </div>
           </div>
         </div>

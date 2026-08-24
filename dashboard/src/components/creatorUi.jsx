@@ -71,8 +71,8 @@ export function AiEnhance({ text, kind, tone, onUse, endpoint = "/ai/course/enha
   };
   return (
     <div>
-      <button onClick={run} disabled={busy} style={{ background: "transparent", border: "none", color: "#7C3AED", fontWeight: 800, fontSize: 12, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 5, padding: 0, fontFamily: "inherit" }}>
-        {busy ? <Spinner size={12} /> : <Sparkles size={13} />} Enhance with AI
+      <button onClick={run} disabled={busy} style={{ background: "transparent", border: "none", color: colors.navItems.communities, fontWeight: 800, fontSize: 12, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 5, padding: 0, fontFamily: "inherit" }}>
+        {busy ? <Spinner size={12} /> : <Sparkles size={13} />} Enhance
       </button>
       {suggestion && (
         <div style={{ marginTop: 8, background: "#F5F3FF", border: "1px solid #DDD6FE", borderRadius: 10, padding: "10px 12px", fontSize: 13.5, color: "#4C1D95" }}>

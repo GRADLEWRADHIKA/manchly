@@ -7,32 +7,27 @@ import {
   Users,
   Settings,
   LogOut,
-  Sparkles,
+  //Sparkles,
   Wallet,
-  //ShieldCheck,
-  //Bell,
   LifeBuoy,
-  //Clapperboard,
   StarIcon,
-  Rocket
+  //MessageCircle
 } from "lucide-react";
 
 import colors from "../utils/colors";
 import { Modal } from "./ui";
+//import { useAssistant } from "../context/AssistantContext";
 
 const MENU_ITEMS = [
   { key: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { key: "courses", label: "Courses", icon: BookOpen },
-  //{ key: "studio", label: "Courses", icon: Clapperboard },
   { key: "webinars", label: "Webinars", icon: MonitorPlay },
   { key: "sessions", label: "1:1 Sessions", icon: Users },
   { key: "creator-hub", label: "Creator Hub", icon: StarIcon },
-  { key: "ai", label: "AI Assistant", icon: Sparkles },
-  //{ key: "course-planner", label: "Course Planner", icon: Rocket },
+  //{ key: "ai", label: "AI Assistant", icon: Sparkles },
+  //{ key: "assistant-chat", label: "AI Assistant Chat", icon: MessageCircle, action: "toggle" },
   { key: "wallet", label: "Payouts", icon: Wallet },
-  //{ key: "kyc", label: "KYC", icon: ShieldCheck },
   { key: "community", label: "Community", icon: Users },
-  //{ key: "notifications", label: "Notifications", icon: Bell },
   { key: "settings", label: "Settings", icon: Settings },
   { key: "help", label: "Help Center", icon: LifeBuoy },
 ];
@@ -92,7 +87,7 @@ export default function Sidebar({
           </div>
 
           {/* Navigation */}
-          <div
+          <nav
             style={{
               display: "flex",
               flexDirection: "column",
@@ -102,11 +97,12 @@ export default function Sidebar({
           >
             {MENU_ITEMS.map((item) => {
               const Icon = item.icon;
-              const isActive = item.key === active || (item.key === "creator-hub" && active === "creator");
+              const isActive = item.key === active || (item.key === "creator-hub" && active === "creator"); ;
 
               return (
                 <button
                   key={item.key}
+                  type="button"
                   onClick={() => onNavigate?.(item.key)}
                   style={{
                     border: "none",
@@ -135,7 +131,7 @@ export default function Sidebar({
                 </button>
               );
             })}
-          </div>
+          </nav>
         </div>
 
         {/* Footer */}
@@ -146,6 +142,7 @@ export default function Sidebar({
           }}
         >
           <button
+            type="button"
             onClick={() => setConfirmLogout(true)}
             style={{
               width: "100%",
@@ -181,6 +178,7 @@ export default function Sidebar({
             </p>
             <div style={{ display: "flex", gap: 10 }}>
               <button
+                type="button"
                 onClick={() => setConfirmLogout(false)}
                 style={{
                   flex: 1,
@@ -198,6 +196,7 @@ export default function Sidebar({
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={() => {
                   setConfirmLogout(false);
                   onLogout?.();

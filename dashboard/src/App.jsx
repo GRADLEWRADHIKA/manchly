@@ -53,6 +53,9 @@ import CommunityScreen from "./screens/creator/CommunityScreen";
 import CreatorHubScreen from "./screens/creator/CreatorHubScreen";
 import CoursePlannerScreen from "./screens/creator/CourseplannerScreen";
 import CourseStatsScreen from "./screens/Auth/Creator/components/CoursesStatCard.jsx";
+import { AssistantProvider } from "./context/AssistantContext.jsx";
+import AiAssistant from "./screens/creator/AiAssistant.jsx"
+import AssistantLauncher from "./components/AssistantLaucher.jsx";
 
 function RequireAuth({ children, roles }) {
   const { isAuthed, booted, role } = useAuth();
@@ -203,10 +206,13 @@ export default function App() {
 
   return (
     <>
+     <AssistantProvider>
       <Toaster />
       <NotificationBridge />
       <ForceLogoutBridge />
       <CallManager />
+      <AiAssistant/>
+      <AssistantLauncher />
 
       <Routes>
         <Route path="/" element={<HomeRedirect />} />
@@ -272,6 +278,7 @@ export default function App() {
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </AssistantProvider>
     </>
   );
 }

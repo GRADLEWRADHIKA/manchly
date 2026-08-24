@@ -1,13 +1,9 @@
-// Ask Manchly AI — light creator-suite redesign, fully dynamic.
-// Config-driven tool grid: each tool opens a modal with its real form fields,
-// posts to the live /ai endpoint, and renders results with copy/regenerate.
-// Payload shapes match manBackend aiController exactly.
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Sparkles, Copy, RefreshCw, ArrowLeft } from "lucide-react";
 import { apiFetch, unwrap } from "../../utils/api";
 import colors from "../../utils/colors";
-import { Modal, Badge, Spinner, EmptyState } from "../../components/ui";
+import { Modal, Badge, EmptyState } from "../../components/ui";
 import { GoldBtn, lbl } from "../../components/creatorUi";
 import { toast } from "../../utils/toast";
 

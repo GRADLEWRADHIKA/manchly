@@ -276,9 +276,9 @@ export default function DashboardScreen({ user, onNavigate, onLogout }) {
           {/* Right Side */}
           <div
             style={{
-              border: "none",
+            border: "none",
             cursor: "pointer",
-            borderRadius: 11,
+            borderRadius: 12,
             padding: "9px 16px",
             fontWeight: 800,
             fontSize: 13,
@@ -304,7 +304,7 @@ export default function DashboardScreen({ user, onNavigate, onLogout }) {
                   background: colors.gradients.orange,
                   color: colors.typography.white,
                   border: "none",
-                  borderRadius: 9999,
+                  borderRadius: 12,
                   padding: "10px 18px",
                   fontSize: 15,
                   fontWeight: 700,

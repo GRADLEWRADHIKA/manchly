@@ -1,6 +1,3 @@
-// Single source of truth for creator-shell navigation keys → routes.
-// Radhika's screens navigate with semantic keys ("course-create", "withdraw");
-// the layout and standalone screens both resolve them here.
 export const CREATOR_KEY_TO_PATH = {
   dashboard: "/creator",
   overview: "/creator/overview",
@@ -30,11 +27,14 @@ export const CREATOR_KEY_TO_PATH = {
   settings: "/creator/settings",
 };
 
-// Keys whose destination needs a courseId baked into the URL.
-// params is the second argument onNavigate(key, params) is called with.
+
 const CREATOR_DYNAMIC_KEY_TO_PATH = {
   "course-create-video": (params) => `/creator/courses/new/${params?.courseId}/video`,
   "course-create-preview": (params) => `/creator/courses/new/${params?.courseId}/preview`,
+  "course-studio": (params) =>
+    params?.courseId
+      ? `/creator/studio?courseId=${params.courseId}`
+      : "/creator/studio",
 };
 
 export function creatorPathFor(key, params) {

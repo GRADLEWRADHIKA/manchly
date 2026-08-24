@@ -21,11 +21,14 @@
     "pm2:monit": "pm2 monit"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.120.0",
     "@aws-sdk/client-sns": "^3.907.0",
     "@mux/mux-node": "^12.8.0",
     "@prisma/client": "^5.22.0",
     "@supabase/supabase-js": "^2.0.0",
     "@types/bcrypt": "^6.0.0",
+    "@upstash/ratelimit": "^2.0.8",
+    "@upstash/redis": "^1.38.2",
     "axios": "^1.12.2",
     "bcrypt": "^6.0.0",
     "body-parser": "^1.20.2",

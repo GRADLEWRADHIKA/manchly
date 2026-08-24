@@ -1,14 +1,7 @@
 import { Request, Response } from "express";
 import prisma from "../prismaClient";
 import { chat, safeParseJSON, pickProvider } from "../services/aiService";
-
-/**
- * Shape every endpoint returns:
- *   { provider: "hf" | "openai" | "gemini" | "mock", data: <result>, latency_ms: number }
- *
- * When a model call fails or returns un-parseable JSON, we return a mock result
- * instead of erroring — the frontend always gets something useful to display.
- */
+import { ApiResponseHandler } from "../utils/ApiResponseHandler";
 
 function reply(res: Response, provider: string, data: any, started: number) {
   return res.json({
@@ -37,7 +30,8 @@ async function generate(opts: {
     }
     if (opts.jsonOnly) {
       const parsed = safeParseJSON(r.text);
-      if (!parsed) return { provider: r.provider + "+fallback", data: opts.fallback };
+      if (!parsed)
+        return { provider: r.provider + "+fallback", data: opts.fallback };
       return { provider: r.provider, data: parsed };
     }
     return { provider: r.provider, data: r.text };
@@ -60,6 +54,8 @@ export class AIController {
         "POST /ai/course/enhance",
         "POST /ai/course/quiz",
         "POST /ai/course/landing-copy",
+        "POST /ai/course/plan",
+        "POST /ai/chat/assistant",
         // webinar
         "POST /ai/webinar/describe",
         "POST /ai/webinar/enhance",
@@ -82,11 +78,16 @@ export class AIController {
   // Body: { topic, audience?, level? }
   static async courseGenerateMeta(req: Request, res: Response) {
     const started = Date.now();
-    const { topic, audience = "general learners", level = "Beginner" } = req.body || {};
+    const {
+      topic,
+      audience = "general learners",
+      level = "Beginner",
+    } = req.body || {};
     if (!topic) return res.status(400).json({ error: "topic is required" });
 
     const result = await generate({
-      system: "You are a course strategist for Manchly, a creator-economy platform. Return only a JSON object — no prose, no markdown.",
+      system:
+        "You are a course strategist for Manchly, a creator-economy platform. Return only a JSON object — no prose, no markdown.",
       user: `Topic: ${topic}
 Target audience: ${audience}
 Level: ${level}
@@ -105,12 +106,38 @@ Aim for 4 modules with 3-5 lessons each.`,
       fallback: {
         title: `Mastering ${topic} — A Practical Guide`,
         description: `A hands-on course that walks ${audience} through ${topic} from the ground up. You'll build real projects, internalize the core ideas, and finish with a portfolio piece you can actually ship.`,
-        tags: [String(topic).toLowerCase().replace(/\s+/g, "-"), "practical", "beginner-friendly", "hands-on", "manchly"],
+        tags: [
+          String(topic).toLowerCase().replace(/\s+/g, "-"),
+          "practical",
+          "beginner-friendly",
+          "hands-on",
+          "manchly",
+        ],
         outline: [
-          { module: `Foundations of ${topic}`,    lessons: ["Why this matters", "Core mental model", "Setup & tools"] },
-          { module: `Working with ${topic}`,      lessons: ["First real example", "Common patterns", "Debugging mistakes"] },
-          { module: `Advanced ${topic}`,          lessons: ["Edge cases", "Optimization", "When NOT to use it"] },
-          { module: "Ship your project",          lessons: ["Project brief", "Build session walkthrough", "Polish & publish"] },
+          {
+            module: `Foundations of ${topic}`,
+            lessons: ["Why this matters", "Core mental model", "Setup & tools"],
+          },
+          {
+            module: `Working with ${topic}`,
+            lessons: [
+              "First real example",
+              "Common patterns",
+              "Debugging mistakes",
+            ],
+          },
+          {
+            module: `Advanced ${topic}`,
+            lessons: ["Edge cases", "Optimization", "When NOT to use it"],
+          },
+          {
+            module: "Ship your project",
+            lessons: [
+              "Project brief",
+              "Build session walkthrough",
+              "Polish & publish",
+            ],
+          },
         ],
       },
     });
@@ -121,7 +148,11 @@ Aim for 4 modules with 3-5 lessons each.`,
   // Body: { title, audience?, duration_min? }
   static async webinarDescribe(req: Request, res: Response) {
     const started = Date.now();
-    const { title, audience = "professionals", duration_min = 60 } = req.body || {};
+    const {
+      title,
+      audience = "professionals",
+      duration_min = 60,
+    } = req.body || {};
     if (!title) return res.status(400).json({ error: "title is required" });
 
     const result = await generate({
@@ -153,13 +184,19 @@ Return JSON: {
   // Body: { name, expertise, years_experience?, achievements? }
   static async expertBio(req: Request, res: Response) {
     const started = Date.now();
-    const { name, expertise, years_experience, achievements = "" } = req.body || {};
+    const {
+      name,
+      expertise,
+      years_experience,
+      achievements = "",
+    } = req.body || {};
     if (!name || !expertise) {
       return res.status(400).json({ error: "name and expertise are required" });
     }
 
     const result = await generate({
-      system: "You write first-person creator bios for Manchly's expert directory. Return only JSON.",
+      system:
+        "You write first-person creator bios for Manchly's expert directory. Return only JSON.",
       user: `Name: ${name}
 Expertise: ${expertise}
 Years of experience: ${years_experience ?? "not given"}
@@ -185,7 +222,8 @@ Return JSON: {
   static async chatSuggestReply(req: Request, res: Response) {
     const started = Date.now();
     const { conversationId, tone = "friendly" } = req.body || {};
-    if (!conversationId) return res.status(400).json({ error: "conversationId is required" });
+    if (!conversationId)
+      return res.status(400).json({ error: "conversationId is required" });
 
     // Pull last 8 messages so the model has context
     const messages = await prisma.messages.findMany({
@@ -194,12 +232,14 @@ Return JSON: {
       take: 8,
       include: { sender: { select: { id: true, name: true } } },
     });
-    const transcript = messages.reverse().map(
-      (m) => `${m.sender?.name || "user"}: ${m.content}`
-    ).join("\n");
+    const transcript = messages
+      .reverse()
+      .map((m) => `${m.sender?.name || "user"}: ${m.content}`)
+      .join("\n");
 
     const result = await generate({
-      system: "You suggest short, sendable replies for a creator-economy DM. Be concrete, no filler. Return only JSON.",
+      system:
+        "You suggest short, sendable replies for a creator-economy DM. Be concrete, no filler. Return only JSON.",
       user: `Conversation so far:
 ${transcript || "(no messages yet)"}
 
@@ -216,9 +256,18 @@ Suggest 3 replies in this JSON shape:
       jsonOnly: true,
       fallback: {
         suggestions: [
-          { text: "Thanks for reaching out! What are you trying to figure out?",              intent: "ask" },
-          { text: "Got it — let me check and get back to you within 24 hours.",              intent: "acknowledge" },
-          { text: "Happy to chat. Want to book a 15-min call so we can go deeper?",          intent: "propose" },
+          {
+            text: "Thanks for reaching out! What are you trying to figure out?",
+            intent: "ask",
+          },
+          {
+            text: "Got it — let me check and get back to you within 24 hours.",
+            intent: "acknowledge",
+          },
+          {
+            text: "Happy to chat. Want to book a 15-min call so we can go deeper?",
+            intent: "propose",
+          },
         ],
       },
     });
@@ -237,24 +286,32 @@ Suggest 3 replies in this JSON shape:
     // Quick local heuristic first — covers the obvious cases without a model call.
     const lower = text.toLowerCase();
     const local = {
-      hate:        /\b(slur1|slur2|kill\s+all)\b/.test(lower),
-      harassment:  /\b(idiot|loser|worthless|kys)\b/.test(lower),
-      sexual:      /\b(nsfw|explicit\s+image)\b/.test(lower),
-      violence:    /\b(kill|murder|stab|shoot)\s+(you|him|her|them)\b/.test(lower),
-      scam:        /\b(guaranteed\s+returns|free\s+money|click\s+this\s+link)\b/.test(lower),
+      hate: /\b(slur1|slur2|kill\s+all)\b/.test(lower),
+      harassment: /\b(idiot|loser|worthless|kys)\b/.test(lower),
+      sexual: /\b(nsfw|explicit\s+image)\b/.test(lower),
+      violence: /\b(kill|murder|stab|shoot)\s+(you|him|her|them)\b/.test(lower),
+      scam: /\b(guaranteed\s+returns|free\s+money|click\s+this\s+link)\b/.test(
+        lower,
+      ),
     };
     const localFlagged = Object.values(local).some(Boolean);
     if (localFlagged) {
-      return reply(res, "heuristic", {
-        flagged: true,
-        categories: local,
-        severity: "medium",
-        reason: "matched local pattern",
-      }, started);
+      return reply(
+        res,
+        "heuristic",
+        {
+          flagged: true,
+          categories: local,
+          severity: "medium",
+          reason: "matched local pattern",
+        },
+        started,
+      );
     }
 
     const result = await generate({
-      system: "You are a strict content moderator for a creator-economy platform. Reply with ONLY a JSON object.",
+      system:
+        "You are a strict content moderator for a creator-economy platform. Reply with ONLY a JSON object.",
       user: `Text to moderate:
 """${text.slice(0, 2000)}"""
 
@@ -273,7 +330,13 @@ Return JSON: {
       jsonOnly: true,
       fallback: {
         flagged: false,
-        categories: { hate: false, harassment: false, sexual: false, violence: false, scam: false },
+        categories: {
+          hate: false,
+          harassment: false,
+          sexual: false,
+          violence: false,
+          scam: false,
+        },
         severity: "low",
         reason: "no concerns detected",
       },
@@ -294,19 +357,29 @@ Return JSON: {
       return res.status(400).json({ error: "text is required" });
     }
     if (text.trim().length < 3) {
-      return res.status(400).json({ error: "text must be at least 3 characters" });
+      return res
+        .status(400)
+        .json({ error: "text must be at least 3 characters" });
     }
 
-    const kindHint = ({
-      title:        "a course title — under 70 chars, outcome-focused, scroll-stopping but not clickbait",
-      description:  "a course description — 2-3 sentences, value-first, no jargon",
-      lesson_title: "a lesson title — short, action verbs, makes the learner want to click",
-      outcome:      "a learning outcome — starts with an action verb, ends with the concrete result",
-      general:      "course content — clear, conversational, no filler",
-    } as Record<string, string>)[kind] || "course content";
+    const kindHint =
+      (
+        {
+          title:
+            "a course title — under 70 chars, outcome-focused, scroll-stopping but not clickbait",
+          description:
+            "a course description — 2-3 sentences, value-first, no jargon",
+          lesson_title:
+            "a lesson title — short, action verbs, makes the learner want to click",
+          outcome:
+            "a learning outcome — starts with an action verb, ends with the concrete result",
+          general: "course content — clear, conversational, no filler",
+        } as Record<string, string>
+      )[kind] || "course content";
 
     const result = await generate({
-      system: "You are an expert editor for Manchly course creators. You enhance the author's text WITHOUT changing their voice or meaning. Return ONLY JSON.",
+      system:
+        "You are an expert editor for Manchly course creators. You enhance the author's text WITHOUT changing their voice or meaning. Return ONLY JSON.",
       user: `Original text:
 """${text.slice(0, 4000)}"""
 
@@ -324,11 +397,17 @@ Return JSON: {
       maxTokens: 700,
       fallback: {
         enhanced: text,
-        changes_summary: "No AI key configured on backend — original text returned unchanged.",
+        changes_summary:
+          "No AI key configured on backend — original text returned unchanged.",
         alternatives: [],
       },
     });
-    return reply(res, result.provider, { original: text, ...result.data }, started);
+    return reply(
+      res,
+      result.provider,
+      { original: text, ...result.data },
+      started,
+    );
   }
 
   // POST /ai/course/quiz
@@ -337,11 +416,15 @@ Return JSON: {
     const started = Date.now();
     const { topic, lesson_text, count = 5 } = req.body || {};
     const subject = lesson_text || topic;
-    if (!subject) return res.status(400).json({ error: "topic or lesson_text is required" });
+    if (!subject)
+      return res
+        .status(400)
+        .json({ error: "topic or lesson_text is required" });
     const n = Math.min(Math.max(parseInt(count) || 5, 1), 10);
 
     const result = await generate({
-      system: "You write quiz questions for online courses. Each question has 4 options, exactly one correct. Return only JSON.",
+      system:
+        "You write quiz questions for online courses. Each question has 4 options, exactly one correct. Return only JSON.",
       user: `Source material:
 """${String(subject).slice(0, 6000)}"""
 
@@ -364,7 +447,8 @@ Return JSON: {
           q: `Sample question ${i + 1} about ${topic || "the lesson"}`,
           options: ["Option A", "Option B (correct)", "Option C", "Option D"],
           correct_index: 1,
-          explanation: "This is sample explanation text. When AI is configured, real questions appear here.",
+          explanation:
+            "This is sample explanation text. When AI is configured, real questions appear here.",
         })),
       },
     });
@@ -375,11 +459,17 @@ Return JSON: {
   // Body: { title, description, price?, audience? }
   static async courseLandingCopy(req: Request, res: Response) {
     const started = Date.now();
-    const { title, description = "", price, audience = "professionals" } = req.body || {};
+    const {
+      title,
+      description = "",
+      price,
+      audience = "professionals",
+    } = req.body || {};
     if (!title) return res.status(400).json({ error: "title is required" });
 
     const result = await generate({
-      system: "You write high-converting course landing-page copy. Concrete, no jargon. Return only JSON.",
+      system:
+        "You write high-converting course landing-page copy. Concrete, no jargon. Return only JSON.",
       user: `Course title: ${title}
 Existing description: ${description || "(none yet)"}
 Price: ${price != null ? "₹" + price : "not set"}
@@ -409,9 +499,18 @@ Include 4 FAQ items.`,
           "Direct creator chat for stuck moments",
         ],
         faq: [
-          { q: "Do I need prior experience?", a: "No — we start from first principles." },
-          { q: "How long is the course?", a: "About 6 hours of video, spread across self-paced modules." },
-          { q: "Is there a refund policy?", a: "7-day no-questions-asked refund." },
+          {
+            q: "Do I need prior experience?",
+            a: "No — we start from first principles.",
+          },
+          {
+            q: "How long is the course?",
+            a: "About 6 hours of video, spread across self-paced modules.",
+          },
+          {
+            q: "Is there a refund policy?",
+            a: "7-day no-questions-asked refund.",
+          },
           { q: "Will I get a certificate?", a: "Yes, on completion." },
         ],
         cta_button_text: "Enroll now",
@@ -420,7 +519,302 @@ Include 4 FAQ items.`,
     });
     return reply(res, result.provider, result.data, started);
   }
+  
+  // ════════════════════════════════════════════════════════════════
+// COURSE PLAN — full go-to-market plan for CoursePlannerScreen
+// ════════════════════════════════════════════════════════════════
 
+// POST /ai/course/plan
+// Body: { niche }
+static async coursePlan(req: Request, res: Response) {
+  const started = Date.now();
+  const { niche } = req.body || {};
+  if (!niche || typeof niche !== "string" || !niche.trim()) {
+    return res.status(400).json({ error: "niche is required" });
+  }
+  const n = niche.trim();
+
+  // ── Call A: course idea + structure (foundation for Call B) ──
+  const a = await generate({
+    system:
+      "You are a growth strategist for Manchly, an Indian creator-economy platform. Return only a JSON object — no prose, no markdown.",
+    user: `Niche: "${n}" (Indian market)
+
+Return JSON:
+{
+  "course_idea": { "title": "<<catchy title>>", "tagline": "<<one sentence hook>>", "why_it_sells": "<<3-4 sentences on market demand and buyer psychology, India-specific>>" },
+  "course_structure": {
+    "total_modules": 4,
+    "total_lessons": 16,
+    "modules": [
+      { "module_number": 1, "module_title": "<<name>>", "lessons": ["<<lesson 1>>", "<<lesson 2>>", "<<lesson 3>>", "<<lesson 4>>"] }
+    ]
+  }
+}
+Exactly 4 modules, each with exactly 4 lesson titles.`,
+    jsonOnly: true,
+    maxTokens: 900,
+    fallback: {
+      course_idea: {
+        title: `Master ${n} — A Practical Indian Creator's Guide`,
+        tagline: `Go from stuck to confident in ${n}, without the fluff.`,
+        why_it_sells: `${n} is in high demand among Indian creators right now, but most existing content is either too generic or too advanced. This course closes that gap with a step-by-step system built for real bandwidth and budget constraints.`,
+      },
+      course_structure: {
+        total_modules: 4,
+        total_lessons: 16,
+        modules: [
+          { module_number: 1, module_title: `Foundations of ${n}`, lessons: ["Why this matters now", "The core mental model", "Common beginner mistakes", "Your 30-day starting plan"] },
+          { module_number: 2, module_title: `Building Your ${n} System`, lessons: ["Core workflow walkthrough", "Tools and setup on a budget", "Batching your first output", "Quality checklist"] },
+          { module_number: 3, module_title: `Growth & Distribution`, lessons: ["Reaching your first audience", "What actually drives growth", "Avoiding burnout", "Doubling down on what works"] },
+          { module_number: 4, module_title: `Monetising Your Skill`, lessons: ["Turning followers into leads", "Pricing your first offer", "Launching without ads", "Scaling past ₹50k/month"] },
+        ],
+      },
+    },
+  });
+
+  const modules = a.data?.course_structure?.modules || [];
+  const firstModuleLessons: string[] =
+    modules[0]?.lessons?.slice(0, 3) || [
+      "Why this matters now",
+      "The core mental model",
+      "Common beginner mistakes",
+    ];
+
+  // ── Call B: lesson scripts (depends on A) + Call C: offer/audience (independent) ──
+  const [b, c] = await Promise.all([
+    generate({
+      system:
+        "You write engaging lesson scripts for Indian online courses — natural Hinglish where it fits. Return only JSON.",
+      user: `Course: "${a.data?.course_idea?.title || n}"
+Lessons to script:
+${firstModuleLessons.map((l, i) => `${i + 1}. ${l}`).join("\n")}
+
+Return JSON:
+{
+  "lessons": [
+    { "lesson_number": 1, "title": "<<lesson title>>", "hook": "<<2-line opening hook, punchy>>", "key_points": ["<<point 1>>", "<<point 2>>", "<<point 3>>"], "retention_mechanism": "<<one sentence: how this lesson keeps them engaged / moving to the next>>" }
+  ]
+}
+One entry per lesson listed above, in order.`,
+      jsonOnly: true,
+      maxTokens: 900,
+      fallback: {
+        lessons: firstModuleLessons.map((title, i) => ({
+          lesson_number: i + 1,
+          title,
+          hook: "Most people get this part wrong. Let's fix that in the next few minutes.",
+          key_points: [
+            "The one thing that trips up beginners here",
+            "A simple framework you can apply immediately",
+            "A common mistake and how to avoid it",
+          ],
+          retention_mechanism: "Ends with a short action step students complete before the next lesson.",
+        })),
+      },
+    }),
+    generate({
+      system:
+        "You design course offers and target audiences for the Indian creator economy. Return only JSON.",
+      user: `Niche: "${n}" (Indian market, ₹ pricing)
+
+Return JSON:
+{
+  "offer_creation": {
+    "headline": "<<10-14 word headline>>",
+    "subheadline": "<<one clarifying line>>",
+    "description": "<<pain-agitate-solve paragraph, 3-4 sentences>>",
+    "pricing_strategy": {
+      "low_ticket": { "price": "₹<<number>>", "what_included": "<<what's in the base tier>>", "psychology": "<<why this price point works>>" },
+      "high_ticket": { "price": "₹<<number>>", "what_included": "<<what's added in the premium tier>>", "psychology": "<<why buyers upgrade>>" }
+    }
+  },
+  "target_audience": {
+    "age_group": "<<range>>",
+    "gender_split": "<<e.g. 60% Female, 40% Male, with a one-line reason>>",
+    "top_cities": ["<<5-7 Indian cities>>"],
+    "meta_interests": ["<<5-6 Meta ad interests>>"],
+    "google_audiences": ["<<3-4 Google in-market/affinity audiences>>"],
+    "pain_points": ["<<4 specific pain points>>"]
+  }
+}`,
+      jsonOnly: true,
+      maxTokens: 900,
+      fallback: {
+        offer_creation: {
+          headline: `Learn ${n} — Built for Indian Creators Who Want Results`,
+          subheadline: "A practical, no-fluff system you can start applying this week.",
+          description: `You already know ${n} matters — but most resources are either too generic or too advanced for where you're starting. This course closes that gap with a clear, step-by-step system, real examples, and a community to keep you accountable.`,
+          pricing_strategy: {
+            low_ticket: { price: "₹1,999", what_included: "Full recorded course, community access, lifetime updates", psychology: "Priced below the impulse-buy threshold — no approval needed to purchase." },
+            high_ticket: { price: "₹7,999", what_included: "Everything in base + live group calls, personal feedback, 1-year access", psychology: "Anchored higher but positioned as done-with-you, improving completion and outcomes." },
+          },
+        },
+        target_audience: {
+          age_group: "22–40 years",
+          gender_split: "55% Female, 45% Male",
+          top_cities: ["Bengaluru", "Mumbai", "Delhi NCR", "Hyderabad", "Pune", "Chennai"],
+          meta_interests: ["Online education", "Entrepreneurship India", "Digital marketing", "Personal development", "Self-improvement"],
+          google_audiences: ["In-market: Online education", "Affinity: Business enthusiasts", "Custom intent: niche-specific searches"],
+          pain_points: [
+            "Inconsistent results despite putting in effort",
+            "No clear step-by-step system to follow",
+            "Limited time and budget to experiment",
+            "Not sure which resources to trust",
+          ],
+        },
+      },
+    }),
+  ]);
+
+  // ── Call D: ad strategy (uses C's audience) + Call E: sizing/forecast/scaling/hacks ──
+  const [d, e] = await Promise.all([
+    generate({
+      system:
+        "You are a Meta & Google performance marketer for Indian edtech. Return only JSON.",
+      user: `Course: "${a.data?.course_idea?.title || n}"
+Target audience: ${c.data?.target_audience?.age_group || "22-40"}, pain points: ${(c.data?.target_audience?.pain_points || []).join("; ") || "general"}
+
+Return JSON:
+{
+  "ad_strategy": {
+    "meta": {
+      "creatives": [
+        { "angle": "Pain", "hook": "<<1-2 line hook>>", "copy": "<<3-5 line ad copy>>", "cta": "<<CTA text>>" },
+        { "angle": "Aspiration", "hook": "<<...>>", "copy": "<<...>>", "cta": "<<...>>" },
+        { "angle": "Authority", "hook": "<<...>>", "copy": "<<...>>", "cta": "<<...>>" }
+      ],
+      "funnel": { "tof": "<<top-of-funnel strategy, 1-2 sentences>>", "mof": "<<mid-funnel retargeting, 1-2 sentences>>", "bof": "<<bottom-funnel close, 1-2 sentences>>" }
+    },
+    "google": {
+      "keyword_clusters": [ { "cluster_name": "<<name>>", "keywords": ["<<kw1>>", "<<kw2>>", "<<kw3>>"] } ],
+      "intent_strategy": "<<2-3 sentences on Search/YouTube budget split and approach>>"
+    }
+  }
+}
+Include exactly 3 creatives and 2 keyword clusters.`,
+      jsonOnly: true,
+      maxTokens: 1200,
+      fallback: {
+        ad_strategy: {
+          meta: {
+            creatives: [
+              { angle: "Pain", hook: `Still struggling with ${n} after months of trying?`, copy: "You've put in the effort but the results aren't showing. The problem usually isn't effort — it's the system.\n\nThis course gives you the exact framework, step by step.", cta: "Start Now" },
+              { angle: "Aspiration", hook: `Imagine finally being confident in ${n}.`, copy: "Top performers in this space follow a repeatable system — not guesswork.\n\nLearn it in weeks, not years.", cta: "Enroll Today" },
+              { angle: "Authority", hook: `A proven, practical system for ${n}.`, copy: "Built from real results, not theory. Step-by-step lessons, templates, and a community to keep you on track.", cta: "See the Course" },
+            ],
+            funnel: {
+              tof: "Video-view campaigns on Pain and Aspiration creatives targeting broad interest audiences.",
+              mof: "Retarget video viewers and profile visitors with a lead magnet and the Authority creative.",
+              bof: "Retarget leads and site visitors with a direct offer and urgency messaging.",
+            },
+          },
+          google: {
+            keyword_clusters: [
+              { cluster_name: "Problem-Aware", keywords: [`how to learn ${n.toLowerCase()}`, `${n.toLowerCase()} for beginners india`, `${n.toLowerCase()} course india`] },
+              { cluster_name: "Solution-Aware", keywords: [`best ${n.toLowerCase()} course`, `online ${n.toLowerCase()} training`, `${n.toLowerCase()} certification india`] },
+            ],
+            intent_strategy: "Focus on exact/phrase match Search campaigns for bottom-of-funnel intent; add YouTube pre-roll once budget exceeds ₹50k/month.",
+          },
+        },
+      },
+    }),
+    generate({
+      system:
+        "You are a growth and revenue-forecasting analyst for Indian edtech. Be realistic, not inflated. Return only JSON.",
+      user: `Niche: "${n}" (Indian market)
+
+Return JSON:
+{
+  "audience_sizing": { "tam": "<<estimate>>", "sam": "<<estimate>>", "som": "<<Year 1 estimate>>", "estimated_reachable": "<<range>>", "meta_estimated_reach": "<<range>>", "logic": "<<2-3 sentences explaining the math>>" },
+  "revenue_forecast": {
+    "assumed_ctr": "<<%>>", "assumed_cvr": "<<%>>", "cost_per_lead": "<<₹ range>>", "cost_per_sale": "<<₹ range>>",
+    "budget_scenarios": [ { "budget": "₹<<num>>/mo", "leads": "<<range>>", "sales": "<<range>>", "revenue": "<<₹ range>>", "roas": "<<range>>" } ]
+  },
+  "scaling_plan": { "scale_trigger": "<<condition-based rule>>", "budget_allocation": "<<channel split>>", "retargeting_logic": "<<layered retargeting approach>>", "ltv_optimization": "<<upsell/retention plan>>" },
+  "growth_hacks": [ { "hack": "<<name>>", "mechanism": "<<how it works, 2-3 sentences>>", "expected_impact": "<<realistic estimate>>" } ]
+}
+Include exactly 3 budget scenarios (low/mid/high) and exactly 3 growth hacks.`,
+      jsonOnly: true,
+      maxTokens: 1100,
+      fallback: {
+        audience_sizing: {
+          tam: "Large — millions of potential learners nationally",
+          sam: "A meaningful fraction actively searching for this skill online",
+          som: "A realistic Year 1 slice reachable with a modest ad budget",
+          estimated_reachable: "20,000–50,000 unique users in Year 1",
+          meta_estimated_reach: "5M–10M on Meta (interest-based, India)",
+          logic: "Estimated from Meta Audience Insights on related interests, filtered by age and stated intent to learn or monetize the skill.",
+        },
+        revenue_forecast: {
+          assumed_ctr: "2.0-2.5%",
+          assumed_cvr: "2.5-3%",
+          cost_per_lead: "₹90-₹150",
+          cost_per_sale: "₹900-₹1,500",
+          budget_scenarios: [
+            { budget: "₹30,000/mo", leads: "200-280", sales: "15-20", revenue: "₹30,000-₹40,000", roas: "1.0-1.3x" },
+            { budget: "₹75,000/mo", leads: "500-700", sales: "38-50", revenue: "₹76,000-₹1,00,000", roas: "1.0-1.3x" },
+            { budget: "₹1,50,000/mo", leads: "1,000-1,400", sales: "75-100", revenue: "₹1,50,000-₹2,00,000", roas: "1.0-1.3x" },
+          ],
+        },
+        scaling_plan: {
+          scale_trigger: "Scale spend 20-30% weekly only once ROAS holds above 1.5x for 5 straight days.",
+          budget_allocation: "Meta 65% / Google Search 20% / Retargeting 15%, adjusted as data comes in.",
+          retargeting_logic: "3-layer stack: hot (site visitors), warm (video viewers/lead downloads), cool (social engagers) — capped at 3 impressions/week per person.",
+          ltv_optimization: "Add an order-bump upsell, a low-cost monthly community, and an advanced follow-up offer within 90 days of purchase.",
+        },
+        growth_hacks: [
+          { hack: "WhatsApp Lead Magnet Funnel", mechanism: "Offer a free resource in exchange for a WhatsApp number, nurture over 5 days, then pitch.", expected_impact: "Higher open rates than email; meaningful free lead volume." },
+          { hack: "Micro-Influencer Collaborations", mechanism: "Partner with 3-5 small creators in adjacent niches for cross-promotion, no cash exchanged.", expected_impact: "Steady free follower growth from aligned audiences." },
+          { hack: "Student Testimonial Pipeline", mechanism: "Prompt students at key milestones to record a short testimonial in exchange for a small perk.", expected_impact: "Ongoing free ad-creative pipeline and social proof." },
+        ],
+      },
+    }),
+  ]);
+
+  // IMPORTANT: content_creation must stay nested to match CoursePlannerScreen.jsx
+  const data = {
+    ...a.data,
+    content_creation: b.data,
+    ...c.data,
+    ...d.data,
+    ...e.data,
+  };
+
+  const providers = [a.provider, b.provider, c.provider, d.provider, e.provider];
+  const overallProvider = providers.every((p) => p === "mock") ? "mock" : providers[0];
+
+  return reply(res, overallProvider, data, started);
+}
+
+// ════════════════════════════════════════════════════════════════
+// AI ASSISTANT — stateless general-purpose chat, no history, no persistence
+// ════════════════════════════════════════════════════════════════
+
+// POST /ai/chat/assistant
+// Body: { message }
+
+static async chatAssistant(req: Request, res: Response){
+  const started = Date.now();
+  const {message} = req.body || {};
+  if(!message || typeof message !== "string" || !message.trim()){
+    return res.status(400).json({error: "message is required"});
+  }
+  const m = message.trim().slice(0, 4000);
+
+  const result = await generate({
+    system:
+    "You are Manchly's AI Assistant - a helpful concise general-purpose assistant for creators building courses, webinars, and 1:1 sessions on the platform. Answer directly and conversationally. Keep replies focused and under 150 words unless the question genuinely needs more details",
+    user: m,
+    jsonOnly: false,
+    maxTokens: 500,
+    fallback: 
+    "I'm here to help but I can't reach the AI service right now. Please try again in a moment",
+  })
+
+  return reply(res, result.provider, {reply: result.data}, started);
+}
+ 
   // ════════════════════════════════════════════════════════════════
   // WEBINAR — extra endpoints
   // ════════════════════════════════════════════════════════════════
@@ -434,19 +828,29 @@ Include 4 FAQ items.`,
       return res.status(400).json({ error: "text is required" });
     }
     if (text.trim().length < 3) {
-      return res.status(400).json({ error: "text must be at least 3 characters" });
+      return res
+        .status(400)
+        .json({ error: "text must be at least 3 characters" });
     }
 
-    const kindHint = ({
-      title:        "a webinar title — under 70 chars, makes someone stop scrolling and read",
-      description:  "a webinar description — 2 short paragraphs, urgent yet credible",
-      outcome:      "a learning outcome — specific, measurable, leaves no doubt about what attendees get",
-      social_blurb: "a social-media blurb — under 280 chars, designed to drive signups",
-      general:      "webinar copy — punchy, no fluff, ends with momentum",
-    } as Record<string, string>)[kind] || "webinar copy";
+    const kindHint =
+      (
+        {
+          title:
+            "a webinar title — under 70 chars, makes someone stop scrolling and read",
+          description:
+            "a webinar description — 2 short paragraphs, urgent yet credible",
+          outcome:
+            "a learning outcome — specific, measurable, leaves no doubt about what attendees get",
+          social_blurb:
+            "a social-media blurb — under 280 chars, designed to drive signups",
+          general: "webinar copy — punchy, no fluff, ends with momentum",
+        } as Record<string, string>
+      )[kind] || "webinar copy";
 
     const result = await generate({
-      system: "You are an expert webinar copywriter for Manchly. You enhance the author's text WITHOUT changing their voice or meaning. Return ONLY JSON.",
+      system:
+        "You are an expert webinar copywriter for Manchly. You enhance the author's text WITHOUT changing their voice or meaning. Return ONLY JSON.",
       user: `Original text:
 """${text.slice(0, 4000)}"""
 
@@ -464,11 +868,17 @@ Return JSON: {
       maxTokens: 700,
       fallback: {
         enhanced: text,
-        changes_summary: "No AI key configured on backend — original text returned unchanged.",
+        changes_summary:
+          "No AI key configured on backend — original text returned unchanged.",
         alternatives: [],
       },
     });
-    return reply(res, result.provider, { original: text, ...result.data }, started);
+    return reply(
+      res,
+      result.provider,
+      { original: text, ...result.data },
+      started,
+    );
   }
 
   // POST /ai/webinar/email-series
@@ -477,11 +887,14 @@ Return JSON: {
     const started = Date.now();
     const { title, scheduled_at, join_url = "{{join_url}}" } = req.body || {};
     if (!title || !scheduled_at) {
-      return res.status(400).json({ error: "title and scheduled_at are required" });
+      return res
+        .status(400)
+        .json({ error: "title and scheduled_at are required" });
     }
 
     const result = await generate({
-      system: "You write conversion-focused webinar emails. Short, no fluff. Return only JSON.",
+      system:
+        "You write conversion-focused webinar emails. Short, no fluff. Return only JSON.",
       user: `Webinar title: ${title}
 Scheduled at (ISO): ${scheduled_at}
 Join URL placeholder: ${join_url}
@@ -521,11 +934,17 @@ Each body is under 120 words. Include the join URL exactly as given where it mak
   // Body: { title, description?, scheduled_at?, register_url? }
   static async webinarSocialPosts(req: Request, res: Response) {
     const started = Date.now();
-    const { title, description = "", scheduled_at = "", register_url = "{{register_url}}" } = req.body || {};
+    const {
+      title,
+      description = "",
+      scheduled_at = "",
+      register_url = "{{register_url}}",
+    } = req.body || {};
     if (!title) return res.status(400).json({ error: "title is required" });
 
     const result = await generate({
-      system: "You write platform-native social posts to drive webinar signups. Return only JSON.",
+      system:
+        "You write platform-native social posts to drive webinar signups. Return only JSON.",
       user: `Webinar: ${title}
 Description: ${description || "(none)"}
 Scheduled at: ${scheduled_at || "(soon)"}
@@ -574,20 +993,29 @@ Return JSON: {
       return res.status(400).json({ error: "text is required" });
     }
     if (text.trim().length < 3) {
-      return res.status(400).json({ error: "text must be at least 3 characters" });
+      return res
+        .status(400)
+        .json({ error: "text must be at least 3 characters" });
     }
 
-    const kindHint = ({
-      headline:      "an expert headline — under 80 chars, names the niche + the outcome",
-      bio:           "an expert bio — first-person, 2-3 sentences, specific (no buzzwords)",
-      product_title: "a consulting product title — 7-10 words, action-oriented, names the outcome",
-      product_blurb: "a one-sentence product blurb that makes a buyer want to book",
-      message:       "a message to a learner — direct, warm, no filler",
-      general:       "session copy — specific, warm, no jargon",
-    } as Record<string, string>)[kind] || "session copy";
+    const kindHint =
+      (
+        {
+          headline:
+            "an expert headline — under 80 chars, names the niche + the outcome",
+          bio: "an expert bio — first-person, 2-3 sentences, specific (no buzzwords)",
+          product_title:
+            "a consulting product title — 7-10 words, action-oriented, names the outcome",
+          product_blurb:
+            "a one-sentence product blurb that makes a buyer want to book",
+          message: "a message to a learner — direct, warm, no filler",
+          general: "session copy — specific, warm, no jargon",
+        } as Record<string, string>
+      )[kind] || "session copy";
 
     const result = await generate({
-      system: "You are an expert copy editor for Manchly creators offering 1-on-1 sessions. You enhance the author's text WITHOUT changing their voice or meaning. Return ONLY JSON.",
+      system:
+        "You are an expert copy editor for Manchly creators offering 1-on-1 sessions. You enhance the author's text WITHOUT changing their voice or meaning. Return ONLY JSON.",
       user: `Original text:
 """${text.slice(0, 4000)}"""
 
@@ -605,23 +1033,36 @@ Return JSON: {
       maxTokens: 700,
       fallback: {
         enhanced: text,
-        changes_summary: "No AI key configured on backend — original text returned unchanged.",
+        changes_summary:
+          "No AI key configured on backend — original text returned unchanged.",
         alternatives: [],
       },
     });
-    return reply(res, result.provider, { original: text, ...result.data }, started);
+    return reply(
+      res,
+      result.provider,
+      { original: text, ...result.data },
+      started,
+    );
   }
 
   // POST /ai/session/product-suggestions
   // Body: { expert_headline, expert_bio?, category?, count? }
   static async sessionProductSuggestions(req: Request, res: Response) {
     const started = Date.now();
-    const { expert_headline, expert_bio = "", category = "", count = 4 } = req.body || {};
-    if (!expert_headline) return res.status(400).json({ error: "expert_headline is required" });
+    const {
+      expert_headline,
+      expert_bio = "",
+      category = "",
+      count = 4,
+    } = req.body || {};
+    if (!expert_headline)
+      return res.status(400).json({ error: "expert_headline is required" });
     const n = Math.min(Math.max(parseInt(count) || 4, 1), 6);
 
     const result = await generate({
-      system: "You design productized consulting offers for expert creators on Manchly. Return only JSON.",
+      system:
+        "You design productized consulting offers for expert creators on Manchly. Return only JSON.",
       user: `Expert headline: ${expert_headline}
 Bio: ${expert_bio || "(none)"}
 Category: ${category || "(unspecified)"}
@@ -644,10 +1085,42 @@ Return JSON: {
       maxTokens: 900,
       fallback: {
         products: [
-          { title: "15-min Quick Audio Check-in",     duration_min: 15, type: "audio", suggested_price_inr: 499,  blurb: "One specific question, one direct answer. No fluff.",                     ideal_for: "You have a single blocker and need a fast second opinion." },
-          { title: "30-min Strategy Review",          duration_min: 30, type: "video", suggested_price_inr: 1499, blurb: "Share your plan; leave with 3 prioritized next moves.",                   ideal_for: "You have a draft strategy and want it pressure-tested." },
-          { title: "60-min Deep Dive",                duration_min: 60, type: "video", suggested_price_inr: 2799, blurb: "Full problem walk-through with a written summary after.",               ideal_for: "You're stuck on a multi-part problem that needs unblocking." },
-          { title: "45-min Portfolio / Work Review",  duration_min: 45, type: "video", suggested_price_inr: 1999, blurb: "Live review of your actual work with line-by-line feedback.",            ideal_for: "You want senior eyes on the thing you're about to ship." },
+          {
+            title: "15-min Quick Audio Check-in",
+            duration_min: 15,
+            type: "audio",
+            suggested_price_inr: 499,
+            blurb: "One specific question, one direct answer. No fluff.",
+            ideal_for:
+              "You have a single blocker and need a fast second opinion.",
+          },
+          {
+            title: "30-min Strategy Review",
+            duration_min: 30,
+            type: "video",
+            suggested_price_inr: 1499,
+            blurb: "Share your plan; leave with 3 prioritized next moves.",
+            ideal_for: "You have a draft strategy and want it pressure-tested.",
+          },
+          {
+            title: "60-min Deep Dive",
+            duration_min: 60,
+            type: "video",
+            suggested_price_inr: 2799,
+            blurb: "Full problem walk-through with a written summary after.",
+            ideal_for:
+              "You're stuck on a multi-part problem that needs unblocking.",
+          },
+          {
+            title: "45-min Portfolio / Work Review",
+            duration_min: 45,
+            type: "video",
+            suggested_price_inr: 1999,
+            blurb:
+              "Live review of your actual work with line-by-line feedback.",
+            ideal_for:
+              "You want senior eyes on the thing you're about to ship.",
+          },
         ].slice(0, n),
       },
     });
@@ -659,27 +1132,39 @@ Return JSON: {
   // session_id (if provided) overrides the other fields by DB lookup.
   static async sessionFollowUpMessage(req: Request, res: Response) {
     const started = Date.now();
-    try {
-      let { session_id, learner_name, product_title, action_items = [], tone = "warm" } = req.body || {};
+    let {
+      session_id,
+      learner_name,
+      product_title,
+      action_items = [],
+      tone = "warm",
+    } = req.body || {};
 
-      if (session_id) {
-        const s = await prisma.sessions.findUnique({ where: { id: session_id } });
-        if (s) {
-          const caller = await prisma.users.findUnique({
-            where: { id: s.caller_id }, select: { name: true },
-          });
-          learner_name = learner_name || caller?.name;
-          product_title = product_title || `${s.mode} session`;
-        }
+    if (session_id) {
+      const s = await prisma.sessions.findUnique({ where: { id: session_id } });
+      if (s) {
+        const caller = await prisma.users.findUnique({
+          where: { id: s.caller_id },
+          select: { name: true },
+        });
+        learner_name = learner_name || caller?.name;
+        product_title = product_title || `${s.mode} session`;
       }
+    }
 
-      if (!learner_name) return res.status(400).json({ error: "learner_name (or a valid session_id) is required" });
+    if (!learner_name)
+      return res
+        .status(400)
+        .json({ error: "learner_name (or a valid session_id) is required" });
 
-      const items = Array.isArray(action_items) ? action_items.filter(Boolean) : [];
+    const items = Array.isArray(action_items)
+      ? action_items.filter(Boolean)
+      : [];
 
-      const result = await generate({
-        system: "You write post-session follow-up messages for expert mentors. Specific, no boilerplate. Return only JSON.",
-        user: `Learner name: ${learner_name}
+    const result = await generate({
+      system:
+        "You write post-session follow-up messages for expert mentors. Specific, no boilerplate. Return only JSON.",
+      user: `Learner name: ${learner_name}
 Product: ${product_title || "1-on-1 session"}
 Action items discussed: ${items.length ? items.map((x: string) => "- " + x).join("\n") : "(none provided)"}
 Tone: ${tone}
@@ -690,24 +1175,21 @@ Return JSON: {
   "signoff": "<<short signoff line>>",
   "next_step_cta": "<<one-line invite to book again or share work>>"
 }`,
-        jsonOnly: true,
-        maxTokens: 700,
-        fallback: {
-          subject: `Following up on our call, ${learner_name}`,
-          body: `Hey ${learner_name},\n\nQuick note after our session — here's what we landed on:${
-            items.length
-              ? "\n\n" + items.map((x: string) => "• " + x).join("\n")
-              : "\n\n• The next step is to ship the smallest version of what we discussed and bring it back for review."
-          }\n\nDon't overthink the next move. Pick the smallest one and ship it this week.\n\nReply to this and tell me what you ended up doing — I read every reply.`,
-          signoff: "Cheering you on,",
-          next_step_cta: "Book a follow-up once you've shipped — first review on that work is on me.",
-        },
-      });
-      return reply(res, result.provider, result.data, started);
-    } catch (err: any) {
-      console.error("sessionFollowUpMessage error:", err.message);
-      return res.status(500).json({ error: "Failed to generate follow-up message" });
-    }
+      jsonOnly: true,
+      maxTokens: 700,
+      fallback: {
+        subject: `Following up on our call, ${learner_name}`,
+        body: `Hey ${learner_name},\n\nQuick note after our session — here's what we landed on:${
+          items.length
+            ? "\n\n" + items.map((x: string) => "• " + x).join("\n")
+            : "\n\n• The next step is to ship the smallest version of what we discussed and bring it back for review."
+        }\n\nDon't overthink the next move. Pick the smallest one and ship it this week.\n\nReply to this and tell me what you ended up doing — I read every reply.`,
+        signoff: "Cheering you on,",
+        next_step_cta:
+          "Book a follow-up once you've shipped — first review on that work is on me.",
+      },
+    });
+    return reply(res, result.provider, result.data, started);
   }
 
   // ════════════════════════════════════════════════════════════════
@@ -723,11 +1205,14 @@ Return JSON: {
       return res.status(400).json({ error: "text is required" });
     }
     if (text.length < 80) {
-      return res.status(400).json({ error: "text must be at least 80 characters" });
+      return res
+        .status(400)
+        .json({ error: "text must be at least 80 characters" });
     }
 
     const result = await generate({
-      system: "You summarize lesson transcripts for Manchly's mobile app. Return only JSON.",
+      system:
+        "You summarize lesson transcripts for Manchly's mobile app. Return only JSON.",
       user: `Transcript / lesson text:
 """${text.slice(0, 12000)}"""
 
@@ -738,7 +1223,8 @@ Return JSON: {
 }`,
       jsonOnly: true,
       fallback: {
-        summary: "This lesson covers the core concept, walks through a worked example, and ends with practical next steps. The instructor focuses on real-world application over theory and highlights common mistakes to avoid.",
+        summary:
+          "This lesson covers the core concept, walks through a worked example, and ends with practical next steps. The instructor focuses on real-world application over theory and highlights common mistakes to avoid.",
         key_points: [
           "Start with the underlying mental model before any tactics",
           "Worked example shows the end-to-end flow",
@@ -746,7 +1232,10 @@ Return JSON: {
           "Common mistake #2 to avoid",
           "Concrete action you can take this week",
         ],
-        duration_estimate_min: Math.max(2, Math.round(text.split(/\s+/).length / 150)),
+        duration_estimate_min: Math.max(
+          2,
+          Math.round(text.split(/\s+/).length / 150),
+        ),
       },
     });
     return reply(res, result.provider, result.data, started);

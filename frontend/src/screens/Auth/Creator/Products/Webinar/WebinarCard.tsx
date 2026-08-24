@@ -36,7 +36,7 @@ import {
 import { Menu } from 'react-native-paper';
 import Clipboard from '@react-native-clipboard/clipboard';
 import Toast from 'react-native-toast-message';
-import { createDynamicLink } from 'react-native-chottulink-sdk';
+import { generateShareLink } from '../../../../../services/AppsFlyerService';
 import DynamicModal from '../../../../../components/CommonModal';
 import { useDispatch } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
@@ -130,20 +130,14 @@ const WebinarCard: React.FC<WebinarCardProps> = ({
   };
 
   const handleShare = async () => {
-    try {
-      const result = await createDynamicLink({
-        destinationURL: `https://manchly.chottu.link/webinar/${data?.id}`,
-        domain: 'manchly.chottu.link',
-        socialTitle: data?.title || 'Webinar',
-        socialDescription: `Check out this webinar!`,
-        socialImageUrl: data?.thumbnail_url || '',
-      });
-      Share.share({ message: result.shortURL });
-    } catch {
-      Share.share({
-        message: `https://manchly.chottu.link/webinar/${data?.id}`,
-      });
-    }
+    const link = await generateShareLink({
+      type: 'webinar',
+      id: data?.id,
+      title: data?.title || 'Webinar',
+      description: 'Check out this webinar!',
+      imageUrl: data?.thumbnail_url || '',
+    });
+    Share.share({ message: link });
   };
 
   const scheduledDate = moment(data.scheduled_at);

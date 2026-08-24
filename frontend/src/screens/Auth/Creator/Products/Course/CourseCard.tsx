@@ -24,7 +24,7 @@ import { Menu } from 'react-native-paper';
 import colors from '../../../../../utils/colors';
 import { wp, hp, fp } from '../../../../../utils/responsive';
 import { useNavigation } from '@react-navigation/native';
-import { createDynamicLink } from 'react-native-chottulink-sdk';
+import { generateShareLink } from '../../../../../services/AppsFlyerService';
 
 const CARD_BG = '#1C1B1B';
 const ACCENT = '#D5C4AB';
@@ -76,20 +76,14 @@ const CourseCard: React.FC<Props> = ({ item, onEdit, onDelete, onView, onAddUser
   };
 
   const handleShare = async () => {
-    try {
-      const result = await createDynamicLink({
-        destinationURL: `https://manchly.chottu.link/course/${item?.id}`,
-        domain: 'manchly.chottu.link',
-        socialTitle: item?.title || 'Course',
-        socialDescription: `Check out this course!`,
-        socialImageUrl: item?.thumbnail_url || '',
-      });
-      Share.share({ message: result.shortURL });
-    } catch {
-      Share.share({
-        message: `https://manchly.chottu.link/course/${item?.id}`,
-      });
-    }
+    const link = await generateShareLink({
+      type: 'course',
+      id: item?.id,
+      title: item?.title || 'Course',
+      description: 'Check out this course!',
+      imageUrl: item?.thumbnail_url || '',
+    });
+    Share.share({ message: link });
   };
 
   const videoCount = item.videos?.length || 0;

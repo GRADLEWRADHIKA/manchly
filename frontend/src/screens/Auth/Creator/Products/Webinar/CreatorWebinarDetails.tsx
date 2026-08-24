@@ -37,7 +37,7 @@ import {
   grantWebinarAccess,
   publishWebinarRecording,
 } from '../../../../../store/WebinarSlice';
-import { createDynamicLink } from 'react-native-chottulink-sdk';
+import { generateShareLink } from '../../../../../services/AppsFlyerService';
 
 const WebinarDetails = () => {
   const { params } = useRoute<any>();
@@ -50,7 +50,6 @@ const WebinarDetails = () => {
   const [showAddUser, setShowAddUser] = useState(false);
   const [showPublish, setShowPublish] = useState(false);
   const data = params?.data || webinarFromStore;
-  const webinarLink = `https://manchly.chottu.link/webinar/${data?.id}`;
   const hasThumbnail = !!data?.thumbnail_url;
   const price = Number(data?.price || 0);
   const gst = (price * 18) / 100;
@@ -63,23 +62,18 @@ const WebinarDetails = () => {
     }
   }, [dispatch, params?.data, webinarId]);
 
-  const getDynamicLink = async (): Promise<string> => {
-    try {
-      const result = await createDynamicLink({
-        destinationURL: webinarLink,
-        domain: 'manchly.chottu.link',
-        socialTitle: data?.title || 'Webinar',
-        socialDescription: 'Check out this webinar!',
-        socialImageUrl: data?.thumbnail_url || '',
-      });
-      return result.shortURL;
-    } catch {
-      return webinarLink;
-    }
+  const getShareUrl = async (): Promise<string> => {
+    return generateShareLink({
+      type: 'webinar',
+      id: data?.id,
+      title: data?.title || 'Webinar',
+      description: 'Check out this webinar!',
+      imageUrl: data?.thumbnail_url || '',
+    });
   };
 
   const handleCopyLink = async () => {
-    const link = await getDynamicLink();
+    const link = await getShareUrl();
     Clipboard.setString(link);
     Toast.show({
       type: 'success',
@@ -89,7 +83,7 @@ const WebinarDetails = () => {
   };
 
   const handleShareLink = async () => {
-    const link = await getDynamicLink();
+    const link = await getShareUrl();
     Share.share({ message: link });
   };
 

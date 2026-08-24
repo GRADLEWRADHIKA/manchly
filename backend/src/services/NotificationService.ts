@@ -1,5 +1,5 @@
 import EmailService from './EmailService';
-import { fast2smsService, WHATSAPP_TEMPLATES } from './Fast2SMSService';
+import { fast2smsService } from './Fast2SMSService';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -71,8 +71,7 @@ export class NotificationService {
           data.date,
           data.day,
           data.time,
-          data.webinarLink,
-          data.password
+          data.webinarLink
         ).catch(err => console.error('Webinar registration WhatsApp error:', err))
       );
     }
@@ -108,15 +107,16 @@ export class NotificationService {
     // WhatsApp
     if (data.joineePhone && fast2smsService.isWhatsAppConfigured()) {
       promises.push(
-        fast2smsService.sendWhatsAppWebinarReminder(
+        // The WhatsApp sender has no 24-hour template — the closest approved one
+        // is the generic "webinar reminder" used for the 2-hour mark, and its
+        // wording suits either. Email still carries the full 24-hour notice.
+        fast2smsService.sendWhatsAppWebinar2HrReminder(
           data.joineePhone,
-          WHATSAPP_TEMPLATES.WEBINAR_24HRS.messageId,
           data.joineeName,
           data.date,
           data.day,
           data.time,
-          data.webinarLink,
-          data.password
+          data.webinarLink
         ).catch(err => console.error('24hr WhatsApp error:', err))
       );
     }
@@ -152,15 +152,13 @@ export class NotificationService {
     // WhatsApp
     if (data.joineePhone && fast2smsService.isWhatsAppConfigured()) {
       promises.push(
-        fast2smsService.sendWhatsAppWebinarReminder(
+        fast2smsService.sendWhatsAppWebinar2HrReminder(
           data.joineePhone,
-          WHATSAPP_TEMPLATES.WEBINAR_6HRS.messageId,
           data.joineeName,
           data.date,
           data.day,
           data.time,
-          data.webinarLink,
-          data.password
+          data.webinarLink
         ).catch(err => console.error('6hr WhatsApp error:', err))
       );
     }
@@ -196,15 +194,11 @@ export class NotificationService {
     // WhatsApp
     if (data.joineePhone && fast2smsService.isWhatsAppConfigured()) {
       promises.push(
-        fast2smsService.sendWhatsAppWebinarReminder(
+        fast2smsService.sendWhatsAppWebinar10MinReminder(
           data.joineePhone,
-          WHATSAPP_TEMPLATES.WEBINAR_30MIN.messageId,
           data.joineeName,
-          data.date,
-          data.day,
-          data.time,
-          data.webinarLink,
-          data.password
+          `${data.time} on ${data.date} (${data.day})`,
+          data.webinarLink
         ).catch(err => console.error('30min WhatsApp error:', err))
       );
     }
@@ -240,15 +234,10 @@ export class NotificationService {
     // WhatsApp
     if (data.joineePhone && fast2smsService.isWhatsAppConfigured()) {
       promises.push(
-        fast2smsService.sendWhatsAppWebinarReminder(
+        fast2smsService.sendWhatsAppWebinarLive(
           data.joineePhone,
-          WHATSAPP_TEMPLATES.WEBINAR_LIVE.messageId,
           data.joineeName,
-          data.date,
-          data.day,
-          data.time,
-          data.webinarLink,
-          data.password
+          data.webinarLink
         ).catch(err => console.error('Live WhatsApp error:', err))
       );
     }

@@ -55,6 +55,7 @@ export class AIController {
         "POST /ai/course/quiz",
         "POST /ai/course/landing-copy",
         "POST /ai/course/plan",
+        "POST /ai/chat/assistant",
         // webinar
         "POST /ai/webinar/describe",
         "POST /ai/webinar/enhance",
@@ -784,6 +785,34 @@ Include exactly 3 budget scenarios (low/mid/high) and exactly 3 growth hacks.`,
   const overallProvider = providers.every((p) => p === "mock") ? "mock" : providers[0];
 
   return reply(res, overallProvider, data, started);
+}
+
+// ════════════════════════════════════════════════════════════════
+// AI ASSISTANT — stateless general-purpose chat, no history, no persistence
+// ════════════════════════════════════════════════════════════════
+
+// POST /ai/chat/assistant
+// Body: { message }
+
+static async chatAssistant(req: Request, res: Response){
+  const started = Date.now();
+  const {message} = req.body || {};
+  if(!message || typeof message !== "string" || !message.trim()){
+    return res.status(400).json({error: "message is required"});
+  }
+  const m = message.trim().slice(0, 4000);
+
+  const result = await generate({
+    system:
+    "You are Manchly's AI Assistant - a helpful concise general-purpose assistant for creators building courses, webinars, and 1:1 sessions on the platform. Answer directly and conversationally. Keep replies focused and under 150 words unless the question genuinely needs more details",
+    user: m,
+    jsonOnly: false,
+    maxTokens: 500,
+    fallback: 
+    "I'm here to help but I can't reach the AI service right now. Please try again in a moment",
+  })
+
+  return reply(res, result.provider, {reply: result.data}, started);
 }
  
   // ════════════════════════════════════════════════════════════════

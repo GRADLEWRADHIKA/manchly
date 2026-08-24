@@ -56,7 +56,7 @@ export default function CourseDetails() {
   const isFree = price <= 0;
 
   const share = async () => {
-    const url = `https://manchly.chottu.link/course/${course.id}`;
+    const url = `https://manchly.onelink.me/Ne3P?deep_link_value=course/${course.id}&af_dp=manchly://course/${course.id}`;
     try {
       if (navigator.share) await navigator.share({ title: course.title, url });
       else {

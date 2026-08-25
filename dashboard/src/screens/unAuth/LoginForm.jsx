@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import S from "./authStyles";
 import { API_BASE as API } from "../../utils/api";
 import { getDeviceId } from "../../utils/deviceId";
-import FingerprintJS from "@fingerprintjs/fingerprintjs";
+
 
 export default function LoginForm({ onAuthSuccess, switchSignup }) {
   // Form Data State

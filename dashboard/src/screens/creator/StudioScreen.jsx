@@ -15,7 +15,6 @@ import {
   Loader2,
   Film,
   ArrowLeft,
-  //BookAlert,
   BookCheck,
   Eye,
 } from "lucide-react";

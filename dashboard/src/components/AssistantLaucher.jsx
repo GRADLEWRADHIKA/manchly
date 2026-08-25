@@ -26,7 +26,7 @@ export default function AssistantLauncher() {
         justifyContent: "center",
         cursor: "pointer",
         boxShadow: "0 8px 24px rgba(255,107,0,0.35)",
-        zIndex: 997, // just below the panel (999) and its backdrop (998)
+        zIndex: 997, 
         transition: "transform 0.15s ease",
       }}
       onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.06)")}

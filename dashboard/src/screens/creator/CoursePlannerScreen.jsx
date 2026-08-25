@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Sparkles, Rocket } from "lucide-react";
+import { Rocket } from "lucide-react";
 import { apiFetch, unwrap } from "../../utils/api";
 import colors from "../../utils/colors";
 
@@ -93,10 +93,6 @@ export default function CoursePlannerScreen() {
     msgTimer.current = setInterval(() => setMsgIdx((i) => (i + 1) % MSGS.length), 2500);
 
     try {
-      // Backend owns the system prompt + JSON schema + AI key.
-      // Response is { provider, data, latency_ms } — unwrap() returns `data`,
-      // which is already the fully-parsed plan object (or the server's
-      // fallback plan if no AI provider is configured).
       const body = unwrap(await apiFetch("/ai/course/plan", {
         method: "POST",
         body: JSON.stringify({ niche: query }),

@@ -18,8 +18,6 @@ const SETTLE_COLORS = { COMPLETED: "#16A34A", SETTLED: "#16A34A", PENDING: "#B45
 
 const mask = (n) => (n ? `••••${String(n).slice(-4)}` : "—");
 
-// Case/field-name-tolerant truthiness check — handles booleans (true/"true"),
-// and status strings in any casing ("verified" / "VERIFIED" / "Verified").
 function isVerifiedFlag(...candidates) {
   for (const value of candidates) {
     if (value === true || value === "true") return true;

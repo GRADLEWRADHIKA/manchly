@@ -351,9 +351,9 @@ const CourseDetailsScreen: React.FC = () => {
             activeOpacity={0.85}
           >
             <LinearGradient
-              colors={[colors.btnGradientStart, colors.btnGradientEnd]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
+              colors={['#86EFAC', '#4ADE80']}
+  start={{ x: 0, y: 0 }}
+  end={{ x: 1, y: 1 }}
               style={styles.purchaseButtonGradient}
             >
               {purchasing || loading ? (
@@ -381,13 +381,13 @@ const PriceRow = ({ label, value }: any) => (
 );
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.uBg },
+  container: { flex: 1, backgroundColor: colors.user.bg },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  thumbnail: { width: '100%', height: hp(220), backgroundColor: colors.uCard },
+  thumbnail: { width: '100%', height: hp(220), backgroundColor: colors.user.card },
   thumbnailPlaceholder: {
     width: '100%',
     height: hp(220),
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.card,
     justifyContent: 'center',
     alignItems: 'center',
     gap: hp(8),
@@ -395,7 +395,7 @@ const styles = StyleSheet.create({
   placeholderText: {
     fontSize: fp(15),
     fontWeight: '600',
-    color: colors.uExploreNow,
+    color: colors.user.accentText,
     opacity: 0.6,
     paddingHorizontal: wp(30),
     textAlign: 'center',
@@ -406,50 +406,50 @@ const styles = StyleSheet.create({
     borderRadius: 0,
   },
   content: { padding: wp(16) },
-  title: { fontSize: fp(24), fontWeight: '700', color: colors.textPrimary },
+  title: { fontSize: fp(24), fontWeight: '700', color: colors.user.text },
   instructorRow: { flexDirection: 'row', alignItems: 'center', marginBottom: hp(16) },
-  instructor: { color: colors.textSecondary, fontSize: fp(14) },
-  instructorName: { color: colors.uBottomText, fontSize: fp(14), fontWeight: '600', textDecorationLine: 'underline' },
+  instructor: { color: colors.user.accentText, fontSize: fp(14) },
+  instructorName: { color: colors.user.accent, fontSize: fp(14), fontWeight: '600', textDecorationLine: 'underline' },
   section: { marginVertical: hp(16) },
-  sectionTitle: { fontSize: fp(18), fontWeight: '600', marginBottom: hp(10), color: colors.textPrimary },
-  description: { fontSize: fp(15), lineHeight: fp(22), color: colors.textSecondary },
+  sectionTitle: { fontSize: fp(18), fontWeight: '600', marginBottom: hp(10), color: colors.user.text },
+  description: { fontSize: fp(15), lineHeight: fp(22), color: colors.user.accentText },
   statsContainer: { flexDirection: 'row', gap: wp(16), marginVertical: hp(12) },
   statItem: { flexDirection: 'row', gap: wp(6), alignItems: 'center' },
-  statText: { color: colors.textSecondary },
+  statText: { color: colors.user.accentText },
 
   priceBox: {
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.cardSoft,
     padding: wp(16),
     borderRadius: wp(14),
     marginTop: hp(20),
     borderWidth: 1,
-    borderColor: colors.uSubtext,
+    borderColor: colors.user.cardSoft,
   },
   priceRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginVertical: hp(6),
   },
-  priceLabel: { color: colors.uSubHeading, fontSize: fp(14) },
-  priceValue: { fontWeight: '600', color: colors.textPrimary, fontSize: fp(14) },
+  priceLabel: { color: colors.user.text, fontSize: fp(14) },
+  priceValue: { fontWeight: '600', color: colors.user.accentText, fontSize: fp(14) },
 
   totalRow: {
     borderTopWidth: wp(1),
-    borderColor: colors.uSubtext,
+    borderColor: colors.user.subHeading,
     marginTop: hp(12),
     paddingTop: hp(12),
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  totalLabel: { fontSize: fp(16), fontWeight: '700', color: colors.textPrimary },
-  totalValue: { fontSize: fp(18), fontWeight: '800', color: colors.statText },
+  totalLabel: { fontSize: fp(16), fontWeight: '700', color: colors.user.accentText },
+  totalValue: { fontSize: fp(18), fontWeight: '800', color: colors.user.subHeading },
 
   bottomBar: {
     padding: wp(16),
     borderTopWidth: wp(1),
-    borderColor: colors.uSubtext,
-    backgroundColor: colors.uBg,
+    borderColor: colors.user.bg,
+    backgroundColor: colors.user.bg,
   },
   // --- Updated Button Styles ---
   purchaseButtonWrapper: {
@@ -462,30 +462,30 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   purchaseButton: {
-    backgroundColor: colors.info,
+    backgroundColor: colors.user.accent,
     paddingVertical: hp(16),
     borderRadius: wp(12),
     alignItems: 'center',
   },
   purchaseButtonDisabled: { opacity: 0.6 },
-  purchaseText: { color: colors.white, fontSize: fp(16), fontWeight: '700' },
+  purchaseText: { color: colors.user.accentText, fontSize: fp(16), fontWeight: '700' },
 
   enrolledContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     gap: wp(8),
   },
-  enrolledText: { color: colors.info, fontWeight: '700' },
+  enrolledText: { color: colors.user.accent, fontWeight: '700' },
 
   policyText: {
     fontSize: fp(12),
-    color: colors.textSecondary,
+    color: colors.user.accentText,
     textAlign: 'center',
     lineHeight: fp(18),
     marginTop: hp(12),
   },
   policyLink: {
-    color: colors.uBottomText,
+    color: colors.user.accent,
     fontWeight: '500',
   },
 });

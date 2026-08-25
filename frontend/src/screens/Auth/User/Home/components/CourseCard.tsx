@@ -58,7 +58,7 @@ export default CourseCard;
 const styles = StyleSheet.create({
   card: {
     width: wp(160),
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.card,
     borderRadius: wp(14),
     overflow: 'hidden',
     marginBottom: hp(12),
@@ -75,12 +75,12 @@ const styles = StyleSheet.create({
   thumbnailImage: {
     width: '100%',
     height: '100%',
-    backgroundColor: colors.uSubtext,
+    backgroundColor: colors.user.cardSoft,
   },
   placeholderThumbnail: {
     width: '100%',
     height: '100%',
-    backgroundColor: colors.uSubHeading,
+    backgroundColor: colors.user.subHeading,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
     marginBottom: hp(8),
   },
   tagPill: {
-    backgroundColor: colors.uBg,
+    backgroundColor: colors.user.bg,
     paddingHorizontal: wp(7),
     paddingVertical: hp(2),
     borderRadius: wp(5),
@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
   tagText: {
     fontSize: fp(8.5),
     fontWeight: '700',
-    color: colors.textSecondary,
+    color: colors.user.text,
     textTransform: 'uppercase',
     letterSpacing: 0.4,
   },

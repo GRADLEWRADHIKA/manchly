@@ -90,7 +90,7 @@ const PurchaseCoursCard = ({
           {/* Priority & Total Duration Row */}
           <View style={styles.priorityRow}>
             <View style={styles.priorityLeft}>
-              <Zap size={wp(13)} color={colors.cAccentLight} fill={colors.cAccentMuted} />
+              <Zap size={wp(13)} color={colors.user.accentText} fill={colors.user.accentText} />
               <Text style={styles.priorityText}>HIGH PRIORITY</Text>
             </View>
             <Text style={styles.priorityRightText}>
@@ -107,8 +107,8 @@ const PurchaseCoursCard = ({
               {mod.completed ? (
                 <CheckCircle2
                   size={wp(15)}
-                  color={colors.cAccentLight}
-                  fill={colors.cAccentMuted}
+                  color={colors.user.accentText}
+                  fill={colors.user.accentText}
                 />
               ) : (
                 <CircleDot
@@ -144,12 +144,12 @@ const PurchaseCoursCard = ({
           {/* CTA Button */}
           <TouchableOpacity style={styles.resumeBtnWrapper} onPress={onPress} activeOpacity={0.8}>
             <LinearGradient
-              colors={[colors.btnGradientStart, colors.btnGradientEnd]}
+             colors={['#86EFAC', '#4ADE80']} 
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={styles.resumeBtnGradient}
             >
-              <Play size={12} color="#FFFFFF" fill="#FFFFFF" />
+              <Play size={12} color={colors.user.accentText} fill={colors.user.accentText} />
               <Text style={styles.resumeBtnText}>RESUME LESSON</Text>
             </LinearGradient>
           </TouchableOpacity>
@@ -258,7 +258,7 @@ const PurchaseCoursCard = ({
         <View style={styles.archivedBtnRow}>
           <TouchableOpacity style={styles.restoreBtnWrapper} activeOpacity={0.8}>
             <LinearGradient
-              colors={[colors.btnGradientStart, colors.btnGradientEnd]}
+              colors={['#86EFAC', '#4ADE80']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={styles.restoreBtnGradient}
@@ -322,19 +322,19 @@ const PurchaseCoursCard = ({
         {/* Certificate Button */}
         <TouchableOpacity style={styles.certificateBtnWrapper} activeOpacity={0.8}>
           <LinearGradient
-            colors={[colors.btnGradientStart, colors.btnGradientEnd]}
+            colors={['#86EFAC', '#4ADE80']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={styles.certificateBtnGradient}
           >
-            <Award size={14} color={colors.white} />
+            <Award size={14} color={colors.user.accentText} />
             <Text style={styles.certificateBtnText}>Download Certificate</Text>
           </LinearGradient>
         </TouchableOpacity>
 
         {/* Review Button */}
         <TouchableOpacity style={styles.reviewBtnStacked} onPress={onPress} activeOpacity={0.8}>
-          <Edit3 size={14} color={colors.white} />
+          <Edit3 size={14} color={colors.user.accentText} />
           <Text style={styles.reviewBtnStackedText}>Review Course</Text>
         </TouchableOpacity>
       </Pressable>
@@ -361,11 +361,11 @@ const styles = StyleSheet.create({
     height: hp(180),
   },
   imageFallback: {
-    backgroundColor: colors.uBottom,
+    backgroundColor: colors.greenButton,
   },
   progressTrack: {
     height: hp(4),
-    backgroundColor: colors.statText,
+    backgroundColor: colors.user.accent,
     borderRadius: 99,
     overflow: 'hidden',
   },
@@ -376,27 +376,27 @@ const styles = StyleSheet.create({
 
   // ── Ongoing ─────────────────────────────────────────────────────────────────
   ongoingCard: {
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.card,
     borderRadius: wp(16),
     marginBottom: hp(16),
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: colors.uCard,
+    borderColor: colors.user.card,
   },
   featuredBadge: {
     position: 'absolute',
     bottom: hp(12),
     left: wp(12),
-    backgroundColor: colors.uSubHeading,
+    backgroundColor: colors.user.accent,
     borderWidth: 1,
-    borderColor: colors.uSubHeading,
+    borderColor: colors.user.accent,
     borderRadius: 99,
     paddingHorizontal: wp(10),
     paddingVertical: hp(4),
   },
   featuredBadgeText: {
     fontSize: fp(9),
-    color: colors.uSubHeading,
+    color: colors.user.accentText,
     fontWeight: '700',
     letterSpacing: 0.5,
   },
@@ -415,17 +415,17 @@ const styles = StyleSheet.create({
   priorityText: {
     fontSize: fp(10),
     fontWeight: '700',
-    color: colors.uExploreNowText,
+    color: colors.user.accent,
     letterSpacing: 0.5,
   },
   priorityRightText: {
     fontSize: fp(11),
-    color: colors.uExploreNowText,
+    color: colors.user.accent,
   },
   ongoingTitle: {
     fontSize: fp(20),
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: colors.user.text,
     padding: wp(14),
     paddingTop: hp(8),
     paddingBottom: hp(12),
@@ -440,7 +440,7 @@ const styles = StyleSheet.create({
   },
   moduleText: {
     fontSize: fp(13),
-    color: colors.uSubHeading,
+    color: colors.user.subHeading,
     flex: 1,
   },
   progressLabelRow: {
@@ -452,12 +452,12 @@ const styles = StyleSheet.create({
   },
   progressLabel: {
     fontSize: fp(11),
-    color: colors.uSubHeading,
+    color: colors.user.accent,
   },
   progressPercent: {
     fontSize: fp(11),
     fontWeight: '700',
-    color: colors.cText,
+    color: colors.user.accent,
   },
   ongoingMetaRow: {
     flexDirection: 'row',
@@ -468,7 +468,7 @@ const styles = StyleSheet.create({
   },
   ongoingMetaText: {
     fontSize: fp(11),
-    color: colors.uSubHeading,
+    color: colors.user.subHeading,
   },
   resumeBtnWrapper: {
     marginHorizontal: wp(14),
@@ -484,7 +484,7 @@ const styles = StyleSheet.create({
     paddingVertical: hp(12),
   },
   resumeBtnText: {
-    color: colors.white,
+    color: colors.user.text,
     fontWeight: '700',
     fontSize: fp(13),
     letterSpacing: 0.5,
@@ -499,16 +499,16 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: hp(10),
     right: wp(10),
-    backgroundColor: 'rgba(15, 23, 42, 0.75)',
+    backgroundColor: colors.user.accent,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
+    borderColor: colors.user.accent,
     borderRadius: 99,
     paddingHorizontal: wp(8),
     paddingVertical: hp(3),
   },
   timeLeftBadgeText: {
     fontSize: fp(9),
-    color: '#FFFFFF',
+    color: colors.user.accentText,
     fontWeight: '600',
   },
   nonFeaturedContent: {
@@ -517,7 +517,7 @@ const styles = StyleSheet.create({
   nonFeaturedTitle: {
     fontSize: fp(16),
     fontWeight: '700',
-    color: colors.cText,
+    color: colors.user.accentText,
     paddingHorizontal: wp(14),
     paddingTop: wp(10),
     paddingBottom: hp(4),
@@ -531,7 +531,7 @@ const styles = StyleSheet.create({
   },
   nextStepText: {
     fontSize: fp(12),
-    color: colors.cTextSecondary,
+    color: colors.user.accentText,
     flex: 1,
   },
   progressLabelRowNonFeatured: {

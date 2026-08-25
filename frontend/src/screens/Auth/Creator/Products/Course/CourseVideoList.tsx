@@ -5,7 +5,7 @@ import {
   FlatList,
   TouchableOpacity,
   Image,
-  ActivityIndicator,
+  //ActivityIndicator,
   Modal,
   SafeAreaView,
   StatusBar as RNStatusBar,
@@ -35,7 +35,7 @@ const SCREEN_BG = 'rgba(0,0,0,0.75)';
 const CARD_BG = '#141414';
 const VIDEO_CARD_BG = '#1C1B1B';
 const ACCENT = '#D5C4AB';
-const CARD_BORDER = 'rgba(255,255,255,0.06)';
+//const CARD_BORDER = 'rgba(255,255,255,0.06)';
 const TEXT_SECONDARY = 'rgba(255,255,255,0.6)';
 const TEXT_MUTED = 'rgba(255,255,255,0.5)';
 const SHIMMER_COLORS = ['#1E1E1E', '#2A2A2A', '#1E1E1E'];

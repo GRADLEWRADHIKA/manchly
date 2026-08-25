@@ -79,7 +79,7 @@ const SegmentedTabs = ({
         {/* Sliding indicator updated with Gradient */}
         <Animated.View style={[tabStyles.indicatorContainer, { transform: [{ translateX }] }]}>
           <LinearGradient
-            colors={[colors.btnGradientStart, colors.btnGradientEnd]}
+           colors={['#86EFAC', '#4ADE80']} 
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={tabStyles.gradientIndicator}
@@ -104,7 +104,7 @@ const SegmentedTabs = ({
             >
               <tab.Icon
                 size={wp(16)}
-                color={isActive ? colors.white : colors.textSecondary}
+                color={isActive ? colors.user.accentText : colors.user.subHeading}
                 strokeWidth={isActive ? 2.2 : 1.6}
               />
               <Text
@@ -145,7 +145,7 @@ const tabStyles = StyleSheet.create({
   },
   track: {
     flexDirection: 'row',
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.cardSoft,
     borderRadius: wp(14),
     padding: wp(4),
     position: 'relative',
@@ -156,7 +156,7 @@ const tabStyles = StyleSheet.create({
     bottom: wp(4), // using bottom instead of height:'100%' prevents overflow
     left: wp(4),
     width: wp(160),
-    shadowColor: colors.btnGradientStart, // updated shadow to match gradient
+    shadowColor: colors.greenButton, // updated shadow to match gradient
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.35,
     shadowRadius: 6,
@@ -172,9 +172,9 @@ const tabStyles = StyleSheet.create({
     left: wp(4),
     width: wp(160),
     height: '100%',
-    backgroundColor: colors.info,
+    backgroundColor: colors.user.accent,
     borderRadius: wp(11),
-    shadowColor: colors.info,
+    shadowColor: colors.user.accent,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 6,
@@ -192,14 +192,14 @@ const tabStyles = StyleSheet.create({
   label: {
     fontSize: fp(13.5),
     fontWeight: '500',
-    color: colors.textPrimary,
+    color: colors.user.accentText,
   },
   labelActive: {
-    color: colors.textPrimary,
+    color: colors.user.accentText,
     fontWeight: '600',
   },
   countBadge: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.user.accent,
     borderRadius: wp(10),
     paddingHorizontal: wp(7),
     paddingVertical: hp(1),
@@ -212,10 +212,10 @@ const tabStyles = StyleSheet.create({
   countText: {
     fontSize: fp(11),
     fontWeight: '700',
-    color: colors.uSubHeading,
+    color: colors.user.subHeading,
   },
   countTextActive: {
-    color: colors.uSubtext,
+    color: colors.user.accentText,
   },
 });
 
@@ -410,8 +410,8 @@ const PurchasesScreen = () => {
               <RefreshControl
                 refreshing={refreshing}
                 onRefresh={onRefreshCourses}
-                colors={[colors.secPrimary]}
-                tintColor={colors.secPrimary}
+                colors={[colors.user.text]}
+                tintColor={colors.user.accentText}
               />
             }
             renderItem={({ item }) => {
@@ -449,7 +449,7 @@ const PurchasesScreen = () => {
             loadingMore ? (
               <ActivityIndicator
                 size="small"
-                color={colors.secPrimary}
+                color={colors.user.accent}
                 style={styles.footerLoader}
               />
             ) : null
@@ -458,8 +458,8 @@ const PurchasesScreen = () => {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefreshWebinars}
-              colors={[colors.secPrimary]}
-              tintColor={colors.secPrimary}
+              colors={[colors.user.text]}
+              tintColor={colors.user.accentText}
             />
           }
         />
@@ -471,7 +471,7 @@ const PurchasesScreen = () => {
 export default PurchasesScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.uBg },
+  container: { flex: 1, backgroundColor: colors.user.bg },
 
   headerBar: {
     flexDirection: 'row',
@@ -479,17 +479,17 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: wp(20),
     paddingBottom: hp(10),
-    backgroundColor: colors.uBg,
+    backgroundColor: colors.user.bg,
     zIndex: 10,
   },
   headerTitle: {
-    color: colors.textPrimary,
+    color: colors.user.text,
     fontSize: fp(20),
     fontWeight: '700',
     letterSpacing: 0.3,
   },
   headerEdge: {
-    backgroundColor: colors.uBg,
+    backgroundColor: colors.user.bg,
     height: hp(16),
     borderBottomLeftRadius: wp(18),
     borderBottomRightRadius: wp(18),
@@ -524,7 +524,7 @@ const styles = StyleSheet.create({
     width: wp(72),
     height: wp(72),
     borderRadius: wp(36),
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.cardSoft,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: hp(16),
@@ -534,12 +534,12 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: fp(17),
     fontWeight: '600',
-    color: colors.textPrimary,
+    color: colors.user.accentText,
     textAlign: 'center',
   },
   emptySubtext: {
     fontSize: fp(13),
-    color: colors.textPrimary,
+    color: colors.user.subHeading,
     marginTop: hp(6),
     textAlign: 'center',
     lineHeight: fp(19),
@@ -547,7 +547,7 @@ const styles = StyleSheet.create({
 
   // Skeleton styles
   skeletonCard: {
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.card,
     borderRadius: wp(14),
     padding: wp(16),
     marginBottom: hp(12),

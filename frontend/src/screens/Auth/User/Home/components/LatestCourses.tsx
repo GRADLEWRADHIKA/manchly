@@ -86,10 +86,10 @@ const LatestCourseItem = ({ item, onPress }: any) => {
         <Image source={{ uri: item?.thumbnail }} style={styles.thumb} />
       ) : (
         <LinearGradient
-          colors={['#3D4573', '#2A2F52']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={[styles.thumb, styles.thumbPlaceholder]}
+          colors={['#4ADE80', '#16A34A']}
+  start={{ x: 0, y: 0 }}
+  end={{ x: 1, y: 1 }}
+  style={[styles.thumb, styles.thumbPlaceholder]}
         >
           <Animated.View
             style={[
@@ -97,7 +97,7 @@ const LatestCourseItem = ({ item, onPress }: any) => {
               { transform: [{ scale: iconScale }], opacity: iconOpacity },
             ]}
           >
-            <BookOpen size={wp(22)} color="#93B4FF" strokeWidth={1.8} />
+            <BookOpen size={wp(22)} color={colors.user.accent} strokeWidth={1.8} />
           </Animated.View>
           <Text style={styles.placeholderLabel} numberOfLines={1}>
             {item?.category || 'COURSE'}
@@ -170,7 +170,7 @@ const LatestCourses = () => {
           }
         >
           <Text style={styles.seeAllText}>See All</Text>
-          <ChevronRight size={wp(14)} color="rgba(255,255,255,0.7)" strokeWidth={2} />
+          <ChevronRight size={wp(14)} color={colors.user.subHeading} strokeWidth={2} />
         </Pressable>
       </View>
       {showSkeleton ? (
@@ -219,11 +219,11 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: fp(18),
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: colors.user.text,
   },
   sectionSubtitle: {
     fontSize: fp(12),
-    color: colors.textSecondary,
+    color: colors.user.accentText,
     marginTop: hp(2),
   },
   seeAllBtn: {
@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
   seeAllText: {
     fontSize: fp(13),
     fontWeight: '600',
-    color: 'rgba(255,255,255,0.7)',
+    color: colors.user.accent,
   },
   listContent: {
     paddingHorizontal: wp(20),
@@ -249,7 +249,7 @@ const styles = StyleSheet.create({
   },
   card: {
     width: wp(160),
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.card,
     borderRadius: wp(14),
     overflow: 'hidden',
     marginBottom: 5,
@@ -271,14 +271,14 @@ const styles = StyleSheet.create({
     width: wp(40),
     height: wp(40),
     borderRadius: wp(20),
-    backgroundColor: 'rgba(147,180,255,0.12)',
+    backgroundColor: colors.greenButton,
     alignItems: 'center',
     justifyContent: 'center',
   },
   placeholderLabel: {
     fontSize: fp(9),
     fontWeight: '700',
-    color: '#93B4FF',
+    color:  colors.user.accent,
     textTransform: 'uppercase',
     letterSpacing: 0.6,
   },
@@ -292,9 +292,9 @@ const styles = StyleSheet.create({
     marginBottom: hp(8),
   },
   tagPill: {
-    backgroundColor: 'rgba(59,130,246,0.15)',
+    backgroundColor: colors.greenButton,
     borderWidth: 1,
-    borderColor: 'rgba(59,130,246,0.3)',
+    borderColor: colors.greenButtonDark,
     paddingHorizontal: wp(7),
     paddingVertical: hp(2),
     borderRadius: wp(5),
@@ -302,25 +302,25 @@ const styles = StyleSheet.create({
   tagText: {
     fontSize: fp(8.5),
     fontWeight: '700',
-    color: '#93B4FF',
+    color: colors.user.accent,
     textTransform: 'uppercase',
     letterSpacing: 0.4,
   },
   title: {
     fontSize: fp(13),
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: colors.user.text,
     lineHeight: fp(17),
   },
   creator: {
     fontSize: fp(11),
-    color: colors.textSecondary,
+    color: colors.user.accentText,
     marginTop: hp(4),
   },
   price: {
     fontSize: fp(15),
     fontWeight: '800',
-    color: colors.statText,
+    color: colors.user.accent,
     marginTop: hp(6),
   },
 });

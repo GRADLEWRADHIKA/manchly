@@ -1,7 +1,7 @@
 import React, { memo } from 'react';
-import { View, ScrollView, StyleSheet, TouchableOpacity, Text } from 'react-native';
+import { View, ScrollView, StyleSheet,  } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { ChevronRight, Store } from 'lucide-react-native';
+//import { ChevronRight, Store } from 'lucide-react-native';
 import { hp, wp, fp } from '../../../../utils/responsive';
 import colors from '../../../../utils/colors';
 import HomeHeader from './components/HomeHeader';
@@ -55,11 +55,11 @@ export default memo(UserHome);
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: colors.uBg,
+    backgroundColor: colors.user.bg,
   },
   container: {
     flex: 1,
-    backgroundColor: colors.uBg,
+    backgroundColor: colors.user.bg,
   },
   scrollContent: {
     paddingBottom: hp(100),
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
     marginHorizontal: wp(16),
     marginTop: hp(16),
     marginBottom: hp(8),
-    backgroundColor: colors.uBottom,
+    backgroundColor: colors.user.text,
     borderRadius: wp(14),
     padding: wp(14),
   },
@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
     width: wp(48),
     height: wp(48),
     borderRadius: wp(24),
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor:colors.user.subHeading,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -89,11 +89,11 @@ const styles = StyleSheet.create({
   expertBannerTitle: {
     fontSize: fp(15),
     fontWeight: '700',
-    color: colors.white,
+    color: colors.user.text,
   },
   expertBannerSub: {
     fontSize: fp(11),
-    color: 'rgba(255,255,255,0.8)',
+    color: colors.user.accentText,
     marginTop: hp(2),
   },
   marketPlaceBanner: {

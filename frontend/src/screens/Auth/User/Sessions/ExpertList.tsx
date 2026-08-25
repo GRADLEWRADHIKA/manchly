@@ -207,11 +207,11 @@ const ExpertList: React.FC = () => {
 export default memo(ExpertList);
 
 const styles = StyleSheet.create({
-  container: {flex: 1, backgroundColor: colors.uBg},
+  container: {flex: 1, backgroundColor: colors.user.bg},
   catList: {paddingHorizontal: wp(16), marginTop: hp(15), paddingBottom: hp(6), gap: wp(8)},
   catChip: {
     paddingHorizontal: wp(12), paddingVertical: hp(6), borderRadius: wp(18),
-    backgroundColor: colors.uCard, borderWidth: 1, borderColor: colors.uCard,
+    backgroundColor: colors.user.card, borderWidth: 1, borderColor: colors.user.card,
   },
   catChipActive: {backgroundColor: colors.statText, borderColor: colors.statText},
   catChipText: {fontSize: fp(11), color: colors.textPrimary, fontWeight: '500'},

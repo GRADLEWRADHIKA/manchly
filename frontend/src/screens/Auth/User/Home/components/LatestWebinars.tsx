@@ -137,15 +137,15 @@ const EmptyWebinarCard = () => {
           }
         >
           <Text style={styles.seeAllText}>See All</Text>
-          <ArrowRight size={wp(14)} color="rgba(228, 191, 191, 0.85)" strokeWidth={2} />
+          <ArrowRight size={wp(14)} color={colors.user.subHeading} strokeWidth={2} />
         </Pressable>
       </View>
       <Pressable style={({ pressed }) => [pressed && { opacity: 0.95 }]}>
         <LinearGradient
-          colors={['#232A52', '#1A1E38', '#0D112B']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.emptyCard}
+          colors={['#4ADE80', '#16A34A']}
+  start={{ x: 0, y: 0 }}
+  end={{ x: 1, y: 1 }}
+  style={[styles.thumb, styles.thumbPlaceholder]}
         >
           {/* Decorative circles */}
           <View style={styles.decoCircle1} />
@@ -170,10 +170,10 @@ const EmptyWebinarCard = () => {
             Be the first to know when they go live!
           </Text>   
           <LinearGradient
-            colors={[colors.btnGradientStart, colors.btnGradientEnd]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.notifyBtn}
+           colors={['#4ADE80', '#16A34A']}
+  start={{ x: 0, y: 0 }}
+  end={{ x: 1, y: 1 }}
+  style={[styles.thumb, styles.thumbPlaceholder]}
           >
             <Bell size={wp(14)} color={colors.white} strokeWidth={2} />
             <Text style={styles.notifyBtnText}>Notify Me</Text>
@@ -234,7 +234,7 @@ const LatestWebinars = () => {
           }
         >
           <Text style={styles.seeAllText}>See All</Text>
-          <ArrowRight size={wp(14)} color="rgba(255,255,255,0.85)" strokeWidth={2} />
+          <ArrowRight size={wp(14)} color={colors.user.subHeading} strokeWidth={2} />
         </Pressable>
       </View>
       <FlatList
@@ -275,11 +275,11 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: fp(18),
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: colors.user.text,
   },
   sectionSubtitle: {
     fontSize: fp(12),
-    color: colors.textSecondary,
+    color: colors.user.accentText,
     marginTop: hp(2),
   },
   seeAllBtn: {
@@ -291,7 +291,7 @@ const styles = StyleSheet.create({
   seeAllText: {
     fontSize: fp(13),
     fontWeight: '600',
-    color: "rgba(255,255,255,0.85)",
+    color: colors.user.accent,
   },
   listContent: {
     paddingHorizontal: wp(20),
@@ -302,7 +302,7 @@ const styles = StyleSheet.create({
   },
   card: {
     width: wp(160),
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.card,
     borderRadius: wp(14),
     overflow: 'hidden',
     marginBottom: 5,
@@ -316,7 +316,7 @@ const styles = StyleSheet.create({
     height: hp(90),
   },
   thumbPlaceholder: {
-    backgroundColor: colors.uSubtext,
+    backgroundColor: colors.greenButtonDark,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -326,13 +326,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: fp(13),
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: colors.user.text,
     lineHeight: fp(17),
     marginBottom: hp(4),
   },
   hostedBy: {
     fontSize: fp(11),
-    color: colors.uSubHeading,
+    color: colors.user.accentText,
   },
   emptyCard: {
     marginHorizontal: wp(20),
@@ -366,7 +366,7 @@ const styles = StyleSheet.create({
     width: wp(64),
     height: wp(64),
     borderRadius: wp(32),
-    backgroundColor: colors.textPrimary,
+    backgroundColor: colors.user.accent,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: hp(14),
@@ -380,11 +380,11 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: fp(17),
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: colors.user.text,
   },
   emptySub: {
     fontSize: fp(12.5),
-    color: colors.textSecondary,
+    color: colors.user.accentText,
     textAlign: 'center',
     lineHeight: fp(18),
     marginBottom: hp(18),
@@ -400,6 +400,6 @@ const styles = StyleSheet.create({
   notifyBtnText: {
     fontSize: fp(13),
     fontWeight: '700',
-    color: colors.white,
+    color: colors.user.accent,
   },
 });

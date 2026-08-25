@@ -121,11 +121,11 @@ const ProductsScreen = () => {
 
   const SearchBar = (
     <View style={styles.searchBar}>
-      <Search size={16} color={colors.cTextMuted} />
+      <Search size={16} color={colors.user.accent} />
       <TextInput
         style={styles.searchInput}
         placeholder="Search courses, webinars, or experts..."
-        placeholderTextColor={colors.cTextMuted}
+        placeholderTextColor={colors.user.subHeading}
         value={searchQuery}
         onChangeText={setSearchQuery}
       />
@@ -161,7 +161,7 @@ const ProductsScreen = () => {
           ]}
         >
           <LinearGradient
-            colors={[colors.btnGradientStart, colors.btnGradientEnd]}
+            colors={['#86EFAC', '#4ADE80']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={styles.tabGradientIndicator}
@@ -264,7 +264,7 @@ const ProductsScreen = () => {
       {/* Top Bar */}
       <View style={[styles.topBar, { paddingTop: insets.top }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={10}>
-          <ArrowLeft size={wp(22)} color={colors.white} />
+          <ArrowLeft size={wp(22)} color={colors.user.subHeading} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Explore Detail</Text>
         <View style={{ width: wp(22) }} />
@@ -505,12 +505,12 @@ export default ProductsScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.uBg,
+    backgroundColor: colors.user.bg,
   },
   headerTitle: {
     fontSize: fp(17),
     fontWeight: '700',
-    color: colors.white
+    color: colors.user.text
   },
   scrollContent: {
     paddingHorizontal: wp(16),
@@ -522,12 +522,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: wp(16),
     paddingVertical: hp(12),
-    backgroundColor: colors.uBg,
+    backgroundColor: colors.user.bg,
   },
   brandTitle: {
     fontSize: fp(18),
     fontWeight: '700',
-    color: colors.white,
+    color: colors.user.text,
   },
   iconButton: {
     padding: wp(4),
@@ -540,22 +540,22 @@ const styles = StyleSheet.create({
     width: wp(6),
     height: wp(6),
     borderRadius: wp(3),
-    backgroundColor: colors.statIcon,
+    backgroundColor: colors.user.accent,
   },
   heroTitle: {
     fontSize: fp(22),
     fontWeight: '700',
-    color: colors.white,
+    color: colors.user.text,
     marginTop: hp(16),
     marginBottom: hp(14),
   },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.card,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: colors.uCard,
+    borderColor: colors.user.cardSoft,
     paddingHorizontal: wp(14),
     height: hp(44),
     gap: wp(10),
@@ -563,7 +563,7 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    color: colors.white,
+    color: colors.user.accentText,
     fontSize: fp(13),
   },
 
@@ -573,7 +573,7 @@ const styles = StyleSheet.create({
   },
   tabTrack: {
     flexDirection: 'row',
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.card,
     borderRadius: wp(14),
     padding: wp(4),
     position: 'relative',
@@ -584,7 +584,7 @@ const styles = StyleSheet.create({
     bottom: wp(4),
     left: wp(4),
     width: wp(160),
-    shadowColor: colors.btnGradientStart,
+    shadowColor: colors.greenButton,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.35,
     shadowRadius: 6,
@@ -606,14 +606,14 @@ const styles = StyleSheet.create({
   tabLabel: {
     fontSize: fp(13.5),
     fontWeight: '500',
-    color: colors.uSubHeading,
+    color: colors.user.subHeading,
   },
   tabLabelActive: {
-    color: colors.white,
+    color: colors.user.accentText,
     fontWeight: '600',
   },
   tabCountBadge: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.user.accentText,
     borderRadius: wp(10),
     paddingHorizontal: wp(7),
     paddingVertical: hp(1),
@@ -621,40 +621,40 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   tabCountBadgeActive: {
-    backgroundColor: 'rgba(255,255,255,0.25)',
+    backgroundColor: colors.user.cardSoft,
   },
   tabCountText: {
     fontSize: fp(11),
     fontWeight: '700',
-    color: colors.uSubHeading,
+    color: colors.user.subHeading,
   },
   tabCountTextActive: {
-    color: colors.white,
+    color: colors.user.text,
   },
 
   imgPlaceholder: {
-    backgroundColor: colors.uBg,
+    backgroundColor: colors.greenButton,
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarInitials: {
     fontSize: fp(16),
     fontWeight: '700',
-    color: colors.uBottom,
+    color: colors.user.subHeading,
   },
   emptyText: {
     fontSize: fp(13),
-    color: colors.uSubtext,
+    color: colors.user.accentText,
     textAlign: 'center',
     marginVertical: hp(24),
   },
 
   // Featured Course
   featuredCourseCard: {
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.card,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: colors.uCard,
+    borderColor: colors.user.card,
     overflow: 'hidden',
     marginBottom: hp(24),
     padding: wp(14),
@@ -692,19 +692,19 @@ const styles = StyleSheet.create({
   },
   featuredMetaText: {
     fontSize: fp(11),
-    color: colors.uSubHeading,
+    color: colors.user.subHeading,
     fontWeight: '600',
   },
   featuredCourseTitle: {
     fontSize: fp(15),
     fontWeight: '700',
-    color: colors.white,
+    color: colors.user.text,
     lineHeight: fp(20),
     marginBottom: hp(6),
   },
   featuredCourseDesc: {
     fontSize: fp(11),
-    color: colors.cTextSecondary,
+    color: colors.user.accentText,
     lineHeight: fp(16),
     marginBottom: hp(14),
   },
@@ -720,16 +720,16 @@ const styles = StyleSheet.create({
   featuredCoursePrice: {
     fontSize: fp(16),
     fontWeight: '700',
-    color: colors.white,
+    color: colors.user.text,
   },
   enrollBtn: {
-    backgroundColor: colors.uExploreNow,
+    backgroundColor: colors.user.accent,
     paddingHorizontal: wp(16),
     paddingVertical: hp(8),
     borderRadius: 8,
   },
   enrollBtnText: {
-    color: colors.uExploreNowText,
+    color: colors.user.nav,
     fontSize: fp(12),
     fontWeight: '700',
   },
@@ -742,10 +742,10 @@ const styles = StyleSheet.create({
   // Popular Course
   popularCourseCard: {
     flexDirection: 'row',
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.card,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: colors.uCard,
+    borderColor: colors.user.card,
     padding: wp(10),
     gap: wp(12),
     marginBottom: hp(12),
@@ -761,7 +761,7 @@ const styles = StyleSheet.create({
   },
   pillBadgeContainer: {
     alignSelf: 'flex-start',
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor:colors.user.accent,
     borderRadius: 4,
     paddingHorizontal: wp(6),
     paddingVertical: hp(2),
@@ -769,18 +769,18 @@ const styles = StyleSheet.create({
   },
   pillBadgeText: {
     fontSize: fp(8),
-    color: colors.uSubHeading,
+    color: colors.user.nav,
     fontWeight: '700',
   },
   popularCourseTitle: {
     fontSize: fp(13),
     fontWeight: '600',
-    color: colors.white,
+    color: colors.user.text,
     marginBottom: hp(4),
   },
   courseDurationText: {
     fontSize: fp(10),
-    color: colors.uSubHeading,
+    color: colors.user.accentText,
     marginBottom: hp(6),
   },
   courseBottomActionRow: {
@@ -791,7 +791,7 @@ const styles = StyleSheet.create({
   coursePriceTag: {
     fontSize: fp(13),
     fontWeight: '700',
-    color: colors.white,
+    color: colors.user.accent,
   },
   addButtonCircle: {
     width: wp(24),
@@ -801,17 +801,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 0.5,
-    borderColor: colors.uBg
+    borderColor: colors.user.bg
   },
   addButtonText: {
-    color: colors.white,
+    color: colors.user.text,
     fontSize: fp(14),
     lineHeight: fp(16),
   },
 
   // Webinar
   webinarWelcomeHeroCard: {
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.card,
     borderRadius: 16,
     padding: wp(16),
     marginTop: hp(16),
@@ -826,30 +826,30 @@ const styles = StyleSheet.create({
   webinarHeroTitle: {
     fontSize: fp(18),
     fontWeight: '700',
-    color: colors.white,
+    color: colors.user.text,
     marginBottom: hp(6),
   },
   webinarHeroDesc: {
     fontSize: fp(12),
-    color: colors.white,
+    color: colors.user.accentText,
     lineHeight: fp(17),
   },
   upcomingCountBadge: {
-    backgroundColor: 'rgba(26, 86, 219, 0.15)',
+    backgroundColor: colors.user.accent,
     paddingHorizontal: wp(8),
     paddingVertical: hp(3),
     borderRadius: 6,
   },
   upcomingCountText: {
     fontSize: fp(10),
-    color: colors.goldDim,
+    color: colors.user.nav,
     fontWeight: '600',
   },
   webinarItemCard: {
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.card,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: colors.uCard,
+    borderColor: colors.user.card,
     overflow: 'hidden',
     marginBottom: hp(16),
   },
@@ -877,24 +877,24 @@ const styles = StyleSheet.create({
   webinarItemTitle: {
     fontSize: fp(14),
     fontWeight: '700',
-    color: colors.white,
+    color: colors.user.text,
     marginBottom: hp(4),
   },
   webinarItemDesc: {
     fontSize: fp(11),
-    color: colors.uSubHeading,
+    color: colors.user.accentText,
     lineHeight: fp(16),
     marginBottom: hp(10),
   },
   webinarMetaLineText: {
     fontSize: fp(11),
-    color: colors.uExploreNowText,
+    color: colors.user.accent,
     marginBottom: hp(4),
   },
   registerWebinarBtn: {
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: colors.greenButton,
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: colors.greenButton,
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
@@ -902,7 +902,7 @@ const styles = StyleSheet.create({
     marginTop: hp(12),
   },
   registerWebinarBtnText: {
-    color: colors.white,
+    color: colors.user.accentText,
     fontSize: fp(12),
     fontWeight: '600',
   },
@@ -917,20 +917,20 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: fp(15),
     fontWeight: '700',
-    color: colors.white,
+    color: colors.user.text,
   },
   seeAllText: {
     fontSize: fp(12),
-    color: colors.uSubHeading,
+    color: colors.user.accent,
   },
   facultyCircularCard: {
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.card,
     borderRadius: 16,
     padding: wp(20),
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: colors.uCard,
+    borderColor: colors.user.card,
   },
   facultyImageCircle: {
     width: wp(56),
@@ -941,11 +941,11 @@ const styles = StyleSheet.create({
   facultyCardName: {
     fontSize: fp(13),
     fontWeight: '700',
-    color: colors.white,
+    color: colors.user.accentText,
   },
   facultyCardRole: {
     fontSize: fp(11),
-    color: colors.uSubHeading,
+    color: colors.user.subHeading,
     marginTop: hp(2),
   },
 });

@@ -94,9 +94,9 @@ const UserSessions: React.FC = () => {
           <View
             style={[
               styles.modeIcon,
-              {backgroundColor: colors.success + '12'},
+              {backgroundColor: colors.user.subHeading + '12'},
             ]}>
-            <Video size={wp(18)} color={colors.success} strokeWidth={1.8} />
+            <Video size={wp(18)} color={colors.user.subHeading} strokeWidth={1.8} />
           </View>
           <View style={styles.cardInfo}>
             <Text style={styles.cardName}>
@@ -120,11 +120,11 @@ const UserSessions: React.FC = () => {
 
         <View style={styles.cardBottom}>
           <View style={styles.detailChip}>
-            <Clock size={wp(12)} color='#BDC2FF' strokeWidth={1.8} />
+            <Clock size={wp(12)} color={colors.user.subHeading} strokeWidth={1.8} />
             <Text style={styles.detailText}>{item.duration} min</Text>
           </View>
           <View style={styles.detailChip}>
-            <IndianRupee size={wp(12)} color='#BDC2FF' strokeWidth={2} />
+            <IndianRupee size={wp(12)} color={colors.user.subHeading} strokeWidth={2} />
             <Text style={styles.detailText}>{item.amount}</Text>
           </View>
           <View style={styles.detailChip}>
@@ -142,17 +142,17 @@ const UserSessions: React.FC = () => {
       {/* Stats */}
       <View style={styles.statsRow}>
         <View style={styles.statCard}>
-          <PhoneCall size={wp(20)} color={colors.uBottomText} strokeWidth={1.8} />
+          <PhoneCall size={wp(20)} color={colors.user.accent} strokeWidth={1.8} />
           <Text style={styles.statValue}>{stats.total_sessions}</Text>
           <Text style={styles.statLabel}>SESSIONS</Text>
         </View>
         <View style={styles.statCard}>
-          <Clock size={wp(20)} color={colors.uBottomText} strokeWidth={1.8} />
+          <Clock size={wp(20)} color={colors.user.accent} strokeWidth={1.8} />
           <Text style={styles.statValue}>{stats.total_minutes}</Text>
           <Text style={styles.statLabel}>MINUTES</Text>
         </View>
         <View style={styles.statCard}>
-          <IndianRupee size={wp(20)} color={colors.uBottomText} strokeWidth={1.8} />
+          <IndianRupee size={wp(20)} color={colors.user.accent} strokeWidth={1.8} />
           <Text style={styles.statValue}>
             ₹{Number(stats.total_earnings || 0).toFixed(2)}
           </Text>
@@ -166,7 +166,7 @@ const UserSessions: React.FC = () => {
         activeOpacity={0.8}
         onPress={() => navigation.navigate('ExpertList')}>
         <View style={styles.ctaIconWrap}>
-          <BrowseIcon size={wp(26)} color={colors.info} strokeWidth={1.8} />
+          <BrowseIcon size={wp(26)} color={colors.user.subHeading} strokeWidth={1.8} />
         </View>
         <Text style={styles.ctaTitle}>Browse Experts</Text>
         <Text style={styles.ctaSub}>
@@ -174,13 +174,13 @@ const UserSessions: React.FC = () => {
         </Text>
         {/* Updated Explore Now Button */}
         <LinearGradient
-          colors={[colors.btnGradientStart, colors.btnGradientEnd]}
+          colors={['#86EFAC', '#4ADE80']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={styles.ctaBtn}
         >
           <Text style={styles.ctaBtnText}>Explore Now</Text>
-          <ChevronRight size={wp(16)} color={colors.textPrimary} strokeWidth={2} />
+          <ChevronRight size={wp(16)} color={colors.user.subHeading} strokeWidth={2} />
         </LinearGradient>
       </TouchableOpacity>
 
@@ -195,9 +195,9 @@ const UserSessions: React.FC = () => {
   const renderEmpty = () => (
     <View style={styles.emptyCard}>
       <View style={styles.emptyIconWrap}>
-        <PhoneMissed size={wp(30)} color={colors.textMuted} strokeWidth={1.2} />
+        <PhoneMissed size={wp(30)} color={colors.user.subHeading} strokeWidth={1.2} />
         <View style={styles.emptyBadge}>
-          <X size={wp(10)} color={colors.textPrimary} strokeWidth={3} />
+          <X size={wp(10)} color={colors.user.subHeading} strokeWidth={3} />
         </View>
       </View>
       <Text style={styles.emptyTitle}>No sessions yet</Text>
@@ -233,7 +233,7 @@ export default memo(UserSessions);
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.uBg,
+    backgroundColor: colors.user.bg,
   },
   listContent: {
     paddingHorizontal: wp(16),
@@ -254,22 +254,22 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.card,
     borderRadius: wp(14),
     paddingVertical: hp(16),
     alignItems: 'center',
     gap: hp(4),
     borderWidth: 1,
-    borderColor: colors.uCard,
+    borderColor: colors.user.card,
   },
   statValue: {
     fontSize: fp(18),
     fontWeight: '800',
-    color: colors.sessionText,
+    color: colors.user.accent,
   },
   statLabel: {
     fontSize: fp(9),
-    color: colors.sessionText2,
+    color: colors.user.accentText,
     fontWeight: '600',
     letterSpacing: 0.3,
   },
@@ -277,18 +277,18 @@ const styles = StyleSheet.create({
   // CTA
   ctaCard: {
     alignItems: 'center',
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.card,
     borderRadius: wp(20),
     padding: wp(24),
     marginBottom: hp(20),
     borderWidth: 1,
-    borderColor: colors.uCard,
+    borderColor: colors.user.card,
   },
   ctaIconWrap: {
     width: wp(56),
     height: wp(56),
     borderRadius: wp(16),
-    backgroundColor: '#BDC2FF',
+    backgroundColor: colors.user.accentSoft,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: hp(14),
@@ -296,12 +296,12 @@ const styles = StyleSheet.create({
   ctaTitle: {
     fontSize: fp(17),
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: colors.user.accentText,
     marginBottom: hp(6),
   },
   ctaSub: {
     fontSize: fp(12.5),
-    color: '#C5C5D8',
+    color: colors.user.accentSoft,
     textAlign: 'center',
     lineHeight: fp(18),
     marginBottom: hp(18),
@@ -317,7 +317,7 @@ const styles = StyleSheet.create({
   ctaBtnText: {
     fontSize: fp(14),
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: colors.user.accentText,
   },
 
   // Section
@@ -330,22 +330,22 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: fp(15),
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: colors.user.text,
   },
   viewAllText: {
     fontSize: fp(13),
     fontWeight: '600',
-    color: colors.uSubHeading,
+    color: colors.user.accentText,
   },
 
   // Cards
   card: {
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.card,
     borderRadius: wp(14),
     padding: wp(14),
     marginBottom: hp(10),
     borderWidth: 1,
-    borderColor: colors.uCard,
+    borderColor: colors.user.card,
   },
   cardTop: {
     flexDirection: 'row',
@@ -365,11 +365,11 @@ const styles = StyleSheet.create({
   cardName: {
     fontSize: fp(14),
     fontWeight: '600',
-    color: colors.textPrimary,
+    color: colors.user.text,
   },
   cardDate: {
     fontSize: fp(11),
-    color: colors.textMuted,
+    color: colors.user.accentText,
     marginTop: hp(2),
   },
   statusBadge: {
@@ -387,38 +387,38 @@ const styles = StyleSheet.create({
     marginTop: hp(10),
     paddingTop: hp(10),
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.border,
+    borderTopColor: colors.user.cardSoft,
   },
   detailChip: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(4),
-    backgroundColor: colors.uBg,
+    backgroundColor: colors.user.bg,
     paddingHorizontal: wp(10),
     paddingVertical: hp(5),
     borderRadius: wp(8),
   },
   detailText: {
     fontSize: fp(11),
-    color: colors.uSubHeading,
+    color: colors.user.subHeading,
     fontWeight: '500',
   },
 
   // Empty
   emptyCard: {
     alignItems: 'center',
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.card,
     borderRadius: wp(20),
     paddingVertical: hp(40),
     paddingHorizontal: wp(24),
     borderWidth: 1,
-    borderColor: colors.uCard,
+    borderColor: colors.user.card,
   },
   emptyIconWrap: {
     width: wp(64),
     height: wp(64),
     borderRadius: wp(32),
-    backgroundColor: colors.uBg,
+    backgroundColor: colors.user.card,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: hp(16),
@@ -445,7 +445,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: fp(13),
-    color: colors.uSubHeading,
+    color: colors.user.subHeading,
     textAlign: 'center',
     lineHeight: fp(19),
     paddingHorizontal: wp(10),

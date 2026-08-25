@@ -437,7 +437,7 @@ const WebinarDetails = () => {
             activeOpacity={0.85}
           >
             <LinearGradient
-              colors={[colors.btnGradientStart, colors.btnGradientEnd]}
+              colors={['#86EFAC', '#4ADE80']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={styles.buyButton}
@@ -469,7 +469,7 @@ const PriceRow = ({ label, value }: { label: string; value: string }) => (
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.uBg,
+    backgroundColor: colors.user.bg,
   },
   loaderContainer: {
     flex: 1,
@@ -498,7 +498,7 @@ const styles = StyleSheet.create({
   thumbnailWrapper: {
     width: '100%',
     height: hp(220),
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.card,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -513,7 +513,7 @@ const styles = StyleSheet.create({
   },
   noImageText: {
     marginTop: hp(8),
-    color: colors.textPrimary,
+    color: colors.user.text,
     fontSize: fp(14),
   },
 
@@ -522,7 +522,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginTop: hp(15),
     paddingHorizontal: wp(15),
-    color: colors.textPrimary,
+    color: colors.user.text,
   },
 
   row: {
@@ -533,11 +533,11 @@ const styles = StyleSheet.create({
     gap: wp(6),
   },
   host: {
-    color: colors.textPrimary,
+    color: colors.user.accentText,
     fontSize: fp(14),
   },
   detailText: {
-    color: colors.textPrimary,
+    color: colors.user.subHeading,
     fontSize: fp(14),
   },
 
@@ -552,7 +552,7 @@ const styles = StyleSheet.create({
   tag: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.cardSoft,
     paddingVertical: hp(5),
     paddingHorizontal: wp(10),
     borderRadius: wp(20),
@@ -560,17 +560,17 @@ const styles = StyleSheet.create({
   },
 
   tagText: {
-    color: colors.textPrimary,
+    color: colors.user.accentText,
     fontSize: fp(12),
   },
 
   priceBox: {
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.cardSoft,
     padding: wp(16),
     borderRadius: wp(14),
     marginHorizontal: wp(15),
     borderWidth: 1,
-    borderColor: colors.uSubtext,
+    borderColor: colors.user.cardSoft,
   },
   priceRow: {
     flexDirection: 'row',
@@ -578,17 +578,17 @@ const styles = StyleSheet.create({
     marginVertical: hp(6),
   },
   priceLabel: {
-    color: colors.uSubHeading,
+    color: colors.user.accentText,
     fontSize: fp(14),
   },
   priceValue: {
     fontWeight: '600',
-    color: colors.textPrimary,
+    color: colors.user.subHeading,
     fontSize: fp(14),
   },
   totalRow: {
     borderTopWidth: wp(1),
-    borderColor: colors.uSubtext,
+    borderColor: colors.user.accentText,
     marginTop: hp(12),
     paddingTop: hp(12),
     flexDirection: 'row',
@@ -598,16 +598,16 @@ const styles = StyleSheet.create({
   totalLabel: {
     fontSize: fp(16),
     fontWeight: '700',
-    color: colors.textPrimary
+    color: colors.user.subHeading
   },
   totalValue: {
     fontSize: fp(18),
     fontWeight: '800',
-    color: colors.statText,
+    color: colors.user.accentText,
   },
   participants: {
     fontSize: fp(14),
-    color: colors.textPrimary,
+    color: colors.user.accentText,
     marginTop: hp(10),
   },
 
@@ -615,11 +615,11 @@ const styles = StyleSheet.create({
     fontSize: fp(18),
     fontWeight: '600',
     paddingHorizontal: wp(15),
-    color: colors.textPrimary,
+    color: colors.user.text,
   },
   description: {
     fontSize: fp(14),
-    color: colors.textPrimary,
+    color: colors.user.accentText,
     marginTop: hp(8),
     paddingHorizontal: wp(15),
     lineHeight: fp(20),
@@ -631,7 +631,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     width: '100%',
     padding: wp(15),
-    backgroundColor: colors.uBg,
+    backgroundColor: colors.user.bg,
     borderTopWidth: wp(1),
     borderColor: colors.uBg,
     marginBottom: hp(10),
@@ -647,20 +647,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   buyText: {
-    color: colors.white,
+    color: colors.user.text,
     fontWeight: '700',
     fontSize: fp(16),
   },
   policyText: {
     fontSize: fp(12),
-    color: colors.uSubHeading,
+    color: colors.user.accentText,
     textAlign: 'center',
     lineHeight: fp(18),
     marginTop: hp(12),
     paddingHorizontal: wp(15),
   },
   policyLink: {
-    color: colors.statText,
+    color: colors.user.accent,
     fontWeight: '600',
   },
 });

@@ -326,7 +326,7 @@ export default function WebinarsScreen() {
 
   const share = async (w) => {
     await navigator.clipboard.writeText(
-      `https://manchly.chottu.link/webinar/${w.id}`,
+      `https://manchly.onelink.me/Ne3P?deep_link_value=webinar/${w.id}&af_dp=manchly://webinar/${w.id}`,
     );
     toast.success("Webinar link copied");
   };

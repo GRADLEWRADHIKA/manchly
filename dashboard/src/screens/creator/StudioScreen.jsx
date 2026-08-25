@@ -192,7 +192,7 @@ function StudioScreenContent({ initialCourseId }) {
   };
 
   const share = async () => {
-    const url = `https://manchly.chottu.link/course/${detail.id}`;
+    const url = `https://manchly.onelink.me/Ne3P?deep_link_value=course/${detail.id}&af_dp=manchly://course/${detail.id}`;
     await navigator.clipboard.writeText(url);
     toast.success("Course link copied");
   };

@@ -72,7 +72,7 @@ const BookingConfirmModal = ({
           <View style={styles.row}>
             <IndianRupee
               size={wp(16)}
-              color={colors.statText}
+              color={colors.uSubHeading}
               strokeWidth={1.8}
             />
             <Text style={styles.label}>Rate</Text>
@@ -80,7 +80,7 @@ const BookingConfirmModal = ({
           </View>
 
           <View style={styles.row}>
-            <Calendar size={wp(16)} color={colors.statIcon} strokeWidth={1.8} />
+            <Calendar size={wp(16)} color={colors.uSubHeading} strokeWidth={1.8} />
             <Text style={styles.label}>Date & Time</Text>
             <Text style={styles.value}>
               {dateLabel} · {timeLabel}
@@ -88,7 +88,7 @@ const BookingConfirmModal = ({
           </View>
 
           <View style={styles.row}>
-            <Clock size={wp(16)} color={colors.statIcon} strokeWidth={1.8} />
+            <Clock size={wp(16)} color={colors.uSubHeading} strokeWidth={1.8} />
             <Text style={styles.label}>Duration</Text>
             <Text style={styles.value}>30 min</Text>
           </View>
@@ -96,7 +96,7 @@ const BookingConfirmModal = ({
           <View style={styles.row}>
             <IndianRupee
               size={wp(16)}
-              color={colors.statText}
+              color={colors.uSubHeading}
               strokeWidth={1.8}
             />
             <Text style={styles.label}>Total</Text>

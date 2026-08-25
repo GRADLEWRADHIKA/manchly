@@ -43,6 +43,7 @@ import { wp, hp, fp } from '../../../../utils/responsive';
 import TermsModal from '../../../../components/TermsModal';
 import PrivacyModal from '../../../../components/PrivacyModal';
 import RefundPolicyModal from '../../../../components/RefundPolicyModal';
+import LinearGradient from 'react-native-linear-gradient'; // <-- Added Import
 
 const WebinarDetails = () => {
   const { params } = useRoute<any>();
@@ -412,23 +413,9 @@ const WebinarDetails = () => {
 
       <View style={styles.bottomBar}>
         {data?.is_enrolled ? (
-          canRate ? (
-            <TouchableOpacity
-              style={styles.buyButtonWrapper}
-              onPress={() => setShowRate(true)}
-              activeOpacity={0.85}
-            >
-              <View style={[styles.buyButton, { backgroundColor: colors.success }]}>
-                <Text style={styles.buyText}>Rate this webinar</Text>
-              </View>
-            </TouchableOpacity>
-          ) : (
-            <View style={styles.buyButtonWrapper}>
-              <View style={[styles.buyButton, { backgroundColor: colors.uCard }]}>
-                <Text style={styles.buyText}>Enrolled - Rate after it ends</Text>
-              </View>
-            </View>
-          )
+          <View style={[styles.buyButtonWrapper, { backgroundColor: colors.success || '#4CAF50' }]}>
+            <Text style={styles.buyText}>Already Enrolled</Text>
+          </View>
         ) : (
           <TouchableOpacity
             style={styles.buyButtonWrapper}
@@ -436,14 +423,15 @@ const WebinarDetails = () => {
             disabled={loading}
             activeOpacity={0.85}
           >
+            {/* Added LinearGradient here */}
             <LinearGradient
-              colors={['#86EFAC', '#4ADE80']}
+              colors={[colors.btnGradientStart || '#F0C040', colors.btnGradientEnd || '#E6A820']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
-              style={styles.buyButton}
+              style={styles.buyButtonGradient}
             >
               {loading ? (
-                <ActivityIndicator color={colors.white} size={'small'} />
+                <ActivityIndicator color={'#FFFFFF'} size={'small'} />
               ) : (
                 <Text style={styles.buyText}>
                   Purchase for ₹{total.toFixed(2)}
@@ -498,7 +486,7 @@ const styles = StyleSheet.create({
   thumbnailWrapper: {
     width: '100%',
     height: hp(220),
-    backgroundColor: colors.user.card,
+    backgroundColor: colors.uCard,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -565,7 +553,8 @@ const styles = StyleSheet.create({
   },
 
   priceBox: {
-    backgroundColor: colors.user.cardSoft,
+    backgroundColor: colors.uCard,
+    color: colors.textPrimary,
     padding: wp(16),
     borderRadius: wp(14),
     marginHorizontal: wp(15),
@@ -583,8 +572,7 @@ const styles = StyleSheet.create({
   },
   priceValue: {
     fontWeight: '600',
-    color: colors.user.subHeading,
-    fontSize: fp(14),
+    color: colors.textPrimary,
   },
   totalRow: {
     borderTopWidth: wp(1),
@@ -603,7 +591,7 @@ const styles = StyleSheet.create({
   totalValue: {
     fontSize: fp(18),
     fontWeight: '800',
-    color: colors.user.accentText,
+    color: colors.statText,
   },
   participants: {
     fontSize: fp(14),
@@ -636,18 +624,18 @@ const styles = StyleSheet.create({
     borderColor: colors.uBg,
     marginBottom: hp(10),
   },
+  // Modified styles for Button with Gradient
   buyButtonWrapper: {
-    borderRadius: wp(12),
+    borderRadius: wp(10),
     overflow: 'hidden',
   },
-  buyButton: {
+  buyButtonGradient: {
     paddingVertical: hp(14),
-    borderRadius: wp(12),
     alignItems: 'center',
     justifyContent: 'center',
   },
   buyText: {
-    color: colors.user.text,
+    color: '#FFFFFF', // Ensures strong contrast against the gradient
     fontWeight: '700',
     fontSize: fp(16),
   },
@@ -660,7 +648,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(15),
   },
   policyLink: {
-    color: colors.user.accent,
-    fontWeight: '600',
+    color: colors.statText,
+    fontWeight: '500',
   },
 });

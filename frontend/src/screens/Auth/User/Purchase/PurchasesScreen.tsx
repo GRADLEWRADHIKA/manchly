@@ -17,7 +17,6 @@ import {
   ShoppingBag,
   GraduationCap,
   Video,
-  Instagram,
 } from 'lucide-react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';

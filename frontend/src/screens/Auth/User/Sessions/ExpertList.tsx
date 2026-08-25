@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
     gap: hp(6),
     marginLeft: wp(8),
   },
-  priceText: {fontSize: fp(12), fontWeight: '700', color: colors.statText},
+  priceText: {fontSize: fp(12), fontWeight: '700', color: colors.white},
   
   // --- Updated Button Styles ---
   bookBtnWrapper: {

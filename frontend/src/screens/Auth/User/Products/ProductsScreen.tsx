@@ -187,7 +187,7 @@ const ProductsScreen = () => {
             >
               <Icon
                 size={wp(16)}
-                color={isActive ? colors.white : colors.uSubHeading}
+                color={isActive ? colors.white : colors.textSecondary}
                 strokeWidth={isActive ? 2.2 : 1.6}
               />
               <Text style={[styles.tabLabel, isActive && styles.tabLabelActive]}>
@@ -861,7 +861,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: hp(10),
     right: wp(10),
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: colors.goldDim,
     paddingHorizontal: wp(8),
     paddingVertical: hp(4),
     borderRadius: 6,

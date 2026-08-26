@@ -42,6 +42,7 @@ model users {
   bank_account              creator_bank_accounts?
   creatorProfile            creator_profiles?
   storefront                creator_storefronts?
+  reels                     course_reels[]
   enrollments               enrollments[]
   group_members             group_members[]
   created_groups            groups[]
@@ -89,6 +90,7 @@ model courses {
   enrollments            enrollments[]
   transactions           transactions[]
   videos                 videos[]
+  reels                  course_reels[]
 
   @@index([creator_id])
   @@index([status])
@@ -618,6 +620,44 @@ model marketplace_profile_views {
   @@index([user_id])
   @@index([creator_id])
   @@map("marketplace_profile_views")
+}
+
+/// Short vertical promo videos that surface a course in a scrollable feed.
+/// The reel is only a shop window — buying still goes through the normal
+/// course enrolment path, so nothing about course creation changes.
+model course_reels {
+  id              String     @id @default(uuid())
+  course_id       String     @map("course_id")
+  creator_id      String     @map("creator_id")
+  caption         String     @default("")
+  // Same Mux direct-upload pipeline the course videos use.
+  mux_asset_id    String?    @unique @map("mux_asset_id")
+  mux_upload_id   String?    @unique @map("mux_upload_id")
+  mux_playback_id String?    @map("mux_playback_id")
+  upload_url      String?    @map("upload_url")
+  playback_url    String?    @map("playback_url")
+  thumbnail_url   String?    @map("thumbnail_url")
+  duration        Int?
+  status          ReelStatus @default(UPLOADING)
+  view_count      Int        @default(0) @map("view_count")
+  created_at      DateTime   @default(now()) @map("created_at")
+  updated_at      DateTime   @default(now()) @updatedAt @map("updated_at")
+  course          courses    @relation(fields: [course_id], references: [id], onDelete: Cascade)
+  creator         users      @relation(fields: [creator_id], references: [id], onDelete: Cascade)
+
+  // The feed reads ready reels newest-first.
+  @@index([status, created_at])
+  @@index([course_id])
+  @@index([creator_id])
+  @@map("course_reels")
+}
+
+enum ReelStatus {
+  UPLOADING
+  PROCESSING
+  READY
+  FAILED
+  HIDDEN
 }
 
 /// Public storefront shown at <handle>.manchly.com. Distinct from

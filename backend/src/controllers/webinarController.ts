@@ -6,6 +6,7 @@ import ZoomMeetingManager, {
   getZoomConfigurationStatus,
 } from "../utils/zoomManager";
 import { isCreator, isUser } from "../utils/userTypeHelper";
+import { canManageResource } from "../utils/permissions";
 import { SettlementService } from "../services/settlementService";
 import { notificationService } from "../services/NotificationService";
 import { cashfreePG } from "../services/cashfreeService";
@@ -487,7 +488,7 @@ export class WebinarController {
         return ApiResponseHandler.customError(res, "Webinar not found", 404, "WEBINAR_NOT_FOUND");
       }
 
-      if (existingWebinar.creator_id !== userId) {
+      if (!(await canManageResource(userId, existingWebinar.creator_id))) {
         return ApiResponseHandler.customError(res, "You don't have permission to update this webinar", 403, "FORBIDDEN");
       }
 
@@ -651,7 +652,7 @@ export class WebinarController {
         return ApiResponseHandler.customError(res, "Webinar not found", 404, "WEBINAR_NOT_FOUND");
       }
 
-      if (webinar.creator_id !== userId) {
+      if (!(await canManageResource(userId, webinar.creator_id))) {
         return ApiResponseHandler.customError(res, "You don't have permission to delete this webinar", 403, "FORBIDDEN");
       }
 

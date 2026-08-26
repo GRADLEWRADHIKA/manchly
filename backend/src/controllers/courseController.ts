@@ -3,7 +3,8 @@ import prisma from "../prismaClient";
 import { ApiResponseHandler } from "../utils/ApiResponseHandler";
 import MuxManager from "../utils/MuxManager";
 import { UserType } from "@prisma/client";
-import { isCreator, isUser } from "../utils/userTypeHelper";
+import { isCreator, isUser, isAdmin } from "../utils/userTypeHelper";
+import { canManageResource } from "../utils/permissions";
 import { notificationService } from "../services/NotificationService";
 import { NotificationController } from "./notificationController";
 import { isAccessExpired, computeAccessExpiry, parseAccessPolicyInput } from "../utils/accessExpiry";
@@ -477,7 +478,8 @@ export class CourseController {
 
       // Filter videos based on enrollment status (expired == not enrolled)
       let videosToShow = course.videos;
-      if (isUser(user.user_type) && !isEnrolled && course.creator_id !== userId) {
+      // Admins review course content, so they always see the full video list.
+      if (isUser(user.user_type) && !isAdmin(user.user_type) && !isEnrolled && course.creator_id !== userId) {
         // Show only free videos to non-enrolled (or expired) users
         videosToShow = course.videos.filter(v => v.is_free);
       }
@@ -530,7 +532,7 @@ export class CourseController {
         return ApiResponseHandler.customError(res, "Course not found", 404, "COURSE_NOT_FOUND");
       }
 
-      if (existingCourse.creator_id !== userId) {
+      if (!(await canManageResource(userId, existingCourse.creator_id))) {
         return ApiResponseHandler.customError(res, "You don't have permission to update this course", 403, "FORBIDDEN");
       }
 
@@ -610,7 +612,7 @@ export class CourseController {
         return ApiResponseHandler.customError(res, "Course not found", 404, "COURSE_NOT_FOUND");
       }
 
-      if (course.creator_id !== userId) {
+      if (!(await canManageResource(userId, course.creator_id))) {
         return ApiResponseHandler.customError(res, "You don't have permission to delete this course", 403, "FORBIDDEN");
       }
 
@@ -660,7 +662,7 @@ export class CourseController {
         return ApiResponseHandler.customError(res, "Course not found", 404, "COURSE_NOT_FOUND");
       }
 
-      if (course.creator_id !== userId) {
+      if (!(await canManageResource(userId, course.creator_id))) {
         return ApiResponseHandler.customError(res, "You don't have permission to add videos to this course", 403, "FORBIDDEN");
       }
 
@@ -727,7 +729,7 @@ export class CourseController {
         return ApiResponseHandler.customError(res, "Video not found", 404, "VIDEO_NOT_FOUND");
       }
 
-      if (video.course.creator_id !== userId) {
+      if (!(await canManageResource(userId, video.course.creator_id))) {
         return ApiResponseHandler.customError(res, "You don't have permission to view this video", 403, "FORBIDDEN");
       }
 
@@ -816,7 +818,7 @@ export class CourseController {
         return ApiResponseHandler.customError(res, "Video not found", 404, "VIDEO_NOT_FOUND");
       }
 
-      if (video.course.creator_id !== userId) {
+      if (!(await canManageResource(userId, video.course.creator_id))) {
         return ApiResponseHandler.customError(res, "You don't have permission to update this video", 403, "FORBIDDEN");
       }
 
@@ -889,7 +891,7 @@ export class CourseController {
         return ApiResponseHandler.customError(res, "Video not found", 404, "VIDEO_NOT_FOUND");
       }
 
-      if (video.course.creator_id !== userId) {
+      if (!(await canManageResource(userId, video.course.creator_id))) {
         return ApiResponseHandler.customError(res, "You don't have permission to delete this video", 403, "FORBIDDEN");
       }
 

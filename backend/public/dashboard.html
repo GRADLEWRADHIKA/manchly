@@ -35,6 +35,22 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="14" height="14" rx="2.5"/><path d="m22 8-6 4 6 4z"/></svg>
         <span>Webinars</span>
       </button>
+      <button type="button" class="nav-item" data-section="payments">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20"/></svg>
+        <span>Payments</span>
+      </button>
+      <button type="button" class="nav-item" data-section="sessions">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 16.5 22 20V4l-6.5 3.5"/><rect x="2" y="6" width="13.5" height="12" rx="2.5"/></svg>
+        <span>Sessions</span>
+      </button>
+      <button type="button" class="nav-item" data-section="kyc">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6.5v5c0 4.4 3.4 8.5 8 9.5 4.6-1 8-5.1 8-9.5v-5z"/><path d="m9 12 2 2 4-4"/></svg>
+        <span>KYC</span>
+      </button>
+      <button type="button" class="nav-item" data-section="storefronts">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9 4.5 4.5h15L21 9"/><path d="M4 9v10a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9"/><path d="M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"/></svg>
+        <span>Storefronts</span>
+      </button>
     </nav>
 
     <div class="sidebar-foot">
@@ -246,6 +262,144 @@
         </div>
       </div>
 
+      <!-- ───── Payments ───── -->
+      <div id="panel-payments" class="dashboard-panel">
+        <div class="panel-head">
+          <h2 class="section-title">Payments</h2>
+          <p class="section-sub">Every course, webinar, and 1:1 transaction in one feed.</p>
+        </div>
+
+        <div class="stats-grid" style="margin-bottom:1.5rem;">
+          <div class="stat-card">
+            <div class="stat-icon tint-amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12"/><path d="M6 9h12"/><path d="M6 4c6 0 8 1.6 8 4.5S12 13 6 13c3.5 0 6 3 9 7"/></svg></div>
+            <span class="value" id="tx-revenue">–</span>
+            <span class="label">Revenue (₹)</span>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon tint-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.5 2.5 2.5 4.5-5"/></svg></div>
+            <span class="value" id="tx-success">–</span>
+            <span class="label">Successful</span>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon tint-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+            <span class="value" id="tx-pending">–</span>
+            <span class="label">Pending</span>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon tint-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m9 9 6 6M15 9l-6 6"/></svg></div>
+            <span class="value" id="tx-failed">–</span>
+            <span class="label">Failed</span>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <select id="filter-tx-kind" class="search-input" style="padding-left:1rem;max-width:200px;">
+            <option value="">All products</option>
+            <option value="course">Courses</option>
+            <option value="webinar">Webinars</option>
+            <option value="session">1:1 Sessions</option>
+          </select>
+          <select id="filter-tx-status" class="search-input" style="padding-left:1rem;max-width:200px;">
+            <option value="">All statuses</option>
+            <option value="SUCCESS">Success</option>
+            <option value="PENDING">Pending</option>
+            <option value="FAILED">Failed</option>
+          </select>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Type</th><th>Item</th><th>Buyer</th><th>Amount</th><th>Status</th><th>Date</th></tr>
+            </thead>
+            <tbody id="payments-tbody"></tbody>
+          </table>
+        </div>
+        <div class="pagination" id="pagination-payments"></div>
+      </div>
+
+      <!-- ───── Sessions ───── -->
+      <div id="panel-sessions" class="dashboard-panel">
+        <div class="panel-head">
+          <h2 class="section-title">1:1 Sessions</h2>
+          <p class="section-sub">Bookings between learners and creators.</p>
+        </div>
+
+        <div class="toolbar">
+          <select id="filter-session-status" class="search-input" style="padding-left:1rem;max-width:220px;">
+            <option value="">All statuses</option>
+            <option value="PENDING">Pending</option>
+            <option value="ACTIVE">Active</option>
+            <option value="COMPLETED">Completed</option>
+            <option value="MISSED">Missed</option>
+            <option value="CANCELLED">Cancelled</option>
+          </select>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Learner</th><th>Creator</th><th>Mode</th><th>Status</th><th>Amount</th><th>Duration</th><th>Scheduled</th></tr>
+            </thead>
+            <tbody id="sessions-tbody"></tbody>
+          </table>
+        </div>
+        <div class="pagination" id="pagination-sessions"></div>
+      </div>
+
+      <!-- ───── KYC ───── -->
+      <div id="panel-kyc" class="dashboard-panel">
+        <div class="panel-head">
+          <h2 class="section-title">KYC Verification</h2>
+          <p class="section-sub">Approve or reject creator identity checks.</p>
+        </div>
+
+        <div class="toolbar">
+          <select id="filter-kyc-status" class="search-input" style="padding-left:1rem;max-width:220px;">
+            <option value="PENDING">Pending</option>
+            <option value="">All statuses</option>
+            <option value="VERIFIED">Verified</option>
+            <option value="FAILED">Failed</option>
+          </select>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Name</th><th>Email</th><th>PAN</th><th>Type</th><th>Status</th><th>Submitted</th><th>Action</th></tr>
+            </thead>
+            <tbody id="kyc-tbody"></tbody>
+          </table>
+        </div>
+        <div class="pagination" id="pagination-kyc"></div>
+      </div>
+
+      <!-- ───── Storefronts ───── -->
+      <div id="panel-storefronts" class="dashboard-panel">
+        <div class="panel-head">
+          <h2 class="section-title">Creator Storefronts</h2>
+          <p class="section-sub">Public pages at <code>handle.manchly.com</code> — publish or take one down.</p>
+        </div>
+
+        <div class="toolbar">
+          <div class="search-field">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            <input type="search" id="search-storefronts" placeholder="Search by handle, name, email" class="search-input" />
+          </div>
+          <button type="button" id="btn-search-storefronts" class="btn btn-primary btn-inline">Search</button>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Handle</th><th>Creator</th><th>Tagline</th><th>Courses</th><th>Webinars</th><th>Views</th><th>Status</th><th>Action</th></tr>
+            </thead>
+            <tbody id="storefronts-tbody"></tbody>
+          </table>
+        </div>
+        <div class="pagination" id="pagination-storefronts"></div>
+      </div>
+
     </div><!-- /.content -->
   </div><!-- /.main -->
 
@@ -306,6 +460,10 @@
         if (section === 'users') loadUsers(1);
         if (section === 'courses') loadCourses(1);
         if (section === 'webinars') loadWebinars(1);
+        if (section === 'payments') loadPayments(1);
+        if (section === 'sessions') loadSessions(1);
+        if (section === 'kyc') loadKyc(1);
+        if (section === 'storefronts') loadStorefronts(1);
       });
     });
 
@@ -602,6 +760,218 @@
         }
       })
       .catch(function() {});
+
+    // ——— Payments ———
+    var paymentsPage = 1;
+
+    function loadPayments(page) {
+      paymentsPage = page || 1;
+      var tbody = document.getElementById('payments-tbody');
+      tbody.innerHTML = '<tr><td colspan="6" class="loading">Loading…</td></tr>';
+
+      var url = API_BASE + '/admin/transactions?page=' + paymentsPage + '&limit=20';
+      var kind = document.getElementById('filter-tx-kind').value;
+      var status = document.getElementById('filter-tx-status').value;
+      if (kind) url += '&kind=' + kind;
+      if (status) url += '&status=' + status;
+
+      apiFetch(url).then(function(r) { return r.json(); }).then(function(json) {
+        if (!json.success || !json.data) {
+          tbody.innerHTML = '<tr><td colspan="6" class="error-msg">' + ((json.error && json.error.message) || 'Failed to load') + '</td></tr>';
+          return;
+        }
+        var d = json.data;
+        document.getElementById('tx-revenue').textContent = Number(d.totals.revenue || 0).toLocaleString('en-IN');
+        document.getElementById('tx-success').textContent = d.totals.success;
+        document.getElementById('tx-pending').textContent = d.totals.pending;
+        document.getElementById('tx-failed').textContent = d.totals.failed;
+
+        if (!d.transactions.length) {
+          tbody.innerHTML = '<tr><td colspan="6" class="loading">No transactions found</td></tr>';
+        } else {
+          tbody.innerHTML = d.transactions.map(function(t) {
+            var badgeClass = t.status === 'SUCCESS' ? 'creator' : (t.status === 'FAILED' ? 'admin' : 'user');
+            var kindClass = t.kind === 'course' ? 'user' : (t.kind === 'webinar' ? 'brand' : 'creator');
+            var who = t.user ? (t.user.name || t.user.email || '–') : '–';
+            return '<tr><td><span class="badge badge-' + kindClass + '">' + t.kind + '</span></td>' +
+              '<td>' + (t.item || '–') + '</td><td>' + who + '</td>' +
+              '<td>₹' + Number(t.amount || 0).toLocaleString('en-IN') + '</td>' +
+              '<td><span class="badge badge-' + badgeClass + '">' + t.status + '</span></td>' +
+              '<td class="date-fmt">' + formatDate(t.created_at) + '</td></tr>';
+          }).join('');
+        }
+        renderPagination('pagination-payments', d.pagination, loadPayments);
+      }).catch(function(e) {
+        tbody.innerHTML = '<tr><td colspan="6" class="error-msg">' + (e.message || 'Failed to load') + '</td></tr>';
+      });
+    }
+
+    document.getElementById('filter-tx-kind').onchange = function() { loadPayments(1); };
+    document.getElementById('filter-tx-status').onchange = function() { loadPayments(1); };
+
+    // ——— Sessions ———
+    var sessionsPage = 1;
+
+    function loadSessions(page) {
+      sessionsPage = page || 1;
+      var tbody = document.getElementById('sessions-tbody');
+      tbody.innerHTML = '<tr><td colspan="7" class="loading">Loading…</td></tr>';
+
+      var url = API_BASE + '/admin/sessions?page=' + sessionsPage + '&limit=20';
+      var status = document.getElementById('filter-session-status').value;
+      if (status) url += '&status=' + status;
+
+      apiFetch(url).then(function(r) { return r.json(); }).then(function(json) {
+        if (!json.success || !json.data) {
+          tbody.innerHTML = '<tr><td colspan="7" class="error-msg">' + ((json.error && json.error.message) || 'Failed to load') + '</td></tr>';
+          return;
+        }
+        var rows = json.data.sessions || [];
+        if (!rows.length) {
+          tbody.innerHTML = '<tr><td colspan="7" class="loading">No sessions found</td></tr>';
+        } else {
+          tbody.innerHTML = rows.map(function(s) {
+            var badgeClass = s.status === 'COMPLETED' ? 'creator' : (s.status === 'CANCELLED' || s.status === 'MISSED' ? 'admin' : 'user');
+            var caller = s.caller ? (s.caller.name || s.caller.email) : '–';
+            var receiver = s.receiver ? (s.receiver.name || s.receiver.email) : '–';
+            return '<tr><td>' + caller + '</td><td>' + receiver + '</td>' +
+              '<td>' + (s.mode || '–') + '</td>' +
+              '<td><span class="badge badge-' + badgeClass + '">' + s.status + '</span></td>' +
+              '<td>₹' + Number(s.amount || 0).toLocaleString('en-IN') + '</td>' +
+              '<td>' + (s.duration || 0) + ' min</td>' +
+              '<td class="date-fmt">' + formatDateTime(s.scheduled_at) + '</td></tr>';
+          }).join('');
+        }
+        renderPagination('pagination-sessions', json.data.pagination, loadSessions);
+      }).catch(function(e) {
+        tbody.innerHTML = '<tr><td colspan="7" class="error-msg">' + (e.message || 'Failed to load') + '</td></tr>';
+      });
+    }
+
+    document.getElementById('filter-session-status').onchange = function() { loadSessions(1); };
+
+    // ——— KYC ———
+    var kycPage = 1;
+
+    function loadKyc(page) {
+      kycPage = page || 1;
+      var tbody = document.getElementById('kyc-tbody');
+      tbody.innerHTML = '<tr><td colspan="7" class="loading">Loading…</td></tr>';
+
+      var url = API_BASE + '/admin/kyc?page=' + kycPage + '&limit=20';
+      var status = document.getElementById('filter-kyc-status').value;
+      if (status) url += '&status=' + status;
+
+      apiFetch(url).then(function(r) { return r.json(); }).then(function(json) {
+        if (!json.success || !json.data) {
+          tbody.innerHTML = '<tr><td colspan="7" class="error-msg">' + ((json.error && json.error.message) || 'Failed to load') + '</td></tr>';
+          return;
+        }
+        var rows = json.data.kyc || [];
+        if (!rows.length) {
+          tbody.innerHTML = '<tr><td colspan="7" class="loading">No KYC records found</td></tr>';
+        } else {
+          tbody.innerHTML = rows.map(function(k) {
+            var badgeClass = k.status === 'VERIFIED' ? 'creator' : (k.status === 'FAILED' ? 'admin' : 'user');
+            var actions = k.status === 'PENDING'
+              ? '<button type="button" class="btn-inline btn btn-primary kyc-act" data-id="' + k.id + '" data-approve="1" style="padding:0.35rem 0.9rem;font-size:0.8125rem;">Approve</button> ' +
+                '<button type="button" class="btn-danger kyc-act" data-id="' + k.id + '" data-approve="0" style="padding:0.35rem 0.9rem;font-size:0.8125rem;">Reject</button>'
+              : '<span style="color:var(--text-soft);font-size:0.8125rem;">Reviewed</span>';
+            return '<tr><td>' + ((k.user && k.user.name) || '–') + '</td>' +
+              '<td>' + ((k.user && k.user.email) || '–') + '</td>' +
+              '<td>' + (k.pan_number || '–') + '</td>' +
+              '<td>' + (k.verification_type || '–') + '</td>' +
+              '<td><span class="badge badge-' + badgeClass + '">' + k.status + '</span></td>' +
+              '<td class="date-fmt">' + formatDate(k.created_at) + '</td>' +
+              '<td style="white-space:nowrap;">' + actions + '</td></tr>';
+          }).join('');
+
+          tbody.querySelectorAll('.kyc-act').forEach(function(btn) {
+            btn.onclick = function() {
+              var approve = btn.getAttribute('data-approve') === '1';
+              if (!window.confirm((approve ? 'Approve' : 'Reject') + ' this KYC submission?')) return;
+              btn.disabled = true;
+              apiFetch(API_BASE + '/admin/kyc/' + btn.getAttribute('data-id') + '/review', {
+                method: 'PATCH',
+                body: JSON.stringify({ approve: approve })
+              }).then(function(r) { return r.json(); }).then(function(j) {
+                if (!j.success) throw new Error((j.error && j.error.message) || 'Failed');
+                loadKyc(kycPage);
+              }).catch(function(e) { alert('Failed: ' + e.message); btn.disabled = false; });
+            };
+          });
+        }
+        renderPagination('pagination-kyc', json.data.pagination, loadKyc);
+      }).catch(function(e) {
+        tbody.innerHTML = '<tr><td colspan="7" class="error-msg">' + (e.message || 'Failed to load') + '</td></tr>';
+      });
+    }
+
+    document.getElementById('filter-kyc-status').onchange = function() { loadKyc(1); };
+
+    // ——— Storefronts ———
+    var storefrontsPage = 1, storefrontsSearch = '';
+
+    function loadStorefronts(page) {
+      storefrontsPage = page || 1;
+      var tbody = document.getElementById('storefronts-tbody');
+      tbody.innerHTML = '<tr><td colspan="8" class="loading">Loading…</td></tr>';
+
+      var url = API_BASE + '/admin/storefronts?page=' + storefrontsPage + '&limit=20';
+      if (storefrontsSearch) url += '&search=' + encodeURIComponent(storefrontsSearch);
+
+      apiFetch(url).then(function(r) { return r.json(); }).then(function(json) {
+        if (!json.success || !json.data) {
+          tbody.innerHTML = '<tr><td colspan="8" class="error-msg">' + ((json.error && json.error.message) || 'Failed to load') + '</td></tr>';
+          return;
+        }
+        var rows = json.data.storefronts || [];
+        if (!rows.length) {
+          tbody.innerHTML = '<tr><td colspan="8" class="loading">No storefronts found</td></tr>';
+        } else {
+          tbody.innerHTML = rows.map(function(c) {
+            var sf = c.storefront || {};
+            var live = sf.is_published === true;
+            var link = 'https://' + c.handle + '.manchly.com';
+            return '<tr><td><a href="' + link + '" target="_blank" rel="noopener" style="color:var(--amber-deep);font-weight:700;">' + c.handle + '</a></td>' +
+              '<td>' + (c.name || c.email || '–') + '</td>' +
+              '<td>' + (sf.tagline || '–') + '</td>' +
+              '<td>' + (c._count ? c._count.courses : 0) + '</td>' +
+              '<td>' + (c._count ? c._count.webinars : 0) + '</td>' +
+              '<td>' + (sf.view_count || 0) + '</td>' +
+              '<td><span class="badge badge-' + (live ? 'creator' : 'user') + '">' + (live ? 'Live' : 'Private') + '</span></td>' +
+              '<td><button type="button" class="' + (live ? 'btn-danger' : 'btn btn-primary') + ' sf-act" data-id="' + c.id + '" data-publish="' + (live ? '0' : '1') + '" style="padding:0.35rem 0.9rem;font-size:0.8125rem;width:auto;margin:0;">' +
+              (live ? 'Unpublish' : 'Publish') + '</button></td></tr>';
+          }).join('');
+
+          tbody.querySelectorAll('.sf-act').forEach(function(btn) {
+            btn.onclick = function() {
+              var publish = btn.getAttribute('data-publish') === '1';
+              if (!publish && !window.confirm('Take this storefront offline? The public page will stop loading.')) return;
+              btn.disabled = true;
+              apiFetch(API_BASE + '/admin/storefronts/' + btn.getAttribute('data-id') + '/publish', {
+                method: 'PATCH',
+                body: JSON.stringify({ publish: publish })
+              }).then(function(r) { return r.json(); }).then(function(j) {
+                if (!j.success) throw new Error((j.error && j.error.message) || 'Failed');
+                loadStorefronts(storefrontsPage);
+              }).catch(function(e) { alert('Failed: ' + e.message); btn.disabled = false; });
+            };
+          });
+        }
+        renderPagination('pagination-storefronts', json.data.pagination, loadStorefronts);
+      }).catch(function(e) {
+        tbody.innerHTML = '<tr><td colspan="8" class="error-msg">' + (e.message || 'Failed to load') + '</td></tr>';
+      });
+    }
+
+    document.getElementById('btn-search-storefronts').onclick = function() {
+      storefrontsSearch = document.getElementById('search-storefronts').value.trim();
+      loadStorefronts(1);
+    };
+    document.getElementById('search-storefronts').onkeydown = function(e) {
+      if (e.key === 'Enter') { storefrontsSearch = this.value.trim(); loadStorefronts(1); }
+    };
 
     loadStats();
     loadUsers(1);

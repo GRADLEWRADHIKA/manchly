@@ -9,14 +9,13 @@ import {
   Animated,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { Video,Sparkles, Bell, ArrowRight } from 'lucide-react-native';
+import { Video, Sparkles, Bell, ArrowRight } from 'lucide-react-native';
 import { useDispatch } from 'react-redux';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { getAllWebinar } from '../../../../../store/WebinarSlice';
 import colors from '../../../../../utils/colors';
 import { wp, hp, fp } from '../../../../../utils/responsive';
 import ShimmerBox from '../../../../../components/ShimmerBox';
-//import moment from 'moment-timezone';
 
 const WebinarSkeleton = () => (
   <View style={styles.section}>
@@ -57,6 +56,37 @@ const WebinarSkeleton = () => (
 );
 
 const LatestWebinarItem = ({ item, onPress }: any) => {
+  const pulse = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (item?.thumbnail_url) return;
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, {
+          toValue: 1,
+          duration: 900,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulse, {
+          toValue: 0,
+          duration: 900,
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [item?.thumbnail_url]);
+
+  const iconScale = pulse.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 1.12],
+  });
+  const iconOpacity = pulse.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.55, 1],
+  });
+
   return (
     <Pressable
       style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
@@ -65,9 +95,24 @@ const LatestWebinarItem = ({ item, onPress }: any) => {
       {item?.thumbnail_url ? (
         <Image source={{ uri: item.thumbnail_url }} style={styles.thumb} />
       ) : (
-        <View style={[styles.thumb, styles.thumbPlaceholder]}>
-          <Video size={wp(22)} color={colors.uSubtext} strokeWidth={1.5} />
-        </View>
+        <LinearGradient
+          colors={colors.greenButtonDarkGradient || ['#4ADE80', '#16A34A']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[styles.thumb, styles.thumbPlaceholder]}
+        >
+          <Animated.View
+            style={[
+              styles.placeholderIconWrap,
+              { transform: [{ scale: iconScale }], opacity: iconOpacity },
+            ]}
+          >
+            <Video size={wp(22)} color="#16A34A" strokeWidth={1.8} />
+          </Animated.View>
+          <Text style={styles.placeholderLabel} numberOfLines={1}>
+            WEBINAR
+          </Text>
+        </LinearGradient>
       )}
       <View style={styles.info}>
         <Text style={styles.title} numberOfLines={2}>
@@ -140,45 +185,43 @@ const EmptyWebinarCard = () => {
           <ArrowRight size={wp(14)} color={colors.user.subHeading} strokeWidth={2} />
         </Pressable>
       </View>
+
       <Pressable style={({ pressed }) => [pressed && { opacity: 0.95 }]}>
         <LinearGradient
-          colors={['#4ADE80', '#16A34A']}
-  start={{ x: 0, y: 0 }}
-  end={{ x: 1, y: 1 }}
-  style={[styles.thumb, styles.thumbPlaceholder]}
+          colors={colors.greenButtonDarkGradient || ['#4ADE80', '#16A34A']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.emptyCard}
         >
-          {/* Decorative circles */}
+          {/* Decorative background circles */}
           <View style={styles.decoCircle1} />
           <View style={styles.decoCircle2} />
+
           <Animated.View
             style={[
               styles.emptyIconWrap,
               { transform: [{ scale: pulseAnim }, { translateY: floatAnim }] },
             ]}
           >
-            <Video size={wp(30)} color={colors.btnGradientStart} strokeWidth={1.8} />
+            <Video size={wp(28)} color="#16A34A" strokeWidth={2} />
           </Animated.View>
 
           <View style={styles.sparkleRow}>
-            <Sparkles size={wp(14)} color="rgba(255,255,255,0.7)" strokeWidth={1.5} />
+            <Sparkles size={wp(14)} color="rgba(255,255,255,0.85)" strokeWidth={1.5} />
             <Text style={styles.emptyTitle}>Webinars Coming Soon!</Text>
-            <Sparkles size={wp(14)} color="rgba(255,255,255,0.7)" strokeWidth={1.5} />
+            <Sparkles size={wp(14)} color="rgba(255,255,255,0.85)" strokeWidth={1.5} />
           </View>
 
           <Text style={styles.emptySub}>
             Live sessions with experts are on the way.{'\n'}
             Be the first to know when they go live!
-          </Text>   
-          <LinearGradient
-           colors={['#4ADE80', '#16A34A']}
-  start={{ x: 0, y: 0 }}
-  end={{ x: 1, y: 1 }}
-  style={[styles.thumb, styles.thumbPlaceholder]}
-          >
-            <Bell size={wp(14)} color={colors.white} strokeWidth={2} />
+          </Text>
+
+          <View style={styles.notifyBtn}>
+            <Bell size={wp(14)} color="#FFFFFF" strokeWidth={2} />
             <Text style={styles.notifyBtnText}>Notify Me</Text>
-            <ArrowRight size={wp(14)} color={colors.white} strokeWidth={2} />
-          </LinearGradient>
+            <ArrowRight size={wp(14)} color="#FFFFFF" strokeWidth={2} />
+          </View>
         </LinearGradient>
       </Pressable>
     </View>
@@ -199,7 +242,6 @@ const LatestWebinars = () => {
         .unwrap()
         .then((response: any) => {
           const all = response?.data?.data?.webinars || [];
-          // console.log('---all---', all)
           const unbought = all.filter((w: any) => !w.is_enrolled).slice(0, 5);
           setWebinars(unbought);
         })
@@ -297,9 +339,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(20),
     gap: wp(12),
   },
-  loader: {
-    marginVertical: hp(20),
-  },
   card: {
     width: wp(160),
     backgroundColor: colors.user.card,
@@ -316,9 +355,24 @@ const styles = StyleSheet.create({
     height: hp(90),
   },
   thumbPlaceholder: {
-    backgroundColor: colors.greenButtonDark,
     alignItems: 'center',
     justifyContent: 'center',
+    gap: hp(6),
+  },
+  placeholderIconWrap: {
+    width: wp(40),
+    height: wp(40),
+    borderRadius: wp(20),
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  placeholderLabel: {
+    fontSize: fp(9),
+    fontWeight: '700',
+    color: '#FFFFFF',
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
   },
   info: {
     padding: wp(10),
@@ -337,12 +391,11 @@ const styles = StyleSheet.create({
   emptyCard: {
     marginHorizontal: wp(20),
     borderRadius: wp(18),
-    paddingVertical: hp(30),
-    paddingHorizontal: wp(24),
+    paddingVertical: hp(24),
+    paddingHorizontal: wp(20),
     alignItems: 'center',
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(123,136,221,0.25)',
+    position: 'relative',
   },
   decoCircle1: {
     position: 'absolute',
@@ -351,7 +404,7 @@ const styles = StyleSheet.create({
     width: wp(80),
     height: wp(80),
     borderRadius: wp(40),
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: 'rgba(255,255,255,0.08)',
   },
   decoCircle2: {
     position: 'absolute',
@@ -360,16 +413,16 @@ const styles = StyleSheet.create({
     width: wp(60),
     height: wp(60),
     borderRadius: wp(30),
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    backgroundColor: 'rgba(255,255,255,0.06)',
   },
   emptyIconWrap: {
-    width: wp(64),
-    height: wp(64),
-    borderRadius: wp(32),
-    backgroundColor: colors.user.accent,
+    width: wp(56),
+    height: wp(56),
+    borderRadius: wp(28),
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: hp(14),
+    marginBottom: hp(12),
   },
   sparkleRow: {
     flexDirection: 'row',
@@ -378,28 +431,29 @@ const styles = StyleSheet.create({
     marginBottom: hp(8),
   },
   emptyTitle: {
-    fontSize: fp(17),
+    fontSize: fp(16),
     fontWeight: '700',
-    color: colors.user.text,
+    color: '#FFFFFF',
   },
   emptySub: {
-    fontSize: fp(12.5),
-    color: colors.user.accentText,
+    fontSize: fp(12),
+    color: 'rgba(255,255,255,0.9)',
     textAlign: 'center',
-    lineHeight: fp(18),
-    marginBottom: hp(18),
+    lineHeight: fp(17),
+    marginBottom: hp(16),
   },
   notifyBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: wp(20),
-    paddingVertical: hp(10),
-    borderRadius: wp(25),
-    gap: wp(8),
+    backgroundColor: 'rgba(0,0,0,0.2)',
+    paddingHorizontal: wp(16),
+    paddingVertical: hp(8),
+    borderRadius: wp(20),
+    gap: wp(6),
   },
   notifyBtnText: {
     fontSize: fp(13),
-    fontWeight: '700',
-    color: colors.user.accent,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
 });

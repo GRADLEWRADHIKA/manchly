@@ -90,8 +90,8 @@ const colors = {
     cardBg: "#FFFFFF", // Container / Card Background        // Red accent for logout action
   },
 
-   greenButton: "linear-gradient(135deg, #86EFAC 0%, #4ADE80 100%)",
-   greenButtonDark: "linear-gradient(135deg, #4ADE80 0%, #16A34A 100%)",
+  greenButton: '#86EFAC',
+  greenButtonDark: '#16A34A',
   
   // Creator Dark Theme
   cBg: '#0D0D1A',

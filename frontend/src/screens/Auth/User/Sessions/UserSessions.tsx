@@ -301,7 +301,7 @@ const styles = StyleSheet.create({
   },
   ctaSub: {
     fontSize: fp(12.5),
-    color: colors.user.accentSoft,
+    color: colors.user.subHeading,
     textAlign: 'center',
     lineHeight: fp(18),
     marginBottom: hp(18),
@@ -400,7 +400,7 @@ const styles = StyleSheet.create({
   },
   detailText: {
     fontSize: fp(11),
-    color: colors.user.subHeading,
+    color: colors.user.accentText,
     fontWeight: '500',
   },
 

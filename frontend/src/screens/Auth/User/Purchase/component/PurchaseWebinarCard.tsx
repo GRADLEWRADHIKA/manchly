@@ -216,7 +216,7 @@ const PurchaseWebinarCard = ({ item }) => {
               end={{ x: 1, y: 0 }}
               style={styles.joinBtnGradient}
             >
-              <Video size={wp(16)} color={colors.white} strokeWidth={2} />
+              <Video size={wp(16)} color={colors.user.accentText} strokeWidth={2} />
               <Text style={styles.joinText}>
                 {isUpcoming ? 'Join Webinar' : 'Ended'}
               </Text>
@@ -329,7 +329,7 @@ const styles = StyleSheet.create({
   },
 
   tagChip: {
-    backgroundColor: colors.user.accent,
+    backgroundColor: colors.user.accentSoft,
     paddingHorizontal: wp(10),
     paddingVertical: hp(3),
     borderRadius: wp(12),
@@ -401,12 +401,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(4),
-    backgroundColor: colors.user.accent,
+    backgroundColor: colors.user.cardSoft,
     paddingHorizontal: wp(12),
     paddingVertical: hp(8),
     borderRadius: wp(8),
     borderWidth: 1,
-    borderColor: colors.user.accent,
+    borderColor: colors.user.cardSoft,
   },
   copyText: {
     fontSize: fp(12),

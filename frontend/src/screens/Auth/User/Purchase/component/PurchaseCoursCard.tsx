@@ -616,12 +616,12 @@ const styles = StyleSheet.create({
 
   // ── Completed ────────────────────────────────────────────────────────────────
   completedCard: {
-    backgroundColor: colors.cSurface,
+    backgroundColor: colors.user.card,
     borderRadius: wp(16),
     marginBottom: hp(16),
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: colors.user.card,
   },
   completedBadge: {
     position: 'absolute',
@@ -643,13 +643,13 @@ const styles = StyleSheet.create({
   completedTitle: {
     fontSize: fp(17),
     fontWeight: '700',
-    color: colors.cText,
+    color: colors.user.text,
     padding: wp(14),
     paddingBottom: hp(4),
   },
   completedDate: {
     fontSize: fp(12),
-    color: colors.cTextSecondary,
+    color: colors.user.accentText,
     paddingHorizontal: wp(14),
     marginBottom: hp(4),
   },
@@ -662,7 +662,7 @@ const styles = StyleSheet.create({
   },
   completedDurationText: {
     fontSize: fp(12),
-    color: colors.cTextMuted,
+    color: colors.user.text,
   },
   certificateBtnWrapper: {
     marginHorizontal: wp(14),
@@ -678,7 +678,7 @@ const styles = StyleSheet.create({
     paddingVertical: hp(12),
   },
   certificateBtnText: {
-    color: colors.white,
+    color: colors.user.text,
     fontWeight: '700',
     fontSize: fp(13),
   },
@@ -693,10 +693,10 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingVertical: hp(12),
     borderWidth: 1,
-    borderColor: colors.cBorder,
+    borderColor: colors.user.accent,
   },
   reviewBtnStackedText: {
-    color: colors.white,
+    color: colors.user.text,
     fontWeight: '700',
     fontSize: fp(13),
   },

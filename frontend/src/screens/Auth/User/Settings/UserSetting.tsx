@@ -62,10 +62,10 @@ const openWhatsApp = (message: string) => {
 /* ──────── Reusable Menu Row ──────── */
 const MenuRow = ({
   icon: Icon,
-  iconColor = colors.statIcon2,
-  iconBg = colors.btnGradientEnd + '2E',
+  iconColor = colors.user.accent,
+  iconBg = colors.greenButton + '2E',
   label,
-  labelColor = colors.textPrimary,
+  labelColor = colors.user.text,
   subtitle,
   onPress,
   isLast = false,
@@ -192,7 +192,7 @@ export default UserSetting;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.uBg,
+    backgroundColor: colors.user.bg,
   },
 
   headerWrapper: {
@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: fp(17),
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: colors.user.text,
   },
 
   /* ──── Body ──── */
@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: hp(8),
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.card,
   },
   topCardPressed: {
     opacity: 0.88,
@@ -249,12 +249,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   topCardText: {
-    color: colors.textPrimary,
+    color: colors.user.text,
     fontSize: fp(13),
     fontWeight: '600',
   },
   topCardSubtext: {
-    color: colors.textSecondary,
+    color: colors.user.accentText,
     fontSize: fp(11),
     textAlign: 'center',
     lineHeight: fp(15),
@@ -264,14 +264,14 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: fp(14),
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: colors.user.text,
     letterSpacing: 0.8,
     marginHorizontal: wp(20),
     marginTop: hp(16),
     marginBottom: hp(12),
   },
   section: {
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.card,
     marginHorizontal: wp(16),
     borderRadius: wp(16),
     overflow: 'hidden',
@@ -311,14 +311,14 @@ const styles = StyleSheet.create({
   },
   rowSubtext: {
     fontSize: fp(12),
-    color: colors.uSubHeading,
+    color: colors.user.subHeading,
     marginTop: hp(1),
   },
 
   versionText: {
     textAlign: 'center',
     fontSize: fp(12),
-    color: colors.uSubHeading,
+    color: colors.user.subHeading,
     marginTop: hp(24),
     fontWeight: '500',
   },

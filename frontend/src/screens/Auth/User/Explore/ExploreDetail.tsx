@@ -212,51 +212,61 @@ const ExploreDetail = () => {
   const tabCount = isCourses ? courses.length : webinars.length;
 
   /* ─────────── Row renderers ─────────── */
-  const renderCourse = ({ item: course }: any) => {
-    const dur = courseDuration(course);
-    const rating = course.average_rating || course.rating;
-    return (
-      <TouchableOpacity
-        style={styles.popularCard}
-        activeOpacity={0.9}
-        onPress={() => openCourse(course)}
-      >
-        <View style={styles.popularImageWrap}>
-          {course.thumbnail ? (
-            <Image source={{ uri: course.thumbnail }} style={styles.popularImage} />
-          ) : (
-            <View style={[styles.popularImage, styles.imgPlaceholder]}>
-              <BookOpen size={wp(28)} color={colors.btnGradientStart} strokeWidth={1.4} />
+ const renderCourse = ({ item: course }: any) => {
+  const dur = courseDuration(course);
+  const rating = course.average_rating || course.rating;
+  return (
+    <TouchableOpacity
+      style={styles.popularCard}
+      activeOpacity={0.9}
+      onPress={() => openCourse(course)}
+    >
+      <View style={styles.popularImageWrap}>
+        {course.thumbnail ? (
+          <Image source={{ uri: course.thumbnail }} style={styles.popularImage} resizeMode='contain'/>
+        ) : (
+          <View style={[styles.popularImage, styles.imgPlaceholder]}>
+            <BookOpen size={wp(28)} color={colors.btnGradientStart} strokeWidth={1.4} />
+          </View>
+        )}
+        <View style={styles.levelBadge}>
+          <Text style={styles.levelBadgeText}>{course.level || 'Beginner'}</Text>
+        </View>
+      </View>
+
+      <View style={styles.popularBody}>
+        <Text style={styles.popularTitle} numberOfLines={1}>
+          {course.title}
+        </Text>
+        <View style={styles.popularMetaRow}>
+          {!!dur && (
+            <View style={styles.metaItem}>
+              <Clock size={wp(13)} color={colors.uSubHeading} strokeWidth={2} />
+              <Text style={styles.metaText}>{dur}</Text>
             </View>
           )}
-          <View style={styles.levelBadge}>
-            <Text style={styles.levelBadgeText}>{course.level || 'Beginner'}</Text>
-          </View>
+          {!!rating && (
+            <View style={styles.metaItem}>
+              <Star size={wp(13)} color={colors.uSubHeading} fill={colors.uSubHeading} />
+              <Text style={styles.metaText}>{rating}</Text>
+            </View>
+          )}
         </View>
 
-        <View style={styles.popularBody}>
-          <Text style={styles.popularTitle} numberOfLines={1}>
-            {course.title}
-          </Text>
-          <View style={styles.popularMetaRow}>
-            {!!dur && (
-              <View style={styles.metaItem}>
-                <Clock size={wp(13)} color={colors.uSubHeading} strokeWidth={2} />
-                <Text style={styles.metaText}>{dur}</Text>
-              </View>
-            )}
-            {!!rating && (
-              <View style={styles.metaItem}>
-                <Star size={wp(13)} color={colors.uSubHeading} fill={colors.uSubHeading} />
-                <Text style={styles.metaText}>{rating}</Text>
-              </View>
-            )}
-          </View>
+        <View style={styles.popularFooter}>
           <Text style={styles.popularPrice}>{fmtPrice(course.price)}</Text>
+          <TouchableOpacity
+            style={styles.enrollBtn}
+            activeOpacity={0.85}
+            onPress={() => openCourse(course)}
+          >
+            <Text style={styles.enrollBtnText}>Enroll Now</Text>
+          </TouchableOpacity>
         </View>
-      </TouchableOpacity>
-    );
-  };
+      </View>
+    </TouchableOpacity>
+  );
+};
 
   const renderWebinar = ({ item: webinar }: any) => (
     <TouchableOpacity
@@ -266,10 +276,10 @@ const ExploreDetail = () => {
     >
       <View style={styles.webinarImageWrap}>
         {webinar.thumbnail_url ? (
-          <Image source={{ uri: webinar.thumbnail_url }} style={styles.webinarImage} />
+          <Image source={{ uri: webinar.thumbnail_url }} style={styles.webinarImage}resizeMode='contain' />
         ) : (
           <View style={[styles.webinarImage, styles.imgPlaceholder]}>
-            <Play size={wp(30)} color={colors.btnGradientStart} strokeWidth={1.5} />
+            <Play size={wp(30)} color={colors.user.text} strokeWidth={1.5} />
           </View>
         )}
         <Text style={styles.webinarPriceOverlay}>{fmtPrice(webinar.price)}</Text>
@@ -287,11 +297,11 @@ const ExploreDetail = () => {
 
         <View style={styles.webinarInfoRow}>
           <View style={styles.metaItem}>
-            <Calendar size={wp(13)} color={colors.uSubHeading} strokeWidth={2} />
+            <Calendar size={wp(13)} color={colors.user.text} strokeWidth={2} />
             <Text style={styles.metaText}>{fmtDateTime(webinar.scheduled_at)}</Text>
           </View>
           <View style={styles.metaItem}>
-            <UserIcon size={wp(13)} color={colors.uSubHeading} strokeWidth={2} />
+            <UserIcon size={wp(13)} color={colors.user.text} strokeWidth={2} />
             <Text style={styles.metaText} numberOfLines={1}>
               {webinar.creator?.name || 'Host'}
             </Text>
@@ -299,7 +309,7 @@ const ExploreDetail = () => {
         </View>
 
         <View style={styles.registerBtn}>
-          <PlayCircle size={wp(16)} color={colors.uExploreNow} strokeWidth={2} />
+          <PlayCircle size={wp(16)} color={colors.user.text} strokeWidth={2} />
           <Text style={styles.registerBtnText}>Register Now</Text>
         </View>
       </View>
@@ -311,17 +321,17 @@ const ExploreDetail = () => {
     <View>
       {/* Search */}
       <View style={styles.searchBar}>
-        <Search size={wp(18)} color={colors.uSubHeading} strokeWidth={2} />
+        <Search size={wp(18)} color={colors.user.text} strokeWidth={2} />
         <TextInput
           style={styles.searchInput}
           placeholder="Search webinars, topics, or experts..."
-          placeholderTextColor={colors.uSubHeading}
+          placeholderTextColor={colors.user.subHeading}
           value={searchQuery}
           onChangeText={setSearchQuery}
           returnKeyType="search"
         />
         {tabLoading && !refreshing && (
-          <ActivityIndicator size="small" color={colors.uSubHeading} />
+          <ActivityIndicator size="small" color={colors.user.subHeading} />
         )}
       </View>
 
@@ -334,9 +344,9 @@ const ExploreDetail = () => {
             <View style={styles.togglePillInner}>
               <Icon
                 size={wp(16)}
-                color={active ? colors.white : colors.uSubHeading}
+                color={active ? colors.user.text : colors.user.subHeading}
                 strokeWidth={2}
-                fill={tab === 'Webinars' && active ? colors.white : 'transparent'}
+                fill={tab === 'Webinars' && active ? colors.user.text : 'transparent'}
               />
               <Text style={[styles.toggleText, active && styles.toggleTextActive]}>{tab}</Text>
             </View>
@@ -350,7 +360,7 @@ const ExploreDetail = () => {
             >
               {active ? (
                 <LinearGradient
-                  colors={[colors.btnGradientStart, colors.btnGradientEnd]}
+                  colors={['#86EFAC', '#4ADE80']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                   style={styles.togglePill}
@@ -412,10 +422,10 @@ const ExploreDetail = () => {
               </View>
 
               {featured.thumbnail ? (
-                <Image source={{ uri: featured.thumbnail }} style={styles.featuredImage} />
+                <Image source={{ uri: featured.thumbnail }} style={styles.featuredImage} resizeMode='contain' />
               ) : (
                 <View style={[styles.featuredImage, styles.imgPlaceholder]}>
-                  <BookOpen size={wp(34)} color={colors.btnGradientStart} strokeWidth={1.4} />
+                  <BookOpen size={wp(34)} color={colors.user.text} strokeWidth={1.4} />
                 </View>
               )}
             </TouchableOpacity>
@@ -441,7 +451,7 @@ const ExploreDetail = () => {
       return (
         <ActivityIndicator
           size="small"
-          color={colors.btnGradientStart}
+          color={colors.greenButton}
           style={{ marginVertical: hp(28) }}
         />
       );
@@ -462,7 +472,7 @@ const ExploreDetail = () => {
   const ListFooter = tabLoadingMore ? (
     <ActivityIndicator
       size="small"
-      color={colors.btnGradientStart}
+      color={colors.greenButton}
       style={{ marginVertical: hp(18) }}
     />
   ) : null;
@@ -493,8 +503,8 @@ const ExploreDetail = () => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor={colors.btnGradientStart}
-            colors={[colors.btnGradientStart]}
+            tintColor={colors.greenButton}
+            colors={[colors.greenButton]}
           />
         }
       />
@@ -508,7 +518,7 @@ export default ExploreDetail;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.uBg,
+    backgroundColor: colors.user.bg,
   },
   scrollContent: {
     paddingHorizontal: wp(18),
@@ -523,19 +533,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: wp(18),
     paddingBottom: hp(14),
-    backgroundColor: colors.uBg,
+    backgroundColor: colors.user.bg,
   },
   headerTitle: {
     fontSize: fp(18),
     fontWeight: '700',
-    color: colors.white,
+    color: colors.user.text,
   },
 
   /* Search */
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.cardSoft,
     borderRadius: wp(14),
     paddingHorizontal: wp(16),
     height: hp(50),
@@ -545,7 +555,7 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    color: colors.white,
+    color: colors.user.accentText,
     fontSize: fp(13.5),
     padding: 0,
   },
@@ -568,7 +578,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   togglePillInactive: {
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.card,
   },
   togglePillInner: {
     flexDirection: 'row',
@@ -578,28 +588,28 @@ const styles = StyleSheet.create({
   toggleText: {
     fontSize: fp(14),
     fontWeight: '700',
-    color: colors.uSubHeading,
+    color: colors.user.subHeading,
   },
   toggleTextActive: {
-    color: colors.white,
+    color: colors.user.accentText,
   },
 
   /* Shared */
   imgPlaceholder: {
-    backgroundColor: colors.uSubtext,
+    backgroundColor: colors.greenButton,
     alignItems: 'center',
     justifyContent: 'center',
   },
   emptyText: {
     fontSize: fp(13),
-    color: colors.uSubHeading,
+    color: colors.user.subHeading,
     textAlign: 'center',
     marginVertical: hp(28),
   },
   bigSectionTitle: {
     fontSize: fp(21),
     fontWeight: '800',
-    color: colors.white,
+    color: colors.user.text,
     marginBottom: hp(14),
   },
   metaItem: {
@@ -609,13 +619,13 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontSize: fp(12),
-    color: colors.uSubHeading,
+    color: colors.user.subHeading,
     fontWeight: '500',
   },
 
   /* Featured card */
   featuredCard: {
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.card,
     borderRadius: wp(18),
     padding: wp(16),
     marginBottom: hp(26),
@@ -646,18 +656,18 @@ const styles = StyleSheet.create({
   ratingText: {
     fontSize: fp(12.5),
     fontWeight: '700',
-    color: colors.white,
+    color: colors.user.text,
   },
   featuredTitle: {
     fontSize: fp(18),
     fontWeight: '800',
-    color: colors.white,
+    color: colors.user.text,
     lineHeight: fp(24),
     marginBottom: hp(6),
   },
   featuredDesc: {
     fontSize: fp(13),
-    color: colors.uSubHeading,
+    color: colors.user.subHeading,
     lineHeight: fp(18),
     marginBottom: hp(16),
   },
@@ -673,16 +683,16 @@ const styles = StyleSheet.create({
   featuredPrice: {
     fontSize: fp(20),
     fontWeight: '800',
-    color: colors.white,
+    color: colors.user.accentText,
   },
   featuredStrike: {
     fontSize: fp(13),
-    color: colors.uSubHeading,
+    color: colors.user.subHeading,
     textDecorationLine: 'line-through',
     marginTop: hp(2),
   },
   enrollBtn: {
-    backgroundColor: colors.uExploreNow,
+    backgroundColor: colors.user.accent,
     paddingHorizontal: wp(22),
     paddingVertical: hp(11),
     borderRadius: wp(12),
@@ -690,23 +700,25 @@ const styles = StyleSheet.create({
   enrollBtnText: {
     fontSize: fp(13.5),
     fontWeight: '800',
-    color: colors.uExploreNowText,
+    color: colors.user.text,
   },
   featuredImage: {
     width: '100%',
     height: hp(96),
     borderRadius: wp(12),
+    backgroundColor: colors.user.cardSoft
   },
 
   /* Popular course card */
   popularCard: {
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.card,
     borderRadius: wp(18),
     overflow: 'hidden',
     marginBottom: hp(16),
   },
   popularImageWrap: {
     position: 'relative',
+    backgroundColor: colors.user.cardSoft,
   },
   popularImage: {
     width: '100%',
@@ -716,7 +728,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: wp(12),
     left: wp(12),
-    backgroundColor: 'rgba(13,17,43,0.72)',
+    backgroundColor: colors.user.accent,
     paddingHorizontal: wp(12),
     paddingVertical: hp(5),
     borderRadius: wp(8),
@@ -724,7 +736,7 @@ const styles = StyleSheet.create({
   levelBadgeText: {
     fontSize: fp(11.5),
     fontWeight: '700',
-    color: colors.uExploreNow,
+    color: colors.user.text,
   },
   popularBody: {
     padding: wp(16),
@@ -732,7 +744,7 @@ const styles = StyleSheet.create({
   popularTitle: {
     fontSize: fp(16),
     fontWeight: '800',
-    color: colors.white,
+    color: colors.user.text,
     marginBottom: hp(8),
   },
   popularMetaRow: {
@@ -743,8 +755,13 @@ const styles = StyleSheet.create({
   popularPrice: {
     fontSize: fp(16),
     fontWeight: '800',
-    color: colors.white,
+    color: colors.user.text,
   },
+  popularFooter: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+},
 
   /* Webinars */
   webinarHeadRow: {
@@ -755,11 +772,11 @@ const styles = StyleSheet.create({
   },
   webinarSubtitle: {
     fontSize: fp(12.5),
-    color: colors.uSubHeading,
+    color: colors.user.accentText,
     marginTop: -hp(6),
   },
   upcomingPill: {
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.cardSoft,
     paddingHorizontal: wp(12),
     paddingVertical: hp(6),
     borderRadius: wp(20),
@@ -768,16 +785,17 @@ const styles = StyleSheet.create({
   upcomingPillText: {
     fontSize: fp(11.5),
     fontWeight: '600',
-    color: colors.uExploreNow,
+    color: colors.user.accentText,
   },
   webinarCard: {
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.card,
     borderRadius: wp(18),
     overflow: 'hidden',
     marginBottom: hp(18),
   },
   webinarImageWrap: {
     position: 'relative',
+    backgroundColor: colors.user.cardSoft,
   },
   webinarImage: {
     width: '100%',
@@ -789,7 +807,7 @@ const styles = StyleSheet.create({
     right: wp(14),
     fontSize: fp(15),
     fontWeight: '800',
-    color: colors.uExploreNow,
+    color: colors.user.accent,
     textShadowColor: 'rgba(0,0,0,0.6)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 4,
@@ -800,13 +818,13 @@ const styles = StyleSheet.create({
   webinarTitle: {
     fontSize: fp(17),
     fontWeight: '800',
-    color: colors.white,
+    color: colors.user.text,
     lineHeight: fp(22),
     marginBottom: hp(6),
   },
   webinarDesc: {
     fontSize: fp(12.5),
-    color: colors.uSubHeading,
+    color: colors.user.accentText,
     marginBottom: hp(12),
   },
   webinarInfoRow: {
@@ -821,13 +839,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: wp(8),
-    backgroundColor: colors.uSubtext,
+    backgroundColor: colors.user.accent,
     borderRadius: wp(12),
     paddingVertical: hp(13),
   },
   registerBtnText: {
     fontSize: fp(14),
     fontWeight: '700',
-    color: colors.uExploreNow,
+    color: colors.user.text,
   },
 });

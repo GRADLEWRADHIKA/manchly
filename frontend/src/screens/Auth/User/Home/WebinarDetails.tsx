@@ -43,7 +43,7 @@ import { wp, hp, fp } from '../../../../utils/responsive';
 import TermsModal from '../../../../components/TermsModal';
 import PrivacyModal from '../../../../components/PrivacyModal';
 import RefundPolicyModal from '../../../../components/RefundPolicyModal';
-import LinearGradient from 'react-native-linear-gradient'; // <-- Added Import
+//import LinearGradient from 'react-native-linear-gradient'; // <-- Added Import
 
 const WebinarDetails = () => {
   const { params } = useRoute<any>();
@@ -275,9 +275,9 @@ const WebinarDetails = () => {
   if (!data) {
     return (
       <View style={styles.container}>
-        <AppHeaderWithBack title="Webinar Details" bgColor={colors.uBg} />
+        <AppHeaderWithBack title="Webinar Details" bgColor={colors.user.bg} />
         <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
+          <ActivityIndicator size="large" color={colors.user.text} />
         </View>
       </View>
     );
@@ -285,7 +285,7 @@ const WebinarDetails = () => {
 
   return (
     <View style={styles.container}>
-      <AppHeaderWithBack title="Webinar Details" bgColor={colors.uBg} />
+      <AppHeaderWithBack title="Webinar Details" bgColor={colors.user.text} />
 
       <ScrollView contentContainerStyle={{ paddingBottom: hp(120) }}>
         <View style={styles.thumbnailWrapper}>
@@ -305,7 +305,7 @@ const WebinarDetails = () => {
         <Text style={styles.title}>{data?.title}</Text>
 
         <View style={styles.row}>
-          <User size={wp(18)} color={colors.textSecondary} />
+          <User size={wp(18)} color={colors.user.subHeading} />
           <Text style={styles.host}>
             Hosted by {data?.creator?.name || 'Unknown'}
           </Text>
@@ -319,14 +319,14 @@ const WebinarDetails = () => {
         ) : null}
 
         <View style={styles.row}>
-          <Calendar size={wp(18)} color={colors.textSecondary} />
+          <Calendar size={wp(18)} color={colors.user.subHeading} />
           <Text style={styles.detailText}>
             {new Date(data?.scheduled_at).toDateString()}
           </Text>
         </View>
 
         <View style={styles.row}>
-          <Clock size={wp(18)} color={colors.textSecondary} />
+          <Clock size={wp(18)} color={colors.user.subHeading} />
           <Text style={styles.detailText}>
             {new Date(data?.scheduled_at).toLocaleTimeString([], {
               hour: '2-digit',
@@ -337,12 +337,12 @@ const WebinarDetails = () => {
         </View>
 
         <View style={styles.row}>
-          <Video size={wp(18)} color={colors.textPrimary} />
+          <Video size={wp(18)} color={colors.user.subHeading} />
           <Text style={styles.detailText}>Zoom Meeting</Text>
         </View>
 
         <View style={styles.row}>
-          <Users size={wp(18)} color={colors.textPrimary} />
+          <Users size={wp(18)} color={colors.user.subHeading} />
           <Text style={styles.detailText}>
             Max Participants: {data?.max_participants}
           </Text>
@@ -351,7 +351,7 @@ const WebinarDetails = () => {
         <View style={styles.tagContainer}>
           {data?.tags?.map((tag: string, index: number) => (
             <View key={index} style={styles.tag}>
-              <Tag size={wp(14)} color={colors.textPrimary} />
+              <Tag size={wp(14)} color={colors.user.subHeading} />
               <Text style={styles.tagText}>{tag}</Text>
             </View>
           ))}
@@ -425,7 +425,7 @@ const WebinarDetails = () => {
           >
             {/* Added LinearGradient here */}
             <LinearGradient
-              colors={[colors.btnGradientStart || '#F0C040', colors.btnGradientEnd || '#E6A820']}
+              colors={['#86EFAC', '#4ADE80']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={styles.buyButtonGradient}
@@ -553,7 +553,7 @@ const styles = StyleSheet.create({
   },
 
   priceBox: {
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.cardSoft,
     color: colors.textPrimary,
     padding: wp(16),
     borderRadius: wp(14),
@@ -572,7 +572,7 @@ const styles = StyleSheet.create({
   },
   priceValue: {
     fontWeight: '600',
-    color: colors.textPrimary,
+    color: colors.user.subHeading,
   },
   totalRow: {
     borderTopWidth: wp(1),
@@ -591,7 +591,7 @@ const styles = StyleSheet.create({
   totalValue: {
     fontSize: fp(18),
     fontWeight: '800',
-    color: colors.statText,
+    color: colors.user.accentText,
   },
   participants: {
     fontSize: fp(14),
@@ -648,7 +648,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(15),
   },
   policyLink: {
-    color: colors.statText,
+    color: colors.user.accent,
     fontWeight: '500',
   },
 });

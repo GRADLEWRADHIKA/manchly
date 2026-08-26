@@ -123,7 +123,7 @@ const TabItem = ({ isFocused, icon: Icon, label, onPress }: any) => {
       >
         <Icon
           size={wp(21)}
-          color={isFocused ? colors.user.accent : colors.user.cardSoft}
+          color={isFocused ? colors.user.accent : colors.user.text}
           strokeWidth={isFocused ? 2.2 : 1.8}
         />
       </Animated.View>
@@ -132,7 +132,7 @@ const TabItem = ({ isFocused, icon: Icon, label, onPress }: any) => {
         style={[
           styles.tabLabel,
           {
-            color: isFocused ? colors.user.bg : colors.user.cardSoft,
+            color: isFocused ? colors.user.text : colors.user.accentText,
             fontWeight: isFocused ? '700' : '600',
           },
         ]}

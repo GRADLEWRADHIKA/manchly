@@ -10,6 +10,7 @@ export const CREATOR_KEY_TO_PATH = {
   "course-preview": "/creator/studio",
   "course-duplicate": "/creator/studio",
   "course-manage": "/creator/studio",
+  reels: "/creator/reels",
   webinars: "/creator/webinars",
   "webinar-create": "/creator/webinars",
   sessions: "/creator/sessions",

@@ -11,6 +11,7 @@ import {
   Wallet,
   LifeBuoy,
   StarIcon,
+  Clapperboard,
   //MessageCircle
 } from "lucide-react";
 
@@ -22,6 +23,7 @@ const MENU_ITEMS = [
   { key: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { key: "courses", label: "Courses", icon: BookOpen },
   { key: "webinars", label: "Webinars", icon: MonitorPlay },
+  { key: "reels", label: "Reels", icon: Clapperboard },
   { key: "sessions", label: "1:1 Sessions", icon: Users },
   { key: "creator-hub", label: "Creator Hub", icon: StarIcon },
   //{ key: "ai", label: "AI Assistant", icon: Sparkles },

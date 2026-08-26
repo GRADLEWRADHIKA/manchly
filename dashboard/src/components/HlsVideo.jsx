@@ -3,7 +3,9 @@
 import React, { useEffect, useRef } from "react";
 import Hls from "hls.js";
 
-export default function HlsVideo({ src, poster, autoPlay = false, onProgress, style = {}, controls = true, watermarkText }) {
+// `muted`/`loop` exist for the reels feed, where playback has to start without
+// a user gesture — browsers only allow autoplay when the video is muted.
+export default function HlsVideo({ src, poster, autoPlay = false, onProgress, style = {}, controls = true, watermarkText, muted = false, loop = false }) {
   const videoRef = useRef(null);
   const lastPct = useRef(-1);
 
@@ -41,6 +43,8 @@ export default function HlsVideo({ src, poster, autoPlay = false, onProgress, st
       poster={poster}
       controls={controls}
       autoPlay={autoPlay}
+      muted={muted}
+      loop={loop}
       onTimeUpdate={handleTime}
       playsInline
       style={{ width: "100%", borderRadius: 14, background: "#000", display: "block", ...style }}

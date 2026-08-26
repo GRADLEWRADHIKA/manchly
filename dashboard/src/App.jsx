@@ -17,6 +17,7 @@ import AuthFlow from "./screens/unAuth/AuthFlow";
 import UserLayout from "./layouts/UserLayout";
 import UserHome from "./screens/user/UserHome";
 import Explore from "./screens/user/Explore";
+import Reels from "./screens/user/Reels";
 import CourseDetails from "./screens/user/CourseDetails";
 import WebinarDetails from "./screens/user/WebinarDetails";
 import Learning from "./screens/user/Learning";
@@ -39,6 +40,7 @@ import CoursesScreen from "./screens/Auth/Creator/CoursesScreen";
 import CreatorProfile from "./screens/creator/CreatorProfile";
 import StudioScreen from "./screens/creator/StudioScreen";
 import WebinarsScreen from "./screens/creator/WebinarsScreen";
+import ReelsScreen from "./screens/creator/ReelsScreen";
 import SessionsScreen from "./screens/creator/SessionsScreen";
 import WalletScreen from "./screens/creator/WalletScreen";
 import KycScreen from "./screens/creator/KycScreen";
@@ -229,6 +231,7 @@ export default function App() {
         <Route path="/app" element={<RequireAuth roles={["USER", "BRAND", "AGENCY"]}><UserLayout /></RequireAuth>}>
           <Route index element={<UserHome />} />
           <Route path="explore" element={<Explore />} />
+          <Route path="reels" element={<Reels />} />
           <Route path="course/:courseId" element={<CourseDetails />} />
           <Route path="webinar/:webinarId" element={<WebinarDetails />} />
           <Route path="learning" element={<Learning />} />
@@ -263,6 +266,7 @@ export default function App() {
           <Route path="overview" element={<CreatorOverview user={user} />} />
           <Route path="studio" element={<StudioScreen />} />
           <Route path="webinars" element={<WebinarsScreen />} />
+          <Route path="reels" element={<ReelsScreen />} />
           <Route path="sessions" element={<SessionsScreen />} />
           <Route path="ai" element={<AiScreen />} />
           <Route path="course-planner" element={<CoursePlannerScreen />} />

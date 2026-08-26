@@ -11,7 +11,8 @@ import {
   LifeBuoy,
   Settings,
   LogOut,
-  Star
+  Star,
+  Clapperboard
 } from "lucide-react";
 import colors from "../../utils/colors";
 import { Modal } from "../../components/ui";
@@ -20,6 +21,7 @@ import { useAuth } from "../../context/AuthContext";
 const NAV_ITEMS = [
   { key: "home", label: "Home", icon: HomeIcon, path: "/app/home", accentColor: colors.user?.accent || "#22C55E" },
   { key: "explore", label: "Explore", icon: BookOpen, path: "/app/explore", accentColor: colors.navItems?.explore || "#22C55E" },
+  { key: "reels", label: "Reels", icon: Clapperboard, path: "/app/reels", accentColor: colors.navItems?.reels || "#EC4899" },
   { key: "learning", label: "My Learning", icon: PlayCircle, path: "/app/learning", accentColor: colors.navItems?.myLearning || "#2B52F6" },
   { key: "sessions", label: "1:1 Sessions", icon: Users, path: "/app/sessions", accentColor: colors.navItems?.sessions || "#1C9DA6" },
   { key: "communities", label: "Community", icon: UsersRound, path: "/app/communities", accentColor: colors.navItems?.communities || "#6B5CF6" },

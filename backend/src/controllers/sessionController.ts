@@ -3,13 +3,14 @@ import prisma from "../prismaClient";
 import { JWTRequest } from "../middleware/jwtAuth";
 import { cashfreePG } from "../services/cashfreeService";
 import { sanitizePhoneForCashfree } from "../utils/phone";
+import { notificationService } from "../services/NotificationService";
 import { SettlementService } from "../services/settlementService";
 import { NotificationController } from "./notificationController";
 import dotenv from "dotenv";
 
 dotenv.config();
 
-const userSelect = { id: true, name: true, email: true, profile_image: true };
+const userSelect = { id: true, name: true, email: true, profile_image: true, phone: true };
 
 export class SessionController {
   // Create a session (caller initiates)
@@ -40,6 +41,20 @@ export class SessionController {
         prisma.users.findUnique({ where: { id: callerId }, select: userSelect }),
         prisma.users.findUnique({ where: { id: receiver_id }, select: userSelect }),
       ]);
+
+      // Confirm the booking to both sides. Fire-and-forget: a notification
+      // failure must never fail the booking itself.
+      notificationService.sendSessionBookingNotification({
+        callerName: caller?.name || "there",
+        callerEmail: caller?.email || "",
+        callerPhone: caller?.phone || undefined,
+        expertName: receiver?.name || "your expert",
+        expertEmail: receiver?.email || undefined,
+        expertPhone: receiver?.phone || undefined,
+        mode: session.mode,
+        scheduledAt: session.scheduled_at,
+        amount: session.amount,
+      }).catch((err) => console.error("Session booking notification error:", err));
 
       return res.status(201).json({ data: { ...session, caller, receiver } });
     } catch (err: any) {

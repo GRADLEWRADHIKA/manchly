@@ -51,6 +51,15 @@ export const WHATSAPP_TEMPLATES = {
     // "Dear user, Your last payment completed successfully amount: {{1}} Thank you."
     // Variables: {{1}}=amount
   },
+  // 1:1 session booking. The WABA behind +1555-456-1518 has no session template
+  // approved yet, so this is read from the environment: set
+  // FAST2SMS_TEMPLATE_SESSION_BOOKING once one is approved and it starts
+  // sending. Empty means "skip WhatsApp for sessions" — email still goes out.
+  // Variables: {{1}}=name, {{2}}=expertName, {{3}}=scheduledTime
+  SESSION_BOOKING: {
+    messageId: process.env.FAST2SMS_TEMPLATE_SESSION_BOOKING || '',
+    name: 'session_booking',
+  },
 } as const;
 
 interface Fast2SMSConfig {
@@ -258,6 +267,33 @@ export class Fast2SMSService {
       WHATSAPP_TEMPLATES.WEBINAR_10MIN.messageId,
       `${name}|${scheduledTime}|${link}`
     );
+  }
+
+  /**
+   * Send a 1:1 session booking confirmation via WhatsApp.
+   * Returns false without sending when no session template is configured, so
+   * callers can fall back to email only instead of throwing.
+   * Variables: name|expertName|scheduledTime
+   */
+  async sendWhatsAppSessionBooking(
+    phoneNumber: string,
+    name: string,
+    expertName: string,
+    scheduledTime: string,
+  ): Promise<boolean> {
+    const messageId = WHATSAPP_TEMPLATES.SESSION_BOOKING.messageId;
+    if (!messageId) {
+      console.warn(
+        '⚠️  No WhatsApp session template configured (FAST2SMS_TEMPLATE_SESSION_BOOKING) — sending email only.',
+      );
+      return false;
+    }
+    await this.sendWhatsAppTemplate(
+      phoneNumber,
+      messageId,
+      `${name}|${expertName}|${scheduledTime}`,
+    );
+    return true;
   }
 
   /**

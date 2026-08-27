@@ -15,6 +15,9 @@ router.post("/course/generate-meta",  AIController.courseGenerateMeta);
 router.post("/course/enhance",        AIController.courseEnhance);
 router.post("/course/quiz",           AIController.courseQuiz);
 router.post("/course/landing-copy",   AIController.courseLandingCopy);
+router.post("/course/plan", AIController.coursePlan);
+router.post("/chat/assistant", AIController.chatAssistant);
+router.post("/chat/suggest-reply",   AIController.chatSuggestReply);
 
 // Webinar
 router.post("/webinar/describe",            AIController.webinarDescribe);
@@ -28,8 +31,7 @@ router.post("/session/enhance",             AIController.sessionEnhance);
 router.post("/session/product-suggestions", AIController.sessionProductSuggestions);
 router.post("/session/follow-up-message",   AIController.sessionFollowUpMessage);
 
-// Chat + general
-router.post("/chat/suggest-reply",   AIController.chatSuggestReply);
+// General
 router.post("/moderate",             AIController.moderate);
 router.post("/lesson/summarize",     AIController.lessonSummarize);
 

@@ -16,7 +16,6 @@ import marketplaceRouter from "./routes/marketplace";
 import subscriptionsRouter from "./routes/subscriptions";
 import paymentsRouter from "./routes/payments";
 import webinarsRouter from "./routes/webinars";
-import chatRouter from "./routes/chat";
 import groupsRouter from "./routes/groups";
 import kycRouter from "./routes/kyc";
 import adminRouter from "./routes/admin";
@@ -25,6 +24,8 @@ import xtechRouter from "./routes/xtech";
 import sdkRouter from "./routes/sdk";
 import clickancyRouter from "./routes/clickancy";
 import sessionsRouter from "./routes/sessions";
+import storefrontRouter from "./routes/storefront";
+import reelsRouter from "./routes/reels";
 import telegramRouter from "./routes/telegram";
 import aiRouter from "./routes/ai";
 import notificationsRouter from "./routes/notifications";
@@ -71,7 +72,15 @@ app.set('trust proxy', 1);
 app.use(cors({
   origin: process.env.CORS_ORIGINS
     ? process.env.CORS_ORIGINS.split(',')
-    : ['https://manchly.com', 'https://server.manchly.com', 'http://localhost:8081'],
+    : [
+        'https://manchly.com',
+        'https://server.manchly.com',
+        'http://localhost:8081',
+        // Manchly web dashboard (vite dev + preview)
+        'http://localhost:5173',
+        'http://localhost:5174',
+        'http://localhost:4173',
+      ],
   credentials: true,
 }));
 app.use(morgan('dev'));
@@ -117,7 +126,6 @@ app.use("/creators", creatorsRouter);
 app.use("/api/creators", creatorsRouter);
 app.use("/payments", paymentsRouter);
 app.use("/webinars", webinarsRouter);
-app.use("/chat", chatRouter);
 app.use("/groups", groupsRouter);
 app.use("/kyc", kycRouter);
 app.use("/settlements", settlementsRouter);
@@ -125,6 +133,8 @@ app.use("/auth/xtech", xtechRouter);
 app.use("/sdk", sdkRouter);
 app.use("/clickancy", clickancyRouter);
 app.use("/sessions", sessionsRouter);
+app.use("/public", storefrontRouter);
+app.use("/reels", reelsRouter);
 app.use("/telegram", telegramRouter);
 app.use("/ai", aiRouter);
 app.use("/notifications", notificationsRouter);

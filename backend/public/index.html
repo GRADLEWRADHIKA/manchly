@@ -4,12 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Login | Manchly</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/css/style.css" />
 </head>
 <body class="login-page">
   <div class="login-card">
-    <h1>Admin Login</h1>
-    <p class="subtitle">Sign in with your admin account (OTP sent to email)</p>
+    <div class="brand-mark">Manchly</div>
+    <h1>Admin Console</h1>
+    <p class="subtitle">Sign in with your admin account — we'll email you a one-time code.</p>
 
     <div id="step-email" class="step">
       <label for="email">Email</label>
@@ -19,8 +23,8 @@
 
     <div id="step-otp" class="step hidden">
       <label for="otp">Enter OTP</label>
-      <input type="text" id="otp" placeholder="123456" maxlength="6" autocomplete="one-time-code" />
-      <button type="button" id="btn-verify" class="btn btn-primary">Verify & Login</button>
+      <input type="text" id="otp" placeholder="······" maxlength="6" autocomplete="one-time-code" inputmode="numeric" />
+      <button type="button" id="btn-verify" class="btn btn-primary">Verify &amp; Login</button>
       <button type="button" id="btn-back" class="btn btn-ghost">Change email</button>
     </div>
 
@@ -111,6 +115,9 @@
       stepEmail.classList.remove('hidden');
       showMessage('');
     });
+
+    emailInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') btnSendOtp.click(); });
+    otpInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') btnVerify.click(); });
   </script>
 </body>
 </html>

@@ -5,11 +5,13 @@ import jwt from "jsonwebtoken";
 import Redis from "ioredis";
 import OTPManager from "../utils/otpManager";
 import { ApiResponseHandler } from "../utils/ApiResponseHandler";
+import { setActiveDevice, getActiveDevice } from "../lib/redisClient";
+import { emitForceLogout } from "../utils/socketHandler";
 import dotenv from "dotenv";
 
 dotenv.config();
 
-const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_SECRET = process.env.JWT_SECRET as string;
 if (!JWT_SECRET) {
   throw new Error("JWT_SECRET environment variable is required");
 }
@@ -203,10 +205,9 @@ export class XtechAuthController {
       if (!user) return ApiResponseHandler.customError(res, "User not found", 404, "USER_NOT_FOUND");
 
       // ── Device binding: one device per account ──
-      // Store the active device_id in Redis. Old device is automatically invalidated.
-      if (redis) {
-        await redis.set(DEVICE_KEY_PREFIX + user.id, device_id);
-      }
+      // Store the active device_id in Redis/memory. Old device is automatically invalidated.
+      emitForceLogout(user.id, "Your account was signed in on another device. You have been logged out.");
+      await setActiveDevice(user.id, device_id);
 
       // Issue JWT with device_id embedded
       const token = jwt.sign(
@@ -251,11 +252,12 @@ export class XtechAuthController {
     try {
       const payload = jwt.verify(token, JWT_SECRET) as any;
       const { userId, device_id: tokenDeviceId } = payload;
+      const incomingDeviceId = tokenDeviceId || (req.headers["x-device-id"] as string);
 
-      // Check device binding in Redis
-      if (redis && tokenDeviceId) {
-        const activeDevice = await redis.get(DEVICE_KEY_PREFIX + userId);
-        if (activeDevice && activeDevice !== tokenDeviceId) {
+      // Check device binding
+      if (userId && incomingDeviceId) {
+        const activeDevice = await getActiveDevice(userId);
+        if (activeDevice && activeDevice !== incomingDeviceId) {
           return res.status(403).json({
             success: false,
             message: "Your account is active on another device. Please log in again.",

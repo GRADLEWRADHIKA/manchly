@@ -4,60 +4,61 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 // Fast2SMS WhatsApp Template Message IDs
+// Message IDs belong to the WhatsApp sender +1555-456-1518
+// (WABA 1063357392763539 / phone_number_id 1249948161538200). Template IDs are
+// per-WABA — if the sender number changes, every ID below has to be remapped
+// from that WABA's own template list.
 export const WHATSAPP_TEMPLATES = {
-  OTP: {
-    messageId: '16405',
-    name: 'otp_template',
-    // Template: "{{1}} is your verification code. For your security, do not share this code."
-    // Variables: {{1}} = OTP code
-  },
-  PAYMENT_COMPLETED: {
-    messageId: '16404',
-    name: 'payment_completed',
-    // Template: "Dear user, Your last payment completed successfully amount: {{1}} Thank you."
-    // Variables: {{1}} = amount
-  },
-  OFFER: {
-    messageId: '16403',
-    name: 'offer_template',
-    // Template: "Offer of the day. Buy {{1}} & get {{2}} FREE. Visit: {{3}} Offer valid for 3 days only."
-    // Variables: {{1}} = item, {{2}} = freebie, {{3}} = link
-  },
   WEBINAR_REGISTRATION: {
-    messageId: '16677',
-    name: 'webinar_successful_registration',
-    // Template: "Hey {{1}} 👋 You've successfully registered for the {{2}} Webinar 🤩 📅 Date: {{3}} ({{4}}) ⏰ Time: {{5}} 🔗 Join here: {{6}} 🔐 : {{7}} See you there! 🚀"
-    // Variables: {{1}}=name, {{2}}=webinarName, {{3}}=date, {{4}}=day, {{5}}=time, {{6}}=link, {{7}}=password
+    messageId: '29543',
+    name: 'webinar_registration',
+    // "Webinar Registration Confirmed — Hello {{1}}, Your registration for the
+    //  {{2}} webinar has been confirmed. Date: {{3}} ({{4}}) Time: {{5}}
+    //  Joining details: {{6}}"
+    // Variables: {{1}}=name, {{2}}=webinarName, {{3}}=date, {{4}}=day, {{5}}=time, {{6}}=link
   },
   COURSE_PURCHASE: {
-    messageId: '16683',
-    name: 'course_purchase_successful',
-    // Template: "Hello {{1}}, Your enrollment for the {{2}} course is confirmed. Access your course here: {{3}} No login is required."
+    messageId: '29542',
+    name: 'course_registration',
+    // "Course Enrollment Confirmed — Hello {{1}}, Your enrollment for the {{2}}
+    //  course has been confirmed. Course access: {{3}}"
     // Variables: {{1}}=name, {{2}}=courseName, {{3}}=accessLink
   },
+  WEBINAR_2HRS: {
+    messageId: '29546',
+    name: 'webinar_2hrs',
+    // "Webinar Reminder — Hello {{1}}, This is a reminder regarding your
+    //  scheduled webinar. Date: {{2}} ({{3}}) Time: {{4}} Joining details: {{5}}"
+    // Variables: {{1}}=name, {{2}}=date, {{3}}=day, {{4}}=time, {{5}}=link
+  },
+  WEBINAR_10MIN: {
+    messageId: '29545',
+    name: 'webinar_10min',
+    // "Webinar Reminder — Hello {{1}}, This is a reminder regarding your
+    //  scheduled webinar. Scheduled time: {{2}} Joining details: {{3}}"
+    // Variables: {{1}}=name, {{2}}=scheduledTime, {{3}}=link
+  },
   WEBINAR_LIVE: {
-    messageId: '16684',
-    name: 'webinar_live_notification',
-    // Template: "Hey {{1}} 👋 🗓 Date: {{2}} ({{3}}) ⏰ Time: {{4}} Here are your joining details: 🔗 Link: {{5}} 🔐 {{6}} See you inside!"
-    // Variables: {{1}}=name, {{2}}=date, {{3}}=day, {{4}}=time, {{5}}=link, {{6}}=password
+    messageId: '29544',
+    name: 'webinar_live',
+    // "Webinar is live! — Hello {{1}}, Your scheduled webinar is now live.
+    //  Joining link: {{2}}"
+    // Variables: {{1}}=name, {{2}}=link
   },
-  WEBINAR_30MIN: {
-    messageId: '16685',
-    name: 'webinar_30min_notification',
-    // Template: "Hey {{1}} 👋 🗓 Date: {{2}} ({{3}}) ⏰ Time: {{4}} Here are your joining details: 🔗 Link: {{5}} 🔐 {{6}} See you inside!"
-    // Variables: {{1}}=name, {{2}}=date, {{3}}=day, {{4}}=time, {{5}}=link, {{6}}=password
+  PAYMENT_COMPLETED: {
+    messageId: '29394',
+    name: 'payment_completed',
+    // "Dear user, Your last payment completed successfully amount: {{1}} Thank you."
+    // Variables: {{1}}=amount
   },
-  WEBINAR_6HRS: {
-    messageId: '16686',
-    name: 'webinar_6hrs_notification',
-    // Template: "Hey {{1}} 👋 🗓 Date: {{2}} ({{3}}) ⏰ Time: {{4}} Here are your joining details: 🔗 Link: {{5}} 🔐 {{6}} See you inside!"
-    // Variables: {{1}}=name, {{2}}=date, {{3}}=day, {{4}}=time, {{5}}=link, {{6}}=password
-  },
-  WEBINAR_24HRS: {
-    messageId: '16687',
-    name: 'webinar__24hrs_notification',
-    // Template: "Hey {{1}} 👋 🗓 Date: {{2}} ({{3}}) ⏰ Time: {{4}} (sharp) Here are your joining details: 🔗 Link: {{5}} 🔐 {{6}} See you inside!"
-    // Variables: {{1}}=name, {{2}}=date, {{3}}=day, {{4}}=time, {{5}}=link, {{6}}=password
+  // 1:1 session booking. The WABA behind +1555-456-1518 has no session template
+  // approved yet, so this is read from the environment: set
+  // FAST2SMS_TEMPLATE_SESSION_BOOKING once one is approved and it starts
+  // sending. Empty means "skip WhatsApp for sessions" — email still goes out.
+  // Variables: {{1}}=name, {{2}}=expertName, {{3}}=scheduledTime
+  SESSION_BOOKING: {
+    messageId: process.env.FAST2SMS_TEMPLATE_SESSION_BOOKING || '',
+    name: 'session_booking',
   },
 } as const;
 
@@ -184,40 +185,6 @@ export class Fast2SMSService {
   }
 
   /**
-   * Send OTP via WhatsApp using otp_template
-   */
-  async sendWhatsAppOTP(phoneNumber: string, otp: string): Promise<any> {
-    return this.sendWhatsAppTemplate(
-      phoneNumber,
-      WHATSAPP_TEMPLATES.OTP.messageId,
-      otp
-    );
-  }
-
-  /**
-   * Send payment completed notification via WhatsApp
-   */
-  async sendWhatsAppPaymentCompleted(phoneNumber: string, amount: string): Promise<any> {
-    return this.sendWhatsAppTemplate(
-      phoneNumber,
-      WHATSAPP_TEMPLATES.PAYMENT_COMPLETED.messageId,
-      amount
-    );
-  }
-
-  /**
-   * Send offer notification via WhatsApp
-   * @param variablesValues - pipe-separated: "item|freebie|link"
-   */
-  async sendWhatsAppOffer(phoneNumber: string, variablesValues: string): Promise<any> {
-    return this.sendWhatsAppTemplate(
-      phoneNumber,
-      WHATSAPP_TEMPLATES.OFFER.messageId,
-      variablesValues
-    );
-  }
-
-  /**
    * Send webinar successful registration via WhatsApp
    * Variables: name|webinarName|date|day|time|link|password
    */
@@ -228,13 +195,12 @@ export class Fast2SMSService {
     date: string,
     day: string,
     time: string,
-    link: string,
-    password: string
+    link: string
   ): Promise<any> {
     return this.sendWhatsAppTemplate(
       phoneNumber,
       WHATSAPP_TEMPLATES.WEBINAR_REGISTRATION.messageId,
-      `${name}|${webinarName}|${date}|${day}|${time}|${link}|${password}`
+      `${name}|${webinarName}|${date}|${day}|${time}|${link}`
     );
   }
 
@@ -256,24 +222,93 @@ export class Fast2SMSService {
   }
 
   /**
-   * Send webinar reminder/notification via WhatsApp
-   * Used for 24hr, 6hr, 30min, and live notifications (same variable format)
-   * Variables: name|date|day|time|link|password
+   * Send payment completed notification via WhatsApp
+   * Variables: amount
    */
-  async sendWhatsAppWebinarReminder(
+  async sendWhatsAppPaymentCompleted(phoneNumber: string, amount: string): Promise<any> {
+    return this.sendWhatsAppTemplate(
+      phoneNumber,
+      WHATSAPP_TEMPLATES.PAYMENT_COMPLETED.messageId,
+      amount
+    );
+  }
+
+  /**
+   * Send the "2 hours to go" webinar reminder via WhatsApp
+   * Variables: name|date|day|time|link
+   */
+  async sendWhatsAppWebinar2HrReminder(
     phoneNumber: string,
-    templateMessageId: string,
     name: string,
     date: string,
     day: string,
     time: string,
-    link: string,
-    password: string
+    link: string
   ): Promise<any> {
     return this.sendWhatsAppTemplate(
       phoneNumber,
-      templateMessageId,
-      `${name}|${date}|${day}|${time}|${link}|${password}`
+      WHATSAPP_TEMPLATES.WEBINAR_2HRS.messageId,
+      `${name}|${date}|${day}|${time}|${link}`
+    );
+  }
+
+  /**
+   * Send the "10 minutes to go" webinar reminder via WhatsApp
+   * Variables: name|scheduledTime|link
+   */
+  async sendWhatsAppWebinar10MinReminder(
+    phoneNumber: string,
+    name: string,
+    scheduledTime: string,
+    link: string
+  ): Promise<any> {
+    return this.sendWhatsAppTemplate(
+      phoneNumber,
+      WHATSAPP_TEMPLATES.WEBINAR_10MIN.messageId,
+      `${name}|${scheduledTime}|${link}`
+    );
+  }
+
+  /**
+   * Send a 1:1 session booking confirmation via WhatsApp.
+   * Returns false without sending when no session template is configured, so
+   * callers can fall back to email only instead of throwing.
+   * Variables: name|expertName|scheduledTime
+   */
+  async sendWhatsAppSessionBooking(
+    phoneNumber: string,
+    name: string,
+    expertName: string,
+    scheduledTime: string,
+  ): Promise<boolean> {
+    const messageId = WHATSAPP_TEMPLATES.SESSION_BOOKING.messageId;
+    if (!messageId) {
+      console.warn(
+        '⚠️  No WhatsApp session template configured (FAST2SMS_TEMPLATE_SESSION_BOOKING) — sending email only.',
+      );
+      return false;
+    }
+    await this.sendWhatsAppTemplate(
+      phoneNumber,
+      messageId,
+      `${name}|${expertName}|${scheduledTime}`,
+    );
+    return true;
+  }
+
+  /**
+   * Send the "webinar is live" notification via WhatsApp
+   * Variables: name|link
+   */
+  async sendWhatsAppWebinarLive(
+    phoneNumber: string,
+    name: string,
+    link: string
+  ): Promise<any> {
+    return this.sendWhatsAppTemplate(
+      phoneNumber,
+      WHATSAPP_TEMPLATES.WEBINAR_LIVE.messageId,
+      `${name}|${link}`
     );
   }
 

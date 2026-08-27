@@ -3,14 +3,15 @@ import prisma from "../prismaClient";
 import { UserType } from "@prisma/client";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
-import OTPManager from "../utils/otpManager";
+import OTPManager, { isTestAccount, isTestOtpAutofillEnabled } from "../utils/otpManager";
 import { ApiResponseHandler } from "../utils/ApiResponseHandler";
 import { issueAccessToken, serializeAuthUser } from "../utils/userSerializer";
+import { registerDevice, DEFAULT_DEVICE_LIMIT } from "../utils/deviceManager";
 import dotenv from "dotenv";
 
 dotenv.config();
 
-const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_SECRET = process.env.JWT_SECRET as string;
 if (!JWT_SECRET) {
   throw new Error("JWT_SECRET environment variable is required");
 }
@@ -380,8 +381,16 @@ export class AuthController {
         }
       }
 
-      await otpManager.sendOTP(email, 6, "email");
-      ApiResponseHandler.success(res, { purpose, expires_in: "10 minutes" }, "OTP sent successfully to your email");
+      const otp = await otpManager.sendOTP(email, 6, "email");
+
+      // Test accounts get the OTP back so the client can auto-fill it; no real
+      // email is sent for them.
+      const autofill = isTestAccount(email) && isTestOtpAutofillEnabled();
+      ApiResponseHandler.success(
+        res,
+        { purpose, expires_in: "10 minutes", ...(autofill ? { otp } : {}) },
+        autofill ? "Test account — OTP auto-filled" : "OTP sent successfully to your email",
+      );
     } catch (err: any) {
       if (err.message.includes("Rate limit exceeded")) return ApiResponseHandler.customError(res, "Too many OTP requests. Please try again later.", 429, "RATE_LIMIT_EXCEEDED");
       if (err.message.includes("OTP already sent")) return ApiResponseHandler.customError(res, "OTP already sent. Please wait for it to expire or use the existing one.", 400, "OTP_ALREADY_SENT");
@@ -421,7 +430,7 @@ export class AuthController {
 
   // ── 6. Verify OTP and issue JWT ──────────────────────────────────────────────
   static async verifyOTP(req: Request, res: Response) {
-    const { email, phone_number, code, purpose = "login", user_type, fcm_token } = req.body;
+    const { email, phone_number, code, purpose = "login", user_type, fcm_token, device_id, device_name, platform } = req.body;
 
     if (!code) return ApiResponseHandler.customError(res, "OTP code is required", 400, "MISSING_OTP_CODE");
     if (!email && !phone_number) return ApiResponseHandler.customError(res, "Email or phone number is required", 400, "MISSING_IDENTIFIER");
@@ -452,7 +461,28 @@ export class AuthController {
         return ApiResponseHandler.success(res, { reset_token: resetToken, purpose: "password_reset" }, "OTP verified successfully");
       }
 
-      const token = issueAccessToken(user.id, user.email);
+      // Device-limited login (Feature #2): sessions are scoped per user type
+      // (role), so the Creator and User sides each get an INDEPENDENT device
+      // limit. Registers this device under the role selected at login, evicting
+      // that role's least-recently-used device if over the limit, and binds both
+      // the device id and the role into the token.
+      const sessionRole = String(user_type).toUpperCase() === "CREATOR" ? "CREATOR" : "USER";
+      let boundDeviceId: string | undefined;
+      if (device_id) {
+        try {
+          await registerDevice(
+            user.id,
+            sessionRole,
+            { device_id, device_name, platform },
+            user.device_limit ?? DEFAULT_DEVICE_LIMIT,
+          );
+          boundDeviceId = device_id;
+        } catch (e) {
+          console.error("registerDevice error:", e);
+        }
+      }
+
+      const token = issueAccessToken(user.id, user.email, boundDeviceId, sessionRole);
       const updatedUser = await prisma.users.update({
         where: { id: user.id },
         data: { last_login: new Date(), ...(fcm_token && { fcm_token }) },
@@ -580,6 +610,40 @@ export class AuthController {
       });
       if (!user) return ApiResponseHandler.customError(res, "User not found", 404, "USER_NOT_FOUND");
       ApiResponseHandler.success(res, { user: serializeAuthUser(user) }, "User data retrieved successfully");
+    } catch (err: any) {
+      ApiResponseHandler.unexpectedError(res, err, 500);
+    }
+  }
+
+  // ── Device management (Feature #2) ───────────────────────────────────────────
+  static async getMyDevices(req: any, res: Response) {
+    try {
+      const userId = req.user.userId;
+      const [devices, user] = await Promise.all([
+        prisma.user_devices.findMany({
+          where: { user_id: userId },
+          orderBy: { last_seen_at: "desc" },
+        }),
+        prisma.users.findUnique({ where: { id: userId }, select: { device_limit: true } }),
+      ]);
+      ApiResponseHandler.success(
+        res,
+        { devices, limit: user?.device_limit ?? DEFAULT_DEVICE_LIMIT },
+        "Devices retrieved successfully",
+      );
+    } catch (err: any) {
+      ApiResponseHandler.unexpectedError(res, err, 500);
+    }
+  }
+
+  static async removeDevice(req: any, res: Response) {
+    try {
+      const userId = req.user.userId;
+      const { device_id } = req.params;
+      await prisma.user_devices.deleteMany({
+        where: { user_id: userId, device_id },
+      });
+      ApiResponseHandler.success(res, {}, "Device removed successfully");
     } catch (err: any) {
       ApiResponseHandler.unexpectedError(res, err, 500);
     }

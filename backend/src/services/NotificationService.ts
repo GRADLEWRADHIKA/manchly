@@ -1,5 +1,5 @@
 import EmailService from './EmailService';
-import { fast2smsService, WHATSAPP_TEMPLATES } from './Fast2SMSService';
+import { fast2smsService } from './Fast2SMSService';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -24,6 +24,20 @@ interface CourseNotificationData {
   courseName: string;
   courseAccessLink: string;
   hostName: string;
+}
+
+interface SessionNotificationData {
+  /** The learner who booked. */
+  callerName: string;
+  callerEmail: string;
+  callerPhone?: string;
+  /** The creator/expert being booked. */
+  expertName: string;
+  expertEmail?: string;
+  expertPhone?: string;
+  mode: string;
+  scheduledAt?: Date | string | null;
+  amount?: number;
 }
 
 export class NotificationService {
@@ -71,8 +85,7 @@ export class NotificationService {
           data.date,
           data.day,
           data.time,
-          data.webinarLink,
-          data.password
+          data.webinarLink
         ).catch(err => console.error('Webinar registration WhatsApp error:', err))
       );
     }
@@ -108,15 +121,16 @@ export class NotificationService {
     // WhatsApp
     if (data.joineePhone && fast2smsService.isWhatsAppConfigured()) {
       promises.push(
-        fast2smsService.sendWhatsAppWebinarReminder(
+        // The WhatsApp sender has no 24-hour template — the closest approved one
+        // is the generic "webinar reminder" used for the 2-hour mark, and its
+        // wording suits either. Email still carries the full 24-hour notice.
+        fast2smsService.sendWhatsAppWebinar2HrReminder(
           data.joineePhone,
-          WHATSAPP_TEMPLATES.WEBINAR_24HRS.messageId,
           data.joineeName,
           data.date,
           data.day,
           data.time,
-          data.webinarLink,
-          data.password
+          data.webinarLink
         ).catch(err => console.error('24hr WhatsApp error:', err))
       );
     }
@@ -152,15 +166,13 @@ export class NotificationService {
     // WhatsApp
     if (data.joineePhone && fast2smsService.isWhatsAppConfigured()) {
       promises.push(
-        fast2smsService.sendWhatsAppWebinarReminder(
+        fast2smsService.sendWhatsAppWebinar2HrReminder(
           data.joineePhone,
-          WHATSAPP_TEMPLATES.WEBINAR_6HRS.messageId,
           data.joineeName,
           data.date,
           data.day,
           data.time,
-          data.webinarLink,
-          data.password
+          data.webinarLink
         ).catch(err => console.error('6hr WhatsApp error:', err))
       );
     }
@@ -196,15 +208,11 @@ export class NotificationService {
     // WhatsApp
     if (data.joineePhone && fast2smsService.isWhatsAppConfigured()) {
       promises.push(
-        fast2smsService.sendWhatsAppWebinarReminder(
+        fast2smsService.sendWhatsAppWebinar10MinReminder(
           data.joineePhone,
-          WHATSAPP_TEMPLATES.WEBINAR_30MIN.messageId,
           data.joineeName,
-          data.date,
-          data.day,
-          data.time,
-          data.webinarLink,
-          data.password
+          `${data.time} on ${data.date} (${data.day})`,
+          data.webinarLink
         ).catch(err => console.error('30min WhatsApp error:', err))
       );
     }
@@ -240,15 +248,10 @@ export class NotificationService {
     // WhatsApp
     if (data.joineePhone && fast2smsService.isWhatsAppConfigured()) {
       promises.push(
-        fast2smsService.sendWhatsAppWebinarReminder(
+        fast2smsService.sendWhatsAppWebinarLive(
           data.joineePhone,
-          WHATSAPP_TEMPLATES.WEBINAR_LIVE.messageId,
           data.joineeName,
-          data.date,
-          data.day,
-          data.time,
-          data.webinarLink,
-          data.password
+          data.webinarLink
         ).catch(err => console.error('Live WhatsApp error:', err))
       );
     }
@@ -288,6 +291,80 @@ export class NotificationService {
           data.courseName,
           data.courseAccessLink
         ).catch(err => console.error('Course purchase WhatsApp error:', err))
+      );
+    }
+
+    await Promise.allSettled(promises);
+  }
+
+  // ============ 1:1 SESSION BOOKING ============
+
+  /**
+   * Confirms a 1:1 booking to the learner and tells the expert someone booked
+   * them. WhatsApp only goes out if a session template is configured — see
+   * WHATSAPP_TEMPLATES.SESSION_BOOKING — but email always does.
+   */
+  async sendSessionBookingNotification(data: SessionNotificationData): Promise<void> {
+    const promises: Promise<any>[] = [];
+
+    const when = data.scheduledAt
+      ? new Date(data.scheduledAt).toLocaleString('en-IN', {
+          dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Kolkata',
+        })
+      : 'to be confirmed';
+    const modeLabel = String(data.mode).toUpperCase() === 'VIDEO' ? 'Video call' : 'Audio call';
+
+    // ── Learner ──
+    promises.push(
+      this.emailService.sendEmail({
+        to: data.callerEmail,
+        subject: `Your 1:1 session with ${data.expertName} is booked`,
+        html: this.wrapEmailHtml(`
+          <p class="greeting">Hey ${data.callerName}!</p>
+          <p>Your 1:1 session with <strong>${data.expertName}</strong> is confirmed.</p>
+          <div class="details-box">
+            <h3>Session details</h3>
+            <p>Format: <strong>${modeLabel}</strong></p>
+            <p>When: <strong>${when}</strong></p>
+            ${data.amount ? `<p>Amount: <strong>₹${data.amount}</strong></p>` : ''}
+          </div>
+          <p>You'll get the joining link here before it starts.</p>
+        `),
+      }).catch(err => console.error('Session booking email error (learner):', err)),
+    );
+
+    if (data.callerPhone && fast2smsService.isWhatsAppConfigured()) {
+      promises.push(
+        fast2smsService
+          .sendWhatsAppSessionBooking(data.callerPhone, data.callerName, data.expertName, when)
+          .catch(err => console.error('Session booking WhatsApp error (learner):', err)),
+      );
+    }
+
+    // ── Expert ──
+    if (data.expertEmail) {
+      promises.push(
+        this.emailService.sendEmail({
+          to: data.expertEmail,
+          subject: `New 1:1 booking from ${data.callerName}`,
+          html: this.wrapEmailHtml(`
+            <p class="greeting">Hey ${data.expertName}!</p>
+            <p><strong>${data.callerName}</strong> just booked a 1:1 session with you.</p>
+            <div class="details-box">
+              <h3>Session details</h3>
+              <p>Format: <strong>${modeLabel}</strong></p>
+              <p>When: <strong>${when}</strong></p>
+            </div>
+          `),
+        }).catch(err => console.error('Session booking email error (expert):', err)),
+      );
+    }
+
+    if (data.expertPhone && fast2smsService.isWhatsAppConfigured()) {
+      promises.push(
+        fast2smsService
+          .sendWhatsAppSessionBooking(data.expertPhone, data.expertName, data.callerName, when)
+          .catch(err => console.error('Session booking WhatsApp error (expert):', err)),
       );
     }
 

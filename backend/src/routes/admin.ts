@@ -48,10 +48,38 @@ const authenticateToken = (req: any, res: any, next: any) => {
   });
 };
 
+// Every route below is behind authenticateToken, which requires the ADMIN role.
+
+// ── Overview ──────────────────────────────────────────────────────────────────
 router.get("/stats", authenticateToken, AdminController.getStats);
+
+// ── Users ─────────────────────────────────────────────────────────────────────
 router.get("/users", authenticateToken, AdminController.getUsers);
+router.patch("/users/:id/roles", authenticateToken, AdminController.setUserRoles);
 router.delete("/users/:id", authenticateToken, AdminController.deleteUser);
+
+// ── Courses ───────────────────────────────────────────────────────────────────
 router.get("/courses", authenticateToken, AdminController.getCourses);
+router.patch("/courses/:id/status", authenticateToken, AdminController.setCourseStatus);
+router.delete("/courses/:id", authenticateToken, AdminController.deleteCourse);
+
+// ── Webinars ──────────────────────────────────────────────────────────────────
 router.get("/webinars", authenticateToken, AdminController.getWebinars);
+router.patch("/webinars/:id/status", authenticateToken, AdminController.setWebinarStatus);
+router.delete("/webinars/:id", authenticateToken, AdminController.deleteWebinar);
+
+// ── Payments ──────────────────────────────────────────────────────────────────
+router.get("/transactions", authenticateToken, AdminController.getTransactions);
+
+// ── 1:1 sessions ──────────────────────────────────────────────────────────────
+router.get("/sessions", authenticateToken, AdminController.getSessions);
+
+// ── KYC ───────────────────────────────────────────────────────────────────────
+router.get("/kyc", authenticateToken, AdminController.getKyc);
+router.patch("/kyc/:id/review", authenticateToken, AdminController.reviewKyc);
+
+// ── Creator storefronts ───────────────────────────────────────────────────────
+router.get("/storefronts", authenticateToken, AdminController.getStorefronts);
+router.patch("/storefronts/:id/publish", authenticateToken, AdminController.setStorefrontPublished);
 
 export default router;

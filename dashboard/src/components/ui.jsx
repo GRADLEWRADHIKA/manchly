@@ -249,7 +249,7 @@ export function EmptyState({ icon = "🗂️", title, subtitle, action }) {
 }
 
 /* ---------------- Progress bar ---------------- */
-export function ProgressBar({ percent = 0, gradient = colors.gradients.indigo, height = 8, track = "rgba(120,130,160,0.22)" }) {
+export function ProgressBar({ percent = 0, gradient = colors.gradients.greenButton, height = 8, track = "rgba(120,130,160,0.22)" }) {
   return (
     <div style={{ width: "100%", height, borderRadius: 99, background: track, overflow: "hidden" }}>
       <div style={{ width: `${Math.min(100, Math.max(0, percent))}%`, height: "100%", borderRadius: 99, background: gradient, transition: "width 0.5s ease" }} />
@@ -315,7 +315,7 @@ export function Avatar({ src, name = "", size = 40, online }) {
           style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover", display: "block" }}
         />
       ) : (
-        <div style={{ width: size, height: size, borderRadius: "50%", background: colors.gradients.indigo, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: size * 0.38 }}>
+        <div style={{ width: size, height: size, borderRadius: "50%", background: colors.gradients.greenButtonDark, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: size * 0.38 }}>
           {initials}
         </div>
       )}

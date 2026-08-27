@@ -3,7 +3,12 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Search, Star, Clock, BookOpen, Video } from "lucide-react";
 import { apiFetch, unwrap } from "../../utils/api";
 import colors from "../../utils/colors";
-import { GradientButton, Spinner, EmptyState, Badge } from "../../components/ui";
+import {
+  GradientButton,
+  Spinner,
+  EmptyState,
+  Badge,
+} from "../../components/ui";
 import { formatCurrency } from "../../utils/formatters";
 
 const PAGE_SIZE = 8;
@@ -11,7 +16,9 @@ const PAGE_SIZE = 8;
 export default function Explore() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
-  const [tab, setTab] = useState(params.get("tab") === "webinars" ? "webinars" : "courses");
+  const [tab, setTab] = useState(
+    params.get("tab") === "webinars" ? "webinars" : "courses",
+  );
   const [search, setSearch] = useState("");
   const [items, setItems] = useState([]);
   const [page, setPage] = useState(1);
@@ -29,7 +36,8 @@ export default function Explore() {
       const res = await apiFetch(path);
       const d = unwrap(res);
       const list = d?.courses || d?.webinars || (Array.isArray(d) ? d : []);
-      const filtered = t === "webinars" ? list.filter((w) => !w.is_enrolled) : list;
+      const filtered =
+        t === "webinars" ? list.filter((w) => !w.is_enrolled) : list;
       setItems((prev) => (append ? [...prev, ...filtered] : filtered));
       setTotalPages(d?.pagination?.total_pages || 1);
     } catch {
@@ -69,9 +77,25 @@ export default function Explore() {
   };
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: colors.user.bg, color: colors.user.text }}>
+    <div
+      style={{
+        display: "flex",
+        minHeight: "100vh",
+        background: colors.user.bg,
+        color: colors.user.text,
+      }}
+    >
       <main style={{ flex: 1, padding: "28px 32px", overflowY: "auto" }}>
-        <h1 style={{ margin: "0 0 18px", fontSize: 26, fontWeight: 900, color: colors.user.text }}>Explore</h1>
+        <h1
+          style={{
+            margin: "0 0 18px",
+            fontSize: 26,
+            fontWeight: 900,
+            color: colors.user.text,
+          }}
+        >
+          Explore
+        </h1>
 
         {/* Search */}
         <div
@@ -125,7 +149,8 @@ export default function Explore() {
                 fontSize: 16,
                 fontWeight: 800,
                 textTransform: "capitalize",
-                background: tab === t ? colors.gradients.heroWarm : "transparent",
+                background:
+                  tab === t ? colors.gradients.heroWarm : "transparent",
                 color: tab === t ? "#FFFFFF" : colors.user.subHeading,
                 transition: "all 0.2s ease",
               }}
@@ -136,7 +161,13 @@ export default function Explore() {
         </div>
 
         {loading && items.length === 0 ? (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 16 }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
+              gap: 16,
+            }}
+          >
             {Array.from({ length: 6 }).map((_, i) => (
               <div
                 key={i}
@@ -151,31 +182,95 @@ export default function Explore() {
             ))}
           </div>
         ) : items.length === 0 ? (
-          <EmptyState icon="🔍" title={`No ${tab} found`} subtitle={search ? `Nothing matches "${search}"` : "Check back soon."} />
+          <EmptyState
+            icon="🔍"
+            title={`No ${tab} found`}
+            subtitle={
+              search ? `Nothing matches "${search}"` : "Check back soon."
+            }
+          />
         ) : tab === "courses" ? (
           <>
-            <h3 style={{ margin: "0 0 14px", fontSize: 16, fontWeight: 800, color: colors.user.subHeading }}>Popular Courses</h3>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 16 }}>
+            <h3
+              style={{
+                margin: "0 0 14px",
+                fontSize: 16,
+                fontWeight: 800,
+                color: colors.user.subHeading,
+              }}
+            >
+              Popular Courses
+            </h3>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
+                gap: 16,
+              }}
+            >
               {items.map((c) => {
                 const duration =
                   Array.isArray(c.videos) && c.videos.length
-                    ? Math.round(c.videos.reduce((s, v) => s + (Number(v.duration) || 0), 0) / 60)
+                    ? Math.round(
+                        c.videos.reduce(
+                          (s, v) => s + (Number(v.duration) || 0),
+                          0,
+                        ) / 60,
+                      )
                     : c.duration || 0;
                 return (
-                  <div key={c.id} style={cardBase} onClick={() => navigate(`/app/course/${c.id}`)}>
+                  <div
+                    key={c.id}
+                    style={cardBase}
+                    onClick={() => navigate(`/app/course/${c.id}`)}
+                  >
                     <div
                       style={{
                         height: 140,
-                        background: c.thumbnail
-                          ? `url(${c.thumbnail}) center/cover`
-                          : colors.gradients?.heroWarm || "linear-gradient(135deg, #1F2937 0%, #2B52F6 60%, #22C55E 130%)",
                         position: "relative",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
+                        overflow: "hidden",
                       }}
                     >
-                      {!c.thumbnail && <BookOpen size={34} color="rgba(255,255,255,0.55)" />}
+                      {c.thumbnail ? (
+                        <>
+                          <div
+                            style={{
+                              position: "absolute",
+                              inset: -10,
+                              backgroundImage: `url(${c.thumbnail})`,
+                              backgroundSize: "cover",
+                              backgroundPosition: "center",
+                              filter: "blur(18px) brightness(0.7)",
+                              transform: "scale(1.15)",
+                            }}
+                          />
+                          <div
+                            style={{
+                              position: "absolute",
+                              inset: 0,
+                              backgroundImage: `url(${c.thumbnail})`,
+                              backgroundSize: "contain",
+                              backgroundPosition: "center",
+                              backgroundRepeat: "no-repeat",
+                            }}
+                          />
+                        </>
+                      ) : (
+                        <div
+                          style={{
+                            position: "absolute",
+                            inset: 0,
+                            background:
+                              colors.gradients?.heroWarm ||
+                              "linear-gradient(135deg, #1F2937 0%, #2B52F6 60%, #22C55E 130%)",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <BookOpen size={34} color="rgba(255,255,255,0.55)" />
+                        </div>
+                      )}
                       <span
                         style={{
                           position: "absolute",
@@ -194,21 +289,67 @@ export default function Explore() {
                       </span>
                     </div>
                     <div style={{ padding: 14 }}>
-                      <div style={{ fontWeight: 800, fontSize: 14.5, minHeight: 38, lineHeight: 1.35, color: colors.user.text }}>{c.title}</div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 8, color: colors.user.subHeading, fontSize: 12.5 }}>
-                        <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                          <Star size={12} color="#F0C040" /> {c.average_rating || c.rating || "New"}
+                      <div
+                        style={{
+                          fontWeight: 800,
+                          fontSize: 14.5,
+                          minHeight: 38,
+                          lineHeight: 1.35,
+                          color: colors.user.text,
+                        }}
+                      >
+                        {c.title}
+                      </div>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 12,
+                          marginTop: 8,
+                          color: colors.user.subHeading,
+                          fontSize: 12.5,
+                        }}
+                      >
+                        <span
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 4,
+                          }}
+                        >
+                          <Star size={12} color="#F0C040" />{" "}
+                          {c.average_rating || c.rating || "New"}
                         </span>
                         {duration > 0 && (
-                          <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                          <span
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 4,
+                            }}
+                          >
                             <Clock size={12} /> {duration} min
                           </span>
                         )}
-                        <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                          <BookOpen size={12} /> {c.videos?.length ?? c.total_videos ?? 0} lessons
+                        <span
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 4,
+                          }}
+                        >
+                          <BookOpen size={12} />{" "}
+                          {c.videos?.length ?? c.total_videos ?? 0} lessons
                         </span>
                       </div>
-                      <div style={{ marginTop: 10, fontWeight: 900, fontSize: 16, color: colors.user.accent }}>
+                      <div
+                        style={{
+                          marginTop: 10,
+                          fontWeight: 900,
+                          fontSize: 16,
+                          color: colors.user.accent,
+                        }}
+                      >
                         {Number(c.price) > 0 ? formatCurrency(c.price) : "Free"}
                       </div>
                     </div>
@@ -224,22 +365,66 @@ export default function Explore() {
                 📅 {items.length} upcoming
               </Badge>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 16 }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+                gap: 16,
+              }}
+            >
               {items.map((w) => (
-                <div key={w.id} style={cardBase} onClick={() => navigate(`/app/webinar/${w.id}`)}>
+                <div
+                  key={w.id}
+                  style={cardBase}
+                  onClick={() => navigate(`/app/webinar/${w.id}`)}
+                >
                   <div
                     style={{
                       height: 140,
-                      background: w.thumbnail
-                        ? `url(${w.thumbnail}) center/cover`
-                        : colors.gradients?.heroWarm || "linear-gradient(135deg, #1F2937 0%, #2B52F6 60%, #22C55E 130%)",
                       position: "relative",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
+                      overflow: "hidden",
                     }}
                   >
-                    {!w.thumbnail && <Video size={34} color="rgba(255,255,255,0.55)" />}
+                    {w.thumbnail ? (
+                      <>
+                        <div
+                          style={{
+                            position: "absolute",
+                            inset: -10,
+                            backgroundImage: `url(${w.thumbnail})`,
+                            backgroundSize: "cover",
+                            backgroundPosition: "center",
+                            filter: "blur(18px) brightness(0.7)",
+                            transform: "scale(1.15)",
+                          }}
+                        />
+                        <div
+                          style={{
+                            position: "absolute",
+                            inset: 0,
+                            backgroundImage: `url(${w.thumbnail})`,
+                            backgroundSize: "contain",
+                            backgroundPosition: "center",
+                            backgroundRepeat: "no-repeat",
+                          }}
+                        />
+                      </>
+                    ) : (
+                      <div
+                        style={{
+                          position: "absolute",
+                          inset: 0,
+                          background:
+                            colors.gradients?.heroWarm ||
+                            "linear-gradient(135deg, #1F2937 0%, #2B52F6 60%, #22C55E 130%)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <Video size={34} color="rgba(255,255,255,0.55)" />
+                      </div>
+                    )}
                     <span
                       style={{
                         position: "absolute",
@@ -258,11 +443,39 @@ export default function Explore() {
                     </span>
                   </div>
                   <div style={{ padding: 14 }}>
-                    <div style={{ fontWeight: 800, fontSize: 15, color: colors.user.text }}>{w.title}</div>
-                    <div style={{ color: colors.user.subHeading, fontSize: 12.5, marginTop: 6 }}>
-                      📅 {w.scheduled_at ? new Date(w.scheduled_at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "TBA"} · {w.creator?.name || "Creator"}
+                    <div
+                      style={{
+                        fontWeight: 800,
+                        fontSize: 15,
+                        color: colors.user.text,
+                      }}
+                    >
+                      {w.title}
                     </div>
-                    <GradientButton size="sm" gradient={colors.gradients.greenButtonDark}  full style={{ marginTop: 12 }}>
+                    <div
+                      style={{
+                        color: colors.user.subHeading,
+                        fontSize: 12.5,
+                        marginTop: 6,
+                      }}
+                    >
+                      📅{" "}
+                      {w.scheduled_at
+                        ? new Date(w.scheduled_at).toLocaleString("en-IN", {
+                            day: "numeric",
+                            month: "short",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })
+                        : "TBA"}{" "}
+                      · {w.creator?.name || "Creator"}
+                    </div>
+                    <GradientButton
+                      size="sm"
+                      gradient={colors.gradients.greenButtonDark}
+                      full
+                      style={{ marginTop: 12 }}
+                    >
                       Register Now
                     </GradientButton>
                   </div>

@@ -18,6 +18,9 @@ export default function HlsVideo({ src, poster, autoPlay = false, onProgress, st
       hls = new Hls();
       hls.loadSource(src);
       hls.attachMedia(video);
+      hls.on(Hls.Events.ERROR, (_event, data) => {
+        console.error("HLS.js error:", data.type, data.details, data);
+      });
     } else {
       video.src = src;
     }
@@ -36,11 +39,12 @@ export default function HlsVideo({ src, poster, autoPlay = false, onProgress, st
 
   return (
     <div style={{position: "relative", width: "100%"}}>
-    <video
+      <video
       ref={videoRef}
       poster={poster}
       controls={controls}
       autoPlay={autoPlay}
+      muted={autoPlay}
       onTimeUpdate={handleTime}
       playsInline
       style={{ width: "100%", borderRadius: 14, background: "#000", display: "block", ...style }}

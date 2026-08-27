@@ -109,6 +109,35 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
     setLoading(false);
   }, [user]);
 
+  const handleCourseSave = async (updatedCourse) => {
+    const id = updatedCourse?.id || updatedCourse?._id;
+    if (!id) return;
+
+    try {
+      const response = await apiFetch(`/courses/${id}`, {
+        method: "PUT",
+        body: JSON.stringify({
+          title: updatedCourse.title,
+          description: updatedCourse.description,
+          thumbnail: updatedCourse.thumbnail,
+          thumbnail_url: updatedCourse.thumbnail_url,
+          price: updatedCourse.price,
+          status: (updatedCourse.status || "draft").toUpperCase(),
+        }),
+      });
+
+      const saved = unwrap(response)?.course;
+
+      setCourseList((prev) =>
+        prev.map((c) =>
+          (c.id || c._id) === id ? { ...c, ...(saved || updatedCourse) } : c,
+        ),
+      );
+    } catch (err) {
+      console.error("Failed to save course", err);
+    }
+  };
+
   const loadNotifications = useCallback(async () => {
     try {
       const response = await apiFetch("/notifications/unread-count");
@@ -403,7 +432,14 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
         </div>
 
         {/* Your Courses + Right Sidebar (Insights & AI Planner) Row */}
-        <div style={{ display: "grid", gridTemplateColumns: "4fr 1fr", gap: 20, alignItems: "start" }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "4fr 1fr",
+            gap: 20,
+            alignItems: "start",
+          }}
+        >
           {/* Your Courses */}
           <div
             style={{
@@ -504,9 +540,10 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
                     key={course?.id || course?._id || course?.title}
                     course={course}
                     onEdit={handleCourseEdit}
+                    onSave={handleCourseSave}
                     onView={handleCourseView}
                     onDuplicate={handleCourseDuplicate}
-                    onMore={handleCourseMore}
+                    onDelete={handleCourseMore}
                   />
                 ))}
               </div>
@@ -661,7 +698,9 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
                     marginBottom: 10,
                   }}
                 >
-                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: 6 }}
+                  >
                     <Rocket size={18} color={colors.brand.primaryOrange} />
                     <span
                       style={{
@@ -706,8 +745,8 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
                     marginBottom: 14,
                   }}
                 >
-                  Generate an AI-driven curriculum, target audience strategy, and
-                  launch timeline in seconds.
+                  Generate an AI-driven curriculum, target audience strategy,
+                  and launch timeline in seconds.
                 </div>
               </div>
               <div

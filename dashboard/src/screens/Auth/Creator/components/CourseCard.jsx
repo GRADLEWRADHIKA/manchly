@@ -175,9 +175,7 @@ export default function CourseCard({
     // Notify parent component
     if (onSave) {
       onSave(updatedCourse);
-    } else if (onEdit) {
-      onEdit(updatedCourse);
-    }
+    } 
     setIsModalOpen(false);
   };
 

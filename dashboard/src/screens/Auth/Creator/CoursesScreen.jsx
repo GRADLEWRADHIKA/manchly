@@ -19,6 +19,7 @@ import VerificationBanner from "../../../components/VerificationBanner";
 import StatCard from "./components/StatCard";
 import InsightRow from "./components/InsightRow";
 import CourseCard from "./components/CourseCard";
+import { toast } from "../../../utils/toast";
 
 function val(result) {
   if (result.status !== "fulfilled") return null;
@@ -108,6 +109,22 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
 
     setLoading(false);
   }, [user]);
+
+   const handleAddUser = async (course, identifier) => {
+    const id = course?.id || course?._id;
+    if (!id) return;
+    const response = await apiFetch(`/courses/${id}/grant`, {
+      method: "POST",
+      body: JSON.stringify(identifier),
+    });
+    const data = unwrap(response);
+    if (data?.alreadyEnrolled) {
+      toast.info("This user already has access to the course.");
+    } else {
+      toast.success("Access granted successfully.");
+    }
+  };
+
 
   const handleCourseSave = async (updatedCourse) => {
     const id = updatedCourse?.id || updatedCourse?._id;
@@ -544,6 +561,7 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
                     onView={handleCourseView}
                     onDuplicate={handleCourseDuplicate}
                     onDelete={handleCourseMore}
+                     onAddUser={handleAddUser}
                   />
                 ))}
               </div>

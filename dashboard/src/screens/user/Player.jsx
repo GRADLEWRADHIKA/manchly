@@ -1,5 +1,3 @@
-// Course player — HLS playback with Up Next rail and live progress sync
-// (PUT /courses/:id/progress with percent watched, app parity).
 import React, { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, PlayCircle } from "lucide-react";

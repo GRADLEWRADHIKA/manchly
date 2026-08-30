@@ -4,7 +4,8 @@ import React, { useEffect, useRef } from "react";
 import Hls from "hls.js";
 
 // `muted`/`loop` exist for the reels feed, where playback has to start without
-// a user gesture — browsers only allow autoplay when the video is muted.
+// a user gesture. Autoplay implies muted, since browsers block it otherwise,
+// but an explicit `muted` still wins so the feed can unmute on demand.
 export default function HlsVideo({ src, poster, autoPlay = false, onProgress, style = {}, controls = true, watermarkText, muted = false, loop = false }) {
   const videoRef = useRef(null);
   const lastPct = useRef(-1);
@@ -20,6 +21,9 @@ export default function HlsVideo({ src, poster, autoPlay = false, onProgress, st
       hls = new Hls();
       hls.loadSource(src);
       hls.attachMedia(video);
+      hls.on(Hls.Events.ERROR, (_event, data) => {
+        console.error("HLS.js error:", data.type, data.details, data);
+      });
     } else {
       video.src = src;
     }
@@ -38,12 +42,12 @@ export default function HlsVideo({ src, poster, autoPlay = false, onProgress, st
 
   return (
     <div style={{position: "relative", width: "100%"}}>
-    <video
+      <video
       ref={videoRef}
       poster={poster}
       controls={controls}
       autoPlay={autoPlay}
-      muted={muted}
+      muted={muted || autoPlay}
       loop={loop}
       onTimeUpdate={handleTime}
       playsInline

@@ -68,6 +68,9 @@ function StudioScreenContent({ initialCourseId }) {
   const [deleteCourse, setDeleteCourse] = useState(null);
   const [coursePreviewModal, setCoursePreviewModal] = useState(false);
 
+  const [coursePerformance, setCoursePerformance] = useState(null);
+  const [performanceLoading, setPerformanceLoading] = useState(false);
+
   // lesson form modal
   const [lessonModal, setLessonModal] = useState(null); // null | {mode:'add', file} | {mode:'edit', video}
   const [lessonForm, setLessonForm] = useState({
@@ -175,6 +178,20 @@ function StudioScreenContent({ initialCourseId }) {
       toast.error(e.message);
     } finally {
       setBusy(false);
+    }
+  };
+
+  const openPerformanceModal = async () => {
+    setPerformanceModal(true);
+    setPerformanceLoading(true);
+    try {
+      const res = unwrap(await apiFetch(`/courses/${detail.id}/performance`));
+      setCoursePerformance(res?.performance || null);
+    } catch (e) {
+      toast.error(e.message);
+      setCoursePerformance(null);
+    } finally {
+      setPerformanceLoading(false);
     }
   };
 
@@ -712,7 +729,7 @@ function StudioScreenContent({ initialCourseId }) {
                           <Trash2 size={16} />
                         </button>
                         <GoldBtn
-                          onClick={() => setPerformanceModal(true)}
+                          onClick={openPerformanceModal}
                           style={{ padding: "8px 16px" }}
                         >
                           <BookCheck size={15} /> Course Performance
@@ -720,7 +737,7 @@ function StudioScreenContent({ initialCourseId }) {
                       </div>
                     </div>
 
-                    {/* ---------- Course Performance Modal (static placeholder) ---------- */}
+                    {/* ---------- Course Performance Modal (live data) ---------- */}
                     <Modal
                       open={performanceModal}
                       onClose={() => setPerformanceModal(false)}
@@ -766,18 +783,11 @@ function StudioScreenContent({ initialCourseId }) {
                                   marginTop: 8,
                                 }}
                               >
-                                {formatCurrency(
-                                  detail.price ? detail.price * 1 : 0,
-                                )}
-                              </div>
-                              <div
-                                style={{
-                                  fontSize: 11.5,
-                                  color: colors.typography.secondaryText,
-                                  marginTop: 2,
-                                }}
-                              >
-                                Static placeholder value
+                                {performanceLoading
+                                  ? "…"
+                                  : formatCurrency(
+                                      coursePerformance?.total_revenue || 0,
+                                    )}
                               </div>
                             </div>
 
@@ -811,16 +821,9 @@ function StudioScreenContent({ initialCourseId }) {
                                   marginTop: 8,
                                 }}
                               >
-                                0
-                              </div>
-                              <div
-                                style={{
-                                  fontSize: 11.5,
-                                  color: colors.typography.secondaryText,
-                                  marginTop: 2,
-                                }}
-                              >
-                                Static placeholder value
+                                {performanceLoading
+                                  ? "…"
+                                  : (coursePerformance?.total_enrollments ?? 0)}
                               </div>
                             </div>
                           </div>

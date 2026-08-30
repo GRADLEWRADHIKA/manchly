@@ -204,17 +204,18 @@ function ForceLogoutBridge() {
 }
 
 export default function App() {
-  const { user } = useAuth();
+  const { user,isAuthed, role  } = useAuth();
+  const isCreator = isAuthed && role === "CREATOR";
 
   return (
     <>
-     <AssistantProvider>
+      <AssistantProvider>
       <Toaster />
       <NotificationBridge />
       <ForceLogoutBridge />
       <CallManager />
-      <AiAssistant/>
-      <AssistantLauncher />
+      {isCreator && <AiAssistant/>}
+      {isCreator && <AssistantLauncher />}
 
       <Routes>
         <Route path="/" element={<HomeRedirect />} />

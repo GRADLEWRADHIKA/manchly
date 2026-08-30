@@ -14,9 +14,13 @@ import {
   UploadCloud,
   Sparkles,
   Loader2,
+  UserPlus,
 } from "lucide-react";
 import colors from "../../../../utils/colors";
 import { formatCurrency, timeAgo } from "../../../../utils/formatters";
+
+const ADD_USER_EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const ADD_USER_PHONE_RE = /^\d{10}$/;
 
 export default function CourseCard({
   course,
@@ -28,12 +32,16 @@ export default function CourseCard({
   onAnalytics,
   onEnhanceTitle,
   onEnhanceDescription,
+  onAddUser,
 }) {
   // Local state to track course details for immediate UI updates
   const [displayCourse, setDisplayCourse] = useState(course);
   const [isHovered, setIsHovered] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false); // was missing
+  const [addUserValue, setAddUserValue] = useState("");
+  const [addUserSubmitting, setAddUserSubmitting] = useState(false);
 
   // Edit form state
   const [formData, setFormData] = useState({
@@ -52,11 +60,6 @@ export default function CourseCard({
   const menuRef = useRef(null);
   const fileInputRef = useRef(null);
 
-  // Keep the card's local display in sync with the parent's course prop,
-  // but ONLY when the modal is closed. While the modal is open the user
-  // is actively editing formData, and we never want an incoming prop
-  // update (e.g. from a parent re-render / refetch) to blow away
-  // displayCourse mid-edit.
   useEffect(() => {
     if (!isModalOpen) {
       setDisplayCourse(course);
@@ -154,6 +157,28 @@ export default function CourseCard({
     }
   };
 
+  const trimmedAddUserValue = addUserValue.trim();
+  const addUserIsEmail = ADD_USER_EMAIL_RE.test(trimmedAddUserValue);
+  const addUserIsPhone = ADD_USER_PHONE_RE.test(trimmedAddUserValue);
+  const addUserIsValid = addUserIsEmail || addUserIsPhone;
+
+  const handleAddUserSubmit = async () => {
+    if (!addUserIsValid || addUserSubmitting || !onAddUser) return;
+    setAddUserSubmitting(true);
+    try {
+      await onAddUser(
+        displayCourse,
+        addUserIsEmail ? { email: trimmedAddUserValue } : { phone: trimmedAddUserValue }
+      );
+      setAddUserValue("");
+      setIsAddUserModalOpen(false);
+    } catch {
+      // Error toast is handled by the parent's apiFetch call; keep modal open.
+    } finally {
+      setAddUserSubmitting(false);
+    }
+  };
+
   const handleSave = (e) => {
     e?.stopPropagation();
     const updatedCourse = {
@@ -175,8 +200,6 @@ export default function CourseCard({
     // Notify parent component
     if (onSave) {
       onSave(updatedCourse);
-    } else if (onEdit) {
-      onEdit(updatedCourse);
     }
     setIsModalOpen(false);
   };
@@ -386,10 +409,7 @@ export default function CourseCard({
                   title="Analytics"
                   style={iconButtonStyle}
                 >
-                  <BarChart2
-                    size={14}
-                    color={colors.typography.secondaryText}
-                  />
+                  <BarChart2 size={14} color={colors.typography.secondaryText} />
                 </button>
                 <button
                   type="button"
@@ -418,10 +438,7 @@ export default function CourseCard({
                         : colors.base.cardBackground,
                     }}
                   >
-                    <MoreHorizontal
-                      size={14}
-                      color={colors.typography.secondaryText}
-                    />
+                    <MoreHorizontal size={14} color={colors.typography.secondaryText} />
                   </button>
 
                   {isMenuOpen && (
@@ -451,10 +468,7 @@ export default function CourseCard({
                         }}
                         style={menuItemStyle}
                       >
-                        <Pencil
-                          size={13}
-                          color={colors.typography.secondaryText}
-                        />
+                        <Pencil size={13} color={colors.typography.secondaryText} />
                         <span>Edit Course</span>
                       </button>
 
@@ -467,12 +481,24 @@ export default function CourseCard({
                         }}
                         style={menuItemStyle}
                       >
-                        <Copy
-                          size={13}
-                          color={colors.typography.secondaryText}
-                        />
+                        <Copy size={13} color={colors.typography.secondaryText} />
                         <span>Duplicate</span>
                       </button>
+
+                      {onAddUser && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setIsMenuOpen(false);
+                            setIsAddUserModalOpen(true);
+                          }}
+                          style={menuItemStyle}
+                        >
+                          <UserPlus size={13} color={colors.typography.secondaryText} />
+                          <span>Add User</span>
+                        </button>
+                      )}
 
                       {onDelete && (
                         <button
@@ -507,6 +533,168 @@ export default function CourseCard({
           </div>
         </div>
       </div>
+
+      {/* ADD USER MODAL */}
+      {isAddUserModalOpen && (
+        <div
+          onClick={(e) => {
+            e.stopPropagation();
+            if (!addUserSubmitting) {
+              setIsAddUserModalOpen(false);
+              setAddUserValue("");
+            }
+          }}
+          style={{
+            position: "fixed",
+            inset: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            backdropFilter: "blur(4px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+            padding: 16,
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: "100%",
+              maxWidth: 440,
+              background: colors.base.cardBackground,
+              borderRadius: 18,
+              border: `1px solid ${colors.base.border}`,
+              boxShadow: "0 20px 40px rgba(0,0,0,0.2)",
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+            }}
+          >
+            <div
+              style={{
+                padding: "16px 20px",
+                borderBottom: `1px solid ${colors.base.border}`,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <UserPlus size={18} color={colors.brand?.primaryOrange || "#FF6B00"} />
+                <span
+                  style={{
+                    fontSize: 16,
+                    fontWeight: 700,
+                    color: colors.typography.primaryText,
+                  }}
+                >
+                  Add User
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!addUserSubmitting) {
+                    setIsAddUserModalOpen(false);
+                    setAddUserValue("");
+                  }
+                }}
+                style={iconButtonStyle}
+              >
+                <X size={16} color={colors.typography.secondaryText} />
+              </button>
+            </div>
+
+            <div
+              style={{
+                padding: 20,
+                display: "flex",
+                flexDirection: "column",
+                gap: 12,
+              }}
+            >
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: 13,
+                  color: colors.typography.secondaryText,
+                  lineHeight: 1.5,
+                }}
+              >
+                Grant access to <strong>{title}</strong> without a payment. The user is
+                notified once added.
+              </p>
+
+              <div>
+                <label style={modalLabelStyle}>User's phone or email</label>
+                <input
+                  type="text"
+                  value={addUserValue}
+                  onChange={(e) => setAddUserValue(e.target.value)}
+                  placeholder="Phone number or email"
+                  disabled={addUserSubmitting}
+                  style={{ ...modalInputStyle, marginTop: 6 }}
+                />
+                <p
+                  style={{
+                    margin: "6px 0 0",
+                    fontSize: 11.5,
+                    color: colors.typography.secondaryText,
+                  }}
+                >
+                  The user must already have a Manchly account with this phone or email.
+                </p>
+              </div>
+            </div>
+
+            <div
+              style={{
+                padding: "14px 20px",
+                borderTop: `1px solid ${colors.base.border}`,
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: 10,
+                background: "rgba(0,0,0,0.02)",
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  setIsAddUserModalOpen(false);
+                  setAddUserValue("");
+                }}
+                disabled={addUserSubmitting}
+                style={{
+                  ...modalActionButtonStyle,
+                  background: "transparent",
+                  color: colors.typography.secondaryText,
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleAddUserSubmit}
+                disabled={!addUserIsValid || addUserSubmitting}
+                style={{
+                  ...modalActionButtonStyle,
+                  background: colors.brand?.primaryOrange || "#FF6B00",
+                  color: "#FFF",
+                  opacity: !addUserIsValid || addUserSubmitting ? 0.6 : 1,
+                  cursor: !addUserIsValid || addUserSubmitting ? "not-allowed" : "pointer",
+                }}
+              >
+                {addUserSubmitting ? (
+                  <Loader2 size={14} className="animate-spin" />
+                ) : (
+                  <UserPlus size={14} />
+                )}
+                Grant Access
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* EDIT COURSE POPUP MODAL */}
       {isModalOpen && (
@@ -552,10 +740,7 @@ export default function CourseCard({
               }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <Pencil
-                  size={18}
-                  color={colors.brand?.primaryOrange || "#FF6B00"}
-                />
+                <Pencil size={18} color={colors.brand?.primaryOrange || "#FF6B00"} />
                 <span
                   style={{
                     fontSize: 16,
@@ -603,11 +788,7 @@ export default function CourseCard({
                     style={enhanceButtonStyle}
                   >
                     {isEnhancingTitle ? (
-                      <Loader2
-                        size={12}
-                        className="animate-spin"
-                        color={colors.navItems.communities}
-                      />
+                      <Loader2 size={12} className="animate-spin" color={colors.navItems.communities} />
                     ) : (
                       <Sparkles size={12} color={colors.navItems.communities} />
                     )}
@@ -617,9 +798,7 @@ export default function CourseCard({
                 <input
                   type="text"
                   value={formData.title}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, title: e.target.value }))
-                  }
+                  onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
                   placeholder="Enter course name"
                   style={modalInputStyle}
                 />
@@ -642,11 +821,7 @@ export default function CourseCard({
                     style={enhanceButtonStyle}
                   >
                     {isEnhancingDesc ? (
-                      <Loader2
-                        size={12}
-                        className="animate-spin"
-                        color={colors.navItems.communities}
-                      />
+                      <Loader2 size={12} className="animate-spin" color={colors.navItems.communities} />
                     ) : (
                       <Sparkles size={12} color={colors.navItems.communities} />
                     )}
@@ -656,10 +831,7 @@ export default function CourseCard({
                 <textarea
                   value={formData.description}
                   onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      description: e.target.value,
-                    }))
+                    setFormData((prev) => ({ ...prev, description: e.target.value }))
                   }
                   rows={3}
                   placeholder="Brief summary of the course..."
@@ -690,13 +862,7 @@ export default function CourseCard({
                   </button>
 
                   {formData.thumbnail ? (
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 10,
-                      }}
-                    >
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                       <img
                         src={formData.thumbnail}
                         alt="Thumbnail Preview"
@@ -710,9 +876,7 @@ export default function CourseCard({
                       />
                       <button
                         type="button"
-                        onClick={() =>
-                          setFormData((prev) => ({ ...prev, thumbnail: "" }))
-                        }
+                        onClick={() => setFormData((prev) => ({ ...prev, thumbnail: "" }))}
                         style={{
                           background: "none",
                           border: "none",
@@ -726,12 +890,7 @@ export default function CourseCard({
                       </button>
                     </div>
                   ) : (
-                    <span
-                      style={{
-                        fontSize: 12,
-                        color: colors.typography.secondaryText,
-                      }}
-                    >
+                    <span style={{ fontSize: 12, color: colors.typography.secondaryText }}>
                       No image selected
                     </span>
                   )}
@@ -744,48 +903,33 @@ export default function CourseCard({
                 <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
                   <button
                     type="button"
-                    onClick={() =>
-                      setFormData((prev) => ({ ...prev, isFree: true, price: 0 }))
-                    }
+                    onClick={() => setFormData((prev) => ({ ...prev, isFree: true, price: 0 }))}
                     style={{
                       ...toggleButtonStyle,
                       background: formData.isFree
                         ? colors.brand?.primaryOrange || "#FF6B00"
                         : "rgba(0,0,0,0.05)",
-                      color: formData.isFree
-                        ? "#FFF"
-                        : colors.typography.primaryText,
+                      color: formData.isFree ? "#FFF" : colors.typography.primaryText,
                     }}
                   >
                     Free Course
                   </button>
                   <button
                     type="button"
-                    onClick={() =>
-                      setFormData((prev) => ({ ...prev, isFree: false }))
-                    }
+                    onClick={() => setFormData((prev) => ({ ...prev, isFree: false }))}
                     style={{
                       ...toggleButtonStyle,
                       background: !formData.isFree
                         ? colors.brand?.primaryOrange || "#FF6B00"
                         : "rgba(0,0,0,0.05)",
-                      color: !formData.isFree
-                        ? "#FFF"
-                        : colors.typography.primaryText,
+                      color: !formData.isFree ? "#FFF" : colors.typography.primaryText,
                     }}
                   >
                     Paid Course
                   </button>
 
                   {!formData.isFree && (
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 6,
-                        marginLeft: "auto",
-                      }}
-                    >
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginLeft: "auto" }}>
                       <span
                         style={{
                           fontSize: 13,
@@ -800,12 +944,7 @@ export default function CourseCard({
                         min="0"
                         step="0.01"
                         value={formData.price}
-                        onChange={(e) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            price: e.target.value,
-                          }))
-                        }
+                        onChange={(e) => setFormData((prev) => ({ ...prev, price: e.target.value }))}
                         style={{ ...modalInputStyle, width: 90 }}
                       />
                     </div>
@@ -818,9 +957,7 @@ export default function CourseCard({
                 <label style={modalLabelStyle}>Publishing Status</label>
                 <select
                   value={formData.status}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, status: e.target.value }))
-                  }
+                  onChange={(e) => setFormData((prev) => ({ ...prev, status: e.target.value }))}
                   style={modalInputStyle}
                 >
                   <option value="draft">Draft</option>

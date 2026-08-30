@@ -148,7 +148,7 @@ export default function HelpCenter() {
           <div style={{ marginBottom: 22 }}>
             <h1 style={{ margin: 0, fontSize: 27, fontWeight: 900 }}>
               Help &{" "}
-              <span style={{ background: G.buttonBlue, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+              <span style={{ background: G.greenButtonDark, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
                 Legal Center
               </span>
             </h1>

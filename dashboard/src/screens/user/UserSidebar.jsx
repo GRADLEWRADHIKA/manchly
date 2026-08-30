@@ -7,7 +7,7 @@ import {
   PlayCircle,
   Users,
   UsersRound,
-  Bookmark,
+  //Bookmark,
   LifeBuoy,
   Settings,
   LogOut,
@@ -104,10 +104,10 @@ export default function UserSidebar() {
       >
         <div>
           <div style={{ padding: "24px 20px 18px" }}>
-            <h1 style={{ margin: 0, fontSize: 26, fontWeight: 900, color: colors.brand?.actionBlue || "#2B52F6", fontFamily: "Inter, sans-serif", letterSpacing: -0.5 }}>
+            <h1 style={{ margin: 0, fontSize: 26, fontWeight: 900, color: colors.user.accent, fontFamily: "Inter, sans-serif", letterSpacing: -0.5 }}>
               Manchly
             </h1>
-            <p style={{ margin: "4px 0 0", color: colors.user?.subHeading || "#64748B", fontSize: 13, fontWeight: 600 }}>
+            <p style={{ margin: "4px 0 0", color: colors.user?.subHeading, fontSize: 13, fontWeight: 600 }}>
               Learner Portal
             </p>
           </div>

@@ -4,6 +4,7 @@ import { Server as HTTPSServer } from "https";
 import jwt from "jsonwebtoken";
 import prisma from "../prismaClient";
 import { firebaseService } from "../services/FirebaseService";
+import { isAllowedOrigin } from "./corsOrigins";
 
 interface AuthenticatedSocket extends Socket {
     userId?: string;
@@ -31,9 +32,12 @@ export const emitForceLogout = (userId: string, message = "Your account was sign
 export const initializeSocketIO = (httpServer: HTTPServer | HTTPSServer) => {
     const io = new SocketIOServer(httpServer, {
         cors: {
-            origin: process.env.CORS_ORIGINS
-                ? process.env.CORS_ORIGINS.split(',')
-                : ['https://manchly.com', 'https://server.manchly.com', 'http://localhost:8081'],
+            // Shared with the Express allowlist so the two cannot drift again.
+            origin: (origin, callback) => {
+                if (isAllowedOrigin(origin)) return callback(null, true);
+                console.warn(`Socket.IO CORS: blocked origin ${origin}`);
+                return callback(null, false);
+            },
             methods: ["GET", "POST"],
             credentials: true,
         },

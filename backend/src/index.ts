@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import { corsOriginCheck } from "./utils/corsOrigins";
 import bodyParser from "body-parser";
 import path from "path";
 import dotenv from "dotenv";
@@ -70,17 +71,7 @@ const io = initializeSocketIO(server);
 app.set('trust proxy', 1);
 
 app.use(cors({
-  origin: process.env.CORS_ORIGINS
-    ? process.env.CORS_ORIGINS.split(',')
-    : [
-        'https://manchly.com',
-        'https://server.manchly.com',
-        'http://localhost:8081',
-        // Manchly web dashboard (vite dev + preview)
-        'http://localhost:5173',
-        'http://localhost:5174',
-        'http://localhost:4173',
-      ],
+  origin: corsOriginCheck,
   credentials: true,
 }));
 app.use(morgan('dev'));

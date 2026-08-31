@@ -33,7 +33,9 @@ export default function WebinarDetails() {
   const [webinar, setWebinar] = useState(location.state?.webinar || null);
   const [loading, setLoading] = useState(!location.state?.webinar);
   const [paying, setPaying] = useState(false);
-  const [enrolled, setEnrolled] = useState(!!location.state?.webinar?.is_enrolled);
+  const [enrolled, setEnrolled] = useState(
+    !!location.state?.webinar?.is_enrolled,
+  );
   const [legalDoc, setLegalDoc] = useState(null);
 
   useEffect(() => {
@@ -51,18 +53,28 @@ export default function WebinarDetails() {
   const countdown = useCountdown(webinar?.scheduled_at);
 
   if (loading) return <FullLoader label="Loading webinar..." />;
-  if (!webinar) return <div style={{ padding: 40, textAlign: "center" }}>Webinar not found.</div>;
+  if (!webinar)
+    return (
+      <div style={{ padding: 40, textAlign: "center" }}>Webinar not found.</div>
+    );
 
   const price = Number(webinar.price) || 0;
   const bd = priceBreakdown(price);
   const isFree = price <= 0;
-  const ended = webinar.scheduled_at && new Date(webinar.scheduled_at).getTime() + (Number(webinar.duration) || 60) * 60000 < Date.now();
+  const ended =
+    webinar.scheduled_at &&
+    new Date(webinar.scheduled_at).getTime() +
+      (Number(webinar.duration) || 60) * 60000 <
+      Date.now();
 
   const enroll = async () => {
     setPaying(true);
     try {
       const orderRes = unwrap(
-        await apiFetch(`/webinars/${webinar.id}/enroll`, { method: "POST", body: JSON.stringify({ webinar_id: webinar.id, amount: bd.total }) })
+        await apiFetch(`/webinars/${webinar.id}/enroll`, {
+          method: "POST",
+          body: JSON.stringify({ webinar_id: webinar.id, amount: bd.total }),
+        }),
       );
       const cf = orderRes?.cashfree_order || orderRes;
       if (!cf?.payment_session_id) {
@@ -71,7 +83,10 @@ export default function WebinarDetails() {
         setEnrolled(true);
         return;
       }
-      await openCheckout({ payment_session_id: cf.payment_session_id, env: orderRes?.cashfree_env });
+      await openCheckout({
+        payment_session_id: cf.payment_session_id,
+        env: orderRes?.cashfree_env,
+      });
       await pollVerify("/webinars/payment/verify", { order_id: cf.order_id });
       toast.success("Webinar booked successfully 🎉");
       setEnrolled(true);
@@ -88,122 +103,439 @@ export default function WebinarDetails() {
   };
 
   // Body copy — dark text on the new light theme, not the old white-on-dark values.
-  const infoRow = { display: "flex", alignItems: "center", gap: 10, color: colors.user.text, fontSize: 14.5, padding: "7px 0" };
-  const payRow = { display: "flex", justifyContent: "space-between", fontSize: 14, padding: "7px 0", color: colors.user.subHeading };
+  const infoRow = {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    color: colors.user.text,
+    fontSize: 14.5,
+    padding: "7px 0",
+  };
+  const payRow = {
+    display: "flex",
+    justifyContent: "space-between",
+    fontSize: 14,
+    padding: "7px 0",
+    color: colors.user.subHeading,
+  };
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1.7fr 1fr", gap: 26, alignItems: "start" }}>
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "1.7fr 1fr",
+        gap: 26,
+        alignItems: "start",
+      }}
+    >
       <div>
         {/* Hero image banner */}
-        <div style={{ height: 300, borderRadius: 18, background: webinar.thumbnail ? `url(${webinar.thumbnail}) center/cover` : "linear-gradient(135deg, #111b40 0%, #1d52e8 55%, #0ea5e9 100%)", position: "relative", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          {!webinar.thumbnail && <Video size={52} color="rgba(255,255,255,0.55)" />}
+        <div
+          style={{
+            height: 300,
+            borderRadius: 18,
+            position: "relative",
+            overflow: "hidden",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          {webinar.thumbnail ? (
+            <>
+              <div
+                style={{
+                  position: "absolute",
+                  inset: -10,
+                  backgroundImage: `url(${webinar.thumbnail})`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                  filter: "blur(22px) brightness(0.7)",
+                  transform: "scale(1.15)",
+                }}
+              />
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  backgroundImage: `url(${webinar.thumbnail})`,
+                  backgroundSize: "contain",
+                  backgroundPosition: "center",
+                  backgroundRepeat: "no-repeat",
+                }}
+              />
+            </>
+          ) : (
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                background:
+                  "linear-gradient(135deg, #111b40 0%, #1d52e8 55%, #0ea5e9 100%)",
+              }}
+            />
+          )}
+          {!webinar.thumbnail && (
+            <Video
+              size={52}
+              color="rgba(255,255,255,0.55)"
+              style={{ position: "relative" }}
+            />
+          )}
           {countdown && !countdown.started && (
-            <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "linear-gradient(transparent, rgba(0,0,0,0.85))", padding: "40px 22px 18px", color: "#fff" }}>
-              <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1, textTransform: "uppercase", opacity: 0.8, marginBottom: 8 }}>Starts in</div>
+            <div
+              style={{
+                position: "absolute",
+                bottom: 0,
+                left: 0,
+                right: 0,
+                background: "linear-gradient(transparent, rgba(0,0,0,0.85))",
+                padding: "40px 22px 18px",
+                color: "#fff",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 12,
+                  fontWeight: 800,
+                  letterSpacing: 1,
+                  textTransform: "uppercase",
+                  opacity: 0.8,
+                  marginBottom: 8,
+                }}
+              >
+                Starts in
+              </div>
               <div style={{ display: "flex", gap: 12 }}>
-                {[["d", countdown.d], ["h", countdown.h], ["m", countdown.m], ["s", countdown.s]].map(([u, v]) => (
-                  <div key={u} style={{ background: colors.gradients.gold, borderRadius: 10, padding: "8px 14px", textAlign: "center", minWidth: 56 }}>
-                    <div style={{ fontSize: 20, fontWeight: 900 }}>{String(v).padStart(2, "0")}</div>
-                    <div style={{ fontSize: 11, opacity: 0.7, textTransform: "uppercase" }}>{u === "d" ? "days" : u === "h" ? "hrs" : u === "m" ? "min" : "sec"}</div>
+                {[
+                  ["d", countdown.d],
+                  ["h", countdown.h],
+                  ["m", countdown.m],
+                  ["s", countdown.s],
+                ].map(([u, v]) => (
+                  <div
+                    key={u}
+                    style={{
+                      background: colors.gradients.gold,
+                      borderRadius: 10,
+                      padding: "8px 14px",
+                      textAlign: "center",
+                      minWidth: 56,
+                    }}
+                  >
+                    <div style={{ fontSize: 20, fontWeight: 900 }}>
+                      {String(v).padStart(2, "0")}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 11,
+                        opacity: 0.7,
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      {u === "d"
+                        ? "days"
+                        : u === "h"
+                          ? "hrs"
+                          : u === "m"
+                            ? "min"
+                            : "sec"}
+                    </div>
                   </div>
                 ))}
               </div>
             </div>
           )}
           {countdown?.started && !ended && (
-            <span style={{ position: "absolute", top: 14, left: 14 }}><Badge color="#F87171" bg="rgba(248,113,113,0.18)">● Live now</Badge></span>
+            <span style={{ position: "absolute", top: 14, left: 14 }}>
+              <Badge color="#F87171" bg="rgba(248,113,113,0.18)">
+                ● Live now
+              </Badge>
+            </span>
           )}
-          {ended && <span style={{ position: "absolute", top: 14, left: 14 }}><Badge color="#9CA3AF">Ended</Badge></span>}
+          {ended && (
+            <span style={{ position: "absolute", top: 14, left: 14 }}>
+              <Badge color="#9CA3AF">Ended</Badge>
+            </span>
+          )}
         </div>
 
-        <h1 style={{ margin: "20px 0 6px", fontSize: 26, fontWeight: 900, color: colors.user.text }}>{webinar.title}</h1>
-        <div style={{ color: colors.user.accent, fontWeight: 700, fontSize: 14.5 }}>Hosted by {webinar.creator?.name || "Creator"}</div>
+        <h1
+          style={{
+            margin: "20px 0 6px",
+            fontSize: 26,
+            fontWeight: 900,
+            color: colors.user.text,
+          }}
+        >
+          {webinar.title}
+        </h1>
+        <div
+          style={{ color: colors.user.accent, fontWeight: 700, fontSize: 14.5 }}
+        >
+          Hosted by {webinar.creator?.name || "Creator"}
+        </div>
 
         <div style={{ marginTop: 16 }}>
-          <div style={infoRow}><CalendarDays size={17} color={colors.user.icon} /> {webinar.scheduled_at ? new Date(webinar.scheduled_at).toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" }) : "Date TBA"}</div>
-          <div style={infoRow}><Clock size={17} color={colors.user.icon} /> {webinar.scheduled_at ? new Date(webinar.scheduled_at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) : ""} ({webinar.duration || 60} mins)</div>
-          <div style={infoRow}><Video size={17} color={colors.user.icon} /> Zoom Meeting</div>
-          {webinar.max_participants && <div style={infoRow}><Users size={17} color={colors.user.icon} /> Max participants: {webinar.max_participants}</div>}
+          <div style={infoRow}>
+            <CalendarDays size={17} color={colors.user.icon} />{" "}
+            {webinar.scheduled_at
+              ? new Date(webinar.scheduled_at).toLocaleDateString("en-IN", {
+                  weekday: "long",
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })
+              : "Date TBA"}
+          </div>
+          <div style={infoRow}>
+            <Clock size={17} color={colors.user.icon} />{" "}
+            {webinar.scheduled_at
+              ? new Date(webinar.scheduled_at).toLocaleTimeString("en-IN", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
+              : ""}{" "}
+            ({webinar.duration || 60} mins)
+          </div>
+          <div style={infoRow}>
+            <Video size={17} color={colors.user.icon} /> Zoom Meeting
+          </div>
+          {webinar.max_participants && (
+            <div style={infoRow}>
+              <Users size={17} color={colors.user.icon} /> Max participants:{" "}
+              {webinar.max_participants}
+            </div>
+          )}
         </div>
 
         {Array.isArray(webinar.tags) && webinar.tags.length > 0 && (
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 14 }}>
+          <div
+            style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 14 }}
+          >
             {webinar.tags.map((t, i) => (
-              <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: 5, background: colors.user.cardSoft, border: `1px solid ${colors.user.border}`, borderRadius: 99, padding: "5px 12px", fontSize: 12.5, color: colors.user.text }}>
+              <span
+                key={i}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 5,
+                  background: colors.user.cardSoft,
+                  border: `1px solid ${colors.user.border}`,
+                  borderRadius: 99,
+                  padding: "5px 12px",
+                  fontSize: 12.5,
+                  color: colors.user.text,
+                }}
+              >
                 <Tag size={11} /> {t}
               </span>
             ))}
           </div>
         )}
 
-        <h3 style={{ margin: "22px 0 8px", fontSize: 17, fontWeight: 800, color: colors.user.text }}>About</h3>
-        <p style={{ margin: 0, lineHeight: 1.7, color: colors.user.text, fontSize: 14.5, whiteSpace: "pre-wrap" }}>{webinar.description || "No description."}</p>
+        <h3
+          style={{
+            margin: "22px 0 8px",
+            fontSize: 17,
+            fontWeight: 800,
+            color: colors.user.text,
+          }}
+        >
+          About
+        </h3>
+        <p
+          style={{
+            margin: 0,
+            lineHeight: 1.7,
+            color: colors.user.text,
+            fontSize: 14.5,
+            whiteSpace: "pre-wrap",
+          }}
+        >
+          {webinar.description || "No description."}
+        </p>
       </div>
 
       {/* Purchase / join card */}
       <div style={{ position: "sticky", top: 90 }}>
-        <div style={{ background: colors.user.card, border: `1px solid ${colors.user.border}`, borderRadius: 18, padding: 22 }}>
-          <div style={{ fontSize: 26, fontWeight: 900, color: colors.user.text }}>{isFree ? "Free" : formatCurrency(bd.total)}</div>
+        <div
+          style={{
+            background: colors.user.card,
+            border: `1px solid ${colors.user.border}`,
+            borderRadius: 18,
+            padding: 22,
+          }}
+        >
+          <div
+            style={{ fontSize: 26, fontWeight: 900, color: colors.user.text }}
+          >
+            {isFree ? "Free" : formatCurrency(bd.total)}
+          </div>
 
           {!isFree && !enrolled && (
-            <div style={{ margin: "16px 0", borderTop: `1px dashed ${colors.user.border}`, paddingTop: 12, background: colors.user.cardSoft, borderRadius: 10, padding: 12 }}>
-              <div style={payRow}><span>Webinar Fee</span><span>{formatCurrency(bd.fee)}</span></div>
-              <div style={payRow}><span>GST (18%)</span><span>{formatCurrency(bd.gst)}</span></div>
-              <div style={payRow}><span>Platform Fee (2%)</span><span>{formatCurrency(bd.platform)}</span></div>
-              <div style={{ ...payRow, fontWeight: 900, color: colors.user.text, borderTop: `1px solid ${colors.user.border}`, marginTop: 6, paddingTop: 10 }}><span>Total</span><span>{formatCurrency(bd.total)}</span></div>
+            <div
+              style={{
+                margin: "16px 0",
+                borderTop: `1px dashed ${colors.user.border}`,
+                paddingTop: 12,
+                background: colors.user.cardSoft,
+                borderRadius: 10,
+                padding: 12,
+              }}
+            >
+              <div style={payRow}>
+                <span>Webinar Fee</span>
+                <span>{formatCurrency(bd.fee)}</span>
+              </div>
+              <div style={payRow}>
+                <span>GST (18%)</span>
+                <span>{formatCurrency(bd.gst)}</span>
+              </div>
+              <div style={payRow}>
+                <span>Platform Fee (2%)</span>
+                <span>{formatCurrency(bd.platform)}</span>
+              </div>
+              <div
+                style={{
+                  ...payRow,
+                  fontWeight: 900,
+                  color: colors.user.text,
+                  borderTop: `1px solid ${colors.user.border}`,
+                  marginTop: 6,
+                  paddingTop: 10,
+                }}
+              >
+                <span>Total</span>
+                <span>{formatCurrency(bd.total)}</span>
+              </div>
             </div>
           )}
 
           {enrolled ? (
             <>
-              <div style={{ color: colors.status.success, fontWeight: 800, margin: "14px 0" }}>✓ You're registered</div>
+              <div
+                style={{
+                  color: colors.status.success,
+                  fontWeight: 800,
+                  margin: "14px 0",
+                }}
+              >
+                ✓ You're registered
+              </div>
               {(webinar.zoom_meeting_id || webinar.zoom_password) && (
-                <div style={{ background: "rgba(43,82,246,0.08)", border: `1px solid rgba(43,82,246,0.25)`, borderRadius: 12, padding: 14, marginBottom: 14, fontSize: 13.5, color: colors.user.text }}>
-                  <div style={{ fontWeight: 800, marginBottom: 6 }}>Zoom credentials</div>
-                  <div>Meeting ID: <b>{webinar.zoom_meeting_id}</b></div>
-                  <div>Password: <b>{webinar.zoom_password}</b></div>
+                <div
+                  style={{
+                    background: "rgba(43,82,246,0.08)",
+                    border: `1px solid rgba(43,82,246,0.25)`,
+                    borderRadius: 12,
+                    padding: 14,
+                    marginBottom: 14,
+                    fontSize: 13.5,
+                    color: colors.user.text,
+                  }}
+                >
+                  <div style={{ fontWeight: 800, marginBottom: 6 }}>
+                    Zoom credentials
+                  </div>
+                  <div>
+                    Meeting ID: <b>{webinar.zoom_meeting_id}</b>
+                  </div>
+                  <div>
+                    Password: <b>{webinar.zoom_password}</b>
+                  </div>
                   <button
-                    onClick={() => { navigator.clipboard.writeText(`Meeting ID: ${webinar.zoom_meeting_id}\nPassword: ${webinar.zoom_password}`); toast.success("Copied"); }}
-                    style={{ marginTop: 8, background: "transparent", border: `1px solid ${colors.user.border}`, borderRadius: 8, color: colors.user.text, padding: "5px 12px", cursor: "pointer", fontSize: 12.5 }}
+                    onClick={() => {
+                      navigator.clipboard.writeText(
+                        `Meeting ID: ${webinar.zoom_meeting_id}\nPassword: ${webinar.zoom_password}`,
+                      );
+                      toast.success("Copied");
+                    }}
+                    style={{
+                      marginTop: 8,
+                      background: "transparent",
+                      border: `1px solid ${colors.user.border}`,
+                      borderRadius: 8,
+                      color: colors.user.text,
+                      padding: "5px 12px",
+                      cursor: "pointer",
+                      fontSize: 12.5,
+                    }}
                   >
                     Copy ID & Password
                   </button>
                 </div>
               )}
-              <GradientButton full size="lg" disabled={ended} onClick={joinZoom} gradient={ended ? undefined : colors.gradients.teal}>
+              <GradientButton
+                full
+                size="lg"
+                disabled={ended}
+                onClick={joinZoom}
+                gradient={ended ? undefined : colors.gradients.teal}
+              >
                 {ended ? "Webinar Ended" : "Join Webinar"}
               </GradientButton>
             </>
           ) : (
             /* Register / Purchase Button */
-            <GradientButton 
-              full 
-              size="lg" 
-              loading={paying} 
-              disabled={ended} 
-              onClick={enroll} 
-              gradient={ended ? undefined : colors.gradients.greenButton} 
+            <GradientButton
+              full
+              size="lg"
+              loading={paying}
+              disabled={ended}
+              onClick={enroll}
+              gradient={ended ? undefined : colors.gradients.greenButton}
               style={{ marginTop: 8 }}
             >
-              {ended ? "Webinar Ended" : isFree ? "Register Free" : `Purchase for ${formatCurrency(bd.total)}`}
+              {ended
+                ? "Webinar Ended"
+                : isFree
+                  ? "Register Free"
+                  : `Purchase for ${formatCurrency(bd.total)}`}
             </GradientButton>
           )}
-          <p style={{ fontSize: 11.5, color: colors.user.subHeading, marginTop: 14, lineHeight: 1.6 }}>
+          <p
+            style={{
+              fontSize: 11.5,
+              color: colors.user.subHeading,
+              marginTop: 14,
+              lineHeight: 1.6,
+            }}
+          >
             Secure payment via Cashfree ·{" "}
-            {[["terms", "Terms"], ["privacy", "Privacy"], ["refund", "Refund Policy"]].map(([key, label], i) => (
+            {[
+              ["terms", "Terms"],
+              ["privacy", "Privacy"],
+              ["refund", "Refund Policy"],
+            ].map(([key, label], i) => (
               <React.Fragment key={key}>
                 {i > 0 && " · "}
-                <button onClick={() => setLegalDoc(key)} style={{ background: "transparent", border: "none", padding: 0, cursor: "pointer", color: colors.user.accent, fontWeight: 700, fontSize: "inherit", textDecoration: "underline", textUnderlineOffset: 2 }}>
+                <button
+                  onClick={() => setLegalDoc(key)}
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    padding: 0,
+                    cursor: "pointer",
+                    color: colors.user.accent,
+                    fontWeight: 700,
+                    fontSize: "inherit",
+                    textDecoration: "underline",
+                    textUnderlineOffset: 2,
+                  }}
+                >
                   {label}
                 </button>
               </React.Fragment>
-            ))}
-            {" "}apply.
+            ))}{" "}
+            apply.
           </p>
         </div>
       </div>
 
-      {legalDoc && <LegalModal doc={legalDoc} dark onClose={() => setLegalDoc(null)} />}
+      {legalDoc && (
+        <LegalModal doc={legalDoc} dark onClose={() => setLegalDoc(null)} />
+      )}
     </div>
   );
 }

@@ -2,7 +2,13 @@
 // Cashfree modal checkout → verify, real free-enroll, share link, enrolled state.
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { BookOpen, Users, PlayCircle, Share2, CheckCircle2 } from "lucide-react";
+import {
+  BookOpen,
+  Users,
+  PlayCircle,
+  Share2,
+  CheckCircle2,
+} from "lucide-react";
 import { apiFetch, unwrap } from "../../utils/api";
 import { runPurchase, priceBreakdown } from "../../utils/payments";
 import colors from "../../utils/colors";
@@ -35,8 +41,13 @@ export default function CourseDetails() {
       }
       if (e.status === "fulfilled") {
         const d = unwrap(e.value);
-        const list = d?.enrollments || d?.courses || (Array.isArray(d) ? d : []);
-        setEnrolled(list.some((en) => (en.course?.id || en.course_id || en.id) === courseId));
+        const list =
+          d?.enrollments || d?.courses || (Array.isArray(d) ? d : []);
+        setEnrolled(
+          list.some(
+            (en) => (en.course?.id || en.course_id || en.id) === courseId,
+          ),
+        );
       }
     } finally {
       setLoading(false);
@@ -48,7 +59,12 @@ export default function CourseDetails() {
   }, [courseId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (loading) return <FullLoader label="Loading course..." />;
-  if (!course) return <div style={{ padding: 40, textAlign: "center", color: theme?.text }}>Course not found.</div>;
+  if (!course)
+    return (
+      <div style={{ padding: 40, textAlign: "center", color: theme?.text }}>
+        Course not found.
+      </div>
+    );
 
   const price = Number(course.price) || 0;
   const bd = priceBreakdown(price);
@@ -63,20 +79,31 @@ export default function CourseDetails() {
         await navigator.clipboard.writeText(url);
         toast.success("Course link copied");
       }
-    } catch { /* user cancelled */ }
+    } catch {
+      /* user cancelled */
+    }
   };
 
   const buy = async () => {
     setPaying(true);
     try {
       if (isFree) {
-        await apiFetch(`/courses/${course.id}/enroll`, { method: "POST", body: JSON.stringify({}) });
+        await apiFetch(`/courses/${course.id}/enroll`, {
+          method: "POST",
+          body: JSON.stringify({}),
+        });
         toast.success("Enrolled successfully 🎉");
         setEnrolled(true);
         return;
       }
       await runPurchase({
-        createOrder: async () => unwrap(await apiFetch(`/payments/create-order/${course.id}`, { method: "POST", body: JSON.stringify({}) })),
+        createOrder: async () =>
+          unwrap(
+            await apiFetch(`/payments/create-order/${course.id}`, {
+              method: "POST",
+              body: JSON.stringify({}),
+            }),
+          ),
         verifyPath: "/payments/verify",
       });
       toast.success("Course purchased successfully 🎉");
@@ -88,105 +115,394 @@ export default function CourseDetails() {
     }
   };
 
-  const row = { display: "flex", justifyContent: "space-between", fontSize: 14, padding: "7px 0", color: theme?.text || "rgba(255,255,255,0.85)" };
+  const row = {
+    display: "flex",
+    justifyContent: "space-between",
+    fontSize: 14,
+    padding: "7px 0",
+    color: theme?.text || "rgba(255,255,255,0.85)",
+  };
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1.7fr 1fr", gap: 26, alignItems: "start", color: theme?.text }}>
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "1.7fr 1fr",
+        gap: 26,
+        alignItems: "start",
+        color: theme?.text,
+      }}
+    >
       {/* Left: media + info */}
       <div>
         {preview ? (
           <div>
             <HlsVideo src={preview.playback_url} poster={course.thumbnail} />
-            <div style={{ marginTop: 8 }}><Badge color={theme?.highlight || "#F0C040"}>Free preview</Badge></div>
+            <div style={{ marginTop: 8 }}>
+              <Badge color={theme?.highlight || "#F0C040"}>Free preview</Badge>
+            </div>
           </div>
         ) : (
-          <div style={{ height: 320, borderRadius: 16, background: course.thumbnail ? `url(${course.thumbnail}) center/cover` : (colors.gradients.heroWarm || colors.gradients.heroNavy), display: "flex", alignItems: "center", justifyContent: "center" }}>
-            {!course.thumbnail && <BookOpen size={54} color="rgba(255,255,255,0.5)" />}
+          <div
+            style={{
+              height: 320,
+              borderRadius: 16,
+              position: "relative",
+              overflow: "hidden",
+            }}
+          >
+            {course.thumbnail ? (
+              <>
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: -10,
+                    backgroundImage: `url(${course.thumbnail})`,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                    filter: "blur(22px) brightness(0.7)",
+                    transform: "scale(1.15)",
+                  }}
+                />
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    backgroundImage: `url(${course.thumbnail})`,
+                    backgroundSize: "contain",
+                    backgroundPosition: "center",
+                    backgroundRepeat: "no-repeat",
+                  }}
+                />
+              </>
+            ) : (
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  background:
+                    colors.gradients.heroWarm || colors.gradients.heroNavy,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <BookOpen size={54} color="rgba(255,255,255,0.5)" />
+              </div>
+            )}
           </div>
         )}
 
-        <h1 style={{ margin: "20px 0 6px", fontSize: 27, fontWeight: 900, color: theme?.text }}>{course.title}</h1>
+        <h1
+          style={{
+            margin: "20px 0 6px",
+            fontSize: 27,
+            fontWeight: 900,
+            color: theme?.text,
+          }}
+        >
+          {course.title}
+        </h1>
         <button
-          onClick={() => course.creator && navigate(`/app/creator/${course.creator.id}`, { state: { creator: course.creator } })}
-          style={{ background: "transparent", border: "none", color: theme?.accent || colors.user.accentSoft, fontWeight: 700, cursor: "pointer", padding: 0, fontSize: 14.5 }}
+          onClick={() =>
+            course.creator &&
+            navigate(`/app/creator/${course.creator.id}`, {
+              state: { creator: course.creator },
+            })
+          }
+          style={{
+            background: "transparent",
+            border: "none",
+            color: theme?.accent || colors.user.accentSoft,
+            fontWeight: 700,
+            cursor: "pointer",
+            padding: 0,
+            fontSize: 14.5,
+          }}
         >
           by {course.creator?.name || "Creator"}
         </button>
 
-        <div style={{ display: "flex", gap: 20, margin: "16px 0", color: theme?.subHeading || colors.user.subHeading, fontSize: 14 }}>
-          <span style={{ display: "flex", alignItems: "center", gap: 6 }}><Users size={16} /> {course.total_students ?? course.enrollments?.length ?? 0} students</span>
-          <span style={{ display: "flex", alignItems: "center", gap: 6 }}><PlayCircle size={16} /> {course.videos?.length ?? course.total_videos ?? 0} lessons</span>
-          {course.level && <Badge color={theme?.accent || colors.user.accentSoft} bg={theme?.accentSoft || "rgba(189,194,255,0.12)"}>{course.level}</Badge>}
+        <div
+          style={{
+            display: "flex",
+            gap: 20,
+            margin: "16px 0",
+            color: theme?.subHeading || colors.user.subHeading,
+            fontSize: 14,
+          }}
+        >
+          <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <Users size={16} />{" "}
+            {course.total_students ?? course.enrollments?.length ?? 0} students
+          </span>
+          <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <PlayCircle size={16} />{" "}
+            {course.videos?.length ?? course.total_videos ?? 0} lessons
+          </span>
+          {course.level && (
+            <Badge
+              color={theme?.accent || colors.user.accentSoft}
+              bg={theme?.accentSoft || "rgba(189,194,255,0.12)"}
+            >
+              {course.level}
+            </Badge>
+          )}
         </div>
 
-        <h3 style={{ margin: "18px 0 8px", fontSize: 17, fontWeight: 800, color: theme?.text }}>About this course</h3>
-        <p style={{ margin: 0, lineHeight: 1.7, color: theme?.subHeading || "rgba(255,255,255,0.8)", fontSize: 14.5, whiteSpace: "pre-wrap" }}>{course.description || "No description."}</p>
+        <h3
+          style={{
+            margin: "18px 0 8px",
+            fontSize: 17,
+            fontWeight: 800,
+            color: theme?.text,
+          }}
+        >
+          About this course
+        </h3>
+        <p
+          style={{
+            margin: 0,
+            lineHeight: 1.7,
+            color: theme?.subHeading || "rgba(255,255,255,0.8)",
+            fontSize: 14.5,
+            whiteSpace: "pre-wrap",
+          }}
+        >
+          {course.description || "No description."}
+        </p>
 
         {/* Lesson list (locked until enrolled) */}
         {(course.videos || []).length > 0 && (
           <div style={{ marginTop: 24 }}>
-            <h3 style={{ margin: "0 0 12px", fontSize: 17, fontWeight: 800, color: theme?.text }}>Course content</h3>
-            {(course.videos || []).sort((a, b) => (a.order || 0) - (b.order || 0)).map((v, i) => (
-              <div key={v.id || i} style={{ display: "flex", alignItems: "center", gap: 12, background: theme?.cardSoft || theme?.card || colors.user.card, border: `1px solid ${theme?.border || colors.user.border}`, borderRadius: 12, padding: "12px 16px", marginBottom: 8 }}>
-                <span style={{ width: 26, height: 26, borderRadius: "50%", background: colors.gradients?.heroWarm || colors.gradients.heroWarm, color: "#FFF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 800 }}>{i + 1}</span>
-                <span style={{ flex: 1, fontSize: 14, fontWeight: 600, color: theme?.text }}>{v.title}</span>
-                <span style={{ color: theme?.subHeading || colors.user.subHeading, fontSize: 12.5 }}>{v.duration ? `${Math.max(1, Math.round(v.duration / 60))} min` : ""}</span>
-                {!enrolled && i > 0 && <span style={{ fontSize: 13 }}>🔒</span>}
-              </div>
-            ))}
+            <h3
+              style={{
+                margin: "0 0 12px",
+                fontSize: 17,
+                fontWeight: 800,
+                color: theme?.text,
+              }}
+            >
+              Course content
+            </h3>
+            {(course.videos || [])
+              .sort((a, b) => (a.order || 0) - (b.order || 0))
+              .map((v, i) => (
+                <div
+                  key={v.id || i}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                    background:
+                      theme?.cardSoft || theme?.card || colors.user.card,
+                    border: `1px solid ${theme?.border || colors.user.border}`,
+                    borderRadius: 12,
+                    padding: "12px 16px",
+                    marginBottom: 8,
+                  }}
+                >
+                  <span
+                    style={{
+                      width: 26,
+                      height: 26,
+                      borderRadius: "50%",
+                      background:
+                        colors.gradients?.heroWarm || colors.gradients.heroWarm,
+                      color: "#FFF",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: 12,
+                      fontWeight: 800,
+                    }}
+                  >
+                    {i + 1}
+                  </span>
+                  <span
+                    style={{
+                      flex: 1,
+                      fontSize: 14,
+                      fontWeight: 600,
+                      color: theme?.text,
+                    }}
+                  >
+                    {v.title}
+                  </span>
+                  <span
+                    style={{
+                      color: theme?.subHeading || colors.user.subHeading,
+                      fontSize: 12.5,
+                    }}
+                  >
+                    {v.duration
+                      ? `${Math.max(1, Math.round(v.duration / 60))} min`
+                      : ""}
+                  </span>
+                  {!enrolled && i > 0 && (
+                    <span style={{ fontSize: 13 }}>🔒</span>
+                  )}
+                </div>
+              ))}
           </div>
         )}
       </div>
 
       {/* Right: purchase card */}
       <div style={{ position: "sticky", top: 90 }}>
-        <div style={{ background: theme?.card || colors.user.card, border: `1px solid ${theme?.border || colors.user.border}`, borderRadius: 18, padding: 22 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={{ fontSize: 26, fontWeight: 900, color: theme?.text }}>{isFree ? "Free" : formatCurrency(bd.total)}</span>
-            <button onClick={share} style={{ background: "transparent", border: `1px solid ${theme?.border || colors.user.border}`, borderRadius: 10, color: theme?.text || "#fff", padding: 8, cursor: "pointer" }} title="Share">
+        <div
+          style={{
+            background: theme?.card || colors.user.card,
+            border: `1px solid ${theme?.border || colors.user.border}`,
+            borderRadius: 18,
+            padding: 22,
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <span style={{ fontSize: 26, fontWeight: 900, color: theme?.text }}>
+              {isFree ? "Free" : formatCurrency(bd.total)}
+            </span>
+            <button
+              onClick={share}
+              style={{
+                background: "transparent",
+                border: `1px solid ${theme?.border || colors.user.border}`,
+                borderRadius: 10,
+                color: theme?.text || "#fff",
+                padding: 8,
+                cursor: "pointer",
+              }}
+              title="Share"
+            >
               <Share2 size={17} />
             </button>
           </div>
 
           {!isFree && (
-            <div style={{ margin: "16px 0", borderTop: `1px dashed ${theme?.border || colors.user.border}`, paddingTop: 12 }}>
-              <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 0.8, textTransform: "uppercase", color: theme?.subHeading || colors.user.subHeading, marginBottom: 6 }}>Payment details</div>
-              <div style={row}><span>Course Fee</span><span>{formatCurrency(bd.fee)}</span></div>
-              <div style={row}><span>GST (18%)</span><span>{formatCurrency(bd.gst)}</span></div>
-              <div style={row}><span>Platform Fee (2%)</span><span>{formatCurrency(bd.platform)}</span></div>
-              <div style={{ ...row, fontWeight: 900, borderTop: `1px solid ${theme?.border || colors.user.border}`, marginTop: 6, paddingTop: 10 }}><span>Total</span><span>{formatCurrency(bd.total)}</span></div>
+            <div
+              style={{
+                margin: "16px 0",
+                borderTop: `1px dashed ${theme?.border || colors.user.border}`,
+                paddingTop: 12,
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 12,
+                  fontWeight: 800,
+                  letterSpacing: 0.8,
+                  textTransform: "uppercase",
+                  color: theme?.subHeading || colors.user.subHeading,
+                  marginBottom: 6,
+                }}
+              >
+                Payment details
+              </div>
+              <div style={row}>
+                <span>Course Fee</span>
+                <span>{formatCurrency(bd.fee)}</span>
+              </div>
+              <div style={row}>
+                <span>GST (18%)</span>
+                <span>{formatCurrency(bd.gst)}</span>
+              </div>
+              <div style={row}>
+                <span>Platform Fee (2%)</span>
+                <span>{formatCurrency(bd.platform)}</span>
+              </div>
+              <div
+                style={{
+                  ...row,
+                  fontWeight: 900,
+                  borderTop: `1px solid ${theme?.border || colors.user.border}`,
+                  marginTop: 6,
+                  paddingTop: 10,
+                }}
+              >
+                <span>Total</span>
+                <span>{formatCurrency(bd.total)}</span>
+              </div>
             </div>
           )}
 
           {enrolled ? (
             <>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, color: colors.status.success, fontWeight: 800, margin: "14px 0" }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  color: colors.status.success,
+                  fontWeight: 800,
+                  margin: "14px 0",
+                }}
+              >
                 <CheckCircle2 size={18} /> Already Enrolled
               </div>
-              <GradientButton full size="lg" onClick={() => navigate(`/app/player/${course.id}`)} gradient={colors.gradients?.greenButton || colors.gradients.greenButton}>
+              <GradientButton
+                full
+                size="lg"
+                onClick={() => navigate(`/app/player/${course.id}`)}
+                gradient={
+                  colors.gradients?.greenButton || colors.gradients.greenButton
+                }
+              >
                 Continue Learning
               </GradientButton>
             </>
           ) : (
             /* Purchase / Enroll Button */
-            <GradientButton 
-              full 
-              size="lg" 
-              loading={paying} 
-              onClick={buy} 
-              gradient={colors.gradients.greenButton} 
+            <GradientButton
+              full
+              size="lg"
+              loading={paying}
+              onClick={buy}
+              gradient={colors.gradients.greenButton}
               style={{ marginTop: 8 }}
             >
-              {isFree ? "Enroll for Free" : `Purchase for ${formatCurrency(bd.total)}`}
+              {isFree
+                ? "Enroll for Free"
+                : `Purchase for ${formatCurrency(bd.total)}`}
             </GradientButton>
           )}
 
-          <p style={{ fontSize: 11.5, color: theme?.subHeading || colors.user.subHeading, marginTop: 14, lineHeight: 1.6 }}>
-            Secure payment via Cashfree. Refunds only for duplicate or failed transactions within 48 hours — see{" "}
-            {[["terms", "Terms"], ["privacy", "Privacy"], ["refund", "Refund Policy"]].map(([key, label], i) => (
+          <p
+            style={{
+              fontSize: 11.5,
+              color: theme?.subHeading || colors.user.subHeading,
+              marginTop: 14,
+              lineHeight: 1.6,
+            }}
+          >
+            Secure payment via Cashfree. Refunds only for duplicate or failed
+            transactions within 48 hours — see{" "}
+            {[
+              ["terms", "Terms"],
+              ["privacy", "Privacy"],
+              ["refund", "Refund Policy"],
+            ].map(([key, label], i) => (
               <React.Fragment key={key}>
                 {i > 0 && " · "}
-                <button onClick={() => setLegalDoc(key)} style={{ background: "transparent", border: "none", padding: 0, cursor: "pointer", color: theme?.accent || colors.user.accentSoft, fontWeight: 700, fontSize: "inherit", textDecoration: "underline", textUnderlineOffset: 2 }}>
+                <button
+                  onClick={() => setLegalDoc(key)}
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    padding: 0,
+                    cursor: "pointer",
+                    color: theme?.accent || colors.user.accentSoft,
+                    fontWeight: 700,
+                    fontSize: "inherit",
+                    textDecoration: "underline",
+                    textUnderlineOffset: 2,
+                  }}
+                >
                   {label}
                 </button>
               </React.Fragment>
@@ -196,7 +512,13 @@ export default function CourseDetails() {
         </div>
       </div>
 
-      {legalDoc && <LegalModal doc={legalDoc} dark={!colors.user} onClose={() => setLegalDoc(null)} />}
+      {legalDoc && (
+        <LegalModal
+          doc={legalDoc}
+          dark={!colors.user}
+          onClose={() => setLegalDoc(null)}
+        />
+      )}
     </div>
   );
 }

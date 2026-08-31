@@ -33,9 +33,12 @@ export default function CourseCreateScreen({ user, onNavigate }) {
   const [error, setError] = useState("");
 
   // Course Validity state
-  const [accessType, setAccessType] = useState("lifetime"); // lifetime | limited
-  const [durationValue, setDurationValue] = useState(1);
-  const [durationUnit, setDurationUnit] = useState("days"); // days | months
+ const [accessType, setAccessType] = useState("lifetime");
+ const [durationValue, setDurationValue] =  useState(1);
+ const [durationUnit, setDurationUnit] = useState("days");
+
+ const [whatsappCommunityUrl, setWhatsappCommunityUrl] = useState("");
+ const [thankyouMessage, setThankyouMessage] = useState("");
 
   const updateField = (field, value) => setForm((prev) => ({ ...prev, [field]: value }));
 
@@ -99,11 +102,10 @@ const handleStepClick = (index) => {
         category: form.category || "General",
         language: form.language || "English",
         ...(thumbnailUrl && { thumbnail_url: thumbnailUrl }),
-        validity: {
-          access_type: accessType,
-          duration_value: accessType === "limited" ? Number(durationValue) : null,
-          duration_unit: accessType === "limited" ? durationUnit : null,
-        },
+        access_duration_days: accessType === "limited" ? Number(durationValue) : null,
+        access_duration_unit: accessType === "limited" ? (UNIT_MAP[durationUnit] || null) : null,
+        whatsapp_community_url: whatsappCommunityUrl.trim() || null,
+        thankyou_message: thankyouMessage.trim() || null,
       };
 
       // 3. Create course record on backend
@@ -276,6 +278,38 @@ const handleStepClick = (index) => {
                 </div>
               </div>
             )}
+          </div>
+
+          {/* Community & Thank-you Section */}
+          <div style={{ marginTop: 32 }}>
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: colors.typography.primaryText, marginBottom: 4 }}>
+              💬 Community &amp; Thank-you
+            </h3>
+            <p style={{ fontSize: 13, color: colors.typography.secondaryText, marginBottom: 16 }}>
+              Shown to buyers on the thank-you screen after purchase.
+            </p>
+
+            <div style={{ marginBottom: 16 }}>
+              <label style={labelStyle}>WhatsApp Community Link</label>
+              <input
+                type="text"
+                value={whatsappCommunityUrl}
+                onChange={(e) => setWhatsappCommunityUrl(e.target.value)}
+                placeholder="https://chat.whatsapp.com/..."
+                style={inputStyle}
+              />
+            </div>
+
+            <div>
+              <label style={labelStyle}>Thank-you Message (optional)</label>
+              <textarea
+                value={thankyouMessage}
+                onChange={(e) => setThankyouMessage(e.target.value)}
+                placeholder="A short note buyers see after purchase"
+                rows={3}
+                style={{ ...inputStyle, resize: "vertical", fontFamily: "inherit" }}
+              />
+            </div>
           </div>
 
           {error && <div style={{ color: "#DC2626", fontSize: 13, marginTop: 20, fontWeight: 600 }}>{error}</div>}

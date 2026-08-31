@@ -96,7 +96,7 @@ const LatestWebinarItem = ({ item, onPress }: any) => {
         <Image source={{ uri: item.thumbnail_url }} style={styles.thumb} />
       ) : (
         <LinearGradient
-          colors={colors.greenButtonDarkGradient || ['#4ADE80', '#16A34A']}
+          colors={colors.greenButtonDark || ['#4ADE80', '#16A34A']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={[styles.thumb, styles.thumbPlaceholder]}

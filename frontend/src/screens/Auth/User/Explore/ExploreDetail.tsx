@@ -1,4 +1,3 @@
-// screens/Auth/User/Explore/ExploreDetail.tsx
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
@@ -23,6 +22,8 @@ import {
   Clock,
   Calendar,
   User as UserIcon,
+  Users,
+  ArrowRight,
 } from 'lucide-react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import colors from '../../../../utils/colors';
@@ -32,6 +33,7 @@ import { getAllWebinar } from '../../../../store/WebinarSlice';
 import ShimmerBox from '../../../../components/ShimmerBox';
 
 const PAGE_SIZE = 8;
+
 
 /* First-load shimmer skeleton (search + toggle + hero card + list cards) */
 const ExploreSkeleton = () => (
@@ -73,6 +75,15 @@ const fmtDateTime = (iso?: string) => {
     day: '2-digit',
     month: 'short',
   })}, ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+};
+
+const fmtCount = (n: any) => {
+  const num = Number(n) || 0;
+  if (num >= 1000) {
+    const k = num / 1000;
+    return `${k % 1 === 0 ? k.toFixed(0) : k.toFixed(1)}K+`;
+  }
+  return `${num}`;
 };
 
 const courseDuration = (course: any) => {
@@ -238,13 +249,19 @@ const ExploreDetail = () => {
         <Text style={styles.popularTitle} numberOfLines={1}>
           {course.title}
         </Text>
-        <View style={styles.popularMetaRow}>
+               <View style={styles.popularMetaRow}>
           {!!dur && (
             <View style={styles.metaItem}>
               <Clock size={wp(13)} color={colors.uSubHeading} strokeWidth={2} />
               <Text style={styles.metaText}>{dur}</Text>
             </View>
           )}
+          <View style={styles.metaItem}>
+            <PlayCircle size={wp(13)} color={colors.uSubHeading} strokeWidth={2} />
+            <Text style={styles.metaText}>
+              {course.videos?.length ?? course.total_videos ?? 0} Lessons
+            </Text>
+          </View>
           {!!rating && (
             <View style={styles.metaItem}>
               <Star size={wp(13)} color={colors.uSubHeading} fill={colors.uSubHeading} />
@@ -253,14 +270,32 @@ const ExploreDetail = () => {
           )}
         </View>
 
+        {(course.total_students ?? course.enrolled_count) != null && (
+          <View style={[styles.metaItem, { marginBottom: hp(10) }]}>
+            <Users size={wp(13)} color={colors.uSubHeading} strokeWidth={2} />
+            <Text style={styles.metaText}>
+              {fmtCount(course.total_students ?? course.enrolled_count)} Enrolled
+            </Text>
+          </View>
+        )}
+
         <View style={styles.popularFooter}>
-          <Text style={styles.popularPrice}>{fmtPrice(course.price)}</Text>
+          <View>
+            <Text style={styles.popularPrice}>{fmtPrice(course.price)}</Text>
+            <View style={styles.creatorRow}>
+              <UserIcon size={wp(11)} color={colors.uSubHeading} strokeWidth={2} />
+              <Text style={styles.creatorText} numberOfLines={1}>
+                by {course.creator?.name || 'Creator'}
+              </Text>
+            </View>
+          </View>
           <TouchableOpacity
             style={styles.enrollBtn}
             activeOpacity={0.85}
             onPress={() => openCourse(course)}
           >
             <Text style={styles.enrollBtnText}>Enroll Now</Text>
+            <ArrowRight size={wp(13)} color={colors.user.text} strokeWidth={2.4} />
           </TouchableOpacity>
         </View>
       </View>
@@ -308,9 +343,10 @@ const ExploreDetail = () => {
           </View>
         </View>
 
-        <View style={styles.registerBtn}>
+          <View style={styles.registerBtn}>
           <PlayCircle size={wp(16)} color={colors.user.text} strokeWidth={2} />
           <Text style={styles.registerBtnText}>Register Now</Text>
+          <ArrowRight size={wp(14)} color={colors.user.text} strokeWidth={2.4} />
         </View>
       </View>
     </TouchableOpacity>
@@ -398,12 +434,35 @@ const ExploreDetail = () => {
                 )}
               </View>
 
-              <Text style={styles.featuredTitle} numberOfLines={2}>
+                           <Text style={styles.featuredTitle} numberOfLines={2}>
                 {featured.title}
               </Text>
               <Text style={styles.featuredDesc} numberOfLines={2}>
                 {featured.description || 'Start learning today.'}
               </Text>
+
+              <View style={styles.statsRow}>
+                {!!courseDuration(featured) && (
+                  <View style={styles.statItem}>
+                    <Clock size={wp(14)} color={colors.user.subHeading} strokeWidth={2} />
+                    <Text style={styles.statText}>{courseDuration(featured)}</Text>
+                  </View>
+                )}
+                <View style={styles.statItem}>
+                  <PlayCircle size={wp(14)} color={colors.user.subHeading} strokeWidth={2} />
+                  <Text style={styles.statText}>
+                    {featured.videos?.length ?? featured.total_videos ?? 0} Lessons
+                  </Text>
+                </View>
+                {(featured.total_students ?? featured.enrolled_count) != null && (
+                  <View style={styles.statItem}>
+                    <Users size={wp(14)} color={colors.user.subHeading} strokeWidth={2} />
+                    <Text style={styles.statText}>
+                      {fmtCount(featured.total_students ?? featured.enrolled_count)} Enrolled
+                    </Text>
+                  </View>
+                )}
+              </View>
 
               <View style={styles.featuredFooter}>
                 <View style={styles.featuredPriceCol}>
@@ -415,9 +474,16 @@ const ExploreDetail = () => {
                         ₹{Number(featured.original_price || featured.mrp).toLocaleString('en-IN')}
                       </Text>
                     )}
+                  <View style={styles.creatorRow}>
+                    <UserIcon size={wp(12)} color={colors.user.subHeading} strokeWidth={2} />
+                    <Text style={styles.creatorText} numberOfLines={1}>
+                      by {featured.creator?.name || 'Creator'}
+                    </Text>
+                  </View>
                 </View>
                 <View style={styles.enrollBtn}>
                   <Text style={styles.enrollBtnText}>Enroll Now</Text>
+                  <ArrowRight size={wp(14)} color={colors.user.text} strokeWidth={2.4} />
                 </View>
               </View>
 
@@ -525,6 +591,7 @@ const styles = StyleSheet.create({
     paddingBottom: hp(36),
     flexGrow: 1,
   },
+  
 
   /* Header */
   header: {
@@ -692,8 +759,11 @@ const styles = StyleSheet.create({
     marginTop: hp(2),
   },
   enrollBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(6),
     backgroundColor: colors.user.accent,
-    paddingHorizontal: wp(22),
+    paddingHorizontal: wp(18),
     paddingVertical: hp(11),
     borderRadius: wp(12),
   },
@@ -757,11 +827,39 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: colors.user.text,
   },
-  popularFooter: {
+   popularFooter: {
   flexDirection: 'row',
-  alignItems: 'center',
+  alignItems: 'flex-end',
   justifyContent: 'space-between',
 },
+
+  statsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: wp(14),
+    marginBottom: hp(14),
+  },
+  statItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(5),
+  },
+  statText: {
+    fontSize: fp(12),
+    color: colors.user.subHeading,
+    fontWeight: '500',
+  },
+  creatorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(4),
+    marginTop: hp(4),
+  },
+  creatorText: {
+    fontSize: fp(11.5),
+    color: colors.user.subHeading,
+    fontWeight: '500',
+  },
 
   /* Webinars */
   webinarHeadRow: {

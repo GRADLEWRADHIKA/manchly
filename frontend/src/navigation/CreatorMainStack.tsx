@@ -25,6 +25,9 @@ import ExpertRegistration from '../screens/Auth/Creator/Products/ExpertRegistrat
 import AllSessions from '../screens/Auth/Creator/Products/AllSessions';
 import AvailabilityManager from '../screens/Auth/Creator/Sessions/AvailabilityManager';
 import SettlementHistory from '../screens/Auth/Creator/Wallet/SettlementHistory';
+import { AssistantProvider } from '../context/AssistantContext';
+import AssistantLauncher from '../components/ai/AssitantLaucher';
+import AssistantPanel from '../components/ai/AssistantPanel';
 
 import CreatorDashboardOverview from '../screens/Auth/Creator/CreatorDashboardOverview';
 
@@ -32,6 +35,7 @@ const Stack = createNativeStackNavigator();
 
 const CreatorMainStack = () => {
   return (
+     <AssistantProvider>
     <Stack.Navigator
         initialRouteName="CreatorBottomTab"
         screenOptions={{ headerShown: false }}
@@ -78,6 +82,9 @@ const CreatorMainStack = () => {
         <Stack.Screen name="AvailabilityManager" component={AvailabilityManager} />
         <Stack.Screen name="SettlementHistory" component={SettlementHistory} />
     </Stack.Navigator>
+     <AssistantLauncher />
+      <AssistantPanel />
+    </AssistantProvider>
   );
 };
 

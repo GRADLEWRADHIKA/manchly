@@ -8,7 +8,7 @@ import {
   Pressable,
   Animated,
 } from 'react-native';
-import { BookOpen, ChevronRight } from 'lucide-react-native';
+import { BookOpen, ChevronRight, ArrowRight } from 'lucide-react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { useDispatch, useSelector } from 'react-redux';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
@@ -119,7 +119,7 @@ const LatestCourseItem = ({ item, onPress }: any) => {
             )}
           </View>
         )}
-        <Text style={styles.title} numberOfLines={1}>
+                <Text style={styles.title} numberOfLines={1}>
           {item?.title}
         </Text>
         {item?.creator?.name && (
@@ -127,9 +127,19 @@ const LatestCourseItem = ({ item, onPress }: any) => {
             by {item.creator.name}
           </Text>
         )}
-        <Text style={styles.price}>
-          {Number(item?.price) > 0 ? `₹${item.price}` : 'Free'}
-        </Text>
+        <View style={styles.footerRow}>
+          <Text style={styles.price}>
+            {Number(item?.price) > 0 ? `₹${item.price}` : 'Free'}
+          </Text>
+          <Pressable
+            style={({ pressed }) => [styles.viewCourseBtn, pressed && styles.viewCourseBtnPressed]}
+            onPress={onPress}
+            hitSlop={6}
+          >
+            <Text style={styles.viewCourseBtnText}>View Course</Text>
+            <ArrowRight size={wp(12)} color={colors.user.accent} strokeWidth={2.4} />
+          </Pressable>
+        </View>
       </View>
     </Pressable>
   );
@@ -321,6 +331,30 @@ const styles = StyleSheet.create({
     fontSize: fp(15),
     fontWeight: '800',
     color: colors.user.accent,
-    marginTop: hp(6),
+  },
+  footerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: hp(8),
+    gap: wp(6),
+  },
+  viewCourseBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(4),
+    borderWidth: 1,
+    borderColor: colors.user.accent,
+    borderRadius: wp(99),
+    paddingHorizontal: wp(10),
+    paddingVertical: hp(5),
+  },
+  viewCourseBtnPressed: {
+    opacity: 0.7,
+  },
+  viewCourseBtnText: {
+    fontSize: fp(10.5),
+    fontWeight: '700',
+    color: colors.user.accent,
   },
 });

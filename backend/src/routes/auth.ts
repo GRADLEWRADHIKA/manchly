@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import rateLimit from "express-rate-limit";
 import { AuthController } from "../controllers/authController";
 import prisma from "../prismaClient";
+import { isTestAccount } from "../utils/otpManager";
 
 dotenv.config();
 const router = express.Router();
@@ -19,6 +20,9 @@ if (!JWT_SECRET) {
 const otpRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 5,
+  // This limiter keys on IP, so a QA machine hitting the test account
+  // repeatedly would lock itself out. Exempt the test accounts only.
+  skip: (req) => isTestAccount(req.body?.email || req.body?.phone_number || ""),
   handler: (req, res) => {
     res.status(429).json({
       success: false,

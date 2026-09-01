@@ -295,8 +295,12 @@ class OTPManager {
     customLength?: number, 
     channel: 'email' | 'sms' = 'email'
   ): Promise<string> {
-    // Check rate limiting
-    await this.checkRateLimit(identifier);
+    // Test accounts are exempt: they already skip the "OTP already sent" guard
+    // so QA can log in repeatedly, and the rate limit would defeat that after
+    // five attempts. Real accounts are still limited.
+    if (!isTestAccount(identifier)) {
+      await this.checkRateLimit(identifier);
+    }
 
     // Validate channel configuration
     if (channel === 'email' && !this.defaultConfig.emailEnabled) {

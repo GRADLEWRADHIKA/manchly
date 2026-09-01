@@ -57,6 +57,7 @@ model users {
   sessionExpert             session_experts?
   settlements               settlements[]
   transactions              transactions[]
+  creatorTrials             creator_trials[]
   webinar_enrollments       webinar_enrollments[]
   webinar_transactions      webinar_transactions[]
   webinars                  webinars[]
@@ -925,6 +926,39 @@ enum NotificationType {
   COURSE
   EXPERT
   SYSTEM
+}
+
+model creator_trials {
+  id                    String            @id @default(uuid())
+  user_id               String            @map("user_id")
+  status                CreatorTrialStatus @default(PENDING)
+  trial_days            Int               @default(3) @map("trial_days")
+  trial_price           Float             @default(199) @map("trial_price")
+  monthly_price         Float             @default(199) @map("monthly_price")
+  auth_amount           Float             @default(1) @map("auth_amount")
+  cf_subscription_id    String?           @unique @map("cf_subscription_id")
+  subscription_id       String?           @unique @map("subscription_id")
+  subscription_session_id String?         @map("subscription_session_id")
+  trial_starts_at       DateTime?         @map("trial_starts_at")
+  trial_ends_at         DateTime?         @map("trial_ends_at")
+  next_charge_at        DateTime?         @map("next_charge_at")
+  cancelled_at          DateTime?         @map("cancelled_at")
+  created_at            DateTime          @default(now()) @map("created_at")
+  updated_at            DateTime          @default(now()) @updatedAt @map("updated_at")
+  user                  users             @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([status])
+  @@map("creator_trials")
+}
+
+enum CreatorTrialStatus {
+  PENDING
+  AUTHORIZED
+  ACTIVE
+  CANCELLED
+  EXPIRED
+  FAILED
 }
 
 enum PremiumSubscriptionStatus {

@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { useSelector } from 'react-redux';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import colors from '../utils/colors';
 import { wp, hp, fp } from '../utils/responsive';
@@ -16,6 +17,8 @@ import CreatorSetting from '../screens/Auth/Creator/Settings/CreatorSetting';
 import CreatorAI from '../screens/Auth/Creator/Ai/CreatorAI';
 import Dashboard from '../screens/Auth/Profile/Dashboard';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { instance } from '../utils/AxiosInstance';
+import TrialBottomSheet from '../screens/Auth/Creator/Home/TrialBottomSheet';
 
 const Tab = createBottomTabNavigator();
 
@@ -111,21 +114,61 @@ const CustomTabBar = ({ state, navigation }: any) => {
 };
 
 const CreatorBottomTab = () => {
+  const [showTrial, setShowTrial] = useState(false);
+  const [trialConfig, setTrialConfig] = useState({
+    trialDays: 3,
+    trialPrice: 199,
+    monthlyPrice: 199,
+  });
+
+  const { token } = useSelector((state: any) => state.userReducer);
+
+  useEffect(() => {
+    if (!token) return;
+    instance
+      .get('creator-trial/status')
+      .then(res => {
+        const data = res?.data?.data;
+        if (!data?.has_active) {
+          setTrialConfig({
+            trialDays: data?.trial_days || 3,
+            trialPrice: data?.trial_price || 199,
+            monthlyPrice: data?.monthly_price || 199,
+          });
+          setShowTrial(true);
+        }
+      })
+      .catch(() => {
+        // If API fails, don't block the app
+      });
+  }, [token]);
+
   return (
-    <Tab.Navigator
-      initialRouteName="Home"
-      screenOptions={{ headerShown: false, tabBarStyle: { display: 'none' } }}
-      tabBar={props => <CustomTabBar {...props} />}
-    >
-      {tabs.map(t => (
-        <Tab.Screen
-          key={t.name}
-          name={t.name}
-          component={t.component}
-          options={{ title: t.label }}
-        />
-      ))}
-    </Tab.Navigator>
+    <>
+      <Tab.Navigator
+        initialRouteName="Home"
+        screenOptions={{ headerShown: false, tabBarStyle: { display: 'none' } }}
+        tabBar={props => <CustomTabBar {...props} />}
+      >
+        {tabs.map(t => (
+          <Tab.Screen
+            key={t.name}
+            name={t.name}
+            component={t.component}
+            options={{ title: t.label }}
+          />
+        ))}
+      </Tab.Navigator>
+
+      <TrialBottomSheet
+        visible={showTrial}
+        onClose={() => setShowTrial(false)}
+        onTrialActivated={() => setShowTrial(false)}
+        trialDays={trialConfig.trialDays}
+        trialPrice={trialConfig.trialPrice}
+        monthlyPrice={trialConfig.monthlyPrice}
+      />
+    </>
   );
 };
 

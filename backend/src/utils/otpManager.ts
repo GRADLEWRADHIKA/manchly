@@ -62,6 +62,9 @@ export function isTestAccount(identifier: string): boolean {
   return TEST_ACCOUNTS.includes(identifier.trim().toLowerCase());
 }
 
+/** Fixed code issued to test accounts, so QA can log in without reading it back. */
+export const TEST_ACCOUNT_OTP = process.env.TEST_ACCOUNT_OTP || "111111";
+
 /**
  * Returning an OTP in the HTTP response is an auth bypass for that account, so
  * it is off in production unless explicitly opted into.
@@ -325,7 +328,15 @@ class OTPManager {
     }
 
     const otpLength = customLength || this.defaultConfig.length;
-    const otp = this.generateOTP(otpLength);
+
+    // Test accounts use a fixed code so QA never has to read it back from the
+    // response. Gated behind the same switch as the autofill: a predictable
+    // OTP is an open door, so in production a test account still gets a random
+    // code unless ALLOW_TEST_OTP_AUTOFILL is deliberately turned on.
+    const otp =
+      testAccount && isTestOtpAutofillEnabled()
+        ? TEST_ACCOUNT_OTP.padEnd(otpLength, "1").slice(0, otpLength)
+        : this.generateOTP(otpLength);
 
     const otpData: OTPData = {
       otp,

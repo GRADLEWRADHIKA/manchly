@@ -110,13 +110,24 @@ export default function AuthFlow() {
         return;
       }
       const path = phone ? "/auth/send-otp/sms" : "/auth/send-otp/email";
-      await apiFetch(path, {
-        method: "POST",
-        body: JSON.stringify({ phone_number: phone, email, purpose: "login", tab: selectedType }),
-      });
+      const data = unwrap(
+        await apiFetch(path, {
+          method: "POST",
+          body: JSON.stringify({ phone_number: phone, email, purpose: "login", tab: selectedType }),
+        }),
+      );
       setOtpSent(true);
       setCooldown(30);
-      toast.success(`OTP sent to your ${phone ? "phone" : "email"}`);
+
+      // Test accounts get the code back in the response instead of an email,
+      // so fill it in rather than making QA hunt for a message that never
+      // arrives. Real accounts never receive an otp field here.
+      if (data?.otp) {
+        setOtp(String(data.otp));
+        toast.info("Test account — OTP filled in for you");
+      } else {
+        toast.success(`OTP sent to your ${phone ? "phone" : "email"}`);
+      }
     } catch (err) {
       if (err?.body?.error?.code === "OTP_ALREADY_SENT") {
         setOtpSent(true);
@@ -131,12 +142,19 @@ export default function AuthFlow() {
     if (cooldown) return;
     const { email, phone } = idPayload();
     try {
-      await apiFetch("/auth/resend-otp", {
-        method: "POST",
-        body: JSON.stringify(phone ? { phone_number: phone, channel: "sms" } : { email, channel: "email" }),
-      });
+      const data = unwrap(
+        await apiFetch("/auth/resend-otp", {
+          method: "POST",
+          body: JSON.stringify(phone ? { phone_number: phone, channel: "sms" } : { email, channel: "email" }),
+        }),
+      );
       setCooldown(30);
-      toast.success("OTP resent");
+      if (data?.otp) {
+        setOtp(String(data.otp));
+        toast.info("Test account — OTP filled in for you");
+      } else {
+        toast.success("OTP resent");
+      }
     } catch (err) {
       toast.error(err.message);
     }

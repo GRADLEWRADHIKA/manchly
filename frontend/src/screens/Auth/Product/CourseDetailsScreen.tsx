@@ -54,7 +54,7 @@ const CourseDetailsScreen: React.FC = () => {
   );
   const { loading } = useSelector((state: any) => state.paymentReducer);
   const { user } = useSelector((state: any) => state.userReducer);
-  const watermarkText = useMemo(() => buildWatermark(user), [user]);
+  const watermarkText = useMemo(() => buildWatermark(course?.creator), [course?.creator]);
   const [purchasing, setPurchasing] = useState(false);
   const [courseLoading, setCourseLoading] = useState(true);
   const [showTerms, setShowTerms] = useState(false);
@@ -236,7 +236,7 @@ const CourseDetailsScreen: React.FC = () => {
             autoPlay
             showCloseButton={false}
             style={styles.heroPlayer}
-            watermark={watermarkText}
+            watermark={isEnrolled ? watermarkText : undefined}
           />
         ) : (
           course.thumbnail ? (

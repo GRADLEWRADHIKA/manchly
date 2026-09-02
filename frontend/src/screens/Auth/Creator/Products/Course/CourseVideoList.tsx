@@ -14,7 +14,8 @@ import React, { useEffect, useState } from 'react';
 import colors from '../../../../../utils/colors';
 import { wp, hp, fp } from '../../../../../utils/responsive';
 import AppHeaderWithBack from '../../../../../components/AppHeaderWithBack';
-import { useIsFocused, useRoute } from '@react-navigation/native';
+import CourseWizardHeader from '../../../../../components/CourseWizardHeader';
+import { useIsFocused, useNavigation, useRoute } from '@react-navigation/native';
 import { getCourseById } from '../../../../../store/CourseSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
@@ -27,6 +28,7 @@ import ModalBottom from 'react-native-modal';
 import CourseAddVideoModal from './CourseAddVideoModal';
 import { deleteVideo, ActiveUpload } from '../../../../../store/VideoSlice';
 import DynamicModal from '../../../../../components/CommonModal';
+import Toast from 'react-native-toast-message';
 import { RootState } from '../../../../../store/Store';
 
 const ShimmerPlaceholder = createShimmerPlaceholder(LinearGradient);
@@ -55,8 +57,10 @@ const formatDuration = (durationInSeconds: number) => {
 };
 
 const CourseVideoList = () => {
-  const route = useRoute();
+  const route = useRoute<any>();
+  const navigation = useNavigation<any>();
   const courseId = route?.params?.item?.id;
+  const fromWizard = route?.params?.fromWizard ?? false;
   const [videoList, setVideoList] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState<any>(null);
@@ -266,7 +270,11 @@ const CourseVideoList = () => {
 
   return (
     <View style={styles.container}>
-      <AppHeaderWithBack title="Course Videos" bgColor="transparent" />
+      {fromWizard ? (
+        <CourseWizardHeader activeStep={1} title="Add Videos" />
+      ) : (
+        <AppHeaderWithBack title="Course Videos" bgColor="transparent" />
+      )}
 
       {activeUploads.length > 0 && (
         <View style={styles.uploadsSection}>
@@ -279,6 +287,12 @@ const CourseVideoList = () => {
           <Text style={styles.countText}>
             Total Videos: {videoList.length}
           </Text>
+          {fromWizard && (
+            <TouchableOpacity style={styles.addVideoBtn} onPress={toggleModal}>
+              <Plus size={wp(16)} color="#000" />
+              <Text style={styles.addVideoBtnText}>Add Video</Text>
+            </TouchableOpacity>
+          )}
         </View>
       )}
 
@@ -379,14 +393,51 @@ const CourseVideoList = () => {
         </SafeAreaView>
       </Modal>
 
-      <View style={{ marginRight: wp(10), marginBottom: hp(10) }}>
-        <FAB
-          icon={({ size, color }) => <Plus size={size} color={color} />}
-          style={styles.fab}
-          onPress={toggleModal}
-          color={colors.black}
-        />
-      </View>
+      {fromWizard && (
+        <View style={styles.wizardActions}>
+          <TouchableOpacity
+            style={styles.wizardBackBtn}
+            onPress={() => navigation.goBack()}>
+            <Text style={styles.wizardBackText}>Back</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.wizardContinueBtn,
+              videoList.length === 0 && {opacity: 0.5},
+            ]}
+            disabled={videoList.length === 0}
+            onPress={() => {
+              if (videoList.length === 0) {
+                Toast.show({
+                  type: 'error',
+                  text1: 'Add at least one video',
+                  position: 'top',
+                });
+                return;
+              }
+              navigation.navigate('CoursePreviewScreen', {courseId});
+            }}>
+            <LinearGradient
+              colors={['#F3C36B', '#D49A3D']}
+              start={{x: 0, y: 0}}
+              end={{x: 1, y: 0}}
+              style={styles.wizardContinueGradient}>
+              <Text style={styles.wizardContinueText}>Continue to Preview</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {!fromWizard && (
+        <View style={{ marginRight: wp(10), marginBottom: hp(10) }}>
+          <FAB
+            icon={({ size, color }) => <Plus size={size} color={color} />}
+            style={styles.fab}
+            onPress={toggleModal}
+            color={colors.black}
+          />
+        </View>
+      )}
 
       <ModalBottom
         isVisible={isModalVisible}
@@ -429,8 +480,25 @@ const styles = StyleSheet.create({
     paddingBottom: hp(20),
   },
   countRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: wp(16),
     paddingTop: hp(12),
+  },
+  addVideoBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(5),
+    backgroundColor: '#D69C40',
+    paddingHorizontal: wp(14),
+    paddingVertical: hp(8),
+    borderRadius: wp(10),
+  },
+  addVideoBtnText: {
+    fontSize: fp(13),
+    fontWeight: '700',
+    color: '#000000',
   },
   countText: {
     fontSize: fp(14),
@@ -748,5 +816,44 @@ const styles = StyleSheet.create({
   bottomModal: {
     justifyContent: 'flex-end',
     margin: 0,
+  },
+  // Wizard actions
+  wizardActions: {
+    flexDirection: 'row',
+    gap: wp(12),
+    paddingHorizontal: wp(16),
+    paddingVertical: hp(12),
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.06)',
+  },
+  wizardBackBtn: {
+    flex: 1,
+    paddingVertical: hp(13),
+    borderRadius: wp(14),
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: '#F0C040',
+  },
+  wizardBackText: {
+    color: '#F0C040',
+    fontWeight: '700',
+    fontSize: fp(15),
+  },
+  wizardContinueBtn: {
+    flex: 1,
+    borderRadius: wp(14),
+    overflow: 'hidden',
+  },
+  wizardContinueGradient: {
+    paddingVertical: hp(13),
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: wp(14),
+  },
+  wizardContinueText: {
+    color: '#000000',
+    fontWeight: '800',
+    fontSize: fp(15),
   },
 });

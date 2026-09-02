@@ -721,13 +721,6 @@ const CreateWebinarScreen = () => {
               )}
             />
 
-            <AccessExpiryField
-              initialDurationDays={updatedata?.access_duration_days ?? null}
-              initialDurationUnit={updatedata?.access_duration_unit ?? null}
-              initialExpiresAt={updatedata?.access_expires_at ?? null}
-              onChange={setAccessPolicy}
-            />
-
             <CommunityLinkField
               whatsappUrl={whatsappUrl}
               onChangeWhatsapp={setWhatsappUrl}

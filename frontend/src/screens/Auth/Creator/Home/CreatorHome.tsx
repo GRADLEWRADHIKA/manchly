@@ -370,6 +370,7 @@ const CreatorHome = () => {
         visible={showIntroVideo}
         onClose={() => setShowIntroVideo(false)}
       />
+
     </View>
   );
 };

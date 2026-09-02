@@ -8,7 +8,13 @@ import { useSelector } from 'react-redux';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import UserMainStack from './UserMainStack';
 import CreatorMainStack from './CreatorMainStack';
-import { getAppLinkDataFromUrl } from 'react-native-chottulink-sdk';
+import {
+  initAppsFlyer,
+  extractDeepLinkFromUrl,
+  parseDeepLinkValue,
+  DeepLinkDestination,
+} from '../services/AppsFlyerService';
+import appsFlyer from 'react-native-appsflyer';
 import NotificationService from '../services/NotificationService';
 import notifee, { EventType } from '@notifee/react-native';
 import { store } from '../store/Store';
@@ -20,7 +26,7 @@ import { useDispatch } from 'react-redux';
 import Toast from 'react-native-toast-message';
 import { navigationRef } from './navigationRef';
 
-const PREFIXES = ['https://manchly.chottu.link', 'http://manchly.chottu.link', 'manchly://'];
+const PREFIXES = ['https://manchly.onelink.me', 'http://manchly.onelink.me', 'manchly://'];
 
 // Module-level flag so the static linking object can check auth state
 let isAuthenticated = false;
@@ -29,67 +35,9 @@ let isAuthenticated = false;
 const ensurePrefix = (url: string): string => {
   const match = url.match(/\/(course|webinar)\/([^/?#]+)/);
   if (match) {
-    return `https://manchly.chottu.link/${match[1]}/${match[2]}`;
+    return `https://manchly.onelink.me/${match[1]}/${match[2]}`;
   }
   return url;
-};
-
-// Resolve a ChottuLink short URL to the full destination URL
-const resolveUrl = async (url: string | null): Promise<string | null> => {
-  if (!url) return null;
-  try {
-    if (/\/(course|webinar)\/[^/?#]+/.test(url)) return ensurePrefix(url);
-
-    if (
-      url.includes('manchly.chottu.link') &&
-      !url.includes('/course/') &&
-      !url.includes('/webinar/')
-    ) {
-      const result = await getAppLinkDataFromUrl(url);
-      if (result?.link) return ensurePrefix(result.link);
-    }
-    return url;
-  } catch {
-    return url;
-  }
-};
-
-const extractDeepLinkParams = (
-  url: string,
-): { screen: 'CourseDetailsScreen' | 'WebinarDetails'; id: string } | null => {
-  try {
-    const courseMatch = url.match(/\/course\/([^/?#]+)/);
-    if (courseMatch) {
-      return { screen: 'CourseDetailsScreen', id: courseMatch[1] };
-    }
-
-    const webinarMatch = url.match(/\/webinar\/([^/?#]+)/);
-    if (webinarMatch) {
-      return { screen: 'WebinarDetails', id: webinarMatch[1] };
-    }
-
-    return null;
-  } catch {
-    return null;
-  }
-};
-
-// Resolve ChottuLink short URL to get the destination URL
-const resolveChottuLink = async (
-  url: string,
-): Promise<{ screen: 'CourseDetailsScreen' | 'WebinarDetails'; id: string } | null> => {
-  try {
-    const directParams = extractDeepLinkParams(url);
-    if (directParams) return directParams;
-
-    const result = await getAppLinkDataFromUrl(url);
-    if (result?.link) {
-      return extractDeepLinkParams(result.link);
-    }
-    return null;
-  } catch {
-    return null;
-  }
 };
 
 const linking = {
@@ -105,15 +53,18 @@ const linking = {
     // Read token directly from store (PersistGate ensures rehydration before Router mounts)
     const token = store.getState().userReducer?.token;
     if (!token) return null;
-    return resolveUrl(url);
+    if (!url) return null;
+    if (/\/(course|webinar)\/[^/?#]+/.test(url)) return ensurePrefix(url);
+    return url;
   },
   subscribe(listener: (url: string) => void) {
     const subscription = Linking.addEventListener('url', async ({ url }) => {
       // Only let React Navigation handle when authenticated
       if (!isAuthenticated) return;
-      const resolved = await resolveUrl(url);
-      if (resolved) {
-        listener(resolved);
+      if (/\/(course|webinar)\/[^/?#]+/.test(url)) {
+        listener(ensurePrefix(url));
+      } else {
+        listener(url);
       }
     });
     return () => subscription.remove();
@@ -157,12 +108,14 @@ const Router = () => {
   const { user } = useSelector((state: any) => state.userReducer);
   const dispatch = useDispatch<any>();
   const userRole = String(user?.user_type || '').toUpperCase();
-  const pendingDeepLink = useRef<{
-    screen: 'CourseDetailsScreen' | 'WebinarDetails';
-    id: string;
-  } | null>(null);
+  const pendingDeepLink = useRef<DeepLinkDestination>(null);
   const pendingCallData = useRef<any>(null);
   const pendingNotificationData = useRef<any>(null);
+
+  // Initialize AppsFlyer SDK
+  useEffect(() => {
+    initAppsFlyer();
+  }, []);
 
   // Keep module-level auth flag in sync + refresh user data on app open
   useEffect(() => {
@@ -172,6 +125,42 @@ const Router = () => {
       dispatch(getUnreadCount());
     }
   }, [token]);
+
+  // AppsFlyer deep link listener (Unified Deep Linking)
+  useEffect(() => {
+    const onDeepLink = appsFlyer.onDeepLink((res: any) => {
+      if (res?.deepLinkStatus === 'NOT_FOUND') return;
+
+      const deepLinkValue = res?.data?.deep_link_value;
+      const destination = deepLinkValue
+        ? parseDeepLinkValue(deepLinkValue)
+        : extractDeepLinkFromUrl(res?.data?.af_dp || '');
+
+      if (!destination) return;
+
+      if (!isAuthenticated) {
+        pendingDeepLink.current = destination;
+        return;
+      }
+
+      setTimeout(() => {
+        if (destination.screen === 'CourseDetailsScreen') {
+          navigationRef.current?.navigate('CourseDetailsScreen', {
+            courseId: destination.id,
+          });
+        } else {
+          navigationRef.current?.navigate('WebinarDetails', {
+            webinarId: destination.id,
+            id: destination.id,
+          });
+        }
+      }, 500);
+    });
+
+    return () => {
+      onDeepLink?.();
+    };
+  }, []);
 
   // Socket listeners for real-time events
   useEffect(() => {
@@ -307,19 +296,20 @@ const Router = () => {
 
   // Handle deep link when user is not authenticated — save it for after login
   useEffect(() => {
-    const handleDeepLink = async (url: string | null) => {
-      if (!url) return;
-      const destination = await resolveChottuLink(url);
-      if (destination) {
-        pendingDeepLink.current = destination;
-      }
-    };
-
     if (!token) {
-      Linking.getInitialURL().then(handleDeepLink);
+      Linking.getInitialURL().then((url) => {
+        if (!url) return;
+        const destination = extractDeepLinkFromUrl(url);
+        if (destination) {
+          pendingDeepLink.current = destination;
+        }
+      });
 
       const subscription = Linking.addEventListener('url', ({ url }) => {
-        handleDeepLink(url);
+        const destination = extractDeepLinkFromUrl(url);
+        if (destination) {
+          pendingDeepLink.current = destination;
+        }
       });
 
       return () => subscription.remove();

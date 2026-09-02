@@ -10,7 +10,7 @@ import {
   Platform,
   Image,
 } from 'react-native';
-import CreateStepHeader from '../../../../../components/CreateStepHeader';
+import CourseWizardHeader from '../../../../../components/CourseWizardHeader';
 import LinearGradient from 'react-native-linear-gradient';
 import Toast from 'react-native-toast-message';
 import colors from '../../../../../utils/colors';
@@ -141,16 +141,15 @@ const CreateCourse = () => {
       .then((res: any) => {
         reset();
         Toast.show({ type: 'success', text1: 'Course created!' });
-        Nav.navigate('CourseDetailsScreen', {
-          courseId: res?.data?.id || res?.data?.data?.id,
-          fromCreate: true,
-          courseData: res?.data || res?.data?.data || {
-            title: data.courseTitle,
-            price: data.price,
-            status: data.status,
-            thumbnail: data.thumbnail,
-            level: data.level,
-          },
+        const courseObj = res?.course || res;
+        const newCourseId = courseObj?.id || courseObj?._id;
+        if (!newCourseId) {
+          Toast.show({type: 'error', text1: 'Could not get course ID', position: 'top'});
+          return;
+        }
+        Nav.replace('CourseVideoList', {
+          item: { id: newCourseId },
+          fromWizard: true,
         });
       })
       .catch(() =>
@@ -212,7 +211,7 @@ const CreateCourse = () => {
 
   return (
     <View style={styles.root}>
-      <CreateStepHeader title="Course Details" active="course" />
+      <CourseWizardHeader activeStep={0} title="Course Details" />
 
       <KeyboardAvoidingView
         style={styles.flex}

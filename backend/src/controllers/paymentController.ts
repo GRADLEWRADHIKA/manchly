@@ -393,40 +393,9 @@ export class PaymentController {
         itemTitle: transaction.course.title,
       }).catch(err => console.error("Wallet credit error:", err));
 
-      // Send course purchase notification (Email + WhatsApp)
-      const buyer = await prisma.users.findUnique({
-        where: { id: userId },
-        select: { name: true, email: true, phone: true }
-      });
-      if (buyer) {
-        notificationService.sendCoursePurchaseNotification({
-          customerName: buyer.name || 'there',
-          customerEmail: buyer.email,
-          customerPhone: buyer.phone || undefined,
-          courseName: transaction.course.title,
-          courseAccessLink: `${process.env.APP_URL || 'https://manchly.com'}/courses/${transaction.course_id}`,
-          hostName: transaction.course.creator.name || 'Manchly',
-        }).catch(err => console.error('Course purchase notification error:', err));
-      }
+      // Notifications are sent by the webhook handler (handlePaymentSuccess) to avoid duplicates
 
-      // In-app notifications
-      NotificationController.createNotification({
-        userId,
-        type: "COURSE",
-        title: "Course Purchased",
-        message: `You have successfully enrolled in "${transaction.course.title}". Start learning now!`,
-        data: { courseId: transaction.course_id },
-      }).catch(err => console.error("Notification error:", err));
-
-      NotificationController.createNotification({
-        userId: transaction.course.creator.id,
-        type: "SALE",
-        title: "New Course Purchase",
-        message: `${buyer?.name || "A user"} purchased your "${transaction.course.title}" course for Rs. ${transaction.amount}.`,
-        data: { courseId: transaction.course_id, buyerId: userId },
-      }).catch(err => console.error("Notification error:", err));
-
-      console.log(`New purchase! User ${userId} purchased course "${transaction.course.title}" for ${transaction.amount}`);
+      console.log(`Payment verified! User ${userId} enrolled in course "${transaction.course.title}" for ${transaction.amount}`);
 
       ApiResponseHandler.success(res, {
         enrollment,
@@ -576,7 +545,8 @@ export class PaymentController {
             select: {
               id: true,
               name: true,
-              email: true
+              email: true,
+              phone: true
             }
           }
         }
@@ -652,6 +622,18 @@ export class PaymentController {
         message: `${transaction.user?.name || "A user"} purchased your "${transaction.course.title}" course.`,
         data: { courseId: transaction.course_id, buyerId: transaction.user_id },
       }).catch(err => console.error("Notification error:", err));
+
+      // Send course purchase notification (Email + WhatsApp)
+      if (transaction.user) {
+        notificationService.sendCoursePurchaseNotification({
+          customerName: transaction.user.name || 'there',
+          customerEmail: transaction.user.email,
+          customerPhone: transaction.user.phone || undefined,
+          courseName: transaction.course.title,
+          courseAccessLink: `${process.env.APP_URL || 'https://manchly.com'}/courses/${transaction.course_id}`,
+          hostName: transaction.course.creator.name || 'Manchly',
+        }).catch(err => console.error('Course purchase notification error:', err));
+      }
 
       console.log(`PAYMENT SUCCESS WEBHOOK - Course: ${transaction.course.title}, Amount: ${transaction.amount}, Creator: ${transaction.course.creator.name}`);
 
@@ -842,6 +824,9 @@ export class PaymentController {
             include: {
               creator: { select: { id: true, name: true, email: true } }
             }
+          },
+          user: {
+            select: { id: true, name: true, email: true, phone: true }
           }
         }
       });
@@ -912,6 +897,29 @@ export class PaymentController {
         message: `A user enrolled in your "${transaction.webinar.title}" webinar. Rs. ${transaction.amount} received.`,
         data: { webinarId: transaction.webinar_id, buyerId: transaction.user_id },
       }).catch(err => console.error("Notification error:", err));
+
+      // Send webinar purchase notification (Email + WhatsApp)
+      if (transaction.user) {
+        const webinar = transaction.webinar;
+        const tz = (webinar as any).timezone || 'Asia/Kolkata';
+        const scheduledDate = new Date((webinar as any).scheduled_at);
+        const dateStr = scheduledDate.toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric', timeZone: tz });
+        const dayStr = scheduledDate.toLocaleDateString('en-IN', { weekday: 'long', timeZone: tz });
+        const timeStr = scheduledDate.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: tz, timeZoneName: 'short' });
+
+        notificationService.sendWebinarPurchaseNotification({
+          joineeName: transaction.user.name || 'there',
+          joineeEmail: transaction.user.email,
+          joineePhone: transaction.user.phone || undefined,
+          webinarName: webinar.title,
+          date: dateStr,
+          day: dayStr,
+          time: timeStr,
+          webinarLink: (webinar as any).zoom_join_url || '',
+          password: (webinar as any).zoom_password || '',
+          hostName: webinar.creator?.name || 'Manchly',
+        }).catch(err => console.error('Webinar purchase notification error:', err));
+      }
 
       console.log(`WEBINAR PAYMENT SUCCESS WEBHOOK - Webinar: ${transaction.webinar.title}, Amount: ${transaction.amount}`);
     } catch (err) {

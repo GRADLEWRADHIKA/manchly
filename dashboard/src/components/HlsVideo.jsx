@@ -1,34 +1,32 @@
-// Minimal HLS <video> wrapper (Mux playback URLs). Native HLS on Safari,
-// hls.js elsewhere. onProgress(percent, seconds, duration) fires ~1/sec.
 import React, { useEffect, useRef } from "react";
 import Hls from "hls.js";
 
-// `muted`/`loop` exist for the reels feed, where playback has to start without
-// a user gesture. Autoplay implies muted, since browsers block it otherwise,
-// but an explicit `muted` still wins so the feed can unmute on demand.
+
 export default function HlsVideo({ src, poster, autoPlay = false, onProgress, style = {}, controls = true, watermarkText, muted = false, loop = false }) {
   const videoRef = useRef(null);
   const lastPct = useRef(-1);
 
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video || !src) return;
+ useEffect(() => {
+  const video = videoRef.current;
+  if (!video || !src) return;
 
-    let hls = null;
-    if (video.canPlayType("application/vnd.apple.mpegurl")) {
-      video.src = src;
-    } else if (Hls.isSupported()) {
-      hls = new Hls();
-      hls.loadSource(src);
-      hls.attachMedia(video);
-      hls.on(Hls.Events.ERROR, (_event, data) => {
-        console.error("HLS.js error:", data.type, data.details, data);
-      });
-    } else {
-      video.src = src;
-    }
-    return () => hls?.destroy();
-  }, [src]);
+  let hls = null;
+
+  if (Hls.isSupported()) {
+    hls = new Hls();
+    hls.loadSource(src);
+    hls.attachMedia(video);
+    hls.on(Hls.Events.ERROR, (_event, data) => {
+      console.error("HLS.js error:", data.type, data.details, data);
+    });
+  } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+    video.src = src;
+  } else {
+    video.src = src;
+  }
+
+  return () => hls?.destroy();
+}, [src]);
 
   const handleTime = () => {
     const v = videoRef.current;
@@ -41,17 +39,18 @@ export default function HlsVideo({ src, poster, autoPlay = false, onProgress, st
   };
 
   return (
-    <div style={{position: "relative", width: "100%"}}>
+
+    <div style={{ position: "relative", width: style.width ?? "100%", height: style.height ?? "auto" }}>
       <video
       ref={videoRef}
       poster={poster}
       controls={controls}
       autoPlay={autoPlay}
-      muted={muted || autoPlay}
+      muted={muted}
       loop={loop}
       onTimeUpdate={handleTime}
       playsInline
-      style={{ width: "100%", borderRadius: 14, background: "#000", display: "block", ...style }}
+      style={{ width: "100%", height: "100%", borderRadius: 14, background: "#000", display: "block", ...style }}
     />
     {watermarkText && (
       <div

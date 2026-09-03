@@ -1,6 +1,3 @@
-// Vertical, scroll-snapped feed of course promo reels.
-// Each reel is a shop window: watch, then buy the course from a bottom sheet
-// without ever leaving the feed.
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -117,8 +114,10 @@ export default function Reels() {
             onToggleMute={() => setMuted((m) => !m)}
             onBuy={() => setSheetFor(reel)}
             onOpenCourse={() => navigate(`/app/course/${reel.course.id}`)}
+            
           />
         ))}
+        
 
         {hasMore && (
           <div style={{ height: 60, display: "grid", placeItems: "center", color: "rgba(255,255,255,0.5)" }}>
@@ -164,27 +163,28 @@ function ReelSlide({ reel, isActive, muted, onToggleMute, onBuy, onOpenCourse })
   const creator = course.creator || {};
   const price = Number(course.price ?? 0);
   const isFree = price === 0;
-
+  
   return (
-    <div style={{ height: "100%", scrollSnapAlign: "start", position: "relative", display: "grid", placeItems: "center", background: "#000" }}>
-      {/* Video — only the active slide plays, so we don't decode the whole feed. */}
-      {isActive && reel.mux_playback_id ? (
-        <HlsVideo
-          src={reel.playback_url || `https://stream.mux.com/${reel.mux_playback_id}.m3u8`}
-          poster={reel.thumbnail_url}
-          autoPlay
-          loop
-          muted={muted}
-          controls={false}
-          style={{ width: "100%", height: "100%", objectFit: "contain", background: "#000" }}
-        />
-      ) : (
-        <img
-          src={reel.thumbnail_url || course.thumbnail_url || course.thumbnail}
-          alt={course.title}
-          style={{ width: "100%", height: "100%", objectFit: "contain", background: "#000" }}
-        />
-      )}
+         <div style={{ height: "100%", scrollSnapAlign: "start", position: "relative", display: "flex", alignItems: "center", justifyContent: "center", background: "#000" }}>
+      <div style={{ position: "relative", height: "100%", maxHeight: "100%", aspectRatio: "9 / 16", background: "#000" }}>
+        {isActive && reel.mux_playback_id ? (
+          <HlsVideo
+            src={reel.playback_url || `https://stream.mux.com/${reel.mux_playback_id}.m3u8`}
+            poster={reel.thumbnail_url}
+            autoPlay
+            loop
+            muted={muted}
+            controls={false}
+            style={{ width: "100%", height: "100%", objectFit: "cover", background: "#000" }}
+          />
+        ) : (
+          <img
+            src={reel.thumbnail_url || course.thumbnail_url || course.thumbnail}
+            alt={course.title}
+            style={{ width: "100%", height: "100%", objectFit: "cover", background: "#000" }}
+          />
+        )}
+      </div>
 
       {/* Readability scrim behind the caption + CTA */}
       <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.15) 42%, rgba(0,0,0,0.35) 100%)", pointerEvents: "none" }} />
@@ -227,6 +227,7 @@ function ReelSlide({ reel, isActive, muted, onToggleMute, onBuy, onOpenCourse })
       </div>
     </div>
   );
+  
 }
 
 /* ───────────────────────── purchase bottom sheet ───────────────────────── */
@@ -259,6 +260,7 @@ function BuySheet({ reel, isAuthed, onClose, onNeedLogin, onEnrolled, onOpenCour
       setPaying(false);
     }
   };
+  
 
   return (
     <div onClick={onClose} style={sheetBackdrop}>
@@ -308,6 +310,8 @@ function BuySheet({ reel, isAuthed, onClose, onNeedLogin, onEnrolled, onOpenCour
         <button onClick={() => onOpenCourse(course.id)} style={sheetSecondary}>View full course details</button>
       </div>
     </div>
+
+    
   );
 }
 

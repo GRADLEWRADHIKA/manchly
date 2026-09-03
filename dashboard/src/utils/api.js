@@ -11,19 +11,13 @@ function resolveBase() {
 
 export const API_BASE = resolveBase();
 
-// Absolute backend origin (websockets, share links) — never the proxy path.
 export const BACKEND_ORIGIN = BASE_URL.replace(/\/$/, "");
 
-// ── Store injector ──────────────────────────────────────────────────────────
-// apiFetch needs to dispatch Redux logout() on DEVICE_REVOKED / expired
-// sessions, same as axiosInstance.js does. Call injectStore(store) once from
-// store/index.js, alongside the existing injectStore call for axiosInstance.
 let _store = null;
 export const injectStore = (store) => {
   _store = store;
 };
 
-// The dashboard has historically stored the JWT under a couple of keys.
 export function getToken() {
   return (
     localStorage.getItem("manchly_token") ||
@@ -40,11 +34,9 @@ function clearToken() {
 
 export function authHeaders(extra = {}) {
   const t = getToken();
-  const deviceId = getDeviceId(); // never regenerated once set
+  const deviceId = getDeviceId(); 
   return {
     ...(t ? { Authorization: `Bearer ${t}` } : {}),
-    // Attach device fingerprint on every request so the backend can detect
-    // when a session is being used from a different browser/device.
     "X-Device-Id": deviceId,
     ...extra,
   };

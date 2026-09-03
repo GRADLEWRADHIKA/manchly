@@ -7,6 +7,7 @@ import {
   ScrollView,
   ActivityIndicator,
   Image,
+  Platform,
 } from 'react-native';
 import { Video, X, Sparkles, ArrowRight, ArrowLeft } from 'lucide-react-native';
 import LinearGradient from 'react-native-linear-gradient';
@@ -16,7 +17,7 @@ import { wp, hp, fp } from '../../../../../utils/responsive';
 import { Controller, useForm } from 'react-hook-form';
 import CustomTextInput from '../../../../../components/CustomInput';
 import { Dropdown } from 'react-native-element-dropdown';
-import { pick, types } from '@react-native-documents/picker';
+import { pick, types, keepLocalCopy } from '@react-native-documents/picker';
 import Toast from 'react-native-toast-message';
 import { useRoute } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -271,8 +272,23 @@ const CourseAddVideoModal = ({
       if (!uploadUrl || !videoId)
         throw new Error('Invalid upload URL or video ID');
 
+      // Copy content:// file to local cache so background upload can read full bytes
+      let fileUri = selectedVideo.uri;
+      if (Platform.OS === 'android' && fileUri.startsWith('content://')) {
+        const copies = await keepLocalCopy({
+          files: [{ uri: fileUri, fileName: selectedVideo.name || `video_${Date.now()}.mp4` }],
+          destination: 'cachesDirectory',
+        });
+        if (copies[0]?.status === 'success' && copies[0]?.localUri) {
+          fileUri = copies[0].localUri;
+          console.log('[Upload] Copied to local cache:', fileUri);
+        } else {
+          console.warn('[Upload] keepLocalCopy failed, using original URI');
+        }
+      }
+
       console.log('=== Starting background upload ===');
-      console.log('fileUri:', selectedVideo.uri);
+      console.log('fileUri:', fileUri);
       console.log('uploadUrl:', uploadUrl);
 
       // Use a mutable ref so callbacks can access the uploadId after it resolves
@@ -280,7 +296,7 @@ const CourseAddVideoModal = ({
 
       // Start background upload — modal closes immediately
       const uploadId = await BackgroundUploadService.startUpload({
-        fileUri: selectedVideo.uri,
+        fileUri: fileUri,
         uploadUrl: uploadUrl,
         videoTitle: data.title,
         onProgress: (progress) => {
@@ -517,23 +533,6 @@ const CourseAddVideoModal = ({
           )}
         />
 
-        {/* Order */}
-        <Text style={[styles.label, { marginTop: hp(12), marginBottom: hp(6) }]}>Video Order</Text>
-        <Controller
-          name="order"
-          control={control}
-          rules={{ required: 'Order is required' }}
-          render={({ field: { onChange, onBlur, value } }) => (
-            <CustomTextInput
-              inputContainerStyle={[styles.inputField, errors.order && styles.errorBorder]}
-              placeholder="Enter order (e.g., 1, 2, 3)"
-              keyboardType="numeric"
-              onChange={onChange}
-              onBlur={onBlur}
-              value={value}
-            />
-          )}
-        />
       </ScrollView>
 
       {/* Footer */}

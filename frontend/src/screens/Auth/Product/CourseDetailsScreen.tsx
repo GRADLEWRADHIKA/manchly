@@ -18,7 +18,16 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
-import { Users, Play, CheckCircle, BookOpen } from 'lucide-react-native';
+import {
+  Users,
+  Play,
+  CheckCircle,
+  BookOpen,
+  BarChart3,
+  Video,
+  Clock,
+  IndianRupee,
+} from 'lucide-react-native';
 import { CFPaymentGatewayService } from 'react-native-cashfree-pg-sdk';
 import {
   CFEnvironment,
@@ -223,34 +232,71 @@ const CourseDetailsScreen: React.FC = () => {
   }
 
   const showVideo = videoList[0]?.playback_url;
+  const videos = (course?.videos || [])
+    .slice()
+    .sort((a: any, b: any) => (a.order || 0) - (b.order || 0));
+  const videoCount = course.total_videos || videos.length || 0;
+  const ACCENT = colors.btnGradientStart;
+
+  const formatDuration = (seconds: number) => {
+    const total = Math.max(0, Math.floor(Number(seconds) || 0));
+    const h = Math.floor(total / 3600);
+    const m = Math.floor((total % 3600) / 60);
+    if (h > 0) return `${h}h ${m}m`;
+    return `${m}m`;
+  };
+
+  const totalDuration = videos.reduce(
+    (sum: number, v: any) => sum + (Number(v.duration) || 0),
+    0,
+  );
 
   return (
     <View style={styles.container}>
       <AppHeaderWithBack title="Course Details" bgColor={colors.uBg} />
 
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {showVideo ? (
-          <YouTubePlayer
-            source={{ uri: showVideo }}
-            title={''}
-            autoPlay
-            showCloseButton={false}
-            style={styles.heroPlayer}
-            watermark={isEnrolled ? watermarkText : undefined}
-          />
-        ) : (
-          course.thumbnail ? (
-            <Image source={{ uri: course.thumbnail }} style={styles.thumbnail} />
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* Thumbnail */}
+        <View style={styles.thumbnailWrap}>
+          {showVideo ? (
+            <YouTubePlayer
+              source={{ uri: showVideo }}
+              title={''}
+              autoPlay
+              showCloseButton={false}
+              style={styles.heroPlayer}
+              watermark={isEnrolled ? watermarkText : undefined}
+            />
+          ) : course.thumbnail ? (
+            <Image source={{ uri: course.thumbnail }} style={styles.thumbnail} resizeMode="cover" />
           ) : (
-            <View style={styles.thumbnailPlaceholder}>
-              <BookOpen size={wp(44)} color={colors.btnGradientStart} strokeWidth={1.2} />
-              <Text style={styles.placeholderText}>{course.title || 'Course'}</Text>
+            <View style={styles.thumbnailFallback}>
+              <BookOpen size={wp(40)} color={ACCENT} strokeWidth={1.5} />
+              <Text style={styles.thumbnailFallbackText}>No thumbnail</Text>
             </View>
-          )
-        )}
+          )}
+          {!showVideo && (
+            <LinearGradient
+              colors={['transparent', 'rgba(0,0,0,0.6)']}
+              style={styles.thumbnailGradient}
+            />
+          )}
+          {videoCount > 0 && !showVideo && (
+            <View style={styles.playBadge}>
+              <Play size={wp(14)} color="#fff" fill="#fff" />
+              <Text style={styles.playBadgeText}>
+                {videoCount} Lesson{videoCount !== 1 ? 's' : ''}
+              </Text>
+            </View>
+          )}
+        </View>
 
-        <View style={styles.content}>
-          <Text style={styles.title}>{course.title}</Text>
+        {/* Course Info Card */}
+        <View style={styles.infoCard}>
+          <Text style={styles.courseTitle}>{course.title}</Text>
 
           {course.creator?.name && (
             <TouchableOpacity
@@ -264,55 +310,122 @@ const CourseDetailsScreen: React.FC = () => {
           )}
 
           {course.description && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>About this course</Text>
-              <Text style={styles.description}>{course.description}</Text>
-            </View>
+            <Text style={styles.courseDesc}>{course.description}</Text>
           )}
 
-          <View style={styles.statsContainer}>
-            <View style={styles.statItem}>
-              <Users size={18} color={colors.textSecondary} />
-              <Text style={styles.statText}>
-                {course.total_students || 0} students
-              </Text>
+          {/* Meta Row */}
+          <View style={styles.metaRow}>
+            <View style={styles.metaItem}>
+              <BarChart3 size={wp(14)} color={ACCENT} />
+              <Text style={styles.metaText}>{course?.level || 'Beginner'}</Text>
             </View>
-
-            <View style={styles.statItem}>
-              <Play size={18} color={colors.textSecondary} />
-              <Text style={styles.statText}>
-                {course.total_videos || course.videos?.length || 0} videos
-              </Text>
+            <View style={styles.metaItem}>
+              <Video size={wp(14)} color={ACCENT} />
+              <Text style={styles.metaText}>{videoCount} Videos</Text>
+            </View>
+            {totalDuration > 0 && (
+              <View style={styles.metaItem}>
+                <Clock size={wp(14)} color={ACCENT} />
+                <Text style={styles.metaText}>{formatDuration(totalDuration)}</Text>
+              </View>
+            )}
+            <View style={styles.metaItem}>
+              <Users size={wp(14)} color={ACCENT} />
+              <Text style={styles.metaText}>{course.total_students || 0} Students</Text>
             </View>
           </View>
 
-          {/* PAYMENT DETAILS */}
-          <View style={styles.priceBox}>
-            <Text style={styles.sectionTitle}>Payment Details</Text>
+          {/* Price */}
+          <View style={styles.priceRow}>
+            <IndianRupee size={wp(16)} color={ACCENT} />
+            <Text style={styles.priceText}>
+              {price > 0 ? `${price.toLocaleString('en-IN')}` : 'Free'}
+            </Text>
+          </View>
+        </View>
 
-            <PriceRow label="Course Fee" value={`₹${price}`} />
-            <PriceRow label="GST (18%)" value={`₹${gst.toFixed(2)}`} />
-            <PriceRow
-              label="Platform Fee (2%)"
-              value={`₹${platformFee.toFixed(2)}`}
-            />
+        {/* Course Summary Card */}
+        <View style={styles.summaryCard}>
+          <Text style={styles.cardTitle}>Course Summary</Text>
+          <SummaryRow label="Title" value={course?.title || '--'} />
+          <SummaryRow label="Level" value={course?.level || 'Beginner'} />
+          <SummaryRow
+            label="Price"
+            value={price > 0 ? `Rs. ${price.toLocaleString('en-IN')}` : 'Free'}
+          />
+          <SummaryRow label="Videos" value={String(videoCount)} />
+          {totalDuration > 0 && (
+            <SummaryRow label="Duration" value={formatDuration(totalDuration)} />
+          )}
+          <SummaryRow
+            label="Access"
+            value={
+              course?.access_duration_days
+                ? `${course.access_duration_days} ${course.access_duration_unit || 'days'}`
+                : 'Lifetime'
+            }
+            last
+          />
+        </View>
 
+        {/* Course Content */}
+        {videos.length > 0 && (
+          <View style={styles.summaryCard}>
+            <Text style={styles.cardTitle}>Course Content</Text>
+            {videos.map((v: any, i: number) => (
+              <View
+                key={v.id || i}
+                style={[
+                  styles.videoRow,
+                  i < videos.length - 1 && styles.videoRowBorder,
+                ]}
+              >
+                <View style={styles.videoOrderBadge}>
+                  <Text style={styles.videoOrderText}>{i + 1}</Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.videoTitle} numberOfLines={1}>
+                    {v.title || `Lesson ${i + 1}`}
+                  </Text>
+                  {v.duration > 0 && (
+                    <Text style={styles.videoDuration}>
+                      {formatDuration(v.duration)}
+                    </Text>
+                  )}
+                </View>
+                {v.is_free && (
+                  <View style={styles.freeBadge}>
+                    <Text style={styles.freeBadgeText}>FREE</Text>
+                  </View>
+                )}
+              </View>
+            ))}
+          </View>
+        )}
+
+        {/* Payment Details */}
+        {!isEnrolled && price > 0 && (
+          <View style={styles.summaryCard}>
+            <Text style={styles.cardTitle}>Payment Details</Text>
+            <SummaryRow label="Course Fee" value={`₹${price}`} />
+            <SummaryRow label="GST (18%)" value={`₹${gst.toFixed(2)}`} />
+            <SummaryRow label="Platform Fee (2%)" value={`₹${platformFee.toFixed(2)}`} />
             <View style={styles.totalRow}>
               <Text style={styles.totalLabel}>Total</Text>
               <Text style={styles.totalValue}>₹{total.toFixed(2)}</Text>
             </View>
           </View>
+        )}
 
+        {/* Policy Text */}
+        {!isEnrolled && (
           <Text style={styles.policyText}>
             By purchasing, you agree to our{' '}
             <Text style={styles.policyLink} onPress={() => setShowTerms(true)}>
               Terms of Service
             </Text>
             ,{' '}
-            <Text
-              style={styles.policyLink}
-              onPress={() => setShowPrivacy(true)}
-            >
+            <Text style={styles.policyLink} onPress={() => setShowPrivacy(true)}>
               Privacy Policy
             </Text>
             {' & '}
@@ -320,24 +433,18 @@ const CourseDetailsScreen: React.FC = () => {
               Refund Policy
             </Text>
           </Text>
-        </View>
+        )}
       </ScrollView>
 
       <TermsModal visible={showTerms} onClose={() => setShowTerms(false)} />
-      <PrivacyModal
-        visible={showPrivacy}
-        onClose={() => setShowPrivacy(false)}
-      />
-      <RefundPolicyModal
-        visible={showRefund}
-        onClose={() => setShowRefund(false)}
-      />
+      <PrivacyModal visible={showPrivacy} onClose={() => setShowPrivacy(false)} />
+      <RefundPolicyModal visible={showRefund} onClose={() => setShowRefund(false)} />
 
       {/* BOTTOM BAR */}
       <View style={styles.bottomBar}>
         {isEnrolled ? (
           <View style={styles.enrolledContainer}>
-            <CheckCircle size={24} color={colors.primary} />
+            <CheckCircle size={wp(20)} color={colors.creatorGreen} />
             <Text style={styles.enrolledText}>Already Enrolled</Text>
           </View>
         ) : (
@@ -360,7 +467,7 @@ const CourseDetailsScreen: React.FC = () => {
                 <ActivityIndicator color={colors.white} />
               ) : (
                 <Text style={styles.purchaseText}>
-                  Purchase for ₹{total.toFixed(2)}
+                  {price > 0 ? `Purchase for ₹${total.toFixed(2)}` : 'Enroll for Free'}
                 </Text>
               )}
             </LinearGradient>
@@ -373,119 +480,216 @@ const CourseDetailsScreen: React.FC = () => {
 
 export default CourseDetailsScreen;
 
-const PriceRow = ({ label, value }: any) => (
-  <View style={styles.priceRow}>
-    <Text style={styles.priceLabel}>{label}</Text>
-    <Text style={styles.priceValue}>{value}</Text>
+const SummaryRow = ({
+  label,
+  value,
+  last,
+}: {
+  label: string;
+  value: string;
+  last?: boolean;
+}) => (
+  <View style={[styles.summaryRow, !last && styles.summaryRowBorder]}>
+    <Text style={styles.summaryLabel}>{label}</Text>
+    <Text style={styles.summaryValue}>{value}</Text>
   </View>
 );
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.uBg },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  thumbnail: { width: '100%', height: hp(220), backgroundColor: colors.uCard },
-  thumbnailPlaceholder: {
+  scrollContent: { padding: wp(16), paddingBottom: hp(24) },
+
+  // Thumbnail
+  thumbnailWrap: {
+    borderRadius: wp(16),
+    overflow: 'hidden',
+    backgroundColor: colors.uCard,
+    marginBottom: hp(14),
+  },
+  thumbnail: { width: '100%', aspectRatio: 16 / 9 },
+  heroPlayer: { width: '100%', aspectRatio: 16 / 9, borderRadius: 0 },
+  thumbnailFallback: {
     width: '100%',
-    height: hp(220),
+    aspectRatio: 16 / 9,
     backgroundColor: colors.uCard,
     justifyContent: 'center',
     alignItems: 'center',
     gap: hp(8),
   },
-  placeholderText: {
-    fontSize: fp(15),
-    fontWeight: '600',
-    color: colors.uExploreNow,
-    opacity: 0.6,
-    paddingHorizontal: wp(30),
-    textAlign: 'center',
+  thumbnailFallbackText: {
+    fontSize: fp(13),
+    color: 'rgba(255,255,255,0.4)',
   },
-  heroPlayer: {
-    width: '100%',
-    aspectRatio: 16 / 9,
-    borderRadius: 0,
+  thumbnailGradient: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: '40%',
   },
-  content: { padding: wp(16) },
-  title: { fontSize: fp(24), fontWeight: '700', color: colors.textPrimary },
-  instructorRow: { flexDirection: 'row', alignItems: 'center', marginBottom: hp(16) },
-  instructor: { color: colors.textSecondary, fontSize: fp(14) },
-  instructorName: { color: colors.uBottomText, fontSize: fp(14), fontWeight: '600', textDecorationLine: 'underline' },
-  section: { marginVertical: hp(16) },
-  sectionTitle: { fontSize: fp(18), fontWeight: '600', marginBottom: hp(10), color: colors.textPrimary },
-  description: { fontSize: fp(15), lineHeight: fp(22), color: colors.textSecondary },
-  statsContainer: { flexDirection: 'row', gap: wp(16), marginVertical: hp(12) },
-  statItem: { flexDirection: 'row', gap: wp(6), alignItems: 'center' },
-  statText: { color: colors.textSecondary },
+  playBadge: {
+    position: 'absolute',
+    bottom: wp(12),
+    left: wp(12),
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(6),
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    paddingHorizontal: wp(10),
+    paddingVertical: hp(5),
+    borderRadius: wp(8),
+  },
+  playBadgeText: { fontSize: fp(11), fontWeight: '600', color: '#FFFFFF' },
 
-  priceBox: {
+  // Info Card
+  infoCard: {
     backgroundColor: colors.uCard,
+    borderRadius: wp(16),
     padding: wp(16),
-    borderRadius: wp(14),
-    marginTop: hp(20),
+    marginBottom: hp(12),
     borderWidth: 1,
     borderColor: colors.uSubtext,
   },
+  courseTitle: {
+    fontSize: fp(20),
+    fontWeight: '800',
+    color: '#FFFFFF',
+    marginBottom: hp(4),
+  },
+  instructorRow: { flexDirection: 'row', alignItems: 'center', marginBottom: hp(10) },
+  instructor: { color: 'rgba(255,255,255,0.6)', fontSize: fp(13) },
+  instructorName: {
+    color: colors.uBottomText,
+    fontSize: fp(13),
+    fontWeight: '600',
+    textDecorationLine: 'underline',
+  },
+  courseDesc: {
+    fontSize: fp(13),
+    color: 'rgba(255,255,255,0.6)',
+    lineHeight: fp(20),
+    marginBottom: hp(14),
+  },
+  metaRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: wp(14),
+    marginBottom: hp(12),
+  },
+  metaItem: { flexDirection: 'row', alignItems: 'center', gap: wp(5) },
+  metaText: { fontSize: fp(12), color: 'rgba(255,255,255,0.6)', fontWeight: '500' },
   priceRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginVertical: hp(6),
+    alignItems: 'center',
+    gap: wp(4),
+    paddingTop: hp(10),
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.06)',
   },
-  priceLabel: { color: colors.uSubHeading, fontSize: fp(14) },
-  priceValue: { fontWeight: '600', color: colors.textPrimary, fontSize: fp(14) },
+  priceText: { fontSize: fp(20), fontWeight: '800', color: colors.btnGradientStart },
 
-  totalRow: {
-    borderTopWidth: wp(1),
+  // Summary Card
+  summaryCard: {
+    backgroundColor: colors.uCard,
+    borderRadius: wp(16),
+    padding: wp(16),
+    marginBottom: hp(12),
+    borderWidth: 1,
     borderColor: colors.uSubtext,
-    marginTop: hp(12),
-    paddingTop: hp(12),
+  },
+  cardTitle: {
+    fontSize: fp(15),
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginBottom: hp(8),
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: hp(10),
+  },
+  summaryRowBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.06)',
+  },
+  summaryLabel: { fontSize: fp(12), color: 'rgba(255,255,255,0.5)' },
+  summaryValue: { fontSize: fp(12), fontWeight: '700', color: '#FFFFFF' },
+
+  // Total row
+  totalRow: {
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.06)',
+    marginTop: hp(8),
+    paddingTop: hp(10),
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  totalLabel: { fontSize: fp(16), fontWeight: '700', color: colors.textPrimary },
-  totalValue: { fontSize: fp(18), fontWeight: '800', color: colors.statText },
+  totalLabel: { fontSize: fp(14), fontWeight: '700', color: colors.textPrimary },
+  totalValue: { fontSize: fp(16), fontWeight: '800', color: colors.btnGradientStart },
 
+  // Video list
+  videoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: hp(10),
+  },
+  videoRowBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.06)',
+  },
+  videoOrderBadge: {
+    width: wp(28),
+    height: wp(28),
+    borderRadius: wp(14),
+    backgroundColor: 'rgba(90,104,243,0.12)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: wp(12),
+  },
+  videoOrderText: { fontSize: fp(12), fontWeight: '700', color: colors.btnGradientStart },
+  videoTitle: { fontSize: fp(13.5), fontWeight: '600', color: '#FFFFFF' },
+  videoDuration: { fontSize: fp(11), color: 'rgba(255,255,255,0.45)', marginTop: hp(2) },
+  freeBadge: {
+    backgroundColor: 'rgba(52,211,153,0.15)',
+    paddingHorizontal: wp(8),
+    paddingVertical: hp(3),
+    borderRadius: wp(6),
+  },
+  freeBadgeText: { fontSize: fp(9), fontWeight: '700', color: '#34D399' },
+
+  // Bottom bar
   bottomBar: {
     padding: wp(16),
-    borderTopWidth: wp(1),
-    borderColor: colors.uSubtext,
+    borderTopWidth: 1,
+    borderTopColor: colors.uSubtext,
     backgroundColor: colors.uBg,
   },
-  // --- Updated Button Styles ---
-  purchaseButtonWrapper: {
-    borderRadius: wp(12),
-    overflow: 'hidden', // Ensures gradient respects the border radius
-  },
+  purchaseButtonWrapper: { borderRadius: wp(14), overflow: 'hidden' },
   purchaseButtonGradient: {
-    paddingVertical: hp(16),
+    paddingVertical: hp(15),
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  purchaseButton: {
-    backgroundColor: colors.info,
-    paddingVertical: hp(16),
-    borderRadius: wp(12),
-    alignItems: 'center',
   },
   purchaseButtonDisabled: { opacity: 0.6 },
   purchaseText: { color: colors.white, fontSize: fp(16), fontWeight: '700' },
-
   enrolledContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
+    alignItems: 'center',
     gap: wp(8),
+    paddingVertical: hp(4),
   },
-  enrolledText: { color: colors.info, fontWeight: '700' },
+  enrolledText: { color: colors.creatorGreen, fontWeight: '700', fontSize: fp(15) },
 
   policyText: {
-    fontSize: fp(12),
-    color: colors.textSecondary,
+    fontSize: fp(11),
+    color: 'rgba(255,255,255,0.4)',
     textAlign: 'center',
-    lineHeight: fp(18),
-    marginTop: hp(12),
+    lineHeight: fp(17),
+    marginTop: hp(4),
+    marginBottom: hp(8),
   },
-  policyLink: {
-    color: colors.uBottomText,
-    fontWeight: '500',
-  },
+  policyLink: { color: colors.uBottomText, fontWeight: '500' },
 });

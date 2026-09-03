@@ -196,7 +196,7 @@ const WebinarCard: React.FC<WebinarCardProps> = ({
             {!hasThumbnail && (
               <View style={styles.dateBlock}>
                 <Text style={styles.dateDay}>{day}</Text>
-                <Text style={styles.dateMonth}>{month}</Text>
+                <Text style={styles.dateMonth}>{month.toUpperCase()}</Text>
               </View>
             )}
 
@@ -210,38 +210,36 @@ const WebinarCard: React.FC<WebinarCardProps> = ({
 
               <View style={styles.metaRow}>
                 <View style={styles.metaItem}>
-                  <Clock size={wp(11)} color={colors.textMuted} />
+                  <Clock size={wp(12)} color={colors.textMuted} />
                   <Text style={styles.metaText}>
                     {data?.start_time || scheduledDate.format('h:mm A')}
                     {data?.end_time ? ` - ${data.end_time}` : ''}
                   </Text>
                 </View>
                 {data?.duration && (
+                  <View style={styles.metaDot} />
+                )}
+                {data?.duration && (
                   <View style={styles.metaItem}>
-                    <Video size={wp(11)} color={colors.textMuted} />
+                    <Video size={wp(12)} color={colors.textMuted} />
                     <Text style={styles.metaText}>{data.duration} min</Text>
                   </View>
                 )}
               </View>
             </View>
+          </View>
 
-            {/* Price (only when no thumbnail) */}
-            {!hasThumbnail && (
+          {/* Price + Status row (only when no thumbnail) */}
+          {!hasThumbnail && (
+            <View style={styles.tagsStatusRow}>
               <View style={styles.priceBadge}>
                 {data.price ? (
-                  <IndianRupee size={wp(9)} color={colors.bg} strokeWidth={3} />
+                  <IndianRupee size={wp(10)} color={colors.bg} strokeWidth={3} />
                 ) : null}
                 <Text style={styles.priceText}>
                   {data.price ? `${data.price}` : 'Free'}
                 </Text>
               </View>
-            )}
-          </View>
-
-          {/* Status row (only when no thumbnail) */}
-          {!hasThumbnail && (
-            <View style={styles.tagsStatusRow}>
-              <View />
               <View
                 style={[
                   styles.statusBadge,
@@ -259,17 +257,18 @@ const WebinarCard: React.FC<WebinarCardProps> = ({
           {/* Zoom Details Toggle */}
           {data?.zoom_meeting_id && (
             <>
+              <View style={styles.sectionDivider} />
               <TouchableOpacity
                 style={styles.zoomToggle}
                 onPress={toggleZoomDetails}
                 activeOpacity={0.7}
               >
                 <View style={styles.zoomToggleLeft}>
-                  <KeyRound size={wp(13)} color={colors.gold} />
+                  <KeyRound size={wp(14)} color={colors.gold} />
                   <Text style={styles.zoomToggleText}>Zoom Details</Text>
                 </View>
                 <Animated.View style={{ transform: [{ rotate: zoomRotate }] }}>
-                  <ChevronDown size={wp(14)} color={colors.gold} />
+                  <ChevronDown size={wp(16)} color={colors.gold} />
                 </Animated.View>
               </TouchableOpacity>
 
@@ -330,7 +329,7 @@ const WebinarCard: React.FC<WebinarCardProps> = ({
                 onPress={openMenu}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
-                <MoreVertical size={wp(18)} color={colors.textSecondary} />
+                <MoreVertical size={wp(16)} color={'#888'} />
               </TouchableOpacity>
             }
           >
@@ -372,20 +371,18 @@ export default WebinarCard;
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: wp(14),
-    marginBottom: hp(12),
+    borderRadius: wp(16),
+    marginBottom: hp(14),
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
-    backgroundColor: '#1C1B1B',
+    borderColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: '#161616',
   },
   touchable: {
-    padding: wp(14),
-    paddingRight: wp(44),
+    padding: wp(16),
   },
   touchableWithThumb: {
     paddingHorizontal: wp(14),
-    paddingRight: wp(44),
     paddingTop: hp(10),
     paddingBottom: wp(14),
   },
@@ -451,82 +448,90 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 
-  // Top row: date | info | price
+  // Top row: date | info
   topRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
   },
   dateBlock: {
-    width: wp(50),
-    height: wp(54),
-    borderRadius: wp(12),
-    backgroundColor: colors.goldDim,
+    width: wp(52),
+    height: wp(56),
+    borderRadius: wp(14),
+    backgroundColor: 'rgba(240,192,64,0.1)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: wp(12),
+    marginRight: wp(14),
+    borderWidth: 1,
+    borderColor: 'rgba(240,192,64,0.15)',
   },
   dateDay: {
-    fontSize: fp(20),
+    fontSize: fp(22),
     fontWeight: '800',
     color: colors.gold,
-    lineHeight: fp(24),
+    lineHeight: fp(26),
   },
   dateMonth: {
-    fontSize: fp(10),
+    fontSize: fp(9),
     fontWeight: '700',
-    color: colors.gold,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
+    color: 'rgba(240,192,64,0.7)',
+    letterSpacing: 1.5,
+    marginTop: hp(1),
   },
   infoBlock: {
     flex: 1,
   },
   titleRow: {
-    marginBottom: hp(5),
+    marginBottom: hp(6),
   },
   title: {
-    fontSize: fp(14),
+    fontSize: fp(15),
     fontWeight: '700',
     color: colors.textPrimary,
-    lineHeight: fp(19),
+    lineHeight: fp(20),
+    letterSpacing: 0.2,
   },
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: wp(10),
+    gap: wp(8),
   },
   metaItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(4),
   },
+  metaDot: {
+    width: wp(3),
+    height: wp(3),
+    borderRadius: wp(2),
+    backgroundColor: 'rgba(255,255,255,0.2)',
+  },
   metaText: {
-    fontSize: fp(10),
-    color: colors.textMuted,
+    fontSize: fp(11),
+    color: 'rgba(255,255,255,0.45)',
     fontWeight: '500',
   },
   priceBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: wp(9),
-    paddingVertical: hp(4),
-    borderRadius: wp(16),
-    gap: wp(2),
-    marginLeft: wp(8),
+    paddingHorizontal: wp(10),
+    paddingVertical: hp(5),
+    borderRadius: wp(20),
+    gap: wp(1),
     backgroundColor: colors.gold,
   },
   priceText: {
     color: colors.bg,
-    fontSize: fp(11),
+    fontSize: fp(12),
     fontWeight: '800',
   },
 
-  // Tags + Status
+  // Price + Status row
   tagsStatusRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: hp(12),
+    marginTop: hp(14),
   },
   tagsWrap: {
     flexDirection: 'row',
@@ -548,16 +553,20 @@ const styles = StyleSheet.create({
   statusBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: wp(4),
-    paddingHorizontal: wp(8),
-    paddingVertical: hp(3),
-    borderRadius: wp(6),
+    gap: wp(5),
+    paddingHorizontal: wp(10),
+    paddingVertical: hp(4),
+    borderRadius: wp(20),
   },
   statusUpcoming: {
-    backgroundColor: 'rgba(34,197,94,0.12)',
+    backgroundColor: 'rgba(34,197,94,0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(34,197,94,0.2)',
   },
   statusPast: {
-    backgroundColor: 'rgba(85,85,88,0.2)',
+    backgroundColor: 'rgba(85,85,88,0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(85,85,88,0.2)',
   },
   statusDot: {
     width: wp(6),
@@ -569,37 +578,41 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
+  // Divider
+  sectionDivider: {
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    marginTop: hp(14),
+    marginBottom: hp(2),
+    marginHorizontal: wp(-16),
+  },
+
   // Zoom
   zoomToggle: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: hp(10),
-    paddingVertical: hp(8),
-    paddingHorizontal: wp(10),
-    backgroundColor: colors.inputBg,
-    borderRadius: wp(8),
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    marginTop: hp(8),
+    paddingVertical: hp(6),
   },
   zoomToggleLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: wp(6),
+    gap: wp(8),
   },
   zoomToggleText: {
-    fontSize: fp(11),
+    fontSize: fp(12),
     fontWeight: '600',
     color: colors.gold,
   },
   zoomDetails: {
-    marginTop: hp(6),
-    backgroundColor: colors.inputBg,
-    borderRadius: wp(8),
-    padding: wp(10),
+    marginTop: hp(4),
+    backgroundColor: 'rgba(240,192,64,0.05)',
+    borderRadius: wp(10),
+    padding: wp(12),
     gap: hp(8),
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: 'rgba(240,192,64,0.1)',
   },
   zoomRow: {
     flexDirection: 'row',
@@ -613,23 +626,25 @@ const styles = StyleSheet.create({
     fontSize: fp(9),
     color: colors.textMuted,
     fontWeight: '500',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   zoomValue: {
-    fontSize: fp(12),
+    fontSize: fp(13),
     color: colors.textPrimary,
     fontWeight: '700',
-    marginTop: hp(1),
+    marginTop: hp(2),
   },
   copyBothBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: wp(6),
-    paddingVertical: hp(7),
+    paddingVertical: hp(8),
     borderRadius: wp(8),
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: colors.gold,
+    borderColor: 'rgba(240,192,64,0.3)',
   },
   copyBothText: {
     fontSize: fp(11),
@@ -642,8 +657,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: wp(6),
     backgroundColor: colors.gold,
-    paddingVertical: hp(9),
-    borderRadius: wp(8),
+    paddingVertical: hp(10),
+    borderRadius: wp(10),
     marginTop: hp(2),
   },
   startMeetingText: {
@@ -655,16 +670,15 @@ const styles = StyleSheet.create({
   // 3-dot menu
   menuAnchor: {
     position: 'absolute',
-    bottom: hp(10),
-    right: wp(10),
+    top: hp(14),
+    right: wp(12),
     zIndex: 100,
     elevation: 100,
   },
   moreBtn: {
-    width: wp(34),
-    height: wp(34),
-    borderRadius: wp(17),
-    backgroundColor: colors.inputBg,
+    width: wp(30),
+    height: wp(30),
+    borderRadius: wp(15),
     alignItems: 'center',
     justifyContent: 'center',
   },

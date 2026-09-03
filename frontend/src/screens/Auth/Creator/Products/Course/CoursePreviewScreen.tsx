@@ -26,6 +26,7 @@ import {
 import colors from '../../../../../utils/colors';
 import {wp, hp, fp} from '../../../../../utils/responsive';
 import CourseWizardHeader from '../../../../../components/CourseWizardHeader';
+import AppHeaderWithBack from '../../../../../components/AppHeaderWithBack';
 import {getCourseById, updateCourse} from '../../../../../store/CourseSlice';
 
 const GOLD = '#F0C040';
@@ -44,6 +45,7 @@ const CoursePreviewScreen = () => {
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
 
   const courseId = route.params?.courseId;
+  const fromDetails = route.params?.fromDetails;
   const [course, setCourse] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [publishing, setPublishing] = useState(false);
@@ -93,7 +95,11 @@ const CoursePreviewScreen = () => {
   if (loading) {
     return (
       <View style={styles.container}>
-        <CourseWizardHeader activeStep={2} title="Preview" />
+        {fromDetails ? (
+          <AppHeaderWithBack title="Course Details" bgColor="transparent" />
+        ) : (
+          <CourseWizardHeader activeStep={2} title="Preview" />
+        )}
         <View style={styles.loadingWrap}>
           <ActivityIndicator size="large" color={GOLD} />
         </View>
@@ -105,11 +111,15 @@ const CoursePreviewScreen = () => {
 
   return (
     <View style={styles.container}>
-      <CourseWizardHeader
-        activeStep={2}
-        title="Preview"
-        onBack={() => navigation.goBack()}
-      />
+      {fromDetails ? (
+        <AppHeaderWithBack title="Course Details" bgColor="transparent" />
+      ) : (
+        <CourseWizardHeader
+          activeStep={2}
+          title="Preview"
+          onBack={() => navigation.goBack()}
+        />
+      )}
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -249,32 +259,34 @@ const CoursePreviewScreen = () => {
       </ScrollView>
 
       {/* Bottom Actions */}
-      <View style={styles.actions}>
-        <TouchableOpacity
-          style={styles.backBtn}
-          onPress={() => navigation.goBack()}
-          disabled={publishing}>
-          <Text style={styles.backBtnText}>Back</Text>
-        </TouchableOpacity>
+      {!fromDetails && (
+        <View style={styles.actions}>
+          <TouchableOpacity
+            style={styles.backBtn}
+            onPress={() => navigation.goBack()}
+            disabled={publishing}>
+            <Text style={styles.backBtnText}>Back</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          onPress={handlePublish}
-          disabled={publishing}
-          activeOpacity={0.85}
-          style={{flex: 1}}>
-          <LinearGradient
-            colors={['#F3C36B', '#D49A3D']}
-            start={{x: 0, y: 0}}
-            end={{x: 1, y: 0}}
-            style={[styles.publishBtn, publishing && {opacity: 0.7}]}>
-            {publishing ? (
-              <ActivityIndicator size="small" color={colors.black} />
-            ) : (
-              <Text style={styles.publishBtnText}>Publish Course</Text>
-            )}
-          </LinearGradient>
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity
+            onPress={handlePublish}
+            disabled={publishing}
+            activeOpacity={0.85}
+            style={{flex: 1}}>
+            <LinearGradient
+              colors={['#F3C36B', '#D49A3D']}
+              start={{x: 0, y: 0}}
+              end={{x: 1, y: 0}}
+              style={[styles.publishBtn, publishing && {opacity: 0.7}]}>
+              {publishing ? (
+                <ActivityIndicator size="small" color={colors.black} />
+              ) : (
+                <Text style={styles.publishBtnText}>Publish Course</Text>
+              )}
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 };

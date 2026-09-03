@@ -114,7 +114,7 @@ const CustomTabBar = ({ state, navigation }: any) => {
 };
 
 const CreatorBottomTab = () => {
-  const [showTrial, setShowTrial] = useState(false);
+  const [showTrial, setShowTrial] = useState(true);
   const [trialConfig, setTrialConfig] = useState({
     trialDays: 3,
     trialPrice: 199,

@@ -1,6 +1,6 @@
 const USE_LOCAL_BACKEND = false;
 
-const LOCAL_IP = "192.168.1.3";
+const LOCAL_IP = "192.168.1.9";
 const LOCAL_PORT = 8080;
 
 const LOCAL_URL = `http://${LOCAL_IP}:${LOCAL_PORT}/`;

@@ -39,6 +39,7 @@ import { webinarCleanupService } from "./utils/webinarCleanup";
 import { settlementCronService } from "./utils/settlementCron";
 import { webinarNotificationCronService } from "./utils/webinarNotificationCron";
 import { initializeSocketIO } from "./utils/socketHandler";
+import { storefrontHost } from "./middleware/storefrontHost";
 
 dotenv.config();
 const app = express();
@@ -99,6 +100,11 @@ app.use((err: any, _req: any, res: any, next: any) => {
   }
   next(err);
 });
+
+// Creator storefronts: <handle>.manchly.com serves a rendered page.
+// Ahead of the static handler so the subdomain does not fall through to
+// the admin login page sitting at public/index.html.
+app.use(storefrontHost);
 
 // Serve static files from public folder (frontend)
 const publicDir = path.join(process.cwd(), "public");

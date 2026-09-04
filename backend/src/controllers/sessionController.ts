@@ -1238,24 +1238,7 @@ export class SessionController {
         prisma.users.findUnique({ where: { id: session.receiver_id }, select: userSelect }),
       ]);
 
-      // In-app notifications
-      NotificationController.createNotification({
-        userId,
-        type: "SESSION",
-        title: "Session Booked",
-        message: `Your session has been booked successfully. Payment of Rs. ${transaction.amount} confirmed.`,
-        data: { sessionId: session.id },
-      }).catch(err => console.error("Notification error:", err));
-
-      if (expert) {
-        NotificationController.createNotification({
-          userId: expert.user_id,
-          type: "SESSION",
-          title: "New Session Booking",
-          message: `${caller?.name || "A user"} booked a session with you. Rs. ${transaction.amount} received.`,
-          data: { sessionId: session.id },
-        }).catch(err => console.error("Notification error:", err));
-      }
+      // Notifications are sent by the webhook handler (handleSessionPaymentSuccess) to avoid duplicates
 
       console.log(`Session payment verified! User ${userId} booked session ${session.id} for ₹${transaction.amount}`);
 

@@ -6,975 +6,1782 @@
   <title>Admin Console | Manchly</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/css/style.css" />
 </head>
 <body class="dashboard-page">
 
-  <!-- ───────────────── Sidebar ───────────────── -->
-  <aside class="sidebar">
-    <div class="sidebar-brand">
-      <div class="brand-mark">Manchly</div>
-      <div class="brand-sub">Admin Console</div>
+<!-- ───────────────────────── Sidebar ───────────────────────── -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-mark">manchly</div>
+    <div class="brand-sub">Admin Console</div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <p class="nav-group">Main</p>
+    <button type="button" class="nav-item active" data-section="overview">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      <span>Overview</span>
+    </button>
+    <button type="button" class="nav-item" data-section="users">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <span>Users</span>
+    </button>
+    <button type="button" class="nav-item" data-section="courses">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+      <span>Courses</span>
+    </button>
+    <button type="button" class="nav-item" data-section="webinars">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49M7.76 16.24a6 6 0 0 1 0-8.49"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 19.07a10 10 0 0 1 0-14.14"/></svg>
+      <span>Webinars</span>
+    </button>
+    <button type="button" class="nav-item" data-section="revenue">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 6H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      <span>Revenue</span>
+    </button>
+
+    <p class="nav-group">Manage</p>
+    <button type="button" class="nav-item" data-section="sessions">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m22 8-6 4 6 4z"/><rect x="2" y="6" width="14" height="12" rx="2.5"/></svg>
+      <span>1:1 Sessions</span>
+    </button>
+    <button type="button" class="nav-item" data-section="kyc">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6.5v5c0 4.4 3.4 8.5 8 9.5 4.6-1 8-5.1 8-9.5v-5z"/><path d="m9 12 2 2 4-4"/></svg>
+      <span>KYC</span>
+    </button>
+    <button type="button" class="nav-item" data-section="storefronts">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9 4.5 4.5h15L21 9"/><path d="M4 9v10a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9"/><path d="M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"/></svg>
+      <span>Storefronts</span>
+    </button>
+  </nav>
+
+  <div class="sidebar-foot">
+    <div class="user-chip">
+      <div class="avatar" id="avatar">A</div>
+      <span class="user" id="user-email">–</span>
     </div>
+    <button type="button" class="btn-logout" id="btn-logout">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
+      <span>Log out</span>
+    </button>
+  </div>
+</aside>
 
-    <nav class="sidebar-nav">
-      <button type="button" class="nav-item active" data-section="overview">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
-        <span>Overview</span>
-      </button>
-      <button type="button" class="nav-item" data-section="users">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        <span>Users</span>
-      </button>
-      <button type="button" class="nav-item" data-section="courses">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-        <span>Courses</span>
-      </button>
-      <button type="button" class="nav-item" data-section="webinars">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="14" height="14" rx="2.5"/><path d="m22 8-6 4 6 4z"/></svg>
-        <span>Webinars</span>
-      </button>
-      <button type="button" class="nav-item" data-section="payments">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20"/></svg>
-        <span>Payments</span>
-      </button>
-      <button type="button" class="nav-item" data-section="sessions">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 16.5 22 20V4l-6.5 3.5"/><rect x="2" y="6" width="13.5" height="12" rx="2.5"/></svg>
-        <span>Sessions</span>
-      </button>
-      <button type="button" class="nav-item" data-section="kyc">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6.5v5c0 4.4 3.4 8.5 8 9.5 4.6-1 8-5.1 8-9.5v-5z"/><path d="m9 12 2 2 4-4"/></svg>
-        <span>KYC</span>
-      </button>
-      <button type="button" class="nav-item" data-section="storefronts">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9 4.5 4.5h15L21 9"/><path d="M4 9v10a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9"/><path d="M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"/></svg>
-        <span>Storefronts</span>
-      </button>
-    </nav>
+<!-- ───────────────────────── Main ───────────────────────── -->
+<div class="main">
 
-    <div class="sidebar-foot">
-      <button type="button" class="btn-logout" id="btn-logout">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
-        <span>Log out</span>
+  <header class="topbar">
+    <div style="display:flex;align-items:center;gap:0.75rem;min-width:0;">
+      <button type="button" class="btn-sm btn-menu" id="btn-menu" aria-label="Menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <div style="min-width:0;">
+        <h1 id="page-title">Overview</h1>
+        <p class="page-sub" id="page-sub">Platform health at a glance</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <span class="chip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg>
+        <span id="chip-month">–</span>
+      </span>
+      <div class="menu-wrap">
+        <button type="button" class="btn-sm" id="btn-export" aria-haspopup="true" aria-expanded="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+          Export CSV
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <div class="menu" id="export-menu">
+          <button type="button" data-scope="page">This page<small id="export-page-hint">rows currently shown</small></button>
+          <button type="button" data-scope="all">All records<small id="export-all-hint">every row matching your filters</small></button>
+        </div>
+      </div>
+      <button type="button" class="btn-sm btn-amber" id="btn-invite">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg>
+        Invite Creator
       </button>
     </div>
-  </aside>
+  </header>
 
-  <!-- ───────────────── Main ───────────────── -->
-  <div class="main">
+  <div class="content">
 
-    <header class="topbar">
-      <div>
-        <p class="greeting" id="greeting">Welcome back 👋</p>
-        <p class="greeting-date" id="greeting-date">–</p>
-      </div>
-      <div class="topbar-right">
-        <div class="topbar-stat">
-          <span class="label">Total Revenue</span>
-          <span class="value" id="topbar-revenue">₹–</span>
+    <!-- ═════════════════ Overview ═════════════════ -->
+    <section id="panel-overview" class="panel active">
+      <div class="rail"><span>Users</span><i></i></div>
+      <div class="stat-grid">
+        <div class="stat">
+          <div class="stat-ico tint-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+          <div class="stat-val" id="s-users">–</div>
+          <div class="stat-lab">Total Users</div>
+          <div class="stat-delta" id="g-users"></div>
         </div>
-        <div class="topbar-divider"></div>
-        <div class="user-chip">
-          <div class="avatar" id="avatar">A</div>
-          <span class="user" id="user-email">–</span>
+        <div class="stat">
+          <div class="stat-ico tint-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6 4.6 1.9-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/><path d="M18 15l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9z"/></svg></div>
+          <div class="stat-val" id="s-creators">–</div>
+          <div class="stat-lab">Creators</div>
+          <div class="stat-delta" id="g-creators"></div>
         </div>
-      </div>
-    </header>
-
-    <div class="content">
-
-      <!-- ───── Overview ───── -->
-      <div id="panel-overview" class="dashboard-panel active">
-        <div class="panel-head">
-          <h2 class="section-title">Platform <em>Overview</em></h2>
-          <p class="section-sub">Users, content, and revenue across Manchly — at a glance.</p>
+        <div class="stat">
+          <div class="stat-ico tint-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="m17 11 2 2 4-4"/></svg></div>
+          <div class="stat-val" id="s-regular">–</div>
+          <div class="stat-lab">Regular Users</div>
+          <div class="stat-delta" id="g-regular"></div>
         </div>
-
-        <div class="stats-grid" id="stats-grid">
-          <div class="stat-card">
-            <div class="stat-icon tint-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
-            <span class="value" id="stat-users">–</span>
-            <span class="label">Total Users</span>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon tint-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6 4.6 1.9-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/><path d="M18 15l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9z"/></svg></div>
-            <span class="value" id="stat-creators">–</span>
-            <span class="label">Creators</span>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon tint-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
-            <span class="value" id="stat-courses">–</span>
-            <span class="label">Courses</span>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon tint-amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.5 2.5 2.5 4.5-5"/></svg></div>
-            <span class="value" id="stat-courses-pub">–</span>
-            <span class="label">Published Courses</span>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon tint-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M19 8v6"/><path d="M22 11h-6"/></svg></div>
-            <span class="value" id="stat-enrollments">–</span>
-            <span class="label">Course Enrollments</span>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon tint-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20"/></svg></div>
-            <span class="value" id="stat-transactions">–</span>
-            <span class="label">Successful Payments</span>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon tint-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="14" height="14" rx="2.5"/><path d="m22 8-6 4 6 4z"/></svg></div>
-            <span class="value" id="stat-webinars">–</span>
-            <span class="label">Webinars</span>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon tint-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9a3 3 0 0 0 0 6v3a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3a3 3 0 0 1 0-6V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2z"/><path d="M13 5v14"/></svg></div>
-            <span class="value" id="stat-webinar-enroll">–</span>
-            <span class="label">Webinar Enrollments</span>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon tint-amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12"/><path d="M6 9h12"/><path d="M6 4c6 0 8 1.6 8 4.5S12 13 6 13c3.5 0 6 3 9 7"/></svg></div>
-            <span class="value" id="stat-revenue">–</span>
-            <span class="label">Total Revenue (₹)</span>
-          </div>
+        <div class="stat">
+          <div class="stat-ico tint-amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V5.5A1.5 1.5 0 0 1 5.5 4h7A1.5 1.5 0 0 1 14 5.5V21"/><path d="M14 10h4.5A1.5 1.5 0 0 1 20 11.5V21"/><path d="M2 21h20"/><path d="M7.5 8h3M7.5 12h3M7.5 16h3"/></svg></div>
+          <div class="stat-val" id="s-agencies">–</div>
+          <div class="stat-lab">Agencies</div>
+          <div class="stat-delta" id="g-agencies"></div>
         </div>
       </div>
 
-      <!-- ───── Users ───── -->
-      <div id="panel-users" class="dashboard-panel">
-        <div class="panel-head">
-          <h2 class="section-title">Users</h2>
-          <p class="section-sub">Search accounts, review activity, and manage access.</p>
+      <div class="rail"><span>Courses</span><i></i></div>
+      <div class="stat-grid">
+        <div class="stat">
+          <div class="stat-ico tint-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
+          <div class="stat-val" id="s-courses">–</div>
+          <div class="stat-lab">Total Courses</div>
         </div>
+        <div class="stat">
+          <div class="stat-ico tint-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.5 2.5 2.5 4.5-5"/></svg></div>
+          <div class="stat-val" id="s-courses-pub">–</div>
+          <div class="stat-lab">Published</div>
+        </div>
+        <div class="stat">
+          <div class="stat-ico tint-grey" style="background:var(--surface-3);color:var(--text-3);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg></div>
+          <div class="stat-val" id="s-courses-draft">–</div>
+          <div class="stat-lab">Draft</div>
+        </div>
+        <div class="stat">
+          <div class="stat-ico tint-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.4 11.5a2 2 0 0 0 2 1.5h7.5a2 2 0 0 0 2-1.6L21 7H6"/></svg></div>
+          <div class="stat-val" id="s-enrollments">–</div>
+          <div class="stat-lab">Enrollments</div>
+        </div>
+      </div>
 
-        <div class="toolbar">
-          <div class="search-field">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-            <input type="search" id="search-users" placeholder="Search by email, name, phone" class="search-input" />
+      <div class="tri-grid">
+        <section class="mini">
+          <header>
+            <svg class="tint-amber" style="background:none;color:var(--amber);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v4"/></svg>
+            <h3>Webinars</h3>
+          </header>
+          <div class="mini-row"><span>Total</span><b id="m-web-total">–</b></div>
+          <div class="mini-row"><span>Published</span><b class="green" id="m-web-pub">–</b></div>
+          <div class="mini-row"><span>Draft</span><b id="m-web-draft">–</b></div>
+          <div class="mini-row"><span>Enrollments</span><b class="amber" id="m-web-enroll">–</b></div>
+        </section>
+
+        <section class="mini">
+          <header>
+            <svg style="color:var(--blue);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m22 8-6 4 6 4z"/><rect x="2" y="6" width="14" height="12" rx="2.5"/></svg>
+            <h3>1:1 Sessions</h3>
+          </header>
+          <div class="mini-row"><span>Total</span><b id="m-ses-total">–</b></div>
+          <div class="mini-row"><span>Completed</span><b class="green" id="m-ses-done">–</b></div>
+          <div class="mini-row"><span>Upcoming</span><b id="m-ses-up">–</b></div>
+          <div class="mini-row"><span>Cancelled / missed</span><b class="amber" id="m-ses-cancel">–</b></div>
+        </section>
+
+        <section class="mini">
+          <header>
+            <svg style="color:var(--green);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 6H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            <h3>Revenue Overview</h3>
+          </header>
+          <div class="mini-row"><span>Courses revenue</span><b class="green" id="m-rev-courses">–</b></div>
+          <div class="mini-row"><span>Webinars revenue</span><b class="green" id="m-rev-webinars">–</b></div>
+          <div class="mini-row"><span>1:1 revenue</span><b class="green" id="m-rev-sessions">–</b></div>
+          <div class="mini-row"><span>Total commission</span><b class="amber" id="m-rev-commission">–</b></div>
+        </section>
+      </div>
+    </section>
+
+    <!-- ═════════════════ Users ═════════════════ -->
+    <section id="panel-users" class="panel">
+      <div class="stat-grid">
+        <div class="stat">
+          <div class="stat-ico tint-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+          <div class="stat-val" id="u-total">–</div><div class="stat-lab">Total Users</div>
+        </div>
+        <div class="stat">
+          <div class="stat-ico tint-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6 4.6 1.9-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/></svg></div>
+          <div class="stat-val" id="u-creators">–</div><div class="stat-lab">Creators</div>
+        </div>
+        <div class="stat">
+          <div class="stat-ico tint-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="m17 11 2 2 4-4"/></svg></div>
+          <div class="stat-val" id="u-regular">–</div><div class="stat-lab">Regular Users</div>
+        </div>
+        <div class="stat">
+          <div class="stat-ico tint-amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V5.5A1.5 1.5 0 0 1 5.5 4h7A1.5 1.5 0 0 1 14 5.5V21"/><path d="M14 10h4.5A1.5 1.5 0 0 1 20 11.5V21"/><path d="M2 21h20"/></svg></div>
+          <div class="stat-val" id="u-agencies">–</div><div class="stat-lab">Agencies</div>
+        </div>
+      </div>
+
+      <section class="card">
+        <div class="card-head">
+          <h3>All Users</h3>
+          <div class="card-tools">
+            <div class="tabs" data-tabs="users">
+              <button type="button" class="tab active" data-val="">All</button>
+              <button type="button" class="tab" data-val="CREATOR">Creator</button>
+              <button type="button" class="tab" data-val="USER">User</button>
+              <button type="button" class="tab" data-val="AGENCY">Agency</button>
+            </div>
+            <input type="search" class="search" id="search-users" placeholder="Search by name, email…" />
           </div>
-          <button type="button" id="btn-search-users" class="btn btn-primary btn-inline">Search</button>
         </div>
-
         <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Email</th>
-                <th>Name</th>
-                <th>Phone</th>
-                <th>Type</th>
-                <th>Courses</th>
-                <th>Enrollments</th>
-                <th>Joined</th>
-              </tr>
-            </thead>
-            <tbody id="users-tbody"></tbody>
+          <table id="table-users">
+            <thead><tr>
+              <th>Name</th><th>Email</th><th>Phone</th><th>Type</th>
+              <th>Courses</th><th>Enrollments</th><th>Joined</th><th>Last login</th><th>Action</th>
+            </tr></thead>
+            <tbody id="users-tbody"><tr><td colspan="9" class="loading">Loading…</td></tr></tbody>
           </table>
         </div>
-        <div class="pagination" id="pagination-users"></div>
+        <div class="pager" id="pagination-users"></div>
+      </section>
+    </section>
 
-        <div class="user-detail-panel" id="user-detail-panel">
-          <h3 id="detail-title">User details</h3>
-          <div class="user-detail-grid" id="user-detail-content"></div>
-          <div class="detail-actions">
-            <button type="button" class="btn-close" id="btn-close-detail">Close</button>
-            <button type="button" class="btn-danger" id="btn-delete-user">Delete User</button>
-          </div>
+    <!-- ═════════════════ Courses ═════════════════ -->
+    <section id="panel-courses" class="panel">
+      <div class="stat-grid">
+        <div class="stat">
+          <div class="stat-ico tint-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
+          <div class="stat-val" id="c-total">–</div><div class="stat-lab">Total Courses</div>
+        </div>
+        <div class="stat">
+          <div class="stat-ico tint-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.5 2.5 2.5 4.5-5"/></svg></div>
+          <div class="stat-val" id="c-pub">–</div><div class="stat-lab">Published</div>
+        </div>
+        <div class="stat">
+          <div class="stat-ico" style="background:var(--surface-3);color:var(--text-3);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg></div>
+          <div class="stat-val" id="c-draft">–</div><div class="stat-lab">Draft</div>
+        </div>
+        <div class="stat">
+          <div class="stat-ico tint-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.4 11.5a2 2 0 0 0 2 1.5h7.5a2 2 0 0 0 2-1.6L21 7H6"/></svg></div>
+          <div class="stat-val" id="c-enroll">–</div><div class="stat-lab">Total Enrollments</div>
         </div>
       </div>
 
-      <!-- ───── Courses ───── -->
-      <div id="panel-courses" class="dashboard-panel">
-        <div class="panel-head">
-          <h2 class="section-title">Courses</h2>
-          <p class="section-sub">Every course on the platform, with creator and enrollment counts.</p>
-        </div>
-
-        <div class="toolbar">
-          <div class="search-field">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-            <input type="search" id="search-courses" placeholder="Search by title, category" class="search-input" />
+      <section class="card">
+        <div class="card-head">
+          <h3>All Courses</h3>
+          <div class="card-tools">
+            <div class="tabs" data-tabs="courses">
+              <button type="button" class="tab active" data-val="">All</button>
+              <button type="button" class="tab" data-val="PUBLISHED">Published</button>
+              <button type="button" class="tab" data-val="DRAFT">Draft</button>
+            </div>
+            <input type="search" class="search" id="search-courses" placeholder="Search courses…" />
           </div>
-          <button type="button" id="btn-search-courses" class="btn btn-primary btn-inline">Search</button>
         </div>
-
         <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Title</th>
-                <th>Creator</th>
-                <th>Status</th>
-                <th>Price (₹)</th>
-                <th>Enrollments</th>
-                <th>Created</th>
-              </tr>
-            </thead>
-            <tbody id="courses-tbody"></tbody>
+          <table id="table-courses">
+            <thead><tr>
+              <th>Title</th><th>Creator</th><th>Category</th><th>Status</th>
+              <th>Price (₹)</th><th>Enrollments</th><th>Revenue</th><th>Created</th><th>Action</th>
+            </tr></thead>
+            <tbody id="courses-tbody"><tr><td colspan="9" class="loading">Loading…</td></tr></tbody>
           </table>
         </div>
-        <div class="pagination" id="pagination-courses"></div>
+        <div class="pager" id="pagination-courses"></div>
+      </section>
+    </section>
 
-        <div class="user-detail-panel" id="course-detail-panel">
-          <h3 id="course-detail-title">Course details</h3>
-          <div class="user-detail-grid" id="course-detail-content"></div>
-          <button type="button" class="btn-close" id="btn-close-course-detail">Close</button>
+    <!-- ═════════════════ Webinars ═════════════════ -->
+    <section id="panel-webinars" class="panel">
+      <div class="stat-grid">
+        <div class="stat">
+          <div class="stat-ico tint-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49M7.76 16.24a6 6 0 0 1 0-8.49"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 19.07a10 10 0 0 1 0-14.14"/></svg></div>
+          <div class="stat-val" id="w-total">–</div><div class="stat-lab">Total Webinars</div>
+        </div>
+        <div class="stat">
+          <div class="stat-ico tint-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.5 2.5 2.5 4.5-5"/></svg></div>
+          <div class="stat-val" id="w-pub">–</div><div class="stat-lab">Published</div>
+        </div>
+        <div class="stat">
+          <div class="stat-ico" style="background:var(--surface-3);color:var(--text-3);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg></div>
+          <div class="stat-val" id="w-draft">–</div><div class="stat-lab">Draft</div>
+        </div>
+        <div class="stat">
+          <div class="stat-ico tint-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.4 11.5a2 2 0 0 0 2 1.5h7.5a2 2 0 0 0 2-1.6L21 7H6"/></svg></div>
+          <div class="stat-val" id="w-enroll">–</div><div class="stat-lab">Enrollments</div>
         </div>
       </div>
 
-      <!-- ───── Webinars ───── -->
-      <div id="panel-webinars" class="dashboard-panel">
-        <div class="panel-head">
-          <h2 class="section-title">Webinars</h2>
-          <p class="section-sub">Scheduled and past sessions across all creators.</p>
-        </div>
-
-        <div class="toolbar">
-          <div class="search-field">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-            <input type="search" id="search-webinars" placeholder="Search by title, category" class="search-input" />
+      <section class="card">
+        <div class="card-head">
+          <h3>All Webinars</h3>
+          <div class="card-tools">
+            <div class="tabs" data-tabs="webinars">
+              <button type="button" class="tab active" data-val="">All</button>
+              <button type="button" class="tab" data-val="PUBLISHED">Published</button>
+              <button type="button" class="tab" data-val="DRAFT">Draft</button>
+              <button type="button" class="tab" data-val="COMPLETED">Completed</button>
+            </div>
+            <input type="search" class="search" id="search-webinars" placeholder="Search webinars…" />
           </div>
-          <button type="button" id="btn-search-webinars" class="btn btn-primary btn-inline">Search</button>
         </div>
-
         <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Title</th>
-                <th>Creator</th>
-                <th>Status</th>
-                <th>Price (₹)</th>
-                <th>Scheduled</th>
-                <th>Enrollments</th>
-                <th>Created</th>
-              </tr>
-            </thead>
-            <tbody id="webinars-tbody"></tbody>
+          <table id="table-webinars">
+            <thead><tr>
+              <th>Title</th><th>Creator</th><th>Status</th><th>Price (₹)</th>
+              <th>Scheduled</th><th>Duration</th><th>Enrollments</th><th>Created</th><th>Action</th>
+            </tr></thead>
+            <tbody id="webinars-tbody"><tr><td colspan="9" class="loading">Loading…</td></tr></tbody>
           </table>
         </div>
-        <div class="pagination" id="pagination-webinars"></div>
+        <div class="pager" id="pagination-webinars"></div>
+      </section>
+    </section>
 
-        <div class="user-detail-panel" id="webinar-detail-panel">
-          <h3 id="webinar-detail-title">Webinar details</h3>
-          <div class="user-detail-grid" id="webinar-detail-content"></div>
-          <button type="button" class="btn-close" id="btn-close-webinar-detail">Close</button>
+    <!-- ═════════════════ Revenue ═════════════════ -->
+    <section id="panel-revenue" class="panel">
+      <div class="stat-grid">
+        <div class="stat">
+          <div class="stat-ico tint-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
+          <div class="stat-val" id="r-courses">₹–</div><div class="stat-lab">Courses Revenue</div>
+          <div class="stat-note">Commission: <b id="r-courses-c">₹–</b></div>
+        </div>
+        <div class="stat">
+          <div class="stat-ico tint-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v4"/></svg></div>
+          <div class="stat-val" id="r-webinars">₹–</div><div class="stat-lab">Webinars Revenue</div>
+          <div class="stat-note">Commission: <b id="r-webinars-c">₹–</b></div>
+        </div>
+        <div class="stat">
+          <div class="stat-ico tint-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m22 8-6 4 6 4z"/><rect x="2" y="6" width="14" height="12" rx="2.5"/></svg></div>
+          <div class="stat-val" id="r-sessions">₹–</div><div class="stat-lab">1:1 Sessions Revenue</div>
+          <div class="stat-note">Commission: <b id="r-sessions-c">₹–</b></div>
+        </div>
+        <div class="stat">
+          <div class="stat-ico tint-amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 6H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+          <div class="stat-val" id="r-total">₹–</div><div class="stat-lab">Total Revenue</div>
+          <div class="stat-note">Total commission: <b id="r-total-c">₹–</b></div>
         </div>
       </div>
 
-      <!-- ───── Payments ───── -->
-      <div id="panel-payments" class="dashboard-panel">
-        <div class="panel-head">
-          <h2 class="section-title">Payments</h2>
-          <p class="section-sub">Every course, webinar, and 1:1 transaction in one feed.</p>
-        </div>
-
-        <div class="stats-grid" style="margin-bottom:1.5rem;">
-          <div class="stat-card">
-            <div class="stat-icon tint-amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12"/><path d="M6 9h12"/><path d="M6 4c6 0 8 1.6 8 4.5S12 13 6 13c3.5 0 6 3 9 7"/></svg></div>
-            <span class="value" id="tx-revenue">–</span>
-            <span class="label">Revenue (₹)</span>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon tint-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.5 2.5 2.5 4.5-5"/></svg></div>
-            <span class="value" id="tx-success">–</span>
-            <span class="label">Successful</span>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon tint-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
-            <span class="value" id="tx-pending">–</span>
-            <span class="label">Pending</span>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon tint-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m9 9 6 6M15 9l-6 6"/></svg></div>
-            <span class="value" id="tx-failed">–</span>
-            <span class="label">Failed</span>
+      <section class="card">
+        <div class="card-head">
+          <h3>
+            <svg style="color:var(--text-3);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20"/></svg>
+            Recent Transactions
+          </h3>
+          <div class="card-tools">
+            <div class="tabs" data-tabs="tx-kind">
+              <button type="button" class="tab active" data-val="">All</button>
+              <button type="button" class="tab" data-val="course">Course</button>
+              <button type="button" class="tab" data-val="webinar">Webinar</button>
+              <button type="button" class="tab" data-val="session">1:1</button>
+            </div>
+            <div class="tabs" data-tabs="tx-status">
+              <button type="button" class="tab active" data-val="">Any</button>
+              <button type="button" class="tab" data-val="SUCCESS">Success</button>
+              <button type="button" class="tab" data-val="PENDING">Pending</button>
+              <button type="button" class="tab" data-val="FAILED">Failed</button>
+            </div>
           </div>
         </div>
-
-        <div class="toolbar">
-          <select id="filter-tx-kind" class="search-input" style="padding-left:1rem;max-width:200px;">
-            <option value="">All products</option>
-            <option value="course">Courses</option>
-            <option value="webinar">Webinars</option>
-            <option value="session">1:1 Sessions</option>
-          </select>
-          <select id="filter-tx-status" class="search-input" style="padding-left:1rem;max-width:200px;">
-            <option value="">All statuses</option>
-            <option value="SUCCESS">Success</option>
-            <option value="PENDING">Pending</option>
-            <option value="FAILED">Failed</option>
-          </select>
-        </div>
-
         <div class="table-wrap">
-          <table>
-            <thead>
-              <tr><th>Type</th><th>Item</th><th>Buyer</th><th>Amount</th><th>Status</th><th>Date</th></tr>
-            </thead>
-            <tbody id="payments-tbody"></tbody>
+          <table id="table-revenue">
+            <thead><tr>
+              <th>User</th><th>Product</th><th>Type</th><th>Amount (₹)</th>
+              <th>Commission</th><th>Creator</th><th>Status</th><th>Date</th>
+            </tr></thead>
+            <tbody id="payments-tbody"><tr><td colspan="8" class="loading">Loading…</td></tr></tbody>
           </table>
         </div>
-        <div class="pagination" id="pagination-payments"></div>
+        <div class="pager" id="pagination-payments"></div>
+      </section>
+    </section>
+
+    <!-- ═════════════════ Sessions ═════════════════ -->
+    <section id="panel-sessions" class="panel">
+      <div class="stat-grid">
+        <div class="stat">
+          <div class="stat-ico tint-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m22 8-6 4 6 4z"/><rect x="2" y="6" width="14" height="12" rx="2.5"/></svg></div>
+          <div class="stat-val" id="ss-total">–</div><div class="stat-lab">Total Sessions</div>
+        </div>
+        <div class="stat">
+          <div class="stat-ico tint-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.5 2.5 2.5 4.5-5"/></svg></div>
+          <div class="stat-val" id="ss-done">–</div><div class="stat-lab">Completed</div>
+        </div>
+        <div class="stat">
+          <div class="stat-ico tint-amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+          <div class="stat-val" id="ss-up">–</div><div class="stat-lab">Upcoming</div>
+        </div>
+        <div class="stat">
+          <div class="stat-ico tint-red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m9 9 6 6M15 9l-6 6"/></svg></div>
+          <div class="stat-val" id="ss-cancel">–</div><div class="stat-lab">Cancelled / Missed</div>
+        </div>
       </div>
 
-      <!-- ───── Sessions ───── -->
-      <div id="panel-sessions" class="dashboard-panel">
-        <div class="panel-head">
-          <h2 class="section-title">1:1 Sessions</h2>
-          <p class="section-sub">Bookings between learners and creators.</p>
-        </div>
-
-        <div class="toolbar">
-          <select id="filter-session-status" class="search-input" style="padding-left:1rem;max-width:220px;">
-            <option value="">All statuses</option>
-            <option value="PENDING">Pending</option>
-            <option value="ACTIVE">Active</option>
-            <option value="COMPLETED">Completed</option>
-            <option value="MISSED">Missed</option>
-            <option value="CANCELLED">Cancelled</option>
-          </select>
-        </div>
-
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr><th>Learner</th><th>Creator</th><th>Mode</th><th>Status</th><th>Amount</th><th>Duration</th><th>Scheduled</th></tr>
-            </thead>
-            <tbody id="sessions-tbody"></tbody>
-          </table>
-        </div>
-        <div class="pagination" id="pagination-sessions"></div>
-      </div>
-
-      <!-- ───── KYC ───── -->
-      <div id="panel-kyc" class="dashboard-panel">
-        <div class="panel-head">
-          <h2 class="section-title">KYC Verification</h2>
-          <p class="section-sub">Approve or reject creator identity checks.</p>
-        </div>
-
-        <div class="toolbar">
-          <select id="filter-kyc-status" class="search-input" style="padding-left:1rem;max-width:220px;">
-            <option value="PENDING">Pending</option>
-            <option value="">All statuses</option>
-            <option value="VERIFIED">Verified</option>
-            <option value="FAILED">Failed</option>
-          </select>
-        </div>
-
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr><th>Name</th><th>Email</th><th>PAN</th><th>Type</th><th>Status</th><th>Submitted</th><th>Action</th></tr>
-            </thead>
-            <tbody id="kyc-tbody"></tbody>
-          </table>
-        </div>
-        <div class="pagination" id="pagination-kyc"></div>
-      </div>
-
-      <!-- ───── Storefronts ───── -->
-      <div id="panel-storefronts" class="dashboard-panel">
-        <div class="panel-head">
-          <h2 class="section-title">Creator Storefronts</h2>
-          <p class="section-sub">Public pages at <code>handle.manchly.com</code> — publish or take one down.</p>
-        </div>
-
-        <div class="toolbar">
-          <div class="search-field">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-            <input type="search" id="search-storefronts" placeholder="Search by handle, name, email" class="search-input" />
+      <section class="card">
+        <div class="card-head">
+          <h3>All Sessions</h3>
+          <div class="card-tools">
+            <div class="tabs" data-tabs="sessions">
+              <button type="button" class="tab active" data-val="">All</button>
+              <button type="button" class="tab" data-val="PENDING">Pending</button>
+              <button type="button" class="tab" data-val="ACTIVE">Active</button>
+              <button type="button" class="tab" data-val="COMPLETED">Completed</button>
+              <button type="button" class="tab" data-val="CANCELLED">Cancelled</button>
+            </div>
           </div>
-          <button type="button" id="btn-search-storefronts" class="btn btn-primary btn-inline">Search</button>
         </div>
-
         <div class="table-wrap">
-          <table>
-            <thead>
-              <tr><th>Handle</th><th>Creator</th><th>Tagline</th><th>Courses</th><th>Webinars</th><th>Views</th><th>Status</th><th>Action</th></tr>
-            </thead>
-            <tbody id="storefronts-tbody"></tbody>
+          <table id="table-sessions">
+            <thead><tr>
+              <th>Caller</th><th>Expert</th><th>Mode</th><th>Status</th>
+              <th>Amount (₹)</th><th>Duration</th><th>Scheduled</th><th>Action</th>
+            </tr></thead>
+            <tbody id="sessions-tbody"><tr><td colspan="8" class="loading">Loading…</td></tr></tbody>
           </table>
         </div>
-        <div class="pagination" id="pagination-storefronts"></div>
-      </div>
+        <div class="pager" id="pagination-sessions"></div>
+      </section>
+    </section>
 
-    </div><!-- /.content -->
-  </div><!-- /.main -->
+    <!-- ═════════════════ KYC ═════════════════ -->
+    <section id="panel-kyc" class="panel">
+      <section class="card">
+        <div class="card-head">
+          <h3>KYC Submissions</h3>
+          <div class="card-tools">
+            <div class="tabs" data-tabs="kyc">
+              <button type="button" class="tab active" data-val="">All</button>
+              <button type="button" class="tab" data-val="PENDING">Pending</button>
+              <button type="button" class="tab" data-val="VERIFIED">Verified</button>
+              <button type="button" class="tab" data-val="FAILED">Failed</button>
+            </div>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table id="table-kyc">
+            <thead><tr>
+              <th>Name</th><th>Email</th><th>PAN</th><th>Type</th>
+              <th>Status</th><th>Submitted</th><th>Action</th>
+            </tr></thead>
+            <tbody id="kyc-tbody"><tr><td colspan="7" class="loading">Loading…</td></tr></tbody>
+          </table>
+        </div>
+        <div class="pager" id="pagination-kyc"></div>
+      </section>
+    </section>
 
-  <script src="/js/auth.js"></script>
-  <script>
-    if (!isAuthenticated()) {
-      window.location.href = '/';
-    }
+    <!-- ═════════════════ Storefronts ═════════════════ -->
+    <section id="panel-storefronts" class="panel">
+      <section class="card">
+        <div class="card-head">
+          <h3>Creator Storefronts</h3>
+          <div class="card-tools">
+            <input type="search" class="search" id="search-storefronts" placeholder="Search handle, name, email…" />
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table id="table-storefronts">
+            <thead><tr>
+              <th>Handle</th><th>Creator</th><th>Tagline</th><th>Courses</th>
+              <th>Webinars</th><th>Views</th><th>Status</th><th>Action</th>
+            </tr></thead>
+            <tbody id="storefronts-tbody"><tr><td colspan="8" class="loading">Loading…</td></tr></tbody>
+          </table>
+        </div>
+        <div class="pager" id="pagination-storefronts"></div>
+      </section>
+    </section>
 
-    var currentUsers = [];
-    var currentCourses = [];
-    var currentWebinars = [];
-    var usersPage = 1, coursesPage = 1, webinarsPage = 1;
-    var usersSearch = '', coursesSearch = '', webinarsSearch = '';
+  </div>
+</div>
 
-    function formatDate(dateStr) {
-      if (!dateStr) return '–';
-      var d = new Date(dateStr);
-      if (isNaN(d.getTime())) return '–';
-      var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-      return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
-    }
+<!-- ───────────────────────── Drawer ───────────────────────── -->
+<div class="drawer-backdrop" id="drawer-backdrop"></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true">
+  <div class="drawer-head">
+    <div>
+      <h3 id="drawer-title">Details</h3>
+      <p id="drawer-sub"></p>
+    </div>
+    <button type="button" class="drawer-close" id="drawer-close" aria-label="Close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 6 12 12M18 6 6 18"/></svg>
+    </button>
+  </div>
+  <div class="drawer-body" id="drawer-body"></div>
+  <div class="drawer-foot" id="drawer-foot"></div>
+</aside>
 
-    function formatDateTime(dateStr) {
-      if (!dateStr) return '–';
-      var d = new Date(dateStr);
-      if (isNaN(d.getTime())) return '–';
-      var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-      var date = d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
-      var hours = d.getHours();
-      var mins = ('0' + d.getMinutes()).slice(-2);
-      var ampm = hours >= 12 ? 'PM' : 'AM';
-      hours = hours % 12 || 12;
-      return date + ', ' + hours + ':' + mins + ' ' + ampm;
-    }
+<div class="toast" id="toast"></div>
 
-    // Greeting + today's date in the topbar
-    (function initGreeting() {
-      var now = new Date();
-      var hour = now.getHours();
-      var part = hour < 12 ? 'Good morning' : (hour < 17 ? 'Good afternoon' : 'Good evening');
-      document.getElementById('greeting').textContent = part + ', Admin 👋';
-      var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-      var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-      document.getElementById('greeting-date').textContent =
-        days[now.getDay()] + ', ' + now.getDate() + ' ' + months[now.getMonth()];
-    })();
+<script src="/js/auth.js"></script>
+<script>
+if (!isAuthenticated()) window.location.href = '/';
 
-    // Sidebar navigation
-    document.querySelectorAll('.sidebar-nav .nav-item').forEach(function(item) {
-      item.addEventListener('click', function() {
-        var section = this.getAttribute('data-section');
-        document.querySelectorAll('.sidebar-nav .nav-item').forEach(function(t) { t.classList.remove('active'); });
-        document.querySelectorAll('.dashboard-panel').forEach(function(p) { p.classList.remove('active'); });
-        this.classList.add('active');
-        var panel = document.getElementById('panel-' + section);
-        if (panel) panel.classList.add('active');
-        if (section === 'users') loadUsers(1);
-        if (section === 'courses') loadCourses(1);
-        if (section === 'webinars') loadWebinars(1);
-        if (section === 'payments') loadPayments(1);
-        if (section === 'sessions') loadSessions(1);
-        if (section === 'kyc') loadKyc(1);
-        if (section === 'storefronts') loadStorefronts(1);
-      });
+var APP_URL = 'https://dashboard.manchly.com';
+
+/* ─────────────────────── helpers ─────────────────────── */
+
+function esc(v) {
+  if (v === null || v === undefined) return '';
+  return String(v).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+
+var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function formatDate(s) {
+  if (!s) return '—';
+  var d = new Date(s);
+  if (isNaN(d.getTime())) return '—';
+  return d.getDate() + ' ' + MONTHS[d.getMonth()] + ' ' + d.getFullYear();
+}
+
+function formatDateTime(s) {
+  if (!s) return '—';
+  var d = new Date(s);
+  if (isNaN(d.getTime())) return '—';
+  var h = d.getHours(), m = ('0' + d.getMinutes()).slice(-2);
+  var ap = h >= 12 ? 'PM' : 'AM';
+  h = h % 12 || 12;
+  return formatDate(s) + ', ' + h + ':' + m + ' ' + ap;
+}
+
+function inr(n) {
+  var v = Number(n || 0);
+  var frac = Math.abs(v % 1) > 0.0001 ? 2 : 0;
+  return '₹' + v.toLocaleString('en-IN', { minimumFractionDigits: frac, maximumFractionDigits: 2 });
+}
+function num(n) { return n === null || n === undefined ? '—' : Number(n).toLocaleString('en-IN'); }
+
+function pill(text, tone) {
+  return '<span class="pill pill-' + tone + '">' + esc(text) + '</span>';
+}
+
+/** Tone for a status value, shared by every table. */
+function statusTone(s) {
+  switch (String(s || '').toUpperCase()) {
+    case 'PUBLISHED': case 'SUCCESS': case 'VERIFIED': case 'COMPLETED_OK': return 'green';
+    case 'COMPLETED': return 'blue';
+    case 'DRAFT': case 'PENDING': return 'grey';
+    case 'ACTIVE': return 'amber';
+    case 'FAILED': case 'CANCELLED': case 'MISSED': case 'ARCHIVED': return 'red';
+    default: return 'grey';
+  }
+}
+
+function typeTone(t) {
+  switch (String(t || '').toUpperCase()) {
+    case 'CREATOR': return 'purple';
+    case 'AGENCY': return 'amber';
+    case 'ADMIN': return 'red';
+    case 'BRAND': return 'blue';
+    case 'COURSE': return 'blue';
+    case 'WEBINAR': return 'green';
+    case 'SESSION': return 'purple';
+    default: return 'blue';
+  }
+}
+
+var toastTimer;
+function toast(msg, tone) {
+  var el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show' + (tone ? ' ' + tone : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function () { el.className = 'toast'; }, 2600);
+}
+
+/* ─────────────────────── drawer ─────────────────────── */
+
+function openDrawer(opts) {
+  document.getElementById('drawer-title').textContent = opts.title || 'Details';
+  document.getElementById('drawer-sub').textContent = opts.sub || '';
+  document.getElementById('drawer-body').innerHTML = (opts.rows || []).map(function (r) {
+    return '<div class="kv"><span class="k">' + esc(r[0]) + '</span><span class="v">' + (r[2] ? r[1] : esc(r[1])) + '</span></div>';
+  }).join('');
+
+  var foot = document.getElementById('drawer-foot');
+  foot.innerHTML = '';
+  (opts.actions || []).forEach(function (a) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'btn-sm ' + (a.cls || '');
+    b.textContent = a.label;
+    b.onclick = function () { a.onClick(b); };
+    foot.appendChild(b);
+  });
+
+  document.getElementById('drawer').classList.add('open');
+  document.getElementById('drawer-backdrop').classList.add('open');
+}
+
+function closeDrawer() {
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('drawer-backdrop').classList.remove('open');
+}
+
+document.getElementById('drawer-close').onclick = closeDrawer;
+document.getElementById('drawer-backdrop').onclick = closeDrawer;
+document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeDrawer(); });
+
+/* ─────────────────────── navigation ─────────────────────── */
+
+var SECTIONS = {
+  overview:    { title: 'Overview',           sub: 'Platform health at a glance' },
+  users:       { title: 'Users',              sub: 'Manage all users, creators & agencies' },
+  courses:     { title: 'Courses',            sub: 'All courses across the platform' },
+  webinars:    { title: 'Webinars',           sub: 'Scheduled and completed webinars' },
+  revenue:     { title: 'Revenue & Payments', sub: 'Earnings, commissions and transactions' },
+  sessions:    { title: '1:1 Sessions',       sub: 'Expert calls booked on the platform' },
+  kyc:         { title: 'KYC Verification',   sub: 'Review creator identity submissions' },
+  storefronts: { title: 'Creator Storefronts',sub: 'Public subdomain pages' }
+};
+
+var LOADERS = {
+  users: function () { loadUsers(1); },
+  courses: function () { loadCourses(1); },
+  webinars: function () { loadWebinars(1); },
+  revenue: function () { loadPayments(1); },
+  sessions: function () { loadSessions(1); },
+  kyc: function () { loadKyc(1); },
+  storefronts: function () { loadStorefronts(1); }
+};
+
+var activeSection = 'overview';
+
+/** Rows currently rendered per section — the source for a "this page" export. */
+var pageRows = {};
+
+document.querySelectorAll('.sidebar-nav .nav-item').forEach(function (item) {
+  item.addEventListener('click', function () {
+    var section = this.getAttribute('data-section');
+    activeSection = section;
+
+    document.querySelectorAll('.sidebar-nav .nav-item').forEach(function (t) { t.classList.remove('active'); });
+    document.querySelectorAll('.panel').forEach(function (p) { p.classList.remove('active'); });
+    this.classList.add('active');
+    var panel = document.getElementById('panel-' + section);
+    if (panel) panel.classList.add('active');
+
+    var meta = SECTIONS[section] || { title: section, sub: '' };
+    document.getElementById('page-title').textContent = meta.title;
+    document.getElementById('page-sub').textContent = meta.sub;
+
+    document.getElementById('sidebar').classList.remove('open');
+    if (LOADERS[section]) LOADERS[section]();
+  });
+});
+
+document.getElementById('btn-menu').onclick = function () {
+  document.getElementById('sidebar').classList.toggle('open');
+};
+
+/* ─────────────────────── filter tabs ─────────────────────── */
+
+var filters = { users: '', courses: '', webinars: '', sessions: '', kyc: '', 'tx-kind': '', 'tx-status': '' };
+
+document.querySelectorAll('.tabs').forEach(function (group) {
+  var key = group.getAttribute('data-tabs');
+  group.querySelectorAll('.tab').forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      group.querySelectorAll('.tab').forEach(function (t) { t.classList.remove('active'); });
+      tab.classList.add('active');
+      filters[key] = tab.getAttribute('data-val') || '';
+      if (key === 'tx-kind' || key === 'tx-status') loadPayments(1);
+      else if (LOADERS[key]) LOADERS[key]();
+    });
+  });
+});
+
+/* ─────────────────────── search boxes ─────────────────────── */
+
+var searches = { users: '', courses: '', webinars: '', storefronts: '' };
+
+function wireSearch(key, loader) {
+  var input = document.getElementById('search-' + key);
+  if (!input) return;
+  var timer;
+  input.addEventListener('input', function () {
+    clearTimeout(timer);
+    var v = this.value.trim();
+    timer = setTimeout(function () { searches[key] = v; loader(1); }, 300);
+  });
+}
+
+/* ─────────────────────── pagination ─────────────────────── */
+
+function renderPagination(containerId, p, loadFn) {
+  var div = document.getElementById(containerId);
+  if (!div) return;
+  var page = p ? p.page : 1, pages = p ? p.totalPages : 1, total = p ? p.total : 0;
+  var html = '<span>' + num(total) + ' record' + (total === 1 ? '' : 's') + ' · page ' + page + ' of ' + (pages || 1) + '</span>';
+  if (pages > 1) {
+    html += '<button type="button" data-page="prev"' + (page <= 1 ? ' disabled' : '') + '>Prev</button>' +
+            '<button type="button" data-page="next"' + (page >= pages ? ' disabled' : '') + '>Next</button>';
+  }
+  div.innerHTML = html;
+  var prev = div.querySelector('[data-page="prev"]');
+  var next = div.querySelector('[data-page="next"]');
+  if (prev) prev.onclick = function () { loadFn(page - 1); };
+  if (next) next.onclick = function () { loadFn(page + 1); };
+}
+
+/** Shared failure/empty rendering for every table body. */
+function tbodyMessage(id, cols, text, isError) {
+  document.getElementById(id).innerHTML =
+    '<tr><td colspan="' + cols + '" class="' + (isError ? 'error-msg' : 'loading') + '">' + esc(text) + '</td></tr>';
+}
+
+function get(url) {
+  return apiFetch(url).then(function (r) { return r.json(); });
+}
+
+/* ─────────────────────── overview ─────────────────────── */
+
+function delta(id, pct) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  var up = pct > 0, flat = pct === 0;
+  el.className = 'stat-delta' + (flat ? ' flat' : up ? '' : ' down');
+  var arrow = flat
+    ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/></svg>'
+    : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+      (up ? '<path d="M3 17 10 10l4 4 7-7"/><path d="M14 7h7v7"/>' : '<path d="M3 7 10 14l4-4 7 7"/><path d="M14 17h7v-7"/>') +
+      '</svg>';
+  el.innerHTML = arrow + '<span>' + (up ? '+' : '') + pct + '% this month</span>';
+}
+
+var statsCache = null;
+
+function renderStats(d) {
+  statsCache = d;
+  var set = function (id, v) { var e = document.getElementById(id); if (e) e.textContent = v; };
+
+  set('s-users', num(d.users.total));
+  set('s-creators', num(d.users.creators));
+  set('s-regular', num(d.users.regular));
+  set('s-agencies', num(d.users.agencies));
+  if (d.users.growth) {
+    delta('g-users', d.users.growth.total);
+    delta('g-creators', d.users.growth.creators);
+    delta('g-regular', d.users.growth.regular);
+    delta('g-agencies', d.users.growth.agencies);
+  }
+
+  set('s-courses', num(d.courses.total));
+  set('s-courses-pub', num(d.courses.published));
+  set('s-courses-draft', num(d.courses.draft));
+  set('s-enrollments', num(d.courses.enrollments));
+
+  set('m-web-total', num(d.webinars.total));
+  set('m-web-pub', num(d.webinars.published));
+  set('m-web-draft', num(d.webinars.draft));
+  set('m-web-enroll', num(d.webinars.enrollments));
+
+  var s = d.sessions || {};
+  set('m-ses-total', num(s.total));
+  set('m-ses-done', num(s.completed));
+  set('m-ses-up', num(s.upcoming));
+  set('m-ses-cancel', num(s.cancelled));
+
+  var e = d.earnings || {};
+  if (e.courses) {
+    set('m-rev-courses', inr(e.courses.revenue));
+    set('m-rev-webinars', inr(e.webinars.revenue));
+    set('m-rev-sessions', inr(e.sessions.revenue));
+    set('m-rev-commission', inr(e.total.commission));
+
+    set('r-courses', inr(e.courses.revenue));   set('r-courses-c', inr(e.courses.commission));
+    set('r-webinars', inr(e.webinars.revenue)); set('r-webinars-c', inr(e.webinars.commission));
+    set('r-sessions', inr(e.sessions.revenue)); set('r-sessions-c', inr(e.sessions.commission));
+    set('r-total', inr(e.total.revenue));       set('r-total-c', inr(e.total.commission));
+  }
+
+  // Mirrors on the per-section stat strips
+  set('u-total', num(d.users.total));   set('u-creators', num(d.users.creators));
+  set('u-regular', num(d.users.regular)); set('u-agencies', num(d.users.agencies));
+
+  set('c-total', num(d.courses.total)); set('c-pub', num(d.courses.published));
+  set('c-draft', num(d.courses.draft)); set('c-enroll', num(d.courses.enrollments));
+
+  set('w-total', num(d.webinars.total)); set('w-pub', num(d.webinars.published));
+  set('w-draft', num(d.webinars.draft)); set('w-enroll', num(d.webinars.enrollments));
+
+  set('ss-total', num(s.total));  set('ss-done', num(s.completed));
+  set('ss-up', num(s.upcoming));  set('ss-cancel', num(s.cancelled));
+}
+
+function loadStats() {
+  get(API_BASE + '/admin/stats')
+    .then(function (j) { if (j.success && j.data) renderStats(j.data); })
+    .catch(function (e) { console.error(e); });
+}
+
+/* ─────────────────────── users ─────────────────────── */
+
+var currentUsers = [], usersPage = 1;
+
+function loadUsers(page) {
+  usersPage = page || 1;
+  tbodyMessage('users-tbody', 9, 'Loading…');
+  var q = QUERIES.users();
+  var url = API_BASE + q.path + '?page=' + usersPage + '&limit=20' + q.q;
+
+  get(url).then(function (j) {
+    if (!j.success || !j.data) return tbodyMessage('users-tbody', 9, (j.error && j.error.message) || 'Failed to load', true);
+    currentUsers = pageRows.users = j.data.users || [];
+    if (!currentUsers.length) return tbodyMessage('users-tbody', 9, 'No users found');
+
+    document.getElementById('users-tbody').innerHTML = currentUsers.map(function (u, i) {
+      var types = Array.isArray(u.user_type) ? u.user_type : [u.user_type];
+      var badges = types.filter(Boolean).map(function (t) { return pill(t, typeTone(t)); }).join(' ');
+      var c = u._count || {};
+      return '<tr>' +
+        '<td class="primary">' + esc(u.name || '—') + '</td>' +
+        '<td class="muted">' + esc(u.email || '—') + '</td>' +
+        '<td>' + esc(u.phone || '—') + '</td>' +
+        '<td>' + badges + '</td>' +
+        '<td class="num">' + num(c.courses) + '</td>' +
+        '<td class="num">' + num(c.enrollments) + '</td>' +
+        '<td class="muted">' + formatDate(u.created_at) + '</td>' +
+        '<td class="muted">' + (u.last_login ? formatDate(u.last_login) : '—') + '</td>' +
+        '<td><button type="button" class="btn-sm row-view" data-i="' + i + '">View</button></td>' +
+        '</tr>';
+    }).join('');
+
+    wireRowViews('users-tbody', function (i) { showUser(currentUsers[i]); });
+    renderPagination('pagination-users', j.data.pagination, loadUsers);
+  }).catch(function (e) { tbodyMessage('users-tbody', 9, e.message || 'Failed to load users', true); });
+}
+
+function wireRowViews(tbodyId, handler) {
+  document.getElementById(tbodyId).querySelectorAll('.row-view').forEach(function (btn) {
+    btn.onclick = function () { handler(parseInt(btn.getAttribute('data-i'), 10)); };
+  });
+}
+
+function showUser(u) {
+  if (!u) return;
+  var types = (Array.isArray(u.user_type) ? u.user_type : [u.user_type]).filter(Boolean);
+  var c = u._count || {};
+  var isAdmin = types.indexOf('ADMIN') !== -1;
+  var isCreator = types.indexOf('CREATOR') !== -1;
+
+  openDrawer({
+    title: u.name || u.email || 'User',
+    sub: types.join(' · '),
+    rows: [
+      ['Email', u.email || '—'],
+      ['Phone', u.phone || '—'],
+      ['Roles', types.map(function (t) { return pill(t, typeTone(t)); }).join(' '), true],
+      ['Courses created', num(c.courses)],
+      ['Enrollments', num(c.enrollments)],
+      ['Transactions', num(c.transactions)],
+      ['Joined', formatDate(u.created_at)],
+      ['Last login', formatDateTime(u.last_login)]
+    ],
+    actions: [
+      { label: 'Edit user', onClick: function () { editUser(u); } },
+      {
+        label: isCreator ? 'Remove creator role' : 'Make creator',
+        onClick: function (btn) {
+          var next = isCreator
+            ? types.filter(function (t) { return t !== 'CREATOR'; })
+            : types.concat(['CREATOR']);
+          if (!next.length) next = ['USER'];
+          btn.disabled = true;
+          apiFetch(API_BASE + '/admin/users/' + encodeURIComponent(u.id) + '/roles', {
+            method: 'PATCH', body: JSON.stringify({ user_type: next })
+          }).then(function (r) { return r.json(); }).then(function (j) {
+            if (!j.success) throw new Error((j.error && j.error.message) || 'Failed');
+            toast('Roles updated', 'ok'); closeDrawer(); loadUsers(usersPage); loadStats();
+          }).catch(function (e) { toast(e.message, 'err'); btn.disabled = false; });
+        }
+      },
+      {
+        label: isAdmin ? 'Admin — delete blocked' : 'Delete user',
+        cls: 'btn-danger-sm',
+        onClick: function (btn) {
+          if (isAdmin) return toast('Remove the admin role before deleting', 'err');
+          if (!window.confirm('Delete ' + (u.name || u.email) + '?\n\nThis cascade-deletes their enrollments, transactions and any courses they created. It cannot be undone.')) return;
+          btn.disabled = true;
+          apiFetch(API_BASE + '/admin/users/' + encodeURIComponent(u.id), { method: 'DELETE' })
+            .then(function (r) { return r.json(); }).then(function (j) {
+              if (!j.success) throw new Error((j.error && j.error.message) || 'Failed');
+              toast('User deleted', 'ok'); closeDrawer(); loadUsers(usersPage); loadStats();
+            }).catch(function (e) { toast(e.message, 'err'); btn.disabled = false; });
+        }
+      }
+    ]
+  });
+}
+
+/* ─────────────────────── courses ─────────────────────── */
+
+var currentCourses = [], coursesPage = 1;
+
+function loadCourses(page) {
+  coursesPage = page || 1;
+  tbodyMessage('courses-tbody', 9, 'Loading…');
+  var q = QUERIES.courses();
+  var url = API_BASE + q.path + '?page=' + coursesPage + '&limit=20' + q.q;
+
+  get(url).then(function (j) {
+    if (!j.success || !j.data) return tbodyMessage('courses-tbody', 9, (j.error && j.error.message) || 'Failed to load', true);
+    currentCourses = pageRows.courses = j.data.courses || [];
+    if (!currentCourses.length) return tbodyMessage('courses-tbody', 9, 'No courses found');
+
+    document.getElementById('courses-tbody').innerHTML = currentCourses.map(function (c, i) {
+      var creator = (c.creator && (c.creator.name || c.creator.email)) || '—';
+      return '<tr>' +
+        '<td class="primary ellipsis">' + esc(c.title || '—') + '</td>' +
+        '<td class="muted">' + esc(creator) + '</td>' +
+        '<td>' + esc(c.category || '—') + '</td>' +
+        '<td>' + pill(c.status, statusTone(c.status)) + '</td>' +
+        '<td class="num">' + num(c.price) + '</td>' +
+        '<td class="num">' + num(c._count ? c._count.enrollments : 0) + '</td>' +
+        '<td class="money">' + inr(c.revenue) + '</td>' +
+        '<td class="muted">' + formatDate(c.created_at) + '</td>' +
+        '<td><button type="button" class="btn-sm row-view" data-i="' + i + '">View</button></td>' +
+        '</tr>';
+    }).join('');
+
+    wireRowViews('courses-tbody', function (i) { showCourse(currentCourses[i]); });
+    renderPagination('pagination-courses', j.data.pagination, loadCourses);
+  }).catch(function (e) { tbodyMessage('courses-tbody', 9, e.message || 'Failed to load courses', true); });
+}
+
+function showCourse(c) {
+  if (!c) return;
+  var published = c.status === 'PUBLISHED';
+  openDrawer({
+    title: c.title || 'Course',
+    sub: (c.creator && (c.creator.name || c.creator.email)) || '',
+    rows: [
+      ['Status', pill(c.status, statusTone(c.status)), true],
+      ['Category', c.category || '—'],
+      ['Price', inr(c.price)],
+      ['Revenue earned', inr(c.revenue)],
+      ['Enrollments', num(c._count ? c._count.enrollments : 0)],
+      ['Videos', num(c._count ? c._count.videos : 0)],
+      ['Created', formatDate(c.created_at)],
+      ['Published', formatDate(c.published_at)]
+    ],
+    actions: [
+      { label: 'Edit course', onClick: function () { editCourse(c); } },
+      {
+        label: published ? 'Move to draft' : 'Publish course',
+        onClick: function (btn) {
+          btn.disabled = true;
+          apiFetch(API_BASE + '/admin/courses/' + encodeURIComponent(c.id) + '/status', {
+            method: 'PATCH', body: JSON.stringify({ status: published ? 'DRAFT' : 'PUBLISHED' })
+          }).then(function (r) { return r.json(); }).then(function (j) {
+            if (!j.success) throw new Error((j.error && j.error.message) || 'Failed');
+            toast(published ? 'Moved to draft' : 'Course published', 'ok');
+            closeDrawer(); loadCourses(coursesPage); loadStats();
+          }).catch(function (e) { toast(e.message, 'err'); btn.disabled = false; });
+        }
+      },
+      {
+        label: 'Delete course', cls: 'btn-danger-sm',
+        onClick: function (btn) {
+          if (!window.confirm('Delete "' + (c.title || 'this course') + '"?\n\nEnrollments and transactions attached to it are removed too. This cannot be undone.')) return;
+          btn.disabled = true;
+          apiFetch(API_BASE + '/admin/courses/' + encodeURIComponent(c.id), { method: 'DELETE' })
+            .then(function (r) { return r.json(); }).then(function (j) {
+              if (!j.success) throw new Error((j.error && j.error.message) || 'Failed');
+              toast('Course deleted', 'ok'); closeDrawer(); loadCourses(coursesPage); loadStats();
+            }).catch(function (e) { toast(e.message, 'err'); btn.disabled = false; });
+        }
+      }
+    ]
+  });
+}
+
+/* ─────────────────────── webinars ─────────────────────── */
+
+var currentWebinars = [], webinarsPage = 1;
+
+function loadWebinars(page) {
+  webinarsPage = page || 1;
+  tbodyMessage('webinars-tbody', 9, 'Loading…');
+  var q = QUERIES.webinars();
+  var url = API_BASE + q.path + '?page=' + webinarsPage + '&limit=20' + q.q;
+
+  get(url).then(function (j) {
+    if (!j.success || !j.data) return tbodyMessage('webinars-tbody', 9, (j.error && j.error.message) || 'Failed to load', true);
+    currentWebinars = pageRows.webinars = j.data.webinars || [];
+    if (!currentWebinars.length) return tbodyMessage('webinars-tbody', 9, 'No webinars found');
+
+    document.getElementById('webinars-tbody').innerHTML = currentWebinars.map(function (w, i) {
+      var creator = (w.creator && (w.creator.name || w.creator.email)) || '—';
+      return '<tr>' +
+        '<td class="primary ellipsis">' + esc(w.title || '—') + '</td>' +
+        '<td class="muted">' + esc(creator) + '</td>' +
+        '<td>' + pill(w.status, statusTone(w.status)) + '</td>' +
+        '<td class="num">' + num(w.price) + '</td>' +
+        '<td class="muted">' + formatDate(w.scheduled_at) + '</td>' +
+        '<td>' + (w.duration ? w.duration + ' min' : '—') + '</td>' +
+        '<td class="num">' + num(w._count ? w._count.enrollments : 0) + '</td>' +
+        '<td class="muted">' + formatDate(w.created_at) + '</td>' +
+        '<td><button type="button" class="btn-sm row-view" data-i="' + i + '">View</button></td>' +
+        '</tr>';
+    }).join('');
+
+    wireRowViews('webinars-tbody', function (i) { showWebinar(currentWebinars[i]); });
+    renderPagination('pagination-webinars', j.data.pagination, loadWebinars);
+  }).catch(function (e) { tbodyMessage('webinars-tbody', 9, e.message || 'Failed to load webinars', true); });
+}
+
+function showWebinar(w) {
+  if (!w) return;
+  var published = w.status === 'PUBLISHED';
+  openDrawer({
+    title: w.title || 'Webinar',
+    sub: (w.creator && (w.creator.name || w.creator.email)) || '',
+    rows: [
+      ['Status', pill(w.status, statusTone(w.status)), true],
+      ['Price', inr(w.price)],
+      ['Scheduled', formatDateTime(w.scheduled_at)],
+      ['Duration', w.duration ? w.duration + ' min' : '—'],
+      ['Enrollments', num(w._count ? w._count.enrollments : 0)],
+      ['Created', formatDate(w.created_at)]
+    ],
+    actions: [
+      { label: 'Edit webinar', onClick: function () { editWebinar(w); } },
+      {
+        label: published ? 'Move to draft' : 'Publish webinar',
+        onClick: function (btn) {
+          btn.disabled = true;
+          apiFetch(API_BASE + '/admin/webinars/' + encodeURIComponent(w.id) + '/status', {
+            method: 'PATCH', body: JSON.stringify({ status: published ? 'DRAFT' : 'PUBLISHED' })
+          }).then(function (r) { return r.json(); }).then(function (j) {
+            if (!j.success) throw new Error((j.error && j.error.message) || 'Failed');
+            toast(published ? 'Moved to draft' : 'Webinar published', 'ok');
+            closeDrawer(); loadWebinars(webinarsPage); loadStats();
+          }).catch(function (e) { toast(e.message, 'err'); btn.disabled = false; });
+        }
+      },
+      {
+        label: 'Delete webinar', cls: 'btn-danger-sm',
+        onClick: function (btn) {
+          if (!window.confirm('Delete "' + (w.title || 'this webinar') + '"?\n\nThis cannot be undone.')) return;
+          btn.disabled = true;
+          apiFetch(API_BASE + '/admin/webinars/' + encodeURIComponent(w.id), { method: 'DELETE' })
+            .then(function (r) { return r.json(); }).then(function (j) {
+              if (!j.success) throw new Error((j.error && j.error.message) || 'Failed');
+              toast('Webinar deleted', 'ok'); closeDrawer(); loadWebinars(webinarsPage); loadStats();
+            }).catch(function (e) { toast(e.message, 'err'); btn.disabled = false; });
+        }
+      }
+    ]
+  });
+}
+
+/* ─────────────────────── revenue ─────────────────────── */
+
+var paymentsPage = 1;
+
+function loadPayments(page) {
+  paymentsPage = page || 1;
+  tbodyMessage('payments-tbody', 8, 'Loading…');
+  var q = QUERIES.revenue();
+  var url = API_BASE + q.path + '?page=' + paymentsPage + '&limit=20' + q.q;
+
+  get(url).then(function (j) {
+    if (!j.success || !j.data) return tbodyMessage('payments-tbody', 8, (j.error && j.error.message) || 'Failed to load', true);
+    var rows = pageRows.revenue = j.data.transactions || [];
+    if (!rows.length) return tbodyMessage('payments-tbody', 8, 'No transactions found');
+
+    document.getElementById('payments-tbody').innerHTML = rows.map(function (t) {
+      var who = t.user ? (t.user.name || t.user.email || '—') : '—';
+      var creator = t.creator ? (t.creator.name || t.creator.email || '—') : '—';
+      return '<tr>' +
+        '<td class="primary">' + esc(who) + '</td>' +
+        '<td class="ellipsis">' + esc(t.item || '—') + '</td>' +
+        '<td>' + pill(t.kind === 'session' ? '1:1' : t.kind, typeTone(t.kind)) + '</td>' +
+        '<td class="num">' + inr(t.amount) + '</td>' +
+        '<td class="muted">' + inr(t.commission) + '</td>' +
+        '<td class="muted">' + esc(creator) + '</td>' +
+        '<td>' + pill(t.status, statusTone(t.status)) + '</td>' +
+        '<td class="muted">' + formatDate(t.created_at) + '</td>' +
+        '</tr>';
+    }).join('');
+
+    renderPagination('pagination-payments', j.data.pagination, loadPayments);
+  }).catch(function (e) { tbodyMessage('payments-tbody', 8, e.message || 'Failed to load', true); });
+}
+
+/* ─────────────────────── sessions ─────────────────────── */
+
+var sessionsPage = 1;
+
+function loadSessions(page) {
+  sessionsPage = page || 1;
+  tbodyMessage('sessions-tbody', 8, 'Loading…');
+  var q = QUERIES.sessions();
+  var url = API_BASE + q.path + '?page=' + sessionsPage + '&limit=20' + q.q;
+
+  get(url).then(function (j) {
+    if (!j.success || !j.data) return tbodyMessage('sessions-tbody', 8, (j.error && j.error.message) || 'Failed to load', true);
+    var rows = pageRows.sessions = j.data.sessions || [];
+    if (!rows.length) return tbodyMessage('sessions-tbody', 8, 'No sessions found');
+
+    document.getElementById('sessions-tbody').innerHTML = rows.map(function (s, i) {
+      return '<tr>' +
+        '<td class="primary">' + esc(personName(s.caller) || '—') + '</td>' +
+        '<td class="muted">' + esc(personName(s.receiver) || '—') + '</td>' +
+        '<td>' + esc(s.mode || '—') + '</td>' +
+        '<td>' + pill(s.status, statusTone(s.status)) + '</td>' +
+        '<td class="num">' + inr(s.amount) + '</td>' +
+        '<td>' + (s.duration || 0) + ' min</td>' +
+        '<td class="muted">' + formatDateTime(s.scheduled_at) + '</td>' +
+        '<td><button type="button" class="btn-sm row-view" data-i="' + i + '">View</button></td>' +
+        '</tr>';
+    }).join('');
+
+    wireRowViews('sessions-tbody', function (i) { showSession(rows[i]); });
+    renderPagination('pagination-sessions', j.data.pagination, loadSessions);
+  }).catch(function (e) { tbodyMessage('sessions-tbody', 8, e.message || 'Failed to load', true); });
+}
+
+/* ─────────────────────── kyc ─────────────────────── */
+
+var kycPage = 1;
+
+function loadKyc(page) {
+  kycPage = page || 1;
+  tbodyMessage('kyc-tbody', 7, 'Loading…');
+  var q = QUERIES.kyc();
+  var url = API_BASE + q.path + '?page=' + kycPage + '&limit=20' + q.q;
+
+  get(url).then(function (j) {
+    if (!j.success || !j.data) return tbodyMessage('kyc-tbody', 7, (j.error && j.error.message) || 'Failed to load', true);
+    var rows = pageRows.kyc = j.data.kyc || [];
+    if (!rows.length) return tbodyMessage('kyc-tbody', 7, 'No KYC records found');
+
+    document.getElementById('kyc-tbody').innerHTML = rows.map(function (k) {
+      var actions = k.status === 'PENDING'
+        ? '<button type="button" class="btn-sm btn-amber kyc-act" data-id="' + esc(k.id) + '" data-approve="1">Approve</button> ' +
+          '<button type="button" class="btn-sm btn-danger-sm kyc-act" data-id="' + esc(k.id) + '" data-approve="0">Reject</button>'
+        : '<span style="color:var(--text-3);">Reviewed</span>';
+      return '<tr>' +
+        '<td class="primary">' + esc((k.user && k.user.name) || '—') + '</td>' +
+        '<td class="muted">' + esc((k.user && k.user.email) || '—') + '</td>' +
+        '<td>' + esc(k.pan_number || '—') + '</td>' +
+        '<td>' + esc(k.verification_type || '—') + '</td>' +
+        '<td>' + pill(k.status, statusTone(k.status)) + '</td>' +
+        '<td class="muted">' + formatDate(k.created_at) + '</td>' +
+        '<td>' + actions + '</td>' +
+        '</tr>';
+    }).join('');
+
+    document.getElementById('kyc-tbody').querySelectorAll('.kyc-act').forEach(function (btn) {
+      btn.onclick = function () {
+        var approve = btn.getAttribute('data-approve') === '1';
+        if (!window.confirm((approve ? 'Approve' : 'Reject') + ' this KYC submission?')) return;
+        btn.disabled = true;
+        apiFetch(API_BASE + '/admin/kyc/' + encodeURIComponent(btn.getAttribute('data-id')) + '/review', {
+          method: 'PATCH', body: JSON.stringify({ approve: approve })
+        }).then(function (r) { return r.json(); }).then(function (jj) {
+          if (!jj.success) throw new Error((jj.error && jj.error.message) || 'Failed');
+          toast(approve ? 'KYC approved' : 'KYC rejected', 'ok');
+          loadKyc(kycPage);
+        }).catch(function (e) { toast(e.message, 'err'); btn.disabled = false; });
+      };
     });
 
-    function renderStats(data) {
-      if (!data) return;
-      document.getElementById('stat-users').textContent = data.users.total;
-      document.getElementById('stat-creators').textContent = data.users.creators;
-      document.getElementById('stat-courses').textContent = data.courses.total;
-      document.getElementById('stat-courses-pub').textContent = data.courses.published;
-      document.getElementById('stat-enrollments').textContent = data.courses.enrollments;
-      document.getElementById('stat-transactions').textContent = data.transactions.success;
-      document.getElementById('stat-webinars').textContent = data.webinars.total;
-      document.getElementById('stat-webinar-enroll').textContent = data.webinars.enrollments;
-      var revenue = data.revenue.toLocaleString('en-IN');
-      document.getElementById('stat-revenue').textContent = revenue;
-      document.getElementById('topbar-revenue').textContent = '₹' + revenue;
-    }
+    renderPagination('pagination-kyc', j.data.pagination, loadKyc);
+  }).catch(function (e) { tbodyMessage('kyc-tbody', 7, e.message || 'Failed to load', true); });
+}
 
-    function loadStats() {
-      apiFetch(API_BASE + '/admin/stats')
-        .then(function(r) { return r.json(); })
-        .then(function(json) {
-          if (json.success && json.data) renderStats(json.data);
-        })
-        .catch(function(e) { console.error(e); });
-    }
+/* ─────────────────────── storefronts ─────────────────────── */
 
-    function renderPagination(containerId, p, loadFn) {
-      var div = document.getElementById(containerId);
-      if (!div) return;
-      if (!p || p.totalPages <= 1) {
-        div.innerHTML = '<span>Page ' + (p ? p.page : 1) + ' of ' + (p ? p.totalPages : 1) + '</span>';
-        return;
+var storefrontsPage = 1;
+
+function loadStorefronts(page) {
+  storefrontsPage = page || 1;
+  tbodyMessage('storefronts-tbody', 8, 'Loading…');
+  var q = QUERIES.storefronts();
+  var url = API_BASE + q.path + '?page=' + storefrontsPage + '&limit=20' + q.q;
+
+  get(url).then(function (j) {
+    if (!j.success || !j.data) return tbodyMessage('storefronts-tbody', 8, (j.error && j.error.message) || 'Failed to load', true);
+    var rows = pageRows.storefronts = j.data.storefronts || [];
+    if (!rows.length) return tbodyMessage('storefronts-tbody', 8, 'No storefronts found');
+
+    document.getElementById('storefronts-tbody').innerHTML = rows.map(function (c) {
+      var sf = c.storefront || {};
+      var live = sf.is_published === true;
+      var link = 'https://' + encodeURIComponent(c.handle) + '.manchly.com';
+      return '<tr>' +
+        '<td><a class="link-amber" href="' + esc(link) + '" target="_blank" rel="noopener">' + esc(c.handle) + '</a></td>' +
+        '<td class="primary">' + esc(c.name || c.email || '—') + '</td>' +
+        '<td class="muted ellipsis">' + esc(sf.tagline || '—') + '</td>' +
+        '<td class="num">' + num(c._count ? c._count.courses : 0) + '</td>' +
+        '<td class="num">' + num(c._count ? c._count.webinars : 0) + '</td>' +
+        '<td class="num">' + num(sf.view_count || 0) + '</td>' +
+        '<td>' + pill(live ? 'Live' : 'Private', live ? 'green' : 'grey') + '</td>' +
+        '<td><button type="button" class="btn-sm ' + (live ? 'btn-danger-sm' : '') + ' sf-act" data-id="' + esc(c.id) + '" data-publish="' + (live ? '0' : '1') + '">' +
+        (live ? 'Unpublish' : 'Publish') + '</button></td>' +
+        '</tr>';
+    }).join('');
+
+    document.getElementById('storefronts-tbody').querySelectorAll('.sf-act').forEach(function (btn) {
+      btn.onclick = function () {
+        var publish = btn.getAttribute('data-publish') === '1';
+        if (!publish && !window.confirm('Take this storefront offline? The public page will stop loading.')) return;
+        btn.disabled = true;
+        apiFetch(API_BASE + '/admin/storefronts/' + encodeURIComponent(btn.getAttribute('data-id')) + '/publish', {
+          method: 'PATCH', body: JSON.stringify({ publish: publish })
+        }).then(function (r) { return r.json(); }).then(function (jj) {
+          if (!jj.success) throw new Error((jj.error && jj.error.message) || 'Failed');
+          toast(publish ? 'Storefront is live' : 'Storefront taken offline', 'ok');
+          loadStorefronts(storefrontsPage);
+        }).catch(function (e) { toast(e.message, 'err'); btn.disabled = false; });
+      };
+    });
+
+    renderPagination('pagination-storefronts', j.data.pagination, loadStorefronts);
+  }).catch(function (e) { tbodyMessage('storefronts-tbody', 8, e.message || 'Failed to load', true); });
+}
+
+/* ─────────────────────── topbar actions ─────────────────────── */
+
+(function () {
+  var now = new Date();
+  document.getElementById('chip-month').textContent = MONTHS[now.getMonth()] + ' ' + now.getFullYear();
+})();
+
+/* ─────────────────────── query builders ─────────────────────── */
+
+// The one place that turns the active filters into a query string. Both the
+// table loaders and the CSV exporter read from it, so an export can never
+// disagree with what's on screen.
+var QUERIES = {
+  users: function () {
+    var q = '';
+    if (searches.users) q += '&search=' + encodeURIComponent(searches.users);
+    if (filters.users) q += '&type=' + encodeURIComponent(filters.users);
+    return { path: '/admin/users', key: 'users', q: q };
+  },
+  courses: function () {
+    var q = '';
+    if (searches.courses) q += '&search=' + encodeURIComponent(searches.courses);
+    if (filters.courses) q += '&status=' + encodeURIComponent(filters.courses);
+    return { path: '/admin/courses', key: 'courses', q: q };
+  },
+  webinars: function () {
+    var q = '';
+    if (searches.webinars) q += '&search=' + encodeURIComponent(searches.webinars);
+    if (filters.webinars) q += '&status=' + encodeURIComponent(filters.webinars);
+    return { path: '/admin/webinars', key: 'webinars', q: q };
+  },
+  revenue: function () {
+    var q = '';
+    if (filters['tx-kind']) q += '&kind=' + encodeURIComponent(filters['tx-kind']);
+    if (filters['tx-status']) q += '&status=' + encodeURIComponent(filters['tx-status']);
+    return { path: '/admin/transactions', key: 'transactions', q: q };
+  },
+  sessions: function () {
+    return {
+      path: '/admin/sessions', key: 'sessions',
+      q: filters.sessions ? '&status=' + encodeURIComponent(filters.sessions) : ''
+    };
+  },
+  kyc: function () {
+    return {
+      path: '/admin/kyc', key: 'kyc',
+      q: filters.kyc ? '&status=' + encodeURIComponent(filters.kyc) : ''
+    };
+  },
+  storefronts: function () {
+    return {
+      path: '/admin/storefronts', key: 'storefronts',
+      q: searches.storefronts ? '&search=' + encodeURIComponent(searches.storefronts) : ''
+    };
+  }
+};
+
+/* ─────────────────────── CSV export ─────────────────────── */
+
+function roleList(u) {
+  return (Array.isArray(u.user_type) ? u.user_type : [u.user_type]).filter(Boolean).join(' / ');
+}
+function personName(p) { return p ? (p.name || p.email || '') : ''; }
+function countOf(row, field) { return row._count ? (row._count[field] || 0) : 0; }
+
+// Column specs shared by both export scopes, so "this page" and "all records"
+// always produce the same headers.
+var EXPORTS = {
+  users: [
+    ['Name', function (u) { return u.name; }],
+    ['Email', function (u) { return u.email; }],
+    ['Phone', function (u) { return u.phone; }],
+    ['Type', roleList],
+    ['Courses', function (u) { return countOf(u, 'courses'); }],
+    ['Enrollments', function (u) { return countOf(u, 'enrollments'); }],
+    ['Transactions', function (u) { return countOf(u, 'transactions'); }],
+    ['Joined', function (u) { return formatDate(u.created_at); }],
+    ['Last login', function (u) { return u.last_login ? formatDateTime(u.last_login) : ''; }]
+  ],
+  courses: [
+    ['Title', function (c) { return c.title; }],
+    ['Creator', function (c) { return personName(c.creator); }],
+    ['Category', function (c) { return c.category; }],
+    ['Status', function (c) { return c.status; }],
+    ['Price', function (c) { return c.price; }],
+    ['Enrollments', function (c) { return countOf(c, 'enrollments'); }],
+    ['Videos', function (c) { return countOf(c, 'videos'); }],
+    ['Revenue', function (c) { return c.revenue; }],
+    ['Created', function (c) { return formatDate(c.created_at); }],
+    ['Published', function (c) { return c.published_at ? formatDate(c.published_at) : ''; }]
+  ],
+  webinars: [
+    ['Title', function (w) { return w.title; }],
+    ['Creator', function (w) { return personName(w.creator); }],
+    ['Status', function (w) { return w.status; }],
+    ['Price', function (w) { return w.price; }],
+    ['Scheduled', function (w) { return formatDateTime(w.scheduled_at); }],
+    ['Duration (min)', function (w) { return w.duration; }],
+    ['Enrollments', function (w) { return countOf(w, 'enrollments'); }],
+    ['Created', function (w) { return formatDate(w.created_at); }]
+  ],
+  revenue: [
+    ['User', function (t) { return personName(t.user); }],
+    ['Product', function (t) { return t.item; }],
+    ['Type', function (t) { return t.kind; }],
+    ['Amount', function (t) { return t.amount; }],
+    ['Commission', function (t) { return t.commission; }],
+    ['Creator', function (t) { return personName(t.creator); }],
+    ['Status', function (t) { return t.status; }],
+    ['Date', function (t) { return formatDateTime(t.created_at); }]
+  ],
+  sessions: [
+    ['Caller', function (s) { return personName(s.caller); }],
+    ['Expert', function (s) { return personName(s.receiver); }],
+    ['Mode', function (s) { return s.mode; }],
+    ['Status', function (s) { return s.status; }],
+    ['Amount', function (s) { return s.amount; }],
+    ['Duration (min)', function (s) { return s.duration; }],
+    ['Scheduled', function (s) { return formatDateTime(s.scheduled_at); }],
+    ['Created', function (s) { return formatDate(s.created_at); }]
+  ],
+  kyc: [
+    ['Name', function (k) { return k.user ? k.user.name : ''; }],
+    ['Email', function (k) { return k.user ? k.user.email : ''; }],
+    ['PAN', function (k) { return k.pan_number; }],
+    ['Type', function (k) { return k.verification_type; }],
+    ['Status', function (k) { return k.status; }],
+    ['Submitted', function (k) { return formatDate(k.created_at); }]
+  ],
+  storefronts: [
+    ['Handle', function (c) { return c.handle; }],
+    ['Creator', function (c) { return c.name || c.email; }],
+    ['Tagline', function (c) { return c.storefront ? c.storefront.tagline : ''; }],
+    ['Courses', function (c) { return countOf(c, 'courses'); }],
+    ['Webinars', function (c) { return countOf(c, 'webinars'); }],
+    ['Views', function (c) { return c.storefront ? (c.storefront.view_count || 0) : 0; }],
+    ['Status', function (c) { return c.storefront && c.storefront.is_published ? 'Live' : 'Private'; }],
+    ['URL', function (c) { return 'https://' + c.handle + '.manchly.com'; }]
+  ]
+};
+
+function csvCell(v) {
+  if (v === null || v === undefined) return '""';
+  return '"' + String(v).replace(/"/g, '""') + '"';
+}
+
+function downloadCsv(section, rows) {
+  var cols = EXPORTS[section];
+  var lines = [cols.map(function (c) { return csvCell(c[0]); }).join(',')];
+  rows.forEach(function (r) {
+    lines.push(cols.map(function (c) { return csvCell(c[1](r)); }).join(','));
+  });
+
+  // BOM so Excel opens the ₹ and non-ASCII names correctly.
+  var blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'manchly-' + section + '-' + new Date().toISOString().slice(0, 10) + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  return rows.length;
+}
+
+function runExport(scope) {
+  var section = activeSection;
+  if (!EXPORTS[section]) return toast('Nothing to export on this screen', 'err');
+
+  if (scope === 'page') {
+    var rows = pageRows[section] || [];
+    if (!rows.length) return toast('Nothing to export yet', 'err');
+    toast('Exported ' + downloadCsv(section, rows) + ' rows', 'ok');
+    return;
+  }
+
+  var q = QUERIES[section]();
+  var btn = document.getElementById('btn-export');
+  btn.disabled = true;
+  toast('Fetching every record…');
+
+  get(API_BASE + q.path + '?all=true' + q.q)
+    .then(function (j) {
+      if (!j.success || !j.data) throw new Error((j.error && j.error.message) || 'Export failed');
+      var rows = j.data[q.key] || [];
+      if (!rows.length) throw new Error('No records match the current filters');
+      var n = downloadCsv(section, rows);
+      if (j.data.pagination && j.data.pagination.truncated) {
+        toast('Exported the first ' + n + ' rows — export cap reached', 'err');
+      } else {
+        toast('Exported all ' + n + ' rows', 'ok');
       }
-      div.innerHTML = '<button type="button" data-page="prev"' + (p.page <= 1 ? ' disabled' : '') + '>Previous</button><span>Page ' + p.page + ' of ' + p.totalPages + '</span><button type="button" data-page="next"' + (p.page >= p.totalPages ? ' disabled' : '') + '>Next</button>';
-      div.querySelector('[data-page="prev"]').onclick = function() { loadFn(p.page - 1); };
-      div.querySelector('[data-page="next"]').onclick = function() { loadFn(p.page + 1); };
+    })
+    .catch(function (e) { toast(e.message || 'Export failed', 'err'); })
+    .then(function () { btn.disabled = false; });
+}
+
+(function wireExportMenu() {
+  var btn = document.getElementById('btn-export');
+  var menu = document.getElementById('export-menu');
+
+  btn.onclick = function (e) {
+    e.stopPropagation();
+    var open = menu.classList.toggle('open');
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (open) {
+      var n = (pageRows[activeSection] || []).length;
+      document.getElementById('export-page-hint').textContent =
+        n ? n + ' row' + (n === 1 ? '' : 's') + ' currently shown' : 'nothing loaded yet';
+    }
+  };
+
+  menu.querySelectorAll('button').forEach(function (b) {
+    b.onclick = function (e) {
+      e.stopPropagation();
+      menu.classList.remove('open');
+      btn.setAttribute('aria-expanded', 'false');
+      runExport(b.getAttribute('data-scope'));
+    };
+  });
+
+  document.addEventListener('click', function () {
+    menu.classList.remove('open');
+    btn.setAttribute('aria-expanded', 'false');
+  });
+})();
+
+/* ─────────────────────── edit forms ─────────────────────── */
+
+var creatorCache = null;
+
+/** Creator list for the reassign dropdown, fetched once per session. */
+function loadCreators() {
+  if (creatorCache) return Promise.resolve(creatorCache);
+  return get(API_BASE + '/admin/users?type=CREATOR&all=true').then(function (j) {
+    creatorCache = (j.success && j.data && j.data.users) ? j.data.users : [];
+    return creatorCache;
+  });
+}
+
+/** Value shape a <input type="datetime-local"> accepts, in local time. */
+function toLocalInput(v) {
+  if (!v) return '';
+  var d = new Date(v);
+  if (isNaN(d.getTime())) return '';
+  var p = function (n) { return ('0' + n).slice(-2); };
+  return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) +
+    'T' + p(d.getHours()) + ':' + p(d.getMinutes());
+}
+
+function openEditor(opts) {
+  document.getElementById('drawer-title').textContent = opts.title;
+  document.getElementById('drawer-sub').textContent = opts.sub || '';
+
+  var body = document.getElementById('drawer-body');
+  var html = '<p class="form-error" id="edit-error"></p>';
+
+  opts.fields.forEach(function (f) {
+    var id = 'f-' + f.key;
+    html += '<div class="field"><label for="' + id + '">' + esc(f.label) + '</label>';
+
+    if (f.type === 'textarea') {
+      html += '<textarea id="' + id + '">' + esc(f.value == null ? '' : f.value) + '</textarea>';
+    } else if (f.type === 'select') {
+      html += '<select id="' + id + '">' + f.options.map(function (o) {
+        var sel = String(o[0]) === String(f.value == null ? '' : f.value) ? ' selected' : '';
+        return '<option value="' + esc(o[0]) + '"' + sel + '>' + esc(o[1]) + '</option>';
+      }).join('') + '</select>';
+    } else if (f.type === 'roles') {
+      html += '<div class="checks">' + f.options.map(function (o) {
+        var on = (f.value || []).indexOf(o) !== -1;
+        return '<label><input type="checkbox" value="' + esc(o) + '" data-role="1"' +
+          (on ? ' checked' : '') + '><span>' + esc(o) + '</span></label>';
+      }).join('') + '</div>';
+    } else {
+      html += '<input type="' + (f.type || 'text') + '" id="' + id + '"' +
+        (f.step ? ' step="' + esc(f.step) + '"' : '') +
+        ' value="' + esc(f.value == null ? '' : f.value) + '">';
     }
 
-    // ——— Users ———
-    function renderUsers(users, pagination) {
-      currentUsers = users || [];
-      var tbody = document.getElementById('users-tbody');
-      if (!users || users.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="loading">No users found</td></tr>';
-        document.getElementById('user-detail-panel').classList.remove('visible');
-        return;
+    if (f.hint) html += '<p class="hint' + (f.warn ? ' warn' : '') + '">' + esc(f.hint) + '</p>';
+    html += '</div>';
+  });
+
+  body.innerHTML = html;
+
+  var foot = document.getElementById('drawer-foot');
+  foot.innerHTML = '';
+
+  var save = document.createElement('button');
+  save.type = 'button';
+  save.className = 'btn-sm btn-amber';
+  save.textContent = 'Save changes';
+  save.onclick = function () {
+    var payload = {};
+    opts.fields.forEach(function (f) {
+      if (f.type === 'roles') {
+        payload[f.key] = [].slice.call(body.querySelectorAll('[data-role]'))
+          .filter(function (c) { return c.checked; })
+          .map(function (c) { return c.value; });
+      } else {
+        var el = document.getElementById('f-' + f.key);
+        if (el) payload[f.key] = el.value;
       }
-      tbody.innerHTML = users.map(function(u, i) {
-        var types = Array.isArray(u.user_type) ? u.user_type : [u.user_type];
-        var badges = types.map(function(t) {
-          return '<span class="badge badge-' + t.toLowerCase() + '">' + t + '</span>';
-        }).join(' ');
-        return '<tr class="user-row clickable-row" data-index="' + i + '"><td>' + (u.email || '–') + '</td><td>' + (u.name || '–') + '</td><td>' + (u.phone || '–') + '</td><td>' + badges + '</td><td>' + (u._count && u._count.courses !== undefined ? u._count.courses : '–') + '</td><td>' + (u._count && u._count.enrollments !== undefined ? u._count.enrollments : '–') + '</td><td class="date-fmt">' + formatDate(u.created_at) + '</td></tr>';
-      }).join('');
-      tbody.querySelectorAll('.user-row').forEach(function(tr) {
-        tr.addEventListener('click', function() {
-          var idx = parseInt(tr.getAttribute('data-index'), 10);
-          showUserDetail(currentUsers[idx]);
-          tbody.querySelectorAll('.user-row').forEach(function(r) { r.classList.remove('selected'); });
-          tr.classList.add('selected');
-        });
-      });
-      document.getElementById('user-detail-panel').classList.remove('visible');
-    }
+    });
+    document.getElementById('edit-error').textContent = '';
+    save.disabled = true;
+    save.textContent = 'Saving…';
+    opts.onSave(payload, function (msg) {
+      save.disabled = false;
+      save.textContent = 'Save changes';
+      document.getElementById('edit-error').textContent = msg;
+    });
+  };
 
-    function showUserDetail(u) {
-      if (!u) return;
-      var types = Array.isArray(u.user_type) ? u.user_type : [u.user_type];
-      var html = '';
-      html += '<div class="user-detail-item"><span class="label">Email</span><span class="value">' + (u.email || '–') + '</span></div>';
-      html += '<div class="user-detail-item"><span class="label">Name</span><span class="value">' + (u.name || '–') + '</span></div>';
-      html += '<div class="user-detail-item"><span class="label">Phone</span><span class="value">' + (u.phone || '–') + '</span></div>';
-      html += '<div class="user-detail-item"><span class="label">Type</span><span class="value">' + types.join(', ') + '</span></div>';
-      html += '<div class="user-detail-item"><span class="label">Courses created</span><span class="value">' + (u._count && u._count.courses !== undefined ? u._count.courses : '–') + '</span></div>';
-      html += '<div class="user-detail-item"><span class="label">Enrollments</span><span class="value">' + (u._count && u._count.enrollments !== undefined ? u._count.enrollments : '–') + '</span></div>';
-      html += '<div class="user-detail-item"><span class="label">Joined</span><span class="value date-fmt">' + formatDate(u.created_at) + '</span></div>';
-      html += '<div class="user-detail-item"><span class="label">Last login</span><span class="value date-fmt">' + formatDateTime(u.last_login) + '</span></div>';
-      document.getElementById('detail-title').textContent = (u.name || u.email || 'User') + ' – Details';
-      document.getElementById('user-detail-content').innerHTML = html;
-      document.getElementById('user-detail-panel').classList.add('visible');
-      // Remember the user this panel is currently showing, for the Delete button.
-      document.getElementById('user-detail-panel').dataset.userId = u.id || '';
-      document.getElementById('user-detail-panel').dataset.userLabel = u.name || u.email || u.id || '';
-    }
+  var cancel = document.createElement('button');
+  cancel.type = 'button';
+  cancel.className = 'btn-sm';
+  cancel.textContent = 'Cancel';
+  cancel.onclick = function () { if (opts.onCancel) opts.onCancel(); else closeDrawer(); };
 
-    function loadUsers(page) {
-      usersPage = page || 1;
-      var tbody = document.getElementById('users-tbody');
-      tbody.innerHTML = '<tr><td colspan="7" class="loading">Loading…</td></tr>';
-      var url = API_BASE + '/admin/users?page=' + usersPage + '&limit=20';
-      if (usersSearch) url += '&search=' + encodeURIComponent(usersSearch);
-      apiFetch(url).then(function(r) { return r.json(); }).then(function(json) {
-        if (json.success && json.data) {
-          renderUsers(json.data.users, json.data.pagination);
-          renderPagination('pagination-users', json.data.pagination, loadUsers);
-        } else {
-          tbody.innerHTML = '<tr><td colspan="7" class="error-msg">' + (json.error && json.error.message ? json.error.message : 'Failed to load') + '</td></tr>';
-        }
-      }).catch(function(e) {
-        tbody.innerHTML = '<tr><td colspan="7" class="error-msg">' + (e.message || 'Failed to load users') + '</td></tr>';
-      });
-    }
+  foot.appendChild(save);
+  foot.appendChild(cancel);
 
-    // ——— Courses ———
-    function renderCourses(courses, pagination) {
-      currentCourses = courses || [];
-      var tbody = document.getElementById('courses-tbody');
-      if (!courses || courses.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="loading">No courses found</td></tr>';
-        document.getElementById('course-detail-panel').classList.remove('visible');
-        return;
+  document.getElementById('drawer').classList.add('open');
+  document.getElementById('drawer-backdrop').classList.add('open');
+}
+
+/** PATCH helper shared by every editor. */
+function saveEntity(path, payload, done, fail) {
+  apiFetch(API_BASE + path, { method: 'PATCH', body: JSON.stringify(payload) })
+    .then(function (r) { return r.json(); })
+    .then(function (j) {
+      if (!j.success) throw new Error((j.error && j.error.message) || 'Update failed');
+      done(j.data);
+    })
+    .catch(function (e) { fail(e.message || 'Update failed'); });
+}
+
+/** DELETE helper shared by every drawer. */
+function deleteEntity(path, confirmText, btn, done) {
+  if (!window.confirm(confirmText)) return;
+  btn.disabled = true;
+  apiFetch(API_BASE + path, { method: 'DELETE' })
+    .then(function (r) { return r.json(); })
+    .then(function (j) {
+      if (!j.success) throw new Error((j.error && j.error.message) || 'Delete failed');
+      done(j.data);
+    })
+    .catch(function (e) { toast(e.message, 'err'); btn.disabled = false; });
+}
+
+function editUser(u) {
+  var types = (Array.isArray(u.user_type) ? u.user_type : [u.user_type]).filter(Boolean);
+  openEditor({
+    title: 'Edit ' + (u.name || u.email || 'user'),
+    sub: u.email || '',
+    fields: [
+      { key: 'name', label: 'Name', value: u.name },
+      { key: 'phone', label: 'Phone', value: u.phone },
+      { key: 'email', label: 'Email', type: 'email', value: u.email,
+        hint: 'This is the login identity — OTPs go here. Changing it moves account access to the new inbox.', warn: true },
+      { key: 'user_type', label: 'Roles', type: 'roles', value: types,
+        options: ['USER', 'CREATOR', 'BRAND', 'AGENCY', 'ADMIN'] }
+    ],
+    onCancel: function () { showUser(u); },
+    onSave: function (payload, fail) {
+      saveEntity('/admin/users/' + encodeURIComponent(u.id), payload, function () {
+        toast('User updated', 'ok');
+        closeDrawer(); loadUsers(usersPage); loadStats();
+        creatorCache = null;
+      }, fail);
+    }
+  });
+}
+
+function editCourse(c) {
+  loadCreators().then(function (creators) {
+    openEditor({
+      title: 'Edit course',
+      sub: c.title || '',
+      fields: [
+        { key: 'title', label: 'Title', value: c.title },
+        { key: 'description', label: 'Description', type: 'textarea', value: c.description },
+        { key: 'category', label: 'Category', value: c.category },
+        { key: 'price', label: 'Price (₹)', type: 'number', step: '0.01', value: c.price },
+        { key: 'status', label: 'Status', type: 'select', value: c.status,
+          options: [['DRAFT', 'Draft'], ['PUBLISHED', 'Published'], ['ARCHIVED', 'Archived']] },
+        { key: 'thumbnail_url', label: 'Thumbnail URL', value: c.thumbnail_url },
+        { key: 'creator_id', label: 'Creator', type: 'select', value: c.creator_id,
+          options: creators.map(function (x) { return [x.id, x.name || x.email]; }),
+          hint: 'Reassigning hands this course and its future revenue to another creator. Payouts already settled stay with the current owner.', warn: true }
+      ],
+      onCancel: function () { showCourse(c); },
+      onSave: function (payload, fail) {
+        saveEntity('/admin/courses/' + encodeURIComponent(c.id), payload, function () {
+          toast('Course updated', 'ok');
+          closeDrawer(); loadCourses(coursesPage); loadStats();
+        }, fail);
       }
-      tbody.innerHTML = courses.map(function(c, i) {
-        var creatorName = (c.creator && (c.creator.name || c.creator.email)) || '–';
-        var enrollments = (c._count && c._count.enrollments !== undefined) ? c._count.enrollments : '–';
-        return '<tr class="course-row clickable-row" data-index="' + i + '"><td>' + (c.title || '–') + '</td><td>' + creatorName + '</td><td><span class="badge badge-' + (c.status === 'PUBLISHED' ? 'creator' : 'user') + '">' + c.status + '</span></td><td>' + (c.price != null ? c.price.toLocaleString('en-IN') : '–') + '</td><td>' + enrollments + '</td><td class="date-fmt">' + formatDate(c.created_at) + '</td></tr>';
-      }).join('');
-      tbody.querySelectorAll('.course-row').forEach(function(tr) {
-        tr.addEventListener('click', function() {
-          var idx = parseInt(tr.getAttribute('data-index'), 10);
-          showCourseDetail(currentCourses[idx]);
-          tbody.querySelectorAll('.course-row').forEach(function(r) { r.classList.remove('selected'); });
-          tr.classList.add('selected');
-        });
-      });
-      document.getElementById('course-detail-panel').classList.remove('visible');
-    }
+    });
+  }).catch(function (e) { toast(e.message || 'Could not load creators', 'err'); });
+}
 
-    function showCourseDetail(c) {
-      if (!c) return;
-      var creatorName = (c.creator && (c.creator.name || c.creator.email)) || '–';
-      var html = '';
-      html += '<div class="user-detail-item"><span class="label">Title</span><span class="value">' + (c.title || '–') + '</span></div>';
-      html += '<div class="user-detail-item"><span class="label">Creator</span><span class="value">' + creatorName + '</span></div>';
-      html += '<div class="user-detail-item"><span class="label">Status</span><span class="value">' + (c.status || '–') + '</span></div>';
-      html += '<div class="user-detail-item"><span class="label">Price (₹)</span><span class="value">' + (c.price != null ? c.price.toLocaleString('en-IN') : '–') + '</span></div>';
-      html += '<div class="user-detail-item"><span class="label">Category</span><span class="value">' + (c.category || '–') + '</span></div>';
-      html += '<div class="user-detail-item"><span class="label">Enrollments</span><span class="value">' + (c._count && c._count.enrollments !== undefined ? c._count.enrollments : '–') + '</span></div>';
-      html += '<div class="user-detail-item"><span class="label">Videos</span><span class="value">' + (c._count && c._count.videos !== undefined ? c._count.videos : '–') + '</span></div>';
-      html += '<div class="user-detail-item"><span class="label">Created</span><span class="value date-fmt">' + formatDate(c.created_at) + '</span></div>';
-      html += '<div class="user-detail-item"><span class="label">Published</span><span class="value date-fmt">' + formatDate(c.published_at) + '</span></div>';
-      document.getElementById('course-detail-title').textContent = (c.title || 'Course') + ' – Details';
-      document.getElementById('course-detail-content').innerHTML = html;
-      document.getElementById('course-detail-panel').classList.add('visible');
-    }
-
-    function loadCourses(page) {
-      coursesPage = page || 1;
-      var tbody = document.getElementById('courses-tbody');
-      tbody.innerHTML = '<tr><td colspan="6" class="loading">Loading…</td></tr>';
-      var url = API_BASE + '/admin/courses?page=' + coursesPage + '&limit=20';
-      if (coursesSearch) url += '&search=' + encodeURIComponent(coursesSearch);
-      apiFetch(url).then(function(r) { return r.json(); }).then(function(json) {
-        if (json.success && json.data) {
-          renderCourses(json.data.courses, json.data.pagination);
-          renderPagination('pagination-courses', json.data.pagination, loadCourses);
-        } else {
-          tbody.innerHTML = '<tr><td colspan="6" class="error-msg">' + (json.error && json.error.message ? json.error.message : 'Failed to load') + '</td></tr>';
-        }
-      }).catch(function(e) {
-        tbody.innerHTML = '<tr><td colspan="6" class="error-msg">' + (e.message || 'Failed to load courses') + '</td></tr>';
-      });
-    }
-
-    // ——— Webinars ———
-    function renderWebinars(webinars, pagination) {
-      currentWebinars = webinars || [];
-      var tbody = document.getElementById('webinars-tbody');
-      if (!webinars || webinars.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="loading">No webinars found</td></tr>';
-        document.getElementById('webinar-detail-panel').classList.remove('visible');
-        return;
+function editWebinar(w) {
+  loadCreators().then(function (creators) {
+    openEditor({
+      title: 'Edit webinar',
+      sub: w.title || '',
+      fields: [
+        { key: 'title', label: 'Title', value: w.title },
+        { key: 'description', label: 'Description', type: 'textarea', value: w.description },
+        { key: 'category', label: 'Category', value: w.category },
+        { key: 'price', label: 'Price (₹)', type: 'number', step: '0.01', value: w.price },
+        { key: 'scheduled_at', label: 'Scheduled at', type: 'datetime-local', value: toLocalInput(w.scheduled_at) },
+        { key: 'duration', label: 'Duration (minutes)', type: 'number', value: w.duration },
+        { key: 'max_participants', label: 'Max participants', type: 'number', value: w.max_participants },
+        { key: 'status', label: 'Status', type: 'select', value: w.status,
+          options: [['DRAFT', 'Draft'], ['PUBLISHED', 'Published'], ['COMPLETED', 'Completed'], ['CANCELLED', 'Cancelled']] },
+        { key: 'thumbnail_url', label: 'Thumbnail URL', value: w.thumbnail_url },
+        { key: 'creator_id', label: 'Creator', type: 'select', value: w.creator_id,
+          options: creators.map(function (x) { return [x.id, x.name || x.email]; }),
+          hint: 'Reassigning hands this webinar and its future revenue to another creator.', warn: true }
+      ],
+      onCancel: function () { showWebinar(w); },
+      onSave: function (payload, fail) {
+        saveEntity('/admin/webinars/' + encodeURIComponent(w.id), payload, function () {
+          toast('Webinar updated', 'ok');
+          closeDrawer(); loadWebinars(webinarsPage); loadStats();
+        }, fail);
       }
-      tbody.innerHTML = webinars.map(function(w, i) {
-        var creatorName = (w.creator && (w.creator.name || w.creator.email)) || '–';
-        var enrollments = (w._count && w._count.enrollments !== undefined) ? w._count.enrollments : '–';
-        return '<tr class="webinar-row clickable-row" data-index="' + i + '"><td>' + (w.title || '–') + '</td><td>' + creatorName + '</td><td><span class="badge badge-' + (w.status === 'PUBLISHED' ? 'creator' : 'user') + '">' + w.status + '</span></td><td>' + (w.price != null ? w.price.toLocaleString('en-IN') : '–') + '</td><td class="date-fmt">' + formatDate(w.scheduled_at) + '</td><td>' + enrollments + '</td><td class="date-fmt">' + formatDate(w.created_at) + '</td></tr>';
-      }).join('');
-      tbody.querySelectorAll('.webinar-row').forEach(function(tr) {
-        tr.addEventListener('click', function() {
-          var idx = parseInt(tr.getAttribute('data-index'), 10);
-          showWebinarDetail(currentWebinars[idx]);
-          tbody.querySelectorAll('.webinar-row').forEach(function(r) { r.classList.remove('selected'); });
-          tr.classList.add('selected');
-        });
-      });
-      document.getElementById('webinar-detail-panel').classList.remove('visible');
-    }
+    });
+  }).catch(function (e) { toast(e.message || 'Could not load creators', 'err'); });
+}
 
-    function showWebinarDetail(w) {
-      if (!w) return;
-      var creatorName = (w.creator && (w.creator.name || w.creator.email)) || '–';
-      var html = '';
-      html += '<div class="user-detail-item"><span class="label">Title</span><span class="value">' + (w.title || '–') + '</span></div>';
-      html += '<div class="user-detail-item"><span class="label">Creator</span><span class="value">' + creatorName + '</span></div>';
-      html += '<div class="user-detail-item"><span class="label">Status</span><span class="value">' + (w.status || '–') + '</span></div>';
-      html += '<div class="user-detail-item"><span class="label">Price (₹)</span><span class="value">' + (w.price != null ? w.price.toLocaleString('en-IN') : '–') + '</span></div>';
-      html += '<div class="user-detail-item"><span class="label">Scheduled</span><span class="value date-fmt">' + formatDateTime(w.scheduled_at) + '</span></div>';
-      html += '<div class="user-detail-item"><span class="label">Duration (min)</span><span class="value">' + (w.duration != null ? w.duration : '–') + '</span></div>';
-      html += '<div class="user-detail-item"><span class="label">Enrollments</span><span class="value">' + (w._count && w._count.enrollments !== undefined ? w._count.enrollments : '–') + '</span></div>';
-      html += '<div class="user-detail-item"><span class="label">Created</span><span class="value date-fmt">' + formatDate(w.created_at) + '</span></div>';
-      document.getElementById('webinar-detail-title').textContent = (w.title || 'Webinar') + ' – Details';
-      document.getElementById('webinar-detail-content').innerHTML = html;
-      document.getElementById('webinar-detail-panel').classList.add('visible');
-    }
+function showSession(s) {
+  if (!s) return;
+  openDrawer({
+    title: '1:1 session',
+    sub: personName(s.caller) + ' → ' + personName(s.receiver),
+    rows: [
+      ['Status', pill(s.status, statusTone(s.status)), true],
+      ['Mode', s.mode || '—'],
+      ['Caller', personName(s.caller) || '—'],
+      ['Expert', personName(s.receiver) || '—'],
+      ['Amount', inr(s.amount)],
+      ['Rate / min', inr(s.rate_per_min)],
+      ['Duration', (s.duration || 0) + ' min'],
+      ['Scheduled', formatDateTime(s.scheduled_at)],
+      ['Started', formatDateTime(s.started_at)],
+      ['Ended', formatDateTime(s.ended_at)],
+      ['Payment', s.payment_status || '—'],
+      ['Created', formatDate(s.created_at)]
+    ],
+    actions: [
+      { label: 'Edit session', onClick: function () { editSession(s); } },
+      {
+        label: 'Delete session', cls: 'btn-danger-sm',
+        onClick: function (btn) {
+          deleteEntity(
+            '/admin/sessions/' + encodeURIComponent(s.id),
+            'Delete this session?\n\nAny payment rows attached to it are removed as well. This cannot be undone.',
+            btn,
+            function (data) {
+              toast('Session deleted' + (data && data.transactions_removed
+                ? ' (' + data.transactions_removed + ' payment row(s) too)' : ''), 'ok');
+              closeDrawer(); loadSessions(sessionsPage); loadStats();
+            }
+          );
+        }
+      }
+    ]
+  });
+}
 
-    function loadWebinars(page) {
-      webinarsPage = page || 1;
-      var tbody = document.getElementById('webinars-tbody');
-      tbody.innerHTML = '<tr><td colspan="7" class="loading">Loading…</td></tr>';
-      var url = API_BASE + '/admin/webinars?page=' + webinarsPage + '&limit=20';
-      if (webinarsSearch) url += '&search=' + encodeURIComponent(webinarsSearch);
-      apiFetch(url).then(function(r) { return r.json(); }).then(function(json) {
-        if (json.success && json.data) {
-          renderWebinars(json.data.webinars, json.data.pagination);
-          renderPagination('pagination-webinars', json.data.pagination, loadWebinars);
+function editSession(s) {
+  openEditor({
+    title: 'Edit session',
+    sub: personName(s.caller) + ' → ' + personName(s.receiver),
+    fields: [
+      { key: 'status', label: 'Status', type: 'select', value: s.status,
+        options: [['PENDING', 'Pending'], ['ACTIVE', 'Active'], ['COMPLETED', 'Completed'],
+                  ['MISSED', 'Missed'], ['CANCELLED', 'Cancelled']] },
+      { key: 'mode', label: 'Mode', type: 'select', value: s.mode,
+        options: [['CALL', 'Call'], ['VIDEO', 'Video']] },
+      { key: 'scheduled_at', label: 'Scheduled at', type: 'datetime-local', value: toLocalInput(s.scheduled_at) },
+      { key: 'duration', label: 'Duration (minutes)', type: 'number', value: s.duration },
+      { key: 'rate_per_min', label: 'Rate per minute (₹)', type: 'number', step: '0.01', value: s.rate_per_min },
+      { key: 'amount', label: 'Amount (₹)', type: 'number', step: '0.01', value: s.amount,
+        hint: 'Settlement pays the expert on this figure. Editing it can leave the session disagreeing with the payment actually taken.', warn: true }
+    ],
+    onCancel: function () { showSession(s); },
+    onSave: function (payload, fail) {
+      saveEntity('/admin/sessions/' + encodeURIComponent(s.id), payload, function (data) {
+        closeDrawer(); loadSessions(sessionsPage); loadStats();
+        if (data && data.amount_mismatch) {
+          toast('Saved — but the amount no longer matches the ' + inr(data.paid_total) + ' actually paid', 'err');
         } else {
-          tbody.innerHTML = '<tr><td colspan="7" class="error-msg">' + (json.error && json.error.message ? json.error.message : 'Failed to load') + '</td></tr>';
+          toast('Session updated', 'ok');
         }
-      }).catch(function(e) {
-        tbody.innerHTML = '<tr><td colspan="7" class="error-msg">' + (e.message || 'Failed to load webinars') + '</td></tr>';
-      });
+      }, fail);
     }
+  });
+}
 
-    document.getElementById('btn-logout').onclick = function() {
-      clearToken();
-      window.location.href = '/';
-    };
+document.getElementById('btn-invite').onclick = function () {
+  var link = APP_URL + '/signup?role=creator';
+  var done = function () { toast('Creator signup link copied', 'ok'); };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(link).then(done, function () { window.prompt('Copy this link:', link); });
+  } else {
+    window.prompt('Copy this link:', link);
+  }
+};
 
-    document.getElementById('btn-search-users').onclick = function() { usersSearch = document.getElementById('search-users').value.trim(); loadUsers(1); };
-    document.getElementById('search-users').onkeydown = function(e) { if (e.key === 'Enter') { usersSearch = this.value.trim(); loadUsers(1); } };
+document.getElementById('btn-logout').onclick = function () {
+  clearToken();
+  window.location.href = '/';
+};
 
-    document.getElementById('btn-search-courses').onclick = function() { coursesSearch = document.getElementById('search-courses').value.trim(); loadCourses(1); };
-    document.getElementById('search-courses').onkeydown = function(e) { if (e.key === 'Enter') { coursesSearch = this.value.trim(); loadCourses(1); } };
+/* ─────────────────────── boot ─────────────────────── */
 
-    document.getElementById('btn-search-webinars').onclick = function() { webinarsSearch = document.getElementById('search-webinars').value.trim(); loadWebinars(1); };
-    document.getElementById('search-webinars').onkeydown = function(e) { if (e.key === 'Enter') { webinarsSearch = this.value.trim(); loadWebinars(1); } };
+wireSearch('users', loadUsers);
+wireSearch('courses', loadCourses);
+wireSearch('webinars', loadWebinars);
+wireSearch('storefronts', loadStorefronts);
 
-    document.getElementById('btn-close-detail').onclick = function() {
-      document.getElementById('user-detail-panel').classList.remove('visible');
-      document.querySelectorAll('#users-tbody .user-row.selected').forEach(function(r) { r.classList.remove('selected'); });
-    };
+get(API_BASE + '/auth/me').then(function (j) {
+  if (j.success && j.data && j.data.user) {
+    var u = j.data.user;
+    document.getElementById('user-email').textContent = u.email || 'Admin';
+    document.getElementById('avatar').textContent = (u.name || u.email || 'A').charAt(0).toUpperCase();
+  }
+}).catch(function () {});
 
-    document.getElementById('btn-delete-user').onclick = function() {
-      var panel = document.getElementById('user-detail-panel');
-      var userId = panel.dataset.userId;
-      var label  = panel.dataset.userLabel || 'this user';
-      if (!userId) return;
-      var ok = window.confirm(
-        'Delete ' + label + '?\n\n' +
-        'This permanently removes the user and cascade-deletes all their ' +
-        'enrollments, transactions, and any courses they created. ' +
-        'This cannot be undone.'
-      );
-      if (!ok) return;
-      var btn = this;
-      btn.disabled = true;
-      btn.textContent = 'Deleting…';
-      apiFetch(API_BASE + '/admin/users/' + encodeURIComponent(userId), { method: 'DELETE' })
-        .then(function(r) { return r.json(); })
-        .then(function(json) {
-          if (!json.success) throw new Error((json.error && json.error.message) || 'Delete failed');
-          panel.classList.remove('visible');
-          panel.dataset.userId = '';
-          loadUsers(usersPage);   // refresh table
-        })
-        .catch(function(e) { alert('Delete failed: ' + (e.message || e)); })
-        .finally(function() { btn.disabled = false; btn.textContent = 'Delete User'; });
-    };
-    document.getElementById('btn-close-course-detail').onclick = function() {
-      document.getElementById('course-detail-panel').classList.remove('visible');
-      document.querySelectorAll('#courses-tbody .course-row.selected').forEach(function(r) { r.classList.remove('selected'); });
-    };
-    document.getElementById('btn-close-webinar-detail').onclick = function() {
-      document.getElementById('webinar-detail-panel').classList.remove('visible');
-      document.querySelectorAll('#webinars-tbody .webinar-row.selected').forEach(function(r) { r.classList.remove('selected'); });
-    };
-
-    apiFetch(API_BASE + '/auth/me')
-      .then(function(r) { return r.json(); })
-      .then(function(json) {
-        if (json.success && json.data && json.data.user) {
-          var user = json.data.user;
-          var label = user.email || 'Admin';
-          document.getElementById('user-email').textContent = label;
-          var initialSource = user.name || user.email || 'A';
-          document.getElementById('avatar').textContent = initialSource.charAt(0).toUpperCase();
-          if (user.name) {
-            var hour = new Date().getHours();
-            var part = hour < 12 ? 'Good morning' : (hour < 17 ? 'Good afternoon' : 'Good evening');
-            document.getElementById('greeting').textContent = part + ', ' + user.name + ' 👋';
-          }
-        }
-      })
-      .catch(function() {});
-
-    // ——— Payments ———
-    var paymentsPage = 1;
-
-    function loadPayments(page) {
-      paymentsPage = page || 1;
-      var tbody = document.getElementById('payments-tbody');
-      tbody.innerHTML = '<tr><td colspan="6" class="loading">Loading…</td></tr>';
-
-      var url = API_BASE + '/admin/transactions?page=' + paymentsPage + '&limit=20';
-      var kind = document.getElementById('filter-tx-kind').value;
-      var status = document.getElementById('filter-tx-status').value;
-      if (kind) url += '&kind=' + kind;
-      if (status) url += '&status=' + status;
-
-      apiFetch(url).then(function(r) { return r.json(); }).then(function(json) {
-        if (!json.success || !json.data) {
-          tbody.innerHTML = '<tr><td colspan="6" class="error-msg">' + ((json.error && json.error.message) || 'Failed to load') + '</td></tr>';
-          return;
-        }
-        var d = json.data;
-        document.getElementById('tx-revenue').textContent = Number(d.totals.revenue || 0).toLocaleString('en-IN');
-        document.getElementById('tx-success').textContent = d.totals.success;
-        document.getElementById('tx-pending').textContent = d.totals.pending;
-        document.getElementById('tx-failed').textContent = d.totals.failed;
-
-        if (!d.transactions.length) {
-          tbody.innerHTML = '<tr><td colspan="6" class="loading">No transactions found</td></tr>';
-        } else {
-          tbody.innerHTML = d.transactions.map(function(t) {
-            var badgeClass = t.status === 'SUCCESS' ? 'creator' : (t.status === 'FAILED' ? 'admin' : 'user');
-            var kindClass = t.kind === 'course' ? 'user' : (t.kind === 'webinar' ? 'brand' : 'creator');
-            var who = t.user ? (t.user.name || t.user.email || '–') : '–';
-            return '<tr><td><span class="badge badge-' + kindClass + '">' + t.kind + '</span></td>' +
-              '<td>' + (t.item || '–') + '</td><td>' + who + '</td>' +
-              '<td>₹' + Number(t.amount || 0).toLocaleString('en-IN') + '</td>' +
-              '<td><span class="badge badge-' + badgeClass + '">' + t.status + '</span></td>' +
-              '<td class="date-fmt">' + formatDate(t.created_at) + '</td></tr>';
-          }).join('');
-        }
-        renderPagination('pagination-payments', d.pagination, loadPayments);
-      }).catch(function(e) {
-        tbody.innerHTML = '<tr><td colspan="6" class="error-msg">' + (e.message || 'Failed to load') + '</td></tr>';
-      });
-    }
-
-    document.getElementById('filter-tx-kind').onchange = function() { loadPayments(1); };
-    document.getElementById('filter-tx-status').onchange = function() { loadPayments(1); };
-
-    // ——— Sessions ———
-    var sessionsPage = 1;
-
-    function loadSessions(page) {
-      sessionsPage = page || 1;
-      var tbody = document.getElementById('sessions-tbody');
-      tbody.innerHTML = '<tr><td colspan="7" class="loading">Loading…</td></tr>';
-
-      var url = API_BASE + '/admin/sessions?page=' + sessionsPage + '&limit=20';
-      var status = document.getElementById('filter-session-status').value;
-      if (status) url += '&status=' + status;
-
-      apiFetch(url).then(function(r) { return r.json(); }).then(function(json) {
-        if (!json.success || !json.data) {
-          tbody.innerHTML = '<tr><td colspan="7" class="error-msg">' + ((json.error && json.error.message) || 'Failed to load') + '</td></tr>';
-          return;
-        }
-        var rows = json.data.sessions || [];
-        if (!rows.length) {
-          tbody.innerHTML = '<tr><td colspan="7" class="loading">No sessions found</td></tr>';
-        } else {
-          tbody.innerHTML = rows.map(function(s) {
-            var badgeClass = s.status === 'COMPLETED' ? 'creator' : (s.status === 'CANCELLED' || s.status === 'MISSED' ? 'admin' : 'user');
-            var caller = s.caller ? (s.caller.name || s.caller.email) : '–';
-            var receiver = s.receiver ? (s.receiver.name || s.receiver.email) : '–';
-            return '<tr><td>' + caller + '</td><td>' + receiver + '</td>' +
-              '<td>' + (s.mode || '–') + '</td>' +
-              '<td><span class="badge badge-' + badgeClass + '">' + s.status + '</span></td>' +
-              '<td>₹' + Number(s.amount || 0).toLocaleString('en-IN') + '</td>' +
-              '<td>' + (s.duration || 0) + ' min</td>' +
-              '<td class="date-fmt">' + formatDateTime(s.scheduled_at) + '</td></tr>';
-          }).join('');
-        }
-        renderPagination('pagination-sessions', json.data.pagination, loadSessions);
-      }).catch(function(e) {
-        tbody.innerHTML = '<tr><td colspan="7" class="error-msg">' + (e.message || 'Failed to load') + '</td></tr>';
-      });
-    }
-
-    document.getElementById('filter-session-status').onchange = function() { loadSessions(1); };
-
-    // ——— KYC ———
-    var kycPage = 1;
-
-    function loadKyc(page) {
-      kycPage = page || 1;
-      var tbody = document.getElementById('kyc-tbody');
-      tbody.innerHTML = '<tr><td colspan="7" class="loading">Loading…</td></tr>';
-
-      var url = API_BASE + '/admin/kyc?page=' + kycPage + '&limit=20';
-      var status = document.getElementById('filter-kyc-status').value;
-      if (status) url += '&status=' + status;
-
-      apiFetch(url).then(function(r) { return r.json(); }).then(function(json) {
-        if (!json.success || !json.data) {
-          tbody.innerHTML = '<tr><td colspan="7" class="error-msg">' + ((json.error && json.error.message) || 'Failed to load') + '</td></tr>';
-          return;
-        }
-        var rows = json.data.kyc || [];
-        if (!rows.length) {
-          tbody.innerHTML = '<tr><td colspan="7" class="loading">No KYC records found</td></tr>';
-        } else {
-          tbody.innerHTML = rows.map(function(k) {
-            var badgeClass = k.status === 'VERIFIED' ? 'creator' : (k.status === 'FAILED' ? 'admin' : 'user');
-            var actions = k.status === 'PENDING'
-              ? '<button type="button" class="btn-inline btn btn-primary kyc-act" data-id="' + k.id + '" data-approve="1" style="padding:0.35rem 0.9rem;font-size:0.8125rem;">Approve</button> ' +
-                '<button type="button" class="btn-danger kyc-act" data-id="' + k.id + '" data-approve="0" style="padding:0.35rem 0.9rem;font-size:0.8125rem;">Reject</button>'
-              : '<span style="color:var(--text-soft);font-size:0.8125rem;">Reviewed</span>';
-            return '<tr><td>' + ((k.user && k.user.name) || '–') + '</td>' +
-              '<td>' + ((k.user && k.user.email) || '–') + '</td>' +
-              '<td>' + (k.pan_number || '–') + '</td>' +
-              '<td>' + (k.verification_type || '–') + '</td>' +
-              '<td><span class="badge badge-' + badgeClass + '">' + k.status + '</span></td>' +
-              '<td class="date-fmt">' + formatDate(k.created_at) + '</td>' +
-              '<td style="white-space:nowrap;">' + actions + '</td></tr>';
-          }).join('');
-
-          tbody.querySelectorAll('.kyc-act').forEach(function(btn) {
-            btn.onclick = function() {
-              var approve = btn.getAttribute('data-approve') === '1';
-              if (!window.confirm((approve ? 'Approve' : 'Reject') + ' this KYC submission?')) return;
-              btn.disabled = true;
-              apiFetch(API_BASE + '/admin/kyc/' + btn.getAttribute('data-id') + '/review', {
-                method: 'PATCH',
-                body: JSON.stringify({ approve: approve })
-              }).then(function(r) { return r.json(); }).then(function(j) {
-                if (!j.success) throw new Error((j.error && j.error.message) || 'Failed');
-                loadKyc(kycPage);
-              }).catch(function(e) { alert('Failed: ' + e.message); btn.disabled = false; });
-            };
-          });
-        }
-        renderPagination('pagination-kyc', json.data.pagination, loadKyc);
-      }).catch(function(e) {
-        tbody.innerHTML = '<tr><td colspan="7" class="error-msg">' + (e.message || 'Failed to load') + '</td></tr>';
-      });
-    }
-
-    document.getElementById('filter-kyc-status').onchange = function() { loadKyc(1); };
-
-    // ——— Storefronts ———
-    var storefrontsPage = 1, storefrontsSearch = '';
-
-    function loadStorefronts(page) {
-      storefrontsPage = page || 1;
-      var tbody = document.getElementById('storefronts-tbody');
-      tbody.innerHTML = '<tr><td colspan="8" class="loading">Loading…</td></tr>';
-
-      var url = API_BASE + '/admin/storefronts?page=' + storefrontsPage + '&limit=20';
-      if (storefrontsSearch) url += '&search=' + encodeURIComponent(storefrontsSearch);
-
-      apiFetch(url).then(function(r) { return r.json(); }).then(function(json) {
-        if (!json.success || !json.data) {
-          tbody.innerHTML = '<tr><td colspan="8" class="error-msg">' + ((json.error && json.error.message) || 'Failed to load') + '</td></tr>';
-          return;
-        }
-        var rows = json.data.storefronts || [];
-        if (!rows.length) {
-          tbody.innerHTML = '<tr><td colspan="8" class="loading">No storefronts found</td></tr>';
-        } else {
-          tbody.innerHTML = rows.map(function(c) {
-            var sf = c.storefront || {};
-            var live = sf.is_published === true;
-            var link = 'https://' + c.handle + '.manchly.com';
-            return '<tr><td><a href="' + link + '" target="_blank" rel="noopener" style="color:var(--amber-deep);font-weight:700;">' + c.handle + '</a></td>' +
-              '<td>' + (c.name || c.email || '–') + '</td>' +
-              '<td>' + (sf.tagline || '–') + '</td>' +
-              '<td>' + (c._count ? c._count.courses : 0) + '</td>' +
-              '<td>' + (c._count ? c._count.webinars : 0) + '</td>' +
-              '<td>' + (sf.view_count || 0) + '</td>' +
-              '<td><span class="badge badge-' + (live ? 'creator' : 'user') + '">' + (live ? 'Live' : 'Private') + '</span></td>' +
-              '<td><button type="button" class="' + (live ? 'btn-danger' : 'btn btn-primary') + ' sf-act" data-id="' + c.id + '" data-publish="' + (live ? '0' : '1') + '" style="padding:0.35rem 0.9rem;font-size:0.8125rem;width:auto;margin:0;">' +
-              (live ? 'Unpublish' : 'Publish') + '</button></td></tr>';
-          }).join('');
-
-          tbody.querySelectorAll('.sf-act').forEach(function(btn) {
-            btn.onclick = function() {
-              var publish = btn.getAttribute('data-publish') === '1';
-              if (!publish && !window.confirm('Take this storefront offline? The public page will stop loading.')) return;
-              btn.disabled = true;
-              apiFetch(API_BASE + '/admin/storefronts/' + btn.getAttribute('data-id') + '/publish', {
-                method: 'PATCH',
-                body: JSON.stringify({ publish: publish })
-              }).then(function(r) { return r.json(); }).then(function(j) {
-                if (!j.success) throw new Error((j.error && j.error.message) || 'Failed');
-                loadStorefronts(storefrontsPage);
-              }).catch(function(e) { alert('Failed: ' + e.message); btn.disabled = false; });
-            };
-          });
-        }
-        renderPagination('pagination-storefronts', json.data.pagination, loadStorefronts);
-      }).catch(function(e) {
-        tbody.innerHTML = '<tr><td colspan="8" class="error-msg">' + (e.message || 'Failed to load') + '</td></tr>';
-      });
-    }
-
-    document.getElementById('btn-search-storefronts').onclick = function() {
-      storefrontsSearch = document.getElementById('search-storefronts').value.trim();
-      loadStorefronts(1);
-    };
-    document.getElementById('search-storefronts').onkeydown = function(e) {
-      if (e.key === 'Enter') { storefrontsSearch = this.value.trim(); loadStorefronts(1); }
-    };
-
-    loadStats();
-    loadUsers(1);
-  </script>
+loadStats();
+</script>
 </body>
 </html>

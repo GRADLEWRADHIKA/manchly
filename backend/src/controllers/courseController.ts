@@ -251,6 +251,7 @@ export class CourseController {
           { description: { contains: search, mode: 'insensitive' } }
         ];
       }
+      
 
       const [courses, total] = await Promise.all([
         prisma.courses.findMany({
@@ -295,6 +296,17 @@ export class CourseController {
         }),
         prisma.courses.count({ where: whereClause })
       ]);
+
+    
+const courseIds = courses.map((c) => c.id);
+const revenueByCourseRaw = courseIds.length
+  ? await prisma.transactions.groupBy({
+      by: ["course_id"],
+      where: { course_id: { in: courseIds }, status: "SUCCESS" },
+      _sum: { amount: true },
+    })
+  : [];
+const revenueMap = new Map(revenueByCourseRaw.map((r) => [r.course_id, r._sum.amount || 0]));
 
       // Update video status from Mux for each course
       const coursesWithUpdatedStatus = await Promise.all(
@@ -368,7 +380,8 @@ export class CourseController {
 
           return {
             ...course,
-            videos: videosWithStatus
+            videos: videosWithStatus,
+            revenue: revenueMap.get(course.id) || 0,
           };
         })
       );
@@ -1268,7 +1281,7 @@ export class CourseController {
         return ApiResponseHandler.customError(res, "Only creators can view statistics", 403, "FORBIDDEN");
       }
 
-      const [totalCourses, publishedCourses, totalEnrollments, totalVideos, coursesSold] = await Promise.all([
+      const [totalCourses, publishedCourses, totalEnrollments, totalVideos, coursesSold, revenueAgg] = await Promise.all([
         prisma.courses.count({ where: { creator_id: userId } }),
         prisma.courses.count({ where: { creator_id: userId, status: "PUBLISHED" } }),
         prisma.enrollments.count({
@@ -1292,6 +1305,10 @@ export class CourseController {
               some: {}
             }
           }
+        }),
+        prisma.transactions.aggregate({
+          where: {course: {creator_id: userId}, status: "SUCCESS"},
+          _sum: {amount: true},
         })
       ]);
 
@@ -1313,6 +1330,7 @@ export class CourseController {
           total_enrollments: totalEnrollments,
           total_videos: totalVideos,
           courses_sold: coursesSold,
+          revenue: revenueAgg._sum.amount || 0,
           courses_with_enrollments: courseEnrollments.map(c => ({
             course_id: c.id,
             course_title: c.title,

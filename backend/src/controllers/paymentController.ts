@@ -1014,82 +1014,87 @@ export class PaymentController {
   /**
    * Get creator's sales (transactions for their courses)
    */
-  static async getCreatorSales(req: any, res: Response) {
-    const userId = req.user.userId;
-    const { page = 1, limit = 10, status } = req.query;
+ static async getCreatorSales(req: any, res: Response) {
+  const userId = req.user.userId;
+  const { page = 1, limit = 10, status } = req.query;
 
-    try {
-      const user = await prisma.users.findUnique({ where: { id: userId } });
+  try {
+    const user = await prisma.users.findUnique({ where: { id: userId } });
 
-      if (!user || !isCreator(user.user_type)) {
-        return ApiResponseHandler.customError(res, "Only creators can view sales", 403, "FORBIDDEN");
-      }
-
-      const skip = (Number(page) - 1) * Number(limit);
-
-      const whereClause: any = {
-        course: {
-          creator_id: userId
-        }
-      };
-
-      if (status) {
-        whereClause.status = status;
-      }
-
-      const [transactions, total] = await Promise.all([
-        prisma.transactions.findMany({
-          where: whereClause,
-          skip,
-          take: Number(limit),
-          include: {
-            course: {
-              select: {
-                id: true,
-                title: true,
-                thumbnail: true,
-                price: true
-              }
-            },
-            user: {
-              select: {
-                id: true,
-                name: true,
-                email: true
-              }
-            }
-          },
-          orderBy: { created_at: 'desc' }
-        }),
-        prisma.transactions.count({ where: whereClause })
-      ]);
-
-      // Calculate total revenue
-      const totalRevenue = await prisma.transactions.aggregate({
-        where: {
-          course: {
-            creator_id: userId
-          },
-          status: "SUCCESS"
-        },
-        _sum: {
-          amount: true
-        }
-      });
-
-      ApiResponseHandler.success(res, {
-        transactions,
-        total_revenue: totalRevenue._sum.amount || 0,
-        pagination: {
-          page: Number(page),
-          limit: Number(limit),
-          total,
-          total_pages: Math.ceil(total / Number(limit))
-        }
-      }, "Sales retrieved successfully");
-
-    } catch (err: any) {
-      ApiResponseHandler.unexpectedError(res, err, 500);
+    if (!user || !isCreator(user.user_type)) {
+      return ApiResponseHandler.customError(res, "Only creators can view sales", 403, "FORBIDDEN");
     }
+
+    const statusFilter = status ? String(status).toUpperCase() : "SUCCESS";
+
+    // Pull recent course + webinar transactions (unpaginated at the DB level —
+    // capped and merged in memory, since we need to interleave two tables by date)
+    const [courseTxns, webinarTxns, totalRevenue, webinarRevenue] = await Promise.all([
+      prisma.transactions.findMany({
+        where: { course: { creator_id: userId }, status: statusFilter as any },
+        include: {
+          course: { select: { id: true, title: true, thumbnail: true, price: true } },
+          user: { select: { id: true, name: true, email: true } },
+        },
+        orderBy: { created_at: "desc" },
+        take: 50,
+      }),
+      prisma.webinar_transactions.findMany({
+        where: { webinar: { creator_id: userId }, status: statusFilter as any },
+        include: {
+          webinar: { select: { id: true, title: true, thumbnail: true, price: true } },
+          user: { select: { id: true, name: true, email: true } },
+        },
+        orderBy: { created_at: "desc" },
+        take: 50,
+      }),
+      prisma.transactions.aggregate({
+        where: { course: { creator_id: userId }, status: "SUCCESS" },
+        _sum: { amount: true },
+      }),
+      prisma.webinar_transactions.aggregate({
+        where: { webinar: { creator_id: userId }, status: "SUCCESS" },
+        _sum: { amount: true },
+      }),
+    ]);
+
+    // Transform both into the shape RecentEnrollments.jsx expects, then merge + sort
+    const merged = [
+      ...courseTxns.map((t) => ({
+        id: t.id,
+        student_name: t.user?.name || "Unknown",
+        product_name: t.course?.title || "Untitled course",
+        product_type: "Course",
+        amount: t.amount,
+        created_at: t.created_at,
+      })),
+      ...webinarTxns.map((t) => ({
+        id: t.id,
+        student_name: t.user?.name || "Unknown",
+        product_name: t.webinar?.title || "Untitled webinar",
+        product_type: "Webinar",
+        amount: t.amount,
+        created_at: t.created_at,
+      })),
+    ]
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    const skip = (Number(page) - 1) * Number(limit);
+    const paged = merged.slice(skip, skip + Number(limit));
+
+    ApiResponseHandler.success(res, {
+      transactions: paged,
+      total_revenue: (totalRevenue._sum.amount || 0) + (webinarRevenue._sum.amount || 0),
+      pagination: {
+        page: Number(page),
+        limit: Number(limit),
+        total: merged.length,
+        total_pages: Math.ceil(merged.length / Number(limit)),
+      },
+    }, "Sales retrieved successfully");
+
+  } catch (err: any) {
+    ApiResponseHandler.unexpectedError(res, err, 500);
   }
+}
 }

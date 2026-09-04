@@ -7,27 +7,52 @@ import { SettlementService } from "../services/settlementService";
 export class SettlementController {
   static async addBankAccount(req: any, res: Response) {
     const userId = req.user.userId;
-    const { account_number, ifsc_code, beneficiary_name, bank_name, account_type } = req.body;
+    const {
+      account_number,
+      ifsc_code,
+      beneficiary_name,
+      bank_name,
+      account_type,
+    } = req.body;
 
     if (!account_number || !ifsc_code || !beneficiary_name) {
-      return ApiResponseHandler.customError(res, "account_number, ifsc_code, and beneficiary_name are required", 400, "MISSING_FIELDS");
+      return ApiResponseHandler.customError(
+        res,
+        "account_number, ifsc_code, and beneficiary_name are required",
+        400,
+        "MISSING_FIELDS",
+      );
     }
-
     // Validate IFSC format
     const ifscRegex = /^[A-Z]{4}0[A-Z0-9]{6}$/;
     if (!ifscRegex.test(ifsc_code)) {
-      return ApiResponseHandler.customError(res, "Invalid IFSC code format", 400, "INVALID_IFSC");
+      return ApiResponseHandler.customError(
+        res,
+        "Invalid IFSC code format",
+        400,
+        "INVALID_IFSC",
+      );
     }
 
     // Validate account number
     if (account_number.length < 8 || account_number.length > 18) {
-      return ApiResponseHandler.customError(res, "Account number must be between 8-18 digits", 400, "INVALID_ACCOUNT_NUMBER");
+      return ApiResponseHandler.customError(
+        res,
+        "Account number must be between 8-18 digits",
+        400,
+        "INVALID_ACCOUNT_NUMBER",
+      );
     }
 
     try {
       const user = await prisma.users.findUnique({ where: { id: userId } });
       if (!user || !isCreator(user.user_type)) {
-        return ApiResponseHandler.customError(res, "Only creators can add bank accounts", 403, "FORBIDDEN");
+        return ApiResponseHandler.customError(
+          res,
+          "Only creators can add bank accounts",
+          403,
+          "FORBIDDEN",
+        );
       }
 
       const bankAccount = await prisma.creator_bank_accounts.upsert({
@@ -52,7 +77,12 @@ export class SettlementController {
         },
       });
 
-      ApiResponseHandler.success(res, { bankAccount }, "Bank account saved successfully", 201);
+      ApiResponseHandler.success(
+        res,
+        { bankAccount },
+        "Bank account saved successfully",
+        201,
+      );
     } catch (err: any) {
       ApiResponseHandler.unexpectedError(res, err, 500);
     }
@@ -67,7 +97,12 @@ export class SettlementController {
       });
 
       if (!bankAccount) {
-        return ApiResponseHandler.customError(res, "No bank account found. Please add your bank details.", 404, "BANK_ACCOUNT_NOT_FOUND");
+        return ApiResponseHandler.customError(
+          res,
+          "No bank account found. Please add your bank details.",
+          404,
+          "BANK_ACCOUNT_NOT_FOUND",
+        );
       }
 
       // Mask account number for security
@@ -76,7 +111,11 @@ export class SettlementController {
         account_number: bankAccount.account_number.replace(/.(?=.{4})/g, "*"),
       };
 
-      ApiResponseHandler.success(res, { bankAccount: maskedAccount }, "Bank account retrieved successfully");
+      ApiResponseHandler.success(
+        res,
+        { bankAccount: maskedAccount },
+        "Bank account retrieved successfully",
+      );
     } catch (err: any) {
       ApiResponseHandler.unexpectedError(res, err, 500);
     }
@@ -93,7 +132,12 @@ export class SettlementController {
     try {
       const user = await prisma.users.findUnique({ where: { id: userId } });
       if (!user || !isCreator(user.user_type)) {
-        return ApiResponseHandler.customError(res, "Only creators can view wallet", 403, "FORBIDDEN");
+        return ApiResponseHandler.customError(
+          res,
+          "Only creators can view wallet",
+          403,
+          "FORBIDDEN",
+        );
       }
 
       const skip = (Number(page) - 1) * Number(limit);
@@ -124,31 +168,36 @@ export class SettlementController {
         }),
       ]);
 
-      ApiResponseHandler.success(res, {
-        wallet: {
-          total_earnings: totalAgg._sum.amount || 0,
-          total_net_earnings: totalAgg._sum.net_amount || 0,
-          available_balance: availableAgg._sum.net_amount || 0,
-          withdrawn_amount: settledAgg._sum.net_amount || 0,
-          settlement_info: "Request a withdrawal to instantly transfer funds to your bank account",
+      ApiResponseHandler.success(
+        res,
+        {
+          wallet: {
+            total_earnings: totalAgg._sum.amount || 0,
+            total_net_earnings: totalAgg._sum.net_amount || 0,
+            available_balance: availableAgg._sum.net_amount || 0,
+            withdrawn_amount: settledAgg._sum.net_amount || 0,
+            settlement_info:
+              "Request a withdrawal to instantly transfer funds to your bank account",
+          },
+          transactions: walletTxns.map((tx) => ({
+            ...tx,
+            title: tx.title,
+            status_label:
+              tx.status === "PENDING_SETTLEMENT"
+                ? "Available for withdrawal"
+                : tx.status === "SETTLED"
+                  ? "Withdrawn to bank account"
+                  : "Failed",
+          })),
+          pagination: {
+            page: Number(page),
+            limit: Number(limit),
+            total,
+            total_pages: Math.ceil(total / Number(limit)),
+          },
         },
-        transactions: walletTxns.map((tx) => ({
-          ...tx,
-          title: tx.title,
-          status_label:
-            tx.status === "PENDING_SETTLEMENT"
-              ? "Available for withdrawal"
-              : tx.status === "SETTLED"
-              ? "Withdrawn to bank account"
-              : "Failed",
-        })),
-        pagination: {
-          page: Number(page),
-          limit: Number(limit),
-          total,
-          total_pages: Math.ceil(total / Number(limit)),
-        },
-      }, "Wallet retrieved successfully");
+        "Wallet retrieved successfully",
+      );
     } catch (err: any) {
       ApiResponseHandler.unexpectedError(res, err, 500);
     }
@@ -161,22 +210,40 @@ export class SettlementController {
     try {
       const user = await prisma.users.findUnique({ where: { id: userId } });
       if (!user || !isCreator(user.user_type)) {
-        return ApiResponseHandler.customError(res, "Only creators can request withdrawals", 403, "FORBIDDEN");
+        return ApiResponseHandler.customError(
+          res,
+          "Only creators can request withdrawals",
+          403,
+          "FORBIDDEN",
+        );
       }
 
-      const result = await SettlementService.requestWithdrawal(userId, amount ? Number(amount) : undefined);
+      const result = await SettlementService.requestWithdrawal(
+        userId,
+        amount ? Number(amount) : undefined,
+      );
 
-      ApiResponseHandler.success(res, {
-        settlement_id: result.settlementId,
-        withdrawal_amount: result.amount,
-        transactions_included: result.transactionsCount,
-        payout_mode: "IMPS",
-        message: "Withdrawal initiated! Money will reach your bank account in ~15 minutes.",
-      }, "Withdrawal initiated successfully", 201);
-
+      ApiResponseHandler.success(
+        res,
+        {
+          settlement_id: result.settlementId,
+          withdrawal_amount: result.amount,
+          transactions_included: result.transactionsCount,
+          payout_mode: "IMPS",
+          message:
+            "Withdrawal initiated! Money will reach your bank account in ~15 minutes.",
+        },
+        "Withdrawal initiated successfully",
+        201,
+      );
     } catch (err: any) {
       console.error("Withdrawal error:", err.message);
-      ApiResponseHandler.customError(res, err.message, 400, "WITHDRAWAL_FAILED");
+      ApiResponseHandler.customError(
+        res,
+        err.message,
+        400,
+        "WITHDRAWAL_FAILED",
+      );
     }
   }
 
@@ -190,7 +257,12 @@ export class SettlementController {
     try {
       const user = await prisma.users.findUnique({ where: { id: userId } });
       if (!user || !isCreator(user.user_type)) {
-        return ApiResponseHandler.customError(res, "Only creators can view settlements", 403, "FORBIDDEN");
+        return ApiResponseHandler.customError(
+          res,
+          "Only creators can view settlements",
+          403,
+          "FORBIDDEN",
+        );
       }
 
       const skip = (Number(page) - 1) * Number(limit);
@@ -226,24 +298,31 @@ export class SettlementController {
       });
 
       const pendingAmount = await prisma.settlements.aggregate({
-        where: { creator_id: userId, status: { in: ["PENDING", "PROCESSING"] } },
+        where: {
+          creator_id: userId,
+          status: { in: ["PENDING", "PROCESSING"] },
+        },
         _sum: { net_amount: true },
       });
 
-      ApiResponseHandler.success(res, {
-        settlements,
-        summary: {
-          total_earned: totals._sum.total_gross_amount || 0,
-          total_settled: totals._sum.net_amount || 0,
-          pending_settlement: pendingAmount._sum.net_amount || 0,
+      ApiResponseHandler.success(
+        res,
+        {
+          settlements,
+          summary: {
+            total_earned: totals._sum.total_gross_amount || 0,
+            total_settled: totals._sum.net_amount || 0,
+            pending_settlement: pendingAmount._sum.net_amount || 0,
+          },
+          pagination: {
+            page: Number(page),
+            limit: Number(limit),
+            total,
+            total_pages: Math.ceil(total / Number(limit)),
+          },
         },
-        pagination: {
-          page: Number(page),
-          limit: Number(limit),
-          total,
-          total_pages: Math.ceil(total / Number(limit)),
-        },
-      }, "Settlements retrieved successfully");
+        "Settlements retrieved successfully",
+      );
     } catch (err: any) {
       ApiResponseHandler.unexpectedError(res, err, 500);
     }
@@ -268,16 +347,33 @@ export class SettlementController {
       });
 
       if (!settlement) {
-        return ApiResponseHandler.customError(res, "Settlement not found", 404, "SETTLEMENT_NOT_FOUND");
+        return ApiResponseHandler.customError(
+          res,
+          "Settlement not found",
+          404,
+          "SETTLEMENT_NOT_FOUND",
+        );
       }
 
       // Creators can only see their own settlements
       const user = await prisma.users.findUnique({ where: { id: userId } });
-      if (settlement.creator_id !== userId && (!user || !isAdmin(user.user_type))) {
-        return ApiResponseHandler.customError(res, "Unauthorized", 403, "FORBIDDEN");
+      if (
+        settlement.creator_id !== userId &&
+        (!user || !isAdmin(user.user_type))
+      ) {
+        return ApiResponseHandler.customError(
+          res,
+          "Unauthorized",
+          403,
+          "FORBIDDEN",
+        );
       }
 
-      ApiResponseHandler.success(res, { settlement }, "Settlement details retrieved");
+      ApiResponseHandler.success(
+        res,
+        { settlement },
+        "Settlement details retrieved",
+      );
     } catch (err: any) {
       ApiResponseHandler.unexpectedError(res, err, 500);
     }
@@ -292,120 +388,210 @@ export class SettlementController {
     try {
       const user = await prisma.users.findUnique({ where: { id: userId } });
       if (!user || !isCreator(user.user_type)) {
-        return ApiResponseHandler.customError(res, "Only creators can view earnings", 403, "FORBIDDEN");
+        return ApiResponseHandler.customError(
+          res,
+          "Only creators can view earnings",
+          403,
+          "FORBIDDEN",
+        );
       }
 
-      // Get all settled transaction IDs
+      const commissionPct = SettlementService.getCommissionPercent(userId);
+
+      // 1. Fetch transactions first so they are available for both monthly bucketing and net summary
+      const monthStart = new Date();
+      monthStart.setDate(1);
+      monthStart.setHours(0, 0, 0, 0);
+
+      const [allCourseTx, allWebinarTx, allSessionTx, lastSettlement] =
+        await Promise.all([
+          prisma.transactions.findMany({
+            where: {
+              course: { creator_id: userId },
+              status: "SUCCESS",
+              payment_method: { in: ["RAZORPAY", "CASHFREE"] },
+            },
+            select: { amount: true, completed_at: true, created_at: true },
+          }),
+          prisma.webinar_transactions.findMany({
+            where: {
+              webinar: { creator_id: userId },
+              status: "SUCCESS",
+              payment_method: { in: ["RAZORPAY", "CASHFREE"] },
+            },
+            select: { amount: true, completed_at: true, created_at: true },
+          }),
+          prisma.sessions.findMany({
+            where: {
+              OR: [{ caller_id: userId }, { receiver_id: userId }],
+              status: "COMPLETED",
+            },
+            select: { amount: true, ended_at: true, created_at: true },
+          }),
+          prisma.settlements.findFirst({
+            where: { creator_id: userId, status: "COMPLETED" },
+            orderBy: { created_at: "desc" },
+            select: { net_amount: true },
+          }),
+        ]);
+
+      // 2. Build last 7 months' buckets (oldest → newest)
+      const monthLabels: { key: string; label: string; start: Date; end: Date }[] = [];
+      const now = new Date();
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const start = new Date(d.getFullYear(), d.getMonth(), 1);
+        const end = new Date(d.getFullYear(), d.getMonth() + 1, 1);
+        monthLabels.push({
+          key: `${d.getFullYear()}-${d.getMonth()}`,
+          label: d.toLocaleString("en-US", { month: "short" }),
+          start,
+          end,
+        });
+      }
+
+      function bucketSum(
+        txs: { amount: number | null; completed_at?: Date | null; created_at: Date; ended_at?: Date | null }[],
+        dateField: "completed_at" | "ended_at",
+      ) {
+        const sums: Record<string, number> = {};
+        for (const tx of txs) {
+          const d = tx[dateField] || tx.created_at;
+          if (!d) continue;
+          const bucket = monthLabels.find((m) => d >= m.start && d < m.end);
+          if (bucket) sums[bucket.key] = (sums[bucket.key] || 0) + (tx.amount || 0);
+        }
+        return sums;
+      }
+
+      const courseByMonth = bucketSum(allCourseTx, "completed_at");
+      const webinarByMonth = bucketSum(allWebinarTx, "completed_at");
+      const sessionByMonth = bucketSum(allSessionTx, "ended_at");
+
+      const monthly = monthLabels.map((m) => ({
+        month: m.label,
+        courses: Math.round((courseByMonth[m.key] || 0) * 100) / 100,
+        webinars: Math.round((webinarByMonth[m.key] || 0) * 100) / 100,
+        sessions: Math.round((sessionByMonth[m.key] || 0) * 100) / 100,
+      }));
+
+      // 3. Fetch unsettled transactions
       const settledItems = await prisma.settlement_items.findMany({
         select: { transaction_type: true, transaction_id: true },
       });
-      const settledCourseIds = settledItems.filter((i) => i.transaction_type === "COURSE").map((i) => i.transaction_id);
-      const settledWebinarIds = settledItems.filter((i) => i.transaction_type === "WEBINAR").map((i) => i.transaction_id);
+      const settledCourseIds = settledItems
+        .filter((i) => i.transaction_type === "COURSE")
+        .map((i) => i.transaction_id);
+      const settledWebinarIds = settledItems
+        .filter((i) => i.transaction_type === "WEBINAR")
+        .map((i) => i.transaction_id);
 
-      // Unsettled course revenue
       const unsettledCourses = await prisma.transactions.findMany({
         where: {
           course: { creator_id: userId },
           status: "SUCCESS",
           payment_method: { in: ["RAZORPAY", "CASHFREE"] },
-          id: { notIn: settledCourseIds.length > 0 ? settledCourseIds : undefined },
+          id: {
+            notIn: settledCourseIds.length > 0 ? settledCourseIds : undefined,
+          },
         },
         include: { course: { select: { price: true, title: true } } },
       });
 
-      // Unsettled webinar revenue
       const unsettledWebinars = await prisma.webinar_transactions.findMany({
         where: {
           webinar: { creator_id: userId },
           status: "SUCCESS",
           payment_method: { in: ["RAZORPAY", "CASHFREE"] },
-          id: { notIn: settledWebinarIds.length > 0 ? settledWebinarIds : undefined },
+          id: {
+            notIn: settledWebinarIds.length > 0 ? settledWebinarIds : undefined,
+          },
         },
         include: { webinar: { select: { price: true, title: true } } },
       });
 
       let totalUnsettledGross = 0;
       const items = [];
-      const commissionPct = SettlementService.getCommissionPercent(userId);
 
       for (const tx of unsettledCourses) {
-        const d = SettlementService.calculateDeductions(tx.course.price, commissionPct);
+        const d = SettlementService.calculateDeductions(
+          tx.course.price,
+          commissionPct,
+        );
         totalUnsettledGross += tx.course.price;
-        items.push({ type: "COURSE", title: tx.course.title, ...d, completed_at: tx.completed_at });
+        items.push({
+          type: "COURSE",
+          title: tx.course.title,
+          ...d,
+          completed_at: tx.completed_at,
+        });
       }
 
       for (const tx of unsettledWebinars) {
-        const d = SettlementService.calculateDeductions(tx.webinar.price, commissionPct);
+        const d = SettlementService.calculateDeductions(
+          tx.webinar.price,
+          commissionPct,
+        );
         totalUnsettledGross += tx.webinar.price;
-        items.push({ type: "WEBINAR", title: tx.webinar.title, ...d, completed_at: tx.completed_at });
+        items.push({
+          type: "WEBINAR",
+          title: tx.webinar.title,
+          ...d,
+          completed_at: tx.completed_at,
+        });
       }
 
-      const totalDeductions = SettlementService.calculateDeductions(totalUnsettledGross, commissionPct);
+      const totalDeductions = SettlementService.calculateDeductions(
+        totalUnsettledGross,
+        commissionPct,
+      );
 
-      // Summary figures for the wallet screen (net of deductions)
-      const monthStart = new Date();
-      monthStart.setDate(1);
-      monthStart.setHours(0, 0, 0, 0);
-
-      const [allCourseTx, allWebinarTx, lastSettlement] = await Promise.all([
-        prisma.transactions.findMany({
-          where: {
-            course: { creator_id: userId },
-            status: "SUCCESS",
-            payment_method: { in: ["RAZORPAY", "CASHFREE"] },
-          },
-          select: { amount: true, completed_at: true, created_at: true },
-        }),
-        prisma.webinar_transactions.findMany({
-          where: {
-            webinar: { creator_id: userId },
-            status: "SUCCESS",
-            payment_method: { in: ["RAZORPAY", "CASHFREE"] },
-          },
-          select: { amount: true, completed_at: true, created_at: true },
-        }),
-        prisma.settlements.findFirst({
-          where: { creator_id: userId, status: "COMPLETED" },
-          orderBy: { created_at: "desc" },
-          select: { net_amount: true },
-        }),
-      ]);
-
+      // 4. Calculate total & current month net earnings across Courses, Webinars, and Sessions
       let totalNetEarnings = 0;
       let monthNetEarnings = 0;
-      for (const tx of [...allCourseTx, ...allWebinarTx]) {
-        const net = SettlementService.calculateDeductions(tx.amount || 0, commissionPct).netAmount;
+
+      const combinedTx = [
+        ...allCourseTx.map((tx) => ({ amount: tx.amount, date: tx.completed_at || tx.created_at })),
+        ...allWebinarTx.map((tx) => ({ amount: tx.amount, date: tx.completed_at || tx.created_at })),
+        ...allSessionTx.map((tx) => ({ amount: tx.amount, date: tx.ended_at || tx.created_at })),
+      ];
+
+      for (const tx of combinedTx) {
+        const net = SettlementService.calculateDeductions(
+          tx.amount || 0,
+          commissionPct,
+        ).netAmount;
         totalNetEarnings += net;
-        const paidAt = tx.completed_at || tx.created_at;
-        if (paidAt && paidAt >= monthStart) monthNetEarnings += net;
+        if (tx.date && tx.date >= monthStart) monthNetEarnings += net;
       }
 
-      ApiResponseHandler.success(res, {
-        net_earnings: Math.round(monthNetEarnings * 100) / 100,
-        total_earnings: Math.round(totalNetEarnings * 100) / 100,
-        last_payout: lastSettlement?.net_amount || 0,
-        unsettled_count: items.length,
-        total_gross: totalUnsettledGross,
-        estimated_deductions: {
-          platform_fee: totalDeductions.platformFee,
-          gst_on_platform_fee: totalDeductions.gstOnPlatformFee,
-          tds: totalDeductions.tdsAmount,
-          total: totalDeductions.totalDeductions,
+      ApiResponseHandler.success(
+        res,
+        {
+          net_earnings: Math.round(monthNetEarnings * 100) / 100,
+          total_earnings: Math.round(totalNetEarnings * 100) / 100,
+          last_payout: lastSettlement?.net_amount || 0,
+          unsettled_count: items.length,
+          total_gross: totalUnsettledGross,
+          estimated_deductions: {
+            platform_fee: totalDeductions.platformFee,
+            gst_on_platform_fee: totalDeductions.gstOnPlatformFee,
+            tds: totalDeductions.tdsAmount,
+            total: totalDeductions.totalDeductions,
+          },
+          estimated_net: totalDeductions.netAmount,
+          settlement_delay: "Instant (IMPS)",
+          items,
+          monthly,
         },
-        estimated_net: totalDeductions.netAmount,
-        settlement_delay: "Instant (IMPS)",
-        items,
-      }, "Earnings breakdown retrieved");
+        "Earnings breakdown retrieved",
+      );
     } catch (err: any) {
       ApiResponseHandler.unexpectedError(res, err, 500);
     }
   }
 
   // ============ ADMIN ENDPOINTS ============
-
-  /**
-   * Admin: View all settlements
-   */
   static async adminGetAllSettlements(req: any, res: Response) {
     const userId = req.user.userId;
     const { page = 1, limit = 20, status, creator_id } = req.query;
@@ -413,7 +599,12 @@ export class SettlementController {
     try {
       const user = await prisma.users.findUnique({ where: { id: userId } });
       if (!user || !isAdmin(user.user_type)) {
-        return ApiResponseHandler.customError(res, "Admin access required", 403, "FORBIDDEN");
+        return ApiResponseHandler.customError(
+          res,
+          "Admin access required",
+          403,
+          "FORBIDDEN",
+        );
       }
 
       const skip = (Number(page) - 1) * Number(limit);
@@ -437,23 +628,33 @@ export class SettlementController {
 
       // Summary stats
       const [totalSettled, totalPending] = await Promise.all([
-        prisma.settlements.aggregate({ where: { status: "COMPLETED" }, _sum: { net_amount: true } }),
-        prisma.settlements.aggregate({ where: { status: { in: ["PENDING", "PROCESSING"] } }, _sum: { net_amount: true } }),
+        prisma.settlements.aggregate({
+          where: { status: "COMPLETED" },
+          _sum: { net_amount: true },
+        }),
+        prisma.settlements.aggregate({
+          where: { status: { in: ["PENDING", "PROCESSING"] } },
+          _sum: { net_amount: true },
+        }),
       ]);
 
-      ApiResponseHandler.success(res, {
-        settlements,
-        summary: {
-          total_settled: totalSettled._sum.net_amount || 0,
-          total_pending: totalPending._sum.net_amount || 0,
+      ApiResponseHandler.success(
+        res,
+        {
+          settlements,
+          summary: {
+            total_settled: totalSettled._sum.net_amount || 0,
+            total_pending: totalPending._sum.net_amount || 0,
+          },
+          pagination: {
+            page: Number(page),
+            limit: Number(limit),
+            total,
+            total_pages: Math.ceil(total / Number(limit)),
+          },
         },
-        pagination: {
-          page: Number(page),
-          limit: Number(limit),
-          total,
-          total_pages: Math.ceil(total / Number(limit)),
-        },
-      }, "All settlements retrieved");
+        "All settlements retrieved",
+      );
     } catch (err: any) {
       ApiResponseHandler.unexpectedError(res, err, 500);
     }
@@ -468,15 +669,24 @@ export class SettlementController {
     try {
       const user = await prisma.users.findUnique({ where: { id: userId } });
       if (!user || !isAdmin(user.user_type)) {
-        return ApiResponseHandler.customError(res, "Admin access required", 403, "FORBIDDEN");
+        return ApiResponseHandler.customError(
+          res,
+          "Admin access required",
+          403,
+          "FORBIDDEN",
+        );
       }
 
       // Retry any pending/failed payouts
       const payouts = await SettlementService.processAllPendingPayouts();
 
-      ApiResponseHandler.success(res, {
-        payouts,
-      }, "Payout processing triggered");
+      ApiResponseHandler.success(
+        res,
+        {
+          payouts,
+        },
+        "Payout processing triggered",
+      );
     } catch (err: any) {
       ApiResponseHandler.unexpectedError(res, err, 500);
     }
@@ -492,20 +702,42 @@ export class SettlementController {
     try {
       const user = await prisma.users.findUnique({ where: { id: userId } });
       if (!user || !isAdmin(user.user_type)) {
-        return ApiResponseHandler.customError(res, "Admin access required", 403, "FORBIDDEN");
+        return ApiResponseHandler.customError(
+          res,
+          "Admin access required",
+          403,
+          "FORBIDDEN",
+        );
       }
 
-      const settlement = await prisma.settlements.findUnique({ where: { id: settlementId } });
+      const settlement = await prisma.settlements.findUnique({
+        where: { id: settlementId },
+      });
       if (!settlement) {
-        return ApiResponseHandler.customError(res, "Settlement not found", 404, "SETTLEMENT_NOT_FOUND");
+        return ApiResponseHandler.customError(
+          res,
+          "Settlement not found",
+          404,
+          "SETTLEMENT_NOT_FOUND",
+        );
       }
 
       if (settlement.status === "COMPLETED") {
-        return ApiResponseHandler.customError(res, "Settlement already completed", 400, "ALREADY_COMPLETED");
+        return ApiResponseHandler.customError(
+          res,
+          "Settlement already completed",
+          400,
+          "ALREADY_COMPLETED",
+        );
       }
 
       if (settlement.retry_count >= 3) {
-        return ApiResponseHandler.customError(res, "Max retries reached. Please investigate manually.", 400, "MAX_RETRIES");
+        return ApiResponseHandler.customError(
+          res,
+          "Max retries reached. Please investigate manually.",
+          400,
+          "MAX_RETRIES",
+        );
       }
 
       // Reset to pending and retry
@@ -541,14 +773,16 @@ export class SettlementController {
       hasTimestamp: !!timestamp,
       hasSecret: !!webhookSecret,
       hasRawBody: !!rawBody,
-      headers: Object.keys(req.headers).filter(h => h.startsWith("x-")),
+      headers: Object.keys(req.headers).filter((h) => h.startsWith("x-")),
       bodyType: typeof req.body,
     });
 
     try {
       // If no signature headers, Cashfree might be doing a URL verification ping
       if (!signature || !timestamp) {
-        console.log("Payout webhook: No signature headers — accepting as verification ping");
+        console.log(
+          "Payout webhook: No signature headers — accepting as verification ping",
+        );
         return res.status(200).json({ status: "ok" });
       }
 
@@ -578,7 +812,8 @@ export class SettlementController {
         return res.status(200).json({ status: "ok" });
       }
 
-      const body = typeof req.body === "object" ? req.body : JSON.parse(rawBody);
+      const body =
+        typeof req.body === "object" ? req.body : JSON.parse(rawBody);
       const eventType = body.type;
       const data = body.data;
 

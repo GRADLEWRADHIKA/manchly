@@ -101,5 +101,7 @@ router.get("/enrolled/me", jwtAuth, WebinarController.getEnrolledWebinars);
  */
 router.get("/stats/creator", jwtAuth, WebinarController.getCreatorWebinarStats);
 
+router.get("/:webinarId/attendees", jwtAuth, WebinarController.getWebinarAttendees);
+
 export default router;
 

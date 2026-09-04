@@ -10,7 +10,13 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const userSelect = { id: true, name: true, email: true, profile_image: true, phone: true };
+const userSelect = {
+  id: true,
+  name: true,
+  email: true,
+  profile_image: true,
+  phone: true,
+};
 
 export class SessionController {
   // Create a session (caller initiates)
@@ -20,7 +26,9 @@ export class SessionController {
       const { receiver_id, mode, rate_per_min } = req.body;
 
       if (!receiver_id || !mode) {
-        return res.status(400).json({ error: "receiver_id and mode are required" });
+        return res
+          .status(400)
+          .json({ error: "receiver_id and mode are required" });
       }
 
       const callId = `session_${callerId}_${receiver_id}_${Date.now()}`;
@@ -38,23 +46,33 @@ export class SessionController {
 
       // Fetch with user info
       const [caller, receiver] = await Promise.all([
-        prisma.users.findUnique({ where: { id: callerId }, select: userSelect }),
-        prisma.users.findUnique({ where: { id: receiver_id }, select: userSelect }),
+        prisma.users.findUnique({
+          where: { id: callerId },
+          select: userSelect,
+        }),
+        prisma.users.findUnique({
+          where: { id: receiver_id },
+          select: userSelect,
+        }),
       ]);
 
       // Confirm the booking to both sides. Fire-and-forget: a notification
       // failure must never fail the booking itself.
-      notificationService.sendSessionBookingNotification({
-        callerName: caller?.name || "there",
-        callerEmail: caller?.email || "",
-        callerPhone: caller?.phone || undefined,
-        expertName: receiver?.name || "your expert",
-        expertEmail: receiver?.email || undefined,
-        expertPhone: receiver?.phone || undefined,
-        mode: session.mode,
-        scheduledAt: session.scheduled_at,
-        amount: session.amount,
-      }).catch((err) => console.error("Session booking notification error:", err));
+      notificationService
+        .sendSessionBookingNotification({
+          callerName: caller?.name || "there",
+          callerEmail: caller?.email || "",
+          callerPhone: caller?.phone || undefined,
+          expertName: receiver?.name || "your expert",
+          expertEmail: receiver?.email || undefined,
+          expertPhone: receiver?.phone || undefined,
+          mode: session.mode,
+          scheduledAt: session.scheduled_at,
+          amount: session.amount,
+        })
+        .catch((err) =>
+          console.error("Session booking notification error:", err),
+        );
 
       return res.status(201).json({ data: { ...session, caller, receiver } });
     } catch (err: any) {
@@ -124,26 +142,36 @@ export class SessionController {
       const { session_id, rating, feedback } = req.body;
 
       if (!session_id || !rating) {
-        return res.status(400).json({ error: "session_id and rating are required" });
+        return res
+          .status(400)
+          .json({ error: "session_id and rating are required" });
       }
 
       if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
-        return res.status(400).json({ error: "Rating must be an integer between 1 and 5" });
+        return res
+          .status(400)
+          .json({ error: "Rating must be an integer between 1 and 5" });
       }
 
-      const session = await prisma.sessions.findUnique({ where: { id: session_id } });
+      const session = await prisma.sessions.findUnique({
+        where: { id: session_id },
+      });
       if (!session) {
         return res.status(404).json({ error: "Session not found" });
       }
 
       if (session.caller_id !== userId) {
-        return res.status(403).json({ error: "Only the caller can rate the session" });
+        return res
+          .status(403)
+          .json({ error: "Only the caller can rate the session" });
       }
 
       // Only completed sessions can be rated — stops a call that never happened
       // (PENDING / MISSED / CANCELLED) from skewing the expert's average.
       if (session.status !== "COMPLETED") {
-        return res.status(400).json({ error: "Only completed sessions can be rated" });
+        return res
+          .status(400)
+          .json({ error: "Only completed sessions can be rated" });
       }
 
       // One review per session — also prevents inflating the expert's average
@@ -151,7 +179,9 @@ export class SessionController {
         where: { session_id },
       });
       if (existingReview) {
-        return res.status(400).json({ error: "You have already reviewed this session" });
+        return res
+          .status(400)
+          .json({ error: "You have already reviewed this session" });
       }
 
       // Persist the review and refresh the expert's cached average atomically.
@@ -190,7 +220,9 @@ export class SessionController {
         });
       } catch (createErr: any) {
         if (createErr?.code === "P2002") {
-          return res.status(400).json({ error: "You have already reviewed this session" });
+          return res
+            .status(400)
+            .json({ error: "You have already reviewed this session" });
         }
         throw createErr;
       }
@@ -202,7 +234,7 @@ export class SessionController {
         title: "New Review",
         message: `You received a ${rating}-star review on your consultation session.`,
         data: { sessionId: session_id, rating },
-      }).catch(err => console.error("Notification error:", err));
+      }).catch((err) => console.error("Notification error:", err));
 
       return res.json({
         data: {
@@ -227,16 +259,16 @@ export class SessionController {
         take: 50,
       });
 
-      const reviewerIds = [...new Set(reviews.map(r => r.reviewer_id))];
+      const reviewerIds = [...new Set(reviews.map((r) => r.reviewer_id))];
       const users = reviewerIds.length
         ? await prisma.users.findMany({
             where: { id: { in: reviewerIds } },
             select: { id: true, name: true, profile_image: true },
           })
         : [];
-      const userMap = new Map(users.map(u => [u.id, u]));
+      const userMap = new Map(users.map((u) => [u.id, u]));
 
-      const data = reviews.map(r => ({
+      const data = reviews.map((r) => ({
         id: r.id,
         rating: r.rating,
         comment: r.comment,
@@ -371,8 +403,14 @@ export class SessionController {
       }
 
       const [caller, receiver] = await Promise.all([
-        prisma.users.findUnique({ where: { id: session.caller_id }, select: userSelect }),
-        prisma.users.findUnique({ where: { id: session.receiver_id }, select: userSelect }),
+        prisma.users.findUnique({
+          where: { id: session.caller_id },
+          select: userSelect,
+        }),
+        prisma.users.findUnique({
+          where: { id: session.receiver_id },
+          select: userSelect,
+        }),
       ]);
 
       return res.json({ data: { ...session, caller, receiver } });
@@ -388,7 +426,9 @@ export class SessionController {
   static async getMyExpertProfile(req: JWTRequest, res: Response) {
     try {
       const userId = req.user!.userId;
-      const expert = await prisma.session_experts.findUnique({ where: { user_id: userId } });
+      const expert = await prisma.session_experts.findUnique({
+        where: { user_id: userId },
+      });
       return res.json({ data: expert });
     } catch (err: any) {
       return res.status(500).json({ error: "Failed to fetch expert profile" });
@@ -399,14 +439,28 @@ export class SessionController {
   static async registerAsExpert(req: JWTRequest, res: Response) {
     try {
       const userId = req.user!.userId;
-      const { profession, bio, categories, experience, audio_rate, video_rate, languages } = req.body;
+      const {
+        profession,
+        bio,
+        categories,
+        experience,
+        audio_rate,
+        video_rate,
+        languages,
+      } = req.body;
 
       const effectiveAudioRate = audio_rate || video_rate;
       if (!profession || !effectiveAudioRate) {
-        return res.status(400).json({ error: "profession and audio_rate or video_rate are required" });
+        return res
+          .status(400)
+          .json({
+            error: "profession and audio_rate or video_rate are required",
+          });
       }
 
-      const existing = await prisma.session_experts.findUnique({ where: { user_id: userId } });
+      const existing = await prisma.session_experts.findUnique({
+        where: { user_id: userId },
+      });
       if (existing) {
         return res.status(400).json({ error: "Already registered as expert" });
       }
@@ -440,7 +494,17 @@ export class SessionController {
       const fields = req.body;
       const data: any = {};
 
-      const allowed = ["profession", "bio", "categories", "experience", "audio_rate", "video_rate", "languages", "is_active", "is_available"];
+      const allowed = [
+        "profession",
+        "bio",
+        "categories",
+        "experience",
+        "audio_rate",
+        "video_rate",
+        "languages",
+        "is_active",
+        "is_available",
+      ];
       for (const k of allowed) {
         if (fields[k] !== undefined) data[k] = fields[k];
       }
@@ -501,7 +565,9 @@ export class SessionController {
 
       const total = await prisma.session_experts.count({ where });
 
-      return res.json({ data: { experts: enriched, total, page: pageNum, limit: limitNum } });
+      return res.json({
+        data: { experts: enriched, total, page: pageNum, limit: limitNum },
+      });
     } catch (err: any) {
       console.error("listExperts error:", err);
       return res.status(500).json({ error: "Failed to list experts" });
@@ -512,7 +578,9 @@ export class SessionController {
   static async getExpertDetail(req: JWTRequest, res: Response) {
     try {
       const { expert_id } = req.params;
-      const expert = await prisma.session_experts.findUnique({ where: { id: expert_id } });
+      const expert = await prisma.session_experts.findUnique({
+        where: { id: expert_id },
+      });
       if (!expert) return res.status(404).json({ error: "Expert not found" });
 
       const user = await prisma.users.findUnique({
@@ -539,10 +607,14 @@ export class SessionController {
       const { date } = req.query; // YYYY-MM-DD
 
       if (!date) {
-        return res.status(400).json({ error: "date query param is required (YYYY-MM-DD)" });
+        return res
+          .status(400)
+          .json({ error: "date query param is required (YYYY-MM-DD)" });
       }
 
-      const expert = await prisma.session_experts.findUnique({ where: { id: expert_id } });
+      const expert = await prisma.session_experts.findUnique({
+        where: { id: expert_id },
+      });
       if (!expert) return res.status(404).json({ error: "Expert not found" });
 
       const targetDate = new Date(date as string);
@@ -592,7 +664,9 @@ export class SessionController {
       const { title, description, duration, price, mode } = req.body;
 
       if (!title || !duration || !price || !mode) {
-        return res.status(400).json({ error: "title, duration, price, mode are required" });
+        return res
+          .status(400)
+          .json({ error: "title, duration, price, mode are required" });
       }
 
       const product = await prisma.session_products.create({
@@ -609,7 +683,9 @@ export class SessionController {
       return res.status(201).json({ data: product });
     } catch (err: any) {
       console.error("createProduct error:", err);
-      return res.status(500).json({ error: "Failed to create session product" });
+      return res
+        .status(500)
+        .json({ error: "Failed to create session product" });
     }
   }
 
@@ -634,9 +710,15 @@ export class SessionController {
       const { product_id } = req.params;
       const creatorId = req.user!.userId;
 
-      const existing = await prisma.session_products.findUnique({ where: { id: product_id } });
-      if (!existing) return res.status(404).json({ error: "Product not found" });
-      if (existing.creator_id !== creatorId) return res.status(403).json({ error: "You can only update your own products" });
+      const existing = await prisma.session_products.findUnique({
+        where: { id: product_id },
+      });
+      if (!existing)
+        return res.status(404).json({ error: "Product not found" });
+      if (existing.creator_id !== creatorId)
+        return res
+          .status(403)
+          .json({ error: "You can only update your own products" });
 
       const { title, description, duration, price, mode, is_active } = req.body;
 
@@ -666,9 +748,15 @@ export class SessionController {
       const { product_id } = req.params;
       const creatorId = req.user!.userId;
 
-      const existing = await prisma.session_products.findUnique({ where: { id: product_id } });
-      if (!existing) return res.status(404).json({ error: "Product not found" });
-      if (existing.creator_id !== creatorId) return res.status(403).json({ error: "You can only delete your own products" });
+      const existing = await prisma.session_products.findUnique({
+        where: { id: product_id },
+      });
+      if (!existing)
+        return res.status(404).json({ error: "Product not found" });
+      if (existing.creator_id !== creatorId)
+        return res
+          .status(403)
+          .json({ error: "You can only delete your own products" });
 
       await prisma.session_products.delete({ where: { id: product_id } });
       return res.json({ message: "Deleted" });
@@ -716,29 +804,54 @@ export class SessionController {
         return res.status(400).json({ error: "slots array is required" });
       }
 
-      const expert = await prisma.session_experts.findUnique({ where: { user_id: userId } });
+      const expert = await prisma.session_experts.findUnique({
+        where: { user_id: userId },
+      });
       if (!expert) {
-        return res.status(404).json({ error: "Expert profile not found. Register as expert first." });
+        return res
+          .status(404)
+          .json({
+            error: "Expert profile not found. Register as expert first.",
+          });
       }
 
       // Validate slots
       for (const slot of slots) {
-        if (slot.day_of_week === undefined || !slot.start_time || !slot.end_time) {
-          return res.status(400).json({ error: "Each slot needs day_of_week, start_time, end_time" });
+        if (
+          slot.day_of_week === undefined ||
+          !slot.start_time ||
+          !slot.end_time
+        ) {
+          return res
+            .status(400)
+            .json({
+              error: "Each slot needs day_of_week, start_time, end_time",
+            });
         }
         if (slot.day_of_week < 0 || slot.day_of_week > 6) {
-          return res.status(400).json({ error: "day_of_week must be 0-6 (Sun-Sat)" });
+          return res
+            .status(400)
+            .json({ error: "day_of_week must be 0-6 (Sun-Sat)" });
         }
-        if (!/^\d{2}:\d{2}$/.test(slot.start_time) || !/^\d{2}:\d{2}$/.test(slot.end_time)) {
-          return res.status(400).json({ error: "Time must be in HH:MM format" });
+        if (
+          !/^\d{2}:\d{2}$/.test(slot.start_time) ||
+          !/^\d{2}:\d{2}$/.test(slot.end_time)
+        ) {
+          return res
+            .status(400)
+            .json({ error: "Time must be in HH:MM format" });
         }
         if (slot.start_time >= slot.end_time) {
-          return res.status(400).json({ error: "start_time must be before end_time" });
+          return res
+            .status(400)
+            .json({ error: "start_time must be before end_time" });
         }
       }
 
       // Delete existing slots and create new ones (replace strategy)
-      await prisma.expert_availability.deleteMany({ where: { expert_id: expert.id } });
+      await prisma.expert_availability.deleteMany({
+        where: { expert_id: expert.id },
+      });
 
       const created = await prisma.expert_availability.createMany({
         data: slots.map((s: any) => ({
@@ -768,10 +881,14 @@ export class SessionController {
       const { day_of_week, start_time, end_time } = req.body;
 
       if (day_of_week === undefined || !start_time || !end_time) {
-        return res.status(400).json({ error: "day_of_week, start_time, end_time are required" });
+        return res
+          .status(400)
+          .json({ error: "day_of_week, start_time, end_time are required" });
       }
 
-      const expert = await prisma.session_experts.findUnique({ where: { user_id: userId } });
+      const expert = await prisma.session_experts.findUnique({
+        where: { user_id: userId },
+      });
       if (!expert) {
         return res.status(404).json({ error: "Expert profile not found" });
       }
@@ -803,7 +920,9 @@ export class SessionController {
   static async getMyAvailability(req: JWTRequest, res: Response) {
     try {
       const userId = req.user!.userId;
-      const expert = await prisma.session_experts.findUnique({ where: { user_id: userId } });
+      const expert = await prisma.session_experts.findUnique({
+        where: { user_id: userId },
+      });
       if (!expert) {
         return res.status(404).json({ error: "Expert profile not found" });
       }
@@ -825,7 +944,9 @@ export class SessionController {
       const { expert_id } = req.params;
       const { date } = req.query; // format: "2026-05-20"
 
-      const expert = await prisma.session_experts.findUnique({ where: { id: expert_id } });
+      const expert = await prisma.session_experts.findUnique({
+        where: { id: expert_id },
+      });
       if (!expert) {
         return res.status(404).json({ error: "Expert not found" });
       }
@@ -845,13 +966,17 @@ export class SessionController {
       if (date) {
         const targetDate = new Date(date as string);
         if (isNaN(targetDate.getTime())) {
-          return res.status(400).json({ error: "Invalid date format. Use YYYY-MM-DD" });
+          return res
+            .status(400)
+            .json({ error: "Invalid date format. Use YYYY-MM-DD" });
         }
 
         const dayOfWeek = targetDate.getDay(); // 0=Sun, 6=Sat
 
         // Get availability for that day
-        const daySlots = weeklySchedule.filter((s) => s.day_of_week === dayOfWeek);
+        const daySlots = weeklySchedule.filter(
+          (s) => s.day_of_week === dayOfWeek,
+        );
 
         if (daySlots.length === 0) {
           return res.json({
@@ -859,7 +984,15 @@ export class SessionController {
               expert: { ...expert, user },
               date: date,
               day_of_week: dayOfWeek,
-              day_name: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][dayOfWeek],
+              day_name: [
+                "Sunday",
+                "Monday",
+                "Tuesday",
+                "Wednesday",
+                "Thursday",
+                "Friday",
+                "Saturday",
+              ][dayOfWeek],
               is_available_today: false,
               available_slots: [],
               booked_slots: [],
@@ -884,7 +1017,12 @@ export class SessionController {
         });
 
         // Build time slots (30-min intervals) from availability
-        const availableSlots: { start_time: string; end_time: string; is_booked: boolean; session_mode?: string }[] = [];
+        const availableSlots: {
+          start_time: string;
+          end_time: string;
+          is_booked: boolean;
+          session_mode?: string;
+        }[] = [];
 
         for (const daySlot of daySlots) {
           const [startH, startM] = daySlot.start_time.split(":").map(Number);
@@ -901,12 +1039,19 @@ export class SessionController {
             const slotStartDate = new Date(targetDate);
             slotStartDate.setHours(Math.floor(m / 60), m % 60, 0, 0);
             const slotEndDate = new Date(targetDate);
-            slotEndDate.setHours(Math.floor((m + 30) / 60), (m + 30) % 60, 0, 0);
+            slotEndDate.setHours(
+              Math.floor((m + 30) / 60),
+              (m + 30) % 60,
+              0,
+              0,
+            );
 
             const booked = bookedSessions.find((s) => {
               if (!s.scheduled_at) return false;
               const sessionStart = new Date(s.scheduled_at);
-              const sessionEnd = new Date(sessionStart.getTime() + s.duration * 60000);
+              const sessionEnd = new Date(
+                sessionStart.getTime() + s.duration * 60000,
+              );
               return sessionStart < slotEndDate && sessionEnd > slotStartDate;
             });
 
@@ -924,7 +1069,15 @@ export class SessionController {
             expert: { ...expert, user },
             date: date,
             day_of_week: dayOfWeek,
-            day_name: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][dayOfWeek],
+            day_name: [
+              "Sunday",
+              "Monday",
+              "Tuesday",
+              "Wednesday",
+              "Thursday",
+              "Friday",
+              "Saturday",
+            ][dayOfWeek],
             is_available_today: true,
             available_slots: availableSlots,
             booked_slots: bookedSessions.map((s) => ({
@@ -939,15 +1092,25 @@ export class SessionController {
       }
 
       // No date provided: return full weekly schedule
-      const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+      const dayNames = [
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+      ];
       const schedule = dayNames.map((name, i) => ({
         day_of_week: i,
         day_name: name,
-        slots: weeklySchedule.filter((s) => s.day_of_week === i).map((s) => ({
-          id: s.id,
-          start_time: s.start_time,
-          end_time: s.end_time,
-        })),
+        slots: weeklySchedule
+          .filter((s) => s.day_of_week === i)
+          .map((s) => ({
+            id: s.id,
+            start_time: s.start_time,
+            end_time: s.end_time,
+          })),
         is_available: weeklySchedule.some((s) => s.day_of_week === i),
       }));
 
@@ -974,7 +1137,9 @@ export class SessionController {
       }
 
       if (!scheduled_at) {
-        return res.status(400).json({ error: "scheduled_at (date & time) is required" });
+        return res
+          .status(400)
+          .json({ error: "scheduled_at (date & time) is required" });
       }
 
       const scheduledDate = new Date(scheduled_at);
@@ -982,13 +1147,17 @@ export class SessionController {
         return res.status(400).json({ error: "Invalid scheduled_at format" });
       }
 
-      const expert = await prisma.session_experts.findUnique({ where: { id: expert_id } });
+      const expert = await prisma.session_experts.findUnique({
+        where: { id: expert_id },
+      });
       if (!expert || !expert.is_active) {
         return res.status(404).json({ error: "Expert not found or inactive" });
       }
 
       if (callerId === expert.user_id) {
-        return res.status(400).json({ error: "You cannot book a session with yourself" });
+        return res
+          .status(400)
+          .json({ error: "You cannot book a session with yourself" });
       }
 
       const user = await prisma.users.findUnique({ where: { id: callerId } });
@@ -997,7 +1166,8 @@ export class SessionController {
       }
 
       const sessionMode = mode === "video" ? "VIDEO" : "CALL";
-      const ratePerMin = sessionMode === "VIDEO" ? expert.video_rate : expert.audio_rate;
+      const ratePerMin =
+        sessionMode === "VIDEO" ? expert.video_rate : expert.audio_rate;
       const sessionDuration = duration || 30;
       const amount = ratePerMin * sessionDuration;
 
@@ -1022,8 +1192,14 @@ export class SessionController {
       // If free session, return immediately
       if (amount === 0) {
         const [caller, receiver] = await Promise.all([
-          prisma.users.findUnique({ where: { id: callerId }, select: userSelect }),
-          prisma.users.findUnique({ where: { id: expert.user_id }, select: userSelect }),
+          prisma.users.findUnique({
+            where: { id: callerId },
+            select: userSelect,
+          }),
+          prisma.users.findUnique({
+            where: { id: expert.user_id },
+            select: userSelect,
+          }),
         ]);
 
         // In-app notifications
@@ -1033,7 +1209,7 @@ export class SessionController {
           title: "Session Booked",
           message: `Your free session with ${receiver?.name || "the expert"} has been booked.`,
           data: { sessionId: session.id },
-        }).catch(err => console.error("Notification error:", err));
+        }).catch((err) => console.error("Notification error:", err));
 
         NotificationController.createNotification({
           userId: expert.user_id,
@@ -1041,7 +1217,7 @@ export class SessionController {
           title: "New Session Booking",
           message: `${caller?.name || "A user"} booked a free session with you.`,
           data: { sessionId: session.id },
-        }).catch(err => console.error("Notification error:", err));
+        }).catch((err) => console.error("Notification error:", err));
 
         return res.status(201).json({
           data: { ...session, caller, receiver, expert, is_free: true },
@@ -1062,8 +1238,8 @@ export class SessionController {
           customer_email: user.email,
         },
         order_meta: {
-          return_url: `${process.env.APP_URL || 'https://manchly.com'}/payment/return?order_id={order_id}`,
-          notify_url: `${process.env.APP_URL || 'https://server.manchly.com'}/payments/webhook`,
+          return_url: `${process.env.APP_URL || "https://manchly.com"}/payment/return?order_id={order_id}`,
+          notify_url: `${process.env.APP_URL || "https://server.manchly.com"}/payments/webhook`,
         },
         order_note: `Session with expert`,
         order_tags: {
@@ -1088,13 +1264,21 @@ export class SessionController {
           status: "PENDING",
           payment_method: "CASHFREE",
           cashfree_order_id: orderId,
-          payment_details: JSON.parse(JSON.stringify({ cashfree_order: orderData })),
+          payment_details: JSON.parse(
+            JSON.stringify({ cashfree_order: orderData }),
+          ),
         },
       });
 
       const [caller, receiver] = await Promise.all([
-        prisma.users.findUnique({ where: { id: callerId }, select: userSelect }),
-        prisma.users.findUnique({ where: { id: expert.user_id }, select: userSelect }),
+        prisma.users.findUnique({
+          where: { id: callerId },
+          select: userSelect,
+        }),
+        prisma.users.findUnique({
+          where: { id: expert.user_id },
+          select: userSelect,
+        }),
       ]);
 
       return res.status(201).json({
@@ -1149,8 +1333,14 @@ export class SessionController {
           where: { id: transaction.session_id },
         });
         const [caller, receiver] = await Promise.all([
-          prisma.users.findUnique({ where: { id: session!.caller_id }, select: userSelect }),
-          prisma.users.findUnique({ where: { id: session!.receiver_id }, select: userSelect }),
+          prisma.users.findUnique({
+            where: { id: session!.caller_id },
+            select: userSelect,
+          }),
+          prisma.users.findUnique({
+            where: { id: session!.receiver_id },
+            select: userSelect,
+          }),
         ]);
 
         return res.json({
@@ -1178,13 +1368,18 @@ export class SessionController {
             data: { status: "CANCELLED", payment_status: "FAILED" },
           });
         }
-        return res.status(400).json({ error: `Payment not completed. Status: ${orderData.order_status}` });
+        return res
+          .status(400)
+          .json({
+            error: `Payment not completed. Status: ${orderData.order_status}`,
+          });
       }
 
       // Get payment details
       let paymentInfo = null;
       try {
-        const paymentsResponse = await cashfreePG.PGOrderFetchPayments(order_id);
+        const paymentsResponse =
+          await cashfreePG.PGOrderFetchPayments(order_id);
         paymentInfo = paymentsResponse.data;
       } catch (e) {
         console.error("Error fetching session payment details:", e);
@@ -1199,10 +1394,12 @@ export class SessionController {
           status: "SUCCESS",
           cf_payment_id: cfPaymentId,
           completed_at: new Date(),
-          payment_details: JSON.parse(JSON.stringify({
-            order_info: orderData,
-            payment_info: paymentInfo,
-          })),
+          payment_details: JSON.parse(
+            JSON.stringify({
+              order_info: orderData,
+              payment_info: paymentInfo,
+            }),
+          ),
         },
       });
 
@@ -1213,7 +1410,9 @@ export class SessionController {
       });
 
       // Get expert user_id to credit wallet
-      const expert = await prisma.session_experts.findUnique({ where: { id: transaction.expert_id } });
+      const expert = await prisma.session_experts.findUnique({
+        where: { id: transaction.expert_id },
+      });
       if (expert) {
         SettlementService.creditCreatorWallet({
           creatorId: expert.user_id,
@@ -1221,7 +1420,7 @@ export class SessionController {
           transactionType: "SESSION",
           transactionId: transaction.id,
           itemTitle: `Session booking`,
-        }).catch(err => console.error("Session wallet credit error:", err));
+        }).catch((err) => console.error("Session wallet credit error:", err));
 
         // Update expert stats
         await prisma.session_experts.update({
@@ -1234,13 +1433,21 @@ export class SessionController {
       }
 
       const [caller, receiver] = await Promise.all([
-        prisma.users.findUnique({ where: { id: session.caller_id }, select: userSelect }),
-        prisma.users.findUnique({ where: { id: session.receiver_id }, select: userSelect }),
+        prisma.users.findUnique({
+          where: { id: session.caller_id },
+          select: userSelect,
+        }),
+        prisma.users.findUnique({
+          where: { id: session.receiver_id },
+          select: userSelect,
+        }),
       ]);
 
       // Notifications are sent by the webhook handler (handleSessionPaymentSuccess) to avoid duplicates
 
-      console.log(`Session payment verified! User ${userId} booked session ${session.id} for ₹${transaction.amount}`);
+      console.log(
+        `Session payment verified! User ${userId} booked session ${session.id} for ₹${transaction.amount}`,
+      );
 
       return res.json({
         data: {
@@ -1251,81 +1458,347 @@ export class SessionController {
       });
     } catch (err: any) {
       console.error("verifySessionPayment error:", err);
-      return res.status(500).json({ error: "Failed to verify session payment" });
+      return res
+        .status(500)
+        .json({ error: "Failed to verify session payment" });
     }
   }
 
   // Dashboard stats (courses + webinars + sessions combined)
   static async getDashboardStats(req: JWTRequest, res: Response) {
-    try {
-      const userId = req.user!.userId;
+  try {
+    const userId = req.user!.userId;
 
-      const [
-        courseCount,
-        courseEnrollments,
-        courseRevenue,
-        webinarCount,
-        webinarEnrollments,
-        webinarRevenue,
-        completedSessions,
-      ] = await Promise.all([
-        prisma.courses.count({ where: { creator_id: userId } }),
-        prisma.enrollments.count({
-          where: { course: { creator_id: userId } },
-        }),
-        prisma.transactions.aggregate({
-          where: { course: { creator_id: userId }, status: "SUCCESS" },
-          _sum: { amount: true },
-        }),
-        prisma.webinars.count({ where: { creator_id: userId } }),
-        prisma.webinar_enrollments.count({
-          where: { webinar: { creator_id: userId } },
-        }),
-        prisma.webinar_transactions.aggregate({
-          where: { webinar: { creator_id: userId }, status: "SUCCESS" },
-          _sum: { amount: true },
-        }),
-        prisma.sessions.findMany({
-          where: {
-            OR: [{ caller_id: userId }, { receiver_id: userId }],
-            status: "COMPLETED",
-          },
-        }),
-      ]);
-
-      const sessionEarnings = completedSessions.reduce((s, x) => s + x.amount, 0);
-      const sessionEnrolled = completedSessions.length;
-      const sessionMinutes = completedSessions.reduce((s, x) => s + x.duration, 0);
-
-      const cRev = courseRevenue._sum.amount || 0;
-      const wRev = webinarRevenue._sum.amount || 0;
-
-      return res.json({
-        data: {
-          total_revenue: cRev + wRev + sessionEarnings,
-          total_enrolled: courseEnrollments + webinarEnrollments + sessionEnrolled,
-          total_products: courseCount + webinarCount,
-          course: {
-            count: courseCount,
-            enrolled: courseEnrollments,
-            revenue: cRev,
-          },
-          webinar: {
-            count: webinarCount,
-            enrolled: webinarEnrollments,
-            revenue: wRev,
-          },
-          session: {
-            count: sessionEnrolled,
-            enrolled: sessionEnrolled,
-            revenue: sessionEarnings,
-            minutes: sessionMinutes,
-          },
+    const [
+      courseCount,
+      courseEnrollments,
+      courseRevenue,
+      webinarCount,
+      webinarEnrollments,
+      webinarRevenue,
+      completedSessions,
+      allSessions,
+      courseEnrollmentDates,
+      webinarEnrollmentDates,
+      courseRevenueByProduct,
+      webinarRevenueByProduct,
+    ] = await Promise.all([
+      prisma.courses.count({ where: { creator_id: userId } }),
+      prisma.enrollments.count({
+        where: { course: { creator_id: userId } },
+      }),
+      prisma.transactions.aggregate({
+        where: { course: { creator_id: userId }, status: "SUCCESS" },
+        _sum: { amount: true },
+      }),
+      prisma.webinars.count({ where: { creator_id: userId } }),
+      prisma.webinar_enrollments.count({
+        where: { webinar: { creator_id: userId } },
+      }),
+      prisma.webinar_transactions.aggregate({
+        where: { webinar: { creator_id: userId }, status: "SUCCESS" },
+        _sum: { amount: true },
+      }),
+      prisma.sessions.findMany({
+        where: {
+          OR: [{ caller_id: userId }, { receiver_id: userId }],
+          status: "COMPLETED",
         },
+      }),
+      prisma.sessions.findMany({
+        where: {
+          OR: [{ caller_id: userId }, { receiver_id: userId }],
+        },
+        select: { status: true },
+      }),
+      prisma.enrollments.findMany({
+        where: { course: { creator_id: userId } },
+        select: { enrolled_at: true },
+      }),
+      prisma.webinar_enrollments.findMany({
+        where: { webinar: { creator_id: userId } },
+        select: { enrolled_at: true },
+      }),
+      prisma.transactions.groupBy({
+        by: ["course_id"],
+        where: { course: { creator_id: userId }, status: "SUCCESS" },
+        _sum: { amount: true },
+      }),
+      prisma.webinar_transactions.groupBy({
+        by: ["webinar_id"],
+        where: { webinar: { creator_id: userId }, status: "SUCCESS" },
+        _sum: { amount: true },
+      }),
+    ]);
+
+    // ── everything below runs AFTER the Promise.all resolves ──
+
+    const sessionEarnings = completedSessions.reduce((s, x) => s + x.amount, 0);
+    const sessionEnrolled = completedSessions.length;
+    const sessionMinutes = completedSessions.reduce((s, x) => s + x.duration, 0);
+
+    const cRev = courseRevenue._sum.amount || 0;
+    const wRev = webinarRevenue._sum.amount || 0;
+
+    const totalSessionsCount = allSessions.length;
+    const activeSessionsCount = allSessions.filter(
+      (s) => s.status === "ACTIVE" || s.status === "PENDING"
+    ).length;
+
+    // Audience growth — last 7 months
+    const now = new Date();
+    const monthBuckets: { key: string; label: string; start: Date; end: Date }[] = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      monthBuckets.push({
+        key: `${d.getFullYear()}-${d.getMonth()}`,
+        label: d.toLocaleString("en-US", { month: "short" }),
+        start: new Date(d.getFullYear(), d.getMonth(), 1),
+        end: new Date(d.getFullYear(), d.getMonth() + 1, 1),
       });
-    } catch (err: any) {
-      console.error("getDashboardStats error:", err);
-      return res.status(500).json({ error: "Failed to fetch dashboard stats" });
     }
+
+    function countByMonth(dates: { enrolled_at: Date }[]) {
+      const counts: Record<string, number> = {};
+      for (const { enrolled_at } of dates) {
+        const bucket = monthBuckets.find((m) => enrolled_at >= m.start && enrolled_at < m.end);
+        if (bucket) counts[bucket.key] = (counts[bucket.key] || 0) + 1;
+      }
+      return counts;
+    }
+
+    const courseCounts = countByMonth(courseEnrollmentDates);
+    const webinarCounts = countByMonth(webinarEnrollmentDates);
+
+    const audienceGrowth = monthBuckets.map((m) => ({
+      month: m.label,
+      enrollments: (courseCounts[m.key] || 0) + (webinarCounts[m.key] || 0),
+    }));
+
+    // Top products by revenue
+    const topCourseIds = courseRevenueByProduct
+      .filter((c) => (c._sum.amount || 0) > 0)
+      .map((c) => c.course_id);
+    const topWebinarIds = webinarRevenueByProduct
+      .filter((w) => (w._sum.amount || 0) > 0)
+      .map((w) => w.webinar_id);
+
+    const [coursesById, webinarsById] = await Promise.all([
+      topCourseIds.length
+        ? prisma.courses.findMany({ where: { id: { in: topCourseIds } }, select: { id: true, title: true } })
+        : Promise.resolve([]),
+      topWebinarIds.length
+        ? prisma.webinars.findMany({ where: { id: { in: topWebinarIds } }, select: { id: true, title: true } })
+        : Promise.resolve([]),
+    ]);
+    const courseTitleMap = new Map(coursesById.map((c) => [c.id, c.title]));
+    const webinarTitleMap = new Map(webinarsById.map((w) => [w.id, w.title]));
+
+    const topProducts = [
+      ...courseRevenueByProduct.map((c) => ({
+        id: c.course_id,
+        title: courseTitleMap.get(c.course_id) || "Untitled course",
+        revenue: c._sum.amount || 0,
+      })),
+      ...webinarRevenueByProduct.map((w) => ({
+        id: w.webinar_id,
+        title: webinarTitleMap.get(w.webinar_id) || "Untitled webinar",
+        revenue: w._sum.amount || 0,
+      })),
+    ]
+      .filter((p) => p.revenue > 0)
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 5);
+
+    return res.json({
+      data: {
+        total_revenue: cRev + wRev + sessionEarnings,
+        total_enrolled: courseEnrollments + webinarEnrollments + sessionEnrolled,
+        total_students: courseEnrollments + webinarEnrollments,
+        total_products: courseCount + webinarCount,
+        total_sessions: totalSessionsCount,
+        active_sessions: activeSessionsCount,
+        audience_growth: audienceGrowth,
+        top_products: topProducts,
+        course: {
+          count: courseCount,
+          enrolled: courseEnrollments,
+          revenue: cRev,
+        },
+        webinar: {
+          count: webinarCount,
+          enrolled: webinarEnrollments,
+          revenue: wRev,
+        },
+        session: {
+          count: sessionEnrolled,
+          enrolled: sessionEnrolled,
+          revenue: sessionEarnings,
+          minutes: sessionMinutes,
+        },
+      },
+    });
+  } catch (err: any) {
+    console.error("getDashboardStats error:", err);
+    return res.status(500).json({ error: "Failed to fetch dashboard stats" });
   }
+}
+
+// Creator: reschedule / update an existing session (time, duration, rate)
+static async updateSessionDetails(req: JWTRequest, res: Response) {
+  try {
+    const userId = req.user!.userId;
+    const { session_id } = req.params;
+    const { scheduled_at, duration, rate_per_min } = req.body;
+
+    const session = await prisma.sessions.findUnique({ where: { id: session_id } });
+    if (!session) {
+      return res.status(404).json({ error: "Session not found" });
+    }
+
+    // Only the receiver (the expert being booked) may edit their own session
+    if (session.receiver_id !== userId) {
+      return res.status(403).json({ error: "You don't have permission to edit this session" });
+    }
+
+    // Only upcoming sessions can be edited — a completed/cancelled session is final
+    if (!["PENDING", "ACTIVE"].includes(session.status)) {
+      return res.status(400).json({ error: "Only upcoming sessions can be edited" });
+    }
+
+    const updateData: any = {};
+
+    if (scheduled_at !== undefined) {
+      const parsed = new Date(scheduled_at);
+      if (isNaN(parsed.getTime())) {
+        return res.status(400).json({ error: "Invalid scheduled_at" });
+      }
+      updateData.scheduled_at = parsed;
+    }
+
+    if (duration !== undefined) {
+      const d = Number(duration);
+      if (isNaN(d) || d <= 0) {
+        return res.status(400).json({ error: "Invalid duration" });
+      }
+      updateData.duration = d;
+    }
+
+    if (rate_per_min !== undefined) {
+      const r = Number(rate_per_min);
+      if (isNaN(r) || r < 0) {
+        return res.status(400).json({ error: "Invalid rate_per_min" });
+      }
+      updateData.rate_per_min = r;
+    }
+
+    // Recompute amount whenever duration or rate changes (amount = duration * rate)
+    if (updateData.duration !== undefined || updateData.rate_per_min !== undefined) {
+      const finalDuration = updateData.duration ?? session.duration;
+      const finalRate = updateData.rate_per_min ?? session.rate_per_min;
+      updateData.amount = finalDuration * finalRate;
+    }
+
+    const updated = await prisma.sessions.update({
+      where: { id: session_id },
+      data: updateData,
+    });
+
+    // Notify the caller their session was changed
+    NotificationController.createNotification({
+      userId: session.caller_id,
+      type: "SESSION",
+      title: "Session Updated",
+      message: "Your upcoming session has been rescheduled or updated by the expert. Please check the new details.",
+      data: { sessionId: session_id },
+    }).catch((err) => console.error("Notification error:", err));
+
+    return res.json({ data: updated });
+  } catch (err: any) {
+    console.error("updateSessionDetails error:", err);
+    return res.status(500).json({ error: "Failed to update session" });
+  }
+}
+
+// Creator: get performance detail for a single session (status, earnings, review if any)
+static async getSessionPerformance(req: JWTRequest, res: Response) {
+  try {
+    const userId = req.user!.userId;
+    const { session_id } = req.params;
+
+    const session = await prisma.sessions.findUnique({ where: { id: session_id } });
+    if (!session) {
+      return res.status(404).json({ error: "Session not found" });
+    }
+
+    if (session.receiver_id !== userId && session.caller_id !== userId) {
+      return res.status(403).json({ error: "You don't have permission to view this session" });
+    }
+
+    const review = await prisma.session_reviews.findUnique({
+      where: { session_id },
+    });
+
+    return res.json({
+      data: {
+        status: session.status,
+        duration: session.duration,
+        amount: session.amount,
+        rate_per_min: session.rate_per_min,
+        payment_status: session.payment_status,
+        started_at: session.started_at,
+        ended_at: session.ended_at,
+        review: review
+          ? { rating: review.rating, comment: review.comment, created_at: review.created_at }
+          : null,
+      },
+    });
+  } catch (err: any) {
+    console.error("getSessionPerformance error:", err);
+    return res.status(500).json({ error: "Failed to fetch session performance" });
+  }
+}
+
+// Creator: cancel an upcoming session (no automatic refund — handled manually/outside the app)
+static async cancelSession(req: JWTRequest, res: Response) {
+  try {
+    const userId = req.user!.userId;
+    const { session_id } = req.params;
+
+    const session = await prisma.sessions.findUnique({ where: { id: session_id } });
+    if (!session) {
+      return res.status(404).json({ error: "Session not found" });
+    }
+
+    if (session.receiver_id !== userId) {
+      return res.status(403).json({ error: "You don't have permission to cancel this session" });
+    }
+
+    if (!["PENDING", "ACTIVE"].includes(session.status)) {
+      return res.status(400).json({ error: "Only upcoming sessions can be cancelled" });
+    }
+
+    const updated = await prisma.sessions.update({
+      where: { id: session_id },
+      data: { status: "CANCELLED" },
+    });
+
+    const wasPaid = session.payment_status === "SUCCESS" && session.amount > 0;
+
+    NotificationController.createNotification({
+      userId: session.caller_id,
+      type: "SESSION",
+      title: "Session Cancelled",
+      message: wasPaid
+        ? "Your upcoming session was cancelled by the expert. If you were charged, our support team will process a refund shortly."
+        : "Your upcoming session was cancelled by the expert.",
+      data: { sessionId: session_id },
+    }).catch((err) => console.error("Notification error:", err));
+
+    return res.json({ data: updated, was_paid: wasPaid });
+  } catch (err: any) {
+    console.error("cancelSession error:", err);
+    return res.status(500).json({ error: "Failed to cancel session" });
+  }
+}
 }

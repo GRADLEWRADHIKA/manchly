@@ -48,6 +48,9 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
   const [kycStatus, setKycStatus] = useState(null);
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
 
+  const [searchQuery, setSearchQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortOrder, setSortOrder] = useState("newest");
   const [currentPage, setCurrentPage] = useState(1);
@@ -110,7 +113,15 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
     setLoading(false);
   }, [user]);
 
-   const handleAddUser = async (course, identifier) => {
+  const allCount = courseList.length;
+  const publishedCount = courseList.filter(
+    (c) =>
+      String(c?.status || "").toLowerCase() === "published" ||
+      c?.is_published === true
+  ).length;
+  const draftCount = allCount - publishedCount;
+
+  const handleAddUser = async (course, identifier) => {
     const id = course?.id || course?._id;
     if (!id) return;
     const response = await apiFetch(`/courses/${id}/grant`, {
@@ -124,7 +135,6 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
       toast.success("Access granted successfully.");
     }
   };
-
 
   const handleCourseSave = async (updatedCourse) => {
     const id = updatedCourse?.id || updatedCourse?._id;
@@ -147,8 +157,8 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
 
       setCourseList((prev) =>
         prev.map((c) =>
-          (c.id || c._id) === id ? { ...c, ...(saved || updatedCourse) } : c,
-        ),
+          (c.id || c._id) === id ? { ...c, ...(saved || updatedCourse) } : c
+        )
       );
     } catch (err) {
       console.error("Failed to save course", err);
@@ -215,6 +225,11 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
     walletData?.available ??
     0;
 
+  const categories = useMemo(() => {
+    const set = new Set(courseList.map((c) => c?.category).filter(Boolean));
+    return Array.from(set);
+  }, [courseList]);
+
   const filteredCourses = useMemo(() => {
     let list = [...courseList];
 
@@ -227,6 +242,17 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
       });
     }
 
+    if (categoryFilter !== "all") {
+      list = list.filter((c) => c?.category === categoryFilter);
+    }
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      list = list.filter((c) =>
+        (c?.title || c?.name || " ").toLowerCase().includes(q)
+      );
+    }
+
     list.sort((a, b) => {
       if (sortOrder === "price_desc") return (b?.price ?? 0) - (a?.price ?? 0);
       if (sortOrder === "price_asc") return (a?.price ?? 0) - (b?.price ?? 0);
@@ -237,7 +263,7 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
     });
 
     return list;
-  }, [courseList, statusFilter, sortOrder]);
+  }, [courseList, statusFilter, categoryFilter, searchQuery, sortOrder]);
 
   const totalPages = Math.max(1, Math.ceil(filteredCourses.length / pageSize));
   const pageStart = (currentPage - 1) * pageSize;
@@ -448,16 +474,16 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
           />
         </div>
 
-        {/* Your Courses + Right Sidebar (Insights & AI Planner) Row */}
+        {/* Main Content Layout Grid */}
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "4fr 1fr",
-            gap: 20,
+            gridTemplateColumns: "1fr 320px",
+            gap: 24,
             alignItems: "start",
           }}
         >
-          {/* Your Courses */}
+          {/* Your Courses Section */}
           <div
             style={{
               background: colors.base.cardBackground,
@@ -466,12 +492,13 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
               padding: 24,
             }}
           >
+            {/* Header row: title + Create Course button */}
             <div
               style={{
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                marginBottom: 20,
+                marginBottom: 16,
               }}
             >
               <span
@@ -481,58 +508,152 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
                   color: colors.typography.primaryText,
                 }}
               >
-                Your Courses ({filteredCourses.length})
+                Your Courses{" "}
+                <span
+                  style={{
+                    color: colors.typography.secondaryText,
+                    fontWeight: 600,
+                  }}
+                >
+                  {allCount}
+                </span>
               </span>
-
-              <div style={{ display: "flex", gap: 10 }}>
-                <select
-                  value={statusFilter}
-                  onChange={(e) => {
-                    setStatusFilter(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                  style={{
-                    border: `1px solid ${colors.base.border}`,
-                    borderRadius: 10,
-                    padding: "8px 14px",
-                    fontSize: 13,
-                    fontWeight: 600,
-                    color: colors.typography.primaryText,
-                    background: colors.base.cardBackground,
-                    cursor: "pointer",
-                  }}
-                >
-                  <option value="all">Filters: All</option>
-                  <option value="published">Published only</option>
-                  <option value="draft">Draft only</option>
-                </select>
-
-                <select
-                  value={sortOrder}
-                  onChange={(e) => {
-                    setSortOrder(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                  style={{
-                    border: `1px solid ${colors.base.border}`,
-                    borderRadius: 10,
-                    padding: "8px 14px",
-                    fontSize: 13,
-                    fontWeight: 600,
-                    color: colors.typography.primaryText,
-                    background: colors.base.cardBackground,
-                    cursor: "pointer",
-                  }}
-                >
-                  <option value="newest">Newest First</option>
-                  <option value="oldest">Oldest First</option>
-                  <option value="price_desc">Price: High to Low</option>
-                  <option value="price_asc">Price: Low to High</option>
-                </select>
-              </div>
+              <button
+                type="button"
+                onClick={handleNewCourse}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  background: colors.brand.primaryOrange,
+                  color: colors.typography.white,
+                  border: "none",
+                  borderRadius: 10,
+                  padding: "9px 16px",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                + Create Course
+              </button>
             </div>
 
-            {/* Grid Container Wrapper */}
+            {/* Tabs: All / Published / Drafts */}
+            <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+              {[
+                { key: "all", label: "All", count: allCount },
+                { key: "published", label: "Published", count: publishedCount },
+                { key: "draft", label: "Drafts", count: draftCount },
+              ].map((tab) => (
+                <button
+                  key={tab.key}
+                  onClick={() => {
+                    setStatusFilter(tab.key);
+                    setCurrentPage(1);
+                  }}
+                  style={{
+                    padding: "8px 14px",
+                    borderRadius: 10,
+                    border: "none",
+                    background:
+                      statusFilter === tab.key
+                        ? "rgba(255,107,0,0.12)"
+                        : "transparent",
+                    color:
+                      statusFilter === tab.key
+                        ? colors.brand.primaryOrange
+                        : colors.typography.secondaryText,
+                    fontSize: 13,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                  }}
+                >
+                  {tab.label} ({tab.count})
+                </button>
+              ))}
+            </div>
+
+            {/* Search + filters row */}
+            <div
+              style={{
+                display: "flex",
+                gap: 10,
+                marginBottom: 20,
+                flexWrap: "wrap",
+              }}
+            >
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setCurrentPage(1);
+                }}
+                placeholder="Search your courses..."
+                style={{
+                  flex: 1,
+                  minWidth: 200,
+                  border: `1px solid ${colors.base.border}`,
+                  borderRadius: 10,
+                  padding: "8px 14px",
+                  fontSize: 13,
+                  color: colors.typography.primaryText,
+                  background: colors.base.cardBackground,
+                  outline: "none",
+                }}
+              />
+
+              <select
+                value={categoryFilter}
+                onChange={(e) => {
+                  setCategoryFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
+                style={{
+                  border: `1px solid ${colors.base.border}`,
+                  borderRadius: 10,
+                  padding: "8px 14px",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: colors.typography.primaryText,
+                  background: colors.base.cardBackground,
+                  cursor: "pointer",
+                }}
+              >
+                <option value="all">All Categories</option>
+                {categories.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                value={sortOrder}
+                onChange={(e) => {
+                  setSortOrder(e.target.value);
+                  setCurrentPage(1);
+                }}
+                style={{
+                  border: `1px solid ${colors.base.border}`,
+                  borderRadius: 10,
+                  padding: "8px 14px",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: colors.typography.primaryText,
+                  background: colors.base.cardBackground,
+                  cursor: "pointer",
+                }}
+              >
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="price_desc">Price: High to Low</option>
+                <option value="price_asc">Price: Low to High</option>
+              </select>
+            </div>
+
+            {/* Table */}
             {visibleCourses.length === 0 ? (
               <div
                 style={{
@@ -545,28 +666,58 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
                 No courses yet. Create your first course to see it here.
               </div>
             ) : (
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
-                  gap: 20,
-                }}
-              >
-                {visibleCourses.map((course) => (
-                  <CourseCard
-                    key={course?.id || course?._id || course?.title}
-                    course={course}
-                    onEdit={handleCourseEdit}
-                    onSave={handleCourseSave}
-                    onView={handleCourseView}
-                    onDuplicate={handleCourseDuplicate}
-                    onDelete={handleCourseMore}
-                     onAddUser={handleAddUser}
-                  />
-                ))}
+              <div style={{ overflowX: "auto" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                  <thead>
+                    <tr
+                      style={{ borderBottom: `1px solid ${colors.base.border}` }}
+                    >
+                      {[
+                        "",
+                        "Course",
+                        "Status",
+                        "Price",
+                        "Students",
+                        "Revenue",
+                        "Updated",
+                        "Actions",
+                      ].map((h) => (
+                        <th
+                          key={h}
+                          style={{
+                            textAlign: h === "Actions" ? "right" : "left",
+                            padding: "10px 8px",
+                            fontSize: 11.5,
+                            fontWeight: 700,
+                            color: colors.typography.secondaryText,
+                            textTransform: "uppercase",
+                            letterSpacing: 0.4,
+                          }}
+                        >
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {visibleCourses.map((course) => (
+                      <CourseCard
+                        key={course?.id || course?._id || course?.title}
+                        course={course}
+                        onEdit={handleCourseEdit}
+                        onSave={handleCourseSave}
+                        onView={handleCourseView}
+                        onDuplicate={handleCourseDuplicate}
+                        onDelete={handleCourseMore}
+                        onAddUser={handleAddUser}
+                      />
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
 
+            {/* Pagination */}
             {filteredCourses.length > 0 && (
               <div
                 style={{
@@ -588,7 +739,6 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
                   {Math.min(pageStart + pageSize, filteredCourses.length)} of{" "}
                   {filteredCourses.length} courses
                 </span>
-
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                   <button
                     onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
@@ -600,7 +750,6 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
                   >
                     <ChevronLeft size={16} />
                   </button>
-
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(
                     (page) => (
                       <button
@@ -626,9 +775,8 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
                       >
                         {page}
                       </button>
-                    ),
+                    )
                   )}
-
                   <button
                     onClick={() =>
                       setCurrentPage((p) => Math.min(totalPages, p + 1))

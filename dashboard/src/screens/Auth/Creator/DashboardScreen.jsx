@@ -26,13 +26,13 @@ export default function DashboardScreen({ user, onNavigate, onLogout }) {
   const [error, setError] = useState("");
 
   // State for different dashboard modules
-  const [dashboard, setDashboard] = useState(null); 
+  const [dashboard, setDashboard] = useState(null);
   const [walletData, setWalletData] = useState(null);
   const [courseStats, setCourseStats] = useState(null);
   const [webinarStats, setWebinarStats] = useState(null);
   const [recentSales, setRecentSales] = useState([]);
-  const [earningsBreakdown, setEarningsBreakdown] = useState(null); 
-  const [kycStatus, setKycStatus] = useState(null); 
+  const [earningsBreakdown, setEarningsBreakdown] = useState(null);
+  const [kycStatus, setKycStatus] = useState(null);
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
 
   const loadNotifications = useCallback(async () => {
@@ -103,7 +103,7 @@ export default function DashboardScreen({ user, onNavigate, onLogout }) {
 
   const courseRevenue = courseStats?.revenue ?? 0;
   const webinarRevenue = webinarStats?.revenue ?? 0;
-  const sessionRevenue = dashboard?.session_revenue ?? 0;
+  const sessionRevenue = dashboard?.session?.revenue ?? 0;
 
   const totalEarnings =
     dashboard?.total_revenue ?? courseRevenue + webinarRevenue + sessionRevenue;
@@ -125,16 +125,8 @@ export default function DashboardScreen({ user, onNavigate, onLogout }) {
     );
   }
 
-  const revenueChartData = earningsBreakdown?.monthly ||
-    dashboard?.monthly_revenue || [
-      { month: "Jan", courses: 0, webinars: 0, sessions: 0 },
-      { month: "Feb", courses: 0, webinars: 0, sessions: 0 },
-      { month: "Mar", courses: 0, webinars: 0, sessions: 0 },
-      { month: "Apr", courses: 0, webinars: 0, sessions: 0 },
-      { month: "May", courses: 0, webinars: 0, sessions: 0 },
-      { month: "Jun", courses: 0, webinars: 0, sessions: 0 },
-      { month: "Jul", courses: 0, webinars: 0, sessions: 0 },
-    ];
+  const revenueChartData =
+    earningsBreakdown?.monthly || dashboard?.monthly_revenue;
 
   const handleTimeframeChange = (timeframe) => {
     console.log("Selected timeframe:", timeframe);
@@ -188,11 +180,7 @@ export default function DashboardScreen({ user, onNavigate, onLogout }) {
         position: "relative",
       }}
     >
-      <Sidebar
-        active="dashboard"
-        onNavigate={onNavigate}
-        onLogout={onLogout}
-      />
+      <Sidebar active="dashboard" onNavigate={onNavigate} onLogout={onLogout} />
 
       <div
         style={{
@@ -210,9 +198,14 @@ export default function DashboardScreen({ user, onNavigate, onLogout }) {
           onNotifications={handleNotifications}
         />
 
-        {/* Verification Banner */}
-        <VerificationBanner isKycVerified={isKycVerified} onVerify={() => onNavigate?.("kyc")} />
-        
+        {/* Verification Banner — only shown when KYC is NOT verified */}
+        {!isKycVerified && (
+          <VerificationBanner
+            isKycVerified={isKycVerified}
+            onVerify={() => onNavigate?.("kyc")}
+          />
+        )}
+
         {/* Error */}
         {error && (
           <div
@@ -276,19 +269,19 @@ export default function DashboardScreen({ user, onNavigate, onLogout }) {
           {/* Right Side */}
           <div
             style={{
-            border: "none",
-            cursor: "pointer",
-            borderRadius: 12,
-            padding: "9px 16px",
-            fontWeight: 800,
-            fontSize: 13,
-            fontFamily: "inherit",
-            color: "#fff",
-            background: colors.orange,
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 7,
-            //boxShadow: "0 4px 12px rgba(245,166,35,0.3)",
+              border: "none",
+              cursor: "pointer",
+              borderRadius: 12,
+              padding: "9px 16px",
+              fontWeight: 800,
+              fontSize: 13,
+              fontFamily: "inherit",
+              color: "#fff",
+              background: colors.orange,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 7,
+              //boxShadow: "0 4px 12px rgba(245,166,35,0.3)",
             }}
           >
             {[
@@ -487,7 +480,7 @@ export default function DashboardScreen({ user, onNavigate, onLogout }) {
         </div>
 
         {/* Scale Your Impact Banner */}
-        <ScaleImpactBanner phoneNumber = "916363790659"/>
+        <ScaleImpactBanner phoneNumber="916363790659" />
       </div>
     </div>
   );

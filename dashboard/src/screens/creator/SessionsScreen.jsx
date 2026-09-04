@@ -1,8 +1,19 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Phone, Users, Clock, IndianRupee, Pencil, Trash2, Plus, Star,
-  CalendarClock, Package, Languages, CheckCircle2, X,
+  Phone,
+  Users,
+  Clock,
+  IndianRupee,
+  Pencil,
+  Trash2,
+  Plus,
+  Star,
+  CalendarClock,
+  Package,
+  Languages,
+  CheckCircle2,
+  X,
 } from "lucide-react";
 import { apiFetch, unwrap } from "../../utils/api";
 import { emitSocket } from "../../utils/socket";
@@ -11,20 +22,67 @@ import { Modal, Badge, Avatar, EmptyState } from "../../components/ui";
 import { GoldBtn, StatCard, AiEnhance, lbl } from "../../components/creatorUi";
 import { toast } from "../../utils/toast";
 import { formatCurrency } from "../../utils/formatters";
+import SessionRow from "./SessionRow";
 
 const G = colors.gradients;
 
-const dayNameToNum = (day) => (DAYS.indexOf(day) + 1) % 7; 
-const toDayOfWeek = (s) => (s.day_of_week != null ? Number(s.day_of_week) : dayNameToNum(s.day));
+const dayNameToNum = (day) => (DAYS.indexOf(day) + 1) % 7;
+const toDayOfWeek = (s) =>
+  s.day_of_week != null ? Number(s.day_of_week) : dayNameToNum(s.day);
 
-const CATEGORIES = ["Business Consulting", "Career Guidance", "Finance & Tax", "Legal Advice", "Health & Wellness", "Fitness Coach", "Astrology", "Education & Tutoring", "Technology", "Marketing", "Design", "Life Coach"];
-const LANGUAGES = ["Hindi", "English", "Tamil", "Telugu", "Bengali", "Marathi", "Gujarati", "Kannada"];
-const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+const CATEGORIES = [
+  "Business Consulting",
+  "Career Guidance",
+  "Finance & Tax",
+  "Legal Advice",
+  "Health & Wellness",
+  "Fitness Coach",
+  "Astrology",
+  "Education & Tutoring",
+  "Technology",
+  "Marketing",
+  "Design",
+  "Life Coach",
+];
+const LANGUAGES = [
+  "Hindi",
+  "English",
+  "Tamil",
+  "Telugu",
+  "Bengali",
+  "Marathi",
+  "Gujarati",
+  "Kannada",
+];
+const DAYS = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+];
 const DURATIONS = [15, 30, 45, 60];
 const PLATFORMS = ["Zoom", "Google Meet", "Manchly Live"];
 
-const EMPTY_EXPERT = { profession: "", categories: [], experience: "", bio: "", video_rate: "", languages: [] };
-const EMPTY_PRODUCT = { title: "", duration: 30, platform: "Manchly Live", description: "", availability: "Available Mon-Fri, 9 AM - 6 PM IST", paid: true, price: "" };
+const EMPTY_EXPERT = {
+  profession: "",
+  categories: [],
+  experience: "",
+  bio: "",
+  video_rate: "",
+  languages: [],
+};
+const EMPTY_PRODUCT = {
+  title: "",
+  duration: 30,
+  platform: "Manchly Live",
+  description: "",
+  availability: "Available Mon-Fri, 9 AM - 6 PM IST",
+  paid: true,
+  price: "",
+};
 
 function Chip({ on, children, onClick }) {
   return (
@@ -34,8 +92,13 @@ function Chip({ on, children, onClick }) {
         border: `1.5px solid ${on ? "transparent" : colors.base.border}`,
         background: on ? G.orange : "#fff",
         color: on ? "#fff" : colors.typography.secondaryText,
-        borderRadius: 99, padding: "7px 14px", fontSize: 12.5, fontWeight: 700,
-        cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s ease",
+        borderRadius: 99,
+        padding: "7px 14px",
+        fontSize: 12.5,
+        fontWeight: 700,
+        cursor: "pointer",
+        fontFamily: "inherit",
+        transition: "all 0.15s ease",
       }}
     >
       {children}
@@ -43,8 +106,20 @@ function Chip({ on, children, onClick }) {
   );
 }
 
-const card = { background: "#fff", border: `1px solid ${colors.base.border}`, borderRadius: 18, padding: 22 };
-const h3 = { margin: "0 0 14px", fontSize: 15.5, fontWeight: 900, display: "flex", alignItems: "center", gap: 8 };
+const card = {
+  background: "#fff",
+  border: `1px solid ${colors.base.border}`,
+  borderRadius: 18,
+  padding: 22,
+};
+const h3 = {
+  margin: "0 0 14px",
+  fontSize: 15.5,
+  fontWeight: 900,
+  display: "flex",
+  alignItems: "center",
+  gap: 8,
+};
 
 export default function SessionsScreen() {
   const navigate = useNavigate();
@@ -63,12 +138,32 @@ export default function SessionsScreen() {
   const [expertForm, setExpertForm] = useState(EMPTY_EXPERT);
   const [expertSaving, setExpertSaving] = useState(false);
   const [slotModal, setSlotModal] = useState(false);
-  const [slotForm, setSlotForm] = useState({ day: "Monday", start_time: "10:00", end_time: "18:00" });
+  const [slotForm, setSlotForm] = useState({
+    day: "Monday",
+    start_time: "10:00",
+    end_time: "18:00",
+  });
   const [slotSaving, setSlotSaving] = useState(false);
   const [productModal, setProductModal] = useState(null); // 'create' | product
   const [productForm, setProductForm] = useState(EMPTY_PRODUCT);
   const [productSaving, setProductSaving] = useState(false);
   const [toDeleteProduct, setToDeleteProduct] = useState(null);
+
+  const [sessionSearch, setSessionSearch] = useState("");
+  const [sessionSort, setSessionSort] = useState("newest");
+
+  const [previewSession, setPreviewSession] = useState(null);
+
+  const [editSession, setEditSession] = useState(null);
+const [editForm, setEditForm] = useState({ date: "", time: "", duration: "30", rate_per_min: "" });
+const [editSaving, setEditSaving] = useState(false);
+
+const [performanceSession, setPerformanceSession] = useState(null);
+const [performanceData, setPerformanceData] = useState(null);
+const [performanceLoading, setPerformanceLoading] = useState(false);
+
+const [toCancelSession, setToCancelSession] = useState(null);
+const [cancelling, setCancelling] = useState(false);
 
   const load = useCallback(async () => {
     const [me, st, sess, avail, prods] = await Promise.allSettled([
@@ -80,7 +175,8 @@ export default function SessionsScreen() {
     ]);
     if (me.status === "fulfilled") {
       const d = unwrap(me.value);
-      const prof = d?.expert || d?.profile || (d && d.profession !== undefined ? d : null);
+      const prof =
+        d?.expert || d?.profile || (d && d.profession !== undefined ? d : null);
       setExpert(prof);
       setNoProfile(!prof);
     } else setNoProfile(true);
@@ -99,7 +195,9 @@ export default function SessionsScreen() {
     }
     setLoading(false);
   }, []);
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   /* ---------- availability toggle ---------- */
   const toggleAvailable = async () => {
@@ -107,10 +205,18 @@ export default function SessionsScreen() {
     const next = !expert.is_available;
     setToggling(true);
     try {
-      await apiFetch("/sessions/expert/update", { method: "PATCH", body: JSON.stringify({ is_available: next }) });
+      await apiFetch("/sessions/expert/update", {
+        method: "PATCH",
+        body: JSON.stringify({ is_available: next }),
+      });
       setExpert((e) => ({ ...e, is_available: next }));
-      emitSocket("expert_availability_changed", { is_available: next, expert_id: expert.id });
-      toast.success(next ? "You're now available for calls" : "You're now offline");
+      emitSocket("expert_availability_changed", {
+        is_available: next,
+        expert_id: expert.id,
+      });
+      toast.success(
+        next ? "You're now available for calls" : "You're now offline",
+      );
     } catch (e) {
       toast.error(e.message);
     } finally {
@@ -118,23 +224,75 @@ export default function SessionsScreen() {
     }
   };
 
+  const openSessionEdit = (s) => {
+  const d = s.scheduled_at ? new Date(s.scheduled_at) : null;
+  setEditForm({
+    date: d ? d.toISOString().slice(0, 10) : "",
+    time: d ? `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}` : "",
+    duration: String(s.duration ?? 30),
+    rate_per_min: String(s.rate_per_min ?? ""),
+  });
+  setEditSession(s);
+};
+
+const saveSessionEdit = async () => {
+  if (!editForm.date || !editForm.time) return toast.error("Date and time are required");
+  if (!editForm.duration || isNaN(Number(editForm.duration))) return toast.error("Valid duration is required");
+  if (!editForm.rate_per_min || isNaN(Number(editForm.rate_per_min))) return toast.error("Valid rate is required");
+
+  setEditSaving(true);
+  try {
+    const scheduled_at = new Date(`${editForm.date}T${editForm.time}:00`).toISOString();
+    await apiFetch(`/sessions/${editSession.id}`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        scheduled_at,
+        duration: Number(editForm.duration),
+        rate_per_min: Number(editForm.rate_per_min),
+      }),
+    });
+    toast.success("Session updated");
+    setEditSession(null);
+    load();
+  } catch (e) {
+    toast.error(e.message);
+  } finally {
+    setEditSaving(false);
+  }
+};
+
   /* ---------- expert registration ---------- */
   const openExpertModal = () => {
     setExpertForm(
       expert
-        ? { profession: expert.profession || "", categories: expert.categories || [], experience: String(expert.experience ?? ""), bio: expert.bio || "", video_rate: String(expert.video_rate ?? ""), languages: expert.languages || [] }
-        : EMPTY_EXPERT
+        ? {
+            profession: expert.profession || "",
+            categories: expert.categories || [],
+            experience: String(expert.experience ?? ""),
+            bio: expert.bio || "",
+            video_rate: String(expert.video_rate ?? ""),
+            languages: expert.languages || [],
+          }
+        : EMPTY_EXPERT,
     );
     setExpertModal(true);
   };
 
   const toggleIn = (key, val) =>
-    setExpertForm((f) => ({ ...f, [key]: f[key].includes(val) ? f[key].filter((x) => x !== val) : [...f[key], val] }));
+    setExpertForm((f) => ({
+      ...f,
+      [key]: f[key].includes(val)
+        ? f[key].filter((x) => x !== val)
+        : [...f[key], val],
+    }));
 
   const saveExpert = async () => {
-    if (!expertForm.profession.trim()) return toast.error("Profession is required");
-    if (expertForm.categories.length === 0) return toast.error("Pick at least one category");
-    if (!expertForm.video_rate || isNaN(Number(expertForm.video_rate))) return toast.error("Set your ₹/min video rate");
+    if (!expertForm.profession.trim())
+      return toast.error("Profession is required");
+    if (expertForm.categories.length === 0)
+      return toast.error("Pick at least one category");
+    if (!expertForm.video_rate || isNaN(Number(expertForm.video_rate)))
+      return toast.error("Set your ₹/min video rate");
     setExpertSaving(true);
     try {
       const payload = {
@@ -146,10 +304,16 @@ export default function SessionsScreen() {
         languages: expertForm.languages,
       };
       if (expert) {
-        await apiFetch("/sessions/expert/update", { method: "PATCH", body: JSON.stringify(payload) });
+        await apiFetch("/sessions/expert/update", {
+          method: "PATCH",
+          body: JSON.stringify(payload),
+        });
         toast.success("Expert profile updated");
       } else {
-        await apiFetch("/sessions/expert/register", { method: "POST", body: JSON.stringify(payload) });
+        await apiFetch("/sessions/expert/register", {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
         toast.success("You're now a session expert 🎉");
       }
       setExpertModal(false);
@@ -160,52 +324,77 @@ export default function SessionsScreen() {
       setExpertSaving(false);
     }
   };
+  
 
   /* ---------- slots ---------- */
- const saveSlot = async () => {
-  if (slotForm.end_time <= slotForm.start_time) {
-    return toast.error("End time must be after start time");
-  }
+  const saveSlot = async () => {
+    if (slotForm.end_time <= slotForm.start_time) {
+      return toast.error("End time must be after start time");
+    }
 
-  // Parse and validate day_of_week
-  const newDayNum = Number(dayNameToNum(slotForm.day));
-  if (isNaN(newDayNum)) {
-    return toast.error("Invalid day selected");
-  }
+    // Parse and validate day_of_week
+    const newDayNum = Number(dayNameToNum(slotForm.day));
+    if (isNaN(newDayNum)) {
+      return toast.error("Invalid day selected");
+    }
 
-  setSlotSaving(true);
+    setSlotSaving(true);
+    try {
+      // 1. Clean existing slots
+      const existing = (slots || [])
+        .map((s) => ({
+          day_of_week: Number(toDayOfWeek(s)),
+          start_time: String(s.start_time ?? s.start ?? "").slice(0, 5),
+          end_time: String(s.end_time ?? s.end ?? "").slice(0, 5),
+        }))
+        .filter((s) => !isNaN(s.day_of_week) && s.start && s.end);
+
+      // 2. Format new slot
+      const newSlot = {
+        day_of_week: newDayNum,
+        start_time: String(slotForm.start_time).slice(0, 5),
+        end_time: String(slotForm.end_time).slice(0, 5),
+      };
+
+      const payload = { slots: [...existing, newSlot] };
+
+      // Console log payload before fetch to inspect for NaN or malformed times
+      console.log("Sending Availability Payload:", payload);
+
+      await apiFetch("/sessions/availability", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+
+      toast.success("Slot added");
+      setSlotModal(false);
+      load();
+    } catch (e) {
+      toast.error(e.message || "Failed to save slot");
+    } finally {
+      setSlotSaving(false);
+    }
+  };
+
+  const deleteSlot = async (slotToRemove) => {
   try {
-    // 1. Clean existing slots
-    const existing = (slots || []).map((s) => ({
-      day_of_week: Number(toDayOfWeek(s)),
-      start_time: String(s.start_time ?? s.start ?? "").slice(0, 5),
-      end_time: String(s.end_time ?? s.end ?? "").slice(0, 5),
-    })).filter((s) => !isNaN(s.day_of_week) && s.start && s.end);
-
-    // 2. Format new slot
-    const newSlot = {
-      day_of_week: newDayNum,
-      start_time: String(slotForm.start_time).slice(0, 5),
-      end_time: String(slotForm.end_time).slice(0, 5),
-    };
-
-    const payload = { slots: [...existing, newSlot] };
-
-    // Console log payload before fetch to inspect for NaN or malformed times
-    console.log("Sending Availability Payload:", payload);
+    const remaining = (slots || [])
+      .filter((s) => s.id !== slotToRemove.id)
+      .map((s) => ({
+        day_of_week: Number(toDayOfWeek(s)),
+        start_time: String(s.start_time ?? s.start ?? "").slice(0, 5),
+        end_time: String(s.end_time ?? s.end ?? "").slice(0, 5),
+      }));
 
     await apiFetch("/sessions/availability", {
       method: "POST",
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ slots: remaining }),
     });
 
-    toast.success("Slot added");
-    setSlotModal(false);
+    toast.success("Slot removed");
     load();
   } catch (e) {
-    toast.error(e.message || "Failed to save slot");
-  } finally {
-    setSlotSaving(false);
+    toast.error(e.message || "Failed to remove slot");
   }
 };
 
@@ -213,8 +402,10 @@ export default function SessionsScreen() {
   const parseProduct = (p) => {
     // platform & availability are serialized into description (app parity)
     const desc = p.description || "";
-    const platform = desc.match(/\nPlatform:\s*(.+)/)?.[1]?.trim() || "Manchly Live";
-    const availability = desc.match(/\nAvailability:\s*(.+)/)?.[1]?.trim() || "";
+    const platform =
+      desc.match(/\nPlatform:\s*(.+)/)?.[1]?.trim() || "Manchly Live";
+    const availability =
+      desc.match(/\nAvailability:\s*(.+)/)?.[1]?.trim() || "";
     const clean = desc.split("\nPlatform:")[0].trim();
     return { platform, availability, clean };
   };
@@ -224,22 +415,46 @@ export default function SessionsScreen() {
       setProductModal("create");
     } else {
       const { platform, availability, clean } = parseProduct(p);
-      setProductForm({ title: p.title || "", duration: Number(p.duration) || 30, platform, description: clean, availability, paid: Number(p.price) > 0, price: String(p.price ?? "") });
+      setProductForm({
+        title: p.title || "",
+        duration: Number(p.duration) || 30,
+        platform,
+        description: clean,
+        availability,
+        paid: Number(p.price) > 0,
+        price: String(p.price ?? ""),
+      });
       setProductModal(p);
     }
   };
   const saveProduct = async () => {
     if (!productForm.title.trim()) return toast.error("Title is required");
-    if (productForm.paid && (!productForm.price || isNaN(Number(productForm.price)))) return toast.error("Set a valid price");
+    if (
+      productForm.paid &&
+      (!productForm.price || isNaN(Number(productForm.price)))
+    )
+      return toast.error("Set a valid price");
     setProductSaving(true);
     try {
       const description = `${productForm.description.trim()}\nPlatform: ${productForm.platform}\nAvailability: ${productForm.availability.trim()}`;
-      const payload = { title: productForm.title.trim(), duration: Number(productForm.duration), description, price: productForm.paid ? Number(productForm.price) : 0, mode: "video" };
+      const payload = {
+        title: productForm.title.trim(),
+        duration: Number(productForm.duration),
+        description,
+        price: productForm.paid ? Number(productForm.price) : 0,
+        mode: "video",
+      };
       if (productModal === "create") {
-        await apiFetch("/sessions/products", { method: "POST", body: JSON.stringify(payload) });
+        await apiFetch("/sessions/products", {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
         toast.success("Session product created");
       } else {
-        await apiFetch(`/sessions/products/${productModal.id}`, { method: "PATCH", body: JSON.stringify(payload) });
+        await apiFetch(`/sessions/products/${productModal.id}`, {
+          method: "PATCH",
+          body: JSON.stringify(payload),
+        });
         toast.success("Session product updated");
       }
       setProductModal(null);
@@ -252,7 +467,9 @@ export default function SessionsScreen() {
   };
   const confirmDeleteProduct = async () => {
     try {
-      await apiFetch(`/sessions/products/${toDeleteProduct.id}`, { method: "DELETE" });
+      await apiFetch(`/sessions/products/${toDeleteProduct.id}`, {
+        method: "DELETE",
+      });
       toast.success("Deleted");
       setToDeleteProduct(null);
       load();
@@ -265,13 +482,28 @@ export default function SessionsScreen() {
   const callUser = (s) => {
     const caller = s.caller || s.user || {};
     const callId = s.call_id || `call_${s.id}`;
-    emitSocket("call_user", { receiverId: caller.id, callId, sessionId: s.id, mode: "video" });
+    emitSocket("call_user", {
+      receiverId: caller.id,
+      callId,
+      sessionId: s.id,
+      mode: "video",
+    });
     toast.info(`Ringing ${caller.name || "user"}…`);
-    const q = new URLSearchParams({ callId, sessionId: s.id, mode: "video", otherUserId: caller.id || "", otherName: caller.name || "User" });
+    const q = new URLSearchParams({
+      callId,
+      sessionId: s.id,
+      mode: "video",
+      otherUserId: caller.id || "",
+      otherName: caller.name || "User",
+    });
     navigate(`/call?${q}`);
   };
 
-  const pending = sessions.filter((s) => String(s.status).toUpperCase() === "PENDING" || String(s.status).toUpperCase() === "ACTIVE");
+  const pending = sessions.filter(
+    (s) =>
+      String(s.status).toUpperCase() === "PENDING" ||
+      String(s.status).toUpperCase() === "ACTIVE",
+  );
   const history = sessions.filter((s) => !pending.includes(s));
   const shown = tab === "Active" ? pending : history;
 
@@ -279,204 +511,559 @@ export default function SessionsScreen() {
     day,
     items: slots.filter((s) => {
       const d = s.day ?? s.day_of_week;
-      return String(d).toLowerCase() === day.toLowerCase() || Number(d) === (DAYS.indexOf(day) + 1) % 7 || Number(d) === DAYS.indexOf(day);
+      return (
+        String(d).toLowerCase() === day.toLowerCase() ||
+        Number(d) === (DAYS.indexOf(day) + 1) % 7 ||
+        Number(d) === DAYS.indexOf(day)
+      );
     }),
   }));
+
+  const upcoming = sessions.filter((s) =>
+    ["PENDING", "ACTIVE"].includes(String(s.status).toUpperCase()),
+  );
+  const completed = sessions.filter(
+    (s) => String(s.status).toUpperCase() === "COMPLETED",
+  );
+  const cancelled = sessions.filter(
+    (s) => String(s.status).toUpperCase() === "CANCELLED",
+  );
+
+  const tabCounts = {
+    All: sessions.length,
+    Upcoming: upcoming.length,
+    Completed: completed.length,
+    Cancelled: cancelled.length,
+  };
+
+  const tabFiltered = useMemo(() => {
+    let list = sessions;
+    if (tab === "Upcoming") list = upcoming;
+    else if (tab === "Completed") list = completed;
+    else if (tab === "Cancelled") list = cancelled;
+
+    if (sessionSearch.trim()) {
+      const q = sessionSearch.trim().toLowerCase();
+      list = list.filter((s) =>
+        (s.caller?.name || s.user?.name || "").toLowerCase().includes(q),
+      );
+    }
+
+    return [...list].sort((a, b) => {
+      const aDate = new Date(a.scheduled_at || a.created_at || 0).getTime();
+      const bDate = new Date(b.scheduled_at || b.created_at || 0).getTime();
+      if (sessionSort === "amount_desc")
+        return (b.amount || 0) - (a.amount || 0);
+      if (sessionSort === "amount_asc")
+        return (a.amount || 0) - (b.amount || 0);
+      return sessionSort === "oldest" ? aDate - bDate : bDate - aDate;
+    });
+  }, [sessions, tab, sessionSearch, sessionSort]);
+
+  const openSessionPreview = (s) => setPreviewSession(s);
+
+  const openSessionPerformance = async (s) => {
+  setPerformanceSession(s);
+  setPerformanceLoading(true);
+  try {
+    const response = await apiFetch(`/sessions/${s.id}/performance`);
+    setPerformanceData(unwrap(response));
+  } catch (e) {
+    toast.error(e.message);
+    setPerformanceData(null);
+  } finally {
+    setPerformanceLoading(false);
+  }
+};
+
+const confirmCancelSession = async () => {
+  setCancelling(true);
+  try {
+    const response = await apiFetch(`/sessions/${toCancelSession.id}`, { method: "DELETE" });
+    const data = unwrap(response);
+    toast.success(data?.was_paid ? "Session cancelled. Refund will be processed manually." : "Session cancelled");
+    setToCancelSession(null);
+    load();
+  } catch (e) {
+    toast.error(e.message);
+  } finally {
+    setCancelling(false);
+  }
+};
 
   /* ---------- render ---------- */
 
   return (
     <div style={{ padding: 32, color: colors.typography.primaryText }}>
       {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 22, flexWrap: "wrap", gap: 12 }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 22,
+          flexWrap: "wrap",
+          gap: 12,
+        }}
+      >
         <div>
           <h1 style={{ margin: 0, fontSize: 27, fontWeight: 900 }}>
-            1:1 <span style={{ background: G.orange, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Sessions</span>
+            1:1{" "}
+            <span
+              style={{
+                background: G.orange,
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+              }}
+            >
+              Sessions
+            </span>
           </h1>
-          <p style={{ margin: "4px 0 0", color: colors.typography.secondaryText, fontSize: 14 }}>
+          <p
+            style={{
+              margin: "4px 0 0",
+              color: colors.typography.secondaryText,
+              fontSize: 14,
+            }}
+          >
             Get booked for video consultations, billed per minute.
           </p>
         </div>
-
-        {expert && (
-          <button
-            onClick={toggleAvailable}
-            disabled={toggling}
-            style={{
-              display: "flex", alignItems: "center", gap: 12, background: "#fff", borderRadius: 99, padding: "8px 10px 8px 18px",
-              border: `1.5px solid ${expert.is_available ? "#BBF7D0" : colors.base.border}`, cursor: "pointer", fontFamily: "inherit",
-              boxShadow: expert.is_available ? "0 6px 18px rgba(34,197,94,0.18)" : "none", transition: "all 0.2s ease",
-            }}
-          >
-            <span style={{ fontWeight: 800, fontSize: 13.5, color: expert.is_available ? "#15803D" : colors.typography.secondaryText }}>
-              {toggling ? "Updating…" : expert.is_available ? "Available for calls" : "Offline"}
-            </span>
-            <span style={{ width: 46, height: 26, borderRadius: 99, background: expert.is_available ? "#22C55E" : "#D1D5DB", position: "relative", transition: "background 0.2s ease", flexShrink: 0 }}>
-              <span style={{ position: "absolute", top: 3, left: expert.is_available ? 23 : 3, width: 20, height: 20, borderRadius: "50%", background: "#fff", boxShadow: "0 1px 4px rgba(0,0,0,0.25)", transition: "left 0.2s ease" }} />
-            </span>
-          </button>
-        )}
       </div>
 
       {/* Stats */}
-      <div style={{ display: "flex", gap: 14, marginBottom: 24, flexWrap: "wrap" }}>
-        <StatCard icon={Users} label="Sessions" value={stats?.total_sessions ?? 0} tint="#3B82F6" />
-        <StatCard icon={Clock} label="Minutes on Calls" value={stats?.total_minutes ?? 0} tint="#8B5CF6" />
-        <StatCard icon={IndianRupee} label="Earned" value={formatCurrency(stats?.total_earnings ?? 0)} tint="#22C55E" />
-        <StatCard icon={Star} label="Your Rate" value={expert ? `₹${expert.video_rate || 0}/min` : "—"} tint="#F5A623" />
+      <div
+        style={{ display: "flex", gap: 14, marginBottom: 24, flexWrap: "wrap" }}
+      >
+        <StatCard
+          icon={Users}
+          label="Sessions"
+          value={stats?.total_sessions ?? 0}
+          tint="#3B82F6"
+        />
+        <StatCard
+          icon={Clock}
+          label="Minutes on Calls"
+          value={stats?.total_minutes ?? 0}
+          tint="#8B5CF6"
+        />
+        <StatCard
+          icon={IndianRupee}
+          label="Earned"
+          value={formatCurrency(stats?.total_earnings ?? 0)}
+          tint="#22C55E"
+        />
+        <StatCard
+          icon={Star}
+          label="Your Rate"
+          value={expert ? `₹${expert.video_rate || 0}/min` : "—"}
+          tint="#F5A623"
+        />
       </div>
 
       {loading ? (
-        <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: 20 }}>
-          <div className="mn-shimmer" style={{ height: 320, borderRadius: 18, opacity: 0.3 }} />
-          <div className="mn-shimmer" style={{ height: 320, borderRadius: 18, opacity: 0.3 }} />
+        <div
+          style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: 20 }}
+        >
+          <div
+            className="mn-shimmer"
+            style={{ height: 320, borderRadius: 18, opacity: 0.3 }}
+          />
+          <div
+            className="mn-shimmer"
+            style={{ height: 320, borderRadius: 18, opacity: 0.3 }}
+          />
         </div>
       ) : noProfile && !expert ? (
         /* Onboarding hero */
-        <div style={{ background: G.heroGold, borderRadius: 22, padding: "44px 40px", color: "#fff", textAlign: "center" }}>
+        <div
+          style={{
+            background: G.heroGold,
+            borderRadius: 22,
+            padding: "44px 40px",
+            color: "#fff",
+            textAlign: "center",
+          }}
+        >
           <div style={{ fontSize: 44, marginBottom: 10 }}>📞</div>
-          <h2 style={{ margin: 0, fontSize: 26, fontWeight: 900 }}>Become a Session Expert</h2>
-          <p style={{ margin: "10px auto 24px", maxWidth: 520, opacity: 0.85, fontSize: 15, lineHeight: 1.65 }}>
-            Set your profession, expertise and per-minute rate — users book you for 1:1 video consultations and you earn for every minute on the call.
+          <h2 style={{ margin: 0, fontSize: 26, fontWeight: 900 }}>
+            Become a Session Expert
+          </h2>
+          <p
+            style={{
+              margin: "10px auto 24px",
+              maxWidth: 520,
+              opacity: 0.85,
+              fontSize: 15,
+              lineHeight: 1.65,
+            }}
+          >
+            Set your profession, expertise and per-minute rate — users book you
+            for 1:1 video consultations and you earn for every minute on the
+            call.
           </p>
-          <GoldBtn onClick={openExpertModal} style={{ background: "#fff", color: "#92400E", boxShadow: "0 10px 30px rgba(0,0,0,0.25)", padding: "13px 26px" }}>
+          <GoldBtn
+            onClick={openExpertModal}
+            style={{
+              background: "#fff",
+              color: "#92400E",
+              boxShadow: "0 10px 30px rgba(0,0,0,0.25)",
+              padding: "13px 26px",
+            }}
+          >
             <Star size={16} /> Set Up Expert Profile
           </GoldBtn>
         </div>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: 20, alignItems: "start" }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1.5fr 1fr",
+            gap: 20,
+            alignItems: "start",
+          }}
+        >
           {/* LEFT: sessions list */}
           <div style={card}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <h3 style={{ ...h3, margin: 0 }}><Phone size={16} color="#F5A623" /> Your Sessions</h3>
-              <div className="cs-seg" style={{ width: 220 }}>
-                {["Active", "History"].map((t) => (
-                  <button key={t} className={tab === t ? "on" : ""} onClick={() => setTab(t)}>
-                    {t}{t === "Active" && pending.length > 0 ? ` (${pending.length})` : ""}
-                  </button>
-                ))}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: 16,
+                flexWrap: "wrap",
+                gap: 10,
+              }}
+            >
+              <h3 style={{ ...h3, margin: 0 }}>
+                <Phone size={16} color="#F5A623" /> Your Sessions
+              </h3>
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    background: "#fff",
+                    border: `1.5px solid ${colors.base.border}`,
+                    borderRadius: 10,
+                    padding: "7px 12px",
+                  }}
+                >
+                  <input
+                    value={sessionSearch}
+                    onChange={(e) => setSessionSearch(e.target.value)}
+                    placeholder="Search sessions..."
+                    style={{
+                      border: "none",
+                      outline: "none",
+                      fontSize: 13,
+                      fontFamily: "inherit",
+                      background: "transparent",
+                      width: 140,
+                    }}
+                  />
+                </div>
+                <select
+                  value={sessionSort}
+                  onChange={(e) => setSessionSort(e.target.value)}
+                  style={{
+                    border: `1.5px solid ${colors.base.border}`,
+                    borderRadius: 10,
+                    padding: "7px 10px",
+                    fontSize: 12.5,
+                    fontWeight: 600,
+                    background: "#fff",
+                    cursor: "pointer",
+                  }}
+                >
+                  <option value="newest">Newest First</option>
+                  <option value="oldest">Oldest First</option>
+                  <option value="amount_desc">Amount: High to Low</option>
+                  <option value="amount_asc">Amount: Low to High</option>
+                </select>
               </div>
             </div>
 
-            {shown.length === 0 ? (
+            <div className="cs-seg" style={{ marginBottom: 16 }}>
+              {["All", "Upcoming", "Completed", "Cancelled"].map((t) => (
+                <button
+                  key={t}
+                  className={tab === t ? "on" : ""}
+                  onClick={() => setTab(t)}
+                >
+                  {t} ({tabCounts[t]})
+                </button>
+              ))}
+            </div>
+
+            {tabFiltered.length === 0 ? (
               <EmptyState
-                icon={tab === "Active" ? "📞" : "🗂️"}
-                title={tab === "Active" ? "No active bookings" : "No completed sessions yet"}
-                subtitle={tab === "Active" ? "When a user books & pays for a session, it appears here — call them at the scheduled time." : "Completed sessions and earnings will appear here."}
+                icon={tab === "Upcoming" ? "📞" : "🗂️"}
+                title={
+                  tab === "Upcoming"
+                    ? "No active bookings"
+                    : `No ${tab.toLowerCase()} sessions`
+                }
+                subtitle={
+                  tab === "Upcoming"
+                    ? "When a user books & pays for a session, it appears here — call them at the scheduled time."
+                    : "Sessions matching this filter will appear here."
+                }
               />
             ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {shown.map((s) => {
-                  const caller = s.caller || s.user || {};
-                  const status = String(s.status || "").toUpperCase();
-                  return (
-                    <div key={s.id} className="cs-lesson-row">
-                      <Avatar src={caller.profile_image} name={caller.name || "U"} size={42} />
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontWeight: 800, fontSize: 14.5 }}>{caller.name || "User"}</div>
-                        <div style={{ color: colors.typography.secondaryText, fontSize: 12.5, marginTop: 2 }}>
-                          {s.scheduled_at ? new Date(s.scheduled_at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "Instant"} · {s.duration || 30} min
-                          {s.rate_per_min ? ` · ₹${s.rate_per_min}/min` : ""}
-                        </div>
-                      </div>
-                      {tab === "Active" ? (
-                        <GoldBtn onClick={() => callUser(s)} style={{ padding: "9px 18px", fontSize: 13 }}>
-                          <Phone size={14} /> Call
-                        </GoldBtn>
-                      ) : (
-                        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                          {s.amount > 0 && <Badge color="#16A34A">Earned {formatCurrency(s.amount)}</Badge>}
-                          <Badge color={status === "COMPLETED" ? "#16A34A" : status === "MISSED" ? "#DC2626" : "#6B7280"}>{status}</Badge>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+              <div style={{ overflowX: "auto" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                  <thead>
+                    <tr
+                      style={{
+                        borderBottom: `1px solid ${colors.base.border}`,
+                      }}
+                    >
+                      {[
+                        "",
+                        "User",
+                        "Date & Time",
+                        "Duration",
+                        "Amount",
+                        "Status",
+                        "Actions",
+                      ].map((h) => (
+                        <th
+                          key={h}
+                          style={{
+                            textAlign: h === "Actions" ? "right" : "left",
+                            padding: "10px 8px",
+                            fontSize: 11.5,
+                            fontWeight: 700,
+                            color: colors.typography.secondaryText,
+                            textTransform: "uppercase",
+                            letterSpacing: 0.4,
+                          }}
+                        >
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {tabFiltered.map((s) => (
+                      <SessionRow
+                        key={s.id}
+                        s={s}
+                        onCall={callUser}
+                       onPreview={openSessionPreview}
+                       onEdit={openSessionEdit}
+                        onPerformance={openSessionPerformance}
+                        onDelete={(s) => setToCancelSession(s)}
+                      />
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
           </div>
 
           {/* RIGHT: profile + availability + products */}
           <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-            {/* Expert profile */}
-            <div style={{ ...card, background: G.heroGold, border: "none", color: "#fff" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                <div>
-                  <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1, textTransform: "uppercase", opacity: 0.8 }}>Expert Profile</div>
-                  <div style={{ fontSize: 19, fontWeight: 900, marginTop: 5 }}>{expert?.profession || "—"}</div>
-                  <div style={{ fontSize: 13, opacity: 0.85, marginTop: 3 }}>
-                    ₹{expert?.video_rate || 0}/min · {expert?.experience || 0} yrs experience
-                  </div>
-                </div>
-                <button className="cs-icon-btn" style={{ background: "rgba(255,255,255,0.15)", border: "none", color: "#fff" }} onClick={openExpertModal} title="Edit profile">
-                  <Pencil size={15} />
-                </button>
-              </div>
-              {(expert?.categories || []).length > 0 && (
-                <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 12 }}>
-                  {expert.categories.slice(0, 4).map((c) => (
-                    <span key={c} style={{ background: "rgba(255,255,255,0.16)", borderRadius: 99, padding: "4px 11px", fontSize: 11.5, fontWeight: 700 }}>{c}</span>
-                  ))}
-                </div>
-              )}
-              {(expert?.languages || []).length > 0 && (
-                <div style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 12, fontSize: 12.5, opacity: 0.85 }}>
-                  <Languages size={13} /> {expert.languages.join(", ")}
-                </div>
-              )}
-            </div>
+           {/* Expert profile */}
+<div style={card}>
+  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+    <h3 style={{ ...h3, margin: 0 }}><Star size={16} color="#F5A623" /> Your Expert Profile</h3>
+    <button
+      onClick={openExpertModal}
+      style={{ background: "none", border: "none", color: colors.brand.primaryOrange, fontSize: 13, fontWeight: 700, cursor: "pointer" }}
+    >
+      Edit
+    </button>
+  </div>
 
-            {/* Weekly availability */}
-            <div style={card}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                <h3 style={{ ...h3, margin: 0 }}><CalendarClock size={16} color="#F5A623" /> Weekly Availability</h3>
-                <GoldBtn ghost style={{ padding: "7px 13px", fontSize: 12.5 }} onClick={() => setSlotModal(true)}><Plus size={13} /> Add Slot</GoldBtn>
-              </div>
-              {slots.length === 0 ? (
-                <p style={{ margin: 0, color: colors.typography.secondaryText, fontSize: 13, lineHeight: 1.6 }}>
-                  No slots yet — users see a default 10:00–18:00 grid. Add slots to control when you can be booked.
-                </p>
-              ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  {slotsByDay.filter((d) => d.items.length).map(({ day, items }) => (
-                    <div key={day} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
-                      <span style={{ width: 44, fontSize: 12, fontWeight: 800, color: colors.typography.secondaryText, paddingTop: 6 }}>{day.slice(0, 3)}</span>
-                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                        {items.map((s) => (
-                          <span key={s.id} style={{ display: "inline-flex", alignItems: "center", gap: 7, background: "#FFF8EC", border: "1px solid #F0DDB0", color: "#92400E", borderRadius: 99, padding: "5px 11px", fontSize: 12, fontWeight: 700 }}>
-                            {String(s.start_time).slice(0, 5)}–{String(s.end_time).slice(0, 5)}
-                            <button onClick={() => deleteSlot(s)} style={{ background: "transparent", border: "none", cursor: "pointer", color: "#B45309", padding: 0, display: "flex" }}><X size={11} /></button>
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+  <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+    <div style={{ width: 52, height: 52, borderRadius: "50%", background: "#FFF1DC", color: "#D97706", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, fontWeight: 800, flexShrink: 0 }}>
+      {(expert?.profession || "?").charAt(0).toUpperCase()}
+    </div>
+    <div>
+      <div style={{ fontSize: 16, fontWeight: 800, color: "#111827" }}>{expert?.user?.name || expert?.name || "Your Profile"}</div>
+      <div style={{ fontSize: 13, color: "#6B7280", marginTop: 1 }}>{expert?.profession || "—"}</div>
+      <div style={{ fontSize: 12.5, color: "#6B7280", marginTop: 2 }}>
+        ₹{expert?.video_rate || 0}/min · {expert?.experience || 0} yrs experience
+      </div>
+    </div>
+  </div>
+
+  {(expert?.categories || []).length > 0 && (
+    <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 14 }}>
+      {expert.categories.slice(0, 4).map((c) => (
+        <span key={c} style={{ background: "#fff", border: `1px solid ${colors.base.border}`, borderRadius: 99, padding: "5px 12px", fontSize: 11.5, fontWeight: 700, color: colors.typography.primaryText }}>
+          {c}
+        </span>
+      ))}
+      {(expert?.languages || []).length > 0 && expert.languages.map((l) => (
+        <span key={l} style={{ background: "#fff", border: `1px solid ${colors.base.border}`, borderRadius: 99, padding: "5px 12px", fontSize: 11.5, fontWeight: 700, color: colors.typography.primaryText }}>
+          {l}
+        </span>
+      ))}
+    </div>
+  )}
+
+  {expert?.bio && (
+    <p style={{ margin: "14px 0 0", fontSize: 13, color: "#6B7280", lineHeight: 1.55 }}>
+      {expert.bio}
+    </p>
+  )}
+</div>
+
+           {/* Weekly availability */}
+<div style={card}>
+  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+    <h3 style={{ ...h3, margin: 0 }}><CalendarClock size={16} color="#F5A623" /> Availability</h3>
+    {expert && (
+      <button
+        onClick={toggleAvailable}
+        disabled={toggling}
+        style={{ display: "flex", alignItems: "center", gap: 8, background: "none", border: "none", cursor: "pointer", fontFamily: "inherit" }}
+      >
+        <span style={{ fontSize: 12.5, fontWeight: 700, color: expert.is_available ? "#15803D" : colors.typography.secondaryText }}>
+          {toggling ? "Updating…" : "Available for calls"}
+        </span>
+        <span style={{ width: 38, height: 22, borderRadius: 99, background: expert.is_available ? "#22C55E" : "#D1D5DB", position: "relative", transition: "background 0.2s ease", flexShrink: 0 }}>
+          <span style={{ position: "absolute", top: 2, left: expert.is_available ? 18 : 2, width: 18, height: 18, borderRadius: "50%", background: "#fff", boxShadow: "0 1px 3px rgba(0,0,0,0.25)", transition: "left 0.2s ease" }} />
+        </span>
+      </button>
+    )}
+  </div>
+
+  {slots.length === 0 ? (
+    <div style={{ background: "#FFF8EC", border: "1px solid #F0DDB0", borderRadius: 14, padding: 16 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+        <Clock size={15} color="#B45309" />
+        <span style={{ fontSize: 13.5, fontWeight: 800, color: "#92400E" }}>Set your weekly availability</span>
+      </div>
+      <p style={{ margin: "0 0 14px", fontSize: 12.5, color: "#92400E", lineHeight: 1.5, opacity: 0.85 }}>
+        Add time slots when users can book you for 1:1 sessions.
+      </p>
+      <button
+        onClick={() => setSlotModal(true)}
+        style={{
+          width: "100%", background: "#fff", border: "1.5px solid #F5A623", color: "#B45309",
+          borderRadius: 10, padding: "9px 0", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+          display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+        }}
+      >
+        <Plus size={14} /> Add Time Slot
+      </button>
+    </div>
+  ) : (
+    <>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 12 }}>
+        {slotsByDay.filter((d) => d.items.length).map(({ day, items }) => (
+          <div key={day} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+            <span style={{ width: 44, fontSize: 12, fontWeight: 800, color: colors.typography.secondaryText, paddingTop: 6 }}>{day.slice(0, 3)}</span>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+              {items.map((s) => (
+                <span key={s.id} style={{ display: "inline-flex", alignItems: "center", gap: 7, background: "#FFF8EC", border: "1px solid #F0DDB0", color: "#92400E", borderRadius: 99, padding: "5px 11px", fontSize: 12, fontWeight: 700 }}>
+                  {String(s.start_time).slice(0, 5)}–{String(s.end_time).slice(0, 5)}
+                  <button onClick={() => deleteSlot(s)} style={{ background: "transparent", border: "none", cursor: "pointer", color: "#B45309", padding: 0, display: "flex" }}><X size={11} /></button>
+                </span>
+              ))}
             </div>
+          </div>
+        ))}
+      </div>
+      <GoldBtn ghost style={{ width: "100%", justifyContent: "center", padding: "9px 0", fontSize: 13 }} onClick={() => setSlotModal(true)}>
+        <Plus size={14} /> Add Time Slot
+      </GoldBtn>
+    </>
+  )}
+</div>
 
             {/* Session products */}
             <div style={card}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                <h3 style={{ ...h3, margin: 0 }}><Package size={16} color="#F5A623" /> Session Products</h3>
-                <GoldBtn ghost style={{ padding: "7px 13px", fontSize: 12.5 }} onClick={() => openProductModal("create")}><Plus size={13} /> New</GoldBtn>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: 12,
+                }}
+              >
+                <h3 style={{ ...h3, margin: 0 }}>
+                  <Package size={16} color="#F5A623" /> Session Products
+                </h3>
+                <GoldBtn
+                  ghost
+                  style={{ padding: "7px 13px", fontSize: 12.5 }}
+                  onClick={() => openProductModal("create")}
+                >
+                  <Plus size={13} /> New
+                </GoldBtn>
               </div>
               {products.length === 0 ? (
-                <p style={{ margin: 0, color: colors.typography.secondaryText, fontSize: 13, lineHeight: 1.6 }}>
+                <p
+                  style={{
+                    margin: 0,
+                    color: colors.typography.secondaryText,
+                    fontSize: 13,
+                    lineHeight: 1.6,
+                  }}
+                >
                   Package your time — e.g. "Portfolio Review · 30 min · ₹999".
                 </p>
               ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <div
+                  style={{ display: "flex", flexDirection: "column", gap: 8 }}
+                >
                   {products.map((p) => (
-                    <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 10, border: `1px solid ${colors.base.border}`, borderRadius: 12, padding: "10px 13px" }}>
+                    <div
+                      key={p.id}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 10,
+                        border: `1px solid ${colors.base.border}`,
+                        borderRadius: 12,
+                        padding: "10px 13px",
+                      }}
+                    >
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontWeight: 800, fontSize: 13.5, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.title}</div>
-                        <div style={{ color: colors.typography.secondaryText, fontSize: 12, marginTop: 2 }}>
-                          {p.duration || 30} min · {Number(p.price) > 0 ? formatCurrency(p.price) : "Free"}
+                        <div
+                          style={{
+                            fontWeight: 800,
+                            fontSize: 13.5,
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
+                          {p.title}
+                        </div>
+                        <div
+                          style={{
+                            color: colors.typography.secondaryText,
+                            fontSize: 12,
+                            marginTop: 2,
+                          }}
+                        >
+                          {p.duration || 30} min ·{" "}
+                          {Number(p.price) > 0
+                            ? formatCurrency(p.price)
+                            : "Free"}
                         </div>
                       </div>
-                      <button className="cs-icon-btn" style={{ width: 30, height: 30 }} onClick={() => openProductModal(p)}><Pencil size={13} /></button>
-                      <button className="cs-icon-btn danger" style={{ width: 30, height: 30 }} onClick={() => setToDeleteProduct(p)}><Trash2 size={13} /></button>
+                      <button
+                        className="cs-icon-btn"
+                        style={{ width: 30, height: 30 }}
+                        onClick={() => openProductModal(p)}
+                      >
+                        <Pencil size={13} />
+                      </button>
+                      <button
+                        className="cs-icon-btn danger"
+                        style={{ width: 30, height: 30 }}
+                        onClick={() => setToDeleteProduct(p)}
+                      >
+                        <Trash2 size={13} />
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -487,167 +1074,604 @@ export default function SessionsScreen() {
       )}
 
       {/* ---------- Expert registration modal ---------- */}
-      <Modal open={expertModal} onClose={() => setExpertModal(false)} title="" width={600}>
-        <div style={{ display: "flex", alignItems: "center", gap: 14, margin: "-6px 0 20px" }}>
-          <span style={{ width: 46, height: 46, borderRadius: 13, background: G.orange, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 6px 16px rgba(245,166,35,0.35)", flexShrink: 0 }}>
+      <Modal
+        open={expertModal}
+        onClose={() => setExpertModal(false)}
+        title=""
+        width={600}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 14,
+            margin: "-6px 0 20px",
+          }}
+        >
+          <span
+            style={{
+              width: 46,
+              height: 46,
+              borderRadius: 13,
+              background: G.orange,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "0 6px 16px rgba(245,166,35,0.35)",
+              flexShrink: 0,
+            }}
+          >
             <Star size={22} color="#fff" />
           </span>
           <div>
-            <div style={{ fontSize: 19, fontWeight: 900 }}>{expert ? "Edit Expert Profile" : "Become a Session Expert"}</div>
-            <div style={{ fontSize: 13, color: colors.typography.secondaryText }}>This is what users see before booking you</div>
+            <div style={{ fontSize: 19, fontWeight: 900 }}>
+              {expert ? "Edit Expert Profile" : "Become a Session Expert"}
+            </div>
+            <div
+              style={{ fontSize: 13, color: colors.typography.secondaryText }}
+            >
+              This is what users see before booking you
+            </div>
           </div>
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
           <div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
               <label style={lbl}>Profession / Headline</label>
-              <AiEnhance endpoint="/ai/session/enhance" text={expertForm.profession} kind="headline" tone="warm" onUse={(t) => setExpertForm((f) => ({ ...f, profession: t }))} />
+              <AiEnhance
+                endpoint="/ai/session/enhance"
+                text={expertForm.profession}
+                kind="headline"
+                tone="warm"
+                onUse={(t) => setExpertForm((f) => ({ ...f, profession: t }))}
+              />
             </div>
-            <input className="cs-input" value={expertForm.profession} onChange={(e) => setExpertForm({ ...expertForm, profession: e.target.value })} placeholder="e.g. SEBI-Registered Investment Advisor" autoFocus />
+            <input
+              className="cs-input"
+              value={expertForm.profession}
+              onChange={(e) =>
+                setExpertForm({ ...expertForm, profession: e.target.value })
+              }
+              placeholder="e.g. SEBI-Registered Investment Advisor"
+              autoFocus
+            />
           </div>
 
           <div>
             <label style={lbl}>Expertise Categories</label>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               {CATEGORIES.map((c) => (
-                <Chip key={c} on={expertForm.categories.includes(c)} onClick={() => toggleIn("categories", c)}>{c}</Chip>
+                <Chip
+                  key={c}
+                  on={expertForm.categories.includes(c)}
+                  onClick={() => toggleIn("categories", c)}
+                >
+                  {c}
+                </Chip>
               ))}
             </div>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+          <div
+            style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}
+          >
             <div>
               <label style={lbl}>Experience (years)</label>
-              <input className="cs-input" inputMode="numeric" value={expertForm.experience} onChange={(e) => setExpertForm({ ...expertForm, experience: e.target.value.replace(/\D/g, "") })} placeholder="5" />
+              <input
+                className="cs-input"
+                inputMode="numeric"
+                value={expertForm.experience}
+                onChange={(e) =>
+                  setExpertForm({
+                    ...expertForm,
+                    experience: e.target.value.replace(/\D/g, ""),
+                  })
+                }
+                placeholder="5"
+              />
             </div>
             <div>
               <label style={lbl}>Video Rate (₹ / min)</label>
               <div style={{ position: "relative" }}>
-                <span style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", fontWeight: 900, color: "#92400E" }}>₹</span>
-                <input className="cs-input" style={{ paddingLeft: 30, fontWeight: 800 }} inputMode="numeric" value={expertForm.video_rate} onChange={(e) => setExpertForm({ ...expertForm, video_rate: e.target.value.replace(/[^\d.]/g, "") })} placeholder="20" />
+                <span
+                  style={{
+                    position: "absolute",
+                    left: 14,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    fontWeight: 900,
+                    color: "#92400E",
+                  }}
+                >
+                  ₹
+                </span>
+                <input
+                  className="cs-input"
+                  style={{ paddingLeft: 30, fontWeight: 800 }}
+                  inputMode="numeric"
+                  value={expertForm.video_rate}
+                  onChange={(e) =>
+                    setExpertForm({
+                      ...expertForm,
+                      video_rate: e.target.value.replace(/[^\d.]/g, ""),
+                    })
+                  }
+                  placeholder="20"
+                />
               </div>
             </div>
           </div>
 
           <div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
               <label style={lbl}>Bio</label>
-              <AiEnhance endpoint="/ai/session/enhance" text={expertForm.bio} kind="bio" tone="warm" onUse={(t) => setExpertForm((f) => ({ ...f, bio: t }))} />
+              <AiEnhance
+                endpoint="/ai/session/enhance"
+                text={expertForm.bio}
+                kind="bio"
+                tone="warm"
+                onUse={(t) => setExpertForm((f) => ({ ...f, bio: t }))}
+              />
             </div>
-            <textarea className="cs-input" style={{ minHeight: 80, resize: "vertical" }} value={expertForm.bio} onChange={(e) => setExpertForm({ ...expertForm, bio: e.target.value })} placeholder="Tell users why they should book you..." />
+            <textarea
+              className="cs-input"
+              style={{ minHeight: 80, resize: "vertical" }}
+              value={expertForm.bio}
+              onChange={(e) =>
+                setExpertForm({ ...expertForm, bio: e.target.value })
+              }
+              placeholder="Tell users why they should book you..."
+            />
           </div>
 
           <div>
             <label style={lbl}>Languages</label>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               {LANGUAGES.map((l) => (
-                <Chip key={l} on={expertForm.languages.includes(l)} onClick={() => toggleIn("languages", l)}>{l}</Chip>
+                <Chip
+                  key={l}
+                  on={expertForm.languages.includes(l)}
+                  onClick={() => toggleIn("languages", l)}
+                >
+                  {l}
+                </Chip>
               ))}
             </div>
           </div>
 
-          <div style={{ display: "flex", gap: 10, borderTop: `1px solid ${colors.base.border}`, paddingTop: 16 }}>
-            <GoldBtn ghost onClick={() => setExpertModal(false)}>Cancel</GoldBtn>
-            <GoldBtn loading={expertSaving} onClick={saveExpert} style={{ flex: 1, justifyContent: "center" }}>
-              {expert ? "Save Profile" : <><CheckCircle2 size={16} /> Register as Expert</>}
+          <div
+            style={{
+              display: "flex",
+              gap: 10,
+              borderTop: `1px solid ${colors.base.border}`,
+              paddingTop: 16,
+            }}
+          >
+            <GoldBtn ghost onClick={() => setExpertModal(false)}>
+              Cancel
+            </GoldBtn>
+            <GoldBtn
+              loading={expertSaving}
+              onClick={saveExpert}
+              style={{ flex: 1, justifyContent: "center" }}
+            >
+              {expert ? (
+                "Save Profile"
+              ) : (
+                <>
+                  <CheckCircle2 size={16} /> Register as Expert
+                </>
+              )}
             </GoldBtn>
           </div>
         </div>
       </Modal>
 
+      <Modal open={!!previewSession} onClose={() => setPreviewSession(null)} title="Session Preview" width={420}>
+  {previewSession && (() => {
+    const caller = previewSession.caller || previewSession.user || {};
+    const status = String(previewSession.status || "").toUpperCase();
+    return (
+      <div>
+        <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 18 }}>
+          <Avatar src={caller.profile_image} name={caller.name || "U"} size={54} />
+          <div>
+            <div style={{ fontSize: 17, fontWeight: 900, color: "#111827" }}>{caller.name || "User"}</div>
+            {caller.email && <div style={{ fontSize: 12.5, color: "#6B7280", marginTop: 2 }}>{caller.email}</div>}
+          </div>
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 20 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
+            <span style={{ color: "#6B7280" }}>Status</span>
+            <Badge color={status === "COMPLETED" ? "#16A34A" : status === "CANCELLED" ? "#DC2626" : "#2563EB"}>
+              {status === "PENDING" || status === "ACTIVE" ? "Upcoming" : status.charAt(0) + status.slice(1).toLowerCase()}
+            </Badge>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
+            <span style={{ color: "#6B7280" }}>Scheduled</span>
+            <span style={{ fontWeight: 700, color: "#111827" }}>
+              {previewSession.scheduled_at
+                ? new Date(previewSession.scheduled_at).toLocaleString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })
+                : "Instant"}
+            </span>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
+            <span style={{ color: "#6B7280" }}>Duration</span>
+            <span style={{ fontWeight: 700, color: "#111827" }}>{previewSession.duration || 30} mins</span>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
+            <span style={{ color: "#6B7280" }}>Rate</span>
+            <span style={{ fontWeight: 700, color: "#111827" }}>₹{previewSession.rate_per_min || 0}/min</span>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
+            <span style={{ color: "#6B7280" }}>Amount</span>
+            <span style={{ fontWeight: 700, color: "#111827" }}>
+              {previewSession.amount != null ? formatCurrency(previewSession.amount) : "--"}
+            </span>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
+            <span style={{ color: "#6B7280" }}>Mode</span>
+            <span style={{ fontWeight: 700, color: "#111827" }}>{previewSession.mode || "VIDEO"}</span>
+          </div>
+        </div>
+
+        {(String(previewSession.status).toUpperCase() === "PENDING" || String(previewSession.status).toUpperCase() === "ACTIVE") && (
+          <GoldBtn style={{ width: "100%", justifyContent: "center" }} onClick={() => callUser(previewSession)}>
+            <Phone size={15} /> Call Now
+          </GoldBtn>
+        )}
+      </div>
+    );
+  })()}
+</Modal>
+
+<Modal open={!!performanceSession} onClose={() => setPerformanceSession(null)} title="Session Performance" width={400}>
+  {performanceLoading ? (
+    <div style={{ padding: "20px 0", textAlign: "center", color: "#6B7280", fontSize: 13 }}>
+      Loading...
+    </div>
+  ) : performanceData ? (
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 12px", borderRadius: 10, background: "rgba(34,197,94,0.08)" }}>
+        <span style={{ fontSize: 13, color: "#6B7280" }}>Amount Earned</span>
+        <span style={{ fontSize: 14, fontWeight: 700, color: "#16A34A" }}>
+          {performanceData.amount != null ? formatCurrency(performanceData.amount) : "--"}
+        </span>
+      </div>
+      <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 12px", borderRadius: 10, background: "rgba(59,130,246,0.08)" }}>
+        <span style={{ fontSize: 13, color: "#6B7280" }}>Duration</span>
+        <span style={{ fontSize: 14, fontWeight: 700, color: "#2563EB" }}>{performanceData.duration || 0} min</span>
+      </div>
+      <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 12px", borderRadius: 10, background: "rgba(107,114,128,0.08)" }}>
+        <span style={{ fontSize: 13, color: "#6B7280" }}>Payment Status</span>
+        <span style={{ fontSize: 13, fontWeight: 700, color: "#111827" }}>{performanceData.payment_status || "—"}</span>
+      </div>
+
+      {performanceData.review ? (
+        <div style={{ marginTop: 6, padding: "12px", borderRadius: 10, border: `1px solid ${colors.base.border}` }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 6 }}>
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Star key={i} size={13} color="#F59E0B" fill={i < performanceData.review.rating ? "#F59E0B" : "none"} />
+            ))}
+          </div>
+          {performanceData.review.comment && (
+            <p style={{ margin: 0, fontSize: 12.5, color: "#374151", lineHeight: 1.5 }}>
+              "{performanceData.review.comment}"
+            </p>
+          )}
+        </div>
+      ) : (
+        <div style={{ marginTop: 6, fontSize: 12.5, color: "#9CA3AF", textAlign: "center", padding: "10px 0" }}>
+          No review left for this session yet.
+        </div>
+      )}
+    </div>
+  ) : (
+    <div style={{ padding: "20px 0", textAlign: "center", color: "#6B7280", fontSize: 13 }}>
+      Unable to load performance data.
+    </div>
+  )}
+</Modal>
+
+<Modal open={!!toCancelSession} onClose={() => !cancelling && setToCancelSession(null)} title="Cancel session?" width={400}>
+  <p style={{ color: colors.typography.secondaryText, fontSize: 14, marginTop: 0 }}>
+    The session with "<b>{toCancelSession?.caller?.name || toCancelSession?.user?.name || "this user"}</b>" will be cancelled.
+    {toCancelSession?.payment_status === "SUCCESS" && toCancelSession?.amount > 0 && (
+      <> They already paid — you'll need to process a refund manually.</>
+    )}
+  </p>
+  <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+    <GoldBtn ghost onClick={() => setToCancelSession(null)} disabled={cancelling}>Keep Session</GoldBtn>
+    <GoldBtn danger loading={cancelling} onClick={confirmCancelSession}><Trash2 size={15} /> Cancel Session</GoldBtn>
+  </div>
+</Modal>
+
       {/* ---------- Slot modal ---------- */}
-      <Modal open={slotModal} onClose={() => setSlotModal(false)} title="Add Availability Slot" width={440}>
+      <Modal
+        open={slotModal}
+        onClose={() => setSlotModal(false)}
+        title="Add Availability Slot"
+        width={440}
+      >
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <div>
             <label style={lbl}>Day</label>
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
               {DAYS.map((d) => (
-                <Chip key={d} on={slotForm.day === d} onClick={() => setSlotForm({ ...slotForm, day: d })}>{d.slice(0, 3)}</Chip>
+                <Chip
+                  key={d}
+                  on={slotForm.day === d}
+                  onClick={() => setSlotForm({ ...slotForm, day: d })}
+                >
+                  {d.slice(0, 3)}
+                </Chip>
               ))}
             </div>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div
+            style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}
+          >
             <div>
               <label style={lbl}>Start</label>
-              <input className="cs-input" type="time" value={slotForm.start_time} onChange={(e) => setSlotForm({ ...slotForm, start_time: e.target.value })} />
+              <input
+                className="cs-input"
+                type="time"
+                value={slotForm.start_time}
+                onChange={(e) =>
+                  setSlotForm({ ...slotForm, start_time: e.target.value })
+                }
+              />
             </div>
             <div>
               <label style={lbl}>End</label>
-              <input className="cs-input" type="time" value={slotForm.end_time} onChange={(e) => setSlotForm({ ...slotForm, end_time: e.target.value })} />
+              <input
+                className="cs-input"
+                type="time"
+                value={slotForm.end_time}
+                onChange={(e) =>
+                  setSlotForm({ ...slotForm, end_time: e.target.value })
+                }
+              />
             </div>
           </div>
           <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
-            <GoldBtn ghost onClick={() => setSlotModal(false)}>Cancel</GoldBtn>
-            <GoldBtn loading={slotSaving} onClick={saveSlot}><Plus size={15} /> Add Slot</GoldBtn>
+            <GoldBtn ghost onClick={() => setSlotModal(false)}>
+              Cancel
+            </GoldBtn>
+            <GoldBtn loading={slotSaving} onClick={saveSlot}>
+              <Plus size={15} /> Add Slot
+            </GoldBtn>
           </div>
         </div>
       </Modal>
 
+      <Modal open={!!editSession} onClose={() => setEditSession(null)} title="Edit Session" width={440}>
+  <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+      <div>
+        <label style={lbl}>Date</label>
+        <input className="cs-input" type="date" value={editForm.date} onChange={(e) => setEditForm({ ...editForm, date: e.target.value })} />
+      </div>
+      <div>
+        <label style={lbl}>Time</label>
+        <input className="cs-input" type="time" value={editForm.time} onChange={(e) => setEditForm({ ...editForm, time: e.target.value })} />
+      </div>
+    </div>
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+      <div>
+        <label style={lbl}>Duration (mins)</label>
+        <input className="cs-input" inputMode="numeric" value={editForm.duration} onChange={(e) => setEditForm({ ...editForm, duration: e.target.value.replace(/\D/g, "") })} />
+      </div>
+      <div>
+        <label style={lbl}>Rate (₹/min)</label>
+        <input className="cs-input" inputMode="numeric" value={editForm.rate_per_min} onChange={(e) => setEditForm({ ...editForm, rate_per_min: e.target.value.replace(/[^\d.]/g, "") })} />
+      </div>
+    </div>
+    <p style={{ margin: 0, fontSize: 11.5, color: "#6B7280" }}>
+      New amount: ₹{((Number(editForm.duration) || 0) * (Number(editForm.rate_per_min) || 0)).toFixed(2)}. The user will be notified of this change.
+    </p>
+    <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", borderTop: `1px solid ${colors.base.border}`, paddingTop: 14 }}>
+      <GoldBtn ghost onClick={() => setEditSession(null)}>Cancel</GoldBtn>
+      <GoldBtn loading={editSaving} onClick={saveSessionEdit}>Save Changes</GoldBtn>
+    </div>
+  </div>
+</Modal>
+
       {/* ---------- Product modal ---------- */}
-      <Modal open={!!productModal} onClose={() => setProductModal(null)} title={productModal === "create" ? "New Session Product" : "Edit Session Product"} width={520}>
+      <Modal
+        open={!!productModal}
+        onClose={() => setProductModal(null)}
+        title={
+          productModal === "create"
+            ? "New Session Product"
+            : "Edit Session Product"
+        }
+        width={520}
+      >
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <div>
             <label style={lbl}>Title</label>
-            <input className="cs-input" value={productForm.title} onChange={(e) => setProductForm({ ...productForm, title: e.target.value })} placeholder="e.g. Portfolio Review Call" />
+            <input
+              className="cs-input"
+              value={productForm.title}
+              onChange={(e) =>
+                setProductForm({ ...productForm, title: e.target.value })
+              }
+              placeholder="e.g. Portfolio Review Call"
+            />
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+          <div
+            style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}
+          >
             <div>
               <label style={lbl}>Duration</label>
               <div className="cs-seg">
                 {DURATIONS.map((d) => (
-                  <button key={d} className={Number(productForm.duration) === d ? "on" : ""} onClick={() => setProductForm({ ...productForm, duration: d })}>{d}m</button>
+                  <button
+                    key={d}
+                    className={Number(productForm.duration) === d ? "on" : ""}
+                    onClick={() =>
+                      setProductForm({ ...productForm, duration: d })
+                    }
+                  >
+                    {d}m
+                  </button>
                 ))}
               </div>
             </div>
             <div>
               <label style={lbl}>Platform</label>
-              <select className="cs-input" value={productForm.platform} onChange={(e) => setProductForm({ ...productForm, platform: e.target.value })}>
-                {PLATFORMS.map((p) => <option key={p}>{p}</option>)}
+              <select
+                className="cs-input"
+                value={productForm.platform}
+                onChange={(e) =>
+                  setProductForm({ ...productForm, platform: e.target.value })
+                }
+              >
+                {PLATFORMS.map((p) => (
+                  <option key={p}>{p}</option>
+                ))}
               </select>
             </div>
           </div>
           <div>
             <label style={lbl}>Description</label>
-            <textarea className="cs-input" style={{ minHeight: 70, resize: "vertical" }} value={productForm.description} onChange={(e) => setProductForm({ ...productForm, description: e.target.value })} placeholder="What does this session cover?" />
+            <textarea
+              className="cs-input"
+              style={{ minHeight: 70, resize: "vertical" }}
+              value={productForm.description}
+              onChange={(e) =>
+                setProductForm({ ...productForm, description: e.target.value })
+              }
+              placeholder="What does this session cover?"
+            />
           </div>
           <div>
             <label style={lbl}>Availability Note</label>
-            <input className="cs-input" value={productForm.availability} onChange={(e) => setProductForm({ ...productForm, availability: e.target.value })} />
+            <input
+              className="cs-input"
+              value={productForm.availability}
+              onChange={(e) =>
+                setProductForm({ ...productForm, availability: e.target.value })
+              }
+            />
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, alignItems: "end" }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: 14,
+              alignItems: "end",
+            }}
+          >
             <div>
               <label style={lbl}>Pricing</label>
               <div className="cs-seg">
-                <button className={productForm.paid ? "on" : ""} onClick={() => setProductForm({ ...productForm, paid: true })}>Paid</button>
-                <button className={!productForm.paid ? "on green" : ""} onClick={() => setProductForm({ ...productForm, paid: false })}>Free</button>
+                <button
+                  className={productForm.paid ? "on" : ""}
+                  onClick={() => setProductForm({ ...productForm, paid: true })}
+                >
+                  Paid
+                </button>
+                <button
+                  className={!productForm.paid ? "on green" : ""}
+                  onClick={() =>
+                    setProductForm({ ...productForm, paid: false })
+                  }
+                >
+                  Free
+                </button>
               </div>
             </div>
             {productForm.paid && (
               <div>
                 <label style={lbl}>Price (INR)</label>
                 <div style={{ position: "relative" }}>
-                  <span style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", fontWeight: 900, color: "#92400E" }}>₹</span>
-                  <input className="cs-input" style={{ paddingLeft: 30, fontWeight: 800 }} inputMode="numeric" value={productForm.price} onChange={(e) => setProductForm({ ...productForm, price: e.target.value.replace(/[^\d.]/g, "") })} placeholder="999" />
+                  <span
+                    style={{
+                      position: "absolute",
+                      left: 14,
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      fontWeight: 900,
+                      color: "#92400E",
+                    }}
+                  >
+                    ₹
+                  </span>
+                  <input
+                    className="cs-input"
+                    style={{ paddingLeft: 30, fontWeight: 800 }}
+                    inputMode="numeric"
+                    value={productForm.price}
+                    onChange={(e) =>
+                      setProductForm({
+                        ...productForm,
+                        price: e.target.value.replace(/[^\d.]/g, ""),
+                      })
+                    }
+                    placeholder="999"
+                  />
                 </div>
               </div>
             )}
           </div>
-          <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", borderTop: `1px solid ${colors.base.border}`, paddingTop: 14 }}>
-            <GoldBtn ghost onClick={() => setProductModal(null)}>Cancel</GoldBtn>
-            <GoldBtn loading={productSaving} onClick={saveProduct}>{productModal === "create" ? "Create" : "Save"}</GoldBtn>
+          <div
+            style={{
+              display: "flex",
+              gap: 10,
+              justifyContent: "flex-end",
+              borderTop: `1px solid ${colors.base.border}`,
+              paddingTop: 14,
+            }}
+          >
+            <GoldBtn ghost onClick={() => setProductModal(null)}>
+              Cancel
+            </GoldBtn>
+            <GoldBtn loading={productSaving} onClick={saveProduct}>
+              {productModal === "create" ? "Create" : "Save"}
+            </GoldBtn>
           </div>
         </div>
       </Modal>
 
       {/* Delete product confirm */}
-      <Modal open={!!toDeleteProduct} onClose={() => setToDeleteProduct(null)} title="Delete session product?" width={400}>
-        <p style={{ color: colors.typography.secondaryText, fontSize: 14, marginTop: 0 }}>
+      <Modal
+        open={!!toDeleteProduct}
+        onClose={() => setToDeleteProduct(null)}
+        title="Delete session product?"
+        width={400}
+      >
+        <p
+          style={{
+            color: colors.typography.secondaryText,
+            fontSize: 14,
+            marginTop: 0,
+          }}
+        >
           "<b>{toDeleteProduct?.title}</b>" will no longer be bookable.
         </p>
         <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
-          <GoldBtn ghost onClick={() => setToDeleteProduct(null)}>Cancel</GoldBtn>
-          <GoldBtn danger onClick={confirmDeleteProduct}><Trash2 size={15} /> Delete</GoldBtn>
+          <GoldBtn ghost onClick={() => setToDeleteProduct(null)}>
+            Cancel
+          </GoldBtn>
+          <GoldBtn danger onClick={confirmDeleteProduct}>
+            <Trash2 size={15} /> Delete
+          </GoldBtn>
         </div>
       </Modal>
     </div>

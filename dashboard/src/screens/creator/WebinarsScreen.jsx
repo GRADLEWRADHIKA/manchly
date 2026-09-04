@@ -7,16 +7,13 @@ import React, {
 } from "react";
 import {
   Plus,
-  Pencil,
   Trash2,
-  Share2,
   Video,
   Users,
+  Share2,
   IndianRupee,
   CalendarDays,
-  Clock,
   Radio,
-  Copy,
   Search,
   MonitorPlay,
   X,
@@ -32,9 +29,10 @@ import { Modal, Badge, EmptyState } from "../../components/ui";
 import { GoldBtn, StatCard, AiEnhance, lbl } from "../../components/creatorUi";
 import { toast } from "../../utils/toast";
 import { formatCurrency } from "../../utils/formatters";
+import WebinarRow from "./WebinarRow";
 
 const G = colors.gradients;
-const FILTERS = ["All", "Upcoming", "Past", "Draft"];
+
 const EMPTY_FORM = {
   title: "",
   price: "",
@@ -62,6 +60,22 @@ function startDate(w) {
 const endMs = (w) => {
   const s = startDate(w);
   return s ? s.getTime() + (Number(w.duration) || 60) * 60000 : 0;
+};
+
+//const openPreview = (w) => setPreviewWebinar(w);
+//const addUserToWebinar = (w) => toast.info("Add user coming soon");
+//const viewAttendees = (w) => toast.info("Attendees view coming soon");
+const setDraft = async (w) => {
+  try {
+    await apiFetch(`/webinars/${w.id}`, {
+      method: "PUT",
+      body: JSON.stringify({ status: "DRAFT" }),
+    });
+    toast.success("Moved to draft");
+    load();
+  } catch (e) {
+    toast.error(e.message);
+  }
 };
 
 function useNow(interval = 1000) {
@@ -142,8 +156,27 @@ export default function WebinarsScreen() {
   const [saving, setSaving] = useState(false);
   const [thumbUploading, setThumbUploading] = useState(false);
   const [toDelete, setToDelete] = useState(null);
+  const [previewWebinar, setPreviewWebinar] = useState(null);
   const thumbRef = useRef(null);
   const now = useNow(30000);
+
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [sortOrder, setSortOrder] = useState("newest");
+
+  const [addUserWebinar, setAddUserWebinar] = useState(null);
+  const [addUserValue, setAddUserValue] = useState("");
+  const [addUserSubmitting, setAddUserSubmitting] = useState(false);
+
+  const [attendeesWebinar, setAttendeesWebinar] = useState(null);
+const [attendeesList, setAttendeesList] = useState([]);
+const [attendeesLoading, setAttendeesLoading] = useState(false);
+
+const [performanceWebinar, setPerformanceWebinar] = useState(null);
+
+  const categories = useMemo(() => {
+    const set = new Set(webinars.map((w) => w.category).filter(Boolean));
+    return Array.from(set);
+  }, [webinars]);
 
   const load = useCallback(async () => {
     try {
@@ -172,6 +205,15 @@ export default function WebinarsScreen() {
     return s <= now && now < endMs(w);
   };
 
+  const allCount = webinars.length;
+  const upcomingCount = webinars.filter(
+    (w) => w.status !== "DRAFT" && !isPast(w),
+  ).length;
+  const completedCount = webinars.filter(
+    (w) => isPast(w) && w.status !== "DRAFT",
+  ).length;
+  const draftCount = webinars.filter((w) => w.status === "DRAFT").length;
+
   const nextUp = useMemo(
     () =>
       webinars
@@ -180,19 +222,33 @@ export default function WebinarsScreen() {
     [webinars, now],
   );
 
-  const filtered = webinars.filter((w) => {
-    if (
-      search &&
-      !`${w.title} ${(w.tags || []).join(" ")}`
-        .toLowerCase()
-        .includes(search.toLowerCase())
-    )
-      return false;
-    if (filter === "Upcoming") return w.status !== "DRAFT" && !isPast(w);
-    if (filter === "Past") return isPast(w) && w.status !== "DRAFT";
-    if (filter === "Draft") return w.status === "DRAFT";
-    return true;
-  });
+  const filtered = useMemo(() => {
+    let list = webinars.filter((w) => {
+      if (
+        search &&
+        !`${w.title} ${(w.tags || []).join(" ")}`
+          .toLowerCase()
+          .includes(search.toLowerCase())
+      )
+        return false;
+      if (categoryFilter !== "all" && w.category !== categoryFilter)
+        return false;
+      if (filter === "Upcoming") return w.status !== "DRAFT" && !isPast(w);
+      if (filter === "Past") return isPast(w) && w.status !== "DRAFT";
+      if (filter === "Draft") return w.status === "DRAFT";
+      return true;
+    });
+
+    list.sort((a, b) => {
+      const aDate = startDate(a)?.getTime() || 0;
+      const bDate = startDate(b)?.getTime() || 0;
+      if (sortOrder === "price_desc") return (b.price || 0) - (a.price || 0);
+      if (sortOrder === "price_asc") return (a.price || 0) - (b.price || 0);
+      return sortOrder === "oldest" ? aDate - bDate : bDate - aDate;
+    });
+
+    return list;
+  }, [webinars, search, categoryFilter, filter, sortOrder, now]);
 
   /* ---------- Navigation & Form handlers ---------- */
 
@@ -337,6 +393,60 @@ export default function WebinarsScreen() {
     );
     toast.success("Zoom credentials copied");
   };
+
+  const openPerformance = (w) => setPerformanceWebinar(w);
+
+  const openPreview = (w) => setPreviewWebinar(w);
+
+  const openAddUser = (w) => {
+  setAddUserWebinar(w);
+  setAddUserValue("");
+};
+
+const ADD_USER_EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const ADD_USER_PHONE_RE = /^\d{10}$/;
+
+const handleAddUserSubmit = async () => {
+  const trimmed = addUserValue.trim();
+  const isEmail = ADD_USER_EMAIL_RE.test(trimmed);
+  const isPhone = ADD_USER_PHONE_RE.test(trimmed);
+  if (!isEmail && !isPhone) return;
+
+  setAddUserSubmitting(true);
+  try {
+    const response = await apiFetch(`/webinars/${addUserWebinar.id}/grant`, {
+      method: "POST",
+      body: JSON.stringify(isEmail ? { email: trimmed } : { phone: trimmed }),
+    });
+    const data = unwrap(response);
+    if (data?.alreadyEnrolled) {
+      toast.info("This user already has access to the webinar.");
+    } else {
+      toast.success("Access granted successfully.");
+    }
+    setAddUserWebinar(null);
+    load();
+  } catch (e) {
+    toast.error(e.message);
+  } finally {
+    setAddUserSubmitting(false);
+  }
+};
+
+const viewAttendees = async (w) => {
+  setAttendeesWebinar(w);
+  setAttendeesLoading(true);
+  try {
+    const response = await apiFetch(`/webinars/${w.id}/attendees`);
+    const data = unwrap(response);
+    setAttendeesList(data?.attendees || []);
+  } catch (e) {
+    toast.error(e.message);
+    setAttendeesList([]);
+  } finally {
+    setAttendeesLoading(false);
+  }
+};
 
   /* =========================================================================
      RENDER FORM / WIZARD PAGE
@@ -1284,6 +1394,19 @@ export default function WebinarsScreen() {
           flexWrap: "wrap",
         }}
       >
+        <div className="cs-seg" style={{ flex: "0 0 auto" }}></div>
+      </div>
+
+      {/* Search & Filter bar */}
+      <div
+        style={{
+          display: "flex",
+          gap: 12,
+          alignItems: "center",
+          marginBottom: 18,
+          flexWrap: "wrap",
+        }}
+      >
         <div
           style={{
             display: "flex",
@@ -1311,34 +1434,82 @@ export default function WebinarsScreen() {
             }}
           />
         </div>
-        <div className="cs-seg" style={{ flex: "0 0 auto" }}>
-          {FILTERS.map((f) => (
-            <button
-              key={f}
-              className={filter === f ? "on" : ""}
-              onClick={() => setFilter(f)}
-              style={{ padding: "8px 18px" }}
-            >
-              {f}
-            </button>
-          ))}
-        </div>
+
+        <select
+          value={categoryFilter}
+          onChange={(e) => setCategoryFilter(e.target.value)}
+          style={{
+            border: `1.5px solid ${colors.base.border}`,
+            borderRadius: 12,
+            padding: "9px 14px",
+            fontSize: 13,
+            fontWeight: 600,
+            color: colors.typography.primaryText,
+            background: "#fff",
+            cursor: "pointer",
+          }}
+        ></select>
+
+        <select
+          value={sortOrder}
+          onChange={(e) => setSortOrder(e.target.value)}
+          style={{
+            border: `1.5px solid ${colors.base.border}`,
+            borderRadius: 12,
+            padding: "9px 14px",
+            fontSize: 13,
+            fontWeight: 600,
+            color: colors.typography.primaryText,
+            background: "#fff",
+            cursor: "pointer",
+          }}
+        >
+          <option value="newest">Newest First</option>
+          <option value="oldest">Oldest First</option>
+          <option value="price_desc">Price: High to Low</option>
+          <option value="price_asc">Price: Low to High</option>
+        </select>
       </div>
 
-      {/* Grid List */}
+      {/* Tabs */}
+      <div className="cs-seg" style={{ marginBottom: 18 }}>
+        {[
+          { key: "All", label: "All", count: allCount },
+          { key: "Upcoming", label: "Upcoming", count: upcomingCount },
+          { key: "Past", label: "Completed", count: completedCount },
+          { key: "Draft", label: "Draft", count: draftCount },
+        ].map((tab) => (
+          <button
+            key={tab.key}
+            className={filter === tab.key ? "on" : ""}
+            onClick={() => setFilter(tab.key)}
+            style={{ padding: "8px 18px" }}
+          >
+            {tab.label} ({tab.count})
+          </button>
+        ))}
+      </div>
+
+      {/* Table */}
       {loading ? (
         <div
           style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(330px, 1fr))",
-            gap: 16,
+            background: "#fff",
+            border: `1px solid ${colors.base.border}`,
+            borderRadius: 18,
+            padding: 24,
           }}
         >
-          {Array.from({ length: 3 }).map((_, i) => (
+          {Array.from({ length: 4 }).map((_, i) => (
             <div
               key={i}
               className="mn-shimmer"
-              style={{ height: 300, borderRadius: 18, opacity: 0.3 }}
+              style={{
+                height: 56,
+                borderRadius: 10,
+                opacity: 0.3,
+                marginBottom: 10,
+              }}
             />
           ))}
         </div>
@@ -1374,264 +1545,129 @@ export default function WebinarsScreen() {
       ) : (
         <div
           style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(330px, 1fr))",
-            gap: 16,
+            background: "#fff",
+            border: `1px solid ${colors.base.border}`,
+            borderRadius: 18,
+            overflowX: "auto",
           }}
         >
-          {filtered.map((w) => {
-            const s = startDate(w);
-            const live = isLive(w);
-            const past = isPast(w);
-            return (
-              <div
-                key={w.id}
-                style={{
-                  background: "#fff",
-                  border: `1px solid ${live ? "#FCA5A5" : colors.base.border}`,
-                  borderRadius: 18,
-                  overflow: "hidden",
-                  boxShadow: live
-                    ? "0 10px 30px rgba(239,68,68,0.15)"
-                    : "0 4px 14px rgba(31,41,55,0.05)",
-                }}
-              >
-                <div
-                  style={{
-                    height: 130,
-                    position: "relative",
-                    background: w.thumbnail
-                      ? `url(${w.thumbnail}) center/cover`
-                      : G.heroGold,
-                  }}
-                >
-                  {s && (
-                    <span
-                      style={{
-                        position: "absolute",
-                        top: 12,
-                        left: 12,
-                        background: "#fff",
-                        borderRadius: 12,
-                        padding: "7px 12px",
-                        textAlign: "center",
-                        lineHeight: 1.1,
-                        boxShadow: "0 4px 12px rgba(0,0,0,0.25)",
-                      }}
-                    >
-                      <span
-                        style={{
-                          display: "block",
-                          fontSize: 17,
-                          fontWeight: 900,
-                          color: "#1F2937",
-                        }}
-                      >
-                        {s.getDate()}
-                      </span>
-                      <span
-                        style={{
-                          display: "block",
-                          fontSize: 10.5,
-                          fontWeight: 800,
-                          color: "#B45309",
-                          textTransform: "uppercase",
-                        }}
-                      >
-                        {s.toLocaleString("en-IN", { month: "short" })}
-                      </span>
-                    </span>
-                  )}
-                  <span style={{ position: "absolute", top: 12, right: 12 }}>
-                    {live ? (
-                      <Badge color="#DC2626" bg="rgba(255,255,255,0.92)">
-                        ● Live
-                      </Badge>
-                    ) : w.status === "DRAFT" ? (
-                      <Badge color="#B45309" bg="rgba(255,255,255,0.92)">
-                        Draft
-                      </Badge>
-                    ) : past ? (
-                      <Badge color="#6B7280" bg="rgba(255,255,255,0.92)">
-                        Completed
-                      </Badge>
-                    ) : (
-                      <Badge color="#16A34A" bg="rgba(255,255,255,0.92)">
-                        Upcoming
-                      </Badge>
-                    )}
-                  </span>
-                  <span
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr style={{ borderBottom: `1px solid ${colors.base.border}` }}>
+                {[
+                  "",
+                  "Webinar",
+                  "Status",
+                  "Date & Time",
+                  "Attendees",
+                  "Revenue",
+                  "Actions",
+                ].map((h) => (
+                  <th
+                    key={h}
                     style={{
-                      position: "absolute",
-                      bottom: 12,
-                      right: 12,
-                      background: "rgba(10,10,14,0.7)",
-                      color: "#fff",
-                      padding: "4px 12px",
-                      borderRadius: 99,
-                      fontSize: 12.5,
-                      fontWeight: 900,
-                    }}
-                  >
-                    {Number(w.price) > 0 ? formatCurrency(w.price) : "Free"}
-                  </span>
-                </div>
-
-                <div style={{ padding: 16 }}>
-                  <div
-                    style={{
-                      fontWeight: 900,
-                      fontSize: 15.5,
-                      minHeight: 42,
-                      display: "-webkit-box",
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: "vertical",
-                      overflow: "hidden",
-                    }}
-                  >
-                    {w.title}
-                  </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 12,
+                      textAlign: h === "Actions" ? "right" : "left",
+                      padding: "12px 10px",
+                      fontSize: 11.5,
+                      fontWeight: 700,
                       color: colors.typography.secondaryText,
-                      fontSize: 12.5,
-                      marginTop: 7,
-                      flexWrap: "wrap",
+                      textTransform: "uppercase",
+                      letterSpacing: 0.4,
                     }}
                   >
-                    <span
-                      style={{ display: "flex", alignItems: "center", gap: 4 }}
-                    >
-                      <Clock size={12} />{" "}
-                      {s
-                        ? s.toLocaleTimeString("en-IN", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })
-                        : "TBA"}{" "}
-                      · {w.duration || 60} min
-                    </span>
-                    {w.max_participants && (
-                      <span
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 4,
-                        }}
-                      >
-                        <Users size={12} /> {w.max_participants} seats
-                      </span>
-                    )}
-                  </div>
-                  {Array.isArray(w.tags) && w.tags.length > 0 && (
-                    <div
-                      style={{
-                        display: "flex",
-                        gap: 6,
-                        flexWrap: "wrap",
-                        marginTop: 9,
-                      }}
-                    >
-                      {w.tags.slice(0, 3).map((t, i) => (
-                        <span
-                          key={i}
-                          style={{
-                            background: "#FFF8EC",
-                            color: "#B45309",
-                            borderRadius: 99,
-                            padding: "3px 10px",
-                            fontSize: 11,
-                            fontWeight: 700,
-                          }}
-                        >
-                          #{t}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
-                  {w.zoom_meeting_id && (
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        background: "#FFF8EC",
-                        border: "1px solid #F0DDB0",
-                        borderRadius: 10,
-                        padding: "8px 12px",
-                        marginTop: 12,
-                        fontSize: 12.5,
-                      }}
-                    >
-                      <span style={{ color: "#92400E" }}>
-                        Zoom <b>{w.zoom_meeting_id}</b> · Pass{" "}
-                        <b>{w.zoom_password || "—"}</b>
-                      </span>
-                      <button
-                        className="cs-icon-btn"
-                        style={{ width: 28, height: 28 }}
-                        title="Copy Zoom credentials"
-                        onClick={() => copyZoom(w)}
-                      >
-                        <Copy size={13} />
-                      </button>
-                    </div>
-                  )}
-
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: 8,
-                      marginTop: 14,
-                      alignItems: "center",
-                    }}
-                  >
-                    {!past && w.status !== "DRAFT" && w.zoom_start_url && (
-                      <GoldBtn
-                        style={{
-                          padding: "8px 14px",
-                          fontSize: 13,
-                          flex: 1,
-                          justifyContent: "center",
-                        }}
-                        onClick={() => window.open(w.zoom_start_url, "_blank")}
-                      >
-                        <Video size={14} /> Start
-                      </GoldBtn>
-                    )}
-                    <button
-                      className="cs-icon-btn"
-                      title="Copy share link"
-                      onClick={() => share(w)}
-                    >
-                      <Share2 size={15} />
-                    </button>
-                    <button
-                      className="cs-icon-btn"
-                      title="Edit"
-                      onClick={() => openEdit(w)}
-                    >
-                      <Pencil size={15} />
-                    </button>
-                    <button
-                      className="cs-icon-btn danger"
-                      title="Delete"
-                      onClick={() => setToDelete(w)}
-                    >
-                      <Trash2 size={15} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((w) => (
+                <WebinarRow
+                  key={w.id}
+                  w={w}
+                  isPastFn={isPast}
+                  isLiveFn={isLive}
+                  startDateFn={startDate}
+                  onEdit={openEdit}
+                  onPreview={openPreview}
+                  onDelete={() => setToDelete(w)}
+                  onShare={share}
+                  onCopyZoom={copyZoom}
+                  onAddUser={openAddUser}
+                  onPerformance={openPerformance}
+                  onViewAttendees={viewAttendees}
+                  onSetDraft={setDraft}
+                />
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
+
+      <Modal
+  open={!!addUserWebinar}
+  onClose={() => !addUserSubmitting && setAddUserWebinar(null)}
+  title="Add User"
+  width={420}
+>
+  {addUserWebinar && (
+    <div>
+      <p style={{ margin: "0 0 16px", fontSize: 13, color: "#6B7280", lineHeight: 1.5 }}>
+        Grant access to <strong>{addUserWebinar.title}</strong> without a payment. The user is notified once added.
+      </p>
+      <label style={lbl}>User's phone or email</label>
+      <input
+        className="cs-input"
+        value={addUserValue}
+        onChange={(e) => setAddUserValue(e.target.value)}
+        placeholder="Phone number or email"
+        disabled={addUserSubmitting}
+        style={{ marginTop: 6 }}
+      />
+      <p style={{ margin: "6px 0 20px", fontSize: 11.5, color: "#6B7280" }}>
+        The user must already have a Manchly account with this phone or email.
+      </p>
+      <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+        <GoldBtn ghost onClick={() => setAddUserWebinar(null)} disabled={addUserSubmitting}>
+          Cancel
+        </GoldBtn>
+        <GoldBtn onClick={handleAddUserSubmit} loading={addUserSubmitting}>
+          <Users size={15} /> Grant Access
+        </GoldBtn>
+      </div>
+    </div>
+  )}
+</Modal>
+
+<Modal
+  open={!!performanceWebinar}
+  onClose={() => setPerformanceWebinar(null)}
+  title="Webinar Performance"
+  width={380}
+>
+  {performanceWebinar && (
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 12px", borderRadius: 10, background: "rgba(34,197,94,0.08)" }}>
+        <span style={{ fontSize: 13, color: "#6B7280" }}>Total Revenue</span>
+        <span style={{ fontSize: 14, fontWeight: 700, color: "#16A34A" }}>
+          {performanceWebinar.revenue != null ? formatCurrency(performanceWebinar.revenue) : "--"}
+        </span>
+      </div>
+      <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 12px", borderRadius: 10, background: "rgba(59,130,246,0.08)" }}>
+        <span style={{ fontSize: 13, color: "#6B7280" }}>Attendees / Enrollments</span>
+        <span style={{ fontSize: 14, fontWeight: 700, color: "#2563EB" }}>
+          {performanceWebinar._count?.enrollments ?? 0}
+        </span>
+      </div>
+      <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 12px", borderRadius: 10, background: "rgba(239,68,68,0.08)" }}>
+        <span style={{ fontSize: 13, color: "#6B7280" }}>Refunds</span>
+        <span style={{ fontSize: 14, fontWeight: 700, color: "#DC2626" }}>
+          {performanceWebinar.refunded_count ?? 0}
+        </span>
+      </div>
+    </div>
+  )}
+</Modal>
 
       {/* Delete Confirmation Modal */}
       <Modal
@@ -1659,6 +1695,178 @@ export default function WebinarsScreen() {
           </GoldBtn>
         </div>
       </Modal>
+      {/* Preview Webinar Modal */}
+      <Modal
+        open={!!previewWebinar}
+        onClose={() => setPreviewWebinar(null)}
+        title="Webinar Preview"
+        width={420}
+      >
+        {previewWebinar && (
+          <div>
+            <div
+              style={{
+                height: 180,
+                borderRadius: 14,
+                background: previewWebinar.thumbnail
+                  ? `url(${previewWebinar.thumbnail}) center/cover`
+                  : G.heroGold,
+                marginBottom: 16,
+                position: "relative",
+              }}
+            >
+              <span style={{ position: "absolute", top: 10, right: 10 }}>
+                <Badge color="#16A34A" bg="rgba(255,255,255,0.92)">
+                  {previewWebinar.status}
+                </Badge>
+              </span>
+            </div>
+
+            <h2
+              style={{
+                fontSize: 19,
+                fontWeight: 900,
+                margin: "0 0 6px",
+                color: "#111827",
+              }}
+            >
+              {previewWebinar.title}
+            </h2>
+
+            <p
+              style={{
+                color: "#6B7280",
+                fontSize: 13.5,
+                margin: "0 0 16px",
+                lineHeight: 1.5,
+              }}
+            >
+              {previewWebinar.description || "No description provided."}
+            </p>
+
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 8,
+                marginBottom: 20,
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  fontSize: 13,
+                }}
+              >
+                <span style={{ color: "#6B7280" }}>Date & Time</span>
+                <span style={{ fontWeight: 700, color: "#111827" }}>
+                  {startDate(previewWebinar)
+                    ? startDate(previewWebinar).toLocaleString("en-IN", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
+                    : "TBA"}
+                </span>
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  fontSize: 13,
+                }}
+              >
+                <span style={{ color: "#6B7280" }}>Duration</span>
+                <span style={{ fontWeight: 700, color: "#111827" }}>
+                  {previewWebinar.duration || 60} mins
+                </span>
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  fontSize: 13,
+                }}
+              >
+                <span style={{ color: "#6B7280" }}>Price</span>
+                <span style={{ fontWeight: 700, color: "#111827" }}>
+                  {Number(previewWebinar.price) > 0
+                    ? formatCurrency(previewWebinar.price)
+                    : "Free"}
+                </span>
+              </div>
+              {previewWebinar.max_participants && (
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    fontSize: 13,
+                  }}
+                >
+                  <span style={{ color: "#6B7280" }}>Seats</span>
+                  <span style={{ fontWeight: 700, color: "#111827" }}>
+                    {previewWebinar._count?.enrollments ?? 0} /{" "}
+                    {previewWebinar.max_participants}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <GoldBtn
+              style={{ width: "100%", justifyContent: "center" }}
+              onClick={() => share(previewWebinar)}
+            >
+              <Share2 size={15} /> Copy Registration Link
+            </GoldBtn>
+          </div>
+        )}
+      </Modal>
+
+      <Modal
+  open={!!attendeesWebinar}
+  onClose={() => setAttendeesWebinar(null)}
+  title="Attendees"
+  width={440}
+>
+  {attendeesWebinar && (
+    <div>
+      <p style={{ margin: "0 0 16px", fontSize: 13, color: "#6B7280" }}>
+        {attendeesList.length} {attendeesList.length === 1 ? "person" : "people"} enrolled in <strong>{attendeesWebinar.title}</strong>
+      </p>
+
+      {attendeesLoading ? (
+        <div style={{ padding: "20px 0", textAlign: "center", color: "#6B7280", fontSize: 13 }}>
+          Loading attendees...
+        </div>
+      ) : attendeesList.length === 0 ? (
+        <div style={{ padding: "20px 0", textAlign: "center", color: "#6B7280", fontSize: 13 }}>
+          No attendees yet.
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 10, maxHeight: 360, overflowY: "auto" }}>
+          {attendeesList.map((a) => (
+            <div key={a.enrollment_id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid #F1F3F6" }}>
+              <div>
+                <div style={{ fontSize: 13.5, fontWeight: 700, color: "#111827" }}>
+                  {a.user?.name || "Unknown"}
+                </div>
+                <div style={{ fontSize: 11.5, color: "#6B7280" }}>
+                  {a.user?.email || a.user?.phone || ""}
+                </div>
+              </div>
+              <span style={{ fontSize: 11, color: a.attended ? "#16A34A" : "#9CA3AF", fontWeight: 700 }}>
+                {a.attended ? "Attended" : "Registered"}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )}
+</Modal>
     </div>
   );
 }

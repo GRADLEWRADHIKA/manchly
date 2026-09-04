@@ -90,33 +90,6 @@ export default function RevenueCard({
           {title}
         </div>
       </div>
-
-      {/* Bottom Row - Sparkline */}
-      <div
-        style={{
-          marginTop: "auto",
-          paddingTop: 20,
-        }}
-      >
-        <svg
-          width="100%"
-          height="60"
-          viewBox="0 0 240 60"
-          preserveAspectRatio="none"
-        >
-          <path
-            d="M0 45
-               C20 40,40 18,60 22
-               S100 50,120 34
-               S160 12,180 22
-               S220 40,240 15"
-            fill="none"
-            stroke={themeColor}
-            strokeWidth="3"
-            strokeLinecap="round"
-          />
-        </svg>
-      </div>
     </div>
   );
 }

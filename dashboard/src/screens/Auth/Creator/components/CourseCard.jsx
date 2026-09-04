@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import colors from "../../../../utils/colors";
 import { formatCurrency, timeAgo } from "../../../../utils/formatters";
+import {createPortal} from "react-dom"
 
 const ADD_USER_EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const ADD_USER_PHONE_RE = /^\d{10}$/;
@@ -42,6 +43,8 @@ export default function CourseCard({
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false); // was missing
   const [addUserValue, setAddUserValue] = useState("");
   const [addUserSubmitting, setAddUserSubmitting] = useState(false);
+  const menuButtonRef = useRef(null);
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
 
   // Edit form state
   const [formData, setFormData] = useState({
@@ -84,6 +87,16 @@ export default function CourseCard({
       });
     }
   }, [isModalOpen]);
+
+  useEffect(() => {
+  if (isMenuOpen && menuButtonRef.current) {
+    const rect = menuButtonRef.current.getBoundingClientRect();
+    setMenuPosition({
+      top: rect.bottom + 6,
+      left: rect.right - 150, 
+    });
+  }
+}, [isMenuOpen]);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -231,308 +244,220 @@ export default function CourseCard({
 
   return (
     <>
-      {/* Course Card Container */}
-      <div
-        onClick={() => onEdit?.(displayCourse)}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          border: `1px solid ${
-            isHovered
-              ? colors.brand?.primaryOrange || "#FF6B00"
-              : colors.base.border
-          }`,
-          borderRadius: 16,
-          background: colors.base.cardBackground,
-          overflow: "visible",
-          transition: "all 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
-          transform: isHovered ? "translateY(-3px)" : "translateY(0)",
-          boxShadow: isHovered
-            ? "0 12px 28px rgba(255,107,0,0.14)"
-            : "0 2px 4px rgba(0,0,0,0.02)",
-          cursor: "pointer",
-          position: "relative",
-        }}
-      >
-        {/* Thumbnail Banner */}
-        <div
-          style={{
-            width: "100%",
-            height: 156,
-            flexShrink: 0,
-            display: "flex",
-            backgroundColor: "rgba(0,0,0,0.04)",
-            backgroundImage: thumbnail ? `url(${thumbnail})` : "none",
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            backgroundRepeat: "no-repeat",
-            alignItems: "center",
-            justifyContent: "center",
-            position: "relative",
-            borderTopLeftRadius: 15,
-            borderTopRightRadius: 15,
-            overflow: "hidden",
-          }}
-        >
-          {!thumbnail && (
-            <BookOpen size={24} color={colors.typography.secondaryText} />
-          )}
 
+    {/* Course Table Row */}
+    <tr
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      style={{
+        borderBottom: `1px solid ${colors.base.border}`,
+        background: isHovered ? "rgba(255,107,0,0.03)" : "transparent",
+        cursor: "pointer",
+      }}
+    >
+      {/* Checkbox */}
+      <td style={{ padding: "12px 8px" }} onClick={(e) => e.stopPropagation()}>
+        <input type="checkbox" style={{ cursor: "pointer" }} />
+      </td>
+
+      {/* Thumbnail + Title */}
+      <td style={{ padding: "12px 8px" }} onClick={() => onEdit?.(displayCourse)}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <div
             style={{
-              position: "absolute",
-              top: 10,
-              left: 10,
-              right: 10,
+              width: 44,
+              height: 44,
+              borderRadius: 10,
+              flexShrink: 0,
+              backgroundColor: "rgba(0,0,0,0.04)",
+              backgroundImage: thumbnail ? `url(${thumbnail})` : "none",
+              backgroundSize: "cover",
+              backgroundPosition: "center",
               display: "flex",
-              justifyContent: "space-between",
-              alignItems: "flex-start",
-              gap: 6,
-            }}
-          >
-            {category && <span style={badgeStyle}>{category}</span>}
-            <span
-              style={{
-                ...badgeStyle,
-                color: isPublished
-                  ? colors.brand?.successGreen || "#22C55E"
-                  : colors.typography.secondaryText,
-              }}
-            >
-              {isPublished ? "● Published" : "● Draft"}
-            </span>
-          </div>
-        </div>
-
-        {/* Card Content */}
-        <div
-          style={{
-            padding: 16,
-            display: "flex",
-            flexDirection: "column",
-            gap: 10,
-            flex: 1,
-          }}
-        >
-          <span
-            style={{
-              fontSize: 15,
-              fontWeight: 700,
-              color: colors.typography.primaryText,
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-            }}
-          >
-            {title}
-          </span>
-
-          {displayCourse?.description && (
-            <p
-              style={{
-                fontSize: 12,
-                color: colors.typography.secondaryText,
-                margin: 0,
-                display: "-webkit-box",
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: "vertical",
-                overflow: "hidden",
-              }}
-            >
-              {displayCourse.description}
-            </p>
-          )}
-
-          <div
-            style={{
-              display: "flex",
-              gap: 16,
-              flexWrap: "wrap",
               alignItems: "center",
+              justifyContent: "center",
             }}
           >
-            <span style={statStyle}>
-              <BookOpen size={13} /> {lessons} Lessons
-            </span>
-            <span style={statStyle}>
-              <Users size={13} /> {students} Students
-            </span>
-            {rating != null ? (
-              <span style={{ ...statStyle, fontWeight: 600 }}>
-                <Star size={13} color="#F59E0B" fill="#F59E0B" />
-                {rating} {reviewCount != null ? `(${reviewCount})` : ""}
-              </span>
-            ) : (
-              <span style={statStyle}>No ratings yet</span>
-            )}
+            {!thumbnail && <BookOpen size={16} color={colors.typography.secondaryText} />}
           </div>
-
-          {/* Card Footer Bar */}
-          <div
-            style={{
-              marginTop: "auto",
-              paddingTop: 12,
-              borderTop: `1px solid ${colors.base.border}`,
-              display: "flex",
-              flexDirection: "column",
-              gap: 8,
-            }}
-          >
+          <div style={{ minWidth: 0 }}>
             <div
               style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
+                fontSize: 13.5,
+                fontWeight: 700,
+                color: colors.typography.primaryText,
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                maxWidth: 220,
               }}
             >
-              <span
-                style={{
-                  fontSize: 15,
-                  fontWeight: 800,
-                  color: colors.brand?.primaryOrange || "#FF6B00",
-                }}
-              >
-                {(displayCourse?.price ?? 0) === 0
-                  ? "Free"
-                  : formatCurrency(displayCourse.price)}
-              </span>
-
-              <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onAnalytics?.(displayCourse) || onEdit?.(displayCourse);
-                  }}
-                  title="Analytics"
-                  style={iconButtonStyle}
-                >
-                  <BarChart2 size={14} color={colors.typography.secondaryText} />
-                </button>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onView?.(displayCourse);
-                  }}
-                  title="Preview"
-                  style={iconButtonStyle}
-                >
-                  <Eye size={14} color={colors.typography.secondaryText} />
-                </button>
-
-                <div style={{ position: "relative" }} ref={menuRef}>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setIsMenuOpen((prev) => !prev);
-                    }}
-                    title="More Options"
-                    style={{
-                      ...iconButtonStyle,
-                      background: isMenuOpen
-                        ? "rgba(0,0,0,0.06)"
-                        : colors.base.cardBackground,
-                    }}
-                  >
-                    <MoreHorizontal size={14} color={colors.typography.secondaryText} />
-                  </button>
-
-                  {isMenuOpen && (
-                    <div
-                      style={{
-                        position: "absolute",
-                        bottom: "calc(100% + 6px)",
-                        right: 0,
-                        width: 150,
-                        background: "#FFFFFF",
-                        border: `1px solid ${colors.base.border}`,
-                        borderRadius: 12,
-                        boxShadow: "0 8px 20px rgba(0,0,0,0.12)",
-                        zIndex: 100,
-                        padding: "4px",
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 2,
-                      }}
-                    >
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setIsMenuOpen(false);
-                          setIsModalOpen(true);
-                        }}
-                        style={menuItemStyle}
-                      >
-                        <Pencil size={13} color={colors.typography.secondaryText} />
-                        <span>Edit Course</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setIsMenuOpen(false);
-                          onDuplicate?.(displayCourse);
-                        }}
-                        style={menuItemStyle}
-                      >
-                        <Copy size={13} color={colors.typography.secondaryText} />
-                        <span>Duplicate</span>
-                      </button>
-
-                      {onAddUser && (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setIsMenuOpen(false);
-                            setIsAddUserModalOpen(true);
-                          }}
-                          style={menuItemStyle}
-                        >
-                          <UserPlus size={13} color={colors.typography.secondaryText} />
-                          <span>Add User</span>
-                        </button>
-                      )}
-
-                      {onDelete && (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setIsMenuOpen(false);
-                            onDelete?.(displayCourse);
-                          }}
-                          style={{ ...menuItemStyle, color: "#EF4444" }}
-                        >
-                          <Trash2 size={13} color="#EF4444" />
-                          <span>Delete</span>
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
+              {title}
             </div>
-
-            {updated && (
-              <span
-                style={{
-                  fontSize: 11,
-                  color: colors.typography.secondaryText,
-                }}
-              >
-                Updated {updated}
-              </span>
+            {category && (
+              <div style={{ fontSize: 11.5, color: colors.typography.secondaryText, marginTop: 2 }}>
+                {category}
+              </div>
             )}
           </div>
         </div>
-      </div>
+      </td>
+
+      {/* Status */}
+      <td style={{ padding: "12px 8px" }} onClick={() => onEdit?.(displayCourse)}>
+        <span
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 5,
+            fontSize: 12,
+            fontWeight: 700,
+            color: isPublished ? colors.brand?.successGreen || "#22C55E" : colors.typography.secondaryText,
+          }}
+        >
+          ● {isPublished ? "Published" : "Draft"}
+        </span>
+      </td>
+
+      {/* Price */}
+      <td style={{ padding: "12px 8px" }} onClick={() => onEdit?.(displayCourse)}>
+        <span style={{ fontSize: 13, fontWeight: 700, color: colors.typography.primaryText }}>
+          {(displayCourse?.price ?? 0) === 0 ? "Free" : formatCurrency(displayCourse.price)}
+        </span>
+      </td>
+
+      {/* Students */}
+      <td style={{ padding: "12px 8px" }} onClick={() => onEdit?.(displayCourse)}>
+        <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 13, color: colors.typography.primaryText }}>
+          <Users size={13} color={colors.typography.secondaryText} /> {students}
+        </span>
+      </td>
+
+      {/* Revenue */}
+      <td style={{ padding: "12px 8px" }} onClick={() => onEdit?.(displayCourse)}>
+        <span style={{ fontSize: 13, fontWeight: 700, color: colors.brand?.successGreen || "#22C55E" }}>
+          {course?.revenue != null ? formatCurrency(course.revenue) : "--"}
+        </span>
+      </td>
+
+      {/* Updated */}
+      <td style={{ padding: "12px 8px" }} onClick={() => onEdit?.(displayCourse)}>
+        <span style={{ fontSize: 12, color: colors.typography.secondaryText }}>
+          {updated || "--"}
+        </span>
+      </td>
+
+      {/* Actions */}
+      <td style={{ padding: "12px 8px", textAlign: "right" }} onClick={(e) => e.stopPropagation()}>
+        <div style={{ display: "flex", gap: 6, alignItems: "center", justifyContent: "flex-end" }}>
+          <button
+            type="button"
+            onClick={() => onAnalytics?.(displayCourse) || onEdit?.(displayCourse)}
+            title="Analytics"
+            style={iconButtonStyle}
+          >
+            <BarChart2 size={14} color={colors.typography.secondaryText} />
+          </button>
+          <button
+            type="button"
+            onClick={() => onView?.(displayCourse)}
+            title="Preview"
+            style={iconButtonStyle}
+          >
+            <Eye size={14} color={colors.typography.secondaryText} />
+          </button>
+
+         <div style={{ position: "relative" }}>
+  <button
+    ref={menuButtonRef}
+    type="button"
+    onClick={() => setIsMenuOpen((prev) => !prev)}
+    title="More Options"
+    style={{
+      ...iconButtonStyle,
+      background: isMenuOpen ? "rgba(0,0,0,0.06)" : colors.base.cardBackground,
+    }}
+  >
+    <MoreHorizontal size={14} color={colors.typography.secondaryText} />
+  </button>
+
+  {isMenuOpen && createPortal(
+    <div
+      ref={menuRef}
+      style={{
+        position: "fixed",
+        top: menuPosition.top,
+        left: menuPosition.left,
+        width: 150,
+        background: "#FFFFFF",
+        border: `1px solid ${colors.base.border}`,
+        borderRadius: 12,
+        boxShadow: "0 8px 20px rgba(0,0,0,0.12)",
+        zIndex: 2000,
+        padding: "4px",
+        display: "flex",
+        flexDirection: "column",
+        gap: 2,
+      }}
+    >
+      <button
+        type="button"
+        onClick={() => {
+          setIsMenuOpen(false);
+          setIsModalOpen(true);
+        }}
+        style={menuItemStyle}
+      >
+        <Pencil size={13} color={colors.typography.secondaryText} />
+        <span>Edit Course</span>
+      </button>
+
+      <button
+        type="button"
+        onClick={() => {
+          setIsMenuOpen(false);
+          onDuplicate?.(displayCourse);
+        }}
+        style={menuItemStyle}
+      >
+        <Copy size={13} color={colors.typography.secondaryText} />
+        <span>Duplicate</span>
+      </button>
+
+      {onAddUser && (
+        <button
+          type="button"
+          onClick={() => {
+            setIsMenuOpen(false);
+            setIsAddUserModalOpen(true);
+          }}
+          style={menuItemStyle}
+        >
+          <UserPlus size={13} color={colors.typography.secondaryText} />
+          <span>Add User</span>
+        </button>
+      )}
+
+      {onDelete && (
+        <button
+          type="button"
+          onClick={() => {
+            setIsMenuOpen(false);
+            onDelete?.(displayCourse);
+          }}
+          style={{ ...menuItemStyle, color: "#EF4444" }}
+        >
+          <Trash2 size={13} color="#EF4444" />
+          <span>Delete</span>
+        </button>
+      )}
+    </div>,
+    document.body
+  )}
+</div>
+        </div>
+      </td>
+    </tr>
 
       {/* ADD USER MODAL */}
       {isAddUserModalOpen && (

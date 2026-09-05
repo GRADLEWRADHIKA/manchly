@@ -12,7 +12,16 @@ import {
 
 const router = Router();
 
-// All routes require a valid Supabase JWT
+// ── Public ────────────────────────────────────────────────────────────────────
+// Registered before the auth guard below, because router.use() applies to every
+// request that enters this router — not just the routes declared after it — so
+// anything placed under it is authenticated no matter what the path says.
+
+// GET /api/creator/:userId/public — public creator profile (no auth required)
+router.get("/:userId/public", getPublicProfile);
+
+// ── Authenticated ─────────────────────────────────────────────────────────────
+// Everything below requires a valid Supabase JWT.
 router.use(authMiddleware);
 
 // POST   /api/creator/profile          — create a new creator profile
@@ -29,11 +38,5 @@ router.post("/profile/publish", togglePublish);
 
 // POST   /api/creator/webhook-test     — simulate a Meta webhook automation
 router.post("/webhook-test", webhookTest);
-
-// GET /api/creator/:userId/public — public creator profile (no auth required)
-router.get("/:userId/public", getPublicProfile);
-
-// All routes below require a valid Supabase JWT
-router.use(authMiddleware);
 
 export default router;

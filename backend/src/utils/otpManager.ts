@@ -206,7 +206,7 @@ class OTPManager {
         // Fallback to memory-based rate limiter
         this.rateLimiter = new RateLimiterMemory({
           keyPrefix: 'otp_rate_limit',
-          points: 20,
+          points: 5,
           duration: 300,
         });
       }

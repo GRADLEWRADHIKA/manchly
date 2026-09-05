@@ -54,6 +54,97 @@ export const getMyProfile = async (req: Request, res: Response): Promise<void> =
 };
 
 /**
+ * GET /api/creator/:userId/public
+ * Returns a creator's public-facing profile: basic user info, their
+ * creator_profiles data (if published), and their published courses.
+ * Does not require the profile to be published — falls back to just
+ * name/photo/courses if the creator hasn't completed or published
+ * their profile yet, since students should still be able to see who
+ * taught a course.
+ */
+export const getPublicProfile = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { userId } = req.params;
+
+    const user = await prisma.users.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        profile_image: true,
+        instagram_link: true,
+        linkedin_link: true,
+        youtube_link: true,
+        facebook_link: true,
+        kyc_verified: true,
+      },
+    });
+
+    if (!user) {
+      res.status(404).json({ success: false, error: "USER_NOT_FOUND" });
+      return;
+    }
+
+    const profile = await prisma.creator_profiles.findUnique({
+      where: { userId },
+    });
+
+    const courses = await prisma.courses.findMany({
+      where: { creator_id: userId, status: "PUBLISHED" },
+      select: {
+        id: true,
+        title: true,
+        thumbnail: true,
+        thumbnail_url: true,
+        price: true,
+        level: true,
+        videos: {
+          where: { status: "READY" },
+          select: { id: true, duration: true },
+        },
+        _count: { select: { enrollments: true } },
+      },
+      orderBy: { created_at: "desc" },
+    });
+
+    const publicCourses = courses.map((c) => ({
+      id: c.id,
+      title: c.title,
+      thumbnail: c.thumbnail,
+      thumbnail_url: c.thumbnail_url,
+      price: c.price,
+      level: c.level,
+      total_videos: c.videos.length,
+      total_students: c._count.enrollments,
+    }));
+
+    const showFullProfile = !!profile && profile.isPublished;
+
+    res.json({
+      success: true,
+      data: {
+        id: user.id,
+        name: profile?.name || user.name,
+        profile_image: user.profile_image,
+        kyc_verified: user.kyc_verified,
+        bio: showFullProfile ? profile?.bio : "",
+        niche: showFullProfile ? profile?.niche : null,
+        city: showFullProfile ? profile?.city : null,
+        links: {
+          instagram: user.instagram_link || "",
+          linkedin: user.linkedin_link || "",
+          youtube: user.youtube_link || "",
+          facebook: user.facebook_link || "",
+        },
+        courses: publicCourses,
+      },
+    });
+  } catch (err) {
+    throw err;
+  }
+};
+
+/**
  * POST /api/creator/profile
  * Creates a new creator profile for the authenticated user.
  */

@@ -7,6 +7,7 @@ import {
   updateProfile,
   togglePublish,
   webhookTest,
+  getPublicProfile,
 } from "../controllers/creatorProfileController";
 
 const router = Router();
@@ -28,5 +29,11 @@ router.post("/profile/publish", togglePublish);
 
 // POST   /api/creator/webhook-test     — simulate a Meta webhook automation
 router.post("/webhook-test", webhookTest);
+
+// GET /api/creator/:userId/public — public creator profile (no auth required)
+router.get("/:userId/public", getPublicProfile);
+
+// All routes below require a valid Supabase JWT
+router.use(authMiddleware);
 
 export default router;

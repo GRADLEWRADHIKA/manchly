@@ -106,16 +106,18 @@ export default function Reels() {
         }}
       >
         {reels.map((reel, i) => (
-          <ReelSlide
-            key={reel.id}
-            reel={reel}
-            isActive={i === activeIndex}
-            muted={muted}
-            onToggleMute={() => setMuted((m) => !m)}
-            onBuy={() => setSheetFor(reel)}
-            onOpenCourse={() => navigate(`/app/course/${reel.course.id}`)}
-            
-          />
+         <ReelSlide
+  key={reel.id}
+  reel={reel}
+  isActive={i === activeIndex}
+  muted={muted}
+  onToggleMute={() => setMuted((m) => !m)}
+  onBuy={() => setSheetFor(reel)}
+  onOpenCourse={() => navigate(`/app/course/${reel.course.id}`)}
+  onOpenCreator={() =>
+    reel.course?.creator?.id && navigate(`/app/creator/${reel.course.creator.id}`)
+  }
+/>
         ))}
         
 
@@ -158,7 +160,7 @@ export default function Reels() {
 
 /* ─────────────────────────── one full-screen reel ─────────────────────────── */
 
-function ReelSlide({ reel, isActive, muted, onToggleMute, onBuy, onOpenCourse }) {
+function ReelSlide({ reel, isActive, muted, onToggleMute, onBuy, onOpenCourse, onOpenCreator }) {
   const course = reel.course || {};
   const creator = course.creator || {};
   const price = Number(course.price ?? 0);
@@ -195,12 +197,11 @@ function ReelSlide({ reel, isActive, muted, onToggleMute, onBuy, onOpenCourse })
 
       {/* Bottom overlay: creator, caption, and the buy CTA */}
       <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, padding: "18px 18px 22px", display: "flex", flexDirection: "column", gap: 12 }}>
-        <button onClick={onOpenCourse} style={creatorRowStyle}>
+        <button onClick={onOpenCreator} style={creatorRowStyle}>
           {creator.profile_image
             ? <img src={creator.profile_image} alt="" style={{ width: 34, height: 34, borderRadius: "50%", objectFit: "cover" }} />
             : <div style={avatarFallback}>{(creator.name || "?").charAt(0).toUpperCase()}</div>}
           <span style={{ color: "#fff", fontWeight: 700, fontSize: 14 }}>{creator.name || "Creator"}</span>
-          {creator.handle && <span style={{ color: "rgba(255,255,255,0.6)", fontSize: 12 }}>@{creator.handle}</span>}
         </button>
 
         {reel.caption && (
@@ -215,7 +216,7 @@ function ReelSlide({ reel, isActive, muted, onToggleMute, onBuy, onOpenCourse })
               {course.title}
             </div>
             <div style={{ display: "flex", gap: 12, marginTop: 4, color: "rgba(255,255,255,0.7)", fontSize: 12 }}>
-              <span style={{ display: "flex", alignItems: "center", gap: 4 }}><BookOpen size={12} /> {course._count?.videos ?? 0} lessons</span>
+              <span style={{ display: "flex", alignItems: "center", gap: 4 }}><BookOpen size={12} /> {course._count?.videos ?? 0} Videos</span>
               <span style={{ display: "flex", alignItems: "center", gap: 4 }}><Users size={12} /> {course._count?.enrollments ?? 0} enrolled</span>
             </div>
           </div>

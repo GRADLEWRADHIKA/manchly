@@ -16,6 +16,9 @@ export default function HlsVideo({ src, poster, autoPlay = false, onProgress, st
     hls = new Hls();
     hls.loadSource(src);
     hls.attachMedia(video);
+    hls.on(Hls.Events.MANIFEST_PARSED, () => {
+      if (autoPlay) video.play().catch((e) => console.warn("Autoplay blocked:", e));
+    });
     hls.on(Hls.Events.ERROR, (_event, data) => {
       console.error("HLS.js error:", data.type, data.details, data);
     });
@@ -26,7 +29,7 @@ export default function HlsVideo({ src, poster, autoPlay = false, onProgress, st
   }
 
   return () => hls?.destroy();
-}, [src]);
+}, [src, autoPlay]);
 
   const handleTime = () => {
     const v = videoRef.current;

@@ -16,7 +16,9 @@ import AuthFlow from "./screens/unAuth/AuthFlow";
 // User side
 import UserLayout from "./layouts/UserLayout";
 import UserHome from "./screens/user/UserHome";
-import Explore from "./screens/user/Explore";
+//import Explore from "./screens/user/Explore";
+import ExploreCourses from "./screens/user/ExploreCourses";
+import ExploreWebinars from "./screens/user/ExploreWebinars";
 import Reels from "./screens/user/Reels";
 import CourseDetails from "./screens/user/CourseDetails";
 import WebinarDetails from "./screens/user/WebinarDetails";
@@ -32,6 +34,7 @@ import CallRoom from "./screens/CallRoom";
 import UserHelpCenter from "./screens/user/UserHelpCenter";
 import UserCommunityScreen from "./screens/user/UserCommunityScreen.jsx";
 import UserHubScreen from "./screens/user/UserHubScreen.jsx";
+import CreatorPublicProfile from "./screens/user/CreatorPublicProfile.jsx";
 
 // Creator side
 import CreatorLayout from "./layouts/CreatorLayout";
@@ -231,7 +234,9 @@ export default function App() {
         {/* ---------- USER SHELL ---------- */}
         <Route path="/app" element={<RequireAuth roles={["USER", "BRAND", "AGENCY"]}><UserLayout /></RequireAuth>}>
           <Route index element={<UserHome />} />
-          <Route path="explore" element={<Explore />} />
+          <Route path="explore" element={<Navigate to="/app/explore/courses" replace />} />
+<Route path="explore/courses" element={<ExploreCourses />} />
+<Route path="explore/webinars" element={<ExploreWebinars />} />
           <Route path="reels" element={<Reels />} />
           <Route path="course/:courseId" element={<CourseDetails />} />
           <Route path="webinar/:webinarId" element={<WebinarDetails />} />
@@ -239,6 +244,7 @@ export default function App() {
           <Route path="player/:courseId" element={<Player />} />
           <Route path="sessions" element={<Sessions />} />
           <Route path="experts/:expertId" element={<ExpertDetail />} />
+          <Route path="creator/:creatorId" element={<CreatorPublicProfile />} />
           <Route path="marketplace" element={<Marketplace />} />
           <Route path="notifications" element={<Notifications role="user" />} />
           <Route path="profile" element={<UserProfile />} />

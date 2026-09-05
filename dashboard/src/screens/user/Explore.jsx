@@ -231,13 +231,13 @@ export default function Explore() {
                         overflow: "hidden",
                       }}
                     >
-                      {c.thumbnail ? (
+                      {c.thumbnail_url || c.thumbnail ? (
                         <>
                           <div
                             style={{
                               position: "absolute",
                               inset: -10,
-                              backgroundImage: `url(${c.thumbnail})`,
+                              backgroundImage: `url(${c.thumbnail_url || c.thumbnail})`,
                               backgroundSize: "cover",
                               backgroundPosition: "center",
                               filter: "blur(18px) brightness(0.7)",
@@ -385,13 +385,13 @@ export default function Explore() {
                       overflow: "hidden",
                     }}
                   >
-                    {w.thumbnail ? (
+                    {w.thumbnail_url || w.thumbnail ? (
                       <>
                         <div
                           style={{
                             position: "absolute",
                             inset: -10,
-                            backgroundImage: `url(${w.thumbnail})`,
+                            backgroundImage: `url(${w.thumbnail_url || w.thumbnail})`,
                             backgroundSize: "cover",
                             backgroundPosition: "center",
                             filter: "blur(18px) brightness(0.7)",

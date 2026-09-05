@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   FileText,
   Video as VideoIcon,
@@ -40,15 +40,24 @@ export default function CourseCVideoScreen({
     );
   });
 
-  const [lessonTitle, setLessonTitle] = useState("");
-  const [lessonDescription, setLessonDescription] = useState("");
-  const [isFree, setIsFree] = useState(false);
-  const [selectedFile, setSelectedFile] = useState(null);
+ const [lessonTitle, setLessonTitle] = useState(
+  () => localStorage.getItem(`lessonDraft_${resolvedCourseId}_title`) || ""
+);
+const [lessonDescription, setLessonDescription] = useState(
+  () => localStorage.getItem(`lessonDraft_${resolvedCourseId}_desc`) || ""
+);
+const [isFree, setIsFree] = useState(
+  () => localStorage.getItem(`lessonDraft_${resolvedCourseId}_free`) === "true"
+);
+const [selectedFile, setSelectedFile] = useState(null);
 
   const [videos, setVideos] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [fetching, setFetching] = useState(false);
   const [error, setError] = useState("");
+
+const [justAdded, setJustAdded] =  useState(null)
+const titleInputRef = useRef(null)
 
   useEffect(() => {
     if (!resolvedCourseId) return;
@@ -78,6 +87,18 @@ export default function CourseCVideoScreen({
       setError("");
     }
   };
+
+  useEffect(() => {
+  if (resolvedCourseId) localStorage.setItem(`lessonDraft_${resolvedCourseId}_title`, lessonTitle);
+}, [lessonTitle, resolvedCourseId]);
+
+useEffect(() => {
+  if (resolvedCourseId) localStorage.setItem(`lessonDraft_${resolvedCourseId}_desc`, lessonDescription);
+}, [lessonDescription, resolvedCourseId]);
+
+useEffect(() => {
+  if (resolvedCourseId) localStorage.setItem(`lessonDraft_${resolvedCourseId}_free`, String(isFree));
+}, [isFree, resolvedCourseId]);
 
   const handleAddVideo = async () => {
     if (!lessonTitle.trim()) {
@@ -142,9 +163,21 @@ export default function CourseCVideoScreen({
       ]);
 
       setLessonTitle("");
-      setLessonDescription("");
-      setIsFree(false);
-      setSelectedFile(null);
+setLessonDescription("");
+setIsFree(false);
+setSelectedFile(null);
+
+if (resolvedCourseId) {
+  localStorage.removeItem(`lessonDraft_${resolvedCourseId}_title`);
+  localStorage.removeItem(`lessonDraft_${resolvedCourseId}_desc`);
+  localStorage.removeItem(`lessonDraft_${resolvedCourseId}_free`);
+}
+
+setJustAdded(lessonTitle.trim());
+setTimeout(() => setJustAdded(null), 4000);
+
+titleInputRef.current?.focus();
+
     } catch (err) {
       console.error("Failed to add video:", err);
       setError(
@@ -155,6 +188,8 @@ export default function CourseCVideoScreen({
       setUploading(false);
     }
   };
+
+  
 
   const handleDeleteVideo = async (videoId, index) => {
     try {
@@ -266,19 +301,38 @@ export default function CourseCVideoScreen({
             {/* Left Form - Video Details */}
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               <h3
-                style={{
-                  fontSize: 16,
-                  fontWeight: 700,
-                  color: colors.typography.primaryText,
-                  margin: 0,
-                }}
-              >
-                Lesson Details
-              </h3>
+  style={{
+    fontSize: 16,
+    fontWeight: 700,
+    color: colors.typography.primaryText,
+    margin: 0,
+  }}
+>
+  {videos.length === 0 ? "Add Your First Lesson" : `Add Lesson ${videos.length + 1}`}
+</h3>
 
+{justAdded && (
+  <div
+    style={{
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      background: "#ECFDF5",
+      border: "1px solid #A7F3D0",
+      borderRadius: 10,
+      padding: "10px 14px",
+      fontSize: 13,
+      fontWeight: 600,
+      color: "#065F46",
+    }}
+  >
+    ✅ "{justAdded}" added! Add another lesson below.
+  </div>
+)}
               <div>
                 <label style={labelStyle}>Lesson Title *</label>
                 <input
+                ref={titleInputRef}
                   type="text"
                   value={lessonTitle}
                   onChange={(e) => setLessonTitle(e.target.value)}

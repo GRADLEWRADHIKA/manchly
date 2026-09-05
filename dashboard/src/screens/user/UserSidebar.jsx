@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import {
   HomeIcon,
   BookOpen,
+  Video,
   PlayCircle,
   Users,
   UsersRound,
@@ -20,13 +21,15 @@ import { useAuth } from "../../context/AuthContext";
 
 const NAV_ITEMS = [
   { key: "home", label: "Home", icon: HomeIcon, path: "/app/home", accentColor: colors.user?.accent || "#22C55E" },
-  { key: "explore", label: "Explore", icon: BookOpen, path: "/app/explore", accentColor: colors.navItems?.explore || "#22C55E" },
+ { key: "explore-courses", label: "Courses", icon: BookOpen, path: "/app/explore/courses", accentColor: colors.navItems?.explore || "#22C55E" },
+{ key: "explore-webinars", label: "Webinars", icon: Video, path: "/app/explore/webinars", accentColor: colors.navItems?.reels || "#EC4899" },
+ { key: "sessions", label: "1:1 Sessions", icon: Users, path: "/app/sessions", accentColor: colors.navItems?.sessions || "#1C9DA6" },
   { key: "reels", label: "Reels", icon: Clapperboard, path: "/app/reels", accentColor: colors.navItems?.reels || "#EC4899" },
   { key: "learning", label: "My Learning", icon: PlayCircle, path: "/app/learning", accentColor: colors.navItems?.myLearning || "#2B52F6" },
-  { key: "sessions", label: "1:1 Sessions", icon: Users, path: "/app/sessions", accentColor: colors.navItems?.sessions || "#1C9DA6" },
-  { key: "communities", label: "Community", icon: UsersRound, path: "/app/communities", accentColor: colors.navItems?.communities || "#6B5CF6" },
+
+  //{ key: "communities", label: "Community", icon: UsersRound, path: "/app/communities", accentColor: colors.navItems?.communities || "#6B5CF6" },
   //{ key: "saved", label: "Saved", icon: Bookmark, path: "/app/saved", accentColor: colors.navItems?.saved || "#F59E0B" },
-  { key: "userhub", label: "User Hub", icon: Star, path: "/app/useHub", accentColor: colors.navItems?.saved || "#F59E0B" },
+  //{ key: "userhub", label: "User Hub", icon: Star, path: "/app/useHub", accentColor: colors.navItems?.saved || "#F59E0B" },
 ];
 
 const ACCOUNT_ITEMS = [

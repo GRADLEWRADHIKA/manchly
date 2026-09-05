@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FileText, Video as VideoIcon, Eye, Sparkles } from "lucide-react";
 import { apiFetch, unwrap } from "../../../utils/api";
 import colors from "../../../utils/colors";
@@ -15,6 +15,11 @@ const WIZARD_STEPS = [
   { key: "preview", label: "Preview", icon: Eye },
 ];
 
+const UNIT_MAP = {
+  days: "DAY",
+  months: "MONTH",
+};
+
 const EMPTY_FORM = {
   title: "",
   description: "",
@@ -25,20 +30,33 @@ const EMPTY_FORM = {
   language: "English",
 };
 
-export default function CourseCreateScreen({ user, onNavigate }) {
+export default function CourseCreateScreen({ user, onNavigate, courseId: propCourseId }) {
+  const [resolvedCourseId] = useState(() => {
+    const clean =
+      typeof propCourseId === "object"
+        ? propCourseId?.id || propCourseId?.courseId
+        : propCourseId;
+    return (
+      clean ||
+      (typeof localStorage !== "undefined" ? localStorage.getItem("activeCourseId") : "") ||
+      ""
+    );
+  });
+
   const [form, setForm] = useState(EMPTY_FORM);
   const [thumbnailFile, setThumbnailFile] = useState(null);
   const [thumbnailPreviewUrl, setThumbnailPreviewUrl] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
   // Course Validity state
- const [accessType, setAccessType] = useState("lifetime");
- const [durationValue, setDurationValue] =  useState(1);
- const [durationUnit, setDurationUnit] = useState("days");
+  const [accessType, setAccessType] = useState("lifetime");
+  const [durationValue, setDurationValue] = useState(1);
+  const [durationUnit, setDurationUnit] = useState("days");
 
- const [whatsappCommunityUrl, setWhatsappCommunityUrl] = useState("");
- const [thankyouMessage, setThankyouMessage] = useState("");
+  const [whatsappCommunityUrl, setWhatsappCommunityUrl] = useState("");
+  const [thankyouMessage, setThankyouMessage] = useState("");
 
   const updateField = (field, value) => setForm((prev) => ({ ...prev, [field]: value }));
 
@@ -65,34 +83,74 @@ export default function CourseCreateScreen({ user, onNavigate }) {
     }
   };
 
-  // Add this inside CourseCreateScreen component
-const handleStepClick = (index) => {
-  if (index === 0) return; // Already on Course Details
+  useEffect(() => {
+    if (!resolvedCourseId) {
+      setLoading(false);
+      return;
+    }
+    (async () => {
+      setLoading(true);
+      try {
+        const response = await apiFetch(`/courses/${resolvedCourseId}`);
+        const data = unwrap ? unwrap(response) : response;
+        const course = data?.course || data;
+        if (course) {
+          setForm({
+            title: course.title || "",
+            description: course.description || "",
+            status: course.status || "DRAFT",
+            level: course.level || "Beginner",
+            price: course.price != null ? String(course.price) : "",
+            category: course.category || "General",
+            language: course.language || "English",
+          });
+          setThumbnailPreviewUrl(course.thumbnail_url || null);
+          if (course.access_duration_days) {
+            setAccessType("limited");
+            setDurationValue(course.access_duration_days);
+            setDurationUnit(course.access_duration_unit === "MONTH" ? "months" : "days");
+          } else {
+            setAccessType("lifetime");
+          }
+          setWhatsappCommunityUrl(course.whatsapp_community_url || "");
+          setThankyouMessage(course.thankyou_message || "");
+        }
+      } catch (err) {
+        console.error("Failed to load existing course:", err);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [resolvedCourseId]);
 
-  const courseId = typeof localStorage !== "undefined" ? localStorage.getItem("activeCourseId") : null;
+  const handleStepClick = (index) => {
+    if (index === 0) return;
 
-  if (!courseId) {
-    setError("Please fill out the details and click 'Save & Continue' to create your course draft first.");
-    return;
-  }
+    const courseId = resolvedCourseId;
 
-  if (index === 1) {
-    onNavigate?.("course-create-video", { courseId });
-  } else if (index === 2) {
-    onNavigate?.("course-create-preview", { courseId });
-  }
-};
+    if (!courseId) {
+      setError("Please fill out the details and click 'Save & Continue' to create your course draft first.");
+      return;
+    }
+
+    if (index === 1) {
+      onNavigate?.("course-create-video", { courseId });
+    } else if (index === 2) {
+      onNavigate?.("course-create-preview", { courseId });
+    }
+  };
 
   const handleSaveAndContinue = async () => {
+    const method = resolvedCourseId ? "PUT" : "POST";
+    const url = resolvedCourseId ? `/courses/${resolvedCourseId}` : "/courses";
+
     if (!form.title.trim()) return setError("Give your course a title before continuing.");
     setSaving(true);
     setError("");
 
     try {
-      // 1. Upload thumbnail if attached
       const thumbnailUrl = await uploadThumbnail();
-      
-      // 2. Build backend-compliant payload matching Manchly specs
+
       const payload = {
         title: form.title.trim(),
         description: form.description.trim() || "No description provided.",
@@ -108,17 +166,14 @@ const handleStepClick = (index) => {
         thankyou_message: thankyouMessage.trim() || null,
       };
 
-      // 3. Create course record on backend
-      const response = await apiFetch("/courses", {
-        method: "POST",
+      const response = await apiFetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
-      // 4. Unwrap response envelope if present
       const data = unwrap ? unwrap(response) : response;
 
-      // 5. Extract MongoDB 24-char ObjectId
       const courseId =
         data?._id ||
         data?.id ||
@@ -136,12 +191,10 @@ const handleStepClick = (index) => {
         throw new Error("Course created, but failed to retrieve the new Course ID.");
       }
 
-      // 6. Persist activeCourseId for step resilience across screens
       if (typeof localStorage !== "undefined") {
         localStorage.setItem("activeCourseId", String(courseId));
       }
 
-      // 7. Proceed to Step 2
       onNavigate?.("course-create-video", { courseId: String(courseId) });
     } catch (err) {
       console.error("Failed to save course:", err);
@@ -150,6 +203,17 @@ const handleStepClick = (index) => {
       setSaving(false);
     }
   };
+
+  if (loading) {
+    return (
+      <div style={{ display: "flex", minHeight: "100vh" }}>
+        <Sidebar active="courses" onNavigate={onNavigate} onLogout={() => console.log("logout")} />
+        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", color: colors.typography.secondaryText }}>
+          Loading...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
@@ -167,7 +231,7 @@ const handleStepClick = (index) => {
           Provide the basic details to set up your course.
         </p>
 
-        <Stepper steps={WIZARD_STEPS} activeIndex={0}onStepClick={handleStepClick}  />
+        <Stepper steps={WIZARD_STEPS} activeIndex={0} onStepClick={handleStepClick} />
 
         <div style={{ background: "#fff", borderRadius: 16, border: `1px solid ${colors.base.border}`, padding: 32 }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>

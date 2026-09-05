@@ -324,6 +324,17 @@ button {
 }
 .uh-card:hover .uh-thumb { transform: scale(1.05); }
 
+/* ============ User home ============ */
+.uh-card-fixed {
+  aspect-ratio: 3 / 4;
+  display: flex;
+  flex-direction: column;
+}
+.uh-card-fixed > *:last-child {
+  flex: 1;
+  min-height: 0;
+}
+
 .uh-see-all {
   background: transparent;
   border: none;

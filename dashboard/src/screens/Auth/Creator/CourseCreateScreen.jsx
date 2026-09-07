@@ -8,6 +8,7 @@ import Breadcrumbs from "./components/Breadcrumbs";
 import Stepper from "./components/Stepper";
 import ThumbnailDropzone from "./components/ThumbnailDropZone";
 import AccessOptionCard from "./components/AccessOptionCard";
+import { useParams } from "react-router-dom";
 
 const WIZARD_STEPS = [
   { key: "course-details", label: "Course Details", icon: FileText },
@@ -31,17 +32,20 @@ const EMPTY_FORM = {
 };
 
 export default function CourseCreateScreen({ user, onNavigate, courseId: propCourseId }) {
-  const [resolvedCourseId] = useState(() => {
-    const clean =
-      typeof propCourseId === "object"
-        ? propCourseId?.id || propCourseId?.courseId
-        : propCourseId;
-    return (
-      clean ||
-      (typeof localStorage !== "undefined" ? localStorage.getItem("activeCourseId") : "") ||
-      ""
-    );
-  });
+ const { courseId: urlCourseId } = useParams();
+
+const [resolvedCourseId] = useState(() => {
+  const clean =
+    typeof propCourseId === "object"
+      ? propCourseId?.id || propCourseId?.courseId
+      : propCourseId;
+  return (
+    urlCourseId ||
+    clean ||
+    (typeof localStorage !== "undefined" ? localStorage.getItem("activeCourseId") : "") ||
+    ""
+  );
+});
 
   const [form, setForm] = useState(EMPTY_FORM);
   const [thumbnailFile, setThumbnailFile] = useState(null);

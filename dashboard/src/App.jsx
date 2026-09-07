@@ -258,6 +258,8 @@ export default function App() {
         {/* ---------- CREATOR SHELL ---------- */}
         {/* Standalone screens that mount their own custom sidebar */}
         <Route path="/creator" element={<RequireAuth roles={["CREATOR"]}><StandaloneCreatorScreen Screen={DashboardScreen} /></RequireAuth>} />
+        <Route path="/creator/courses/new" element={<RequireAuth roles={["CREATOR"]}><StandaloneCreatorScreen Screen={CourseCreateScreen} /></RequireAuth>} />
+<Route path="/creator/courses/new/:courseId" element={<RequireAuth roles={["CREATOR"]}><StandaloneCreatorScreen Screen={CourseCreateScreen} /></RequireAuth>} />
         <Route path="/creator/courses" element={<RequireAuth roles={["CREATOR"]}><StandaloneCreatorScreen Screen={CoursesScreen} /></RequireAuth>} />
         <Route path="/creator/courses/stats" element={<RequireAuth roles={["CREATOR"]}><StandaloneCreatorScreen Screen={CourseStatsScreen} /></RequireAuth>} />
         <Route path="/creator/courses/new" element={<RequireAuth roles={["CREATOR"]}><StandaloneCreatorScreen Screen={CourseCreateScreen} /></RequireAuth>} />

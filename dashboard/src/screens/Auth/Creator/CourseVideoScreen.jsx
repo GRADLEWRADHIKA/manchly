@@ -14,6 +14,7 @@ import Sidebar from "../../../components/Sidebar";
 import TopHeader from "../../../components/TopHeader";
 import Breadcrumbs from "./components/Breadcrumbs";
 import Stepper from "./components/Stepper";
+import {useParams} from "react-router-dom"
 
 const WIZARD_STEPS = [
   { key: "course-details", label: "Course Details", icon: FileText },
@@ -26,19 +27,27 @@ export default function CourseCVideoScreen({
   onNavigate,
   courseId: propCourseId,
 }) {
-  const [resolvedCourseId] = useState(() => {
-    const clean =
-      typeof propCourseId === "object"
-        ? propCourseId?.id || propCourseId?._id || propCourseId?.courseId
-        : propCourseId;
-    return (
-      clean ||
-      (typeof localStorage !== "undefined"
-        ? localStorage.getItem("activeCourseId")
-        : "") ||
-      ""
-    );
-  });
+
+  const { courseId: urlCourseId } = useParams();
+
+const [resolvedCourseId] = useState(() => {
+  const clean =
+    typeof propCourseId === "object"
+      ? propCourseId?.id || propCourseId?._id || propCourseId?.courseId
+      : propCourseId;
+  return (
+    urlCourseId ||
+    clean ||
+    (typeof localStorage !== "undefined" ? localStorage.getItem("activeCourseId") : "") ||
+    ""
+  );
+});
+
+useEffect(() => {
+  if (resolvedCourseId && typeof localStorage !== "undefined") {
+    localStorage.setItem("activeCourseId", resolvedCourseId);
+  }
+}, [resolvedCourseId]);
 
  const [lessonTitle, setLessonTitle] = useState(
   () => localStorage.getItem(`lessonDraft_${resolvedCourseId}_title`) || ""
@@ -214,7 +223,7 @@ titleInputRef.current?.focus();
       onNavigate?.("course-create", { courseId: resolvedCourseId });
     } else if (index === 2) {
       if (videos.length === 0) {
-        setError("Please add at least one video lesson before proceeding to preview.");
+        setError("Please add at least one video before proceeding to preview.");
         return;
       }
       onNavigate?.("course-create-preview", { courseId: resolvedCourseId });
@@ -269,7 +278,7 @@ titleInputRef.current?.focus();
             color: colors.typography.primaryText,
           }}
         >
-          Add Video Lessons
+          Add Video 
         </h1>
         <p
           style={{
@@ -278,7 +287,7 @@ titleInputRef.current?.focus();
             color: colors.typography.secondaryText,
           }}
         >
-          Upload and manage video lessons for your course.
+          Upload and manage video  for your course.
         </p>
 
         <Stepper 
@@ -308,7 +317,7 @@ titleInputRef.current?.focus();
     margin: 0,
   }}
 >
-  {videos.length === 0 ? "Add Your First Lesson" : `Add Lesson ${videos.length + 1}`}
+  {videos.length === 0 ? "Add Your First videos" : `Upload  video${videos.length + 1}`}
 </h3>
 
 {justAdded && (
@@ -330,7 +339,7 @@ titleInputRef.current?.focus();
   </div>
 )}
               <div>
-                <label style={labelStyle}>Lesson Title *</label>
+                <label style={labelStyle}>Video Title *</label>
                 <input
                 ref={titleInputRef}
                   type="text"
@@ -418,21 +427,7 @@ titleInputRef.current?.focus();
                 }}
                 onClick={() => setIsFree(!isFree)}
               >
-                <input
-                  type="checkbox"
-                  checked={isFree}
-                  onChange={(e) => setIsFree(e.target.checked)}
-                  style={{ cursor: "pointer" }}
-                />
-                <span
-                  style={{
-                    fontSize: 13,
-                    fontWeight: 600,
-                    color: colors.typography.primaryText,
-                  }}
-                >
-                  Mark as Free Preview
-                </span>
+               
               </div>
 
               {error && (
@@ -462,7 +457,7 @@ titleInputRef.current?.focus();
                 }}
               >
                 <Plus size={16} />
-                {uploading ? "Uploading & Saving..." : "Add Lesson"}
+                {uploading ? "Uploading & Saving..." : "Upload videos"}
               </button>
             </div>
 
@@ -481,7 +476,7 @@ titleInputRef.current?.focus();
                   margin: "0 0 16px",
                 }}
               >
-                Course Lessons ({videos.length})
+                Course videos ({videos.length})
               </h3>
 
               {fetching ? (
@@ -491,7 +486,7 @@ titleInputRef.current?.focus();
                     color: colors.typography.secondaryText,
                   }}
                 >
-                  Loading lessons...
+                  Loading videos...
                 </div>
               ) : videos.length === 0 ? (
                 <div
@@ -504,7 +499,7 @@ titleInputRef.current?.focus();
                     fontSize: 13,
                   }}
                 >
-                  No lessons added yet. Fill out the details on the left to add
+                  No videos added yet. Fill out the details on the left to add
                   your first video.
                 </div>
               ) : (

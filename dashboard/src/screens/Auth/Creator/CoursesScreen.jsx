@@ -61,7 +61,7 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
     setError("");
 
     const [courses, stats, wallet, kyc] = await Promise.allSettled([
-      apiFetch("/courses"),
+      apiFetch("/courses?my_courses=true"),
       apiFetch("/courses/stats/creator"),
       apiFetch("/settlements/wallet"),
       apiFetch("/kyc/status"),
@@ -117,7 +117,7 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
   const publishedCount = courseList.filter(
     (c) =>
       String(c?.status || "").toLowerCase() === "published" ||
-      c?.is_published === true
+      c?.is_published === true,
   ).length;
   const draftCount = allCount - publishedCount;
 
@@ -157,11 +157,30 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
 
       setCourseList((prev) =>
         prev.map((c) =>
-          (c.id || c._id) === id ? { ...c, ...(saved || updatedCourse) } : c
-        )
+          (c.id || c._id) === id ? { ...c, ...(saved || updatedCourse) } : c,
+        ),
       );
     } catch (err) {
       console.error("Failed to save course", err);
+    }
+  };
+
+  const handleCourseDelete = async (course) => {
+    const id = course?.id || course?._id;
+    if (!id) return;
+
+    const confirmed = window.confirm(
+      `Delete "${course?.title || "this course"}"? This cannot be undone.`,
+    );
+    if (!confirmed) return;
+
+    try {
+      await apiFetch(`/courses/${id}`, { method: "DELETE" });
+      setCourseList((prev) => prev.filter((c) => (c.id || c._id) !== id));
+      toast.success("Course deleted successfully.");
+    } catch (err) {
+      console.error("Failed to delete course:", err);
+      toast.error(err?.message || "Failed to delete course.");
     }
   };
 
@@ -181,6 +200,10 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
     loadCourses();
     loadNotifications();
   }, [loadCourses, loadNotifications]);
+
+  useEffect(() => {
+    console.log("USER OBJECT:", user);
+  }, [user]);
 
   const isKycVerified = kycStatus
     ? !!(
@@ -249,7 +272,7 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
     if (searchQuery.trim()) {
       const q = searchQuery.trim().toLowerCase();
       list = list.filter((c) =>
-        (c?.title || c?.name || " ").toLowerCase().includes(q)
+        (c?.title || c?.name || " ").toLowerCase().includes(q),
       );
     }
 
@@ -269,7 +292,12 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
   const pageStart = (currentPage - 1) * pageSize;
   const visibleCourses = filteredCourses.slice(pageStart, pageStart + pageSize);
 
-  const handleNewCourse = () => onNavigate?.("course-create");
+  const handleNewCourse = () => {
+    if (typeof localStorage !== "undefined") {
+      localStorage.removeItem("activeCourseId");
+    }
+    onNavigate?.("course-create");
+  };
   const handleVerify = () => onNavigate?.("kyc-verification");
   const handleWithdraw = () => onNavigate?.("withdraw");
   const handleNotifications = () => onNavigate?.("notifications");
@@ -281,6 +309,8 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
     onNavigate?.("course-duplicate", { courseId: course?.id });
   const handleCourseMore = (course) =>
     onNavigate?.("course-manage", { courseId: course?.id });
+  const handleCourseEditVideos = (course) =>
+    onNavigate?.("course-create-video", { courseId: course?.id });
 
   if (loading) {
     return (
@@ -327,114 +357,74 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
           onNotifications={handleNotifications}
         />
 
-        <VerificationBanner
-          isKycVerified={isKycVerified}
-          onVerify={handleVerify}
-        />
-
+        {/* Verification Banner — only shown when KYC is NOT verified */}
+        {!isKycVerified && (
+          <VerificationBanner
+            isKycVerified={isKycVerified}
+            onVerify={() => onNavigate?.("kyc")}
+          />
+        )}
         {error && (
           <div style={{ color: colors.brand.errorRed || "red", padding: 16 }}>
             {error}
           </div>
         )}
 
-        {/* Hero Section */}
+        {/* Section Header Matching Webinar Style */}
         <div
           style={{
             display: "flex",
-            flexDirection: "row",
             justifyContent: "space-between",
             alignItems: "center",
-            gap: 32,
-            background: colors.brand.noticeBlue,
-            borderRadius: 24,
-            padding: 40,
-            marginBottom: 32,
-            border: `1px solid ${colors.base.border}`,
+            marginBottom: 28,
+            marginTop: 12,
           }}
         >
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 16,
-              maxWidth: 560,
-            }}
-          >
-            <span
-              style={{
-                textTransform: "uppercase",
-                fontSize: 12,
-                fontWeight: 700,
-                letterSpacing: 1,
-                color: colors.brand.primaryOrange,
-              }}
-            >
-              Course Studio
-            </span>
-
+          <div>
             <h1
               style={{
                 margin: 0,
-                fontSize: 40,
+                fontSize: 30,
                 fontWeight: 800,
-                lineHeight: 1.15,
                 color: colors.typography.primaryText,
               }}
             >
-              Create Once. Sell Forever.
-              <br />
-              <span style={{ color: colors.brand.primaryOrange }}>
-                Scale Infinitely.
-              </span>
+              Live{" "}
+              <span style={{ color: colors.brand.primaryOrange }}>Courses</span>
             </h1>
-
             <p
               style={{
-                margin: 0,
-                fontSize: 16,
-                lineHeight: 1.5,
+                margin: "4px 0 0 0",
+                fontSize: 14,
                 color: colors.typography.secondaryText,
               }}
             >
-              Manage your courses, track performance, engage students, and grow
-              your teaching business — all in one place.
+              Create online courses, structure modules, and publish content.
             </p>
-
-            <button
-              type="button"
-              onClick={handleNewCourse}
-              style={{
-                alignSelf: "flex-start",
-                marginTop: 8,
-                background: colors.brand.primaryOrange,
-                color: colors.typography.white,
-                border: "none",
-                borderRadius: 12,
-                padding: "12px 20px",
-                fontSize: 15,
-                fontWeight: 700,
-                cursor: "pointer",
-                boxShadow: "0 4px 14px rgba(255, 107, 0, 0.25)",
-                transition: "transform 0.15s ease",
-              }}
-            >
-              + New Course
-            </button>
           </div>
 
-          <img
-            src={computer}
-            alt="Course Computer Illustration"
+          <button
+            type="button"
+            onClick={handleNewCourse}
             style={{
-              width: 350,
-              maxHeight: 250,
-              objectFit: "contain",
-              flexShrink: 0,
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              background: colors.brand.primaryOrange,
+              color: colors.typography.white,
+              border: "none",
+              borderRadius: 15,
+              padding: "10px 24px",
+              fontSize: 14,
+              fontWeight: 700,
+              cursor: "pointer",
+              boxShadow: "0 4px 14px rgba(255, 107, 0, 0.3)",
+              transition: "transform 0.15s ease",
             }}
-          />
+          >
+            + Create Course
+          </button>
         </div>
-
         {/* Stats Row */}
         <div
           style={{
@@ -670,7 +660,9 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
                 <table style={{ width: "100%", borderCollapse: "collapse" }}>
                   <thead>
                     <tr
-                      style={{ borderBottom: `1px solid ${colors.base.border}` }}
+                      style={{
+                        borderBottom: `1px solid ${colors.base.border}`,
+                      }}
                     >
                       {[
                         "",
@@ -708,8 +700,9 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
                         onSave={handleCourseSave}
                         onView={handleCourseView}
                         onDuplicate={handleCourseDuplicate}
-                        onDelete={handleCourseMore}
+                        onDelete={handleCourseDelete}
                         onAddUser={handleAddUser}
+                        onEditVideos={handleCourseEditVideos}
                       />
                     ))}
                   </tbody>
@@ -775,7 +768,7 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
                       >
                         {page}
                       </button>
-                    )
+                    ),
                   )}
                   <button
                     onClick={() =>

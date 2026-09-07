@@ -93,6 +93,7 @@ export default function CourseDetails() {
   const isEnrolled = course.is_enrolled ?? enrolled;
   const totalVideos = course.total_videos ?? videos.length;
   const totalDurationLabel = fmtDuration(course.total_duration);
+  
 
   // Access summary — derived only from fields the backend actually returns.
   let accessLabel = "Lifetime access";

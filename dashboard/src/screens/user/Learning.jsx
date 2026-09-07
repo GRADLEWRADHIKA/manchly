@@ -267,6 +267,11 @@ export default function Learning() {
               action={
                 <GradientButton
                   onClick={() => navigate("/app/explore?tab=webinars")}
+                  style={{
+                    background:
+                      "linear-gradient(135deg, #86EFAC 0%, #4ADE80 100%)",
+                    color: "#065F46",
+                  }}
                 >
                   Browse Webinars
                 </GradientButton>
@@ -289,35 +294,35 @@ export default function Learning() {
                     Date.now();
                 const shown = revealed[w.id];
                 return (
-                <div
-  key={en.id || c.id}
-  onClick={() => navigate(`/app/player/${c.id}`)}
-  style={{
-    background: colors.user.card,
-    border: `1px solid ${colors.user.border}`,
-    borderRadius: 16,
-    overflow: "hidden",
-    cursor: "pointer",
-    display: "flex",
-    alignItems: "flex-start",
-    transition:
-      "transform 0.15s ease, border-color 0.15s ease",
-  }}
->
-  <div
-    style={{
-      width: 160,
-      aspectRatio: "16 / 9",
-      background:
-        c.thumbnail_url || c.thumbnail
-          ? `url(${c.thumbnail_url || c.thumbnail}) center/cover`
-          : colors.gradients.heroWarm,
-      flexShrink: 0,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-    }}
-  >
+                  <div
+                    key={en.id || c.id}
+                    onClick={() => navigate(`/app/player/${c.id}`)}
+                    style={{
+                      background: colors.user.card,
+                      border: `1px solid ${colors.user.border}`,
+                      borderRadius: 16,
+                      overflow: "hidden",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "flex-start",
+                      transition:
+                        "transform 0.15s ease, border-color 0.15s ease",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 160,
+                        aspectRatio: "16 / 9",
+                        background:
+                          c.thumbnail_url || c.thumbnail
+                            ? `url(${c.thumbnail_url || c.thumbnail}) center/cover`
+                            : colors.gradients.heroWarm,
+                        flexShrink: 0,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
                       {!(w.thumbnail_url || w.thumbnail) && (
                         <Video size={28} color="rgba(255,255,255,0.75)" />
                       )}

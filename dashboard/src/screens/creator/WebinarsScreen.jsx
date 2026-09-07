@@ -22,6 +22,7 @@ import {
   VideoIcon,
   ChevronRight,
   Eye,
+  Clock,
 } from "lucide-react";
 import { apiFetch, unwrap } from "../../utils/api";
 import colors from "../../utils/colors";
@@ -62,9 +63,6 @@ const endMs = (w) => {
   return s ? s.getTime() + (Number(w.duration) || 60) * 60000 : 0;
 };
 
-//const openPreview = (w) => setPreviewWebinar(w);
-//const addUserToWebinar = (w) => toast.info("Add user coming soon");
-//const viewAttendees = (w) => toast.info("Attendees view coming soon");
 const setDraft = async (w) => {
   try {
     await apiFetch(`/webinars/${w.id}`, {
@@ -140,8 +138,8 @@ function Countdown({ target }) {
 }
 
 export default function WebinarsScreen() {
-  const [view, setView] = useState("list"); // 'list' | 'form'
-  const [formMode, setFormMode] = useState("create"); // 'create' | 'edit'
+  const [view, setView] = useState("list");
+  const [formMode, setFormMode] = useState("create");
   const [editingId, setEditingId] = useState(null);
   const [currentStep, setCurrentStep] = useState(1);
 
@@ -168,10 +166,10 @@ export default function WebinarsScreen() {
   const [addUserSubmitting, setAddUserSubmitting] = useState(false);
 
   const [attendeesWebinar, setAttendeesWebinar] = useState(null);
-const [attendeesList, setAttendeesList] = useState([]);
-const [attendeesLoading, setAttendeesLoading] = useState(false);
+  const [attendeesList, setAttendeesList] = useState([]);
+  const [attendeesLoading, setAttendeesLoading] = useState(false);
 
-const [performanceWebinar, setPerformanceWebinar] = useState(null);
+  const [performanceWebinar, setPerformanceWebinar] = useState(null);
 
   const categories = useMemo(() => {
     const set = new Set(webinars.map((w) => w.category).filter(Boolean));
@@ -249,8 +247,6 @@ const [performanceWebinar, setPerformanceWebinar] = useState(null);
 
     return list;
   }, [webinars, search, categoryFilter, filter, sortOrder, now]);
-
-  /* ---------- Navigation & Form handlers ---------- */
 
   const openCreate = () => {
     setForm(EMPTY_FORM);
@@ -399,58 +395,55 @@ const [performanceWebinar, setPerformanceWebinar] = useState(null);
   const openPreview = (w) => setPreviewWebinar(w);
 
   const openAddUser = (w) => {
-  setAddUserWebinar(w);
-  setAddUserValue("");
-};
+    setAddUserWebinar(w);
+    setAddUserValue("");
+  };
 
-const ADD_USER_EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const ADD_USER_PHONE_RE = /^\d{10}$/;
+  const ADD_USER_EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const ADD_USER_PHONE_RE = /^\d{10}$/;
 
-const handleAddUserSubmit = async () => {
-  const trimmed = addUserValue.trim();
-  const isEmail = ADD_USER_EMAIL_RE.test(trimmed);
-  const isPhone = ADD_USER_PHONE_RE.test(trimmed);
-  if (!isEmail && !isPhone) return;
+  const handleAddUserSubmit = async () => {
+    const trimmed = addUserValue.trim();
+    const isEmail = ADD_USER_EMAIL_RE.test(trimmed);
+    const isPhone = ADD_USER_PHONE_RE.test(trimmed);
+    if (!isEmail && !isPhone) return;
 
-  setAddUserSubmitting(true);
-  try {
-    const response = await apiFetch(`/webinars/${addUserWebinar.id}/grant`, {
-      method: "POST",
-      body: JSON.stringify(isEmail ? { email: trimmed } : { phone: trimmed }),
-    });
-    const data = unwrap(response);
-    if (data?.alreadyEnrolled) {
-      toast.info("This user already has access to the webinar.");
-    } else {
-      toast.success("Access granted successfully.");
+    setAddUserSubmitting(true);
+    try {
+      const response = await apiFetch(`/webinars/${addUserWebinar.id}/grant`, {
+        method: "POST",
+        body: JSON.stringify(isEmail ? { email: trimmed } : { phone: trimmed }),
+      });
+      const data = unwrap(response);
+      if (data?.alreadyEnrolled) {
+        toast.info("This user already has access to the webinar.");
+      } else {
+        toast.success("Access granted successfully.");
+      }
+      setAddUserWebinar(null);
+      load();
+    } catch (e) {
+      toast.error(e.message);
+    } finally {
+      setAddUserSubmitting(false);
     }
-    setAddUserWebinar(null);
-    load();
-  } catch (e) {
-    toast.error(e.message);
-  } finally {
-    setAddUserSubmitting(false);
-  }
-};
+  };
 
-const viewAttendees = async (w) => {
-  setAttendeesWebinar(w);
-  setAttendeesLoading(true);
-  try {
-    const response = await apiFetch(`/webinars/${w.id}/attendees`);
-    const data = unwrap(response);
-    setAttendeesList(data?.attendees || []);
-  } catch (e) {
-    toast.error(e.message);
-    setAttendeesList([]);
-  } finally {
-    setAttendeesLoading(false);
-  }
-};
+  const viewAttendees = async (w) => {
+    setAttendeesWebinar(w);
+    setAttendeesLoading(true);
+    try {
+      const response = await apiFetch(`/webinars/${w.id}/attendees`);
+      const data = unwrap(response);
+      setAttendeesList(data?.attendees || []);
+    } catch (e) {
+      toast.error(e.message);
+      setAttendeesList([]);
+    } finally {
+      setAttendeesLoading(false);
+    }
+  };
 
-  /* =========================================================================
-     RENDER FORM / WIZARD PAGE
-     ========================================================================= */
   if (view === "form") {
     return (
       <div
@@ -461,7 +454,6 @@ const viewAttendees = async (w) => {
           color: colors.typography.primaryText,
         }}
       >
-        {/* Breadcrumb Navigation */}
         <div
           style={{
             display: "flex",
@@ -473,7 +465,7 @@ const viewAttendees = async (w) => {
           }}
         >
           <span
-            style={{ cursor: "pointer", hover: { color: "#111" } }}
+            style={{ cursor: "pointer" }}
             onClick={closeForm}
           >
             Webinars
@@ -486,7 +478,6 @@ const viewAttendees = async (w) => {
           </span>
         </div>
 
-        {/* Page Title Header */}
         <div style={{ marginBottom: 28 }}>
           <h1
             style={{
@@ -505,7 +496,6 @@ const viewAttendees = async (w) => {
           </p>
         </div>
 
-        {/* Top Stepper Indicator */}
         <div
           style={{
             display: "flex",
@@ -596,7 +586,6 @@ const viewAttendees = async (w) => {
           })}
         </div>
 
-        {/* Main Card Container */}
         <div
           style={{
             background: "#fff",
@@ -606,7 +595,6 @@ const viewAttendees = async (w) => {
             boxShadow: "0 4px 20px rgba(0,0,0,0.03)",
           }}
         >
-          {/* STEP 1: Webinar Details */}
           {currentStep === 1 && (
             <div
               style={{
@@ -616,7 +604,6 @@ const viewAttendees = async (w) => {
                 alignItems: "start",
               }}
             >
-              {/* Left Column: Form Fields */}
               <div
                 style={{ display: "flex", flexDirection: "column", gap: 20 }}
               >
@@ -805,7 +792,6 @@ const viewAttendees = async (w) => {
                 </div>
               </div>
 
-              {/* Right Column: Thumbnail Dropzone */}
               <div>
                 <label style={lbl}>WEBINAR THUMBNAIL</label>
                 <div
@@ -818,7 +804,7 @@ const viewAttendees = async (w) => {
                     display: "flex",
                     flexDirection: "column",
                     alignItems: "center",
-                    justify: "center",
+                    justifyContent: "center",
                     cursor: "pointer",
                     position: "relative",
                     overflow: "hidden",
@@ -907,7 +893,6 @@ const viewAttendees = async (w) => {
             </div>
           )}
 
-          {/* STEP 2: Schedule & Pricing */}
           {currentStep === 2 && (
             <div
               style={{
@@ -992,7 +977,6 @@ const viewAttendees = async (w) => {
                 </div>
               </div>
 
-              {/* Recording Access Selection Cards */}
               <div>
                 <label style={lbl}>RECORDING ACCESS</label>
                 <div
@@ -1125,7 +1109,6 @@ const viewAttendees = async (w) => {
             </div>
           )}
 
-          {/* STEP 3: Preview */}
           {currentStep === 3 && (
             <div
               style={{ maxWidth: 640, margin: "0 auto", textAlign: "center" }}
@@ -1174,7 +1157,6 @@ const viewAttendees = async (w) => {
             </div>
           )}
 
-          {/* Wizard Footer Controls */}
           <div
             style={{
               display: "flex",
@@ -1219,12 +1201,8 @@ const viewAttendees = async (w) => {
     );
   }
 
-  /* =========================================================================
-     RENDER MAIN WEBINAR DASHBOARD LIST
-     ========================================================================= */
   return (
     <div style={{ padding: 32, color: colors.typography.primaryText }}>
-      {/* Header */}
       <div
         style={{
           display: "flex",
@@ -1263,7 +1241,6 @@ const viewAttendees = async (w) => {
         </GoldBtn>
       </div>
 
-      {/* Stats Cards */}
       <div
         style={{ display: "flex", gap: 14, marginBottom: 24, flexWrap: "wrap" }}
       >
@@ -1296,7 +1273,6 @@ const viewAttendees = async (w) => {
         />
       </div>
 
-      {/* Next Webinar Hero */}
       {nextUp && (
         <div
           style={{
@@ -1384,20 +1360,6 @@ const viewAttendees = async (w) => {
         </div>
       )}
 
-      {/* Search & Filter bar */}
-      <div
-        style={{
-          display: "flex",
-          gap: 12,
-          alignItems: "center",
-          marginBottom: 18,
-          flexWrap: "wrap",
-        }}
-      >
-        <div className="cs-seg" style={{ flex: "0 0 auto" }}></div>
-      </div>
-
-      {/* Search & Filter bar */}
       <div
         style={{
           display: "flex",
@@ -1448,7 +1410,14 @@ const viewAttendees = async (w) => {
             background: "#fff",
             cursor: "pointer",
           }}
-        ></select>
+        >
+          <option value="all">All Categories</option>
+          {categories.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </select>
 
         <select
           value={sortOrder}
@@ -1471,7 +1440,6 @@ const viewAttendees = async (w) => {
         </select>
       </div>
 
-      {/* Tabs */}
       <div className="cs-seg" style={{ marginBottom: 18 }}>
         {[
           { key: "All", label: "All", count: allCount },
@@ -1490,7 +1458,6 @@ const viewAttendees = async (w) => {
         ))}
       </div>
 
-      {/* Table */}
       {loading ? (
         <div
           style={{
@@ -1605,71 +1572,70 @@ const viewAttendees = async (w) => {
       )}
 
       <Modal
-  open={!!addUserWebinar}
-  onClose={() => !addUserSubmitting && setAddUserWebinar(null)}
-  title="Add User"
-  width={420}
->
-  {addUserWebinar && (
-    <div>
-      <p style={{ margin: "0 0 16px", fontSize: 13, color: "#6B7280", lineHeight: 1.5 }}>
-        Grant access to <strong>{addUserWebinar.title}</strong> without a payment. The user is notified once added.
-      </p>
-      <label style={lbl}>User's phone or email</label>
-      <input
-        className="cs-input"
-        value={addUserValue}
-        onChange={(e) => setAddUserValue(e.target.value)}
-        placeholder="Phone number or email"
-        disabled={addUserSubmitting}
-        style={{ marginTop: 6 }}
-      />
-      <p style={{ margin: "6px 0 20px", fontSize: 11.5, color: "#6B7280" }}>
-        The user must already have a Manchly account with this phone or email.
-      </p>
-      <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
-        <GoldBtn ghost onClick={() => setAddUserWebinar(null)} disabled={addUserSubmitting}>
-          Cancel
-        </GoldBtn>
-        <GoldBtn onClick={handleAddUserSubmit} loading={addUserSubmitting}>
-          <Users size={15} /> Grant Access
-        </GoldBtn>
-      </div>
-    </div>
-  )}
-</Modal>
+        open={!!addUserWebinar}
+        onClose={() => !addUserSubmitting && setAddUserWebinar(null)}
+        title="Add User"
+        width={420}
+      >
+        {addUserWebinar && (
+          <div>
+            <p style={{ margin: "0 0 16px", fontSize: 13, color: "#6B7280", lineHeight: 1.5 }}>
+              Grant access to <strong>{addUserWebinar.title}</strong> without a payment. The user is notified once added.
+            </p>
+            <label style={lbl}>User's phone or email</label>
+            <input
+              className="cs-input"
+              value={addUserValue}
+              onChange={(e) => setAddUserValue(e.target.value)}
+              placeholder="Phone number or email"
+              disabled={addUserSubmitting}
+              style={{ marginTop: 6 }}
+            />
+            <p style={{ margin: "6px 0 20px", fontSize: 11.5, color: "#6B7280" }}>
+              The user must already have a Manchly account with this phone or email.
+            </p>
+            <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+              <GoldBtn ghost onClick={() => setAddUserWebinar(null)} disabled={addUserSubmitting}>
+                Cancel
+              </GoldBtn>
+              <GoldBtn onClick={handleAddUserSubmit} loading={addUserSubmitting}>
+                <Users size={15} /> Grant Access
+              </GoldBtn>
+            </div>
+          </div>
+        )}
+      </Modal>
 
-<Modal
-  open={!!performanceWebinar}
-  onClose={() => setPerformanceWebinar(null)}
-  title="Webinar Performance"
-  width={380}
->
-  {performanceWebinar && (
-    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 12px", borderRadius: 10, background: "rgba(34,197,94,0.08)" }}>
-        <span style={{ fontSize: 13, color: "#6B7280" }}>Total Revenue</span>
-        <span style={{ fontSize: 14, fontWeight: 700, color: "#16A34A" }}>
-          {performanceWebinar.revenue != null ? formatCurrency(performanceWebinar.revenue) : "--"}
-        </span>
-      </div>
-      <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 12px", borderRadius: 10, background: "rgba(59,130,246,0.08)" }}>
-        <span style={{ fontSize: 13, color: "#6B7280" }}>Attendees / Enrollments</span>
-        <span style={{ fontSize: 14, fontWeight: 700, color: "#2563EB" }}>
-          {performanceWebinar._count?.enrollments ?? 0}
-        </span>
-      </div>
-      <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 12px", borderRadius: 10, background: "rgba(239,68,68,0.08)" }}>
-        <span style={{ fontSize: 13, color: "#6B7280" }}>Refunds</span>
-        <span style={{ fontSize: 14, fontWeight: 700, color: "#DC2626" }}>
-          {performanceWebinar.refunded_count ?? 0}
-        </span>
-      </div>
-    </div>
-  )}
-</Modal>
+      <Modal
+        open={!!performanceWebinar}
+        onClose={() => setPerformanceWebinar(null)}
+        title="Webinar Performance"
+        width={380}
+      >
+        {performanceWebinar && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 12px", borderRadius: 10, background: "rgba(34,197,94,0.08)" }}>
+              <span style={{ fontSize: 13, color: "#6B7280" }}>Total Revenue</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: "#16A34A" }}>
+                {performanceWebinar.revenue != null ? formatCurrency(performanceWebinar.revenue) : "--"}
+              </span>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 12px", borderRadius: 10, background: "rgba(59,130,246,0.08)" }}>
+              <span style={{ fontSize: 13, color: "#6B7280" }}>Attendees / Enrollments</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: "#2563EB" }}>
+                {performanceWebinar._count?.enrollments ?? 0}
+              </span>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 12px", borderRadius: 10, background: "rgba(239,68,68,0.08)" }}>
+              <span style={{ fontSize: 13, color: "#6B7280" }}>Refunds</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: "#DC2626" }}>
+                {performanceWebinar.refunded_count ?? 0}
+              </span>
+            </div>
+          </div>
+        )}
+      </Modal>
 
-      {/* Delete Confirmation Modal */}
       <Modal
         open={!!toDelete}
         onClose={() => setToDelete(null)}
@@ -1695,178 +1661,187 @@ const viewAttendees = async (w) => {
           </GoldBtn>
         </div>
       </Modal>
-      {/* Preview Webinar Modal */}
+
+      {/* Modern Card Preview Webinar Modal */}
       <Modal
         open={!!previewWebinar}
         onClose={() => setPreviewWebinar(null)}
         title="Webinar Preview"
-        width={420}
+        width={340}
       >
         {previewWebinar && (
-          <div>
+          <div
+            style={{
+              width: "100%",
+              borderRadius: 16,
+              backgroundColor: "#FFFFFF",
+              border: "1px solid #E2E8F0",
+              boxShadow: "0 4px 16px rgba(0, 0, 0, 0.04)",
+              overflow: "hidden",
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
             <div
               style={{
-                height: 180,
-                borderRadius: 14,
-                background: previewWebinar.thumbnail
-                  ? `url(${previewWebinar.thumbnail}) center/cover`
-                  : G.heroGold,
-                marginBottom: 16,
+                width: "100%",
+                aspectRatio: "16 / 10",
                 position: "relative",
+                backgroundColor: "#F8FAFC",
+                backgroundImage: previewWebinar.thumbnail
+                  ? `url(${previewWebinar.thumbnail})`
+                  : "none",
+                backgroundSize: "cover",
+                backgroundPosition: "center",
               }}
             >
-              <span style={{ position: "absolute", top: 10, right: 10 }}>
-                <Badge color="#16A34A" bg="rgba(255,255,255,0.92)">
-                  {previewWebinar.status}
-                </Badge>
-              </span>
-            </div>
-
-            <h2
-              style={{
-                fontSize: 19,
-                fontWeight: 900,
-                margin: "0 0 6px",
-                color: "#111827",
-              }}
-            >
-              {previewWebinar.title}
-            </h2>
-
-            <p
-              style={{
-                color: "#6B7280",
-                fontSize: 13.5,
-                margin: "0 0 16px",
-                lineHeight: 1.5,
-              }}
-            >
-              {previewWebinar.description || "No description provided."}
-            </p>
-
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 8,
-                marginBottom: 20,
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  fontSize: 13,
-                }}
-              >
-                <span style={{ color: "#6B7280" }}>Date & Time</span>
-                <span style={{ fontWeight: 700, color: "#111827" }}>
-                  {startDate(previewWebinar)
-                    ? startDate(previewWebinar).toLocaleString("en-IN", {
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })
-                    : "TBA"}
-                </span>
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  fontSize: 13,
-                }}
-              >
-                <span style={{ color: "#6B7280" }}>Duration</span>
-                <span style={{ fontWeight: 700, color: "#111827" }}>
-                  {previewWebinar.duration || 60} mins
-                </span>
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  fontSize: 13,
-                }}
-              >
-                <span style={{ color: "#6B7280" }}>Price</span>
-                <span style={{ fontWeight: 700, color: "#111827" }}>
-                  {Number(previewWebinar.price) > 0
-                    ? formatCurrency(previewWebinar.price)
-                    : "Free"}
-                </span>
-              </div>
-              {previewWebinar.max_participants && (
-                <div
+              {previewWebinar.status && (
+                <span
                   style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    fontSize: 13,
+                    position: "absolute",
+                    top: 10,
+                    left: 10,
+                    backgroundColor: "#FFFFFF",
+                    color: "#0F172A",
+                    padding: "4px 12px",
+                    borderRadius: 99,
+                    fontSize: 12,
+                    fontWeight: 700,
+                    boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
                   }}
                 >
-                  <span style={{ color: "#6B7280" }}>Seats</span>
-                  <span style={{ fontWeight: 700, color: "#111827" }}>
-                    {previewWebinar._count?.enrollments ?? 0} /{" "}
-                    {previewWebinar.max_participants}
-                  </span>
-                </div>
+                  {previewWebinar.status}
+                </span>
               )}
             </div>
 
-            <GoldBtn
-              style={{ width: "100%", justifyContent: "center" }}
-              onClick={() => share(previewWebinar)}
-            >
-              <Share2 size={15} /> Copy Registration Link
-            </GoldBtn>
+            <div style={{ padding: 16, display: "flex", flexDirection: "column" }}>
+              <h3
+                style={{
+                  margin: 0,
+                  fontSize: 16,
+                  fontWeight: 800,
+                  color: "#0F172A",
+                  lineHeight: 1.3,
+                }}
+              >
+                {previewWebinar.title || "Untitled Webinar"}
+              </h3>
+
+              <div
+                style={{
+                  display: "inline-block",
+                  fontSize: 14,
+                  fontWeight: 700,
+                  marginTop: 8,
+                  background: "linear-gradient(135deg, #4ADE80 0%, #16A34A 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                  color: "transparent",
+                }}
+              >
+                by {previewWebinar?.creator?.name || "Creator"}
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  marginTop: 10,
+                  marginBottom: 16,
+                  fontSize: 13,
+                  color: "#64748B",
+                }}
+              >
+                {startDate(previewWebinar) && (
+                  <span style={{ fontWeight: 700, color: "#1E293B" }}>
+                    {startDate(previewWebinar).toLocaleDateString("en-IN", {
+                      day: "numeric",
+                      month: "short",
+                    })}
+                  </span>
+                )}
+
+                {previewWebinar.duration && (
+                  <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                    <Clock size={14} color="#64748B" />
+                    {previewWebinar.duration} min
+                  </span>
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => share(previewWebinar)}
+                style={{
+                  width: "100%",
+                  padding: "12px 0",
+                  borderRadius: 14,
+                  border: "none",
+                  background: "#22C55E",
+                  color: "#FFFFFF",
+                  fontSize: 17,
+                  fontWeight: 800,
+                  cursor: "pointer",
+                  boxShadow: "0 4px 12px rgba(34, 197, 94, 0.25)",
+                  transition: "background 0.15s ease",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "#16A34A")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "#22C55E")}
+              >
+                {Number(previewWebinar.price) > 0
+                  ? formatCurrency(previewWebinar.price)
+                  : "Free"}
+              </button>
+            </div>
           </div>
         )}
       </Modal>
 
       <Modal
-  open={!!attendeesWebinar}
-  onClose={() => setAttendeesWebinar(null)}
-  title="Attendees"
-  width={440}
->
-  {attendeesWebinar && (
-    <div>
-      <p style={{ margin: "0 0 16px", fontSize: 13, color: "#6B7280" }}>
-        {attendeesList.length} {attendeesList.length === 1 ? "person" : "people"} enrolled in <strong>{attendeesWebinar.title}</strong>
-      </p>
+        open={!!attendeesWebinar}
+        onClose={() => setAttendeesWebinar(null)}
+        title="Attendees"
+        width={440}
+      >
+        {attendeesWebinar && (
+          <div>
+            <p style={{ margin: "0 0 16px", fontSize: 13, color: "#6B7280" }}>
+              {attendeesList.length} {attendeesList.length === 1 ? "person" : "people"} enrolled in <strong>{attendeesWebinar.title}</strong>
+            </p>
 
-      {attendeesLoading ? (
-        <div style={{ padding: "20px 0", textAlign: "center", color: "#6B7280", fontSize: 13 }}>
-          Loading attendees...
-        </div>
-      ) : attendeesList.length === 0 ? (
-        <div style={{ padding: "20px 0", textAlign: "center", color: "#6B7280", fontSize: 13 }}>
-          No attendees yet.
-        </div>
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 10, maxHeight: 360, overflowY: "auto" }}>
-          {attendeesList.map((a) => (
-            <div key={a.enrollment_id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid #F1F3F6" }}>
-              <div>
-                <div style={{ fontSize: 13.5, fontWeight: 700, color: "#111827" }}>
-                  {a.user?.name || "Unknown"}
-                </div>
-                <div style={{ fontSize: 11.5, color: "#6B7280" }}>
-                  {a.user?.email || a.user?.phone || ""}
-                </div>
+            {attendeesLoading ? (
+              <div style={{ padding: "20px 0", textAlign: "center", color: "#6B7280", fontSize: 13 }}>
+                Loading attendees...
               </div>
-              <span style={{ fontSize: 11, color: a.attended ? "#16A34A" : "#9CA3AF", fontWeight: 700 }}>
-                {a.attended ? "Attended" : "Registered"}
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  )}
-</Modal>
+            ) : attendeesList.length === 0 ? (
+              <div style={{ padding: "20px 0", textAlign: "center", color: "#6B7280", fontSize: 13 }}>
+                No attendees yet.
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 10, maxHeight: 360, overflowY: "auto" }}>
+                {attendeesList.map((a) => (
+                  <div key={a.enrollment_id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid #F1F3F6" }}>
+                    <div>
+                      <div style={{ fontSize: 13.5, fontWeight: 700, color: "#111827" }}>
+                        {a.user?.name || "Unknown"}
+                      </div>
+                      <div style={{ fontSize: 11.5, color: "#6B7280" }}>
+                        {a.user?.email || a.user?.phone || ""}
+                      </div>
+                    </div>
+                    <span style={{ fontSize: 11, color: a.attended ? "#16A34A" : "#9CA3AF", fontWeight: 700 }}>
+                      {a.attended ? "Attended" : "Registered"}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }

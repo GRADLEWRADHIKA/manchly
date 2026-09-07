@@ -2,8 +2,6 @@ import React, { useState, useRef, useEffect } from "react";
 import {
   BookOpen,
   Users,
-  Star,
-  BarChart2,
   Eye,
   Copy,
   MoreHorizontal,
@@ -15,13 +13,91 @@ import {
   Sparkles,
   Loader2,
   UserPlus,
+  BarChart2,
+  IndianRupee,
+  RotateCcw,
+  FileText,
+  Link as LinkIcon,
+  Clock,
+  PlayCircle,
 } from "lucide-react";
+import { createPortal } from "react-dom";
 import colors from "../../../../utils/colors";
 import { formatCurrency, timeAgo } from "../../../../utils/formatters";
-import {createPortal} from "react-dom"
+import { apiFetch, unwrap } from "../../../../utils/api";
+import { toast } from "../../../../utils/toast";
 
 const ADD_USER_EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const ADD_USER_PHONE_RE = /^\d{10}$/;
+
+const PUBLIC_APP_URL = "https://manchly.com";
+
+function Modal({ color, icon, title, width = 420, onClose, children }) {
+  return createPortal(
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed",
+        inset: 0,
+        backgroundColor: "rgba(0,0,0,0.5)",
+        backdropFilter: "blur(4px)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 2100,
+        padding: 16,
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: "100%",
+          maxWidth: width,
+          maxHeight: "85vh",
+          background: "#FFFFFF",
+          border: `1.5px solid ${color}`,
+          borderRadius: 20,
+          boxShadow: "0 20px 50px rgba(0,0,0,0.25)",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+          animation: "modalPop 0.15s ease-out forward",
+        }}
+      >
+        <div
+          style={{
+            padding: "16px 20px",
+            borderBottom: `1px solid ${colors.base.border}`,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexShrink: 0,
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            {icon}
+            <span
+              style={{
+                fontSize: 16,
+                fontWeight: 700,
+                color: colors.typography.primaryText,
+              }}
+            >
+              {title}
+            </span>
+          </div>
+          <button type="button" onClick={onClose} style={smallIconButtonStyle}>
+            <X size={16} color={colors.typography.secondaryText} />
+          </button>
+        </div>
+        <div style={{ overflowY: "auto", flex: 1, padding: 20 }}>
+          {children}
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
 
 export default function CourseCard({
   course,
@@ -34,19 +110,23 @@ export default function CourseCard({
   onEnhanceTitle,
   onEnhanceDescription,
   onAddUser,
+  onEditVideos,
 }) {
-  // Local state to track course details for immediate UI updates
   const [displayCourse, setDisplayCourse] = useState(course);
   const [isHovered, setIsHovered] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false); // was missing
+
+  const [openModal, setOpenModal] = useState(null);
+
+  const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
   const [addUserValue, setAddUserValue] = useState("");
   const [addUserSubmitting, setAddUserSubmitting] = useState(false);
-  const menuButtonRef = useRef(null);
-  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
 
-  // Edit form state
+  const [enrollments, setEnrollments] = useState(null);
+  const [enrollmentsLoading, setEnrollmentsLoading] = useState(false);
+  const [enrollmentsError, setEnrollmentsError] = useState("");
+  const [showEnrollments, setShowEnrollments] = useState(false);
+  const [moreMenuPos, setMoreMenuPos] = useState(null);
+
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -56,21 +136,21 @@ export default function CourseCard({
     status: "draft",
   });
 
-  // AI Loading States
   const [isEnhancingTitle, setIsEnhancingTitle] = useState(false);
   const [isEnhancingDesc, setIsEnhancingDesc] = useState(false);
 
-  const menuRef = useRef(null);
   const fileInputRef = useRef(null);
+  const moreButtonRef = useRef(null);
+  const moreDropdownRef = useRef(null);
 
   useEffect(() => {
-    if (!isModalOpen) {
+    if (openModal !== "edit") {
       setDisplayCourse(course);
     }
-  }, [course, isModalOpen]);
+  }, [course, openModal]);
 
   useEffect(() => {
-    if (isModalOpen) {
+    if (openModal === "edit") {
       setFormData({
         title: displayCourse?.title || displayCourse?.name || "",
         description: displayCourse?.description || "",
@@ -86,31 +166,81 @@ export default function CourseCard({
           (displayCourse?.is_published ? "published" : "draft"),
       });
     }
-  }, [isModalOpen]);
+  }, [openModal]);
 
   useEffect(() => {
-  if (isMenuOpen && menuButtonRef.current) {
-    const rect = menuButtonRef.current.getBoundingClientRect();
-    setMenuPosition({
-      top: rect.bottom + 6,
-      left: rect.right - 150, 
-    });
-  }
-}, [isMenuOpen]);
-
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setIsMenuOpen(false);
+    if (openModal !== "more") return;
+    const handleClickOutside = (e) => {
+      if (
+        moreDropdownRef.current &&
+        !moreDropdownRef.current.contains(e.target) &&
+        moreButtonRef.current &&
+        !moreButtonRef.current.contains(e.target)
+      ) {
+        setOpenModal(null);
       }
-    }
-    if (isMenuOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [isMenuOpen]);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [openModal]);
+
+  const openModalFor = (name) => {
+    setOpenModal(name);
+  };
+
+  useEffect(() => {
+    if (openModal !== "more") return;
+    const close = () => setOpenModal(null);
+    window.addEventListener("scroll", close, true);
+    window.addEventListener("resize", close);
+    return () => {
+      window.removeEventListener("scroll", close, true);
+      window.removeEventListener("resize", close);
+    };
+  }, [openModal]);
+
+  const DROPDOWN_WIDTH = 230;
+  const DROPDOWN_EST_HEIGHT = 260;
+
+  const handleToggleMoreMenu = () => {
+    if (openModal === "more") {
+      setOpenModal(null);
+      return;
+    }
+    const rect = moreButtonRef.current.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const openUpward =
+      spaceBelow < DROPDOWN_EST_HEIGHT && rect.top > DROPDOWN_EST_HEIGHT;
+
+    const topPos = openUpward
+      ? Math.max(10, rect.top - DROPDOWN_EST_HEIGHT - 6)
+      : rect.bottom + 6;
+
+    setMoreMenuPos({
+      left: Math.max(10, rect.right - DROPDOWN_WIDTH),
+      top: topPos,
+    });
+    setOpenModal("more");
+  };
+
+  const loadEnrollments = async () => {
+    const id = displayCourse?.id || displayCourse?._id;
+    if (!id) return;
+    setEnrollmentsLoading(true);
+    setEnrollmentsError("");
+    try {
+      const response = await apiFetch(`/courses/${id}/enrollments`);
+      const data = unwrap(response);
+      setEnrollments(data?.enrollments || data || []);
+    } catch (err) {
+      setEnrollmentsError(
+        "Enrollment list isn't available yet — this needs a backend endpoint (GET /courses/:courseId/enrollments)."
+      );
+      setEnrollments([]);
+    } finally {
+      setEnrollmentsLoading(false);
+    }
+  };
 
   const handleImageUpload = (e) => {
     const file = e.target.files?.[0];
@@ -123,7 +253,6 @@ export default function CourseCard({
     }
   };
 
-  // Enhance Title Handler
   const handleEnhanceTitle = async () => {
     setIsEnhancingTitle(true);
     try {
@@ -131,7 +260,6 @@ export default function CourseCard({
         const enhanced = await onEnhanceTitle(formData.title);
         if (enhanced) setFormData((prev) => ({ ...prev, title: enhanced }));
       } else {
-        // Fallback simulation
         await new Promise((res) => setTimeout(res, 800));
         setFormData((prev) => ({
           ...prev,
@@ -145,7 +273,6 @@ export default function CourseCard({
     }
   };
 
-  // Enhance Description Handler
   const handleEnhanceDescription = async () => {
     setIsEnhancingDesc(true);
     try {
@@ -154,9 +281,9 @@ export default function CourseCard({
           formData.description,
           formData.title
         );
-        if (enhanced) setFormData((prev) => ({ ...prev, description: enhanced }));
+        if (enhanced)
+          setFormData((prev) => ({ ...prev, description: enhanced }));
       } else {
-        // Fallback simulation
         await new Promise((res) => setTimeout(res, 800));
         setFormData((prev) => ({
           ...prev,
@@ -181,12 +308,14 @@ export default function CourseCard({
     try {
       await onAddUser(
         displayCourse,
-        addUserIsEmail ? { email: trimmedAddUserValue } : { phone: trimmedAddUserValue }
+        addUserIsEmail
+          ? { email: trimmedAddUserValue }
+          : { phone: trimmedAddUserValue }
       );
       setAddUserValue("");
       setIsAddUserModalOpen(false);
     } catch {
-      // Error toast is handled by the parent's apiFetch call; keep modal open.
+      // Parent toast error handler
     } finally {
       setAddUserSubmitting(false);
     }
@@ -206,260 +335,987 @@ export default function CourseCard({
       status: formData.status,
       is_published: formData.status === "published",
     };
-
-    // Update local card state immediately
     setDisplayCourse(updatedCourse);
-
-    // Notify parent component
-    if (onSave) {
-      onSave(updatedCourse);
-    }
-    setIsModalOpen(false);
+    if (onSave) onSave(updatedCourse);
+    setOpenModal(null);
   };
 
-  // Derived variables from local display state
-  const title = displayCourse?.title || displayCourse?.name || "Untitled course";
+  const handleToggleDraft = () => {
+    const nextStatus = isPublished ? "draft" : "published";
+    const updatedCourse = {
+      ...displayCourse,
+      status: nextStatus,
+      is_published: nextStatus === "published",
+    };
+    setDisplayCourse(updatedCourse);
+    if (onSave) onSave(updatedCourse);
+    setOpenModal(null);
+  };
+
+  const handleCopyLink = async () => {
+    const id = displayCourse?.id || displayCourse?._id;
+    const url = `${PUBLIC_APP_URL}/courses/${id}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success("Course link copied to clipboard.");
+    } catch {
+      toast.error("Couldn't copy link. Copy manually: " + url);
+    }
+    setOpenModal(null);
+  };
+
+  const title =
+    displayCourse?.title || displayCourse?.name || "Untitled course";
   const category = displayCourse?.category || displayCourse?.tags?.[0] || null;
   const isPublished =
     String(displayCourse?.status || "").toLowerCase() === "published" ||
     displayCourse?.is_published === true;
+  const videos = displayCourse?.videos || [];
   const lessons =
     displayCourse?.lessons_count ??
     displayCourse?.total_lessons ??
-    displayCourse?.videos?.length ??
+    videos.length ??
     0;
   const students =
     displayCourse?.enrolled_count ??
     displayCourse?.students_count ??
     displayCourse?.total_students ??
     0;
-  const rating = displayCourse?.rating ?? displayCourse?.average_rating ?? null;
-  const reviewCount = displayCourse?.reviews_count ?? displayCourse?.rating_count ?? null;
-  const updated = timeAgo(displayCourse?.updated_at || displayCourse?.updatedAt);
+  const updated = timeAgo(
+    displayCourse?.updated_at || displayCourse?.updatedAt
+  );
   const thumbnail =
     displayCourse?.thumbnail_url ||
     displayCourse?.thumbnail ||
     displayCourse?.cover_image ||
     null;
+  const revenue = displayCourse?.revenue ?? course?.revenue ?? null;
+  const refunds = displayCourse?.refunds ?? null;
 
   return (
     <>
+      <tr
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        style={{
+          borderBottom: `1px solid ${colors.base.border}`,
+          background: isHovered ? "rgba(255,107,0,0.03)" : "transparent",
+        }}
+      >
+        <td
+          style={{ padding: "12px 8px" }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <input type="checkbox" style={{ cursor: "pointer" }} />
+        </td>
 
-    {/* Course Table Row */}
-    <tr
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      style={{
-        borderBottom: `1px solid ${colors.base.border}`,
-        background: isHovered ? "rgba(255,107,0,0.03)" : "transparent",
-        cursor: "pointer",
-      }}
-    >
-      {/* Checkbox */}
-      <td style={{ padding: "12px 8px" }} onClick={(e) => e.stopPropagation()}>
-        <input type="checkbox" style={{ cursor: "pointer" }} />
-      </td>
-
-      {/* Thumbnail + Title */}
-      <td style={{ padding: "12px 8px" }} onClick={() => onEdit?.(displayCourse)}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div
-            style={{
-              width: 44,
-              height: 44,
-              borderRadius: 10,
-              flexShrink: 0,
-              backgroundColor: "rgba(0,0,0,0.04)",
-              backgroundImage: thumbnail ? `url(${thumbnail})` : "none",
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            {!thumbnail && <BookOpen size={16} color={colors.typography.secondaryText} />}
-          </div>
-          <div style={{ minWidth: 0 }}>
+        <td style={{ padding: "12px 8px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <div
               style={{
-                fontSize: 13.5,
-                fontWeight: 700,
-                color: colors.typography.primaryText,
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                maxWidth: 220,
+                width: 44,
+                height: 44,
+                borderRadius: 10,
+                flexShrink: 0,
+                backgroundColor: "rgba(0,0,0,0.04)",
+                backgroundImage: thumbnail ? `url(${thumbnail})` : "none",
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
               }}
             >
-              {title}
+              {!thumbnail && (
+                <BookOpen size={16} color={colors.typography.secondaryText} />
+              )}
             </div>
-            {category && (
-              <div style={{ fontSize: 11.5, color: colors.typography.secondaryText, marginTop: 2 }}>
-                {category}
+            <div style={{ minWidth: 0 }}>
+              <div
+                style={{
+                  fontSize: 13.5,
+                  fontWeight: 700,
+                  color: colors.typography.primaryText,
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  maxWidth: 220,
+                }}
+              >
+                {title}
               </div>
-            )}
+              {category && (
+                <div
+                  style={{
+                    fontSize: 11.5,
+                    color: colors.typography.secondaryText,
+                    marginTop: 2,
+                  }}
+                >
+                  {category}
+                </div>
+              )}
+            </div>
+          </div>
+        </td>
+
+        {openModal === "more" &&
+          moreMenuPos &&
+          createPortal(
+            <div
+              ref={moreDropdownRef}
+              style={{
+                position: "fixed",
+                top: moreMenuPos.top,
+                left: moreMenuPos.left,
+                width: 230,
+                background: "#FFFFFF",
+                border: `1px solid ${colors.base.border}`,
+                borderRadius: 14,
+                boxShadow: "0 12px 32px rgba(0,0,0,0.18)",
+                zIndex: 2200,
+                padding: 6,
+                display: "flex",
+                flexDirection: "column",
+                gap: 2,
+              }}
+            >
+              <button
+                type="button"
+                onClick={handleToggleDraft}
+                style={menuItemStyle}
+              >
+                <FileText size={15} color={colors.typography.secondaryText} />
+                <span>{isPublished ? "Move to Draft" : "Draft Course"}</span>
+              </button>
+
+              {onAddUser && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOpenModal(null);
+                    setIsAddUserModalOpen(true);
+                  }}
+                  style={menuItemStyle}
+                >
+                  <UserPlus size={15} color={colors.typography.secondaryText} />
+                  <span>Add User</span>
+                </button>
+              )}
+
+              {onEditVideos && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOpenModal(null);
+                    onEditVideos?.(displayCourse);
+                  }}
+                  style={menuItemStyle}
+                >
+                  <PlayCircle size={15} color={colors.typography.secondaryText} />
+                  <span>Edit Videos</span>
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={handleCopyLink}
+                style={menuItemStyle}
+              >
+                <LinkIcon size={15} color={colors.typography.secondaryText} />
+                <span>Copy Link</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setShowEnrollments(true);
+                  loadEnrollments();
+                }}
+                style={menuItemStyle}
+              >
+                <Users size={15} color={colors.typography.secondaryText} />
+                <span>View Enrollments</span>
+              </button>
+
+              {onDuplicate && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOpenModal(null);
+                    onDuplicate?.(displayCourse);
+                  }}
+                  style={menuItemStyle}
+                >
+                  <Copy size={15} color={colors.typography.secondaryText} />
+                  <span>Duplicate</span>
+                </button>
+              )}
+
+              {onDelete && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOpenModal(null);
+                    onDelete?.(displayCourse);
+                  }}
+                  style={{ ...menuItemStyle, color: "#EF4444" }}
+                >
+                  <Trash2 size={15} color="#EF4444" />
+                  <span>Delete Course</span>
+                </button>
+              )}
+            </div>,
+            document.body
+          )}
+
+        <td style={{ padding: "12px 8px" }}>
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 5,
+              fontSize: 12,
+              fontWeight: 700,
+              color: isPublished
+                ? colors.brand?.successGreen || "#22C55E"
+                : colors.typography.secondaryText,
+            }}
+          >
+            ● {isPublished ? "Published" : "Draft"}
+          </span>
+        </td>
+
+        <td style={{ padding: "12px 8px" }}>
+          <span
+            style={{
+              fontSize: 13,
+              fontWeight: 700,
+              color: colors.typography.primaryText,
+            }}
+          >
+            {(displayCourse?.price ?? 0) === 0
+              ? "Free"
+              : formatCurrency(displayCourse.price)}
+          </span>
+        </td>
+
+        <td style={{ padding: "12px 8px" }}>
+          <span
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 4,
+              fontSize: 13,
+              color: colors.typography.primaryText,
+            }}
+          >
+            <Users size={13} color={colors.typography.secondaryText} />{" "}
+            {students}
+          </span>
+        </td>
+
+        <td style={{ padding: "12px 8px" }}>
+          <span
+            style={{
+              fontSize: 13,
+              fontWeight: 700,
+              color: colors.brand?.successGreen || "#22C55E",
+            }}
+          >
+            {revenue != null ? formatCurrency(revenue) : "--"}
+          </span>
+        </td>
+
+        <td style={{ padding: "12px 8px" }}>
+          <span
+            style={{ fontSize: 12, color: colors.typography.secondaryText }}
+          >
+            {updated || "--"}
+          </span>
+        </td>
+
+        <td
+          style={{ padding: "12px 8px", textAlign: "right" }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div
+            style={{
+              display: "flex",
+              gap: 6,
+              alignItems: "center",
+              justifyContent: "flex-end",
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => openModalFor("preview")}
+              title="User View Preview"
+              style={{
+                ...iconButtonStyle,
+                ...(openModal === "preview"
+                  ? activeIconButtonStyle("#3B82F6")
+                  : {}),
+              }}
+            >
+              <Eye
+                size={14}
+                color={
+                  openModal === "preview"
+                    ? "#3B82F6"
+                    : colors.typography.secondaryText
+                }
+              />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => openModalFor("edit")}
+              title="Edit Course Details"
+              style={{
+                ...iconButtonStyle,
+                ...(openModal === "edit"
+                  ? activeIconButtonStyle("#FF6B00")
+                  : {}),
+              }}
+            >
+              <Pencil
+                size={14}
+                color={
+                  openModal === "edit"
+                    ? "#FF6B00"
+                    : colors.typography.secondaryText
+                }
+              />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => openModalFor("performance")}
+              title="Course Performance"
+              style={{
+                ...iconButtonStyle,
+                ...(openModal === "performance"
+                  ? activeIconButtonStyle("#22C55E")
+                  : {}),
+              }}
+            >
+              <BarChart2
+                size={14}
+                color={
+                  openModal === "performance"
+                    ? "#22C55E"
+                    : colors.typography.secondaryText
+                }
+              />
+            </button>
+
+            <button
+              type="button"
+              ref={moreButtonRef}
+              onClick={handleToggleMoreMenu}
+              title="More Actions"
+              style={{
+                ...iconButtonStyle,
+                ...(openModal === "more"
+                  ? activeIconButtonStyle("#8B5CF6")
+                  : {}),
+              }}
+            >
+              <MoreHorizontal
+                size={14}
+                color={
+                  openModal === "more"
+                    ? "#8B5CF6"
+                    : colors.typography.secondaryText
+                }
+              />
+            </button>
+          </div>
+        </td>
+      </tr>
+
+      {/* ===== MODAL 1: Student View Preview ===== */}
+      {openModal === "preview" && (
+        <Modal
+          color="#3B82F6"
+          icon={<Eye size={18} color="#3B82F6" />}
+          title="User View Preview"
+          width={380}
+          onClose={() => setOpenModal(null)}
+        >
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <div
+              style={{
+                width: "100%",
+                borderRadius: 16,
+                backgroundColor: "#FFFFFF",
+                border: "1px solid #E2E8F0",
+                boxShadow: "0 4px 16px rgba(0, 0, 0, 0.04)",
+                overflow: "hidden",
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              <div
+                style={{
+                  width: "100%",
+                  aspectRatio: "16 / 10",
+                  position: "relative",
+                  backgroundColor: "#F8FAFC",
+                  backgroundImage: thumbnail ? `url(${thumbnail})` : "none",
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                }}
+              />
+
+              <div
+                style={{
+                  padding: 16,
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+              >
+                <h3
+                  style={{
+                    margin: 0,
+                    fontSize: 16,
+                    fontWeight: 800,
+                    color: "#0F172A",
+                    lineHeight: 1.3,
+                  }}
+                >
+                  {title || "Course Title"}
+                </h3>
+
+                <div
+                  style={{
+                    display: "inline-block",
+                    fontSize: 14,
+                    fontWeight: 700,
+                    marginTop: 8,
+                    background:
+                      "linear-gradient(135deg, #4ADE80 0%, #16A34A 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    backgroundClip: "text",
+                    color: "transparent",
+                  }}
+                >
+                  by {displayCourse?.creator?.name || "Creator"}
+                </div>
+
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                    marginTop: 10,
+                    marginBottom: 16,
+                    fontSize: 13,
+                    color: "#64748B",
+                  }}
+                >
+                  {displayCourse?.level && (
+                    <span style={{ fontWeight: 700, color: "#1E293B" }}>
+                      {displayCourse.level}
+                    </span>
+                  )}
+
+                  {(() => {
+                    const totalSecs =
+                      displayCourse?.total_duration ||
+                      videos.reduce(
+                        (acc, v) => acc + (Number(v.duration) || 0),
+                        0
+                      );
+                    const mins = Math.round(totalSecs / 60);
+                    return mins > 0 ? (
+                      <span
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 4,
+                        }}
+                      >
+                        <Clock size={14} color="#64748B" />
+                        {mins} min
+                      </span>
+                    ) : null;
+                  })()}
+
+                  <span
+                    style={{ display: "flex", alignItems: "center", gap: 4 }}
+                  >
+                    <BookOpen size={14} color="#64748B" />
+                    {lessons} Videos
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    onView?.(displayCourse);
+                    setOpenModal(null);
+                  }}
+                  style={{
+                    width: "100%",
+                    padding: "12px 0",
+                    borderRadius: 14,
+                    border: "none",
+                    background: "#22C55E",
+                    color: "#FFFFFF",
+                    fontSize: 17,
+                    fontWeight: 800,
+                    cursor: "pointer",
+                    boxShadow: "0 4px 12px rgba(34, 197, 94, 0.25)",
+                    transition: "background 0.15s ease",
+                  }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.background = "#16A34A")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.background = "#22C55E")
+                  }
+                >
+                  {(displayCourse?.price ?? 0) === 0
+                    ? "Free"
+                    : formatCurrency(displayCourse.price)}
+                </button>
+              </div>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* ===== MODAL 2: Edit Course Details ===== */}
+      {openModal === "edit" && (
+        <Modal
+          color="#FF6B00"
+          icon={<Pencil size={18} color="#FF6B00" />}
+          title="Edit Course Details"
+          width={440}
+          onClose={() => setOpenModal(null)}
+        >
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <label style={modalLabelStyle}>Course Title</label>
+                <button
+                  type="button"
+                  onClick={handleEnhanceTitle}
+                  disabled={isEnhancingTitle}
+                  style={enhanceButtonStyle}
+                >
+                  {isEnhancingTitle ? (
+                    <Loader2 size={12} className="animate-spin" />
+                  ) : (
+                    <Sparkles size={12} />
+                  )}
+                  <span>{isEnhancingTitle ? "Enhancing..." : "Enhance"}</span>
+                </button>
+              </div>
+              <input
+                type="text"
+                value={formData.title}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, title: e.target.value }))
+                }
+                placeholder="Enter course name"
+                style={modalInputStyle}
+              />
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <label style={modalLabelStyle}>Description</label>
+                <button
+                  type="button"
+                  onClick={handleEnhanceDescription}
+                  disabled={isEnhancingDesc}
+                  style={enhanceButtonStyle}
+                >
+                  {isEnhancingDesc ? (
+                    <Loader2 size={12} className="animate-spin" />
+                  ) : (
+                    <Sparkles size={12} />
+                  )}
+                  <span>{isEnhancingDesc ? "Enhancing..." : "Enhance"}</span>
+                </button>
+              </div>
+              <textarea
+                value={formData.description}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    description: e.target.value,
+                  }))
+                }
+                rows={3}
+                placeholder="Brief summary of the course..."
+                style={{ ...modalInputStyle, resize: "vertical" }}
+              />
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <label style={modalLabelStyle}>Thumbnail Image</label>
+              <input
+                type="file"
+                ref={fileInputRef}
+                accept="image/*"
+                onChange={handleImageUpload}
+                style={{ display: "none" }}
+              />
+              <div style={{ display: "flex", alignItems: "center", gap: 13 }}>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  style={uploadPillStyle}
+                >
+                  <UploadCloud size={14} color="#C05200" />
+                  <span style={{ fontSize: 13 }}>Upload</span>
+                </button>
+                {formData.thumbnail ? (
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: 10 }}
+                  >
+                    <img
+                      src={formData.thumbnail}
+                      alt="Thumbnail Preview"
+                      style={{
+                        width: 44,
+                        height: 44,
+                        borderRadius: 10,
+                        objectFit: "cover",
+                        border: `1px solid ${colors.base.border}`,
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setFormData((prev) => ({ ...prev, thumbnail: "" }))
+                      }
+                      style={{
+                        background: "none",
+                        border: "none",
+                        fontSize: 12,
+                        color: "#EF4444",
+                        cursor: "pointer",
+                        fontWeight: 600,
+                      }}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ) : (
+                  <span
+                    style={{
+                      fontSize: 12,
+                      color: colors.typography.secondaryText,
+                    }}
+                  >
+                    No image selected
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <label style={modalLabelStyle}>Pricing Type</label>
+              <div
+                style={{
+                  display: "flex",
+                  gap: 10,
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() =>
+                    setFormData((prev) => ({ ...prev, isFree: true, price: 0 }))
+                  }
+                  style={{
+                    ...toggleButtonStyle,
+                    background: formData.isFree
+                      ? colors.brand?.primaryOrange || "#FF6B00"
+                      : "rgba(0,0,0,0.05)",
+                    color: formData.isFree
+                      ? "#FFF"
+                      : colors.typography.primaryText,
+                  }}
+                >
+                  Free Course
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setFormData((prev) => ({ ...prev, isFree: false }))
+                  }
+                  style={{
+                    ...toggleButtonStyle,
+                    background: !formData.isFree
+                      ? colors.brand?.primaryOrange || "#FF6B00"
+                      : "rgba(0,0,0,0.05)",
+                    color: !formData.isFree
+                      ? "#FFF"
+                      : colors.typography.primaryText,
+                  }}
+                >
+                  Paid Course
+                </button>
+                {!formData.isFree && (
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: 6 }}
+                  >
+                    <span
+                      style={{
+                        fontSize: 13,
+                        fontWeight: 600,
+                        color: colors.typography.secondaryText,
+                      }}
+                    >
+                      Price:
+                    </span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={formData.price}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          price: e.target.value,
+                        }))
+                      }
+                      style={{ ...modalInputStyle, width: 80 }}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <label style={modalLabelStyle}>Publishing Status</label>
+              <select
+                value={formData.status}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, status: e.target.value }))
+                }
+                style={modalInputStyle}
+              >
+                <option value="draft">Draft</option>
+                <option value="published">Published</option>
+              </select>
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: 10,
+                paddingTop: 8,
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setOpenModal(null)}
+                style={{
+                  ...modalActionButtonStyle,
+                  background: "transparent",
+                  color: colors.typography.secondaryText,
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSave}
+                style={{
+                  ...modalActionButtonStyle,
+                  background: colors.brand?.primaryOrange || "#FF6B00",
+                  color: "#FFF",
+                }}
+              >
+                <Check size={15} /> Save Changes
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* ===== MODAL 3: Course Performance ===== */}
+      {openModal === "performance" && (
+        <Modal
+          color="#22C55E"
+          icon={<BarChart2 size={18} color="#22C55E" />}
+          title="Course Performance"
+          width={360}
+          onClose={() => setOpenModal(null)}
+        >
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <PerformanceStat
+              icon={<IndianRupee size={16} color="#22C55E" />}
+              bg="rgba(34,197,94,0.08)"
+              label="Total Revenue"
+              value={revenue != null ? formatCurrency(revenue) : "--"}
+            />
+            <PerformanceStat
+              icon={<Users size={16} color="#3B82F6" />}
+              bg="rgba(59,130,246,0.08)"
+              label="Enrollments"
+              value={students}
+            />
+            <PerformanceStat
+              icon={<RotateCcw size={16} color="#EF4444" />}
+              bg="rgba(239,68,68,0.08)"
+              label="Refunds"
+              value={refunds != null ? refunds : "--"}
+              note={
+                refunds == null
+                  ? "Needs backend: refunds-per-course aggregation"
+                  : null
+              }
+            />
+          </div>
+        </Modal>
+      )}
+
+      {/* View Enrollments modal */}
+      {showEnrollments && (
+        <div
+          onClick={() => setShowEnrollments(false)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            backdropFilter: "blur(4px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 2100,
+            padding: 16,
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: "100%",
+              maxWidth: 420,
+              maxHeight: "70vh",
+              background: colors.base.cardBackground,
+              borderRadius: 16,
+              border: `1px solid ${colors.base.border}`,
+              boxShadow: "0 20px 40px rgba(0,0,0,0.2)",
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+            }}
+          >
+            <div
+              style={{
+                padding: "14px 18px",
+                borderBottom: `1px solid ${colors.base.border}`,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <span
+                style={{
+                  fontSize: 15,
+                  fontWeight: 700,
+                  color: colors.typography.primaryText,
+                }}
+              >
+                Enrollments — {title}
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowEnrollments(false)}
+                style={smallIconButtonStyle}
+              >
+                <X size={14} color={colors.typography.secondaryText} />
+              </button>
+            </div>
+            <div style={{ padding: 16, overflowY: "auto" }}>
+              {enrollmentsLoading && (
+                <div
+                  style={{
+                    fontSize: 13,
+                    color: colors.typography.secondaryText,
+                  }}
+                >
+                  Loading...
+                </div>
+              )}
+              {!enrollmentsLoading && enrollmentsError && (
+                <div
+                  style={{ fontSize: 13, color: "#EF4444", lineHeight: 1.5 }}
+                >
+                  {enrollmentsError}
+                </div>
+              )}
+              {!enrollmentsLoading &&
+                !enrollmentsError &&
+                enrollments?.length === 0 && (
+                  <div
+                    style={{
+                      fontSize: 13,
+                      color: colors.typography.secondaryText,
+                    }}
+                  >
+                    No students enrolled yet.
+                  </div>
+                )}
+              {!enrollmentsLoading &&
+                !enrollmentsError &&
+                enrollments?.map((e) => (
+                  <div
+                    key={e.id}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      padding: "8px 0",
+                      borderBottom: `1px solid ${colors.base.border}`,
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: 13,
+                        color: colors.typography.primaryText,
+                      }}
+                    >
+                      {e.user?.name || e.user?.email || "Unknown"}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: 12,
+                        color: colors.typography.secondaryText,
+                      }}
+                    >
+                      {e.progress != null ? `${Math.round(e.progress)}%` : ""}
+                    </span>
+                  </div>
+                ))}
+            </div>
           </div>
         </div>
-      </td>
-
-      {/* Status */}
-      <td style={{ padding: "12px 8px" }} onClick={() => onEdit?.(displayCourse)}>
-        <span
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 5,
-            fontSize: 12,
-            fontWeight: 700,
-            color: isPublished ? colors.brand?.successGreen || "#22C55E" : colors.typography.secondaryText,
-          }}
-        >
-          ● {isPublished ? "Published" : "Draft"}
-        </span>
-      </td>
-
-      {/* Price */}
-      <td style={{ padding: "12px 8px" }} onClick={() => onEdit?.(displayCourse)}>
-        <span style={{ fontSize: 13, fontWeight: 700, color: colors.typography.primaryText }}>
-          {(displayCourse?.price ?? 0) === 0 ? "Free" : formatCurrency(displayCourse.price)}
-        </span>
-      </td>
-
-      {/* Students */}
-      <td style={{ padding: "12px 8px" }} onClick={() => onEdit?.(displayCourse)}>
-        <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 13, color: colors.typography.primaryText }}>
-          <Users size={13} color={colors.typography.secondaryText} /> {students}
-        </span>
-      </td>
-
-      {/* Revenue */}
-      <td style={{ padding: "12px 8px" }} onClick={() => onEdit?.(displayCourse)}>
-        <span style={{ fontSize: 13, fontWeight: 700, color: colors.brand?.successGreen || "#22C55E" }}>
-          {course?.revenue != null ? formatCurrency(course.revenue) : "--"}
-        </span>
-      </td>
-
-      {/* Updated */}
-      <td style={{ padding: "12px 8px" }} onClick={() => onEdit?.(displayCourse)}>
-        <span style={{ fontSize: 12, color: colors.typography.secondaryText }}>
-          {updated || "--"}
-        </span>
-      </td>
-
-      {/* Actions */}
-      <td style={{ padding: "12px 8px", textAlign: "right" }} onClick={(e) => e.stopPropagation()}>
-        <div style={{ display: "flex", gap: 6, alignItems: "center", justifyContent: "flex-end" }}>
-          <button
-            type="button"
-            onClick={() => onAnalytics?.(displayCourse) || onEdit?.(displayCourse)}
-            title="Analytics"
-            style={iconButtonStyle}
-          >
-            <BarChart2 size={14} color={colors.typography.secondaryText} />
-          </button>
-          <button
-            type="button"
-            onClick={() => onView?.(displayCourse)}
-            title="Preview"
-            style={iconButtonStyle}
-          >
-            <Eye size={14} color={colors.typography.secondaryText} />
-          </button>
-
-         <div style={{ position: "relative" }}>
-  <button
-    ref={menuButtonRef}
-    type="button"
-    onClick={() => setIsMenuOpen((prev) => !prev)}
-    title="More Options"
-    style={{
-      ...iconButtonStyle,
-      background: isMenuOpen ? "rgba(0,0,0,0.06)" : colors.base.cardBackground,
-    }}
-  >
-    <MoreHorizontal size={14} color={colors.typography.secondaryText} />
-  </button>
-
-  {isMenuOpen && createPortal(
-    <div
-      ref={menuRef}
-      style={{
-        position: "fixed",
-        top: menuPosition.top,
-        left: menuPosition.left,
-        width: 150,
-        background: "#FFFFFF",
-        border: `1px solid ${colors.base.border}`,
-        borderRadius: 12,
-        boxShadow: "0 8px 20px rgba(0,0,0,0.12)",
-        zIndex: 2000,
-        padding: "4px",
-        display: "flex",
-        flexDirection: "column",
-        gap: 2,
-      }}
-    >
-      <button
-        type="button"
-        onClick={() => {
-          setIsMenuOpen(false);
-          setIsModalOpen(true);
-        }}
-        style={menuItemStyle}
-      >
-        <Pencil size={13} color={colors.typography.secondaryText} />
-        <span>Edit Course</span>
-      </button>
-
-      <button
-        type="button"
-        onClick={() => {
-          setIsMenuOpen(false);
-          onDuplicate?.(displayCourse);
-        }}
-        style={menuItemStyle}
-      >
-        <Copy size={13} color={colors.typography.secondaryText} />
-        <span>Duplicate</span>
-      </button>
-
-      {onAddUser && (
-        <button
-          type="button"
-          onClick={() => {
-            setIsMenuOpen(false);
-            setIsAddUserModalOpen(true);
-          }}
-          style={menuItemStyle}
-        >
-          <UserPlus size={13} color={colors.typography.secondaryText} />
-          <span>Add User</span>
-        </button>
       )}
 
-      {onDelete && (
-        <button
-          type="button"
-          onClick={() => {
-            setIsMenuOpen(false);
-            onDelete?.(displayCourse);
-          }}
-          style={{ ...menuItemStyle, color: "#EF4444" }}
-        >
-          <Trash2 size={13} color="#EF4444" />
-          <span>Delete</span>
-        </button>
-      )}
-    </div>,
-    document.body
-  )}
-</div>
-        </div>
-      </td>
-    </tr>
-
-      {/* ADD USER MODAL */}
+      {/* Add User modal */}
       {isAddUserModalOpen && (
         <div
           onClick={(e) => {
@@ -477,7 +1333,7 @@ export default function CourseCard({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            zIndex: 1000,
+            zIndex: 2100,
             padding: 16,
           }}
         >
@@ -505,7 +1361,10 @@ export default function CourseCard({
               }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <UserPlus size={18} color={colors.brand?.primaryOrange || "#FF6B00"} />
+                <UserPlus
+                  size={18}
+                  color={colors.brand?.primaryOrange || "#FF6B00"}
+                />
                 <span
                   style={{
                     fontSize: 16,
@@ -546,10 +1405,9 @@ export default function CourseCard({
                   lineHeight: 1.5,
                 }}
               >
-                Grant access to <strong>{title}</strong> without a payment. The user is
-                notified once added.
+                Grant access to <strong>{title}</strong> without a payment. The
+                user is notified once added.
               </p>
-
               <div>
                 <label style={modalLabelStyle}>User's phone or email</label>
                 <input
@@ -567,7 +1425,8 @@ export default function CourseCard({
                     color: colors.typography.secondaryText,
                   }}
                 >
-                  The user must already have a Manchly account with this phone or email.
+                  The user must already have a Manchly account with this phone
+                  or email.
                 </p>
               </div>
             </div>
@@ -606,7 +1465,10 @@ export default function CourseCard({
                   background: colors.brand?.primaryOrange || "#FF6B00",
                   color: "#FFF",
                   opacity: !addUserIsValid || addUserSubmitting ? 0.6 : 1,
-                  cursor: !addUserIsValid || addUserSubmitting ? "not-allowed" : "pointer",
+                  cursor:
+                    !addUserIsValid || addUserSubmitting
+                      ? "not-allowed"
+                      : "pointer",
                 }}
               >
                 {addUserSubmitting ? (
@@ -620,319 +1482,77 @@ export default function CourseCard({
           </div>
         </div>
       )}
-
-      {/* EDIT COURSE POPUP MODAL */}
-      {isModalOpen && (
-        <div
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsModalOpen(false);
-          }}
-          style={{
-            position: "fixed",
-            inset: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
-            backdropFilter: "blur(4px)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1000,
-            padding: 16,
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              width: "100%",
-              maxWidth: 520,
-              background: colors.base.cardBackground,
-              borderRadius: 18,
-              border: `1px solid ${colors.base.border}`,
-              boxShadow: "0 20px 40px rgba(0,0,0,0.2)",
-              display: "flex",
-              flexDirection: "column",
-              overflow: "hidden",
-            }}
-          >
-            {/* Modal Header */}
-            <div
-              style={{
-                padding: "16px 20px",
-                borderBottom: `1px solid ${colors.base.border}`,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <Pencil size={18} color={colors.brand?.primaryOrange || "#FF6B00"} />
-                <span
-                  style={{
-                    fontSize: 16,
-                    fontWeight: 700,
-                    color: colors.typography.primaryText,
-                  }}
-                >
-                  Edit Course Details
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsModalOpen(false)}
-                style={iconButtonStyle}
-              >
-                <X size={16} color={colors.typography.secondaryText} />
-              </button>
-            </div>
-
-            {/* Modal Body */}
-            <div
-              style={{
-                padding: 20,
-                display: "flex",
-                flexDirection: "column",
-                gap: 16,
-                maxHeight: "75vh",
-                overflowY: "auto",
-              }}
-            >
-              {/* Title Input with Enhance Button */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
-                  <label style={modalLabelStyle}>Course Title</label>
-                  <button
-                    type="button"
-                    onClick={handleEnhanceTitle}
-                    disabled={isEnhancingTitle}
-                    style={enhanceButtonStyle}
-                  >
-                    {isEnhancingTitle ? (
-                      <Loader2 size={12} className="animate-spin" color={colors.navItems.communities} />
-                    ) : (
-                      <Sparkles size={12} color={colors.navItems.communities} />
-                    )}
-                    <span>{isEnhancingTitle ? "Enhancing..." : "Enhance"}</span>
-                  </button>
-                </div>
-                <input
-                  type="text"
-                  value={formData.title}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
-                  placeholder="Enter course name"
-                  style={modalInputStyle}
-                />
-              </div>
-
-              {/* Description Input with Enhance Button */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
-                  <label style={modalLabelStyle}>Description</label>
-                  <button
-                    type="button"
-                    onClick={handleEnhanceDescription}
-                    disabled={isEnhancingDesc}
-                    style={enhanceButtonStyle}
-                  >
-                    {isEnhancingDesc ? (
-                      <Loader2 size={12} className="animate-spin" color={colors.navItems.communities} />
-                    ) : (
-                      <Sparkles size={12} color={colors.navItems.communities} />
-                    )}
-                    <span>{isEnhancingDesc ? "Enhancing..." : "Enhance"}</span>
-                  </button>
-                </div>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, description: e.target.value }))
-                  }
-                  rows={3}
-                  placeholder="Brief summary of the course..."
-                  style={{ ...modalInputStyle, resize: "vertical" }}
-                />
-              </div>
-
-              {/* Thumbnail Image Upload Section */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <label style={modalLabelStyle}>Thumbnail Image</label>
-
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  style={{ display: "none" }}
-                />
-
-                <div style={{ display: "flex", alignItems: "center", gap: 13 }}>
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    style={uploadPillStyle}
-                  >
-                    <UploadCloud size={15} color="#C05200" strokeWidth={2.3} />
-                    <span>Upload</span>
-                  </button>
-
-                  {formData.thumbnail ? (
-                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      <img
-                        src={formData.thumbnail}
-                        alt="Thumbnail Preview"
-                        style={{
-                          width: 48,
-                          height: 48,
-                          borderRadius: 10,
-                          objectFit: "cover",
-                          border: `1px solid ${colors.base.border}`,
-                        }}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setFormData((prev) => ({ ...prev, thumbnail: "" }))}
-                        style={{
-                          background: "none",
-                          border: "none",
-                          fontSize: 12,
-                          color: "#EF4444",
-                          cursor: "pointer",
-                          fontWeight: 600,
-                        }}
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  ) : (
-                    <span style={{ fontSize: 12, color: colors.typography.secondaryText }}>
-                      No image selected
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Price Options */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                <label style={modalLabelStyle}>Pricing Type</label>
-                <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-                  <button
-                    type="button"
-                    onClick={() => setFormData((prev) => ({ ...prev, isFree: true, price: 0 }))}
-                    style={{
-                      ...toggleButtonStyle,
-                      background: formData.isFree
-                        ? colors.brand?.primaryOrange || "#FF6B00"
-                        : "rgba(0,0,0,0.05)",
-                      color: formData.isFree ? "#FFF" : colors.typography.primaryText,
-                    }}
-                  >
-                    Free Course
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setFormData((prev) => ({ ...prev, isFree: false }))}
-                    style={{
-                      ...toggleButtonStyle,
-                      background: !formData.isFree
-                        ? colors.brand?.primaryOrange || "#FF6B00"
-                        : "rgba(0,0,0,0.05)",
-                      color: !formData.isFree ? "#FFF" : colors.typography.primaryText,
-                    }}
-                  >
-                    Paid Course
-                  </button>
-
-                  {!formData.isFree && (
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginLeft: "auto" }}>
-                      <span
-                        style={{
-                          fontSize: 13,
-                          fontWeight: 600,
-                          color: colors.typography.secondaryText,
-                        }}
-                      >
-                        Price :
-                      </span>
-                      <input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={formData.price}
-                        onChange={(e) => setFormData((prev) => ({ ...prev, price: e.target.value }))}
-                        style={{ ...modalInputStyle, width: 90 }}
-                      />
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Status Select */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                <label style={modalLabelStyle}>Publishing Status</label>
-                <select
-                  value={formData.status}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, status: e.target.value }))}
-                  style={modalInputStyle}
-                >
-                  <option value="draft">Draft</option>
-                  <option value="published">Published</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Modal Footer Actions */}
-            <div
-              style={{
-                padding: "14px 20px",
-                borderTop: `1px solid ${colors.base.border}`,
-                display: "flex",
-                justifyContent: "flex-end",
-                gap: 10,
-                background: "rgba(0,0,0,0.02)",
-              }}
-            >
-              <button
-                type="button"
-                onClick={() => setIsModalOpen(false)}
-                style={{
-                  ...modalActionButtonStyle,
-                  background: "transparent",
-                  color: colors.typography.secondaryText,
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleSave}
-                style={{
-                  ...modalActionButtonStyle,
-                  background: colors.brand?.primaryOrange || "#FF6B00",
-                  color: "#FFF",
-                }}
-              >
-                <Check size={15} /> Save Changes
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 }
 
-// Styling definitions
+function PerformanceStat({ icon, bg, label, value, note }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        padding: "12px 14px",
+        borderRadius: 12,
+        background: bg,
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <div
+          style={{
+            width: 32,
+            height: 32,
+            borderRadius: 8,
+            background: "#FFF",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          {icon}
+        </div>
+        <div>
+          <div
+            style={{
+              fontSize: 12,
+              color: colors.typography.secondaryText,
+              fontWeight: 600,
+            }}
+          >
+            {label}
+          </div>
+          {note && (
+            <div
+              style={{
+                fontSize: 9.5,
+                color: colors.typography.secondaryText,
+                marginTop: 1,
+              }}
+            >
+              {note}
+            </div>
+          )}
+        </div>
+      </div>
+      <span
+        style={{
+          fontSize: 15,
+          fontWeight: 800,
+          color: colors.typography.primaryText,
+        }}
+      >
+        {value}
+      </span>
+    </div>
+  );
+}
+
+// ----- styles -----
+function activeIconButtonStyle(color) {
+  return { borderColor: color, background: `${color}12` };
+}
+
 const enhanceButtonStyle = {
   display: "inline-flex",
   alignItems: "center",
@@ -941,30 +1561,25 @@ const enhanceButtonStyle = {
   borderRadius: 20,
   border: "1px solid #FFE0C2",
   backgroundColor: "#FFF8F2",
-  color: colors.navItems.communities,
+  color: "#C05200",
   fontSize: 11,
   fontWeight: 700,
   cursor: "pointer",
-  transition: "all 0.15s ease",
   outline: "none",
 };
 
 const uploadPillStyle = {
   display: "inline-flex",
   alignItems: "center",
-  gap: 10,
-  padding: "9px 28px",
+  gap: 8,
+  padding: "7px 16px",
   borderRadius: 9999,
   border: "1.5px solid #E2C8A4",
   backgroundColor: "#FFFFFF",
   color: "#C05200",
-  fontSize: 18,
-  fontWeight: 800,
-  fontFamily: "sans-serif",
+  fontWeight: 700,
   cursor: "pointer",
-  transition: "all 0.15s ease",
   outline: "none",
-  boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
 };
 
 const iconButtonStyle = {
@@ -979,38 +1594,32 @@ const iconButtonStyle = {
   cursor: "pointer",
 };
 
+const smallIconButtonStyle = {
+  width: 26,
+  height: 26,
+  borderRadius: 7,
+  border: "none",
+  background: "rgba(0,0,0,0.04)",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  cursor: "pointer",
+};
+
 const menuItemStyle = {
   display: "flex",
   alignItems: "center",
-  gap: 8,
+  gap: 10,
   width: "100%",
-  padding: "8px 10px",
-  borderRadius: 8,
+  padding: "10px 12px",
+  borderRadius: 10,
   border: "none",
   background: "transparent",
-  fontSize: 12.5,
+  fontSize: 13,
   fontWeight: 600,
   color: colors.typography.primaryText,
   cursor: "pointer",
   textAlign: "left",
-};
-
-const badgeStyle = {
-  fontSize: 10,
-  fontWeight: 700,
-  textTransform: "uppercase",
-  letterSpacing: 0.4,
-  background: "rgba(255,255,255,0.92)",
-  borderRadius: 6,
-  padding: "2px 8px",
-};
-
-const statStyle = {
-  fontSize: 12,
-  color: colors.typography.secondaryText,
-  display: "flex",
-  alignItems: "center",
-  gap: 4,
 };
 
 const modalLabelStyle = {
@@ -1038,7 +1647,6 @@ const toggleButtonStyle = {
   fontSize: 12,
   fontWeight: 600,
   cursor: "pointer",
-  transition: "all 0.15s ease",
 };
 
 const modalActionButtonStyle = {

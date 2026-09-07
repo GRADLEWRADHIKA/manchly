@@ -20,7 +20,15 @@ function HubCard({
   description,
   actionLabel,
   actionColor,
+  phoneNumber,
 }) {
+  const handleClick = () => {
+    const message = encodeURIComponent(
+      `Hi, I'm interested in "${title}" on Manchly Creator Hub.`
+    );
+    window.open(`https://wa.me/${phoneNumber}?text=${message}`, "_blank");
+  };
+
   return (
     <div
       style={{
@@ -72,6 +80,7 @@ function HubCard({
 
       <button
         type="button"
+        onClick={handleClick}
         style={{
           alignSelf: "flex-start",
           display: "inline-flex",
@@ -94,6 +103,8 @@ function HubCard({
 }
 
 export default function CreatorHubScreen({ user, onNavigate }) {
+  const PHONE_NUMBER = "916363790659";
+
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
       <Sidebar
@@ -230,6 +241,7 @@ export default function CreatorHubScreen({ user, onNavigate }) {
             description="Send premium content on WhatsApp. Users must complete an action to unlock the message."
             actionLabel="Set Up Locked Message"
             actionColor="#DC2626"
+            phoneNumber={PHONE_NUMBER}
           />
 
           <HubCard
@@ -240,6 +252,7 @@ export default function CreatorHubScreen({ user, onNavigate }) {
             description="Automate your Telegram messages, broadcasts and audience engagement with smart triggers."
             actionLabel="Connect Telegram"
             actionColor="#2563EB"
+            phoneNumber={PHONE_NUMBER}
           />
 
           <HubCard
@@ -250,6 +263,7 @@ export default function CreatorHubScreen({ user, onNavigate }) {
             description="Integrate our Website SDK to track users, capture leads and enable seamless purchases on your website."
             actionLabel="Get SDK Code"
             actionColor="#16A34A"
+            phoneNumber={PHONE_NUMBER}
           />
 
           <HubCard
@@ -260,6 +274,7 @@ export default function CreatorHubScreen({ user, onNavigate }) {
             description="Join our influencer program, get your unique referral link and start earning commissions by promoting our courses and products."
             actionLabel="Apply Now"
             actionColor="#EA580C"
+            phoneNumber={PHONE_NUMBER}
           />
 
           <HubCard
@@ -270,6 +285,7 @@ export default function CreatorHubScreen({ user, onNavigate }) {
             description="Create a single link for all your important links — courses, webinars, 1:1 sessions, social profiles and more."
             actionLabel="Create Bio Link"
             actionColor="#7C3AED"
+            phoneNumber={PHONE_NUMBER}
           />
         </div>
       </div>

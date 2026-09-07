@@ -321,7 +321,6 @@ export default function ExploreCourses() {
                         <BookOpen size={34} color="rgba(255,255,255,0.55)" />
                       </div>
                     )}
-            
                   </div>
                   <div style={{ padding: 14 }}>
                     <div
@@ -342,11 +341,18 @@ export default function ExploreCourses() {
                           navigate(`/app/creator/${c.creator.id}`);
                       }}
                       style={{
+                        display: "inline-block",
                         fontSize: 12.5,
-                        color: colors.user.subHeading,
+                        fontWeight: 700,
                         marginTop: 6,
                         cursor: c.creator?.id ? "pointer" : "default",
                         width: "fit-content",
+                        background:
+                          "linear-gradient(135deg, #4ADE80 0%, #16A34A 100%)",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                        backgroundClip: "text",
+                        color: "transparent",
                       }}
                       onMouseEnter={(e) => {
                         if (c.creator?.id)
@@ -358,56 +364,56 @@ export default function ExploreCourses() {
                     >
                       by {c.creator?.name || "Creator"}
                     </div>
-                  <div
-  style={{
-    display: "flex",
-    alignItems: "center",
-    gap: 12,
-    marginTop: 8,
-    color: colors.user.subHeading,
-    fontSize: 12.5,
-  }}
->
-  {c.level && (
-    <span
-      style={{
-        display: "flex",
-        alignItems: "center",
-        fontWeight: 700,
-        color: colors.user.text,
-      }}
-    >
-      {c.level}
-    </span>
-  )}
-  {duration > 0 && (
-    <span
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 4,
-      }}
-    >
-      <Clock size={12} /> {duration} min
-    </span>
-  )}
-  <span
-    style={{
-      display: "flex",
-      alignItems: "center",
-      gap: 4,
-    }}
-  >
-    <BookOpen size={12} /> {lessons} Videos
-  </span>
-</div>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 12,
+                        marginTop: 8,
+                        color: colors.user.subHeading,
+                        fontSize: 12.5,
+                      }}
+                    >
+                      {c.level && (
+                        <span
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            fontWeight: 700,
+                            color: colors.user.text,
+                          }}
+                        >
+                          {c.level}
+                        </span>
+                      )}
+                      {duration > 0 && (
+                        <span
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 4,
+                          }}
+                        >
+                          <Clock size={12} /> {duration} min
+                        </span>
+                      )}
+                      <span
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 4,
+                        }}
+                      >
+                        <BookOpen size={12} /> {lessons} Videos
+                      </span>
+                    </div>
                     <GradientButton
                       size="sm"
                       gradient={colors.gradients.greenButtonDark}
                       full
                       style={{ marginTop: 10 }}
                     >
-                     {Number(c.price) > 0 ? formatCurrency(c.price) : "Free"}
+                      {Number(c.price) > 0 ? formatCurrency(c.price) : "Free"}
                     </GradientButton>
                   </div>
                 </div>

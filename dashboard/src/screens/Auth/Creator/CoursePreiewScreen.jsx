@@ -293,7 +293,7 @@ export default function CoursePreviewScreen({ user, onNavigate }) {
                 {course?.level || "Beginner"}{" "}
                 <span style={{ opacity: 0.6 }}>Level</span>
               </span>
-              <span>{videos.length} Lessons</span>
+              <span>{videos.length} videos</span>
               {formatDuration(totalDurationSeconds) && (
                 <span>{formatDuration(totalDurationSeconds)} Total Duration</span>
               )}
@@ -324,7 +324,7 @@ export default function CoursePreviewScreen({ user, onNavigate }) {
                     color: colors.typography.secondaryText,
                   }}
                 >
-                  No lessons added yet.
+                  No Videos added yet.
                 </div>
               ) : (
                 videos.map((v, i) => (

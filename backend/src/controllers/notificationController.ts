@@ -6,10 +6,7 @@ import { firebaseService } from "../services/FirebaseService";
 import { getIO } from "../utils/socketHandler";
 
 export class NotificationController {
-  /**
-   * Get notifications for creator
-   * GET /notifications/creator
-   */
+  
   static async getCreatorNotifications(req: any, res: Response) {
     try {
       const userId = req.user.userId;

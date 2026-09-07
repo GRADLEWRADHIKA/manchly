@@ -30,6 +30,13 @@ router.post("/", jwtAuth, CourseController.createCourse);
 router.get("/", jwtAuth, CourseController.getAllCourses);
 
 /**
+ * @route   GET /courses/:courseId/enrollments
+ * @desc    Get enrollments for a specific course (Creator only - own course)
+ * @access  Protected (Creator)
+ */
+router.get("/:courseId/enrollments", jwtAuth, CourseController.getCourseEnrollments);
+
+/**
  * @route   GET /courses/:courseId
  * @desc    Get single course by ID
  * @access  Protected

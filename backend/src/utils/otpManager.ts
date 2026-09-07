@@ -197,7 +197,7 @@ class OTPManager {
         this.rateLimiter = new RateLimiterRedis({
           storeClient: this.redisClient,
           keyPrefix: 'otp_rate_limit',
-          points: 5, // Number of OTP requests
+          points: 20, // Number of OTP requests
           duration: 300, // Per 5 minutes
         });
       } catch (error) {

@@ -160,6 +160,7 @@ export default function WebinarsScreen() {
 
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [sortOrder, setSortOrder] = useState("newest");
+  const [dateFilter, setDateFilter] = useState("all");
 
   const [addUserWebinar, setAddUserWebinar] = useState(null);
   const [addUserValue, setAddUserValue] = useState("");
@@ -205,10 +206,10 @@ export default function WebinarsScreen() {
 
   const allCount = webinars.length;
   const upcomingCount = webinars.filter(
-    (w) => w.status !== "DRAFT" && !isPast(w),
+    (w) => w.status !== "DRAFT" && !isPast(w)
   ).length;
   const completedCount = webinars.filter(
-    (w) => isPast(w) && w.status !== "DRAFT",
+    (w) => isPast(w) && w.status !== "DRAFT"
   ).length;
   const draftCount = webinars.filter((w) => w.status === "DRAFT").length;
 
@@ -217,7 +218,7 @@ export default function WebinarsScreen() {
       webinars
         .filter((w) => w.status !== "DRAFT" && !isPast(w) && startDate(w))
         .sort((a, b) => startDate(a) - startDate(b))[0] || null,
-    [webinars, now],
+    [webinars, now]
   );
 
   const filtered = useMemo(() => {
@@ -237,6 +238,17 @@ export default function WebinarsScreen() {
       return true;
     });
 
+    if (dateFilter !== "all") {
+      const days = Number(dateFilter);
+      const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+      list = list.filter((w) => {
+        const created = new Date(
+          w?.created_at || w?.updated_at || 0
+        ).getTime();
+        return created >= cutoff;
+      });
+    }
+
     list.sort((a, b) => {
       const aDate = startDate(a)?.getTime() || 0;
       const bDate = startDate(b)?.getTime() || 0;
@@ -246,7 +258,7 @@ export default function WebinarsScreen() {
     });
 
     return list;
-  }, [webinars, search, categoryFilter, filter, sortOrder, now]);
+  }, [webinars, search, categoryFilter, dateFilter, filter, sortOrder, now]);
 
   const openCreate = () => {
     setForm(EMPTY_FORM);
@@ -301,7 +313,7 @@ export default function WebinarsScreen() {
       const fd = new FormData();
       fd.append("file", file);
       const res = unwrap(
-        await apiFetch("/upload", { method: "POST", body: fd }),
+        await apiFetch("/upload", { method: "POST", body: fd })
       );
       if (!res?.url) throw new Error("Upload failed");
       setForm((f) => ({ ...f, thumbnail: res.url }));
@@ -378,14 +390,14 @@ export default function WebinarsScreen() {
 
   const share = async (w) => {
     await navigator.clipboard.writeText(
-      `https://manchly.onelink.me/Ne3P?deep_link_value=webinar/${w.id}&af_dp=manchly://webinar/${w.id}`,
+      `https://manchly.onelink.me/Ne3P?deep_link_value=webinar/${w.id}&af_dp=manchly://webinar/${w.id}`
     );
     toast.success("Webinar link copied");
   };
 
   const copyZoom = (w) => {
     navigator.clipboard.writeText(
-      `Meeting ID: ${w.zoom_meeting_id}\nPassword: ${w.zoom_password}`,
+      `Meeting ID: ${w.zoom_meeting_id}\nPassword: ${w.zoom_password}`
     );
     toast.success("Zoom credentials copied");
   };
@@ -464,10 +476,7 @@ export default function WebinarsScreen() {
             marginBottom: 8,
           }}
         >
-          <span
-            style={{ cursor: "pointer" }}
-            onClick={closeForm}
-          >
+          <span style={{ cursor: "pointer" }} onClick={closeForm}>
             Webinars
           </span>
           <ChevronRight size={14} />
@@ -1241,37 +1250,33 @@ export default function WebinarsScreen() {
         </GoldBtn>
       </div>
 
-      <div
-        style={{ display: "flex", gap: 14, marginBottom: 24, flexWrap: "wrap" }}
-      >
-        <StatCard
-          icon={MonitorPlay}
-          label="Total Webinars"
-          value={stats?.total_webinars ?? webinars.length}
-          tint="#D69C3F"
-        />
-        <StatCard
-          icon={CalendarDays}
-          label="Upcoming"
-          value={
-            stats?.upcoming_webinars ??
-            webinars.filter((w) => !isPast(w) && w.status !== "DRAFT").length
-          }
-          tint="#F97316"
-        />
-        <StatCard
-          icon={Users}
-          label="Seats Sold"
-          value={stats?.webinars_sold ?? stats?.total_enrollments ?? 0}
-          tint="#22C55E"
-        />
-        <StatCard
-          icon={IndianRupee}
-          label="Webinar Revenue"
-          value={formatCurrency(stats?.revenue ?? 0)}
-          tint="#F5A623"
-        />
-      </div>
+     {/* Stats Row */}
+<div
+  style={{ display: "flex", gap: 14, marginBottom: 24, flexWrap: "wrap" }}
+>
+  <StatCard
+    icon={Video}
+    label="Total Webinars"
+    value={stats?.total_webinars ?? webinars.length}
+    tint="#EF4444"
+    subtext={`${allCount - draftCount} published · ${draftCount} draft`}
+  />
+  <StatCard
+    icon={Users}
+    label="Total Users"
+    value={stats?.webinars_sold ?? stats?.total_enrollments ?? 0}
+    tint="#3B82F6"
+    subtext="--vs last month"
+  />
+  <StatCard
+    icon={IndianRupee}
+    label="Total Revenue"
+    value={formatCurrency(stats?.revenue ?? 0)}
+    tint={colors.brand.primaryOrange}
+    subtext="--vs last month"
+    highlight
+  />
+</div>
 
       {nextUp && (
         <div
@@ -1417,6 +1422,27 @@ export default function WebinarsScreen() {
               {c}
             </option>
           ))}
+        </select>
+
+        <select
+          value={dateFilter}
+          onChange={(e) => setDateFilter(e.target.value)}
+          style={{
+            border: `1.5px solid ${colors.base.border}`,
+            borderRadius: 12,
+            padding: "9px 14px",
+            fontSize: 13,
+            fontWeight: 600,
+            color: colors.typography.primaryText,
+            background: "#fff",
+            cursor: "pointer",
+          }}
+        >
+          <option value="all">All Time</option>
+          <option value="7">Last 7 days</option>
+          <option value="30">Last 30 days</option>
+          <option value="90">Last 90 days</option>
+          <option value="365">Last 1 year</option>
         </select>
 
         <select
@@ -1579,8 +1605,16 @@ export default function WebinarsScreen() {
       >
         {addUserWebinar && (
           <div>
-            <p style={{ margin: "0 0 16px", fontSize: 13, color: "#6B7280", lineHeight: 1.5 }}>
-              Grant access to <strong>{addUserWebinar.title}</strong> without a payment. The user is notified once added.
+            <p
+              style={{
+                margin: "0 0 16px",
+                fontSize: 13,
+                color: "#6B7280",
+                lineHeight: 1.5,
+              }}
+            >
+              Grant access to <strong>{addUserWebinar.title}</strong> without a
+              payment. The user is notified once added.
             </p>
             <label style={lbl}>User's phone or email</label>
             <input
@@ -1591,14 +1625,30 @@ export default function WebinarsScreen() {
               disabled={addUserSubmitting}
               style={{ marginTop: 6 }}
             />
-            <p style={{ margin: "6px 0 20px", fontSize: 11.5, color: "#6B7280" }}>
-              The user must already have a Manchly account with this phone or email.
+            <p
+              style={{
+                margin: "6px 0 20px",
+                fontSize: 11.5,
+                color: "#6B7280",
+              }}
+            >
+              The user must already have a Manchly account with this phone or
+              email.
             </p>
-            <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
-              <GoldBtn ghost onClick={() => setAddUserWebinar(null)} disabled={addUserSubmitting}>
+            <div
+              style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}
+            >
+              <GoldBtn
+                ghost
+                onClick={() => setAddUserWebinar(null)}
+                disabled={addUserSubmitting}
+              >
                 Cancel
               </GoldBtn>
-              <GoldBtn onClick={handleAddUserSubmit} loading={addUserSubmitting}>
+              <GoldBtn
+                onClick={handleAddUserSubmit}
+                loading={addUserSubmitting}
+              >
                 <Users size={15} /> Grant Access
               </GoldBtn>
             </div>
@@ -1614,21 +1664,57 @@ export default function WebinarsScreen() {
       >
         {performanceWebinar && (
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 12px", borderRadius: 10, background: "rgba(34,197,94,0.08)" }}>
-              <span style={{ fontSize: 13, color: "#6B7280" }}>Total Revenue</span>
-              <span style={{ fontSize: 14, fontWeight: 700, color: "#16A34A" }}>
-                {performanceWebinar.revenue != null ? formatCurrency(performanceWebinar.revenue) : "--"}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                padding: "10px 12px",
+                borderRadius: 10,
+                background: "rgba(34,197,94,0.08)",
+              }}
+            >
+              <span style={{ fontSize: 13, color: "#6B7280" }}>
+                Total Revenue
+              </span>
+              <span
+                style={{ fontSize: 14, fontWeight: 700, color: "#16A34A" }}
+              >
+                {performanceWebinar.revenue != null
+                  ? formatCurrency(performanceWebinar.revenue)
+                  : "--"}
               </span>
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 12px", borderRadius: 10, background: "rgba(59,130,246,0.08)" }}>
-              <span style={{ fontSize: 13, color: "#6B7280" }}>Attendees / Users</span>
-              <span style={{ fontSize: 14, fontWeight: 700, color: "#2563EB" }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                padding: "10px 12px",
+                borderRadius: 10,
+                background: "rgba(59,130,246,0.08)",
+              }}
+            >
+              <span style={{ fontSize: 13, color: "#6B7280" }}>
+                Attendees / Users
+              </span>
+              <span
+                style={{ fontSize: 14, fontWeight: 700, color: "#2563EB" }}
+              >
                 {performanceWebinar._count?.enrollments ?? 0}
               </span>
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 12px", borderRadius: 10, background: "rgba(239,68,68,0.08)" }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                padding: "10px 12px",
+                borderRadius: 10,
+                background: "rgba(239,68,68,0.08)",
+              }}
+            >
               <span style={{ fontSize: 13, color: "#6B7280" }}>Refunds</span>
-              <span style={{ fontSize: 14, fontWeight: 700, color: "#DC2626" }}>
+              <span
+                style={{ fontSize: 14, fontWeight: 700, color: "#DC2626" }}
+              >
                 {performanceWebinar.refunded_count ?? 0}
               </span>
             </div>
@@ -1662,7 +1748,6 @@ export default function WebinarsScreen() {
         </div>
       </Modal>
 
-      {/* Modern Card Preview Webinar Modal */}
       <Modal
         open={!!previewWebinar}
         onClose={() => setPreviewWebinar(null)}
@@ -1715,7 +1800,9 @@ export default function WebinarsScreen() {
               )}
             </div>
 
-            <div style={{ padding: 16, display: "flex", flexDirection: "column" }}>
+            <div
+              style={{ padding: 16, display: "flex", flexDirection: "column" }}
+            >
               <h3
                 style={{
                   margin: 0,
@@ -1734,7 +1821,8 @@ export default function WebinarsScreen() {
                   fontSize: 14,
                   fontWeight: 700,
                   marginTop: 8,
-                  background: "linear-gradient(135deg, #4ADE80 0%, #16A34A 100%)",
+                  background:
+                    "linear-gradient(135deg, #4ADE80 0%, #16A34A 100%)",
                   WebkitBackgroundClip: "text",
                   WebkitTextFillColor: "transparent",
                   backgroundClip: "text",
@@ -1765,7 +1853,9 @@ export default function WebinarsScreen() {
                 )}
 
                 {previewWebinar.duration && (
-                  <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                  <span
+                    style={{ display: "flex", alignItems: "center", gap: 4 }}
+                  >
                     <Clock size={14} color="#64748B" />
                     {previewWebinar.duration} min
                   </span>
@@ -1788,8 +1878,12 @@ export default function WebinarsScreen() {
                   boxShadow: "0 4px 12px rgba(34, 197, 94, 0.25)",
                   transition: "background 0.15s ease",
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "#16A34A")}
-                onMouseLeave={(e) => (e.currentTarget.style.background = "#22C55E")}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.background = "#16A34A")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.background = "#22C55E")
+                }
               >
                 {Number(previewWebinar.price) > 0
                   ? formatCurrency(previewWebinar.price)
@@ -1809,30 +1903,75 @@ export default function WebinarsScreen() {
         {attendeesWebinar && (
           <div>
             <p style={{ margin: "0 0 16px", fontSize: 13, color: "#6B7280" }}>
-              {attendeesList.length} {attendeesList.length === 1 ? "person" : "people"} enrolled in <strong>{attendeesWebinar.title}</strong>
+              {attendeesList.length}{" "}
+              {attendeesList.length === 1 ? "person" : "people"} enrolled in{" "}
+              <strong>{attendeesWebinar.title}</strong>
             </p>
 
             {attendeesLoading ? (
-              <div style={{ padding: "20px 0", textAlign: "center", color: "#6B7280", fontSize: 13 }}>
+              <div
+                style={{
+                  padding: "20px 0",
+                  textAlign: "center",
+                  color: "#6B7280",
+                  fontSize: 13,
+                }}
+              >
                 Loading attendees...
               </div>
             ) : attendeesList.length === 0 ? (
-              <div style={{ padding: "20px 0", textAlign: "center", color: "#6B7280", fontSize: 13 }}>
+              <div
+                style={{
+                  padding: "20px 0",
+                  textAlign: "center",
+                  color: "#6B7280",
+                  fontSize: 13,
+                }}
+              >
                 No attendees yet.
               </div>
             ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 10, maxHeight: 360, overflowY: "auto" }}>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 10,
+                  maxHeight: 360,
+                  overflowY: "auto",
+                }}
+              >
                 {attendeesList.map((a) => (
-                  <div key={a.enrollment_id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid #F1F3F6" }}>
+                  <div
+                    key={a.enrollment_id}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      padding: "8px 0",
+                      borderBottom: "1px solid #F1F3F6",
+                    }}
+                  >
                     <div>
-                      <div style={{ fontSize: 13.5, fontWeight: 700, color: "#111827" }}>
+                      <div
+                        style={{
+                          fontSize: 13.5,
+                          fontWeight: 700,
+                          color: "#111827",
+                        }}
+                      >
                         {a.user?.name || "Unknown"}
                       </div>
                       <div style={{ fontSize: 11.5, color: "#6B7280" }}>
                         {a.user?.email || a.user?.phone || ""}
                       </div>
                     </div>
-                    <span style={{ fontSize: 11, color: a.attended ? "#16A34A" : "#9CA3AF", fontWeight: 700 }}>
+                    <span
+                      style={{
+                        fontSize: 11,
+                        color: a.attended ? "#16A34A" : "#9CA3AF",
+                        fontWeight: 700,
+                      }}
+                    >
                       {a.attended ? "Attended" : "Registered"}
                     </span>
                   </div>

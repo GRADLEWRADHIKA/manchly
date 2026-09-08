@@ -37,16 +37,61 @@ export function GoldBtn({ children, onClick, loading, disabled, ghost, danger, s
   );
 }
 
-export function StatCard({ icon: Icon, label, value, tint }) {
+export function StatCard({ icon: Icon, label, value, tint, subtext, highlight = false }) {
   return (
-    <div style={{ flex: 1, minWidth: 170, background: "#fff", border: `1px solid ${colors.base.border}`, borderRadius: 16, padding: "16px 18px", display: "flex", alignItems: "center", gap: 14 }}>
-      <span style={{ width: 42, height: 42, borderRadius: 12, background: `${tint}18`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-        <Icon size={20} color={tint} />
-      </span>
-      <span>
-        <div style={{ fontSize: 21, fontWeight: 900, color: colors.typography.primaryText }}>{value}</div>
-        <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 0.6, textTransform: "uppercase", color: colors.typography.secondaryText }}>{label}</div>
-      </span>
+    <div
+      style={{
+        flex: 1,
+        minWidth: 170,
+        background: highlight ? "#FFF7EC" : "#fff",
+        border: `1px solid ${highlight ? "#FFD9A6" : colors.base.border}`,
+        borderRadius: 20,
+        padding: 22,
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
+        <span
+          style={{
+            width: 44,
+            height: 44,
+            borderRadius: 12,
+            background: `${tint}1F`,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+          }}
+        >
+          <Icon size={20} color={tint} />
+        </span>
+        <span
+          style={{
+            fontSize: 12,
+            fontWeight: 700,
+            color: colors.typography.secondaryText,
+            textTransform: "uppercase",
+            letterSpacing: 0.5,
+          }}
+        >
+          {label}
+        </span>
+      </div>
+
+      <div
+        style={{
+          fontSize: 26,
+          fontWeight: 800,
+          color: highlight ? colors.brand.primaryOrange : colors.typography.primaryText,
+        }}
+      >
+        {value}
+      </div>
+
+      {subtext && (
+        <div style={{ fontSize: 12.5, color: colors.typography.secondaryText, marginTop: 6 }}>
+          {subtext}
+        </div>
+      )}
     </div>
   );
 }

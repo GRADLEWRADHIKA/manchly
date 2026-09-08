@@ -19,11 +19,14 @@ import {
   X,
   Video,
   AlertTriangle,
+  //Sparkles,
+  Rocket,
 } from "lucide-react";
 import Sidebar from "../../../components/Sidebar";
 import colors from "../../../utils/colors";
 import { apiFetch, unwrap } from "../../../utils/api";
 import { toast } from "../../../utils/toast";
+import { AiEnhance } from "../../../components/creatorUi";
 
 const STATUS_OPTIONS = ["DRAFT", "PUBLISHED"];
 const LEVEL_OPTIONS = ["Beginner", "Intermediate", "Advanced"];
@@ -33,11 +36,19 @@ const THANKYOU_MAX = 300;
 const DURATION_UNIT_OPTIONS = ["days", "weeks", "months", "years"];
 
 const VIDEO_STATUS_STYLES = {
-  READY:       { label: "Published", bg: "rgba(34,197,94,0.1)",  color: "#16A34A" },
-  PROCESSING:  { label: "Processing", bg: "rgba(59,130,246,0.1)", color: "#2563EB" },
-  UPLOADING:   { label: "Uploading",  bg: "rgba(255,107,0,0.1)",  color: "#C05200" },
-  QUEUED:      { label: "Queued",     bg: "rgba(0,0,0,0.05)",     color: "#64748B" },
-  ERROR:       { label: "Error",      bg: "rgba(239,68,68,0.1)",  color: "#EF4444" },
+  READY: { label: "Published", bg: "rgba(34,197,94,0.1)", color: "#16A34A" },
+  PROCESSING: {
+    label: "Processing",
+    bg: "rgba(59,130,246,0.1)",
+    color: "#2563EB",
+  },
+  UPLOADING: {
+    label: "Uploading",
+    bg: "rgba(255,107,0,0.1)",
+    color: "#C05200",
+  },
+  QUEUED: { label: "Queued", bg: "rgba(0,0,0,0.05)", color: "#64748B" },
+  ERROR: { label: "Error", bg: "rgba(239,68,68,0.1)", color: "#EF4444" },
 };
 
 function fmtDuration(seconds) {
@@ -111,8 +122,7 @@ export default function EditCourseScreen({ user, onNavigate, onLogout }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [courseId]);
 
-  const set = (key) => (e) =>
-    setForm((f) => ({ ...f, [key]: e.target.value }));
+  const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
 
   const handleImagePick = (e) => {
     const file = e.target.files?.[0];
@@ -159,7 +169,10 @@ export default function EditCourseScreen({ user, onNavigate, onLogout }) {
         xhr.send(file);
       });
 
-      setVideos((prev) => [...prev, { ...video, status: video?.status || "PROCESSING" }]);
+      setVideos((prev) => [
+        ...prev,
+        { ...video, status: video?.status || "PROCESSING" },
+      ]);
       toast.success("Video uploaded — processing started.");
     } catch (err) {
       toast.error(err?.message || "Video upload failed.");
@@ -172,9 +185,15 @@ export default function EditCourseScreen({ user, onNavigate, onLogout }) {
     try {
       await apiFetch(`/courses/videos/${updated.id}`, {
         method: "PUT",
-        body: JSON.stringify({ title: updated.title, is_free: updated.is_free }),
+        body: JSON.stringify({
+          title: updated.title,
+          description: updated.description,
+          is_free: updated.is_free,
+        }),
       });
-      setVideos((prev) => prev.map((v) => (v.id === updated.id ? { ...v, ...updated } : v)));
+      setVideos((prev) =>
+        prev.map((v) => (v.id === updated.id ? { ...v, ...updated } : v)),
+      );
       toast.success("Video updated.");
       setEditVideo(null);
     } catch (err) {
@@ -198,7 +217,6 @@ export default function EditCourseScreen({ user, onNavigate, onLogout }) {
   };
 
   const handleBack = () => onNavigate?.("courses");
-
 
   const handleSave = async () => {
     if (!form.title.trim()) {
@@ -227,7 +245,9 @@ export default function EditCourseScreen({ user, onNavigate, onLogout }) {
           thumbnail: form.thumbnail,
           thumbnail_url: form.thumbnail,
           access_duration_days:
-            form.accessType === "limited" ? Number(form.accessDurationDays) : null,
+            form.accessType === "limited"
+              ? Number(form.accessDurationDays)
+              : null,
           access_duration_unit:
             form.accessType === "limited" ? form.accessDurationUnit : null,
           whatsapp_community_url: form.whatsappUrl.trim() || null,
@@ -247,7 +267,9 @@ export default function EditCourseScreen({ user, onNavigate, onLogout }) {
   if (loading) {
     return (
       <ScreenShell user={user} onNavigate={onNavigate} onLogout={onLogout}>
-        <p style={{ color: colors.typography.secondaryText }}>Loading course…</p>
+        <p style={{ color: colors.typography.secondaryText }}>
+          Loading course…
+        </p>
       </ScreenShell>
     );
   }
@@ -309,7 +331,11 @@ export default function EditCourseScreen({ user, onNavigate, onLogout }) {
               cursor: saving ? "not-allowed" : "pointer",
             }}
           >
-            {saving ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}
+            {saving ? (
+              <Loader2 size={15} className="animate-spin" />
+            ) : (
+              <Save size={15} />
+            )}
             {saving ? "Saving…" : "Save Changes"}
           </button>
         </div>
@@ -327,28 +353,70 @@ export default function EditCourseScreen({ user, onNavigate, onLogout }) {
       >
         {/* Course Details */}
         <div style={cardStyle}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18 }}>
-            <Pencil size={16} color={colors.brand?.primaryOrange || "#FF6B00"} />
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              marginBottom: 18,
+            }}
+          >
+            <Pencil
+              size={16}
+              color={colors.brand?.primaryOrange || "#FF6B00"}
+            />
             <span style={sectionTitleStyle}>Course Details</span>
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             <div>
-              <label style={labelStyle}>
-                Course Title <span style={{ color: "#EF4444" }}>*</span>
-              </label>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: 6,
+                }}
+              >
+                <label style={labelStyle}>
+                  Course Title <span style={{ color: "#EF4444" }}>*</span>
+                </label>
+                <AiEnhance
+                  endpoint="/ai/course/enhance"
+                  text={form.title}
+                  kind="title"
+                  tone="warm"
+                  onUse={(t) => setForm((f) => ({ ...f, title: t }))}
+                />
+              </div>
               <input
                 type="text"
                 value={form.title}
                 onChange={set("title")}
-                style={{ ...inputStyle, marginTop: 6 }}
+                style={inputStyle}
               />
             </div>
 
             <div>
-              <label style={labelStyle}>
-                Course Description <span style={{ color: "#EF4444" }}>*</span>
-              </label>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: 6,
+                }}
+              >
+                <label style={labelStyle}>
+                  Course Description <span style={{ color: "#EF4444" }}>*</span>
+                </label>
+                <AiEnhance
+                  endpoint="/ai/course/enhance"
+                  text={form.description}
+                  kind="description"
+                  tone="warm"
+                  onUse={(t) => setForm((f) => ({ ...f, description: t }))}
+                />
+              </div>
               <textarea
                 value={form.description}
                 onChange={(e) => {
@@ -357,7 +425,7 @@ export default function EditCourseScreen({ user, onNavigate, onLogout }) {
                   }
                 }}
                 rows={4}
-                style={{ ...inputStyle, marginTop: 6, resize: "vertical" }}
+                style={{ ...inputStyle, resize: "vertical" }}
               />
               <div
                 style={{
@@ -435,7 +503,9 @@ export default function EditCourseScreen({ user, onNavigate, onLogout }) {
               borderRadius: 14,
               overflow: "hidden",
               background: "#F1F5F9",
-              backgroundImage: form.thumbnail ? `url(${form.thumbnail})` : "none",
+              backgroundImage: form.thumbnail
+                ? `url(${form.thumbnail})`
+                : "none",
               backgroundSize: "cover",
               backgroundPosition: "center",
               border: `1px solid ${colors.base.border}`,
@@ -507,7 +577,14 @@ export default function EditCourseScreen({ user, onNavigate, onLogout }) {
       >
         {/* Course Validity */}
         <div style={cardStyle}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              marginBottom: 16,
+            }}
+          >
             <Clock size={16} color={colors.brand?.primaryOrange || "#FF6B00"} />
             <span style={sectionTitleStyle}>Course Validity</span>
           </div>
@@ -567,8 +644,18 @@ export default function EditCourseScreen({ user, onNavigate, onLogout }) {
 
         {/* Community & Thank-you */}
         <div style={cardStyle}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
-            <MessageCircle size={16} color={colors.brand?.primaryOrange || "#FF6B00"} />
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              marginBottom: 16,
+            }}
+          >
+            <MessageCircle
+              size={16}
+              color={colors.brand?.primaryOrange || "#FF6B00"}
+            />
             <span style={sectionTitleStyle}>Community & Thank-you</span>
           </div>
 
@@ -614,22 +701,60 @@ export default function EditCourseScreen({ user, onNavigate, onLogout }) {
 
       {/* Course Performance */}
       <div style={{ ...cardStyle, marginTop: 20 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
-          <Activity size={16} color={colors.brand?.primaryOrange || "#FF6B00"} />
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            marginBottom: 16,
+          }}
+        >
+          <Activity
+            size={16}
+            color={colors.brand?.primaryOrange || "#FF6B00"}
+          />
           <span style={sectionTitleStyle}>Course Performance</span>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 }}>
-          <PerfStat icon={<IndianRupee size={16} color="#16A34A" />} bg="rgba(34,197,94,0.08)" label="Revenue" value="--" />
-          <PerfStat icon={<Users size={16} color="#2563EB" />} bg="rgba(59,130,246,0.08)" label="Users" value={course?.total_students ?? 0} />
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: 14,
+          }}
+        >
+          <PerfStat
+            icon={<IndianRupee size={16} color="#16A34A" />}
+            bg="rgba(34,197,94,0.08)"
+            label="Revenue"
+            value="--"
+          />
+          <PerfStat
+            icon={<Users size={16} color="#2563EB" />}
+            bg="rgba(59,130,246,0.08)"
+            label="Users"
+            value={course?.total_students ?? 0}
+          />
         </div>
       </div>
 
       {/* Course Videos */}
       <div style={{ ...cardStyle, marginTop: 20 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 16,
+          }}
+        >
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <PlayCircle size={16} color={colors.brand?.primaryOrange || "#FF6B00"} />
-            <span style={sectionTitleStyle}>Course Videos ({videos.length})</span>
+            <PlayCircle
+              size={16}
+              color={colors.brand?.primaryOrange || "#FF6B00"}
+            />
+            <span style={sectionTitleStyle}>
+              Course Videos ({videos.length})
+            </span>
           </div>
           <button
             type="button"
@@ -637,14 +762,30 @@ export default function EditCourseScreen({ user, onNavigate, onLogout }) {
             disabled={uploadingVideo}
             style={{ ...primaryButtonStyle, opacity: uploadingVideo ? 0.7 : 1 }}
           >
-            {uploadingVideo ? <Loader2 size={14} className="animate-spin" /> : <UploadCloud size={14} />}
+            {uploadingVideo ? (
+              <Loader2 size={14} className="animate-spin" />
+            ) : (
+              <UploadCloud size={14} />
+            )}
             {uploadingVideo ? "Uploading…" : "Upload New Video"}
           </button>
-          <input ref={videoFileRef} type="file" accept="video/*" style={{ display: "none" }} onChange={handleUploadVideo} />
+          <input
+            ref={videoFileRef}
+            type="file"
+            accept="video/*"
+            style={{ display: "none" }}
+            onChange={handleUploadVideo}
+          />
         </div>
 
         {videos.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "30px 0", color: colors.typography.secondaryText }}>
+          <div
+            style={{
+              textAlign: "center",
+              padding: "30px 0",
+              color: colors.typography.secondaryText,
+            }}
+          >
             <Video size={26} style={{ opacity: 0.3, marginBottom: 8 }} />
             <p style={{ fontSize: 13 }}>No videos yet.</p>
           </div>
@@ -652,52 +793,94 @@ export default function EditCourseScreen({ user, onNavigate, onLogout }) {
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <tbody>
               {videos.map((v, i) => {
-                const s = VIDEO_STATUS_STYLES[v.status] || VIDEO_STATUS_STYLES.PROCESSING;
+                const s =
+                  VIDEO_STATUS_STYLES[v.status] ||
+                  VIDEO_STATUS_STYLES.PROCESSING;
                 return (
-                  <tr key={v.id} style={{ borderBottom: `1px solid ${colors.base.border}` }}>
-                    <td style={{ padding: "10px 8px", fontSize: 13 }}>{i + 1}</td>
-                    <td style={{ padding: "10px 8px", fontSize: 13, fontWeight: 600 }}>{v.title}</td>
-                    <td style={{ padding: "10px 8px", fontSize: 13 }}>{fmtDuration(v.duration)}</td>
+                  <tr
+                    key={v.id}
+                    style={{ borderBottom: `1px solid ${colors.base.border}` }}
+                  >
+                    <td style={{ padding: "10px 8px", fontSize: 13 }}>
+                      {i + 1}
+                    </td>
+                    <td
+                      style={{
+                        padding: "10px 8px",
+                        fontSize: 13,
+                        fontWeight: 600,
+                      }}
+                    >
+                      {v.title}
+                    </td>
+                    <td style={{ padding: "10px 8px", fontSize: 13 }}>
+                      {fmtDuration(v.duration)}
+                    </td>
                     <td style={{ padding: "10px 8px" }}>
-                      <span style={{ background: s.bg, color: s.color, borderRadius: 20, padding: "2px 10px", fontSize: 11, fontWeight: 700 }}>
+                      <span
+                        style={{
+                          background: s.bg,
+                          color: s.color,
+                          borderRadius: 20,
+                          padding: "2px 10px",
+                          fontSize: 11,
+                          fontWeight: 700,
+                        }}
+                      >
                         {s.label}
                       </span>
                     </td>
-                   <td style={{ padding: "10px 8px", textAlign: "right" }}>
-  <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-  {v.playback_url ? (
-  <a
-    href={v.playback_url}
-    target="_blank"
-    rel="noreferrer"
-    style={circleIconBtnStyle}
-    title="Play"
-  >
-    <PlayCircle size={16} />
-  </a>
-) : (
-      <span style={{ ...circleIconBtnStyle, opacity: 0.4, cursor: "default" }}>
-        <PlayCircle size={16} />
-      </span>
-    )}
-    <button
-      type="button"
-      onClick={() => setEditVideo(v)}
-      style={circleIconBtnStyle}
-      title="Edit"
-    >
-      <Pencil size={15} />
-    </button>
-    <button
-      type="button"
-      onClick={() => setDeleteVideo(v)}
-      style={{ ...circleIconBtnStyle, color: "#EF4444", borderColor: "#FCA5A5" }}
-      title="Delete"
-    >
-      <Trash2 size={15} />
-    </button>
-  </div>
-</td>
+                    <td style={{ padding: "10px 8px", textAlign: "right" }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: 8,
+                          justifyContent: "flex-end",
+                        }}
+                      >
+                        {v.playback_url ? (
+                          <a
+                            href={v.playback_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            style={circleIconBtnStyle}
+                            title="Play"
+                          >
+                            <PlayCircle size={16} />
+                          </a>
+                        ) : (
+                          <span
+                            style={{
+                              ...circleIconBtnStyle,
+                              opacity: 0.4,
+                              cursor: "default",
+                            }}
+                          >
+                            <PlayCircle size={16} />
+                          </span>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => setEditVideo(v)}
+                          style={circleIconBtnStyle}
+                          title="Edit"
+                        >
+                          <Pencil size={15} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setDeleteVideo(v)}
+                          style={{
+                            ...circleIconBtnStyle,
+                            color: "#EF4444",
+                            borderColor: "#FCA5A5",
+                          }}
+                          title="Delete"
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 );
               })}
@@ -707,7 +890,11 @@ export default function EditCourseScreen({ user, onNavigate, onLogout }) {
       </div>
 
       {editVideo && (
-        <VideoEditModal video={editVideo} onClose={() => setEditVideo(null)} onSave={handleSaveVideo} />
+        <VideoEditModal
+          video={editVideo}
+          onClose={() => setEditVideo(null)}
+          onSave={handleSaveVideo}
+        />
       )}
       {deleteVideo && (
         <DeleteVideoConfirm
@@ -733,22 +920,40 @@ function ValidityOption({ selected, title, subtitle, onClick }) {
         textAlign: "left",
         padding: "12px 14px",
         borderRadius: 12,
-        border: `1.5px solid ${selected ? (colors.brand?.primaryOrange || "#FF6B00") : colors.base.border}`,
-        background: selected ? "rgba(255,107,0,0.06)" : colors.base.cardBackground,
+        border: `1.5px solid ${selected ? colors.brand?.primaryOrange || "#FF6B00" : colors.base.border}`,
+        background: selected
+          ? "rgba(255,107,0,0.06)"
+          : colors.base.cardBackground,
         cursor: "pointer",
       }}
     >
       <CheckCircle2
         size={18}
-        color={selected ? (colors.brand?.primaryOrange || "#FF6B00") : colors.base.border}
+        color={
+          selected
+            ? colors.brand?.primaryOrange || "#FF6B00"
+            : colors.base.border
+        }
         style={{ flexShrink: 0, marginTop: 1 }}
-        fill={selected ? (colors.brand?.primaryOrange || "#FF6B00") : "none"}
+        fill={selected ? colors.brand?.primaryOrange || "#FF6B00" : "none"}
       />
       <div>
-        <div style={{ fontSize: 13.5, fontWeight: 700, color: colors.typography.primaryText }}>
+        <div
+          style={{
+            fontSize: 13.5,
+            fontWeight: 700,
+            color: colors.typography.primaryText,
+          }}
+        >
           {title}
         </div>
-        <div style={{ fontSize: 11.5, color: colors.typography.secondaryText, marginTop: 2 }}>
+        <div
+          style={{
+            fontSize: 11.5,
+            color: colors.typography.secondaryText,
+            marginTop: 2,
+          }}
+        >
           {subtitle}
         </div>
       </div>
@@ -760,31 +965,148 @@ function PerfStat({ icon, bg, label, value }) {
   return (
     <div style={{ background: bg, borderRadius: 12, padding: 14 }}>
       <div style={{ marginBottom: 6 }}>{icon}</div>
-      <div style={{ fontSize: 18, fontWeight: 800, color: colors.typography.primaryText }}>{value}</div>
-      <div style={{ fontSize: 11.5, color: colors.typography.secondaryText, marginTop: 2 }}>{label}</div>
+      <div
+        style={{
+          fontSize: 18,
+          fontWeight: 800,
+          color: colors.typography.primaryText,
+        }}
+      >
+        {value}
+      </div>
+      <div
+        style={{
+          fontSize: 11.5,
+          color: colors.typography.secondaryText,
+          marginTop: 2,
+        }}
+      >
+        {label}
+      </div>
     </div>
   );
 }
 
 function VideoEditModal({ video, onClose, onSave }) {
   const [title, setTitle] = useState(video.title || "");
+  const [description, setDescription] = useState(video.description || "");
   const [isFree, setIsFree] = useState(!!video.is_free);
 
   return (
-    <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2000 }}>
-      <div onClick={(e) => e.stopPropagation()} style={{ background: "#FFF", borderRadius: 16, padding: 20, width: 380 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 14 }}>
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(0,0,0,0.5)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 2000,
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: "#FFF",
+          borderRadius: 16,
+          padding: 20,
+          width: 380,
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            marginBottom: 14,
+          }}
+        >
           <span style={sectionTitleStyle}>Edit Video</span>
-          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer" }}><X size={16} /></button>
+          <button
+            onClick={onClose}
+            style={{ background: "none", border: "none", cursor: "pointer" }}
+          >
+            <X size={16} />
+          </button>
         </div>
-        <label style={labelStyle}>Title</label>
-        <input value={title} onChange={(e) => setTitle(e.target.value)} style={{ ...inputStyle, marginTop: 6, marginBottom: 12 }} />
+
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 6,
+          }}
+        >
+          <label style={labelStyle}>Title</label>
+          <AiEnhance
+            endpoint="/ai/course/enhance"
+            text={title}
+            kind="video_title"
+            tone="warm"
+            onUse={(t) => setTitle(t)}
+          />
+        </div>
+        <input
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          style={{ ...inputStyle, marginBottom: 12 }}
+        />
+
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 6,
+          }}
+        >
+          <label style={labelStyle}>Description</label>
+          <AiEnhance
+            endpoint="/ai/course/enhance"
+            text={description}
+            kind="video_description"
+            tone="warm"
+            onUse={(t) => setDescription(t)}
+          />
+        </div>
+        <textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          rows={3}
+          placeholder="What does this video cover?"
+          style={{ ...inputStyle, resize: "vertical", marginBottom: 12 }}
+        />
+
         <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <input type="checkbox" checked={isFree} onChange={(e) => setIsFree(e.target.checked)} />
+          <input
+            type="checkbox"
+            checked={isFree}
+            onChange={(e) => setIsFree(e.target.checked)}
+          />
+          <span style={{ fontSize: 13, color: colors.typography.primaryText }}>
+            Free Preview
+          </span>
         </label>
-        <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 16 }}>
-          <button onClick={onClose} style={outlineButtonStyle}>Cancel</button>
-          <button onClick={() => onSave({ ...video, title, is_free: isFree })} style={primaryButtonStyle}>Save</button>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "flex-end",
+            gap: 10,
+            marginTop: 16,
+          }}
+        >
+          <button onClick={onClose} style={outlineButtonStyle}>
+            Cancel
+          </button>
+          <button
+            onClick={() =>
+              onSave({ ...video, title, description, is_free: isFree })
+            }
+            style={primaryButtonStyle}
+          >
+            Save
+          </button>
         </div>
       </div>
     </div>
@@ -793,18 +1115,61 @@ function VideoEditModal({ video, onClose, onSave }) {
 
 function DeleteVideoConfirm({ video, loading, onCancel, onConfirm }) {
   return (
-    <div onClick={onCancel} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2000 }}>
-      <div onClick={(e) => e.stopPropagation()} style={{ background: "#FFF", borderRadius: 16, padding: 20, width: 360 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+    <div
+      onClick={onCancel}
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(0,0,0,0.5)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 2000,
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: "#FFF",
+          borderRadius: 16,
+          padding: 20,
+          width: 360,
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            marginBottom: 10,
+          }}
+        >
           <AlertTriangle size={18} color="#EF4444" />
           <span style={sectionTitleStyle}>Delete Video</span>
         </div>
         <p style={{ fontSize: 13, color: colors.typography.secondaryText }}>
           Delete "{video.title}"? This cannot be undone.
         </p>
-        <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 16 }}>
-          <button onClick={onCancel} disabled={loading} style={outlineButtonStyle}>Cancel</button>
-          <button onClick={onConfirm} disabled={loading} style={{ ...primaryButtonStyle, background: "#EF4444" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "flex-end",
+            gap: 10,
+            marginTop: 16,
+          }}
+        >
+          <button
+            onClick={onCancel}
+            disabled={loading}
+            style={outlineButtonStyle}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={loading}
+            style={{ ...primaryButtonStyle, background: "#EF4444" }}
+          >
             {loading ? "Deleting…" : "Delete"}
           </button>
         </div>

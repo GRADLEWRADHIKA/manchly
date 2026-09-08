@@ -5,14 +5,13 @@ import {
   TrendingUp,
   ChevronLeft,
   ChevronRight,
-  DollarSign,
   Rocket,
   ArrowRight,
   FileText,
   Target,
   Sparkles,
   Search,
-  IndianRupee
+  IndianRupee,
 } from "lucide-react";
 import { apiFetch, unwrap } from "../../../utils/api";
 import colors from "../../../utils/colors";
@@ -21,7 +20,6 @@ import TopHeader from "../../../components/TopHeader";
 import { formatCurrency } from "../../../utils/formatters";
 import VerificationBanner from "../../../components/VerificationBanner";
 import StatCard from "./components/StatCard";
-
 import CourseCard from "./components/CourseCard";
 import { toast } from "../../../utils/toast";
 
@@ -54,9 +52,9 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
-
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortOrder, setSortOrder] = useState("newest");
+  const [dateFilter, setDateFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 6;
 
@@ -80,7 +78,6 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
       if (!plan || typeof plan !== "object") {
         throw new Error("No plan returned");
       }
-      // Hand the generated plan + niche off to the planner screen
       onNavigate?.("course-planner", { plan, niche: query });
     } catch (err) {
       console.error("Failed to generate course plan", err);
@@ -239,6 +236,10 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
     console.log("USER OBJECT:", user);
   }, [user]);
 
+  useEffect(() => {
+    if (courseList.length) console.log("SAMPLE COURSE:", courseList[0]);
+  }, [courseList]);
+
   const isKycVerified = kycStatus
     ? !!(
         kycStatus.verified ??
@@ -254,22 +255,6 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
   const publishedCourses = courseStats?.published_courses ?? 0;
   const draftCourses = Math.max(totalCourses - publishedCourses, 0);
   const completionRate = courseStats?.completion_rate ?? null;
-
-  const kycLabel = isKycVerified ? "Verified" : "Pending";
-  const monthlyGrowth =
-    courseStats?.monthly_growth != null
-      ? `${courseStats.monthly_growth}%`
-      : null;
-  const conversionRate =
-    courseStats?.conversion_rate != null
-      ? `${courseStats.conversion_rate}%`
-      : null;
-  const refundRate =
-    courseStats?.refund_rate != null ? `${courseStats.refund_rate}%` : null;
-  const avgOrderValue =
-    courseStats?.avg_order_value != null
-      ? formatCurrency(courseStats.avg_order_value)
-      : null;
 
   const lifetimeEarnings =
     walletData?.lifetime_earnings ??
@@ -303,6 +288,22 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
       list = list.filter((c) => c?.category === categoryFilter);
     }
 
+    if (dateFilter !== "all") {
+      const days = Number(dateFilter);
+      const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+      list = list.filter((c) => {
+        const created = new Date(c?.created_at || c?.updated_at || 0).getTime();
+        return created >= cutoff;
+      });
+      console.log(
+        "DATE FILTER:",
+        dateFilter,
+        "→",
+        list.length,
+        "courses match",
+      );
+    }
+
     if (searchQuery.trim()) {
       const q = searchQuery.trim().toLowerCase();
       list = list.filter((c) =>
@@ -320,7 +321,14 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
     });
 
     return list;
-  }, [courseList, statusFilter, categoryFilter, searchQuery, sortOrder]);
+  }, [
+    courseList,
+    statusFilter,
+    categoryFilter,
+    dateFilter,
+    searchQuery,
+    sortOrder,
+  ]);
 
   const totalPages = Math.max(1, Math.ceil(filteredCourses.length / pageSize));
   const pageStart = (currentPage - 1) * pageSize;
@@ -332,7 +340,6 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
     }
     onNavigate?.("course-create");
   };
-  const handleVerify = () => onNavigate?.("kyc-verification");
   const handleWithdraw = () => onNavigate?.("withdraw");
   const handleNotifications = () => onNavigate?.("notifications");
   const handleCourseEdit = (course) =>
@@ -341,8 +348,6 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
     onNavigate?.("course-preview", { courseId: course?.id });
   const handleCourseDuplicate = (course) =>
     onNavigate?.("course-duplicate", { courseId: course?.id });
-  const handleCourseMore = (course) =>
-    onNavigate?.("course-manage", { courseId: course?.id });
   const handleCourseEditVideos = (course) =>
     onNavigate?.("course-create-video", { courseId: course?.id });
 
@@ -391,7 +396,6 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
           onNotifications={handleNotifications}
         />
 
-        {/* Verification Banner — only shown when KYC is NOT verified */}
         {!isKycVerified && (
           <VerificationBanner
             isKycVerified={isKycVerified}
@@ -404,7 +408,7 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
           </div>
         )}
 
-        {/* Section Header Matching Webinar Style */}
+        {/* Section Header */}
         <div
           style={{
             display: "flex",
@@ -459,22 +463,16 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
             + Create Course
           </button>
         </div>
+
         {/* Stats Row */}
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+            gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
             gap: 16,
             marginBottom: 24,
           }}
         >
-          <StatCard
-            icon={IndianRupee}
-            iconColor={colors.brand.primaryOrange}
-            label="Total Revenue"
-            value={formatCurrency(totalRevenue)}
-            subtext="--vs last month"
-          />
           <StatCard
             icon={Users}
             iconColor={colors.charts?.blue}
@@ -490,15 +488,16 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
             subtext={`${publishedCourses} published · ${draftCourses} draft`}
           />
           <StatCard
-            icon={TrendingUp}
-            iconColor={colors.charts?.teal}
-            label="Completion Rate"
-            value={completionRate != null ? `${completionRate}%` : "--"}
+            icon={IndianRupee}
+            iconColor={colors.brand.primaryOrange}
+            label="Total Revenue"
+            value={formatCurrency(totalRevenue)}
             subtext="--vs last month"
+            highlight
           />
         </div>
 
-        {/* Main Content: single-column stack — courses table, then AI Planner banner below */}
+        {/* Main Content */}
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
           {/* Your Courses Section */}
           <div
@@ -509,7 +508,6 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
               padding: 24,
             }}
           >
-            {/* Header row: title + Create Course button */}
             <div
               style={{
                 display: "flex",
@@ -537,131 +535,159 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
               </span>
             </div>
 
-{/* Search + filters row */}
-<div
-  style={{
-    display: "flex",
-    gap: 10,
-    marginBottom: 16,
-    flexWrap: "wrap",
-  }}
->
-  <div style={{ position: "relative", flex: 1, minWidth: 200 }}>
-    <input
-      type="text"
-      value={searchQuery}
-      onChange={(e) => {
-        setSearchQuery(e.target.value);
-        setCurrentPage(1);
-      }}
-      placeholder="Search your courses..."
-      style={{
-        width: "100%",
-        boxSizing: "border-box",
-        border: `1px solid ${colors.base.border}`,
-        borderRadius: 10,
-        padding: "10px 14px",
-        fontSize: 13,
-        color: colors.typography.primaryText,
-        background: colors.base.cardBackground,
-        outline: "none",
-      }}
-    />
-  </div>
+            {/* Search + filters row */}
+            <div
+              style={{
+                display: "flex",
+                gap: 10,
+                marginBottom: 16,
+                flexWrap: "wrap",
+              }}
+            >
+              <div style={{ position: "relative", flex: 1, minWidth: 200 }}>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  placeholder="Search your courses..."
+                  style={{
+                    width: "100%",
+                    boxSizing: "border-box",
+                    border: `1px solid ${colors.base.border}`,
+                    borderRadius: 10,
+                    padding: "10px 14px",
+                    fontSize: 13,
+                    color: colors.typography.primaryText,
+                    background: colors.base.cardBackground,
+                    outline: "none",
+                  }}
+                />
+              </div>
 
-  <select
-    value={categoryFilter}
-    onChange={(e) => {
-      setCategoryFilter(e.target.value);
-      setCurrentPage(1);
-    }}
-    style={{
-      border: `1px solid ${colors.base.border}`,
-      borderRadius: 10,
-      padding: "10px 14px",
-      fontSize: 13,
-      fontWeight: 700,
-      color: colors.typography.primaryText,
-      background: colors.base.cardBackground,
-      cursor: "pointer",
-    }}
-  >
-    <option value="all">All Categories</option>
-    {categories.map((cat) => (
-      <option key={cat} value={cat}>
-        {cat}
-      </option>
-    ))}
-  </select>
+              <select
+                value={categoryFilter}
+                onChange={(e) => {
+                  setCategoryFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
+                style={{
+                  border: `1px solid ${colors.base.border}`,
+                  borderRadius: 10,
+                  padding: "10px 14px",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: colors.typography.primaryText,
+                  background: colors.base.cardBackground,
+                  cursor: "pointer",
+                }}
+              >
+                <option value="all">All Categories</option>
+                {categories.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
 
-  <select
-    value={sortOrder}
-    onChange={(e) => {
-      setSortOrder(e.target.value);
-      setCurrentPage(1);
-    }}
-    style={{
-      border: `1px solid ${colors.base.border}`,
-      borderRadius: 10,
-      padding: "10px 14px",
-      fontSize: 13,
-      fontWeight: 700,
-      color: colors.typography.primaryText,
-      background: colors.base.cardBackground,
-      cursor: "pointer",
-    }}
-  >
-    <option value="newest">Newest First</option>
-    <option value="oldest">Oldest First</option>
-    <option value="price_desc">Price: High to Low</option>
-    <option value="price_asc">Price: Low to High</option>
-  </select>
-</div>
+              <select
+                value={dateFilter}
+                onChange={(e) => {
+                  setDateFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
+                style={{
+                  border: `1px solid ${colors.base.border}`,
+                  borderRadius: 10,
+                  padding: "10px 14px",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: colors.typography.primaryText,
+                  background: colors.base.cardBackground,
+                  cursor: "pointer",
+                }}
+              >
+                <option value="all">All Time</option>
+                <option value="7">Last 7 days</option>
+                <option value="30">Last 30 days</option>
+                <option value="90">Last 90 days</option>
+                <option value="365">Last 1 year</option>
+              </select>
 
-{/* Tabs: All / Published / Drafts */}
-<div
-  style={{
-    display: "flex",
-    background: "rgba(0,0,0,0.03)",
-    borderRadius: 12,
-    padding: 4,
-    marginBottom: 20,
-  }}
->
-  {[
-    { key: "all", label: "All", count: allCount },
-    { key: "published", label: "Published", count: publishedCount },
-    { key: "draft", label: "Drafts", count: draftCount },
-  ].map((tab) => (
-    <button
-      key={tab.key}
-      onClick={() => {
-        setStatusFilter(tab.key);
-        setCurrentPage(1);
-      }}
-      style={{
-        flex: 1,
-        padding: "10px 14px",
-        borderRadius: 9,
-        border: "none",
-        background:
-          statusFilter === tab.key ? colors.base.cardBackground : "transparent",
-        color:
-          statusFilter === tab.key
-            ? colors.brand.primaryOrange
-            : colors.typography.secondaryText,
-        fontSize: 13,
-        fontWeight: 700,
-        cursor: "pointer",
-        boxShadow:
-          statusFilter === tab.key ? "0 1px 4px rgba(0,0,0,0.08)" : "none",
-        transition: "all 0.15s ease",
-      }}
-    >
-      {tab.label} ({tab.count})
-    </button>
-  ))}
-</div>
+              <select
+                value={sortOrder}
+                onChange={(e) => {
+                  setSortOrder(e.target.value);
+                  setCurrentPage(1);
+                }}
+                style={{
+                  border: `1px solid ${colors.base.border}`,
+                  borderRadius: 10,
+                  padding: "10px 14px",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: colors.typography.primaryText,
+                  background: colors.base.cardBackground,
+                  cursor: "pointer",
+                }}
+              >
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="price_desc">Price: High to Low</option>
+                <option value="price_asc">Price: Low to High</option>
+              </select>
+            </div>
+
+            {/* Tabs: All / Published / Drafts */}
+            <div
+              style={{
+                display: "flex",
+                background: "rgba(0,0,0,0.03)",
+                borderRadius: 12,
+                padding: 4,
+                marginBottom: 20,
+              }}
+            >
+              {[
+                { key: "all", label: "All", count: allCount },
+                { key: "published", label: "Published", count: publishedCount },
+                { key: "draft", label: "Drafts", count: draftCount },
+              ].map((tab) => (
+                <button
+                  key={tab.key}
+                  onClick={() => {
+                    setStatusFilter(tab.key);
+                    setCurrentPage(1);
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: "10px 14px",
+                    borderRadius: 9,
+                    border: "none",
+                    background:
+                      statusFilter === tab.key
+                        ? colors.base.cardBackground
+                        : "transparent",
+                    color:
+                      statusFilter === tab.key
+                        ? colors.brand.primaryOrange
+                        : colors.typography.secondaryText,
+                    fontSize: 13,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    boxShadow:
+                      statusFilter === tab.key
+                        ? "0 1px 4px rgba(0,0,0,0.08)"
+                        : "none",
+                    transition: "all 0.15s ease",
+                  }}
+                >
+                  {tab.label} ({tab.count})
+                </button>
+              ))}
+            </div>
 
             {/* Table */}
             {visibleCourses.length === 0 ? (
@@ -807,7 +833,7 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
             )}
           </div>
 
-          {/* AI Planner Card — full-width banner below the courses table */}
+          {/* AI Planner Card */}
           <div
             style={{
               position: "relative",

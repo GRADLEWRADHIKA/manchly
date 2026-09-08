@@ -26,20 +26,23 @@ export default function Reels() {
 
   const containerRef = useRef(null);
   const seenRef = useRef(new Set()); // reels already counted as viewed
+  const feedSeedRef = useRef(Math.random().toString(36).slice(2));
 
-  const load = useCallback(async (pageNum) => {
-    try {
-      const data = unwrap(await apiFetch(`/reels?page=${pageNum}&limit=${PAGE_SIZE}`));
-      const batch = data?.reels || [];
-      setReels((prev) => (pageNum === 1 ? batch : [...prev, ...batch]));
-      setHasMore(pageNum < (data?.pagination?.totalPages || 1));
-    } catch {
-      if (pageNum === 1) setReels([]);
-      setHasMore(false);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+ const load = useCallback(async (pageNum) => {
+  try {
+    const data = unwrap(
+      await apiFetch(`/reels?page=${pageNum}&limit=${PAGE_SIZE}&seed=${feedSeedRef.current}`) // seed added
+    );
+    const batch = data?.reels || [];
+    setReels((prev) => (pageNum === 1 ? batch : [...prev, ...batch]));
+    setHasMore(pageNum < (data?.pagination?.totalPages || 1));
+  } catch {
+    if (pageNum === 1) setReels([]);
+    setHasMore(false);
+  } finally {
+    setLoading(false);
+  }
+}, []);
 
   useEffect(() => { load(1); }, [load]);
 
@@ -364,9 +367,9 @@ const courseStripStyle = {
 
 const buyBtnStyle = {
   display: "flex", alignItems: "center", gap: 6, padding: "10px 18px", borderRadius: 999,
-  border: "none", background: "linear-gradient(180deg,#FFC107,#FFB300)", color: "#3A2A00",
+  border: "none", background: "linear-gradient(135deg, #4ADE80 0%, #16A34A 100%)", color: colors.user.card,
   fontWeight: 800, fontSize: 14, cursor: "pointer", whiteSpace: "nowrap",
-  boxShadow: "0 4px 14px rgba(255,179,0,0.4)",
+  boxShadow: colors.user.accent,
 };
 
 const sheetBackdrop = {

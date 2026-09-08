@@ -11,6 +11,7 @@ import {
   Star,
   CalendarClock,
   Package,
+  User,
   Languages,
   CheckCircle2,
   X,
@@ -84,6 +85,8 @@ const EMPTY_PRODUCT = {
   price: "",
 };
 
+
+
 function Chip({ on, children, onClick }) {
   return (
     <button
@@ -151,20 +154,28 @@ export default function SessionsScreen() {
 
   const [sessionSearch, setSessionSearch] = useState("");
   const [sessionSort, setSessionSort] = useState("newest");
+  const [sessionDateFilter, setSessionDateFilter] = useState("all");
 
   const [previewSession, setPreviewSession] = useState(null);
 
   const [editSession, setEditSession] = useState(null);
-const [editForm, setEditForm] = useState({ date: "", time: "", duration: "30", rate_per_min: "" });
-const [editSaving, setEditSaving] = useState(false);
+  const [editForm, setEditForm] = useState({ date: "", time: "", duration: "30", rate_per_min: "" });
+  const [editSaving, setEditSaving] = useState(false);
 
-const [performanceSession, setPerformanceSession] = useState(null);
-const [performanceData, setPerformanceData] = useState(null);
-const [performanceLoading, setPerformanceLoading] = useState(false);
+  const [performanceSession, setPerformanceSession] = useState(null);
+  const [performanceData, setPerformanceData] = useState(null);
+  const [performanceLoading, setPerformanceLoading] = useState(false);
 
-const [toCancelSession, setToCancelSession] = useState(null);
-const [cancelling, setCancelling] = useState(false);
+  const [toCancelSession, setToCancelSession] = useState(null);
+  const [cancelling, setCancelling] = useState(false);
 
+
+  const totalUsers = useMemo(() => {
+  const set = new Set(
+    sessions.map((s) => s.caller?.id || s.user?.id).filter(Boolean)
+  );
+  return set.size;
+}, [sessions]);
   const load = useCallback(async () => {
     const [me, st, sess, avail, prods] = await Promise.allSettled([
       apiFetch("/sessions/expert/me"),
@@ -195,6 +206,7 @@ const [cancelling, setCancelling] = useState(false);
     }
     setLoading(false);
   }, []);
+
   useEffect(() => {
     load();
   }, [load]);
@@ -225,41 +237,41 @@ const [cancelling, setCancelling] = useState(false);
   };
 
   const openSessionEdit = (s) => {
-  const d = s.scheduled_at ? new Date(s.scheduled_at) : null;
-  setEditForm({
-    date: d ? d.toISOString().slice(0, 10) : "",
-    time: d ? `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}` : "",
-    duration: String(s.duration ?? 30),
-    rate_per_min: String(s.rate_per_min ?? ""),
-  });
-  setEditSession(s);
-};
-
-const saveSessionEdit = async () => {
-  if (!editForm.date || !editForm.time) return toast.error("Date and time are required");
-  if (!editForm.duration || isNaN(Number(editForm.duration))) return toast.error("Valid duration is required");
-  if (!editForm.rate_per_min || isNaN(Number(editForm.rate_per_min))) return toast.error("Valid rate is required");
-
-  setEditSaving(true);
-  try {
-    const scheduled_at = new Date(`${editForm.date}T${editForm.time}:00`).toISOString();
-    await apiFetch(`/sessions/${editSession.id}`, {
-      method: "PATCH",
-      body: JSON.stringify({
-        scheduled_at,
-        duration: Number(editForm.duration),
-        rate_per_min: Number(editForm.rate_per_min),
-      }),
+    const d = s.scheduled_at ? new Date(s.scheduled_at) : null;
+    setEditForm({
+      date: d ? d.toISOString().slice(0, 10) : "",
+      time: d ? `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}` : "",
+      duration: String(s.duration ?? 30),
+      rate_per_min: String(s.rate_per_min ?? ""),
     });
-    toast.success("Session updated");
-    setEditSession(null);
-    load();
-  } catch (e) {
-    toast.error(e.message);
-  } finally {
-    setEditSaving(false);
-  }
-};
+    setEditSession(s);
+  };
+
+  const saveSessionEdit = async () => {
+    if (!editForm.date || !editForm.time) return toast.error("Date and time are required");
+    if (!editForm.duration || isNaN(Number(editForm.duration))) return toast.error("Valid duration is required");
+    if (!editForm.rate_per_min || isNaN(Number(editForm.rate_per_min))) return toast.error("Valid rate is required");
+
+    setEditSaving(true);
+    try {
+      const scheduled_at = new Date(`${editForm.date}T${editForm.time}:00`).toISOString();
+      await apiFetch(`/sessions/${editSession.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          scheduled_at,
+          duration: Number(editForm.duration),
+          rate_per_min: Number(editForm.rate_per_min),
+        }),
+      });
+      toast.success("Session updated");
+      setEditSession(null);
+      load();
+    } catch (e) {
+      toast.error(e.message);
+    } finally {
+      setEditSaving(false);
+    }
+  };
 
   /* ---------- expert registration ---------- */
   const openExpertModal = () => {
@@ -324,7 +336,6 @@ const saveSessionEdit = async () => {
       setExpertSaving(false);
     }
   };
-  
 
   /* ---------- slots ---------- */
   const saveSlot = async () => {
@@ -332,7 +343,6 @@ const saveSessionEdit = async () => {
       return toast.error("End time must be after start time");
     }
 
-    // Parse and validate day_of_week
     const newDayNum = Number(dayNameToNum(slotForm.day));
     if (isNaN(newDayNum)) {
       return toast.error("Invalid day selected");
@@ -340,16 +350,14 @@ const saveSessionEdit = async () => {
 
     setSlotSaving(true);
     try {
-      // 1. Clean existing slots
       const existing = (slots || [])
         .map((s) => ({
           day_of_week: Number(toDayOfWeek(s)),
           start_time: String(s.start_time ?? s.start ?? "").slice(0, 5),
           end_time: String(s.end_time ?? s.end ?? "").slice(0, 5),
         }))
-        .filter((s) => !isNaN(s.day_of_week) && s.start && s.end);
+        .filter((s) => !isNaN(s.day_of_week) && s.start_time && s.end_time);
 
-      // 2. Format new slot
       const newSlot = {
         day_of_week: newDayNum,
         start_time: String(slotForm.start_time).slice(0, 5),
@@ -357,9 +365,6 @@ const saveSessionEdit = async () => {
       };
 
       const payload = { slots: [...existing, newSlot] };
-
-      // Console log payload before fetch to inspect for NaN or malformed times
-      console.log("Sending Availability Payload:", payload);
 
       await apiFetch("/sessions/availability", {
         method: "POST",
@@ -377,30 +382,29 @@ const saveSessionEdit = async () => {
   };
 
   const deleteSlot = async (slotToRemove) => {
-  try {
-    const remaining = (slots || [])
-      .filter((s) => s.id !== slotToRemove.id)
-      .map((s) => ({
-        day_of_week: Number(toDayOfWeek(s)),
-        start_time: String(s.start_time ?? s.start ?? "").slice(0, 5),
-        end_time: String(s.end_time ?? s.end ?? "").slice(0, 5),
-      }));
+    try {
+      const remaining = (slots || [])
+        .filter((s) => s.id !== slotToRemove.id)
+        .map((s) => ({
+          day_of_week: Number(toDayOfWeek(s)),
+          start_time: String(s.start_time ?? s.start ?? "").slice(0, 5),
+          end_time: String(s.end_time ?? s.end ?? "").slice(0, 5),
+        }));
 
-    await apiFetch("/sessions/availability", {
-      method: "POST",
-      body: JSON.stringify({ slots: remaining }),
-    });
+      await apiFetch("/sessions/availability", {
+        method: "POST",
+        body: JSON.stringify({ slots: remaining }),
+      });
 
-    toast.success("Slot removed");
-    load();
-  } catch (e) {
-    toast.error(e.message || "Failed to remove slot");
-  }
-};
+      toast.success("Slot removed");
+      load();
+    } catch (e) {
+      toast.error(e.message || "Failed to remove slot");
+    }
+  };
 
   /* ---------- products ---------- */
   const parseProduct = (p) => {
-    // platform & availability are serialized into description (app parity)
     const desc = p.description || "";
     const platform =
       desc.match(/\nPlatform:\s*(.+)/)?.[1]?.trim() || "Manchly Live";
@@ -409,6 +413,7 @@ const saveSessionEdit = async () => {
     const clean = desc.split("\nPlatform:")[0].trim();
     return { platform, availability, clean };
   };
+
   const openProductModal = (p) => {
     if (p === "create") {
       setProductForm({ ...EMPTY_PRODUCT });
@@ -427,6 +432,7 @@ const saveSessionEdit = async () => {
       setProductModal(p);
     }
   };
+
   const saveProduct = async () => {
     if (!productForm.title.trim()) return toast.error("Title is required");
     if (
@@ -465,6 +471,7 @@ const saveSessionEdit = async () => {
       setProductSaving(false);
     }
   };
+
   const confirmDeleteProduct = async () => {
     try {
       await apiFetch(`/sessions/products/${toDeleteProduct.id}`, {
@@ -499,26 +506,6 @@ const saveSessionEdit = async () => {
     navigate(`/call?${q}`);
   };
 
-  const pending = sessions.filter(
-    (s) =>
-      String(s.status).toUpperCase() === "PENDING" ||
-      String(s.status).toUpperCase() === "ACTIVE",
-  );
-  const history = sessions.filter((s) => !pending.includes(s));
-  const shown = tab === "Active" ? pending : history;
-
-  const slotsByDay = DAYS.map((day) => ({
-    day,
-    items: slots.filter((s) => {
-      const d = s.day ?? s.day_of_week;
-      return (
-        String(d).toLowerCase() === day.toLowerCase() ||
-        Number(d) === (DAYS.indexOf(day) + 1) % 7 ||
-        Number(d) === DAYS.indexOf(day)
-      );
-    }),
-  }));
-
   const upcoming = sessions.filter((s) =>
     ["PENDING", "ACTIVE"].includes(String(s.status).toUpperCase()),
   );
@@ -549,6 +536,15 @@ const saveSessionEdit = async () => {
       );
     }
 
+    if (sessionDateFilter !== "all") {
+      const days = Number(sessionDateFilter);
+      const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+      list = list.filter((s) => {
+        const created = new Date(s?.created_at || s?.scheduled_at || 0).getTime();
+        return created >= cutoff;
+      });
+    }
+
     return [...list].sort((a, b) => {
       const aDate = new Date(a.scheduled_at || a.created_at || 0).getTime();
       const bDate = new Date(b.scheduled_at || b.created_at || 0).getTime();
@@ -558,40 +554,50 @@ const saveSessionEdit = async () => {
         return (a.amount || 0) - (b.amount || 0);
       return sessionSort === "oldest" ? aDate - bDate : bDate - aDate;
     });
-  }, [sessions, tab, sessionSearch, sessionSort]);
+  }, [sessions, tab, sessionSearch, sessionDateFilter, sessionSort, upcoming, completed, cancelled]);
+
+  const slotsByDay = DAYS.map((day) => ({
+    day,
+    items: slots.filter((s) => {
+      const d = s.day ?? s.day_of_week;
+      return (
+        String(d).toLowerCase() === day.toLowerCase() ||
+        Number(d) === (DAYS.indexOf(day) + 1) % 7 ||
+        Number(d) === DAYS.indexOf(day)
+      );
+    }),
+  }));
 
   const openSessionPreview = (s) => setPreviewSession(s);
 
   const openSessionPerformance = async (s) => {
-  setPerformanceSession(s);
-  setPerformanceLoading(true);
-  try {
-    const response = await apiFetch(`/sessions/${s.id}/performance`);
-    setPerformanceData(unwrap(response));
-  } catch (e) {
-    toast.error(e.message);
-    setPerformanceData(null);
-  } finally {
-    setPerformanceLoading(false);
-  }
-};
+    setPerformanceSession(s);
+    setPerformanceLoading(true);
+    try {
+      const response = await apiFetch(`/sessions/${s.id}/performance`);
+      setPerformanceData(unwrap(response));
+    } catch (e) {
+      toast.error(e.message);
+      setPerformanceData(null);
+    } finally {
+      setPerformanceLoading(false);
+    }
+  };
 
-const confirmCancelSession = async () => {
-  setCancelling(true);
-  try {
-    const response = await apiFetch(`/sessions/${toCancelSession.id}`, { method: "DELETE" });
-    const data = unwrap(response);
-    toast.success(data?.was_paid ? "Session cancelled. Refund will be processed manually." : "Session cancelled");
-    setToCancelSession(null);
-    load();
-  } catch (e) {
-    toast.error(e.message);
-  } finally {
-    setCancelling(false);
-  }
-};
-
-  /* ---------- render ---------- */
+  const confirmCancelSession = async () => {
+    setCancelling(true);
+    try {
+      const response = await apiFetch(`/sessions/${toCancelSession.id}`, { method: "DELETE" });
+      const data = unwrap(response);
+      toast.success(data?.was_paid ? "Session cancelled. Refund will be processed manually." : "Session cancelled");
+      setToCancelSession(null);
+      load();
+    } catch (e) {
+      toast.error(e.message);
+    } finally {
+      setCancelling(false);
+    }
+  };
 
   return (
     <div style={{ padding: 32, color: colors.typography.primaryText }}>
@@ -632,34 +638,32 @@ const confirmCancelSession = async () => {
       </div>
 
       {/* Stats */}
-      <div
-        style={{ display: "flex", gap: 14, marginBottom: 24, flexWrap: "wrap" }}
-      >
-        <StatCard
-          icon={Users}
-          label="Sessions"
-          value={stats?.total_sessions ?? 0}
-          tint="#3B82F6"
-        />
-        <StatCard
-          icon={Clock}
-          label="Minutes on Calls"
-          value={stats?.total_minutes ?? 0}
-          tint="#8B5CF6"
-        />
-        <StatCard
-          icon={IndianRupee}
-          label="Earned"
-          value={formatCurrency(stats?.total_earnings ?? 0)}
-          tint="#22C55E"
-        />
-        <StatCard
-          icon={Star}
-          label="Your Rate"
-          value={expert ? `₹${expert.video_rate || 0}/min` : "—"}
-          tint="#F5A623"
-        />
-      </div>
+<div
+  style={{ display: "flex", gap: 14, marginBottom: 24, flexWrap: "wrap" }}
+>
+  <StatCard
+    icon={User}
+    label="Total Sessions"
+    value={stats?.total_sessions ?? 0}
+    tint="#22C55E"
+    subtext={`${upcoming.length} upcoming · ${completed.length} completed`}
+  />
+  <StatCard
+    icon={Users}
+    label="Total Users"
+    value={totalUsers}
+    tint="#3B82F6"
+    subtext="--vs last month"
+  />
+  <StatCard
+    icon={IndianRupee}
+    label="Total Revenue"
+    value={formatCurrency(stats?.total_earnings ?? 0)}
+    tint={colors.brand.primaryOrange}
+    subtext="--vs last month"
+    highlight
+  />
+</div>
 
       {loading ? (
         <div
@@ -675,7 +679,6 @@ const confirmCancelSession = async () => {
           />
         </div>
       ) : noProfile && !expert ? (
-        /* Onboarding hero */
         <div
           style={{
             background: G.heroGold,
@@ -764,6 +767,7 @@ const confirmCancelSession = async () => {
                     }}
                   />
                 </div>
+
                 <select
                   value={sessionSort}
                   onChange={(e) => setSessionSort(e.target.value)}
@@ -781,6 +785,26 @@ const confirmCancelSession = async () => {
                   <option value="oldest">Oldest First</option>
                   <option value="amount_desc">Amount: High to Low</option>
                   <option value="amount_asc">Amount: Low to High</option>
+                </select>
+
+                <select
+                  value={sessionDateFilter}
+                  onChange={(e) => setSessionDateFilter(e.target.value)}
+                  style={{
+                    border: `1.5px solid ${colors.base.border}`,
+                    borderRadius: 10,
+                    padding: "7px 10px",
+                    fontSize: 12.5,
+                    fontWeight: 600,
+                    background: "#fff",
+                    cursor: "pointer",
+                  }}
+                >
+                  <option value="all">All Time</option>
+                  <option value="7">Last 7 days</option>
+                  <option value="30">Last 30 days</option>
+                  <option value="90">Last 90 days</option>
+                  <option value="365">Last 1 year</option>
                 </select>
               </div>
             </div>
@@ -852,8 +876,8 @@ const confirmCancelSession = async () => {
                         key={s.id}
                         s={s}
                         onCall={callUser}
-                       onPreview={openSessionPreview}
-                       onEdit={openSessionEdit}
+                        onPreview={openSessionPreview}
+                        onEdit={openSessionEdit}
                         onPerformance={openSessionPerformance}
                         onDelete={(s) => setToCancelSession(s)}
                       />
@@ -866,116 +890,116 @@ const confirmCancelSession = async () => {
 
           {/* RIGHT: profile + availability + products */}
           <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-           {/* Expert profile */}
-<div style={card}>
-  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-    <h3 style={{ ...h3, margin: 0 }}><Star size={16} color="#F5A623" /> Your Expert Profile</h3>
-    <button
-      onClick={openExpertModal}
-      style={{ background: "none", border: "none", color: colors.brand.primaryOrange, fontSize: 13, fontWeight: 700, cursor: "pointer" }}
-    >
-      Edit
-    </button>
-  </div>
+            {/* Expert profile */}
+            <div style={card}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                <h3 style={{ ...h3, margin: 0 }}><Star size={16} color="#F5A623" /> Your Expert Profile</h3>
+                <button
+                  onClick={openExpertModal}
+                  style={{ background: "none", border: "none", color: colors.brand.primaryOrange, fontSize: 13, fontWeight: 700, cursor: "pointer" }}
+                >
+                  Edit
+                </button>
+              </div>
 
-  <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-    <div style={{ width: 52, height: 52, borderRadius: "50%", background: "#FFF1DC", color: "#D97706", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, fontWeight: 800, flexShrink: 0 }}>
-      {(expert?.profession || "?").charAt(0).toUpperCase()}
-    </div>
-    <div>
-      <div style={{ fontSize: 16, fontWeight: 800, color: "#111827" }}>{expert?.user?.name || expert?.name || "Your Profile"}</div>
-      <div style={{ fontSize: 13, color: "#6B7280", marginTop: 1 }}>{expert?.profession || "—"}</div>
-      <div style={{ fontSize: 12.5, color: "#6B7280", marginTop: 2 }}>
-        ₹{expert?.video_rate || 0}/min · {expert?.experience || 0} yrs experience
-      </div>
-    </div>
-  </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                <div style={{ width: 52, height: 52, borderRadius: "50%", background: "#FFF1DC", color: "#D97706", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, fontWeight: 800, flexShrink: 0 }}>
+                  {(expert?.profession || "?").charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: "#111827" }}>{expert?.user?.name || expert?.name || "Your Profile"}</div>
+                  <div style={{ fontSize: 13, color: "#6B7280", marginTop: 1 }}>{expert?.profession || "—"}</div>
+                  <div style={{ fontSize: 12.5, color: "#6B7280", marginTop: 2 }}>
+                    ₹{expert?.video_rate || 0}/min · {expert?.experience || 0} yrs experience
+                  </div>
+                </div>
+              </div>
 
-  {(expert?.categories || []).length > 0 && (
-    <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 14 }}>
-      {expert.categories.slice(0, 4).map((c) => (
-        <span key={c} style={{ background: "#fff", border: `1px solid ${colors.base.border}`, borderRadius: 99, padding: "5px 12px", fontSize: 11.5, fontWeight: 700, color: colors.typography.primaryText }}>
-          {c}
-        </span>
-      ))}
-      {(expert?.languages || []).length > 0 && expert.languages.map((l) => (
-        <span key={l} style={{ background: "#fff", border: `1px solid ${colors.base.border}`, borderRadius: 99, padding: "5px 12px", fontSize: 11.5, fontWeight: 700, color: colors.typography.primaryText }}>
-          {l}
-        </span>
-      ))}
-    </div>
-  )}
+              {(expert?.categories || []).length > 0 && (
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 14 }}>
+                  {expert.categories.slice(0, 4).map((c) => (
+                    <span key={c} style={{ background: "#fff", border: `1px solid ${colors.base.border}`, borderRadius: 99, padding: "5px 12px", fontSize: 11.5, fontWeight: 700, color: colors.typography.primaryText }}>
+                      {c}
+                    </span>
+                  ))}
+                  {(expert?.languages || []).length > 0 && expert.languages.map((l) => (
+                    <span key={l} style={{ background: "#fff", border: `1px solid ${colors.base.border}`, borderRadius: 99, padding: "5px 12px", fontSize: 11.5, fontWeight: 700, color: colors.typography.primaryText }}>
+                      {l}
+                    </span>
+                  ))}
+                </div>
+              )}
 
-  {expert?.bio && (
-    <p style={{ margin: "14px 0 0", fontSize: 13, color: "#6B7280", lineHeight: 1.55 }}>
-      {expert.bio}
-    </p>
-  )}
-</div>
-
-           {/* Weekly availability */}
-<div style={card}>
-  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-    <h3 style={{ ...h3, margin: 0 }}><CalendarClock size={16} color="#F5A623" /> Availability</h3>
-    {expert && (
-      <button
-        onClick={toggleAvailable}
-        disabled={toggling}
-        style={{ display: "flex", alignItems: "center", gap: 8, background: "none", border: "none", cursor: "pointer", fontFamily: "inherit" }}
-      >
-        <span style={{ fontSize: 12.5, fontWeight: 700, color: expert.is_available ? "#15803D" : colors.typography.secondaryText }}>
-          {toggling ? "Updating…" : "Available for calls"}
-        </span>
-        <span style={{ width: 38, height: 22, borderRadius: 99, background: expert.is_available ? "#22C55E" : "#D1D5DB", position: "relative", transition: "background 0.2s ease", flexShrink: 0 }}>
-          <span style={{ position: "absolute", top: 2, left: expert.is_available ? 18 : 2, width: 18, height: 18, borderRadius: "50%", background: "#fff", boxShadow: "0 1px 3px rgba(0,0,0,0.25)", transition: "left 0.2s ease" }} />
-        </span>
-      </button>
-    )}
-  </div>
-
-  {slots.length === 0 ? (
-    <div style={{ background: "#FFF8EC", border: "1px solid #F0DDB0", borderRadius: 14, padding: 16 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-        <Clock size={15} color="#B45309" />
-        <span style={{ fontSize: 13.5, fontWeight: 800, color: "#92400E" }}>Set your weekly availability</span>
-      </div>
-      <p style={{ margin: "0 0 14px", fontSize: 12.5, color: "#92400E", lineHeight: 1.5, opacity: 0.85 }}>
-        Add time slots when users can book you for 1:1 sessions.
-      </p>
-      <button
-        onClick={() => setSlotModal(true)}
-        style={{
-          width: "100%", background: "#fff", border: "1.5px solid #F5A623", color: "#B45309",
-          borderRadius: 10, padding: "9px 0", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
-          display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-        }}
-      >
-        <Plus size={14} /> Add Time Slot
-      </button>
-    </div>
-  ) : (
-    <>
-      <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 12 }}>
-        {slotsByDay.filter((d) => d.items.length).map(({ day, items }) => (
-          <div key={day} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
-            <span style={{ width: 44, fontSize: 12, fontWeight: 800, color: colors.typography.secondaryText, paddingTop: 6 }}>{day.slice(0, 3)}</span>
-            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-              {items.map((s) => (
-                <span key={s.id} style={{ display: "inline-flex", alignItems: "center", gap: 7, background: "#FFF8EC", border: "1px solid #F0DDB0", color: "#92400E", borderRadius: 99, padding: "5px 11px", fontSize: 12, fontWeight: 700 }}>
-                  {String(s.start_time).slice(0, 5)}–{String(s.end_time).slice(0, 5)}
-                  <button onClick={() => deleteSlot(s)} style={{ background: "transparent", border: "none", cursor: "pointer", color: "#B45309", padding: 0, display: "flex" }}><X size={11} /></button>
-                </span>
-              ))}
+              {expert?.bio && (
+                <p style={{ margin: "14px 0 0", fontSize: 13, color: "#6B7280", lineHeight: 1.55 }}>
+                  {expert.bio}
+                </p>
+              )}
             </div>
-          </div>
-        ))}
-      </div>
-      <GoldBtn ghost style={{ width: "100%", justifyContent: "center", padding: "9px 0", fontSize: 13 }} onClick={() => setSlotModal(true)}>
-        <Plus size={14} /> Add Time Slot
-      </GoldBtn>
-    </>
-  )}
-</div>
+
+            {/* Weekly availability */}
+            <div style={card}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+                <h3 style={{ ...h3, margin: 0 }}><CalendarClock size={16} color="#F5A623" /> Availability</h3>
+                {expert && (
+                  <button
+                    onClick={toggleAvailable}
+                    disabled={toggling}
+                    style={{ display: "flex", alignItems: "center", gap: 8, background: "none", border: "none", cursor: "pointer", fontFamily: "inherit" }}
+                  >
+                    <span style={{ fontSize: 12.5, fontWeight: 700, color: expert.is_available ? "#15803D" : colors.typography.secondaryText }}>
+                      {toggling ? "Updating…" : "Available for calls"}
+                    </span>
+                    <span style={{ width: 38, height: 22, borderRadius: 99, background: expert.is_available ? "#22C55E" : "#D1D5DB", position: "relative", transition: "background 0.2s ease", flexShrink: 0 }}>
+                      <span style={{ position: "absolute", top: 2, left: expert.is_available ? 18 : 2, width: 18, height: 18, borderRadius: "50%", background: "#fff", boxShadow: "0 1px 3px rgba(0,0,0,0.25)", transition: "left 0.2s ease" }} />
+                    </span>
+                  </button>
+                )}
+              </div>
+
+              {slots.length === 0 ? (
+                <div style={{ background: "#FFF8EC", border: "1px solid #F0DDB0", borderRadius: 14, padding: 16 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                    <Clock size={15} color="#B45309" />
+                    <span style={{ fontSize: 13.5, fontWeight: 800, color: "#92400E" }}>Set your weekly availability</span>
+                  </div>
+                  <p style={{ margin: "0 0 14px", fontSize: 12.5, color: "#92400E", lineHeight: 1.5, opacity: 0.85 }}>
+                    Add time slots when users can book you for 1:1 sessions.
+                  </p>
+                  <button
+                    onClick={() => setSlotModal(true)}
+                    style={{
+                      width: "100%", background: "#fff", border: "1.5px solid #F5A623", color: "#B45309",
+                      borderRadius: 10, padding: "9px 0", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+                      display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                    }}
+                  >
+                    <Plus size={14} /> Add Time Slot
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 12 }}>
+                    {slotsByDay.filter((d) => d.items.length).map(({ day, items }) => (
+                      <div key={day} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                        <span style={{ width: 44, fontSize: 12, fontWeight: 800, color: colors.typography.secondaryText, paddingTop: 6 }}>{day.slice(0, 3)}</span>
+                        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                          {items.map((s) => (
+                            <span key={s.id} style={{ display: "inline-flex", alignItems: "center", gap: 7, background: "#FFF8EC", border: "1px solid #F0DDB0", color: "#92400E", borderRadius: 99, padding: "5px 11px", fontSize: 12, fontWeight: 700 }}>
+                              {String(s.start_time).slice(0, 5)}–{String(s.end_time).slice(0, 5)}
+                              <button onClick={() => deleteSlot(s)} style={{ background: "transparent", border: "none", cursor: "pointer", color: "#B45309", padding: 0, display: "flex" }}><X size={11} /></button>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <GoldBtn ghost style={{ width: "100%", justifyContent: "center", padding: "9px 0", fontSize: 13 }} onClick={() => setSlotModal(true)}>
+                    <Plus size={14} /> Add Time Slot
+                  </GoldBtn>
+                </>
+              )}
+            </div>
 
             {/* Session products */}
             <div style={card}>
@@ -1280,125 +1304,128 @@ const confirmCancelSession = async () => {
         </div>
       </Modal>
 
+      {/* ---------- Session Preview Modal ---------- */}
       <Modal open={!!previewSession} onClose={() => setPreviewSession(null)} title="Session Preview" width={420}>
-  {previewSession && (() => {
-    const caller = previewSession.caller || previewSession.user || {};
-    const status = String(previewSession.status || "").toUpperCase();
-    return (
-      <div>
-        <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 18 }}>
-          <Avatar src={caller.profile_image} name={caller.name || "U"} size={54} />
-          <div>
-            <div style={{ fontSize: 17, fontWeight: 900, color: "#111827" }}>{caller.name || "User"}</div>
-            {caller.email && <div style={{ fontSize: 12.5, color: "#6B7280", marginTop: 2 }}>{caller.email}</div>}
-          </div>
-        </div>
+        {previewSession && (() => {
+          const caller = previewSession.caller || previewSession.user || {};
+          const status = String(previewSession.status || "").toUpperCase();
+          return (
+            <div>
+              <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 18 }}>
+                <Avatar src={caller.profile_image} name={caller.name || "U"} size={54} />
+                <div>
+                  <div style={{ fontSize: 17, fontWeight: 900, color: "#111827" }}>{caller.name || "User"}</div>
+                  {caller.email && <div style={{ fontSize: 12.5, color: "#6B7280", marginTop: 2 }}>{caller.email}</div>}
+                </div>
+              </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 20 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
-            <span style={{ color: "#6B7280" }}>Status</span>
-            <Badge color={status === "COMPLETED" ? "#16A34A" : status === "CANCELLED" ? "#DC2626" : "#2563EB"}>
-              {status === "PENDING" || status === "ACTIVE" ? "Upcoming" : status.charAt(0) + status.slice(1).toLowerCase()}
-            </Badge>
-          </div>
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
-            <span style={{ color: "#6B7280" }}>Scheduled</span>
-            <span style={{ fontWeight: 700, color: "#111827" }}>
-              {previewSession.scheduled_at
-                ? new Date(previewSession.scheduled_at).toLocaleString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })
-                : "Instant"}
-            </span>
-          </div>
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
-            <span style={{ color: "#6B7280" }}>Duration</span>
-            <span style={{ fontWeight: 700, color: "#111827" }}>{previewSession.duration || 30} mins</span>
-          </div>
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
-            <span style={{ color: "#6B7280" }}>Rate</span>
-            <span style={{ fontWeight: 700, color: "#111827" }}>₹{previewSession.rate_per_min || 0}/min</span>
-          </div>
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
-            <span style={{ color: "#6B7280" }}>Amount</span>
-            <span style={{ fontWeight: 700, color: "#111827" }}>
-              {previewSession.amount != null ? formatCurrency(previewSession.amount) : "--"}
-            </span>
-          </div>
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
-            <span style={{ color: "#6B7280" }}>Mode</span>
-            <span style={{ fontWeight: 700, color: "#111827" }}>{previewSession.mode || "VIDEO"}</span>
-          </div>
-        </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 20 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
+                  <span style={{ color: "#6B7280" }}>Status</span>
+                  <Badge color={status === "COMPLETED" ? "#16A34A" : status === "CANCELLED" ? "#DC2626" : "#2563EB"}>
+                    {status === "PENDING" || status === "ACTIVE" ? "Upcoming" : status.charAt(0) + status.slice(1).toLowerCase()}
+                  </Badge>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
+                  <span style={{ color: "#6B7280" }}>Scheduled</span>
+                  <span style={{ fontWeight: 700, color: "#111827" }}>
+                    {previewSession.scheduled_at
+                      ? new Date(previewSession.scheduled_at).toLocaleString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })
+                      : "Instant"}
+                  </span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
+                  <span style={{ color: "#6B7280" }}>Duration</span>
+                  <span style={{ fontWeight: 700, color: "#111827" }}>{previewSession.duration || 30} mins</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
+                  <span style={{ color: "#6B7280" }}>Rate</span>
+                  <span style={{ fontWeight: 700, color: "#111827" }}>₹{previewSession.rate_per_min || 0}/min</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
+                  <span style={{ color: "#6B7280" }}>Amount</span>
+                  <span style={{ fontWeight: 700, color: "#111827" }}>
+                    {previewSession.amount != null ? formatCurrency(previewSession.amount) : "--"}
+                  </span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
+                  <span style={{ color: "#6B7280" }}>Mode</span>
+                  <span style={{ fontWeight: 700, color: "#111827" }}>{previewSession.mode || "VIDEO"}</span>
+                </div>
+              </div>
 
-        {(String(previewSession.status).toUpperCase() === "PENDING" || String(previewSession.status).toUpperCase() === "ACTIVE") && (
-          <GoldBtn style={{ width: "100%", justifyContent: "center" }} onClick={() => callUser(previewSession)}>
-            <Phone size={15} /> Call Now
-          </GoldBtn>
+              {(String(previewSession.status).toUpperCase() === "PENDING" || String(previewSession.status).toUpperCase() === "ACTIVE") && (
+                <GoldBtn style={{ width: "100%", justifyContent: "center" }} onClick={() => callUser(previewSession)}>
+                  <Phone size={15} /> Call Now
+                </GoldBtn>
+              )}
+            </div>
+          );
+        })()}
+      </Modal>
+
+      {/* ---------- Performance Modal ---------- */}
+      <Modal open={!!performanceSession} onClose={() => setPerformanceSession(null)} title="Session Performance" width={400}>
+        {performanceLoading ? (
+          <div style={{ padding: "20px 0", textAlign: "center", color: "#6B7280", fontSize: 13 }}>
+            Loading...
+          </div>
+        ) : performanceData ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 12px", borderRadius: 10, background: "rgba(34,197,94,0.08)" }}>
+              <span style={{ fontSize: 13, color: "#6B7280" }}>Amount Earned</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: "#16A34A" }}>
+                {performanceData.amount != null ? formatCurrency(performanceData.amount) : "--"}
+              </span>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 12px", borderRadius: 10, background: "rgba(59,130,246,0.08)" }}>
+              <span style={{ fontSize: 13, color: "#6B7280" }}>Duration</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: "#2563EB" }}>{performanceData.duration || 0} min</span>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 12px", borderRadius: 10, background: "rgba(107,114,128,0.08)" }}>
+              <span style={{ fontSize: 13, color: "#6B7280" }}>Payment Status</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: "#111827" }}>{performanceData.payment_status || "—"}</span>
+            </div>
+
+            {performanceData.review ? (
+              <div style={{ marginTop: 6, padding: "12px", borderRadius: 10, border: `1px solid ${colors.base.border}` }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 6 }}>
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star key={i} size={13} color="#F59E0B" fill={i < performanceData.review.rating ? "#F59E0B" : "none"} />
+                  ))}
+                </div>
+                {performanceData.review.comment && (
+                  <p style={{ margin: 0, fontSize: 12.5, color: "#374151", lineHeight: 1.5 }}>
+                    "{performanceData.review.comment}"
+                  </p>
+                )}
+              </div>
+            ) : (
+              <div style={{ marginTop: 6, fontSize: 12.5, color: "#9CA3AF", textAlign: "center", padding: "10px 0" }}>
+                No review left for this session yet.
+              </div>
+            )}
+          </div>
+        ) : (
+          <div style={{ padding: "20px 0", textAlign: "center", color: "#6B7280", fontSize: 13 }}>
+            Unable to load performance data.
+          </div>
         )}
-      </div>
-    );
-  })()}
-</Modal>
+      </Modal>
 
-<Modal open={!!performanceSession} onClose={() => setPerformanceSession(null)} title="Session Performance" width={400}>
-  {performanceLoading ? (
-    <div style={{ padding: "20px 0", textAlign: "center", color: "#6B7280", fontSize: 13 }}>
-      Loading...
-    </div>
-  ) : performanceData ? (
-    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 12px", borderRadius: 10, background: "rgba(34,197,94,0.08)" }}>
-        <span style={{ fontSize: 13, color: "#6B7280" }}>Amount Earned</span>
-        <span style={{ fontSize: 14, fontWeight: 700, color: "#16A34A" }}>
-          {performanceData.amount != null ? formatCurrency(performanceData.amount) : "--"}
-        </span>
-      </div>
-      <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 12px", borderRadius: 10, background: "rgba(59,130,246,0.08)" }}>
-        <span style={{ fontSize: 13, color: "#6B7280" }}>Duration</span>
-        <span style={{ fontSize: 14, fontWeight: 700, color: "#2563EB" }}>{performanceData.duration || 0} min</span>
-      </div>
-      <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 12px", borderRadius: 10, background: "rgba(107,114,128,0.08)" }}>
-        <span style={{ fontSize: 13, color: "#6B7280" }}>Payment Status</span>
-        <span style={{ fontSize: 13, fontWeight: 700, color: "#111827" }}>{performanceData.payment_status || "—"}</span>
-      </div>
-
-      {performanceData.review ? (
-        <div style={{ marginTop: 6, padding: "12px", borderRadius: 10, border: `1px solid ${colors.base.border}` }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 6 }}>
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Star key={i} size={13} color="#F59E0B" fill={i < performanceData.review.rating ? "#F59E0B" : "none"} />
-            ))}
-          </div>
-          {performanceData.review.comment && (
-            <p style={{ margin: 0, fontSize: 12.5, color: "#374151", lineHeight: 1.5 }}>
-              "{performanceData.review.comment}"
-            </p>
+      {/* ---------- Cancel Session Modal ---------- */}
+      <Modal open={!!toCancelSession} onClose={() => !cancelling && setToCancelSession(null)} title="Cancel session?" width={400}>
+        <p style={{ color: colors.typography.secondaryText, fontSize: 14, marginTop: 0 }}>
+          The session with "<b>{toCancelSession?.caller?.name || toCancelSession?.user?.name || "this user"}</b>" will be cancelled.
+          {toCancelSession?.payment_status === "SUCCESS" && toCancelSession?.amount > 0 && (
+            <> They already paid — you'll need to process a refund manually.</>
           )}
+        </p>
+        <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+          <GoldBtn ghost onClick={() => setToCancelSession(null)} disabled={cancelling}>Keep Session</GoldBtn>
+          <GoldBtn danger loading={cancelling} onClick={confirmCancelSession}><Trash2 size={15} /> Cancel Session</GoldBtn>
         </div>
-      ) : (
-        <div style={{ marginTop: 6, fontSize: 12.5, color: "#9CA3AF", textAlign: "center", padding: "10px 0" }}>
-          No review left for this session yet.
-        </div>
-      )}
-    </div>
-  ) : (
-    <div style={{ padding: "20px 0", textAlign: "center", color: "#6B7280", fontSize: 13 }}>
-      Unable to load performance data.
-    </div>
-  )}
-</Modal>
-
-<Modal open={!!toCancelSession} onClose={() => !cancelling && setToCancelSession(null)} title="Cancel session?" width={400}>
-  <p style={{ color: colors.typography.secondaryText, fontSize: 14, marginTop: 0 }}>
-    The session with "<b>{toCancelSession?.caller?.name || toCancelSession?.user?.name || "this user"}</b>" will be cancelled.
-    {toCancelSession?.payment_status === "SUCCESS" && toCancelSession?.amount > 0 && (
-      <> They already paid — you'll need to process a refund manually.</>
-    )}
-  </p>
-  <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
-    <GoldBtn ghost onClick={() => setToCancelSession(null)} disabled={cancelling}>Keep Session</GoldBtn>
-    <GoldBtn danger loading={cancelling} onClick={confirmCancelSession}><Trash2 size={15} /> Cancel Session</GoldBtn>
-  </div>
-</Modal>
+      </Modal>
 
       {/* ---------- Slot modal ---------- */}
       <Modal
@@ -1459,37 +1486,38 @@ const confirmCancelSession = async () => {
         </div>
       </Modal>
 
+      {/* ---------- Edit Session Modal ---------- */}
       <Modal open={!!editSession} onClose={() => setEditSession(null)} title="Edit Session" width={440}>
-  <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-      <div>
-        <label style={lbl}>Date</label>
-        <input className="cs-input" type="date" value={editForm.date} onChange={(e) => setEditForm({ ...editForm, date: e.target.value })} />
-      </div>
-      <div>
-        <label style={lbl}>Time</label>
-        <input className="cs-input" type="time" value={editForm.time} onChange={(e) => setEditForm({ ...editForm, time: e.target.value })} />
-      </div>
-    </div>
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-      <div>
-        <label style={lbl}>Duration (mins)</label>
-        <input className="cs-input" inputMode="numeric" value={editForm.duration} onChange={(e) => setEditForm({ ...editForm, duration: e.target.value.replace(/\D/g, "") })} />
-      </div>
-      <div>
-        <label style={lbl}>Rate (₹/min)</label>
-        <input className="cs-input" inputMode="numeric" value={editForm.rate_per_min} onChange={(e) => setEditForm({ ...editForm, rate_per_min: e.target.value.replace(/[^\d.]/g, "") })} />
-      </div>
-    </div>
-    <p style={{ margin: 0, fontSize: 11.5, color: "#6B7280" }}>
-      New amount: ₹{((Number(editForm.duration) || 0) * (Number(editForm.rate_per_min) || 0)).toFixed(2)}. The user will be notified of this change.
-    </p>
-    <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", borderTop: `1px solid ${colors.base.border}`, paddingTop: 14 }}>
-      <GoldBtn ghost onClick={() => setEditSession(null)}>Cancel</GoldBtn>
-      <GoldBtn loading={editSaving} onClick={saveSessionEdit}>Save Changes</GoldBtn>
-    </div>
-  </div>
-</Modal>
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div>
+              <label style={lbl}>Date</label>
+              <input className="cs-input" type="date" value={editForm.date} onChange={(e) => setEditForm({ ...editForm, date: e.target.value })} />
+            </div>
+            <div>
+              <label style={lbl}>Time</label>
+              <input className="cs-input" type="time" value={editForm.time} onChange={(e) => setEditForm({ ...editForm, time: e.target.value })} />
+            </div>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div>
+              <label style={lbl}>Duration (mins)</label>
+              <input className="cs-input" inputMode="numeric" value={editForm.duration} onChange={(e) => setEditForm({ ...editForm, duration: e.target.value.replace(/\D/g, "") })} />
+            </div>
+            <div>
+              <label style={lbl}>Rate (₹/min)</label>
+              <input className="cs-input" inputMode="numeric" value={editForm.rate_per_min} onChange={(e) => setEditForm({ ...editForm, rate_per_min: e.target.value.replace(/[^\d.]/g, "") })} />
+            </div>
+          </div>
+          <p style={{ margin: 0, fontSize: 11.5, color: "#6B7280" }}>
+            New amount: ₹{((Number(editForm.duration) || 0) * (Number(editForm.rate_per_min) || 0)).toFixed(2)}. The user will be notified of this change.
+          </p>
+          <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", borderTop: `1px solid ${colors.base.border}`, paddingTop: 14 }}>
+            <GoldBtn ghost onClick={() => setEditSession(null)}>Cancel</GoldBtn>
+            <GoldBtn loading={editSaving} onClick={saveSessionEdit}>Save Changes</GoldBtn>
+          </div>
+        </div>
+      </Modal>
 
       {/* ---------- Product modal ---------- */}
       <Modal

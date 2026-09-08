@@ -11,6 +11,8 @@ import {
   BarChart2,
   Lock,
   ChevronRight,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 import { apiFetch, unwrap } from "../../utils/api";
 import { runPurchase, priceBreakdown } from "../../utils/payments";
@@ -45,6 +47,7 @@ export default function CourseDetails() {
   const [paying, setPaying] = useState(false);
   const [legalDoc, setLegalDoc] = useState(null);
   const [moreCourses, setMoreCourses] = useState([]);
+  const [previewMuted, setPreviewMuted] = useState(true);
 
   const theme = colors.user;
 
@@ -232,67 +235,82 @@ export default function CourseDetails() {
         <div>
           {preview ? (
             <div
-             style={{
+              style={{
                 width: "100%",
                 aspectRatio: "16 / 9",
                 borderRadius: 16,
                 overflow: "hidden",
                 position: "relative",
+                background: "#000",
               }}
             >
-              <HlsVideo src={preview.playback_url} poster={course.thumbnail} autoPlay muted style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-              <div style={{ marginTop: 8 }}>
+              <HlsVideo
+                src={preview.playback_url}
+                poster={course.thumbnail}
+                autoPlay
+                loop
+                muted={previewMuted}
+                controls={false}
+                style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }}
+              />
+
+              {/* Readability scrim, same treatment as the reels feed */}
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  background: "linear-gradient(to top, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.05) 40%, rgba(0,0,0,0.25) 100%)",
+                  pointerEvents: "none",
+                }}
+              />
+
+              <button
+                onClick={() => setPreviewMuted((m) => !m)}
+                title={previewMuted ? "Unmute" : "Mute"}
+                style={{
+                  position: "absolute",
+                  top: 12,
+                  right: 12,
+                  width: 36,
+                  height: 36,
+                  borderRadius: "50%",
+                  border: "none",
+                  background: "rgba(0,0,0,0.45)",
+                  display: "grid",
+                  placeItems: "center",
+                  cursor: "pointer",
+                  backdropFilter: "blur(4px)",
+                }}
+              >
+                {previewMuted ? <VolumeX size={17} color="#fff" /> : <Volume2 size={17} color="#fff" />}
+              </button>
+
+              <div style={{ position: "absolute", left: 12, bottom: 12 }}>
                 <Badge color={theme?.highlight || "#F0C040"}>Free preview</Badge>
               </div>
             </div>
           ) : (
             <div
               style={{
-                width: "100%",
-                aspectRatio: "16/9",
-                borderRadius: 16,
                 position: "relative",
+                width: "100%",
+                aspectRatio: "16 / 9",
+                borderRadius: 16,
                 overflow: "hidden",
+                background: colors.gradients?.heroWarm || colors.gradients?.heroNavy || "#1A1D24",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
               }}
             >
               {course.thumbnail ? (
-                <>
-                  <div
-                    style={{
-                      position: "absolute",
-                      inset: -10,
-                      backgroundImage: `url(${course.thumbnail})`,
-                      backgroundSize: "cover",
-                      backgroundPosition: "center",
-                      filter: "blur(22px) brightness(0.7)",
-                      transform: "scale(1.15)",
-                    }}
-                  />
-                  <div
-                    style={{
-                      position: "absolute",
-                      inset: 0,
-                      backgroundImage: `url(${course.thumbnail})`,
-                      backgroundSize: "contain",
-                      backgroundPosition: "center",
-                      backgroundRepeat: "no-repeat",
-                    }}
-                  />
-                </>
+                <img
+                  src={course.thumbnail}
+                  alt={course.title}
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                />
               ) : (
-                <div
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-                    background:
-                      colors.gradients.heroWarm || colors.gradients.heroNavy,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <BookOpen size={54} color="rgba(255,255,255,0.5)" />
-                </div>
+                <BookOpen size={54} color="rgba(255,255,255,0.5)" />
               )}
 
               {/* Stats badges overlaid on the hero, bottom-left */}
@@ -400,7 +418,7 @@ export default function CourseDetails() {
                 <Clock size={13} /> {totalDurationLabel}
               </span>
             )}
-            <div style={{ ...summaryRow, borderBottom: "none" }}>
+            <div style={{ ...summaryRow, borderBottom: "none", width: "100%" }}>
               <span style={{ color: theme?.subHeading }}>Access</span>
               <span style={{ fontWeight: 700 }}>{accessLabel}</span>
             </div>

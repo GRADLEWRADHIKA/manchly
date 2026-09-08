@@ -1187,18 +1187,6 @@ export default function UserHome() {
                             : colors.gradients.heroWarm,
                       }}
                     />
-
-                    <BookOpen
-                      size={30}
-                      style={{
-                        position: "absolute",
-                        top: "50%",
-                        left: "50%",
-                        transform: "translate(-50%,-50%)",
-                        color: "rgba(255,255,255,0.92)",
-                        filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.5))",
-                      }}
-                    />
                   </div>
 
                   <div

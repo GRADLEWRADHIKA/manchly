@@ -270,9 +270,6 @@ export class StorefrontController {
     }
   }
 
-  // ── Authenticated: creator manages their own storefront ─────────────────────
-
-  /** GET /creator/storefront/me — load (or lazily create) the creator's storefront row. */
   static async getMyStorefront(req: any, res: Response) {
     const userId = req.user.userId;
 

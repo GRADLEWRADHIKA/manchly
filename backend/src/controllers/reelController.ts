@@ -4,6 +4,7 @@ import { ApiResponseHandler } from "../utils/ApiResponseHandler";
 import { canManageResource } from "../utils/permissions";
 import MuxManager from "../utils/MuxManager";
 import dotenv from "dotenv";
+import { Prisma } from "@prisma/client";
 
 dotenv.config();
 
@@ -31,59 +32,72 @@ const FEED_COURSE_SELECT = {
 
 export class ReelController {
   // ── Feed ────────────────────────────────────────────────────────────────────
-  /**
-   * The scrollable feed. Only READY reels whose course is still PUBLISHED, so a
-   * creator unpublishing a course pulls its reels out of circulation too.
-   *
-   * When the caller is logged in, each reel carries `is_enrolled` so the client
-   * can show "Continue" instead of "Buy" without a second round trip.
-   */
-  static async getFeed(req: any, res: Response) {
-    const page = Math.max(1, parseInt(req.query.page as string) || 1);
-    const limit = Math.min(30, Math.max(1, parseInt(req.query.limit as string) || 10));
-    const category = (req.query.category as string)?.trim();
-    const skip = (page - 1) * limit;
+  
+ static async getFeed(req: any, res: Response) {
+  const page = Math.max(1, parseInt(req.query.page as string) || 1);
+  const limit = Math.min(30, Math.max(1, parseInt(req.query.limit as string) || 10));
+  const category = (req.query.category as string)?.trim();
+  const seed = String(req.query.seed || "default-seed").slice(0, 64); // NEW
+  const skip = (page - 1) * limit;
 
-    try {
-      const where: any = {
-        status: "READY",
-        course: { status: "PUBLISHED", ...(category ? { category } : {}) },
-      };
+  try {
+    const where: any = {
+      status: "READY",
+      course: { status: "PUBLISHED", ...(category ? { category } : {}) },
+    };
 
-      const [reels, total] = await Promise.all([
-        prisma.course_reels.findMany({
-          where,
-          skip,
-          take: limit,
-          orderBy: { created_at: "desc" },
-          select: {
-            id: true, caption: true, mux_playback_id: true, playback_url: true,
-            thumbnail_url: true, duration: true, view_count: true, created_at: true,
-            course: { select: FEED_COURSE_SELECT },
-          },
-        }),
-        prisma.course_reels.count({ where }),
-      ]);
+    // NEW: seeded-random order via raw SQL — Prisma can't order by a computed hash directly.
+    const categoryFilter = category
+      ? Prisma.sql`AND c.category = ${category}`
+      : Prisma.empty;
 
-      // Mark which courses this viewer already owns, in one query.
-      let enrolledIds = new Set<string>();
-      const userId = req.user?.userId;
-      if (userId && reels.length) {
-        const enrolments = await prisma.enrollments.findMany({
-          where: { user_id: userId, course_id: { in: reels.map((r) => r.course.id) } },
-          select: { course_id: true },
-        });
-        enrolledIds = new Set(enrolments.map((e) => e.course_id));
-      }
+    const idRows = await prisma.$queryRaw<{ id: string }[]>(Prisma.sql`
+      SELECT cr.id
+      FROM course_reels cr
+      JOIN courses c ON c.id = cr.course_id
+      WHERE cr.status = 'READY'
+        AND c.status = 'PUBLISHED'
+        ${categoryFilter}
+      ORDER BY md5(cr.id::text || ${seed})
+      OFFSET ${skip} LIMIT ${limit}
+    `);
+    const orderedIds = idRows.map((r) => r.id);
 
-      ApiResponseHandler.success(res, {
-        reels: reels.map((r) => ({ ...r, is_enrolled: enrolledIds.has(r.course.id) })),
-        pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
-      }, "Reels retrieved successfully");
-    } catch (err: any) {
-      ApiResponseHandler.unexpectedError(res, err, 500);
+    const [reels, total] = await Promise.all([
+      prisma.course_reels.findMany({
+        where: { id: { in: orderedIds } },
+        select: {
+          id: true, caption: true, mux_playback_id: true, playback_url: true,
+          thumbnail_url: true, duration: true, view_count: true, created_at: true,
+          course: { select: FEED_COURSE_SELECT },
+        },
+      }),
+      prisma.course_reels.count({ where }),
+    ]);
+
+    // findMany with `in` does not preserve order — restore the seeded order.
+    const byId = new Map(reels.map((r) => [r.id, r]));
+    const orderedReels = orderedIds.map((id) => byId.get(id)).filter(Boolean) as typeof reels;
+
+    // Mark which courses this viewer already owns, in one query.
+    let enrolledIds = new Set<string>();
+    const userId = req.user?.userId;
+    if (userId && orderedReels.length) {
+      const enrolments = await prisma.enrollments.findMany({
+        where: { user_id: userId, course_id: { in: orderedReels.map((r) => r.course.id) } },
+        select: { course_id: true },
+      });
+      enrolledIds = new Set(enrolments.map((e) => e.course_id));
     }
+
+    ApiResponseHandler.success(res, {
+      reels: orderedReels.map((r) => ({ ...r, is_enrolled: enrolledIds.has(r.course.id) })),
+      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    }, "Reels retrieved successfully");
+  } catch (err: any) {
+    ApiResponseHandler.unexpectedError(res, err, 500);
   }
+}
 
   /** Bump a view counter. Fire-and-forget from the client's point of view. */
   static async trackView(req: any, res: Response) {

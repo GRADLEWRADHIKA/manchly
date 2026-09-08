@@ -791,6 +791,46 @@ export class SessionController {
     }
   }
 
+
+  static async getPopularProducts(req: JWTRequest, res: Response) {
+    try {
+      const { limit = "6" } = req.query;
+      const limitNum = Math.min(parseInt(limit as string) || 6, 20);
+
+      const products = await prisma.session_products.findMany({
+        where: { is_active: true },
+        orderBy: { created_at: "desc" },
+        take: limitNum,
+      });
+
+      const creatorIds = [...new Set(products.map((p) => p.creator_id))];
+
+      const [creators, experts] = await Promise.all([
+        prisma.users.findMany({
+          where: { id: { in: creatorIds } },
+          select: { id: true, name: true, handle: true, profile_image: true },
+        }),
+        prisma.session_experts.findMany({
+          where: { user_id: { in: creatorIds }, is_active: true },
+          select: { id: true, user_id: true },
+        }),
+      ]);
+
+   const creatorMap = new Map(creators.map((c) => [c.id, c]));
+     const expertMap = new Map(experts.map((e) => [e.user_id, e.id]));
+
+      const enriched = products.map((p) => ({
+        ...p,
+        creator: creatorMap.get(p.creator_id) || null,
+        expert_id: expertMap.get(p.creator_id) || null,
+      }));
+
+      return res.json({ data: { products: enriched } });
+    } catch (err: any) {
+      console.error("getPopularProducts error:", err);
+      return res.status(500).json({ error: "Failed to fetch popular sessions" });
+    }
+  }   
   // ============ EXPERT AVAILABILITY ============
 
   // Expert: set weekly availability slots
@@ -1801,4 +1841,6 @@ static async cancelSession(req: JWTRequest, res: Response) {
     return res.status(500).json({ error: "Failed to cancel session" });
   }
 }
+
+
 }

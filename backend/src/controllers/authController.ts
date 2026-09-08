@@ -617,7 +617,7 @@ export class AuthController {
         select: AUTH_USER_SELECT,
       });
       if (!user) return ApiResponseHandler.customError(res, "User not found", 404, "USER_NOT_FOUND");
-      ApiResponseHandler.success(res, { user: serializeAuthUser(user) }, "User data retrieved successfully");
+      ApiResponseHandler.success(res, { user: serializeAuthUser(user, req.user?.userType) }, "User data retrieved successfully");
     } catch (err: any) {
       ApiResponseHandler.unexpectedError(res, err, 500);
     }

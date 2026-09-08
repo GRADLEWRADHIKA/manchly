@@ -222,7 +222,8 @@ export class WebinarController {
               id: true,
               name: true,
               email: true,
-              profile_image: true
+              profile_image: true,
+             handle: true
             }
           }
         }
@@ -307,7 +308,8 @@ export class WebinarController {
                 id: true,
                 name: true,
                 email: true,
-                profile_image: true
+                profile_image: true,
+                handle: true
               }
             },
             enrollments: isUser(user.user_type) ? {
@@ -402,7 +404,8 @@ const refundMap = new Map(refundsByWebinarRaw.map((r) => [r.webinar_id, r._count
               id: true,
               name: true,
               email: true,
-              profile_image: true
+              profile_image: true,
+              handle: true
             }
           },
           enrollments: isUser(user.user_type) ? {
@@ -642,7 +645,8 @@ const refundMap = new Map(refundsByWebinarRaw.map((r) => [r.webinar_id, r._count
               id: true,
               name: true,
               email: true,
-              profile_image: true
+              profile_image: true,
+              handle: true
             }
           }
         }
@@ -1418,7 +1422,8 @@ const refundMap = new Map(refundsByWebinarRaw.map((r) => [r.webinar_id, r._count
                     id: true,
                     name: true,
                     email: true,
-                    profile_image: true
+                    profile_image: true,
+                    handle: true
                   }
                 }
               }

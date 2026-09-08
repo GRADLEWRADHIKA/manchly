@@ -40,6 +40,7 @@ import { settlementCronService } from "./utils/settlementCron";
 import { webinarNotificationCronService } from "./utils/webinarNotificationCron";
 import { initializeSocketIO } from "./utils/socketHandler";
 import { storefrontHost } from "./middleware/storefrontHost";
+import storefrontAuthRouter from "./routes/storefrontAuth";
 
 dotenv.config();
 const app = express();
@@ -133,6 +134,7 @@ app.use("/sdk", sdkRouter);
 app.use("/clickancy", clickancyRouter);
 app.use("/sessions", sessionsRouter);
 app.use("/public", storefrontRouter);
+app.use("/creator", storefrontAuthRouter); 
 app.use("/reels", reelsRouter);
 app.use("/telegram", telegramRouter);
 app.use("/ai", aiRouter);

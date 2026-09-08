@@ -337,15 +337,16 @@ export default function ExploreCourses() {
                     <div
                       onClick={(ev) => {
                         ev.stopPropagation();
-                        if (c.creator?.id)
-                          navigate(`/app/creator/${c.creator.id}`);
+                        if (c.creator?.handle) {
+                          navigate(`/app/creator/${c.creator.handle}`);
+                        }
                       }}
                       style={{
                         display: "inline-block",
                         fontSize: 12.5,
                         fontWeight: 700,
                         marginTop: 6,
-                        cursor: c.creator?.id ? "pointer" : "default",
+                        cursor: c.creator?.handle ? "pointer" : "default",
                         width: "fit-content",
                         background:
                           "linear-gradient(135deg, #4ADE80 0%, #16A34A 100%)",
@@ -355,7 +356,7 @@ export default function ExploreCourses() {
                         color: "transparent",
                       }}
                       onMouseEnter={(e) => {
-                        if (c.creator?.id)
+                        if (c.creator?.handle)
                           e.currentTarget.style.textDecoration = "underline";
                       }}
                       onMouseLeave={(e) => {

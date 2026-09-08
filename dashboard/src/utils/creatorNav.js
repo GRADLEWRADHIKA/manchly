@@ -35,6 +35,8 @@ const CREATOR_DYNAMIC_KEY_TO_PATH = {
     params?.courseId
       ? `/creator/studio?courseId=${params.courseId}`
       : "/creator/studio",
+  "course-edit": (params) =>
+    params?.courseId ? `/creator/courses/${params.courseId}/edit` : "/creator/courses",
 };
 
 export function creatorPathFor(key, params) {

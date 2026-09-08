@@ -1621,7 +1621,7 @@ export default function WebinarsScreen() {
               </span>
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 12px", borderRadius: 10, background: "rgba(59,130,246,0.08)" }}>
-              <span style={{ fontSize: 13, color: "#6B7280" }}>Attendees / Enrollments</span>
+              <span style={{ fontSize: 13, color: "#6B7280" }}>Attendees / Users</span>
               <span style={{ fontSize: 14, fontWeight: 700, color: "#2563EB" }}>
                 {performanceWebinar._count?.enrollments ?? 0}
               </span>

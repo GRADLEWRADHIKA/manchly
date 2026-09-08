@@ -447,7 +447,7 @@ function StudioScreenContent({ initialCourseId }) {
         />
         <StatCard
           icon={Users}
-          label="Enrollments"
+          label="Users"
           value={stats?.total_enrollments ?? 0}
           tint="#F97316"
         />

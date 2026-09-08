@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Rocket, Download } from "lucide-react";
+import { Rocket, Download, Search, FileText, Target, TrendingUp, Sparkles } from "lucide-react";
 import { apiFetch, unwrap } from "../../utils/api";
 import colors from "../../utils/colors";
 import { generatePlanPdf } from "../../utils/generatePlanPdf";
@@ -27,7 +27,156 @@ const EXAMPLES = [
   "Yoga for Working Women",
 ];
 
-// ─── PROGRESS: runs independently on a fixed timer ─────────────────
+function HeroFeature({ icon, bg, label }) {
+  return (
+    <div style={{ textAlign: "center", minWidth: 74 }}>
+      <div
+        style={{
+          width: 46,
+          height: 46,
+          borderRadius: 12,
+          background: bg,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          margin: "0 auto 8px",
+        }}
+      >
+        {icon}
+      </div>
+      <div style={{ fontSize: 11.5, fontWeight: 700, color: "#1E293B", lineHeight: 1.35 }}>
+        {label[0]}
+        <br />
+        {label[1]}
+      </div>
+    </div>
+  );
+}
+
+function PlannerHero() {
+  return (
+    <div
+      style={{
+        position: "relative",
+        overflow: "hidden",
+        borderRadius: 24,
+        padding: "34px 38px",
+        marginBottom: 20,
+        background: "linear-gradient(120deg, #FFF7EE 0%, #FFE7C7 55%, #FFD9A6 100%)",
+        border: `1px solid ${colors.brand.primaryOrange}22`,
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+          gap: 24,
+          flexWrap: "wrap",
+        }}
+      >
+        <div style={{ maxWidth: 560 }}>
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              background: "#fff",
+              border: `1px solid ${colors.brand.primaryOrange}55`,
+              color: colors.brand.primaryOrange,
+              padding: "6px 14px",
+              borderRadius: 20,
+              fontSize: 11.5,
+              fontWeight: 800,
+              letterSpacing: 0.6,
+              marginBottom: 16,
+            }}
+          >
+            <Rocket size={13} /> AI COURSE PLANNER
+          </div>
+          <h1
+            style={{
+              margin: 0,
+              fontSize: 34,
+              fontWeight: 900,
+              color: "#0F172A",
+              lineHeight: 1.15,
+            }}
+          >
+            Plan Your Next Course
+          </h1>
+          <p style={{ margin: "10px 0 0", fontSize: 14.5, color: "#475569", lineHeight: 1.6 }}>
+            Turn your knowledge into a complete go-to-market plan — curriculum,
+            audience strategy and launch timeline, in seconds.
+          </p>
+        </div>
+
+        <div style={{ display: "flex", gap: 22 }}>
+          <HeroFeature
+            icon={<FileText size={20} color="#FF6B00" />}
+            bg="rgba(255,107,0,0.14)"
+            label={["Curriculum", "Outline"]}
+          />
+          <HeroFeature
+            icon={<Target size={20} color="#E23F7A" />}
+            bg="rgba(226,63,122,0.12)"
+            label={["Audience", "Strategy"]}
+          />
+          <HeroFeature
+            icon={<TrendingUp size={20} color="#16A34A" />}
+            bg="rgba(22,163,74,0.12)"
+            label={["Launch", "Timeline"]}
+          />
+        </div>
+      </div>
+
+      {/* Decorative floating card */}
+      <div
+        style={{
+          position: "absolute",
+          right: -10,
+          bottom: -18,
+          width: 130,
+          height: 90,
+          background: "#fff",
+          borderRadius: 14,
+          boxShadow: "0 14px 30px rgba(0,0,0,0.12)",
+          transform: "rotate(8deg)",
+          padding: 14,
+        }}
+      >
+        <div style={{ width: "70%", height: 6, background: "#E2E8F0", borderRadius: 4, marginBottom: 8 }} />
+        <div style={{ width: "90%", height: 6, background: "#E2E8F0", borderRadius: 4, marginBottom: 8 }} />
+        <div style={{ width: "55%", height: 6, background: "#E2E8F0", borderRadius: 4 }} />
+        <div
+          style={{
+            position: "absolute",
+            bottom: -10,
+            right: -10,
+            width: 34,
+            height: 34,
+            borderRadius: 9,
+            background: colors.brand.primaryOrange,
+            color: "#fff",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: 12,
+            fontWeight: 800,
+          }}
+        >
+          AI
+        </div>
+        <Sparkles
+          size={14}
+          color={colors.brand.primaryOrange}
+          style={{ position: "absolute", top: -10, right: 10 }}
+        />
+      </div>
+    </div>
+  );
+}
+
 function useProgress(loading) {
   const [pct, setPct] = useState(0);
   const raf = useRef(null);
@@ -57,7 +206,6 @@ function useProgress(loading) {
   return [pct, finish];
 }
 
-// ─── shared style tokens (light Creator Suite theme) ─────────────────
 const S = {
   tag: {
     display: "inline-block",
@@ -192,7 +340,7 @@ export default function CoursePlannerScreen() {
     setMsgIdx(0);
     msgTimer.current = setInterval(
       () => setMsgIdx((i) => (i + 1) % MSGS.length),
-      2500,
+      2500
     );
 
     try {
@@ -200,7 +348,7 @@ export default function CoursePlannerScreen() {
         await apiFetch("/ai/course/plan", {
           method: "POST",
           body: JSON.stringify({ niche: query }),
-        }),
+        })
       );
       if (!body || typeof body !== "object")
         throw new Error("No plan returned");
@@ -222,6 +370,7 @@ export default function CoursePlannerScreen() {
       }, 400);
     }
   };
+
   const handleDownloadPdf = () => {
     if (!plan) return;
     try {
@@ -245,98 +394,80 @@ export default function CoursePlannerScreen() {
         .cp-ghost:hover { background: rgba(0,0,0,0.02); color: ${colors.typography.primaryText}; }
       `}</style>
 
-      {/* Header */}
-      <div
-        style={{
-          background: G.heroGold,
-          borderRadius: 22,
-          padding: "30px 34px",
-          color: "#fff",
-          marginBottom: 24,
-        }}
-      >
+      {/* Compact header — shown only once a plan exists */}
+      {plan && !loading && (
         <div
           style={{
+            background: G.heroGold,
+            borderRadius: 22,
+            padding: "20px 28px",
+            color: "#fff",
+            marginBottom: 24,
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            gap: 16,
             flexWrap: "wrap",
+            gap: 16,
           }}
         >
-          <div>
-            <h1
+          <h1 style={{ margin: 0, fontSize: 20, fontWeight: 800, display: "flex", alignItems: "center", gap: 10 }}>
+            <Rocket size={20} /> AI Course Planner
+          </h1>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button
+              onClick={handleDownloadPdf}
               style={{
-                margin: 0,
-                fontSize: 26,
-                fontWeight: 900,
                 display: "flex",
                 alignItems: "center",
-                gap: 10,
+                gap: 6,
+                background: "#fff",
+                border: "none",
+                borderRadius: 8,
+                padding: "8px 16px",
+                color: colors.brand.primaryOrange,
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: "pointer",
               }}
             >
-              <Rocket size={24} /> AI Course Planner
-            </h1>
-            <p
-              style={{
-                margin: "8px 0 0",
-                opacity: 0.85,
-                fontSize: 14,
-                maxWidth: 560,
+              <Download size={14} /> Download PDF
+            </button>
+            <button
+              className="cp-ghost"
+              onClick={() => {
+                setPlan(null);
+                setNiche("");
+                setError("");
               }}
             >
-              Turn any niche into a complete go-to-market plan — curriculum, ad
-              creatives, audience sizing, and a revenue forecast.
-            </p>
+              + New Plan
+            </button>
           </div>
-          {plan && (
-            <div style={{ display: "flex", gap: 8 }}>
-              <button
-                onClick={handleDownloadPdf}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  background: "#fff",
-                  border: "none",
-                  borderRadius: 8,
-                  padding: "8px 16px",
-                  color: colors.brand.primaryOrange,
-                  fontSize: 13,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                }}
-              >
-                <Download size={14} /> Download PDF
-              </button>
-              <button
-                className="cp-ghost"
-                onClick={() => {
-                  setPlan(null);
-                  setNiche("");
-                  setError("");
-                }}
-              >
-                + New Plan
-              </button>
-            </div>
-          )}
         </div>
-      </div>
+      )}
 
-      {/* Landing */}
+      {/* Landing — hero + search */}
       {!plan && !loading && (
-        <div style={{ maxWidth: 620, margin: "0 auto" }}>
-          <div style={S.card}>
+        <div style={{ maxWidth: 1000, margin: "0 auto" }}>
+          <PlannerHero />
+
+          <div style={{ ...S.card, borderRadius: 20, padding: 26 }}>
             <div style={S.lbl}>Enter your course niche</div>
-            <div style={{ display: "flex", gap: 8, margin: "8px 0 15px" }}>
-              <input
-                style={S.input}
-                placeholder="e.g. Stock Market for Beginners, Freelance Design, Yoga…"
-                value={niche}
-                onChange={(e) => setNiche(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && generate()}
-              />
+            <div style={{ display: "flex", gap: 10, margin: "10px 0 18px" }}>
+              <div style={{ position: "relative", flex: 1 }}>
+                <Search
+                  size={17}
+                  color={colors.typography.secondaryText}
+                  style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)" }}
+                />
+                <input
+                  style={{ ...S.input, paddingLeft: 42 }}
+                  placeholder="e.g. Stock Market for Beginners, Freelance Design, Yoga…"
+                  value={niche}
+                  onChange={(e) => setNiche(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && generate()}
+                />
+              </div>
               <button
                 onClick={() => generate()}
                 disabled={!niche.trim()}
@@ -353,11 +484,11 @@ export default function CoursePlannerScreen() {
                   whiteSpace: "nowrap",
                 }}
               >
-                Generate →
+                Generate Plan →
               </button>
             </div>
             <div style={{ ...S.lbl, marginBottom: 7 }}>Quick examples</div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
               {EXAMPLES.map((ex) => (
                 <button
                   key={ex}
@@ -376,11 +507,7 @@ export default function CoursePlannerScreen() {
           {error && (
             <div style={{ color: "#DC2626", fontSize: 13, marginTop: 14 }}>
               {error}{" "}
-              <button
-                className="cp-ghost"
-                style={{ marginLeft: 8 }}
-                onClick={() => generate()}
-              >
+              <button className="cp-ghost" style={{ marginLeft: 8 }} onClick={() => generate()}>
                 Retry
               </button>
             </div>

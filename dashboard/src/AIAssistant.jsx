@@ -34,11 +34,7 @@ const T = {
   textSec: "#A1A1AA",
 };
 
-// ── Tool registry ──────────────────────────────────────────────────────────
-// Each tool maps a Faah-AI endpoint to a small form. Every /ai endpoint returns
-// { provider, data, latency_ms } so one generic result renderer handles them all.
 const TOOLS = [
-  // COURSE
   {
     id: "course-meta",
     group: "Course",

@@ -4,7 +4,6 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   BookOpen,
-  Users,
   PlayCircle,
   Share2,
   CheckCircle2,
@@ -45,6 +44,7 @@ export default function CourseDetails() {
   const [loading, setLoading] = useState(true);
   const [paying, setPaying] = useState(false);
   const [legalDoc, setLegalDoc] = useState(null);
+  const [moreCourses, setMoreCourses] = useState([]);
 
   const theme = colors.user;
 
@@ -77,6 +77,32 @@ export default function CourseDetails() {
     load();
   }, [courseId]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
+    let isMounted = true;
+    const creatorId = course?.creator?.id;
+
+    if (!creatorId) {
+      setMoreCourses([]);
+      return;
+    }
+
+    apiFetch(`/courses/public?creator_id=${creatorId}&limit=5`)
+      .then((r) => {
+        const d = unwrap(r);
+        const list = d?.courses || (Array.isArray(d) ? d : []);
+        if (isMounted) {
+          setMoreCourses(list.filter((c) => c.id !== course.id).slice(0, 4));
+        }
+      })
+      .catch(() => {
+        if (isMounted) setMoreCourses([]);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [course?.creator?.id, course?.id]);
+
   if (loading) return <FullLoader label="Loading course..." />;
   if (!course)
     return (
@@ -93,7 +119,6 @@ export default function CourseDetails() {
   const isEnrolled = course.is_enrolled ?? enrolled;
   const totalVideos = course.total_videos ?? videos.length;
   const totalDurationLabel = fmtDuration(course.total_duration);
-  
 
   // Access summary — derived only from fields the backend actually returns.
   let accessLabel = "Lifetime access";
@@ -206,8 +231,16 @@ export default function CourseDetails() {
         {/* Left: media + info */}
         <div>
           {preview ? (
-            <div>
-              <HlsVideo src={preview.playback_url} poster={course.thumbnail} autoPlay muted/>
+            <div
+             style={{
+                width: "100%",
+                aspectRatio: "16 / 9",
+                borderRadius: 16,
+                overflow: "hidden",
+                position: "relative",
+              }}
+            >
+              <HlsVideo src={preview.playback_url} poster={course.thumbnail} autoPlay muted style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
               <div style={{ marginTop: 8 }}>
                 <Badge color={theme?.highlight || "#F0C040"}>Free preview</Badge>
               </div>
@@ -215,7 +248,8 @@ export default function CourseDetails() {
           ) : (
             <div
               style={{
-                height: 320,
+                width: "100%",
+                aspectRatio: "16/9",
                 borderRadius: 16,
                 position: "relative",
                 overflow: "hidden",
@@ -326,8 +360,8 @@ export default function CourseDetails() {
 
           <button
             onClick={() =>
-              course.creator &&
-              navigate(`/app/creator/${course.creator.id}`, {
+              course.creator?.handle &&
+              navigate(`/app/creator/${course.creator.handle}`, {
                 state: { creator: course.creator },
               })
             }
@@ -366,52 +400,6 @@ export default function CourseDetails() {
                 <Clock size={13} /> {totalDurationLabel}
               </span>
             )}
-          </div>
-
-          {/* Course Summary */}
-          <div
-            style={{
-              background: theme?.card || colors.user.card,
-              border: `1px solid ${theme?.border || colors.user.border}`,
-              borderRadius: 14,
-              padding: "6px 18px",
-              marginTop: 20,
-            }}
-          >
-            <h3
-              style={{
-                margin: "12px 0 2px",
-                fontSize: 15,
-                fontWeight: 800,
-                color: theme?.text,
-              }}
-            >
-              Course Summary
-            </h3>
-            <div style={summaryRow}>
-              <span style={{ color: theme?.subHeading }}>Title</span>
-              <span style={{ fontWeight: 700 }}>{course.title}</span>
-            </div>
-            <div style={summaryRow}>
-              <span style={{ color: theme?.subHeading }}>Level</span>
-              <span style={{ fontWeight: 700 }}>{course.level || "—"}</span>
-            </div>
-            <div style={summaryRow}>
-              <span style={{ color: theme?.subHeading }}>Price</span>
-              <span style={{ fontWeight: 700 }}>{isFree ? "Free" : formatCurrency(price)}</span>
-            </div>
-            <div style={summaryRow}>
-              <span style={{ color: theme?.subHeading }}>Status</span>
-              <span style={{ fontWeight: 700 }}>{course.status || "—"}</span>
-            </div>
-            <div style={summaryRow}>
-              <span style={{ color: theme?.subHeading }}>Videos</span>
-              <span style={{ fontWeight: 700 }}>{totalVideos}</span>
-            </div>
-            <div style={summaryRow}>
-              <span style={{ color: theme?.subHeading }}>Duration</span>
-              <span style={{ fontWeight: 700 }}>{totalDurationLabel || "—"}</span>
-            </div>
             <div style={{ ...summaryRow, borderBottom: "none" }}>
               <span style={{ color: theme?.subHeading }}>Access</span>
               <span style={{ fontWeight: 700 }}>{accessLabel}</span>
@@ -440,7 +428,7 @@ export default function CourseDetails() {
             {course.description || "No description."}
           </p>
 
-          {/* Lesson list (locked until enrolled), two-column like the reference layout */}
+          {/* Lesson list */}
           {videos.length > 0 && (
             <div style={{ marginTop: 24 }}>
               <div
@@ -542,32 +530,6 @@ export default function CourseDetails() {
               padding: 22,
             }}
           >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <span style={{ fontSize: 26, fontWeight: 900, color: theme?.text }}>
-                {isFree ? "Free" : formatCurrency(bd.total)}
-              </span>
-              <button
-                onClick={share}
-                style={{
-                  background: "transparent",
-                  border: `1px solid ${theme?.border || colors.user.border}`,
-                  borderRadius: 10,
-                  color: theme?.text || "#fff",
-                  padding: 8,
-                  cursor: "pointer",
-                }}
-                title="Share"
-              >
-                <Share2 size={17} />
-              </button>
-            </div>
-
             {!isFree && (
               <div
                 style={{
@@ -641,7 +603,6 @@ export default function CourseDetails() {
                 </GradientButton>
               </>
             ) : (
-              /* Purchase / Enroll Button */
               <GradientButton
                 full
                 size="lg"
@@ -654,6 +615,104 @@ export default function CourseDetails() {
                   ? "Enroll for Free"
                   : `Purchase for ${formatCurrency(bd.total)}`}
               </GradientButton>
+            )}
+
+            {moreCourses.length > 0 && (
+              <div
+                style={{
+                  margin: "16px 0",
+                  borderTop: `1px dashed ${theme?.border || colors.user.border}`,
+                  paddingTop: 14,
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 800,
+                    letterSpacing: 0.8,
+                    textTransform: "uppercase",
+                    color: theme?.subHeading || colors.user.subHeading,
+                    marginBottom: 10,
+                  }}
+                >
+                  More from {course.creator?.name || "this creator"}
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {moreCourses.map((c) => {
+                    const thumb = c.thumbnail_url || c.thumbnail;
+                    const cPrice = Number(c.price) || 0;
+                    return (
+                      <div
+                        key={c.id}
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => navigate(`/app/course/${c.id}`)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            navigate(`/app/course/${c.id}`);
+                          }
+                        }}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 10,
+                          padding: 8,
+                          borderRadius: 10,
+                          cursor: "pointer",
+                          outline: "none",
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: 56,
+                            height: 40,
+                            borderRadius: 8,
+                            flexShrink: 0,
+                            overflow: "hidden",
+                            background: colors.gradients?.heroWarm || "#F8FAFC",
+                          }}
+                        >
+                          {thumb && (
+                            <img
+                              src={thumb}
+                              alt={c.title || "Course thumbnail"}
+                              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                            />
+                          )}
+                        </div>
+
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div
+                            style={{
+                              fontSize: 13,
+                              fontWeight: 700,
+                              color: theme?.text,
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {c.title || "Untitled Course"}
+                          </div>
+                        </div>
+
+                        <span
+                          style={{
+                            flexShrink: 0,
+                            fontSize: 12.5,
+                            fontWeight: 800,
+                            color: theme?.accent || colors.user.accentSoft,
+                          }}
+                        >
+                          {cPrice > 0 ? formatCurrency(cPrice) : "Free"}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             )}
 
             <p
@@ -694,28 +753,6 @@ export default function CourseDetails() {
               .
             </p>
           </div>
-
-          {/* Basic course stats — real counts only */}
-          <div
-            style={{
-              display: "flex",
-              gap: 10,
-              marginTop: 14,
-            }}
-          >
-            <div style={statBoxStyle(theme)}>
-              <Users size={16} color={theme?.accent} />
-              <span style={{ fontSize: 12, color: theme?.subHeading }}>
-                {course.total_students ?? 0} students
-              </span>
-            </div>
-            <div style={statBoxStyle(theme)}>
-              <PlayCircle size={16} color={theme?.accent} />
-              <span style={{ fontSize: 12, color: theme?.subHeading }}>
-                {totalVideos} Videos
-              </span>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -752,14 +789,3 @@ const metaPillStyle = {
   color: "inherit",
   opacity: 0.85,
 };
-
-const statBoxStyle = (theme) => ({
-  flex: 1,
-  display: "flex",
-  alignItems: "center",
-  gap: 8,
-  background: theme?.card || colors.user.card,
-  border: `1px solid ${theme?.border || colors.user.border}`,
-  borderRadius: 12,
-  padding: "10px 12px",
-});

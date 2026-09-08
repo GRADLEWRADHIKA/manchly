@@ -3,15 +3,16 @@ import { useNavigate } from "react-router-dom";
 import {
   BookOpen,
   ChevronRight,
-  Star,
   Clock,
   Video,
   UsersRound,
   TrendingUp,
   GraduationCap,
+  BarChart2,
+  Code,
+  Megaphone
 } from "lucide-react";
 import { apiFetch, unwrap } from "../../utils/api";
-import { onSocket } from "../../utils/socket";
 import colors from "../../utils/colors";
 import { Avatar, ProgressBar } from "../../components/ui";
 import { formatCurrency } from "../../utils/formatters";
@@ -28,6 +29,14 @@ function isToday(date) {
     d.getMonth() === today.getMonth() &&
     d.getFullYear() === today.getFullYear()
   );
+}
+
+function sessionIcon(title = "") {
+ const t = title.toLowerCase();
+  if (/resume|career|interview/.test(t)) return { Icon: BarChart2, bg: "#DCFCE7", color: "#16A34A" };
+  if (/website|tech|code|developer|app/.test(t)) return { Icon: Code, bg: "#DBEAFE", color: "#3B82F6" };
+  if (/marketing|brand|growth|social/.test(t)) return { Icon: Megaphone, bg: "#FCE7F3", color: "#DB2777" };
+  return { Icon: UsersRound, bg: "#F3E8FF", color: "#A855F7" };
 }
 
 function Skeleton({ height = 180, count = 4 }) {
@@ -206,17 +215,24 @@ function CourseCard({ course }) {
         {/* Creator Name */}
         <div
           onClick={(e) => {
-            if (course?.creator?.id) {
+            if (course?.creator?.handle) {
               e.stopPropagation();
-              navigate(`/app/creator/${course.creator.id}`);
+              navigate(`/app/creator/${course.creator.handle}`);
             }
+          }}
+          onMouseEnter={(e) => {
+            if (course?.creator?.handle)
+              e.currentTarget.style.textDecoration = "underline";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.textDecoration = "none";
           }}
           style={{
             display: "inline-block",
             fontSize: 14,
             fontWeight: 700,
             marginTop: 10,
-            cursor: course?.creator?.id ? "pointer" : "default",
+            cursor: course?.creator?.handle ? "pointer" : "default",
             background: "linear-gradient(135deg, #4ADE80 0%, #16A34A 100%)",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
@@ -313,25 +329,18 @@ export default function UserHome() {
   const navigate = useNavigate();
 
   const [experts, setExperts] = useState([]);
+  const [sessionProducts, setSessionProducts] = useState([]);
   const [courses, setCourses] = useState([]);
   const [webinars, setWebinars] = useState([]);
   const [enrollments, setEnrollments] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const loadExperts = () =>
-    apiFetch("/sessions/experts?page=1&limit=8")
-      .then((r) => {
-        const d = unwrap(r);
-        setExperts(d?.experts || d?.data || (Array.isArray(d) ? d : []));
-      })
-      .catch((error) => {
-        console.error("Failed to load experts:", error);
-        setExperts([]);
-      });
-
   useEffect(() => {
     Promise.allSettled([
-      loadExperts(),
+      apiFetch("/sessions/products/popular?limit=6").then((r) => {
+        const d = unwrap(r);
+        setSessionProducts(d?.products || (Array.isArray(d) ? d : []));
+      }),
 
       apiFetch("/courses?page=1&limit=8").then((r) => {
         const d = unwrap(r);
@@ -352,11 +361,6 @@ export default function UserHome() {
       }),
     ]).finally(() => setLoading(false));
 
-    const off = onSocket("expert_availability_updated", loadExperts);
-
-    return () => {
-      off();
-    };
   }, []);
 
   const inProgress = enrollments
@@ -377,7 +381,7 @@ export default function UserHome() {
         boxSizing: "border-box",
       }}
     >
-      {/* Hero Banner (Shorter Compact Version) */}
+      {/* Hero Banner */}
       <div
         className="uh-fade"
         style={{
@@ -435,34 +439,6 @@ export default function UserHome() {
             Discover courses, live webinars and 1:1 sessions to build new skills
             and grow at your own pace.
           </p>
-
-          <button
-            onClick={() => navigate("/app/explore/courses")}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              padding: "10px 22px",
-              borderRadius: 12,
-              border: "none",
-              cursor: "pointer",
-              fontSize: 14,
-              fontWeight: 800,
-              color: "#FFFFFF",
-              background: "linear-gradient(135deg, #10B981 0%, #059669 100%)",
-              boxShadow: "0 6px 14px rgba(16, 185, 129, 0.2)",
-              fontFamily: "inherit",
-              transition: "transform 0.15s ease",
-            }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.transform = "translateY(-1px)")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.transform = "translateY(0)")
-            }
-          >
-            Explore Now <ChevronRight size={16} />
-          </button>
         </div>
 
         {/* Feature Cards */}
@@ -924,15 +900,15 @@ export default function UserHome() {
                     <div
                       onClick={(ev) => {
                         ev.stopPropagation();
-                        if (w.creator?.id)
-                          navigate(`/app/creator/${w.creator.id}`);
+                        if (w.creator?.handle)
+                          navigate(`/app/creator/${w.creator.handle}`);
                       }}
                       style={{
                         display: "flex",
                         alignItems: "center",
                         gap: 6,
                         marginTop: 6,
-                        cursor: w.creator?.id ? "pointer" : "default",
+                        cursor: w.creator?.handle ? "pointer" : "default",
                         width: "fit-content",
                       }}
                     >
@@ -1005,159 +981,163 @@ export default function UserHome() {
         )}
       </Section>
 
-      {/* 3. Featured Creators Section */}
+    {/* 3. Popular 1:1 Sessions Section */}
       <Section
-        title="Featured Creators"
-        subtitle="Learn from the best. Real creators, real experience."
+        title="Popular 1:1 Sessions"
+        subtitle="Get personalized guidance from industry experts"
         onSeeAll={() => navigate("/app/sessions")}
         delay={180}
       >
         {loading ? (
-          <Skeleton height={190} count={5} />
-        ) : experts.length === 0 ? (
+          <Skeleton height={110} count={3} />
+        ) : sessionProducts.length === 0 ? (
           <div
             style={{
               color: colors.user.subHeading,
               fontSize: 14,
             }}
           >
-            Experts will appear here soon.
+            No 1:1 sessions available yet.
           </div>
         ) : (
           <div
             style={{
-              display: "flex",
-              gap: 14,
-              overflowX: "auto",
-              paddingBottom: 8,
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+              gap: 16,
             }}
           >
-            {experts.map((e) => (
-              <div
-                key={e.id}
-                className="uh-card"
-                onClick={() =>
-                  navigate(`/app/experts/${e.id}`, {
-                    state: { expert: e },
-                  })
-                }
-                style={{
-                  minWidth: 168,
-                  padding: 18,
-                  textAlign: "center",
-                  flexShrink: 0,
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "center",
-                    marginBottom: 10,
-                    position: "relative",
-                  }}
-                >
-                  <Avatar
-                    src={e.user?.profile_image || e.profile_image}
-                    name={e.user?.name || e.name || "E"}
-                    size={64}
-                  />
+            {sessionProducts.map((p) => {
+              const { Icon, bg, color } = sessionIcon(p.title);
+              const price = Number(p.price) || 0;
+              const canBook = Boolean(p.expert_id);
 
-                  {!!e.is_available && (
-                    <span
-                      style={{
-                        position: "absolute",
-                        bottom: 2,
-                        right: "calc(50% - 30px)",
-                        width: 13,
-                        height: 13,
-                        borderRadius: "50%",
-                        background: "#22C55E",
-                        border: `2.5px solid ${colors.user.card}`,
-                      }}
-                    />
-                  )}
-                </div>
-
+              return (
                 <div
+                  key={p.id}
                   style={{
-                    fontWeight: 800,
-                    fontSize: 14,
-                    color: colors.user.text,
-                  }}
-                >
-                  {e.user?.name || e.name}
-                </div>
-
-                <div
-                  style={{
-                    color: colors.user.subHeading,
-                    fontSize: 12,
-                    marginTop: 3,
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                  }}
-                >
-                  {e.profession || e.category}
-                </div>
-
-                <div
-                  style={{
+                    backgroundColor: "#FFFFFF",
+                    borderRadius: 16,
+                    border: "1px solid #F1F5F9",
+                    padding: "16px 18px",
                     display: "flex",
                     alignItems: "center",
-                    justifyContent: "center",
-                    gap: 8,
-                    marginTop: 9,
-                    fontSize: 12,
-                    color: colors.user.subHeading,
+                    gap: 14,
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.03)",
+                    transition: "transform 0.2s ease, box-shadow 0.2s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                    e.currentTarget.style.boxShadow = "0 8px 16px rgba(0,0,0,0.06)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.03)";
                   }}
                 >
-                  <span
+                  {/* Left Icon Square */}
+                  <div
                     style={{
+                      width: 54,
+                      height: 54,
+                      borderRadius: 14,
+                      backgroundColor: "#E6F4EA",
                       display: "flex",
                       alignItems: "center",
-                      gap: 3,
+                      justifyContent: "center",
+                      flexShrink: 0,
                     }}
                   >
-                    <Star size={11} color="#F0C040" />
-                    {e.rating || "New"}
-                  </span>
+                    <Icon size={24} color="#0D9488" />
+                  </div>
 
-                  <span
-                    style={{
-                      color: colors.user.accent,
-                      fontWeight: 800,
-                    }}
-                  >
-                    ₹{e.video_rate || 0}/min
-                  </span>
+                  {/* Right Content */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <h4
+                      style={{
+                        margin: 0,
+                        fontSize: 14,
+                        fontWeight: 700,
+                        color: "#0F172A",
+                        lineHeight: 1.3,
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
+                        overflow: "hidden",
+                      }}
+                    >
+                      {p.title || "Untitled Session"}
+                    </h4>
+
+                    {/* Duration */}
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 5,
+                        marginTop: 4,
+                        color: "#64748B",
+                        fontSize: 12.5,
+                        fontWeight: 500,
+                      }}
+                    >
+                      <Clock size={13} color="#64748B" />
+                      <span>{p.duration ? `${p.duration} min` : "30 min"}</span>
+                    </div>
+
+                    {/* Price and Book Action */}
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        marginTop: 10,
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontWeight: 800,
+                          fontSize: 16,
+                          color: "#16A34A",
+                        }}
+                      >
+                        {price > 0 ? formatCurrency(price) : "Free"}
+                      </span>
+
+                      <button
+                        onClick={() =>
+                          canBook &&
+                          navigate(`/app/experts/${p.expert_id}`, {
+                            state: { productId: p.id },
+                          })
+                        }
+                        disabled={!canBook}
+                        style={{
+                          padding: "6px 20px",
+                          borderRadius: 999,
+                          border: "none",
+                          backgroundColor: canBook ? "#E6F4EA" : "#F1F5F9",
+                          color: canBook ? "#16A34A" : "#94A3B8",
+                          fontSize: 13,
+                          fontWeight: 700,
+                          cursor: canBook ? "pointer" : "not-allowed",
+                          fontFamily: "inherit",
+                          transition: "background-color 0.15s ease",
+                        }}
+                        onMouseEnter={(e) => {
+                          if (canBook) e.currentTarget.style.backgroundColor = "#DCFCE7";
+                        }}
+                        onMouseLeave={(e) => {
+                          if (canBook) e.currentTarget.style.backgroundColor = "#E6F4EA";
+                        }}
+                      >
+                        Book
+                      </button>
+                    </div>
+                  </div>
                 </div>
-
-                <button
-                  onClick={(ev) => {
-                    ev.stopPropagation();
-                    navigate(`/app/experts/${e.id}`, {
-                      state: { expert: e },
-                    });
-                  }}
-                  style={{
-                    marginTop: 12,
-                    width: "100%",
-                    padding: "8px 0",
-                    borderRadius: 10,
-                    border: `1px solid ${colors.user?.border || "#E2E8F0"}`,
-                    background: "transparent",
-                    color: colors.user.text,
-                    fontSize: 12.5,
-                    fontWeight: 700,
-                    cursor: "pointer",
-                    fontFamily: "inherit",
-                  }}
-                >
-                  View Profile
-                </button>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </Section>

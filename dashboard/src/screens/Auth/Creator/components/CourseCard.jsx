@@ -3,14 +3,10 @@ import {
   BookOpen,
   Users,
   Eye,
-  Copy,
   MoreHorizontal,
   Pencil,
   Trash2,
   X,
-  Check,
-  UploadCloud,
-  Sparkles,
   Loader2,
   UserPlus,
   BarChart2,
@@ -19,7 +15,6 @@ import {
   FileText,
   Link as LinkIcon,
   Clock,
-  PlayCircle,
 } from "lucide-react";
 import { createPortal } from "react-dom";
 import colors from "../../../../utils/colors";
@@ -106,9 +101,6 @@ export default function CourseCard({
   onView,
   onDuplicate,
   onDelete,
-  onAnalytics,
-  onEnhanceTitle,
-  onEnhanceDescription,
   onAddUser,
   onEditVideos,
 }) {
@@ -127,46 +119,14 @@ export default function CourseCard({
   const [showEnrollments, setShowEnrollments] = useState(false);
   const [moreMenuPos, setMoreMenuPos] = useState(null);
 
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    isFree: true,
-    price: 0,
-    thumbnail: "",
-    status: "draft",
-  });
-
-  const [isEnhancingTitle, setIsEnhancingTitle] = useState(false);
-  const [isEnhancingDesc, setIsEnhancingDesc] = useState(false);
-
-  const fileInputRef = useRef(null);
   const moreButtonRef = useRef(null);
   const moreDropdownRef = useRef(null);
 
-  useEffect(() => {
-    if (openModal !== "edit") {
-      setDisplayCourse(course);
-    }
-  }, [course, openModal]);
+    useEffect(() => {
+    setDisplayCourse(course);
+  }, [course]);
 
-  useEffect(() => {
-    if (openModal === "edit") {
-      setFormData({
-        title: displayCourse?.title || displayCourse?.name || "",
-        description: displayCourse?.description || "",
-        isFree: (displayCourse?.price ?? 0) === 0,
-        price: displayCourse?.price ?? 0,
-        thumbnail:
-          displayCourse?.thumbnail_url ||
-          displayCourse?.thumbnail ||
-          displayCourse?.cover_image ||
-          "",
-        status:
-          displayCourse?.status ||
-          (displayCourse?.is_published ? "published" : "draft"),
-      });
-    }
-  }, [openModal]);
+
 
   useEffect(() => {
     if (openModal !== "more") return;
@@ -242,60 +202,6 @@ export default function CourseCard({
     }
   };
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData((prev) => ({ ...prev, thumbnail: reader.result }));
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleEnhanceTitle = async () => {
-    setIsEnhancingTitle(true);
-    try {
-      if (onEnhanceTitle) {
-        const enhanced = await onEnhanceTitle(formData.title);
-        if (enhanced) setFormData((prev) => ({ ...prev, title: enhanced }));
-      } else {
-        await new Promise((res) => setTimeout(res, 800));
-        setFormData((prev) => ({
-          ...prev,
-          title: prev.title.trim()
-            ? `Masterclass: ${prev.title.replace(/^masterclass:\s*/i, "")}`
-            : "Complete Professional Training Guide",
-        }));
-      }
-    } finally {
-      setIsEnhancingTitle(false);
-    }
-  };
-
-  const handleEnhanceDescription = async () => {
-    setIsEnhancingDesc(true);
-    try {
-      if (onEnhanceDescription) {
-        const enhanced = await onEnhanceDescription(
-          formData.description,
-          formData.title
-        );
-        if (enhanced)
-          setFormData((prev) => ({ ...prev, description: enhanced }));
-      } else {
-        await new Promise((res) => setTimeout(res, 800));
-        setFormData((prev) => ({
-          ...prev,
-          description: `Gain comprehensive hands-on experience with ${
-            formData.title || "this course"
-          }. Master core concepts, real-world practical workflows, and industry standards through step-by-step guidance.`,
-        }));
-      }
-    } finally {
-      setIsEnhancingDesc(false);
-    }
-  };
 
   const trimmedAddUserValue = addUserValue.trim();
   const addUserIsEmail = ADD_USER_EMAIL_RE.test(trimmedAddUserValue);
@@ -321,24 +227,6 @@ export default function CourseCard({
     }
   };
 
-  const handleSave = (e) => {
-    e?.stopPropagation();
-    const updatedCourse = {
-      ...displayCourse,
-      title: formData.title,
-      name: formData.title,
-      description: formData.description,
-      price: formData.isFree ? 0 : Number(formData.price),
-      thumbnail_url: formData.thumbnail,
-      thumbnail: formData.thumbnail,
-      cover_image: formData.thumbnail,
-      status: formData.status,
-      is_published: formData.status === "published",
-    };
-    setDisplayCourse(updatedCourse);
-    if (onSave) onSave(updatedCourse);
-    setOpenModal(null);
-  };
 
   const handleToggleDraft = () => {
     const nextStatus = isPublished ? "draft" : "published";
@@ -503,19 +391,6 @@ export default function CourseCard({
                 </button>
               )}
 
-              {onEditVideos && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setOpenModal(null);
-                    onEditVideos?.(displayCourse);
-                  }}
-                  style={menuItemStyle}
-                >
-                  <PlayCircle size={15} color={colors.typography.secondaryText} />
-                  <span>Edit Videos</span>
-                </button>
-              )}
 
               <button
                 type="button"
@@ -535,23 +410,8 @@ export default function CourseCard({
                 style={menuItemStyle}
               >
                 <Users size={15} color={colors.typography.secondaryText} />
-                <span>View Enrollments</span>
+                <span>View Users</span>
               </button>
-
-              {onDuplicate && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setOpenModal(null);
-                    onDuplicate?.(displayCourse);
-                  }}
-                  style={menuItemStyle}
-                >
-                  <Copy size={15} color={colors.typography.secondaryText} />
-                  <span>Duplicate</span>
-                </button>
-              )}
-
               {onDelete && (
                 <button
                   type="button"
@@ -668,25 +528,13 @@ export default function CourseCard({
               />
             </button>
 
-            <button
+                       <button
               type="button"
-              onClick={() => openModalFor("edit")}
+              onClick={() => onEdit?.(displayCourse)}
               title="Edit Course Details"
-              style={{
-                ...iconButtonStyle,
-                ...(openModal === "edit"
-                  ? activeIconButtonStyle("#FF6B00")
-                  : {}),
-              }}
+              style={iconButtonStyle}
             >
-              <Pencil
-                size={14}
-                color={
-                  openModal === "edit"
-                    ? "#FF6B00"
-                    : colors.typography.secondaryText
-                }
-              />
+              <Pencil size={14} color={colors.typography.secondaryText} />
             </button>
 
             <button
@@ -888,274 +736,6 @@ export default function CourseCard({
         </Modal>
       )}
 
-      {/* ===== MODAL 2: Edit Course Details ===== */}
-      {openModal === "edit" && (
-        <Modal
-          color="#FF6B00"
-          icon={<Pencil size={18} color="#FF6B00" />}
-          title="Edit Course Details"
-          width={440}
-          onClose={() => setOpenModal(null)}
-        >
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <label style={modalLabelStyle}>Course Title</label>
-                <button
-                  type="button"
-                  onClick={handleEnhanceTitle}
-                  disabled={isEnhancingTitle}
-                  style={enhanceButtonStyle}
-                >
-                  {isEnhancingTitle ? (
-                    <Loader2 size={12} className="animate-spin" />
-                  ) : (
-                    <Sparkles size={12} />
-                  )}
-                  <span>{isEnhancingTitle ? "Enhancing..." : "Enhance"}</span>
-                </button>
-              </div>
-              <input
-                type="text"
-                value={formData.title}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, title: e.target.value }))
-                }
-                placeholder="Enter course name"
-                style={modalInputStyle}
-              />
-            </div>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <label style={modalLabelStyle}>Description</label>
-                <button
-                  type="button"
-                  onClick={handleEnhanceDescription}
-                  disabled={isEnhancingDesc}
-                  style={enhanceButtonStyle}
-                >
-                  {isEnhancingDesc ? (
-                    <Loader2 size={12} className="animate-spin" />
-                  ) : (
-                    <Sparkles size={12} />
-                  )}
-                  <span>{isEnhancingDesc ? "Enhancing..." : "Enhance"}</span>
-                </button>
-              </div>
-              <textarea
-                value={formData.description}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    description: e.target.value,
-                  }))
-                }
-                rows={3}
-                placeholder="Brief summary of the course..."
-                style={{ ...modalInputStyle, resize: "vertical" }}
-              />
-            </div>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              <label style={modalLabelStyle}>Thumbnail Image</label>
-              <input
-                type="file"
-                ref={fileInputRef}
-                accept="image/*"
-                onChange={handleImageUpload}
-                style={{ display: "none" }}
-              />
-              <div style={{ display: "flex", alignItems: "center", gap: 13 }}>
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  style={uploadPillStyle}
-                >
-                  <UploadCloud size={14} color="#C05200" />
-                  <span style={{ fontSize: 13 }}>Upload</span>
-                </button>
-                {formData.thumbnail ? (
-                  <div
-                    style={{ display: "flex", alignItems: "center", gap: 10 }}
-                  >
-                    <img
-                      src={formData.thumbnail}
-                      alt="Thumbnail Preview"
-                      style={{
-                        width: 44,
-                        height: 44,
-                        borderRadius: 10,
-                        objectFit: "cover",
-                        border: `1px solid ${colors.base.border}`,
-                      }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setFormData((prev) => ({ ...prev, thumbnail: "" }))
-                      }
-                      style={{
-                        background: "none",
-                        border: "none",
-                        fontSize: 12,
-                        color: "#EF4444",
-                        cursor: "pointer",
-                        fontWeight: 600,
-                      }}
-                    >
-                      Remove
-                    </button>
-                  </div>
-                ) : (
-                  <span
-                    style={{
-                      fontSize: 12,
-                      color: colors.typography.secondaryText,
-                    }}
-                  >
-                    No image selected
-                  </span>
-                )}
-              </div>
-            </div>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              <label style={modalLabelStyle}>Pricing Type</label>
-              <div
-                style={{
-                  display: "flex",
-                  gap: 10,
-                  alignItems: "center",
-                  flexWrap: "wrap",
-                }}
-              >
-                <button
-                  type="button"
-                  onClick={() =>
-                    setFormData((prev) => ({ ...prev, isFree: true, price: 0 }))
-                  }
-                  style={{
-                    ...toggleButtonStyle,
-                    background: formData.isFree
-                      ? colors.brand?.primaryOrange || "#FF6B00"
-                      : "rgba(0,0,0,0.05)",
-                    color: formData.isFree
-                      ? "#FFF"
-                      : colors.typography.primaryText,
-                  }}
-                >
-                  Free Course
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setFormData((prev) => ({ ...prev, isFree: false }))
-                  }
-                  style={{
-                    ...toggleButtonStyle,
-                    background: !formData.isFree
-                      ? colors.brand?.primaryOrange || "#FF6B00"
-                      : "rgba(0,0,0,0.05)",
-                    color: !formData.isFree
-                      ? "#FFF"
-                      : colors.typography.primaryText,
-                  }}
-                >
-                  Paid Course
-                </button>
-                {!formData.isFree && (
-                  <div
-                    style={{ display: "flex", alignItems: "center", gap: 6 }}
-                  >
-                    <span
-                      style={{
-                        fontSize: 13,
-                        fontWeight: 600,
-                        color: colors.typography.secondaryText,
-                      }}
-                    >
-                      Price:
-                    </span>
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={formData.price}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          price: e.target.value,
-                        }))
-                      }
-                      style={{ ...modalInputStyle, width: 80 }}
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              <label style={modalLabelStyle}>Publishing Status</label>
-              <select
-                value={formData.status}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, status: e.target.value }))
-                }
-                style={modalInputStyle}
-              >
-                <option value="draft">Draft</option>
-                <option value="published">Published</option>
-              </select>
-            </div>
-
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "flex-end",
-                gap: 10,
-                paddingTop: 8,
-              }}
-            >
-              <button
-                type="button"
-                onClick={() => setOpenModal(null)}
-                style={{
-                  ...modalActionButtonStyle,
-                  background: "transparent",
-                  color: colors.typography.secondaryText,
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleSave}
-                style={{
-                  ...modalActionButtonStyle,
-                  background: colors.brand?.primaryOrange || "#FF6B00",
-                  color: "#FFF",
-                }}
-              >
-                <Check size={15} /> Save Changes
-              </button>
-            </div>
-          </div>
-        </Modal>
-      )}
-
       {/* ===== MODAL 3: Course Performance ===== */}
       {openModal === "performance" && (
         <Modal
@@ -1175,7 +755,7 @@ export default function CourseCard({
             <PerformanceStat
               icon={<Users size={16} color="#3B82F6" />}
               bg="rgba(59,130,246,0.08)"
-              label="Enrollments"
+              label="Users"
               value={students}
             />
             <PerformanceStat
@@ -1240,7 +820,7 @@ export default function CourseCard({
                   color: colors.typography.primaryText,
                 }}
               >
-                Enrollments — {title}
+                Users — {title}
               </span>
               <button
                 type="button"

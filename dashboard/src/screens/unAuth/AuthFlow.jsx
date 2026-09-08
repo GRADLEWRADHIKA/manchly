@@ -78,6 +78,11 @@ export default function AuthFlow() {
     const u = payload?.user || payload;
     const token = payload?.token || "";
     if (!token) throw new Error("No token returned");
+
+    if (selectedType && (!u.user_type || (selectedType === "CREATOR" && roleOf(u) !== "CREATOR"))) {
+      u.user_type = selectedType;
+    }
+
     login({ user: u, token });
     toast.success("Login successful");
     const pending = localStorage.getItem("manchly_pending_link");
@@ -86,9 +91,17 @@ export default function AuthFlow() {
       navigate(pending, { replace: true });
       return;
     }
+    const role = roleOf(u);
     const from = location.state?.from;
-    if (from) return navigate(from, { replace: true });
-    navigate(roleOf(u) === "CREATOR" ? "/creator" : roleOf(u) === "ADMIN" ? "/admin" : "/app", { replace: true });
+    if (from && from !== "/app" && from !== "/app/" && from !== "/" && from !== "/auth") {
+      if (role === "CREATOR" && from.startsWith("/creator")) {
+        return navigate(from, { replace: true });
+      }
+      if (role !== "CREATOR" && !from.startsWith("/creator") && !from.startsWith("/admin")) {
+        return navigate(from, { replace: true });
+      }
+    }
+    navigate(role === "CREATOR" ? "/creator" : role === "ADMIN" ? "/admin" : "/app", { replace: true });
   };
 
   const sendOtp = async () => {

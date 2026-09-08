@@ -8,16 +8,20 @@ import {
   DollarSign,
   Rocket,
   ArrowRight,
+  FileText,
+  Target,
+  Sparkles,
+  Search,
+  IndianRupee
 } from "lucide-react";
 import { apiFetch, unwrap } from "../../../utils/api";
 import colors from "../../../utils/colors";
-import computer from "../../../assets/Images/computer.png";
 import Sidebar from "../../../components/Sidebar";
 import TopHeader from "../../../components/TopHeader";
 import { formatCurrency } from "../../../utils/formatters";
 import VerificationBanner from "../../../components/VerificationBanner";
 import StatCard from "./components/StatCard";
-import InsightRow from "./components/InsightRow";
+
 import CourseCard from "./components/CourseCard";
 import { toast } from "../../../utils/toast";
 
@@ -55,6 +59,36 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
   const [sortOrder, setSortOrder] = useState("newest");
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 6;
+
+  const [plannerNiche, setPlannerNiche] = useState("");
+  const [plannerLoading, setPlannerLoading] = useState(false);
+  const [plannerError, setPlannerError] = useState("");
+
+  const handleGeneratePlan = async (nicheOverride) => {
+    const query = (nicheOverride ?? plannerNiche).trim();
+    if (!query) return;
+
+    setPlannerLoading(true);
+    setPlannerError("");
+
+    try {
+      const response = await apiFetch("/ai/course/plan", {
+        method: "POST",
+        body: JSON.stringify({ niche: query }),
+      });
+      const plan = unwrap(response);
+      if (!plan || typeof plan !== "object") {
+        throw new Error("No plan returned");
+      }
+      // Hand the generated plan + niche off to the planner screen
+      onNavigate?.("course-planner", { plan, niche: query });
+    } catch (err) {
+      console.error("Failed to generate course plan", err);
+      setPlannerError(err?.message || "Couldn't generate a plan. Try again.");
+    } finally {
+      setPlannerLoading(false);
+    }
+  };
 
   const loadCourses = useCallback(async () => {
     setLoading(true);
@@ -302,7 +336,7 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
   const handleWithdraw = () => onNavigate?.("withdraw");
   const handleNotifications = () => onNavigate?.("notifications");
   const handleCourseEdit = (course) =>
-    onNavigate?.("course-studio", { courseId: course?.id });
+    onNavigate?.("course-edit", { courseId: course?.id });
   const handleCourseView = (course) =>
     onNavigate?.("course-preview", { courseId: course?.id });
   const handleCourseDuplicate = (course) =>
@@ -435,7 +469,7 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
           }}
         >
           <StatCard
-            icon={DollarSign}
+            icon={IndianRupee}
             iconColor={colors.brand.primaryOrange}
             label="Total Revenue"
             value={formatCurrency(totalRevenue)}
@@ -464,15 +498,8 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
           />
         </div>
 
-        {/* Main Content Layout Grid */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 320px",
-            gap: 24,
-            alignItems: "start",
-          }}
-        >
+        {/* Main Content: single-column stack — courses table, then AI Planner banner below */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
           {/* Your Courses Section */}
           <div
             style={{
@@ -508,140 +535,133 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
                   {allCount}
                 </span>
               </span>
-              <button
-                type="button"
-                onClick={handleNewCourse}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  background: colors.brand.primaryOrange,
-                  color: colors.typography.white,
-                  border: "none",
-                  borderRadius: 10,
-                  padding: "9px 16px",
-                  fontSize: 13,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                }}
-              >
-                + Create Course
-              </button>
             </div>
 
-            {/* Tabs: All / Published / Drafts */}
-            <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
-              {[
-                { key: "all", label: "All", count: allCount },
-                { key: "published", label: "Published", count: publishedCount },
-                { key: "draft", label: "Drafts", count: draftCount },
-              ].map((tab) => (
-                <button
-                  key={tab.key}
-                  onClick={() => {
-                    setStatusFilter(tab.key);
-                    setCurrentPage(1);
-                  }}
-                  style={{
-                    padding: "8px 14px",
-                    borderRadius: 10,
-                    border: "none",
-                    background:
-                      statusFilter === tab.key
-                        ? "rgba(255,107,0,0.12)"
-                        : "transparent",
-                    color:
-                      statusFilter === tab.key
-                        ? colors.brand.primaryOrange
-                        : colors.typography.secondaryText,
-                    fontSize: 13,
-                    fontWeight: 700,
-                    cursor: "pointer",
-                  }}
-                >
-                  {tab.label} ({tab.count})
-                </button>
-              ))}
-            </div>
+{/* Search + filters row */}
+<div
+  style={{
+    display: "flex",
+    gap: 10,
+    marginBottom: 16,
+    flexWrap: "wrap",
+  }}
+>
+  <div style={{ position: "relative", flex: 1, minWidth: 200 }}>
+    <input
+      type="text"
+      value={searchQuery}
+      onChange={(e) => {
+        setSearchQuery(e.target.value);
+        setCurrentPage(1);
+      }}
+      placeholder="Search your courses..."
+      style={{
+        width: "100%",
+        boxSizing: "border-box",
+        border: `1px solid ${colors.base.border}`,
+        borderRadius: 10,
+        padding: "10px 14px",
+        fontSize: 13,
+        color: colors.typography.primaryText,
+        background: colors.base.cardBackground,
+        outline: "none",
+      }}
+    />
+  </div>
 
-            {/* Search + filters row */}
-            <div
-              style={{
-                display: "flex",
-                gap: 10,
-                marginBottom: 20,
-                flexWrap: "wrap",
-              }}
-            >
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setCurrentPage(1);
-                }}
-                placeholder="Search your courses..."
-                style={{
-                  flex: 1,
-                  minWidth: 200,
-                  border: `1px solid ${colors.base.border}`,
-                  borderRadius: 10,
-                  padding: "8px 14px",
-                  fontSize: 13,
-                  color: colors.typography.primaryText,
-                  background: colors.base.cardBackground,
-                  outline: "none",
-                }}
-              />
+  <select
+    value={categoryFilter}
+    onChange={(e) => {
+      setCategoryFilter(e.target.value);
+      setCurrentPage(1);
+    }}
+    style={{
+      border: `1px solid ${colors.base.border}`,
+      borderRadius: 10,
+      padding: "10px 14px",
+      fontSize: 13,
+      fontWeight: 700,
+      color: colors.typography.primaryText,
+      background: colors.base.cardBackground,
+      cursor: "pointer",
+    }}
+  >
+    <option value="all">All Categories</option>
+    {categories.map((cat) => (
+      <option key={cat} value={cat}>
+        {cat}
+      </option>
+    ))}
+  </select>
 
-              <select
-                value={categoryFilter}
-                onChange={(e) => {
-                  setCategoryFilter(e.target.value);
-                  setCurrentPage(1);
-                }}
-                style={{
-                  border: `1px solid ${colors.base.border}`,
-                  borderRadius: 10,
-                  padding: "8px 14px",
-                  fontSize: 13,
-                  fontWeight: 600,
-                  color: colors.typography.primaryText,
-                  background: colors.base.cardBackground,
-                  cursor: "pointer",
-                }}
-              >
-                <option value="all">All Categories</option>
-                {categories.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
-              </select>
+  <select
+    value={sortOrder}
+    onChange={(e) => {
+      setSortOrder(e.target.value);
+      setCurrentPage(1);
+    }}
+    style={{
+      border: `1px solid ${colors.base.border}`,
+      borderRadius: 10,
+      padding: "10px 14px",
+      fontSize: 13,
+      fontWeight: 700,
+      color: colors.typography.primaryText,
+      background: colors.base.cardBackground,
+      cursor: "pointer",
+    }}
+  >
+    <option value="newest">Newest First</option>
+    <option value="oldest">Oldest First</option>
+    <option value="price_desc">Price: High to Low</option>
+    <option value="price_asc">Price: Low to High</option>
+  </select>
+</div>
 
-              <select
-                value={sortOrder}
-                onChange={(e) => {
-                  setSortOrder(e.target.value);
-                  setCurrentPage(1);
-                }}
-                style={{
-                  border: `1px solid ${colors.base.border}`,
-                  borderRadius: 10,
-                  padding: "8px 14px",
-                  fontSize: 13,
-                  fontWeight: 600,
-                  color: colors.typography.primaryText,
-                  background: colors.base.cardBackground,
-                  cursor: "pointer",
-                }}
-              >
-                <option value="newest">Newest First</option>
-                <option value="oldest">Oldest First</option>
-                <option value="price_desc">Price: High to Low</option>
-                <option value="price_asc">Price: Low to High</option>
-              </select>
-            </div>
+{/* Tabs: All / Published / Drafts */}
+<div
+  style={{
+    display: "flex",
+    background: "rgba(0,0,0,0.03)",
+    borderRadius: 12,
+    padding: 4,
+    marginBottom: 20,
+  }}
+>
+  {[
+    { key: "all", label: "All", count: allCount },
+    { key: "published", label: "Published", count: publishedCount },
+    { key: "draft", label: "Drafts", count: draftCount },
+  ].map((tab) => (
+    <button
+      key={tab.key}
+      onClick={() => {
+        setStatusFilter(tab.key);
+        setCurrentPage(1);
+      }}
+      style={{
+        flex: 1,
+        padding: "10px 14px",
+        borderRadius: 9,
+        border: "none",
+        background:
+          statusFilter === tab.key ? colors.base.cardBackground : "transparent",
+        color:
+          statusFilter === tab.key
+            ? colors.brand.primaryOrange
+            : colors.typography.secondaryText,
+        fontSize: 13,
+        fontWeight: 700,
+        cursor: "pointer",
+        boxShadow:
+          statusFilter === tab.key ? "0 1px 4px rgba(0,0,0,0.08)" : "none",
+        transition: "all 0.15s ease",
+      }}
+    >
+      {tab.label} ({tab.count})
+    </button>
+  ))}
+</div>
 
             {/* Table */}
             {visibleCourses.length === 0 ? (
@@ -787,139 +807,260 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
             )}
           </div>
 
-          {/* Right Side Column */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-            {/* Creator Insights Card */}
+          {/* AI Planner Card — full-width banner below the courses table */}
+          <div
+            style={{
+              position: "relative",
+              overflow: "hidden",
+              borderRadius: 24,
+              padding: "34px 38px",
+              background:
+                "linear-gradient(120deg, #FFF7EE 0%, #FFE7C7 55%, #FFD9A6 100%)",
+              border: `1px solid ${colors.brand.primaryOrange}22`,
+              boxShadow: "0 8px 24px rgba(255,107,0,0.14)",
+            }}
+          >
             <div
               style={{
-                position: "relative",
-                background: `linear-gradient(135deg, ${colors.base.cardBackground} 0%, rgba(255, 107, 0, 0.08) 100%)`,
-                border: `1.5px solid ${colors.brand.primaryOrange}`,
-                borderRadius: 16,
-                padding: 20,
-                boxShadow: "0 8px 24px rgba(255, 107, 0, 0.12)",
                 display: "flex",
-                flexDirection: "column",
                 justifyContent: "space-between",
+                alignItems: "flex-start",
+                gap: 24,
+                flexWrap: "wrap",
               }}
             >
-              <div>
+              <div style={{ maxWidth: 560 }}>
                 <div
                   style={{
-                    display: "flex",
+                    display: "inline-flex",
                     alignItems: "center",
-                    justifyContent: "space-between",
-                    marginBottom: 10,
-                  }}
-                >
-                  <span
-                    style={{
-                      fontSize: 11,
-                      fontWeight: 800,
-                      color: colors.brand.primaryOrange,
-                      letterSpacing: 0.8,
-                    }}
-                  >
-                    CREATOR INSIGHTS
-                  </span>
-                </div>
-
-                <InsightRow label="KYC Status" value={kycLabel} />
-                <InsightRow label="Monthly Growth" value={monthlyGrowth} />
-                <InsightRow label="Conversion Rate" value={conversionRate} />
-                <InsightRow label="Refund Rate" value={refundRate} />
-                <InsightRow label="Avg. Order Value" value={avgOrderValue} />
-              </div>
-            </div>
-
-            {/* AI Planner Card */}
-            <div
-              onClick={() => onNavigate?.("course-planner")}
-              style={{
-                position: "relative",
-                background: `linear-gradient(135deg, ${colors.base.cardBackground} 0%, rgba(255,107,0,0.1) 100%)`,
-                border: `1.5px solid ${colors.brand.primaryOrange}`,
-                borderRadius: 16,
-                padding: 20,
-                cursor: "pointer",
-                boxShadow: "0 8px 24px rgba(255,107,0,0.14)",
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "space-between",
-              }}
-            >
-              <div>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    marginBottom: 10,
-                  }}
-                >
-                  <div
-                    style={{ display: "flex", alignItems: "center", gap: 6 }}
-                  >
-                    <Rocket size={18} color={colors.brand.primaryOrange} />
-                    <span
-                      style={{
-                        fontSize: 11,
-                        fontWeight: 800,
-                        color: colors.brand.primaryOrange,
-                        letterSpacing: 0.8,
-                      }}
-                    >
-                      AI PLANNER
-                    </span>
-                  </div>
-                  <span
-                    style={{
-                      background: colors.brand.primaryOrange,
-                      color: colors.typography.white,
-                      fontSize: 10,
-                      fontWeight: 800,
-                      padding: "2px 8px",
-                      borderRadius: 999,
-                    }}
-                  >
-                    NEW
-                  </span>
-                </div>
-                <div
-                  style={{
-                    fontSize: 16,
+                    gap: 8,
+                    background: "#fff",
+                    border: `1px solid ${colors.brand.primaryOrange}55`,
+                    color: colors.brand.primaryOrange,
+                    padding: "6px 14px",
+                    borderRadius: 20,
+                    fontSize: 11.5,
                     fontWeight: 800,
-                    color: colors.typography.primaryText,
-                    lineHeight: 1.2,
-                    marginBottom: 6,
+                    letterSpacing: 0.6,
+                    marginBottom: 16,
+                  }}
+                >
+                  <Rocket size={13} /> AI COURSE PLANNER
+                </div>
+                <h1
+                  style={{
+                    margin: 0,
+                    fontSize: 34,
+                    fontWeight: 900,
+                    color: "#0F172A",
+                    lineHeight: 1.15,
                   }}
                 >
                   Plan Your Next Course
-                </div>
-                <div
+                </h1>
+                <p
                   style={{
-                    fontSize: 12,
-                    color: colors.typography.secondaryText,
-                    lineHeight: 1.4,
-                    marginBottom: 14,
+                    margin: "10px 0 20px",
+                    fontSize: 14.5,
+                    color: "#475569",
+                    lineHeight: 1.6,
                   }}
                 >
-                  Generate an AI-driven curriculum, target audience strategy,
-                  and launch timeline in seconds.
+                  Turn your knowledge into a complete go-to-market plan —
+                  curriculum, audience strategy and launch timeline, in seconds.
+                </p>
+
+                {/* Working search + generate row */}
+                <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                  <div style={{ position: "relative", flex: 1, minWidth: 240 }}>
+                    <Search
+                      size={17}
+                      color="#94A3B8"
+                      style={{
+                        position: "absolute",
+                        left: 16,
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                      }}
+                    />
+                    <input
+                      value={plannerNiche}
+                      onChange={(e) => setPlannerNiche(e.target.value)}
+                      onKeyDown={(e) =>
+                        e.key === "Enter" && handleGeneratePlan()
+                      }
+                      placeholder="e.g. Stock Market for Beginners, Freelance Design, Yoga…"
+                      disabled={plannerLoading}
+                      style={{
+                        width: "100%",
+                        padding: "13px 17px 13px 42px",
+                        borderRadius: 10,
+                        border: "1.5px solid rgba(0,0,0,0.08)",
+                        fontSize: 14,
+                        color: "#0F172A",
+                        background: "#fff",
+                        outline: "none",
+                        boxSizing: "border-box",
+                      }}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleGeneratePlan()}
+                    disabled={!plannerNiche.trim() || plannerLoading}
+                    style={{
+                      background: colors.brand.primaryOrange,
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: 10,
+                      padding: "13px 24px",
+                      fontSize: 14,
+                      fontWeight: 800,
+                      cursor:
+                        plannerNiche.trim() && !plannerLoading
+                          ? "pointer"
+                          : "not-allowed",
+                      opacity: plannerNiche.trim() && !plannerLoading ? 1 : 0.5,
+                      whiteSpace: "nowrap",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                    }}
+                  >
+                    {plannerLoading ? "Generating…" : "Generate Plan"}
+                    {!plannerLoading && <ArrowRight size={15} />}
+                  </button>
                 </div>
+
+                {plannerError && (
+                  <div
+                    style={{ color: "#DC2626", fontSize: 12.5, marginTop: 10 }}
+                  >
+                    {plannerError}
+                  </div>
+                )}
               </div>
+
+              <div style={{ display: "flex", gap: 22 }}>
+                {[
+                  {
+                    icon: <FileText size={20} color="#FF6B00" />,
+                    bg: "rgba(255,107,0,0.14)",
+                    label: ["Curriculum", "Outline"],
+                  },
+                  {
+                    icon: <Target size={20} color="#E23F7A" />,
+                    bg: "rgba(226,63,122,0.12)",
+                    label: ["Audience", "Strategy"],
+                  },
+                  {
+                    icon: <TrendingUp size={20} color="#16A34A" />,
+                    bg: "rgba(22,163,74,0.12)",
+                    label: ["Launch", "Timeline"],
+                  },
+                ].map((f) => (
+                  <div
+                    key={f.label.join(" ")}
+                    style={{ textAlign: "center", minWidth: 74 }}
+                  >
+                    <div
+                      style={{
+                        width: 46,
+                        height: 46,
+                        borderRadius: 12,
+                        background: f.bg,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        margin: "0 auto 8px",
+                      }}
+                    >
+                      {f.icon}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 11.5,
+                        fontWeight: 700,
+                        color: "#1E293B",
+                        lineHeight: 1.35,
+                      }}
+                    >
+                      {f.label[0]}
+                      <br />
+                      {f.label[1]}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Decorative floating card */}
+            <div
+              style={{
+                position: "absolute",
+                right: -10,
+                bottom: -18,
+                width: 130,
+                height: 90,
+                background: "#fff",
+                borderRadius: 14,
+                boxShadow: "0 14px 30px rgba(0,0,0,0.12)",
+                transform: "rotate(8deg)",
+                padding: 14,
+                pointerEvents: "none",
+              }}
+            >
               <div
                 style={{
+                  width: "70%",
+                  height: 6,
+                  background: "#E2E8F0",
+                  borderRadius: 4,
+                  marginBottom: 8,
+                }}
+              />
+              <div
+                style={{
+                  width: "90%",
+                  height: 6,
+                  background: "#E2E8F0",
+                  borderRadius: 4,
+                  marginBottom: 8,
+                }}
+              />
+              <div
+                style={{
+                  width: "55%",
+                  height: 6,
+                  background: "#E2E8F0",
+                  borderRadius: 4,
+                }}
+              />
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: -10,
+                  right: -10,
+                  width: 34,
+                  height: 34,
+                  borderRadius: 9,
+                  background: colors.brand.primaryOrange,
+                  color: "#fff",
                   display: "flex",
                   alignItems: "center",
-                  gap: 6,
-                  fontSize: 13,
-                  fontWeight: 700,
-                  color: colors.brand.primaryOrange,
+                  justifyContent: "center",
+                  fontSize: 12,
+                  fontWeight: 800,
                 }}
               >
-                Launch Planner <ArrowRight size={14} />
+                AI
               </div>
+              <Sparkles
+                size={14}
+                color={colors.brand.primaryOrange}
+                style={{ position: "absolute", top: -10, right: 10 }}
+              />
             </div>
           </div>
         </div>

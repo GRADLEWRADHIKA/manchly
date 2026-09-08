@@ -1,9 +1,10 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Pencil,
   MapPin,
   Upload,
+  X as XIcon,
 } from "lucide-react";
 import { apiFetch, unwrap } from "../../utils/api";
 import colors from "../../utils/colors";
@@ -11,23 +12,25 @@ import { useAuth } from "../../context/AuthContext";
 import { Avatar, Badge, Modal } from "../../components/ui";
 import { toast } from "../../utils/toast";
 
+const EXPERIENCE_OPTIONS = [
+  "0-1 Years",
+  "1-3 Years",
+  "3-5 Years",
+  "5+ Years",
+  "10+ Years",
+];
+
 export default function CreatorProfile() {
   const { user, updateUser, logout } = useAuth();
   const navigate = useNavigate();
   const fileRef = useRef(null);
 
-  // Form state incorporating profile, contact, address, tax & support data
+
   const [form, setForm] = useState({
     firstName: user?.first_name || user?.name?.split(" ")[0] || "",
     lastName: user?.last_name || user?.name?.split(" ").slice(1).join(" ") || "",
     displayName: user?.display_name || user?.name || "",
-    headline: user?.headline || "",
     proBio: user?.pro_bio || "",
-    bio: user?.bio || "",
-    instagram: user?.instagram_link || "",
-    twitter: user?.twitter_link || "",
-    linkedin: user?.linkedin_link || "",
-    website: user?.website_link || "",
     email: user?.email || "",
     phone: user?.phone || "",
     addressLine1: user?.address_line1 || "",
@@ -41,10 +44,92 @@ export default function CreatorProfile() {
     supportPhone: user?.support_phone || "",
   });
 
+  // Storefront state — saves to /creator/storefront/me (new, separate table)
+  const [storefront, setStorefront] = useState({
+    tagline: "",
+    bio: "",
+    expertise: [],
+    experienceYears: "",
+    instagram: "",
+    linkedin: "",
+    youtube: "",
+    twitter: "",
+    website: "",
+    isPublished: false,
+  });
+  const [creatorHandle, setCreatorHandle] = useState(user?.handle || "");
+  const [expertiseInput, setExpertiseInput] = useState("");
+  const [loadingStorefront, setLoadingStorefront] = useState(true);
+
+  // Sync user updates if auth hydrates after initial mount
+  useEffect(() => {
+    if (user) {
+      setForm((prev) => ({
+        firstName: prev.firstName || user.first_name || user.name?.split(" ")[0] || "",
+        lastName: prev.lastName || user.last_name || user.name?.split(" ").slice(1).join(" ") || "",
+        displayName: prev.displayName || user.display_name || user.name || "",
+        proBio: prev.proBio || user.pro_bio || "",
+        email: user.email || prev.email || "",
+        phone: prev.phone || user.phone || "",
+        addressLine1: prev.addressLine1 || user.address_line1 || "",
+        addressLine2: prev.addressLine2 || user.address_line2 || "",
+        city: prev.city || user.city || "",
+        state: prev.state || user.state || "",
+        country: prev.country || user.country || "India",
+        pincode: prev.pincode || user.pincode || "",
+        gstin: prev.gstin || user.gstin || "",
+        supportEmail: prev.supportEmail || user.support_email || "",
+        supportPhone: prev.supportPhone || user.support_phone || "",
+      }));
+      if (user.handle) {
+        setCreatorHandle(user.handle);
+      }
+    }
+  }, [user]);
+
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [confirmPasswordReset, setConfirmPasswordReset] = useState(false);
+
+  // Load the creator's storefront data on mount
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadStorefront = async () => {
+      try {
+        const res = unwrap(await apiFetch("/creator/storefront/me"));
+        const s = res?.storefront;
+        if (isMounted && s) {
+          setStorefront({
+            tagline: s.tagline || "",
+            bio: s.bio || "",
+            expertise: Array.isArray(s.expertise) ? s.expertise : [],
+            experienceYears: s.experience_years || "",
+            instagram: s.instagram || "",
+            linkedin: s.linkedin || "",
+            youtube: s.youtube || "",
+            twitter: s.twitter || "",
+            website: s.website_url || "",
+            isPublished: Boolean(s.is_published),
+          });
+        }
+
+        if (isMounted && res?.handle) {
+          setCreatorHandle(res.handle);
+        }
+      } catch (e) {
+        toast.error(e.message || "Failed to load storefront details");
+      } finally {
+        if (isMounted) setLoadingStorefront(false);
+      }
+    };
+
+    loadStorefront();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Avatar Upload Logic
   const uploadAvatar = async (file) => {
@@ -83,23 +168,36 @@ export default function CreatorProfile() {
     }
   };
 
-  // Main Save Handler
+  // Expertise tag helpers
+  const addExpertiseTag = () => {
+    const value = expertiseInput.trim();
+    if (!value) return;
+    if (storefront.expertise.includes(value)) {
+      setExpertiseInput("");
+      return;
+    }
+    setStorefront((prev) => ({ ...prev, expertise: [...prev.expertise, value] }));
+    setExpertiseInput("");
+  };
+
+  const removeExpertiseTag = (tag) => {
+    setStorefront((prev) => ({
+      ...prev,
+      expertise: prev.expertise.filter((t) => t !== tag),
+    }));
+  };
+
+  // Main Save Handler — saves /auth/profile fields AND /creator/storefront/me fields
   const handleSave = async () => {
     setSaving(true);
     try {
       const fullName = `${form.firstName.trim()} ${form.lastName.trim()}`.trim();
-      const payload = {
+      const profilePayload = {
         name: fullName || form.displayName,
         first_name: form.firstName.trim(),
         last_name: form.lastName.trim(),
         display_name: form.displayName.trim(),
-        headline: form.headline.trim(),
         pro_bio: form.proBio.trim(),
-        bio: form.bio.trim(),
-        instagram_link: form.instagram.trim(),
-        twitter_link: form.twitter.trim(),
-        linkedin_link: form.linkedin.trim(),
-        website_link: form.website.trim(),
         address_line1: form.addressLine1.trim(),
         address_line2: form.addressLine2.trim(),
         city: form.city.trim(),
@@ -111,11 +209,31 @@ export default function CreatorProfile() {
         support_phone: form.supportPhone.trim(),
       };
 
-      await apiFetch("/auth/profile", {
-        method: "PUT",
-        body: JSON.stringify(payload),
-      });
-      updateUser(payload);
+      const storefrontPayload = {
+        tagline: storefront.tagline.trim(),
+        bio: storefront.bio.trim(),
+        expertise: storefront.expertise,
+        experience_years: storefront.experienceYears || null,
+        instagram: storefront.instagram.trim(),
+        linkedin: storefront.linkedin.trim(),
+        youtube: storefront.youtube.trim(),
+        twitter: storefront.twitter.trim(),
+        website_url: storefront.website.trim(),
+         is_published: storefront.isPublished
+      };
+
+      await Promise.all([
+        apiFetch("/auth/profile", {
+          method: "PUT",
+          body: JSON.stringify(profilePayload),
+        }),
+        apiFetch("/creator/storefront/me", {
+          method: "PUT",
+          body: JSON.stringify(storefrontPayload),
+        }),
+      ]);
+
+      updateUser(profilePayload);
       toast.success("Profile saved successfully!");
     } catch (e) {
       toast.error(e.message || "Failed to save profile");
@@ -152,6 +270,10 @@ export default function CreatorProfile() {
 
   const handleInputChange = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleStorefrontChange = (field, value) => {
+    setStorefront((prev) => ({ ...prev, [field]: value }));
   };
 
   return (
@@ -325,7 +447,71 @@ export default function CreatorProfile() {
           </div>
         </div>
 
-        {/* Section 1: Professional Details */}
+           {/* Storefront Visibility */}
+        <div style={{ background: "#fff", border: "1px solid #E5E7EB", borderRadius: 16, padding: 24 }}>
+         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+            <div>
+              <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "#111827" }}>
+                Public Storefront
+              </h3>
+              <p style={{ margin: "4px 0 0", fontSize: 13, color: "#6B7280" }}>
+                {storefront.isPublished
+                  ? "Your storefront is live. Anyone with your link can view it."
+                  : "Your storefront is hidden. Publish it so learners can find you."}
+              </p>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              {creatorHandle && (
+                <button
+                  onClick={() => window.open(`/app/creator/${creatorHandle}`, "_blank")}
+                  style={{
+                    background: "transparent",
+                    border: "1px solid #E5E7EB",
+                    borderRadius: 8,
+                    padding: "8px 14px",
+                    fontSize: 12.5,
+                    fontWeight: 700,
+                    color: "#374151",
+                    cursor: "pointer",
+                  }}
+                >
+                  View Public Profile
+                </button>
+              )}
+              <button
+                onClick={() => handleStorefrontChange("isPublished", !storefront.isPublished)}
+                disabled={loadingStorefront}
+                style={{
+                  width: 46,
+                  height: 26,
+                  borderRadius: 999,
+                  border: "none",
+                  cursor: loadingStorefront ? "not-allowed" : "pointer",
+                  background: storefront.isPublished ? "#22C55E" : "#D1D5DB",
+                  position: "relative",
+                  transition: "background 0.2s",
+                }}
+                aria-label={storefront.isPublished ? "Unpublish storefront" : "Publish storefront"}
+              >
+                <span
+                  style={{
+                   position: "absolute",
+                    top: 3,
+                    left: storefront.isPublished ? 23 : 3,
+                    width: 20,
+                    height: 20,
+                    borderRadius: "50%",
+                    background: "#fff",
+                    transition: "left 0.2s",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+                  }}
+                />
+              </button>
+            </div>
+          </div>
+       </div>
+
+        {/* Section 1: Professional Details (now backed by /creator/storefront/me) */}
         <div style={{ background: "#fff", border: "1px solid #E5E7EB", borderRadius: 16, padding: 24 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
             <Pencil size={18} color="#374151" />
@@ -334,7 +520,7 @@ export default function CreatorProfile() {
             </h3>
           </div>
           <p style={{ margin: "0 0 18px", fontSize: 13, color: "#6B7280" }}>
-            Tell visitors about yourself and what you do
+            Tell visitors about yourself and what you do. This section powers your public profile.
           </p>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -361,13 +547,15 @@ export default function CreatorProfile() {
 
             <div>
               <label style={{ display: "block", fontSize: 12.5, fontWeight: 600, color: "#374151", marginBottom: 6 }}>
-                Professional Headline
+                Tagline / Short Bio
               </label>
               <input
                 type="text"
-                placeholder="Enter your professional headline"
-                value={form.headline}
-                onChange={(e) => handleInputChange("headline", e.target.value)}
+                placeholder="e.g. Helping people learn, grow and build wealth"
+                value={storefront.tagline}
+                onChange={(e) => handleStorefrontChange("tagline", e.target.value)}
+                maxLength={150}
+                disabled={loadingStorefront}
                 style={{
                   width: "100%",
                   padding: "10px 14px",
@@ -378,17 +566,22 @@ export default function CreatorProfile() {
                   boxSizing: "border-box",
                 }}
               />
+              <div style={{ textAlign: "right", fontSize: 11, color: "#9CA3AF", marginTop: 4 }}>
+                {storefront.tagline.length}/150
+              </div>
             </div>
 
             <div>
               <label style={{ display: "block", fontSize: 12.5, fontWeight: 600, color: "#374151", marginBottom: 6 }}>
-                Professional Bio
+                About Me
               </label>
               <textarea
                 rows={3}
-                placeholder="Tell us about yourself professionally..."
-                value={form.proBio}
-                onChange={(e) => handleInputChange("proBio", e.target.value)}
+                placeholder="Tell your story. This will be visible on your public profile."
+                value={storefront.bio}
+                onChange={(e) => handleStorefrontChange("bio", e.target.value)}
+                maxLength={500}
+                disabled={loadingStorefront}
                 style={{
                   width: "100%",
                   padding: "10px 14px",
@@ -401,17 +594,100 @@ export default function CreatorProfile() {
                   fontFamily: "inherit",
                 }}
               />
+              <div style={{ textAlign: "right", fontSize: 11, color: "#9CA3AF", marginTop: 4 }}>
+                {storefront.bio.length}/500
+              </div>
             </div>
 
             <div>
               <label style={{ display: "block", fontSize: 12.5, fontWeight: 600, color: "#374151", marginBottom: 6 }}>
-                Bio
+                Your Expertise / Niche
               </label>
-              <textarea
-                rows={3}
-                placeholder="Tell us about yourself..."
-                value={form.bio}
-                onChange={(e) => handleInputChange("bio", e.target.value)}
+              <p style={{ margin: "0 0 8px", fontSize: 12, color: "#6B7280" }}>
+                Add the topics you teach or are an expert in.
+              </p>
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: 8,
+                  marginBottom: 10,
+                }}
+              >
+                {storefront.expertise.map((tag) => (
+                  <span
+                    key={tag}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 6,
+                      background: "#EFF6FF",
+                      color: "#2563EB",
+                      fontSize: 12.5,
+                      fontWeight: 600,
+                      padding: "5px 10px",
+                      borderRadius: 999,
+                    }}
+                  >
+                    {tag}
+                    <XIcon
+                      size={13}
+                      style={{ cursor: "pointer" }}
+                      onClick={() => removeExpertiseTag(tag)}
+                    />
+                  </span>
+                ))}
+              </div>
+              <div style={{ display: "flex", gap: 8 }}>
+                <input
+                  type="text"
+                  placeholder="e.g. Stock Market, Personal Finance"
+                  value={expertiseInput}
+                  onChange={(e) => setExpertiseInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      addExpertiseTag();
+                    }
+                  }}
+                  disabled={loadingStorefront}
+                  style={{
+                    flex: 1,
+                    padding: "9px 12px",
+                    borderRadius: 8,
+                    border: "1px solid #E5E7EB",
+                    background: "#FAFAFA",
+                    fontSize: 13.5,
+                    boxSizing: "border-box",
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={addExpertiseTag}
+                  style={{
+                    background: "#F3F4F6",
+                    border: "1px solid #E5E7EB",
+                    borderRadius: 8,
+                    padding: "0 16px",
+                    fontSize: 13,
+                    fontWeight: 600,
+                    color: "#374151",
+                    cursor: "pointer",
+                  }}
+                >
+                  Add
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label style={{ display: "block", fontSize: 12.5, fontWeight: 600, color: "#374151", marginBottom: 6 }}>
+                Experience (Years)
+              </label>
+              <select
+                value={storefront.experienceYears}
+                onChange={(e) => handleStorefrontChange("experienceYears", e.target.value)}
+                disabled={loadingStorefront}
                 style={{
                   width: "100%",
                   padding: "10px 14px",
@@ -419,16 +695,21 @@ export default function CreatorProfile() {
                   border: "1px solid #E5E7EB",
                   background: "#FAFAFA",
                   fontSize: 14,
-                  resize: "vertical",
                   boxSizing: "border-box",
-                  fontFamily: "inherit",
                 }}
-              />
+              >
+                <option value="">Select experience</option>
+                {EXPERIENCE_OPTIONS.map((opt) => (
+                  <option key={opt} value={opt}>
+                    {opt}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
         </div>
 
-        {/* Section 2: Social Links */}
+        {/* Section 2: Social Links (now backed by /creator/storefront/me) */}
         <div style={{ background: "#fff", border: "1px solid #E5E7EB", borderRadius: 16, padding: 24 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
             <Pencil size={18} color="#374151" />
@@ -437,7 +718,7 @@ export default function CreatorProfile() {
             </h3>
           </div>
           <p style={{ margin: "0 0 18px", fontSize: 13, color: "#6B7280" }}>
-            Connect your social media profiles
+            Connect your social media profiles. These show on your public profile.
           </p>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
@@ -448,29 +729,9 @@ export default function CreatorProfile() {
               <input
                 type="text"
                 placeholder="https://instagram.com/username"
-                value={form.instagram}
-                onChange={(e) => handleInputChange("instagram", e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: "10px 14px",
-                  borderRadius: 8,
-                  border: "1px solid #E5E7EB",
-                  background: "#FAFAFA",
-                  fontSize: 14,
-                  boxSizing: "border-box",
-                }}
-              />
-            </div>
-
-            <div>
-              <label style={{ display: "block", fontSize: 12.5, fontWeight: 600, color: "#374151", marginBottom: 6 }}>
-                Twitter URL
-              </label>
-              <input
-                type="text"
-                placeholder="https://twitter.com/username"
-                value={form.twitter}
-                onChange={(e) => handleInputChange("twitter", e.target.value)}
+                value={storefront.instagram}
+                onChange={(e) => handleStorefrontChange("instagram", e.target.value)}
+                disabled={loadingStorefront}
                 style={{
                   width: "100%",
                   padding: "10px 14px",
@@ -490,8 +751,9 @@ export default function CreatorProfile() {
               <input
                 type="text"
                 placeholder="https://linkedin.com/in/username"
-                value={form.linkedin}
-                onChange={(e) => handleInputChange("linkedin", e.target.value)}
+                value={storefront.linkedin}
+                onChange={(e) => handleStorefrontChange("linkedin", e.target.value)}
+                disabled={loadingStorefront}
                 style={{
                   width: "100%",
                   padding: "10px 14px",
@@ -506,13 +768,58 @@ export default function CreatorProfile() {
 
             <div>
               <label style={{ display: "block", fontSize: 12.5, fontWeight: 600, color: "#374151", marginBottom: 6 }}>
+                YouTube URL
+              </label>
+              <input
+                type="text"
+                placeholder="https://youtube.com/@channel"
+                value={storefront.youtube}
+                onChange={(e) => handleStorefrontChange("youtube", e.target.value)}
+                disabled={loadingStorefront}
+                style={{
+                  width: "100%",
+                  padding: "10px 14px",
+                  borderRadius: 8,
+                  border: "1px solid #E5E7EB",
+                  background: "#FAFAFA",
+                  fontSize: 14,
+                  boxSizing: "border-box",
+                }}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: "block", fontSize: 12.5, fontWeight: 600, color: "#374151", marginBottom: 6 }}>
+                X (Twitter) URL
+              </label>
+              <input
+                type="text"
+                placeholder="https://x.com/username"
+                value={storefront.twitter}
+                onChange={(e) => handleStorefrontChange("twitter", e.target.value)}
+                disabled={loadingStorefront}
+                style={{
+                  width: "100%",
+                  padding: "10px 14px",
+                  borderRadius: 8,
+                  border: "1px solid #E5E7EB",
+                  background: "#FAFAFA",
+                  fontSize: 14,
+                  boxSizing: "border-box",
+                }}
+              />
+            </div>
+
+            <div style={{ gridColumn: "1 / -1" }}>
+              <label style={{ display: "block", fontSize: 12.5, fontWeight: 600, color: "#374151", marginBottom: 6 }}>
                 Website URL
               </label>
               <input
                 type="text"
-                placeholder="https://dashboard.manchly.app"
-                value={form.website}
-                onChange={(e) => handleInputChange("website", e.target.value)}
+                placeholder="https://yourdomain.com"
+                value={storefront.website}
+                onChange={(e) => handleStorefrontChange("website", e.target.value)}
+                disabled={loadingStorefront}
                 style={{
                   width: "100%",
                   padding: "10px 14px",

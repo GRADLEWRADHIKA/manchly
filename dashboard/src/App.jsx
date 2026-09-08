@@ -61,6 +61,7 @@ import CourseStatsScreen from "./screens/Auth/Creator/components/CoursesStatCard
 import { AssistantProvider } from "./context/AssistantContext.jsx";
 import AiAssistant from "./screens/creator/AiAssistant.jsx"
 import AssistantLauncher from "./components/AssistantLaucher.jsx";
+import EditCourseScreen from "./screens/Auth/Creator/EditCourseScreen.jsx";
 
 function RequireAuth({ children, roles }) {
   const { isAuthed, booted, role } = useAuth();
@@ -232,7 +233,7 @@ export default function App() {
         <Route path="/call" element={<RequireAuth><CallRoom /></RequireAuth>} />
 
         {/* ---------- USER SHELL ---------- */}
-        <Route path="/app" element={<RequireAuth roles={["USER", "BRAND", "AGENCY"]}><UserLayout /></RequireAuth>}>
+        <Route path="/app" element={<RequireAuth roles={["USER", "BRAND", "AGENCY", "CREATOR"]}><UserLayout /></RequireAuth>}>
           <Route index element={<UserHome />} />
           <Route path="explore" element={<Navigate to="/app/explore/courses" replace />} />
 <Route path="explore/courses" element={<ExploreCourses />} />
@@ -244,7 +245,7 @@ export default function App() {
           <Route path="player/:courseId" element={<Player />} />
           <Route path="sessions" element={<Sessions />} />
           <Route path="experts/:expertId" element={<ExpertDetail />} />
-          <Route path="creator/:creatorId" element={<CreatorPublicProfile />} />
+           <Route path="creator/:handle" element={<CreatorPublicProfile />} />
           <Route path="marketplace" element={<Marketplace />} />
           <Route path="notifications" element={<Notifications role="user" />} />
           <Route path="profile" element={<UserProfile />} />
@@ -265,6 +266,7 @@ export default function App() {
         <Route path="/creator/courses/new" element={<RequireAuth roles={["CREATOR"]}><StandaloneCreatorScreen Screen={CourseCreateScreen} /></RequireAuth>} />
         <Route path="/creator/courses/new/:courseId/video" element={<RequireAuth roles={["CREATOR"]}><StandaloneCreatorScreen Screen={CourseVideoScreen} /></RequireAuth>} />
         <Route path="/creator/courses/new/:courseId/preview" element={<RequireAuth roles={["CREATOR"]}><StandaloneCreatorScreen Screen={CoursePreviewScreen} /></RequireAuth>} />
+        <Route path="/creator/courses/:courseId/edit" element={<RequireAuth roles={["CREATOR"]}><StandaloneCreatorScreen Screen={EditCourseScreen} /></RequireAuth>} />
 
         <Route path="/creator/hub" element={<RequireAuth roles={["CREATOR"]}><StandaloneCreatorScreen Screen={CreatorHubScreen} /></RequireAuth>} />
         <Route path="/creator/creator-hub" element={<RequireAuth roles={["CREATOR"]}><StandaloneCreatorScreen Screen={CreatorHubScreen} /></RequireAuth>} />

@@ -14,6 +14,7 @@ import {
 } from "../utils/accessExpiry";
 import { resolveUser } from "../utils/userLookup";
 import dotenv from "dotenv";
+import { recordUserActivity } from "../utils/activityTracker";
 
 dotenv.config();
 
@@ -1549,6 +1550,8 @@ const videosToShow = course.videos.map((v) => {
           completed_at: parseFloat(progress) >= 100 ? new Date() : null,
         },
       });
+
+      recordUserActivity(userId).catch((err) => console.error("Activity log error:", err)); 
 
       ApiResponseHandler.success(
         res,

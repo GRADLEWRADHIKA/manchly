@@ -16,6 +16,7 @@ import MuxManager from "../utils/MuxManager";
 import { resolveUser } from "../utils/userLookup";
 import crypto from "crypto";
 import dotenv from "dotenv";
+import { recordUserActivity } from "../utils/activityTracker";
 
 dotenv.config();
 
@@ -794,6 +795,8 @@ const refundMap = new Map(refundsByWebinarRaw.map((r) => [r.webinar_id, r._count
           }
         });
 
+        recordUserActivity(userId).catch(err => console.error("Activity log error:", err)); // ADD THIS
+
         // Send notifications (don't wait for them)
         WebinarController.sendEnrollmentNotifications(user, webinar).catch(err => {
           console.error('Error sending enrollment notifications:', err);
@@ -1026,6 +1029,8 @@ const refundMap = new Map(refundsByWebinarRaw.map((r) => [r.webinar_id, r._count
           }
         }
       });
+
+      recordUserActivity(userId).catch(err => console.error("Activity log error:", err)); // ADD THIS
 
       // Credit creator's wallet
       SettlementService.creditCreatorWallet({

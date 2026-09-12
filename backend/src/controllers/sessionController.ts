@@ -7,6 +7,7 @@ import { notificationService } from "../services/NotificationService";
 import { SettlementService } from "../services/settlementService";
 import { NotificationController } from "./notificationController";
 import dotenv from "dotenv";
+import { recordUserActivity } from "../utils/activityTracker";
 
 dotenv.config();
 
@@ -43,6 +44,8 @@ export class SessionController {
           status: "PENDING",
         },
       });
+
+     recordUserActivity(callerId).catch((err) => console.error("Activity log error:", err)); 
 
       // Fetch with user info
       const [caller, receiver] = await Promise.all([
@@ -127,6 +130,9 @@ export class SessionController {
           amount,
         },
       });
+
+      recordUserActivity(session.caller_id).catch((err) => console.error("Activity log error:", err)); // ADD THIS
+recordUserActivity(session.receiver_id).catch((err) => console.error("Activity log error:", err)); // ADD THIS
 
       return res.json({ data: session });
     } catch (err: any) {
@@ -1509,67 +1515,70 @@ export class SessionController {
   try {
     const userId = req.user!.userId;
 
-    const [
-      courseCount,
-      courseEnrollments,
-      courseRevenue,
-      webinarCount,
-      webinarEnrollments,
-      webinarRevenue,
-      completedSessions,
-      allSessions,
-      courseEnrollmentDates,
-      webinarEnrollmentDates,
-      courseRevenueByProduct,
-      webinarRevenueByProduct,
-    ] = await Promise.all([
-      prisma.courses.count({ where: { creator_id: userId } }),
-      prisma.enrollments.count({
-        where: { course: { creator_id: userId } },
-      }),
-      prisma.transactions.aggregate({
-        where: { course: { creator_id: userId }, status: "SUCCESS" },
-        _sum: { amount: true },
-      }),
-      prisma.webinars.count({ where: { creator_id: userId } }),
-      prisma.webinar_enrollments.count({
-        where: { webinar: { creator_id: userId } },
-      }),
-      prisma.webinar_transactions.aggregate({
-        where: { webinar: { creator_id: userId }, status: "SUCCESS" },
-        _sum: { amount: true },
-      }),
-      prisma.sessions.findMany({
-        where: {
-          OR: [{ caller_id: userId }, { receiver_id: userId }],
-          status: "COMPLETED",
-        },
-      }),
-      prisma.sessions.findMany({
-        where: {
-          OR: [{ caller_id: userId }, { receiver_id: userId }],
-        },
-        select: { status: true },
-      }),
-      prisma.enrollments.findMany({
-        where: { course: { creator_id: userId } },
-        select: { enrolled_at: true },
-      }),
-      prisma.webinar_enrollments.findMany({
-        where: { webinar: { creator_id: userId } },
-        select: { enrolled_at: true },
-      }),
-      prisma.transactions.groupBy({
-        by: ["course_id"],
-        where: { course: { creator_id: userId }, status: "SUCCESS" },
-        _sum: { amount: true },
-      }),
-      prisma.webinar_transactions.groupBy({
-        by: ["webinar_id"],
-        where: { webinar: { creator_id: userId }, status: "SUCCESS" },
-        _sum: { amount: true },
-      }),
-    ]);
+    // --- BATCH 1: Top-level counts, aggregates, and session data ---
+const [
+  courseCount,
+  courseEnrollments,
+  courseRevenue,
+  webinarCount,
+  webinarEnrollments,
+  webinarRevenue,
+  allSessions,
+] = await Promise.all([
+  prisma.courses.count({ where: { creator_id: userId } }),
+  prisma.enrollments.count({
+    where: { course: { creator_id: userId } },
+  }),
+  prisma.transactions.aggregate({
+    where: { course: { creator_id: userId }, status: "SUCCESS" },
+    _sum: { amount: true },
+  }),
+  prisma.webinars.count({ where: { creator_id: userId } }),
+  prisma.webinar_enrollments.count({
+    where: { webinar: { creator_id: userId } },
+  }),
+  prisma.webinar_transactions.aggregate({
+    where: { webinar: { creator_id: userId }, status: "SUCCESS" },
+    _sum: { amount: true },
+  }),
+  // Single query for sessions instead of fetching twice
+  prisma.sessions.findMany({
+    where: {
+      OR: [{ caller_id: userId }, { receiver_id: userId }],
+    },
+    select: { id: true, status: true },
+  }),
+]);
+
+// Derive completed sessions in-memory to save a full database query slot
+const completedSessions = allSessions.filter((s) => s.status === "COMPLETED");
+
+// --- BATCH 2: Enrollment timeline records & product breakdown ---
+const [
+  courseEnrollmentDates,
+  webinarEnrollmentDates,
+  courseRevenueByProduct,
+  webinarRevenueByProduct,
+] = await Promise.all([
+  prisma.enrollments.findMany({
+    where: { course: { creator_id: userId } },
+    select: { enrolled_at: true },
+  }),
+  prisma.webinar_enrollments.findMany({
+    where: { webinar: { creator_id: userId } },
+    select: { enrolled_at: true },
+  }),
+  prisma.transactions.groupBy({
+    by: ["course_id"],
+    where: { course: { creator_id: userId }, status: "SUCCESS" },
+    _sum: { amount: true },
+  }),
+  prisma.webinar_transactions.groupBy({
+    by: ["webinar_id"],
+    where: { webinar: { creator_id: userId }, status: "SUCCESS" },
+    _sum: { amount: true },
+  }),
+]);
 
     // ── everything below runs AFTER the Promise.all resolves ──
 

@@ -57,6 +57,7 @@ model users {
   sessionExpert             session_experts?
   settlements               settlements[]
   transactions              transactions[]
+  activity_logs             user_activity_log[]
   webinar_enrollments       webinar_enrollments[]
   webinar_transactions      webinar_transactions[]
   webinars                  webinars[]
@@ -441,6 +442,18 @@ model wallet_transactions {
   @@map("wallet_transactions")
 }
 
+model user_activity_log {
+  id            String   @id @default(uuid())
+  user_id       String
+  activity_date DateTime @db.Date
+  created_at    DateTime @default(now())
+  user          users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, activity_date])
+  @@index([user_id])
+  @@map("user_activity_log")
+}
+
 model sessions {
   id             String        @id @default(uuid())
   call_id        String        @unique
@@ -670,6 +683,8 @@ model creator_storefronts {
   view_count   Int      @default(0) @map("view_count")
   created_at   DateTime @default(now()) @map("created_at")
   updated_at   DateTime @default(now()) @updatedAt @map("updated_at")
+  expertise    String[]
+  experience_years    Int?
   user         users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@index([is_published])

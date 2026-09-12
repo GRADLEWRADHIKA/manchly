@@ -330,10 +330,23 @@ export class StorefrontController {
       if (bio !== undefined) updateData.bio = String(bio).trim();
       if (cover_image !== undefined) updateData.cover_image = cover_image || null;
       if (accent_color !== undefined) updateData.accent_color = accent_color;
+
       if (expertise !== undefined) {
         updateData.expertise = Array.isArray(expertise) ? expertise.map(String) : [];
       }
-      if (experience_years !== undefined) updateData.experience_years = experience_years || null;
+
+      // Safely convert string experience ranges (e.g., "1-3 Years") to Int for Prisma
+      if (experience_years !== undefined) {
+        if (typeof experience_years === "number") {
+          updateData.experience_years = experience_years;
+        } else if (typeof experience_years === "string" && experience_years.trim() !== "") {
+          const numbers = experience_years.match(/\d+/g);
+          updateData.experience_years = numbers ? parseInt(numbers[numbers.length - 1], 10) : null;
+        } else {
+          updateData.experience_years = null;
+        }
+      }
+
       if (website_url !== undefined) updateData.website_url = website_url || null;
       if (instagram !== undefined) updateData.instagram = instagram || null;
       if (linkedin !== undefined) updateData.linkedin = linkedin || null;

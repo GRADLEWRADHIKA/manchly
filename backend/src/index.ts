@@ -41,6 +41,7 @@ import { webinarNotificationCronService } from "./utils/webinarNotificationCron"
 import { initializeSocketIO } from "./utils/socketHandler";
 import { storefrontHost } from "./middleware/storefrontHost";
 import storefrontAuthRouter from "./routes/storefrontAuth";
+import activityRouter from "./routes/activityRoutes";
 
 dotenv.config();
 const app = express();
@@ -133,6 +134,7 @@ app.use("/auth/xtech", xtechRouter);
 app.use("/sdk", sdkRouter);
 app.use("/clickancy", clickancyRouter);
 app.use("/sessions", sessionsRouter);
+app.use("/activity", activityRouter);
 app.use("/public", storefrontRouter);
 app.use("/creator", storefrontAuthRouter); 
 app.use("/reels", reelsRouter);

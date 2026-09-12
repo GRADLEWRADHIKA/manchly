@@ -22,6 +22,7 @@ import VerificationBanner from "../../../components/VerificationBanner";
 import StatCard from "./components/StatCard";
 import CourseCard from "./components/CourseCard";
 import { toast } from "../../../utils/toast";
+import { withLegacyCategories } from "../../../utils/categories";
 
 function val(result) {
   if (result.status !== "fulfilled") return null;
@@ -267,10 +268,10 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
     walletData?.available ??
     0;
 
-  const categories = useMemo(() => {
-    const set = new Set(courseList.map((c) => c?.category).filter(Boolean));
-    return Array.from(set);
-  }, [courseList]);
+ const categories = useMemo(
+  () => withLegacyCategories(courseList.map((c) => c?.category)),
+  [courseList],
+);
 
   const filteredCourses = useMemo(() => {
     let list = [...courseList];

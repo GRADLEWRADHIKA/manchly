@@ -9,6 +9,7 @@ import Stepper from "./components/Stepper";
 import ThumbnailDropzone from "./components/ThumbnailDropZone";
 import AccessOptionCard from "./components/AccessOptionCard";
 import { useParams } from "react-router-dom";
+import { CATEGORIES } from "../../../utils/categories";
 
 const WIZARD_STEPS = [
   { key: "course-details", label: "Course Details", icon: FileText },
@@ -27,25 +28,31 @@ const EMPTY_FORM = {
   status: "DRAFT",
   level: "Beginner",
   price: "",
-  category: "General",
+  category: "",
   language: "English",
 };
 
-export default function CourseCreateScreen({ user, onNavigate, courseId: propCourseId }) {
- const { courseId: urlCourseId } = useParams();
+export default function CourseCreateScreen({
+  user,
+  onNavigate,
+  courseId: propCourseId,
+}) {
+  const { courseId: urlCourseId } = useParams();
 
-const [resolvedCourseId] = useState(() => {
-  const clean =
-    typeof propCourseId === "object"
-      ? propCourseId?.id || propCourseId?.courseId
-      : propCourseId;
-  return (
-    urlCourseId ||
-    clean ||
-    (typeof localStorage !== "undefined" ? localStorage.getItem("activeCourseId") : "") ||
-    ""
-  );
-});
+  const [resolvedCourseId] = useState(() => {
+    const clean =
+      typeof propCourseId === "object"
+        ? propCourseId?.id || propCourseId?.courseId
+        : propCourseId;
+    return (
+      urlCourseId ||
+      clean ||
+      (typeof localStorage !== "undefined"
+        ? localStorage.getItem("activeCourseId")
+        : "") ||
+      ""
+    );
+  });
 
   const [form, setForm] = useState(EMPTY_FORM);
   const [thumbnailFile, setThumbnailFile] = useState(null);
@@ -62,7 +69,8 @@ const [resolvedCourseId] = useState(() => {
   const [whatsappCommunityUrl, setWhatsappCommunityUrl] = useState("");
   const [thankyouMessage, setThankyouMessage] = useState("");
 
-  const updateField = (field, value) => setForm((prev) => ({ ...prev, [field]: value }));
+  const updateField = (field, value) =>
+    setForm((prev) => ({ ...prev, [field]: value }));
 
   const handleThumbnailSelect = (file) => {
     setThumbnailFile(file);
@@ -78,9 +86,18 @@ const [resolvedCourseId] = useState(() => {
     try {
       const formData = new FormData();
       formData.append("file", thumbnailFile);
-      const response = await apiFetch("/upload", { method: "POST", body: formData });
+      const response = await apiFetch("/upload", {
+        method: "POST",
+        body: formData,
+      });
       const unwrapped = unwrap ? unwrap(response) : response;
-      return unwrapped?.url || unwrapped?.file_url || unwrapped?.path || response?.url || null;
+      return (
+        unwrapped?.url ||
+        unwrapped?.file_url ||
+        unwrapped?.path ||
+        response?.url ||
+        null
+      );
     } catch (err) {
       console.warn("Thumbnail upload warning:", err);
       return null;
@@ -105,14 +122,16 @@ const [resolvedCourseId] = useState(() => {
             status: course.status || "DRAFT",
             level: course.level || "Beginner",
             price: course.price != null ? String(course.price) : "",
-            category: course.category || "General",
+            category: course.category || "",
             language: course.language || "English",
           });
           setThumbnailPreviewUrl(course.thumbnail_url || null);
           if (course.access_duration_days) {
             setAccessType("limited");
             setDurationValue(course.access_duration_days);
-            setDurationUnit(course.access_duration_unit === "MONTH" ? "months" : "days");
+            setDurationUnit(
+              course.access_duration_unit === "MONTH" ? "months" : "days",
+            );
           } else {
             setAccessType("lifetime");
           }
@@ -133,7 +152,9 @@ const [resolvedCourseId] = useState(() => {
     const courseId = resolvedCourseId;
 
     if (!courseId) {
-      setError("Please fill out the details and click 'Save & Continue' to create your course draft first.");
+      setError(
+        "Please fill out the details and click 'Save & Continue' to create your course draft first.",
+      );
       return;
     }
 
@@ -148,7 +169,10 @@ const [resolvedCourseId] = useState(() => {
     const method = resolvedCourseId ? "PUT" : "POST";
     const url = resolvedCourseId ? `/courses/${resolvedCourseId}` : "/courses";
 
-    if (!form.title.trim()) return setError("Give your course a title before continuing.");
+    if (!form.title.trim())
+      return setError("Give your course a title before continuing.");
+    if (!form.category)
+      return setError("Please select a category before continuing.");
     setSaving(true);
     setError("");
 
@@ -161,11 +185,13 @@ const [resolvedCourseId] = useState(() => {
         status: (form.status || "DRAFT").toUpperCase(),
         level: form.level || "Beginner",
         price: form.price === "" ? 0 : Number(form.price),
-        category: form.category || "General",
+        category: form.category,
         language: form.language || "English",
         ...(thumbnailUrl && { thumbnail_url: thumbnailUrl }),
-        access_duration_days: accessType === "limited" ? Number(durationValue) : null,
-        access_duration_unit: accessType === "limited" ? (UNIT_MAP[durationUnit] || null) : null,
+        access_duration_days:
+          accessType === "limited" ? Number(durationValue) : null,
+        access_duration_unit:
+          accessType === "limited" ? UNIT_MAP[durationUnit] || null : null,
         whatsapp_community_url: whatsappCommunityUrl.trim() || null,
         thankyou_message: thankyouMessage.trim() || null,
       };
@@ -192,7 +218,9 @@ const [resolvedCourseId] = useState(() => {
 
       if (!courseId) {
         console.error("Unrecognized API response structure:", response);
-        throw new Error("Course created, but failed to retrieve the new Course ID.");
+        throw new Error(
+          "Course created, but failed to retrieve the new Course ID.",
+        );
       }
 
       if (typeof localStorage !== "undefined") {
@@ -202,7 +230,10 @@ const [resolvedCourseId] = useState(() => {
       onNavigate?.("course-create-video", { courseId: String(courseId) });
     } catch (err) {
       console.error("Failed to save course:", err);
-      setError(err?.message || "Something went wrong creating the course. Please try again.");
+      setError(
+        err?.message ||
+          "Something went wrong creating the course. Please try again.",
+      );
     } finally {
       setSaving(false);
     }
@@ -211,8 +242,20 @@ const [resolvedCourseId] = useState(() => {
   if (loading) {
     return (
       <div style={{ display: "flex", minHeight: "100vh" }}>
-        <Sidebar active="courses" onNavigate={onNavigate} onLogout={() => console.log("logout")} />
-        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", color: colors.typography.secondaryText }}>
+        <Sidebar
+          active="courses"
+          onNavigate={onNavigate}
+          onLogout={() => console.log("logout")}
+        />
+        <div
+          style={{
+            flex: 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: colors.typography.secondaryText,
+          }}
+        >
           Loading...
         </div>
       </div>
@@ -221,28 +264,83 @@ const [resolvedCourseId] = useState(() => {
 
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
-      <Sidebar active="courses" onNavigate={onNavigate} onLogout={() => console.log("logout")} />
+      <Sidebar
+        active="courses"
+        onNavigate={onNavigate}
+        onLogout={() => console.log("logout")}
+      />
 
-      <div style={{ flex: 1, minWidth: 0, background: colors.base.appBackground, padding: 32 }}>
-        <TopHeader totalRevenue={0} walletBalance={0} hasUnreadNotifications={false} onWithdraw={() => {}} onNotifications={() => {}} />
+      <div
+        style={{
+          flex: 1,
+          minWidth: 0,
+          background: colors.base.appBackground,
+          padding: 32,
+        }}
+      >
+        <TopHeader
+          totalRevenue={0}
+          walletBalance={0}
+          hasUnreadNotifications={false}
+          onWithdraw={() => {}}
+          onNotifications={() => {}}
+        />
 
-        <Breadcrumbs items={[{ label: "Courses", active: false }, { label: "New Course", active: true }]} />
+        <Breadcrumbs
+          items={[
+            { label: "Courses", active: false },
+            { label: "New Course", active: true },
+          ]}
+        />
 
-        <h1 style={{ margin: "4px 0 4px", fontSize: 24, fontWeight: 700, color: colors.typography.primaryText }}>
+        <h1
+          style={{
+            margin: "4px 0 4px",
+            fontSize: 24,
+            fontWeight: 700,
+            color: colors.typography.primaryText,
+          }}
+        >
           Create New Course
         </h1>
-        <p style={{ margin: "0 0 24px", fontSize: 14, color: colors.typography.secondaryText }}>
+        <p
+          style={{
+            margin: "0 0 24px",
+            fontSize: 14,
+            color: colors.typography.secondaryText,
+          }}
+        >
           Provide the basic details to set up your course.
         </p>
 
-        <Stepper steps={WIZARD_STEPS} activeIndex={0} onStepClick={handleStepClick} />
+        <Stepper
+          steps={WIZARD_STEPS}
+          activeIndex={0}
+          onStepClick={handleStepClick}
+        />
 
-        <div style={{ background: "#fff", borderRadius: 16, border: `1px solid ${colors.base.border}`, padding: 32 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+        <div
+          style={{
+            background: "#fff",
+            borderRadius: 16,
+            border: `1px solid ${colors.base.border}`,
+            padding: 32,
+          }}
+        >
+          <div
+            style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}
+          >
             {/* Left Column - Details */}
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               <div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: 6,
+                  }}
+                >
                   <label style={labelStyle}>Course Title *</label>
                   <EnhanceBadge onClick={() => handleEnhance("title")} />
                 </div>
@@ -256,7 +354,14 @@ const [resolvedCourseId] = useState(() => {
               </div>
 
               <div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: 6,
+                  }}
+                >
                   <label style={labelStyle}>Course Description</label>
                   <EnhanceBadge onClick={() => handleEnhance("description")} />
                 </div>
@@ -272,14 +377,22 @@ const [resolvedCourseId] = useState(() => {
               <div style={{ display: "flex", gap: 16 }}>
                 <div style={{ flex: 1 }}>
                   <label style={labelStyle}>Status</label>
-                  <select value={form.status} onChange={(e) => updateField("status", e.target.value)} style={inputStyle}>
+                  <select
+                    value={form.status}
+                    onChange={(e) => updateField("status", e.target.value)}
+                    style={inputStyle}
+                  >
                     <option value="DRAFT">Draft</option>
                     <option value="PUBLISHED">Published</option>
                   </select>
                 </div>
                 <div style={{ flex: 1 }}>
                   <label style={labelStyle}>Level</label>
-                  <select value={form.level} onChange={(e) => updateField("level", e.target.value)} style={inputStyle}>
+                  <select
+                    value={form.level}
+                    onChange={(e) => updateField("level", e.target.value)}
+                    style={inputStyle}
+                  >
                     <option value="Beginner">Beginner</option>
                     <option value="Intermediate">Intermediate</option>
                     <option value="Advanced">Advanced</option>
@@ -300,16 +413,50 @@ const [resolvedCourseId] = useState(() => {
               </div>
             </div>
 
+            <div>
+              <label style={labelStyle}>Category *</label>
+              <select
+                value={form.category}
+                onChange={(e) => updateField("category", e.target.value)}
+                style={inputStyle}
+              >
+                <option value="" disabled>
+                  Select a category
+                </option>
+                {CATEGORIES.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             {/* Right Column - Thumbnail */}
-            <ThumbnailDropzone previewUrl={thumbnailPreviewUrl} onFileSelect={handleThumbnailSelect} />
+            <ThumbnailDropzone
+              previewUrl={thumbnailPreviewUrl}
+              onFileSelect={handleThumbnailSelect}
+            />
           </div>
 
           {/* Course Validity Section */}
           <div style={{ marginTop: 32 }}>
-            <h3 style={{ fontSize: 16, fontWeight: 700, color: colors.typography.primaryText, marginBottom: 14 }}>
+            <h3
+              style={{
+                fontSize: 16,
+                fontWeight: 700,
+                color: colors.typography.primaryText,
+                marginBottom: 14,
+              }}
+            >
               Course Validity
             </h3>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: 16,
+              }}
+            >
               <AccessOptionCard
                 label="Lifetime Access"
                 description="Student will have access forever"
@@ -335,14 +482,26 @@ const [resolvedCourseId] = useState(() => {
                     onChange={(e) => setDurationValue(e.target.value)}
                     style={{ ...inputStyle, flex: 1 }}
                   />
-                  <select value={durationUnit} onChange={(e) => setDurationUnit(e.target.value)} style={{ ...inputStyle, flex: 1 }}>
+                  <select
+                    value={durationUnit}
+                    onChange={(e) => setDurationUnit(e.target.value)}
+                    style={{ ...inputStyle, flex: 1 }}
+                  >
                     <option value="days">Days</option>
                     <option value="months">Months</option>
                   </select>
                 </div>
-                <div style={{ fontSize: 12, color: colors.typography.secondaryText, marginTop: 6 }}>
-                  Access to this course will be removed {durationValue} {durationUnit === "days" ? "Day" : "Month"}
-                  {Number(durationValue) > 1 ? "s" : ""} from the date of purchase.
+                <div
+                  style={{
+                    fontSize: 12,
+                    color: colors.typography.secondaryText,
+                    marginTop: 6,
+                  }}
+                >
+                  Access to this course will be removed {durationValue}{" "}
+                  {durationUnit === "days" ? "Day" : "Month"}
+                  {Number(durationValue) > 1 ? "s" : ""} from the date of
+                  purchase.
                 </div>
               </div>
             )}
@@ -350,10 +509,23 @@ const [resolvedCourseId] = useState(() => {
 
           {/* Community & Thank-you Section */}
           <div style={{ marginTop: 32 }}>
-            <h3 style={{ fontSize: 16, fontWeight: 700, color: colors.typography.primaryText, marginBottom: 4 }}>
+            <h3
+              style={{
+                fontSize: 16,
+                fontWeight: 700,
+                color: colors.typography.primaryText,
+                marginBottom: 4,
+              }}
+            >
               💬 Community &amp; Thank-you
             </h3>
-            <p style={{ fontSize: 13, color: colors.typography.secondaryText, marginBottom: 16 }}>
+            <p
+              style={{
+                fontSize: 13,
+                color: colors.typography.secondaryText,
+                marginBottom: 16,
+              }}
+            >
               Shown to buyers on the thank-you screen after purchase.
             </p>
 
@@ -375,12 +547,27 @@ const [resolvedCourseId] = useState(() => {
                 onChange={(e) => setThankyouMessage(e.target.value)}
                 placeholder="A short note buyers see after purchase"
                 rows={3}
-                style={{ ...inputStyle, resize: "vertical", fontFamily: "inherit" }}
+                style={{
+                  ...inputStyle,
+                  resize: "vertical",
+                  fontFamily: "inherit",
+                }}
               />
             </div>
           </div>
 
-          {error && <div style={{ color: "#DC2626", fontSize: 13, marginTop: 20, fontWeight: 600 }}>{error}</div>}
+          {error && (
+            <div
+              style={{
+                color: "#DC2626",
+                fontSize: 13,
+                marginTop: 20,
+                fontWeight: 600,
+              }}
+            >
+              {error}
+            </div>
+          )}
 
           {/* Action Buttons */}
           <div style={{ display: "flex", gap: 12, marginTop: 32 }}>

@@ -31,6 +31,7 @@ import { GoldBtn, StatCard, AiEnhance, lbl } from "../../components/creatorUi";
 import { toast } from "../../utils/toast";
 import { formatCurrency } from "../../utils/formatters";
 import WebinarRow from "./WebinarRow";
+import { CATEGORIES, withLegacyCategories } from "../../utils/categories";
 
 const G = colors.gradients;
 
@@ -46,6 +47,7 @@ const EMPTY_FORM = {
   thumbnail: "",
   tags: [],
   recording_access: "lifetime",
+  category: "",
 };
 
 function startDate(w) {
@@ -172,10 +174,10 @@ export default function WebinarsScreen() {
 
   const [performanceWebinar, setPerformanceWebinar] = useState(null);
 
-  const categories = useMemo(() => {
-    const set = new Set(webinars.map((w) => w.category).filter(Boolean));
-    return Array.from(set);
-  }, [webinars]);
+  const categories = useMemo(
+    () => withLegacyCategories(webinars.map((w) => w.category)),
+    [webinars],
+  );
 
   const load = useCallback(async () => {
     try {
@@ -206,10 +208,10 @@ export default function WebinarsScreen() {
 
   const allCount = webinars.length;
   const upcomingCount = webinars.filter(
-    (w) => w.status !== "DRAFT" && !isPast(w)
+    (w) => w.status !== "DRAFT" && !isPast(w),
   ).length;
   const completedCount = webinars.filter(
-    (w) => isPast(w) && w.status !== "DRAFT"
+    (w) => isPast(w) && w.status !== "DRAFT",
   ).length;
   const draftCount = webinars.filter((w) => w.status === "DRAFT").length;
 
@@ -218,7 +220,7 @@ export default function WebinarsScreen() {
       webinars
         .filter((w) => w.status !== "DRAFT" && !isPast(w) && startDate(w))
         .sort((a, b) => startDate(a) - startDate(b))[0] || null,
-    [webinars, now]
+    [webinars, now],
   );
 
   const filtered = useMemo(() => {
@@ -242,9 +244,7 @@ export default function WebinarsScreen() {
       const days = Number(dateFilter);
       const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
       list = list.filter((w) => {
-        const created = new Date(
-          w?.created_at || w?.updated_at || 0
-        ).getTime();
+        const created = new Date(w?.created_at || w?.updated_at || 0).getTime();
         return created >= cutoff;
       });
     }
@@ -285,6 +285,7 @@ export default function WebinarsScreen() {
       description: w.description || "",
       tags: Array.isArray(w.tags) ? w.tags : [],
       recording_access: w.recording_access || "lifetime",
+      category: w.category || "",
     });
     setTagInput("");
     setFormMode("edit");
@@ -313,7 +314,7 @@ export default function WebinarsScreen() {
       const fd = new FormData();
       fd.append("file", file);
       const res = unwrap(
-        await apiFetch("/upload", { method: "POST", body: fd })
+        await apiFetch("/upload", { method: "POST", body: fd }),
       );
       if (!res?.url) throw new Error("Upload failed");
       setForm((f) => ({ ...f, thumbnail: res.url }));
@@ -332,6 +333,7 @@ export default function WebinarsScreen() {
       return toast.error("Date and start time are required");
     if (form.description.trim().length < 5)
       return toast.error("Description must be at least 5 characters");
+    if (!form.category) return toast.error("Please select a category");
     const when = new Date(`${form.date}T${form.time}:00`);
     if (formMode === "create" && when.getTime() < Date.now())
       return toast.error("Schedule must be in the future");
@@ -343,7 +345,7 @@ export default function WebinarsScreen() {
         description: form.description.trim(),
         thumbnail: form.thumbnail || undefined,
         price: Number(form.price),
-        category: "webinar",
+        category: form.category,
         tags: form.tags,
         scheduled_at: when.toISOString(),
         start_time: form.time,
@@ -390,14 +392,14 @@ export default function WebinarsScreen() {
 
   const share = async (w) => {
     await navigator.clipboard.writeText(
-      `https://manchly.onelink.me/Ne3P?deep_link_value=webinar/${w.id}&af_dp=manchly://webinar/${w.id}`
+      `https://manchly.onelink.me/Ne3P?deep_link_value=webinar/${w.id}&af_dp=manchly://webinar/${w.id}`,
     );
     toast.success("Webinar link copied");
   };
 
   const copyZoom = (w) => {
     navigator.clipboard.writeText(
-      `Meeting ID: ${w.zoom_meeting_id}\nPassword: ${w.zoom_password}`
+      `Meeting ID: ${w.zoom_meeting_id}\nPassword: ${w.zoom_password}`,
     );
     toast.success("Zoom credentials copied");
   };
@@ -691,7 +693,7 @@ export default function WebinarsScreen() {
                 <div
                   style={{
                     display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
+                    gridTemplateColumns: "1fr 1fr 1fr", // was "1fr 1fr"
                     gap: 14,
                   }}
                 >
@@ -723,6 +725,26 @@ export default function WebinarsScreen() {
                       }
                       placeholder="100"
                     />
+                  </div>
+                  <div>
+                    <label style={lbl}>CATEGORY *</label>
+                    <select
+                      className="cs-input"
+                      value={form.category}
+                      onChange={(e) =>
+                        setForm({ ...form, category: e.target.value })
+                      }
+                      style={{ background: "#fff" }}
+                    >
+                      <option value="" disabled>
+                        Select a category
+                      </option>
+                      {CATEGORIES.map((cat) => (
+                        <option key={cat} value={cat}>
+                          {cat}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
 
@@ -1250,33 +1272,33 @@ export default function WebinarsScreen() {
         </GoldBtn>
       </div>
 
-     {/* Stats Row */}
-<div
-  style={{ display: "flex", gap: 14, marginBottom: 24, flexWrap: "wrap" }}
->
-  <StatCard
-    icon={Video}
-    label="Total Webinars"
-    value={stats?.total_webinars ?? webinars.length}
-    tint="#EF4444"
-    subtext={`${allCount - draftCount} published · ${draftCount} draft`}
-  />
-  <StatCard
-    icon={Users}
-    label="Total Users"
-    value={stats?.webinars_sold ?? stats?.total_enrollments ?? 0}
-    tint="#3B82F6"
-    subtext="--vs last month"
-  />
-  <StatCard
-    icon={IndianRupee}
-    label="Total Revenue"
-    value={formatCurrency(stats?.revenue ?? 0)}
-    tint={colors.brand.primaryOrange}
-    subtext="--vs last month"
-    highlight
-  />
-</div>
+      {/* Stats Row */}
+      <div
+        style={{ display: "flex", gap: 14, marginBottom: 24, flexWrap: "wrap" }}
+      >
+        <StatCard
+          icon={Video}
+          label="Total Webinars"
+          value={stats?.total_webinars ?? webinars.length}
+          tint="#EF4444"
+          subtext={`${allCount - draftCount} published · ${draftCount} draft`}
+        />
+        <StatCard
+          icon={Users}
+          label="Total Users"
+          value={stats?.webinars_sold ?? stats?.total_enrollments ?? 0}
+          tint="#3B82F6"
+          subtext="--vs last month"
+        />
+        <StatCard
+          icon={IndianRupee}
+          label="Total Revenue"
+          value={formatCurrency(stats?.revenue ?? 0)}
+          tint={colors.brand.primaryOrange}
+          subtext="--vs last month"
+          highlight
+        />
+      </div>
 
       {nextUp && (
         <div
@@ -1676,9 +1698,7 @@ export default function WebinarsScreen() {
               <span style={{ fontSize: 13, color: "#6B7280" }}>
                 Total Revenue
               </span>
-              <span
-                style={{ fontSize: 14, fontWeight: 700, color: "#16A34A" }}
-              >
+              <span style={{ fontSize: 14, fontWeight: 700, color: "#16A34A" }}>
                 {performanceWebinar.revenue != null
                   ? formatCurrency(performanceWebinar.revenue)
                   : "--"}
@@ -1696,9 +1716,7 @@ export default function WebinarsScreen() {
               <span style={{ fontSize: 13, color: "#6B7280" }}>
                 Attendees / Users
               </span>
-              <span
-                style={{ fontSize: 14, fontWeight: 700, color: "#2563EB" }}
-              >
+              <span style={{ fontSize: 14, fontWeight: 700, color: "#2563EB" }}>
                 {performanceWebinar._count?.enrollments ?? 0}
               </span>
             </div>
@@ -1712,9 +1730,7 @@ export default function WebinarsScreen() {
               }}
             >
               <span style={{ fontSize: 13, color: "#6B7280" }}>Refunds</span>
-              <span
-                style={{ fontSize: 14, fontWeight: 700, color: "#DC2626" }}
-              >
+              <span style={{ fontSize: 14, fontWeight: 700, color: "#DC2626" }}>
                 {performanceWebinar.refunded_count ?? 0}
               </span>
             </div>

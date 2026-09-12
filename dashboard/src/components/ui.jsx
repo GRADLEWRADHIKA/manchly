@@ -1,5 +1,5 @@
 // Shared UI kit — gradient buttons, modals, badges, inputs, OTP boxes, toasts.
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useId } from "react";
 import { X } from "lucide-react";
 import colors from "../utils/colors";
 
@@ -46,6 +46,52 @@ export function GradientButton({
     </button>
   );
 }
+
+export function CircularProgress({
+  percent = 0,
+  size = 96,
+  strokeWidth = 10, 
+  colorFrom = "#22C55E",
+  colorTo = "#4ADE80",
+  track = "rgba(120,130,160,0.15)",
+  children,
+}){
+  const id = useId();
+  const radius = (size - strokeWidth)/2;
+  const circumference = 2* Math.PI * radius;
+  const clamped = Math.min(100, Math.max(0, percent));
+  const offset = circumference - (clamped/100) * circumference;
+
+  return (
+     <div style={{ position: "relative", width: size, height: size }}>
+      <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
+        <defs>
+          <linearGradient id={`cp-grad-${id}`} x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor={colorFrom} />
+            <stop offset="100%" stopColor={colorTo} />
+          </linearGradient>
+        </defs>
+        <circle cx={size / 2} cy={size / 2} r={radius} stroke={track} strokeWidth={strokeWidth} fill="none" />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke={`url(#cp-grad-${id})`}
+          strokeWidth={strokeWidth}
+          fill="none"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          strokeLinecap="round"
+          style={{ transition: "stroke-dashoffset 0.6s ease" }}
+        />
+      </svg>
+      <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        {children}
+      </div>
+    </div>
+  )
+}
+
 
 /* ---------------- Spinner ---------------- */
 export function Spinner({ size = 24, light = false, style = {} }) {

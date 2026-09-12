@@ -139,7 +139,7 @@ const CreatorView: React.FC<{embedded?: boolean}> = ({embedded = false}) => {
         setShowModal(true);
         setCourseId(item?.id);
       }}
-      onView={() => navigation.navigate('CourseVideoList', { item })}
+      onView={() => navigation.navigate('CoursePreviewScreen', { courseId: item?.id, fromDetails: true })}
       onAddUser={() => {
         setAddUserCourse(item);
         setShowAddUser(true);

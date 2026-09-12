@@ -103,7 +103,7 @@ const CourseCard: React.FC<Props> = ({ item, onEdit, onDelete, onView, onAddUser
         activeOpacity={0.85}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
-        onPress={onView}
+        onPress={() => navigation.navigate('CourseVideoList', { item })}
         style={styles.row}
       >
         {/* Thumbnail */}

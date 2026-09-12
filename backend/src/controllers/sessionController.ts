@@ -1546,7 +1546,8 @@ const [
     where: {
       OR: [{ caller_id: userId }, { receiver_id: userId }],
     },
-    select: { id: true, status: true },
+    // amount and duration feed the earnings/minutes totals below.
+    select: { id: true, status: true, amount: true, duration: true },
   }),
 ]);
 

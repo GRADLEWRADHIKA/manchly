@@ -250,7 +250,7 @@ const SignUp = ({ selectedType, setActive }) => {
         )}
       />
 
-      {selectedType === 'CREATOR' ? (
+      {/* {selectedType === 'CREATOR' ? (
         <TouchableOpacity
           style={styles.checkboxRow}
           activeOpacity={0.85}
@@ -320,7 +320,7 @@ const SignUp = ({ selectedType, setActive }) => {
             )}
           />
         </>
-      ) : null}
+      ) : null} */}
 
       {/* Button */}
       <TouchableOpacity

@@ -76,8 +76,13 @@ export class ApiResponseHandler {
       ...(details && { details })
     };
    console.log("customError------",errorResponse);
+    // `message` is mirrored at the top level: the mobile app reads
+    // `data.message` at 44 call sites and `data.error.message` at 2, so
+    // without it the screen falls through to the raw transport error
+    // ("JSON Parse error", "Network Error") instead of the real reason.
     res.status(statusCode).json({
       success: false,
+      message,
       error: errorResponse,
       timestamp: new Date().toISOString()
     });
@@ -106,10 +111,13 @@ export class ApiResponseHandler {
       stack
     );
 
+    // Same top-level mirror as customError, for the same client reason.
+    const safeMessage = errorMessage || "An unexpected error occurred";
     res.status(statusCode).json({
       success: false,
+      message: safeMessage,
       error: {
-        message: errorMessage || "An unexpected error occurred",
+        message: safeMessage,
         type: "UNEXPECTED_ERROR"
       },
       timestamp: new Date().toISOString()

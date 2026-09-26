@@ -6,9 +6,9 @@ import dotenv from "dotenv";
 dotenv.config();
 
 // Settlement configuration
-const PLATFORM_FEE_PERCENT = 10; // default 10% platform commission
-const GST_ON_PLATFORM_FEE_PERCENT = 18; // 18% GST on platform fee
-const TDS_PERCENT = 1; // 1% TDS (u/s 194O for e-commerce)
+const PLATFORM_FEE_PERCENT = 10; 
+const GST_ON_PLATFORM_FEE_PERCENT = 18; 
+const TDS_PERCENT = 1; 
 
 // Creators with a negotiated commission rate (else the default above).
 const CREATOR_COMMISSION_OVERRIDES: Record<string, number> = {
@@ -23,11 +23,6 @@ export class SettlementService {
     return CREATOR_COMMISSION_OVERRIDES[creatorId] ?? PLATFORM_FEE_PERCENT;
   }
 
-  /**
-   * Calculate deductions and net amount for a transaction. `platformFeePercent`
-   * defaults to the platform default; pass getCommissionPercent(creatorId) for
-   * creators on a negotiated rate.
-   */
   static calculateDeductions(grossAmount: number, platformFeePercent: number = PLATFORM_FEE_PERCENT) {
     const platformFee = (grossAmount * platformFeePercent) / 100;
     const gstOnPlatformFee = (platformFee * GST_ON_PLATFORM_FEE_PERCENT) / 100;
@@ -45,16 +40,6 @@ export class SettlementService {
     };
   }
 
-  /**
-   * Credit creator's wallet after a successful payment.
-   * Money stays in wallet until creator requests withdrawal.
-   */
-  /**
-   * Confirm the underlying payment actually exists and is SUCCESS before we
-   * credit a creator's wallet. Guards against orphaned/phantom credits (e.g.
-   * test orders, rolled-back or later-deleted transactions). Webinar payments
-   * live in `webinar_transactions`; course & session payments in `transactions`.
-   */
   static async isPaymentSuccessful(
     transactionType: "COURSE" | "WEBINAR" | "SESSION",
     transactionId: string
@@ -518,6 +503,53 @@ export class SettlementService {
         await updateWalletStatus("FAILED");
         console.log(`Settlement ${settlement.id} payout failed`);
         break;
-    }
+    }    
   }
+
+static async reverseWalletCredit(
+  transactionType: "COURSE" | "WEBINAR" | "SESSION",
+  transactionId: string,
+  reason: string = "Payment refunded/reversed",
+) {
+  const walletTxn = await prisma.wallet_transactions.findUnique({
+    where: {
+      transaction_type_transaction_id: {
+        transaction_type: transactionType,
+        transaction_id: transactionId,
+      },
+    },
+  });
+
+  if (!walletTxn) {
+    console.log(
+      `No wallet credit found to reverse for ${transactionType} ${transactionId}`
+    );
+    return;
+  }
+
+  if (walletTxn.status === "SETTLED") {
+    console.error(
+      `CANNOT AUTO-REVERSE: wallet_transaction ${walletTxn.id} for ${transactionType} ${transactionId} was already SETTLED (paid out). Manual recovery required.`
+    );
+  
+    return;
+  }
+
+  if (walletTxn.status === "FAILED") {
+    console.log(`Wallet transaction ${walletTxn.id} already reversed/failed — skipping`);
+    return;
+  }
+
+  await prisma.wallet_transactions.update({
+    where: { id: walletTxn.id },
+    data: {
+      status: "FAILED",
+      description: `${walletTxn.description || ""} | REVERSED: ${reason}`.trim(),
+    },
+  });
+
+  console.log(
+    `Reversed wallet credit ${walletTxn.id} for ${transactionType} ${transactionId}: -${walletTxn.net_amount}`
+  );
+}
 }

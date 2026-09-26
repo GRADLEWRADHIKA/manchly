@@ -707,5 +707,19 @@ export class AuthController {
       timestamp: new Date().toISOString(),
     }, "Service is healthy");
   }
+
+  // ── Admin: Reset OTP rate limit for an identifier ───────────────────────────
+static async resetOTPRateLimit(req: Request, res: Response) {
+  const { identifier } = req.body;
+  if (!identifier)
+    return ApiResponseHandler.customError(res, "Identifier is required", 400, "MISSING_IDENTIFIER");
+
+  try {
+    await otpManager.resetRateLimit(identifier);
+    ApiResponseHandler.success(res, {}, "Rate limit reset successfully");
+  } catch (err: any) {
+    ApiResponseHandler.unexpectedError(res, err, 500);
+  }
+}
 }
 

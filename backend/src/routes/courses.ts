@@ -133,5 +133,6 @@ router.delete("/:courseId/enroll", jwtAuth, CourseController.unenrollFromCourse)
  */
 router.get("/stats/creator", jwtAuth, CourseController.getCreatorStats);
 
-export default router;
+router.put('/:courseId/videos/reorder', jwtAuth, CourseController.reorderVideos);
 
+export default router;

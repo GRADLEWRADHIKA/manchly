@@ -197,7 +197,7 @@ class OTPManager {
         this.rateLimiter = new RateLimiterRedis({
           storeClient: this.redisClient,
           keyPrefix: 'otp_rate_limit',
-          points: 20, // Number of OTP requests
+          points: 5, // Number of OTP requests
           duration: 300, // Per 5 minutes
         });
       } catch (error) {
@@ -226,12 +226,12 @@ class OTPManager {
   private generateOTP(length: number = this.defaultConfig.length): string {
     const { allowedChars } = this.defaultConfig;
     let otp = '';
-    
+
     for (let i = 0; i < length; i++) {
       const randomIndex = Math.floor(Math.random() * allowedChars.length);
       otp += allowedChars[randomIndex];
     }
-    
+
     return otp;
   }
 
@@ -242,6 +242,11 @@ class OTPManager {
     try {
       await this.rateLimiter.consume(identifier);
     } catch (rejRes) {
+      console.error('[otp] rate limiter rejection for', identifier, rejRes);
+      if (rejRes instanceof Error) {
+        // store/connection error, not an actual rate-limit hit
+        throw new Error('OTP service temporarily unavailable. Please try again.');
+      }
       throw new Error('Rate limit exceeded. Please try again later.');
     }
   }
@@ -292,16 +297,35 @@ class OTPManager {
 
   /**
    * Send OTP to a recipient (identifier)
+   *
+   * Order matters here: we check for an existing, unexpired OTP BEFORE
+   * touching the rate limiter. That way a call that's just going to bounce
+   * off "OTP already sent" (e.g. an accidental double-tap on the client)
+   * doesn't burn a point from the user's real send-quota. Only a call that
+   * is actually about to issue and send a brand-new OTP consumes a point.
    */
   async sendOTP(
-    identifier: string, 
-    customLength?: number, 
+    identifier: string,
+    customLength?: number,
     channel: 'email' | 'sms' = 'email'
   ): Promise<string> {
-    // Test accounts are exempt: they already skip the "OTP already sent" guard
-    // so QA can log in repeatedly, and the rate limit would defeat that after
-    // five attempts. Real accounts are still limited.
-    if (!isTestAccount(identifier)) {
+    const testAccount = isTestAccount(identifier);
+
+    // Check for an existing, unexpired OTP first — this doesn't touch the limiter
+    const existingOTP = await this.getFromRedis(identifier);
+
+    if (existingOTP && !existingOTP.verified) {
+      if (testAccount) {
+        console.log(`🧪 Test account detected: ${identifier}. Clearing existing OTP to allow resend.`);
+        await this.deleteFromRedis(identifier);
+      } else {
+        throw new Error(`OTP already sent to ${identifier}. Please wait for it to expire.`);
+      }
+    }
+
+    // Only consume a rate-limit point once we're actually about to issue a new OTP.
+    // Test accounts are exempt entirely so QA can log in repeatedly.
+    if (!testAccount) {
       await this.checkRateLimit(identifier);
     }
 
@@ -311,20 +335,6 @@ class OTPManager {
     }
     if (channel === 'sms' && !this.defaultConfig.smsEnabled) {
       throw new Error('SMS OTP is not enabled');
-    }
-
-    // Check if OTP already exists and hasn't expired
-    const existingOTP = await this.getFromRedis(identifier);
-    
-    const testAccount = isTestAccount(identifier);
-
-    if (existingOTP && !existingOTP.verified) {
-      if (testAccount) {
-        console.log(`🧪 Test account detected: ${identifier}. Clearing existing OTP to allow resend.`);
-        await this.deleteFromRedis(identifier);
-      } else {
-        throw new Error(`OTP already sent to ${identifier}. Please wait for it to expire.`);
-      }
     }
 
     const otpLength = customLength || this.defaultConfig.length;
@@ -349,7 +359,7 @@ class OTPManager {
 
     // Store OTP data
     await this.storeInRedis(identifier, otpData);
-    
+
     // Test accounts never receive a real message — the OTP is handed back to
     // the caller instead, so there is no inbox to depend on.
     if (testAccount) {
@@ -370,7 +380,7 @@ class OTPManager {
       await this.deleteFromRedis(identifier);
       throw new Error(`Failed to send OTP: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-    
+
     return otp;
   }
 
@@ -386,7 +396,7 @@ class OTPManager {
       return;
     }
 
-    console.log("email",email);
+    console.log("email", email);
 
     console.log("Email Transporter configured:", !!this.emailTransporter);
 
@@ -493,11 +503,11 @@ class OTPManager {
 
     if (otpData.otp !== otp) {
       await this.storeInRedis(identifier, otpData); // Update attempts count
-      
+
       const remainingAttempts = this.defaultConfig.maxAttempts - otpData.attempts;
-      return { 
-        success: false, 
-        message: `Invalid OTP. ${remainingAttempts} attempt(s) remaining.` 
+      return {
+        success: false,
+        message: `Invalid OTP. ${remainingAttempts} attempt(s) remaining.`
       };
     }
 
@@ -514,7 +524,7 @@ class OTPManager {
   async resendOTP(identifier: string, channel?: 'email' | 'sms'): Promise<string> {
     const existingData = await this.getFromRedis(identifier);
     const resendChannel = channel || existingData?.channel || 'email';
-    
+
     await this.deleteFromRedis(identifier);
     return this.sendOTP(identifier, undefined, resendChannel);
   }
@@ -540,6 +550,14 @@ class OTPManager {
   async invalidateOTP(identifier: string): Promise<void> {
     await this.deleteFromRedis(identifier);
   }
+
+  /**
+ * Reset the rate-limit counter for an identifier — for admin/support use,
+ * e.g. unblocking a user after a client bug caused wasted attempts.
+ */
+async resetRateLimit(identifier: string): Promise<void> {
+  await this.rateLimiter.delete(identifier);
+}
 
   /**
    * Get statistics about OTP usage

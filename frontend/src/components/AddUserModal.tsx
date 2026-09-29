@@ -34,7 +34,7 @@ type Props = {
   visible: boolean;
   onClose: () => void;
   productTitle: string;
-  productType: 'course' | 'webinar';
+  productType: 'course' | 'webinar' | 'session';
   /**
    * Grant access to the resolved user. Receives a phone OR an email.
    * Should resolve on success and reject on failure (e.g. dispatch(...).unwrap()).
@@ -201,7 +201,7 @@ const AddUserModal: React.FC<Props> = ({
               <ActivityIndicator color={colors.bg} />
             ) : (
               <Text style={styles.grantBtnText}>
-                Grant {productType === 'course' ? 'course' : 'webinar'} access
+                Grant {productType} access
               </Text>
             )}
           </TouchableOpacity>

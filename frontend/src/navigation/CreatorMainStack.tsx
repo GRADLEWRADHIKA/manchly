@@ -1,5 +1,7 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+
+// Screen Imports
 import Earnings from '../screens/Auth/Profile/Earnings';
 import UserProfile from '../screens/Auth/Profile/UserProfile';
 import CreatorProfile from '../screens/Auth/Creator/Profile/CreatorProfile';
@@ -26,70 +28,76 @@ import ExpertRegistration from '../screens/Auth/Creator/Products/ExpertRegistrat
 import AllSessions from '../screens/Auth/Creator/Products/AllSessions';
 import AvailabilityManager from '../screens/Auth/Creator/Sessions/AvailabilityManager';
 import SettlementHistory from '../screens/Auth/Creator/Wallet/SettlementHistory';
-import { AssistantProvider } from '../context/AssistantContext';
-import AssistantLauncher from '../components/ai/AssitantLaucher';
-import AssistantPanel from '../components/ai/AssistantPanel';
-
 import CreatorDashboardOverview from '../screens/Auth/Creator/CreatorDashboardOverview';
+import SessionDetails from '../screens/Auth/Creator/Products/SessionDetails';
+import SessionPreview from '../screens/Auth/Creator/Products/SessionPreview';
 
 const Stack = createNativeStackNavigator();
 
 const CreatorMainStack = () => {
   return (
-     <AssistantProvider>
     <Stack.Navigator
-        initialRouteName="CreatorBottomTab"
-        screenOptions={{ headerShown: false }}
-      >
-        <Stack.Screen name="CreatorBottomTab" component={CreatorBottomTab} />
-        <Stack.Screen
-          name="CreatorSettingsDetails"
-          component={CreatorSettingsDetails}
-        />
-        <Stack.Screen name="Earnings" component={Earnings} />
-        <Stack.Screen name="UserProfile" component={UserProfile} />
-        <Stack.Screen name="CreatorProfile" component={CreatorProfile} />
-        <Stack.Screen name="Dashboard" component={Dashboard} />
-        <Stack.Screen name="SuperThank" component={SuperThank} />
-        <Stack.Screen name="Wallet" component={Wallet} />
-        <Stack.Screen name="CreateProducts" component={CreateProducts} />
-        <Stack.Screen name="CreateWebinar" component={CreateWebinar} />
-        <Stack.Screen name="CreateCourse" component={CreateCourse} />
-        <Stack.Screen name="WalletCreator" component={WalletCreator} />
-        <Stack.Screen name="CourseVideoList" component={CourseVideoList} />
-        <Stack.Screen
-          name="KYCVerificationScreen"
-          component={KYCVerificationScreen}
-        />
-        <Stack.Screen
-          name="CourseDetailsScreen"
-          component={CourseDetailsScreen}
-        />
-        <Stack.Screen
-          name="CoursePreviewScreen"
-          component={CoursePreviewScreen}
-        />
-        <Stack.Screen
-          name="CreatorNotification"
-          component={CreatorNotification}
-        />
-        <Stack.Screen name="BankDetails" component={BankDetails} />
-        <Stack.Screen name="CreatorPublicProfile" component={CreatorPublicProfile} />
-        <Stack.Screen
-          name="WebinarDetails"
-          component={CreatorWebinarDetails}
-        />
-        <Stack.Screen name="ExpertRegistration" component={ExpertRegistration} />
-        <Stack.Screen name="AllSessions" component={AllSessions} />
-        <Stack.Screen name="IncomingCallScreen" component={IncomingCallScreen} />
-        <Stack.Screen name="CallScreen" component={CallScreen} />
-        <Stack.Screen name="CreatorDashboardOverview" component={CreatorDashboardOverview} />
-        <Stack.Screen name="AvailabilityManager" component={AvailabilityManager} />
-        <Stack.Screen name="SettlementHistory" component={SettlementHistory} />
+      initialRouteName="CreatorBottomTab"
+      screenOptions={{ headerShown: false }}
+    >
+      <Stack.Screen name="CreatorBottomTab" component={CreatorBottomTab} />
+      <Stack.Screen
+        name="CreatorSettingsDetails"
+        component={CreatorSettingsDetails}
+      />
+      <Stack.Screen name="Earnings" component={Earnings} />
+      <Stack.Screen name="UserProfile" component={UserProfile} />
+      <Stack.Screen name="CreatorProfile" component={CreatorProfile} />
+      <Stack.Screen name="Dashboard" component={Dashboard} />
+      <Stack.Screen name="SuperThank" component={SuperThank} />
+      <Stack.Screen name="Wallet" component={Wallet} />
+      <Stack.Screen name="CreateProducts" component={CreateProducts} />
+      <Stack.Screen name="CreateWebinar" component={CreateWebinar} />
+      <Stack.Screen name="CreateCourse" component={CreateCourse} />
+      <Stack.Screen name="SessionDetails" component={SessionDetails} />
+      <Stack.Screen name="WalletCreator" component={WalletCreator} />
+      <Stack.Screen name="CourseVideoList" component={CourseVideoList} />
+      <Stack.Screen
+        name="SessionPreview"
+        component={SessionPreview}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="KYCVerificationScreen"
+        component={KYCVerificationScreen}
+      />
+      <Stack.Screen
+        name="CourseDetailsScreen"
+        component={CourseDetailsScreen}
+      />
+      <Stack.Screen
+        name="CoursePreviewScreen"
+        component={CoursePreviewScreen}
+      />
+      <Stack.Screen
+        name="CreatorNotification"
+        component={CreatorNotification}
+      />
+      <Stack.Screen name="BankDetails" component={BankDetails} />
+      <Stack.Screen
+        name="CreatorPublicProfile"
+        component={CreatorPublicProfile}
+      />
+      <Stack.Screen name="WebinarDetails" component={CreatorWebinarDetails} />
+      <Stack.Screen name="ExpertRegistration" component={ExpertRegistration} />
+      <Stack.Screen name="AllSessions" component={AllSessions} />
+      <Stack.Screen name="IncomingCallScreen" component={IncomingCallScreen} />
+      <Stack.Screen name="CallScreen" component={CallScreen} />
+      <Stack.Screen
+        name="CreatorDashboardOverview"
+        component={CreatorDashboardOverview}
+      />
+      <Stack.Screen
+        name="AvailabilityManager"
+        component={AvailabilityManager}
+      />
+      <Stack.Screen name="SettlementHistory" component={SettlementHistory} />
     </Stack.Navigator>
-     <AssistantLauncher />
-      <AssistantPanel />
-    </AssistantProvider>
   );
 };
 

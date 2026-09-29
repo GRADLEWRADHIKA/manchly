@@ -49,7 +49,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
           />
         ) : (
           <View style={styles.placeholderThumbnail}>
-            <BookOpen size={wp(36)} color={colors.user.accentText} strokeWidth={1.2} />
+            <BookOpen size={wp(36)} color={colors.greenButtonDark} strokeWidth={1.2} />
             <Text style={styles.placeholderText}>{item.title || 'Course'}</Text>
           </View>
         )}
@@ -127,6 +127,8 @@ export default CourseCard;
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.user.card,
+    borderWidth: 1,
+    borderColor: colors.user.border,
     borderRadius: wp(14),
     overflow: 'hidden',
     marginBottom: hp(12),
@@ -135,7 +137,7 @@ const styles = StyleSheet.create({
     position: 'relative',
     width: '100%',
     aspectRatio: 16 / 9,
-    backgroundColor: colors.greenButton,
+    backgroundColor: colors.user.accentSoft,
     overflow: 'hidden',
   },
   thumbnail: {
@@ -152,20 +154,20 @@ const styles = StyleSheet.create({
   placeholderText: {
     fontSize: fp(13),
     fontWeight: '600',
-    color: colors.user.accentText,
+    color: colors.user.subHeading,
     opacity: 0.6,
   },
   levelBadge: {
     position: 'absolute',
     top: wp(8),
     left: wp(8),
-    backgroundColor: colors.user.accent,
+    backgroundColor: 'rgba(0,0,0,0.55)',
     paddingHorizontal: wp(8),
     paddingVertical: hp(3),
     borderRadius: wp(6),
   },
   levelText: {
-    color: colors.user.text,
+    color: '#FFFFFF',
     fontSize: fp(11),
     fontWeight: '600',
   },
@@ -173,7 +175,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: wp(8),
     right: wp(8),
-    backgroundColor: colors.user.accent,
+    backgroundColor: colors.greenButtonDark,
     paddingHorizontal: wp(10),
     paddingVertical: hp(3),
     borderRadius: wp(8),
@@ -181,7 +183,7 @@ const styles = StyleSheet.create({
   priceBadgeText: {
     fontSize: fp(12),
     fontWeight: '700',
-    color: colors.user.accentText,
+    color: '#FFFFFF',
   },
   cardBody: {
     padding: wp(12),
@@ -199,7 +201,7 @@ const styles = StyleSheet.create({
   },
   instructor: {
     fontSize: fp(12),
-    color: colors.user.accentText,
+    color: colors.user.subHeading,
     marginTop: hp(2),
     fontWeight: '500',
   },
@@ -235,7 +237,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   enrollBtnText: {
-    color: colors.user.accentText,
+    color: '#FFFFFF',
     fontWeight: '700',
     fontSize: fp(12),
     letterSpacing: 0.3,

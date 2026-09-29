@@ -24,7 +24,7 @@ export const initAppsFlyer = () => {
 };
 
 interface GenerateLinkParams {
-  type: 'course' | 'webinar';
+  type: 'course' | 'webinar'| 'session';
   id: string;
   title?: string;
   description?: string;

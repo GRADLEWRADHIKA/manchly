@@ -17,6 +17,33 @@ import colors from '../../../../../utils/colors';
 import { wp, hp, fp } from '../../../../../utils/responsive';
 import ShimmerBox from '../../../../../components/ShimmerBox';
 
+//Format heplers
+const formatWebinarData = (dateStr: string, timezone?: string) => {
+  try {
+    return new Date(dateStr).toLocaleDateString('en-IN', {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+      ...(timezone ? { timeZone: timezone } : {}),
+    });
+  } catch {
+    return ' ';
+  }
+};
+
+const formatWebinarTime = (dateStr: string, timezone?: string) => {
+  try {
+    return new Date(dateStr).toLocaleTimeString('en-IN', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+      ...(timezone ? { timeZone: timezone } : {}),
+    });
+  } catch {
+    return ' ';
+  }
+};
+
 const WebinarSkeleton = () => (
   <View style={styles.section}>
     <View style={styles.sectionHeader}>
@@ -96,7 +123,7 @@ const LatestWebinarItem = ({ item, onPress }: any) => {
         <Image source={{ uri: item.thumbnail_url }} style={styles.thumb} />
       ) : (
         <LinearGradient
-          colors={colors.greenButtonDark || ['#4ADE80', '#16A34A']}
+         colors={[colors.creatorGreen, colors.creatorGreenDark]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={[styles.thumb, styles.thumbPlaceholder]}
@@ -107,7 +134,7 @@ const LatestWebinarItem = ({ item, onPress }: any) => {
               { transform: [{ scale: iconScale }], opacity: iconOpacity },
             ]}
           >
-            <Video size={wp(22)} color="#16A34A" strokeWidth={1.8} />
+            <Video size={wp(22)} color={colors.greenButtonDark} strokeWidth={1.8} />
           </Animated.View>
           <Text style={styles.placeholderLabel} numberOfLines={1}>
             WEBINAR
@@ -118,8 +145,17 @@ const LatestWebinarItem = ({ item, onPress }: any) => {
         <Text style={styles.title} numberOfLines={2}>
           {item?.title}
         </Text>
+        {item?.scheduled_at && (
+          <Text style={styles.scheduleText} numberOfLines={1}>
+            {formatWebinarData(item.scheduled_at, item.timezone)} ·{' '}
+            {formatWebinarTime(item.scheduled_at, item.timezone)}
+          </Text>
+        )}
         <Text style={styles.hostedBy} numberOfLines={1}>
-          Hosted by {item?.creator?.name || 'Instructor'}
+          by {item?.creator?.name || 'Instructor'}
+        </Text>
+        <Text style={styles.price}>
+          {Number(item?.price) > 0 ? `₹${item.price}` : 'Free'}
         </Text>
       </View>
     </Pressable>
@@ -182,13 +218,17 @@ const EmptyWebinarCard = () => {
           }
         >
           <Text style={styles.seeAllText}>See All</Text>
-          <ArrowRight size={wp(14)} color={colors.user.subHeading} strokeWidth={2} />
+          <ArrowRight
+            size={wp(14)}
+            color={colors.user.subHeading}
+            strokeWidth={2}
+          />
         </Pressable>
       </View>
 
       <Pressable style={({ pressed }) => [pressed && { opacity: 0.95 }]}>
         <LinearGradient
-          colors={colors.greenButtonDarkGradient || ['#4ADE80', '#16A34A']}
+          colors={[colors.creatorGreen, colors.creatorGreenDark]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.emptyCard}
@@ -203,13 +243,21 @@ const EmptyWebinarCard = () => {
               { transform: [{ scale: pulseAnim }, { translateY: floatAnim }] },
             ]}
           >
-            <Video size={wp(28)} color="#16A34A" strokeWidth={2} />
+            <Video size={wp(28)} color={colors.greenButtonDark} strokeWidth={2} />
           </Animated.View>
 
           <View style={styles.sparkleRow}>
-            <Sparkles size={wp(14)} color="rgba(255,255,255,0.85)" strokeWidth={1.5} />
+            <Sparkles
+              size={wp(14)}
+              color="rgba(255,255,255,0.85)"
+              strokeWidth={1.5}
+            />
             <Text style={styles.emptyTitle}>Webinars Coming Soon!</Text>
-            <Sparkles size={wp(14)} color="rgba(255,255,255,0.85)" strokeWidth={1.5} />
+            <Sparkles
+              size={wp(14)}
+              color="rgba(255,255,255,0.85)"
+              strokeWidth={1.5}
+            />
           </View>
 
           <Text style={styles.emptySub}>
@@ -249,7 +297,7 @@ const LatestWebinars = () => {
     }
   }, [focus]);
 
-  if (loading) {
+  if (loading && webinars.length === 0) {
     return <WebinarSkeleton />;
   }
 
@@ -276,7 +324,11 @@ const LatestWebinars = () => {
           }
         >
           <Text style={styles.seeAllText}>See All</Text>
-          <ArrowRight size={wp(14)} color={colors.user.subHeading} strokeWidth={2} />
+          <ArrowRight
+            size={wp(14)}
+            color={colors.user.subHeading}
+            strokeWidth={2}
+          />
         </Pressable>
       </View>
       <FlatList
@@ -321,7 +373,7 @@ const styles = StyleSheet.create({
   },
   sectionSubtitle: {
     fontSize: fp(12),
-    color: colors.user.accentText,
+    color: colors.user.subHeading,
     marginTop: hp(2),
   },
   seeAllBtn: {
@@ -342,6 +394,8 @@ const styles = StyleSheet.create({
   card: {
     width: wp(160),
     backgroundColor: colors.user.card,
+    borderWidth: 1,
+    borderColor: colors.user.border,
     borderRadius: wp(14),
     overflow: 'hidden',
     marginBottom: 5,
@@ -386,7 +440,18 @@ const styles = StyleSheet.create({
   },
   hostedBy: {
     fontSize: fp(11),
+    color: colors.user.subHeading,
+  },
+  scheduleText: {
+    fontSize: fp(10.5),
     color: colors.user.accentText,
+    marginBottom: hp(4),
+  },
+  price: {
+    fontSize: fp(14),
+    fontWeight: '800',
+    color: colors.greenButtonDark,
+    marginTop: hp(8),
   },
   emptyCard: {
     marginHorizontal: wp(20),

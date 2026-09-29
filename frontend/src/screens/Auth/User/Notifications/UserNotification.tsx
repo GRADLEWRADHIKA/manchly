@@ -40,23 +40,20 @@ const TABS = [
   { key: 'webinar', label: 'Webinars' },
   { key: 'system', label: 'System' },
 ];
+const GREEN = colors.greenButtonDark; // course, session, sale, expert
+const PURPLE = '#7C3AED'; // webinar
+const SLATE = colors.user.subHeading; // system
+const BLUE = colors.user.primary;
 
-const INDIGO = '#9AA0FF';
-const GREEN = '#4ADE80';
-const PURPLE = '#C084FC';
-const SLATE = '#94A3B8';
-
-const TYPE_META: Record<
-  string,
-  { icon: any; accent: string; label: string }
-> = {
-  course: { icon: BookOpen, accent: INDIGO, label: 'Course' },
-  session: { icon: PhoneCall, accent: INDIGO, label: 'Session' },
-  webinar: { icon: Video, accent: PURPLE, label: 'Webinar' },
-  sale: { icon: Tag, accent: GREEN, label: 'Sale' },
-  expert: { icon: Wifi, accent: GREEN, label: 'Expert' },
-  system: { icon: Info, accent: SLATE, label: 'System' },
-};
+const TYPE_META: Record<string, { icon: any; accent: string; label: string }> =
+  {
+    course: { icon: BookOpen, accent: GREEN, label: 'Course' },
+    session: { icon: PhoneCall, accent: BLUE, label: 'Session' },
+    webinar: { icon: Video, accent: PURPLE, label: 'Webinar' },
+    sale: { icon: Tag, accent: colors.user.highlight, label: 'Sale' },
+    expert: { icon: Wifi, accent: GREEN, label: 'Expert' },
+    system: { icon: Info, accent: SLATE, label: 'System' },
+  };
 
 const getMeta = (type: string) => TYPE_META[type] || TYPE_META.system;
 
@@ -69,7 +66,10 @@ function getTimeAgo(dateStr: string): string {
   if (hrs < 24) return `${hrs}h ago`;
   const days = Math.floor(hrs / 24);
   if (days < 7) return `${days}d ago`;
-  return new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+  return new Date(dateStr).toLocaleDateString('en-IN', {
+    day: 'numeric',
+    month: 'short',
+  });
 }
 
 const UserNotification = () => {
@@ -88,7 +88,9 @@ const UserNotification = () => {
       ? notifications
       : notifications.filter((n: Notification) => n.type === activeTab);
 
-  const unreadCount = notifications.filter((n: Notification) => !n.is_read).length;
+  const unreadCount = notifications.filter(
+    (n: Notification) => !n.is_read,
+  ).length;
 
   useEffect(() => {
     dispatch(getUserNotifications({}));
@@ -109,9 +111,14 @@ const UserNotification = () => {
     }
     // Deep link to relevant screen based on notification data
     if (item.data?.courseId) {
-      navigation.navigate('CourseDetailsScreen', { courseId: item.data.courseId });
+      navigation.navigate('CourseDetailsScreen', {
+        courseId: item.data.courseId,
+      });
     } else if (item.data?.webinarId) {
-      navigation.navigate('WebinarDetails', { webinarId: item.data.webinarId, id: item.data.webinarId });
+      navigation.navigate('WebinarDetails', {
+        webinarId: item.data.webinarId,
+        id: item.data.webinarId,
+      });
     } else if (item.data?.sessionId) {
       navigation.navigate('SessionDetails', { sessionId: item.data.sessionId });
     }
@@ -138,7 +145,7 @@ const UserNotification = () => {
 
     return (
       <TouchableOpacity
-        style={styles.card}
+        style={[styles.card, !item.is_read && styles.cardUnread]}
         activeOpacity={0.75}
         onPress={() => handlePress(item)}
       >
@@ -152,7 +159,10 @@ const UserNotification = () => {
 
         <View style={styles.cardContent}>
           <View style={styles.topRow}>
-            <Text style={[styles.category, { color: accent }]} numberOfLines={1}>
+            <Text
+              style={[styles.category, { color: accent }]}
+              numberOfLines={1}
+            >
               {label}
             </Text>
             <Text style={styles.cardTime}>{getTimeAgo(item.createdAt)}</Text>
@@ -179,7 +189,10 @@ const UserNotification = () => {
               <View
                 style={[
                   styles.actionPill,
-                  { backgroundColor: accent + '22', borderColor: accent + '44' },
+                  {
+                    backgroundColor: accent + '22',
+                    borderColor: accent + '44',
+                  },
                 ]}
               >
                 <Text style={[styles.actionText, { color: accent }]}>
@@ -197,20 +210,22 @@ const UserNotification = () => {
   const renderEmpty = () => (
     <View style={styles.emptyWrap}>
       <View style={styles.emptyIconCircle}>
-        <Bell size={wp(32)} color={colors.textMuted} />
+        <Bell size={wp(32)} color={colors.greenButtonDark} />
       </View>
       <Text style={styles.emptyTitle}>No notifications yet</Text>
       <Text style={styles.emptyDesc}>
         {activeTab === 'all'
           ? "You're all caught up! New notifications will appear here."
-          : `No ${TABS.find(t => t.key === activeTab)?.label.toLowerCase()} notifications yet.`}
+          : `No ${TABS.find(
+              t => t.key === activeTab,
+            )?.label.toLowerCase()} notifications yet.`}
       </Text>
     </View>
   );
 
   return (
     <View style={styles.container}>
-      <AppHeaderWithBack title="Notifications" bgColor={colors.uBg} />
+      <AppHeaderWithBack title="Notifications" bgColor={colors.user.text} />
 
       {/* Tabs */}
       <View style={styles.tabRow}>
@@ -228,7 +243,9 @@ const UserNotification = () => {
                 onPress={() => setActiveTab(tab.key)}
                 activeOpacity={0.7}
               >
-                <Text style={[styles.tabText, isActive && styles.tabTextActive]}>
+                <Text
+                  style={[styles.tabText, isActive && styles.tabTextActive]}
+                >
                   {tab.label}
                 </Text>
               </TouchableOpacity>
@@ -239,7 +256,7 @@ const UserNotification = () => {
 
       {unreadCount > 0 && (
         <TouchableOpacity style={styles.markAllBtn} onPress={handleMarkAllRead}>
-          <CheckCheck size={wp(14)} color={colors.secPrimary} />
+          <CheckCheck size={wp(14)} color={colors.greenButtonDark} />
           <Text style={styles.markAllText}>Mark all as read</Text>
         </TouchableOpacity>
       )}
@@ -247,7 +264,7 @@ const UserNotification = () => {
       {/* Notification List */}
       {loading && !refreshing ? (
         <View style={styles.loaderWrap}>
-          <ActivityIndicator size="large" color={colors.secPrimary} />
+          <ActivityIndicator size="large" color={colors.greenButtonDark} />
         </View>
       ) : (
         <FlatList
@@ -264,7 +281,8 @@ const UserNotification = () => {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              tintColor={colors.secPrimary}
+              tintColor={colors.greenButtonDark}
+              colors={[colors.greenButtonDark]}
             />
           }
         />
@@ -278,7 +296,7 @@ export default UserNotification;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.uBg,
+    backgroundColor: colors.user.bg,
   },
 
   // Tabs
@@ -293,23 +311,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(18),
     paddingVertical: hp(9),
     borderRadius: wp(22),
-    backgroundColor: 'transparent',
+    backgroundColor: colors.user.cardSoft,
+    borderWidth: 1,
+    borderColor: colors.user.border,
   },
   tabActive: {
-    backgroundColor: colors.btnGradientStart,
-    shadowColor: colors.btnGradientStart,
+    backgroundColor: colors.greenButtonDark,
+    borderColor: colors.greenButton,
+    shadowColor: colors.creatorGreen,
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
-    shadowRadius: 10,
-    elevation: 4,
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 3,
   },
   tabText: {
     fontSize: fp(14),
     fontWeight: '600',
-    color: colors.uSubHeading,
+    color: colors.user.subHeading,
   },
   tabTextActive: {
-    color: colors.white,
+    color: '#FFFF',
     fontWeight: '700',
   },
 
@@ -324,7 +345,7 @@ const styles = StyleSheet.create({
   },
   markAllText: {
     fontSize: fp(12),
-    color: colors.textPrimary,
+    color: colors.greenButtonDark,
     fontWeight: '600',
   },
 
@@ -344,16 +365,22 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.card,
+    borderWidth: 1,
+    borderColor: colors.user.border,
     borderRadius: wp(18),
     padding: wp(16),
+  },
+  cardUnread: {
+    backgroundColor: colors.user.accentSoft,
+    borderColor: colors.user.accent,
   },
   avatar: {
     width: wp(48),
     height: wp(48),
     borderRadius: wp(24),
     marginRight: wp(14),
-    backgroundColor: colors.uSubtext,
+    backgroundColor: colors.user.cardSoft,
   },
   iconWrap: {
     width: wp(48),
@@ -362,7 +389,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: wp(14),
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: colors.user.cardSoft,
   },
   cardContent: {
     flex: 1,
@@ -383,7 +410,7 @@ const styles = StyleSheet.create({
   },
   cardTime: {
     fontSize: fp(11),
-    color: colors.uSubHeading,
+    color: colors.user.subHeading,
     fontWeight: '500',
   },
   unreadDot: {
@@ -395,7 +422,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: fp(15),
     fontWeight: '600',
-    color: colors.textPrimary,
+    color: colors.user.text,
     lineHeight: fp(21),
   },
   cardTitleUnread: {
@@ -403,7 +430,7 @@ const styles = StyleSheet.create({
   },
   cardMessage: {
     fontSize: fp(13),
-    color: colors.uSubHeading,
+    color: colors.user.subHeading,
     marginTop: hp(4),
     lineHeight: fp(19),
   },
@@ -435,7 +462,9 @@ const styles = StyleSheet.create({
     width: wp(72),
     height: wp(72),
     borderRadius: wp(36),
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.accentSoft,
+    borderWidth: 1,
+    borderColor: colors.user.border,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: hp(16),
@@ -443,12 +472,12 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: fp(18),
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: colors.user.text,
     marginBottom: hp(6),
   },
   emptyDesc: {
     fontSize: fp(13),
-    color: colors.uSubHeading,
+    color: colors.user.subHeading,
     textAlign: 'center',
     lineHeight: fp(19),
   },

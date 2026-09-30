@@ -225,7 +225,7 @@ const UserNotification = () => {
 
   return (
     <View style={styles.container}>
-      <AppHeaderWithBack title="Notifications" bgColor={colors.user.text} />
+      <AppHeaderWithBack title="Notifications" bgColor='transparent' />
 
       {/* Tabs */}
       <View style={styles.tabRow}>
@@ -316,7 +316,7 @@ const styles = StyleSheet.create({
     borderColor: colors.user.border,
   },
   tabActive: {
-    backgroundColor: colors.greenButtonDark,
+    backgroundColor: colors.creatorGreen,
     borderColor: colors.greenButton,
     shadowColor: colors.creatorGreen,
     shadowOffset: { width: 0, height: 0 },

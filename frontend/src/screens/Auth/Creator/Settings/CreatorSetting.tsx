@@ -170,6 +170,9 @@ const CreatorSetting: React.FC = () => {
     }
   };
 
+console.log('WALLET', JSON.stringify(wallet, null, 2));
+console.log('EARNINGS', JSON.stringify(earningsBreakdown, null, 2));
+
   useFocusEffect(
     useCallback(() => {
       fetchWallet();

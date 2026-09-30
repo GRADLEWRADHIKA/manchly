@@ -72,14 +72,14 @@ const styles = StyleSheet.create({
   },
   pressableWrapper: {
     flex: 1,
-    borderRadius: wp(24),
+    borderRadius: wp(12),
     // Overflow hidden ensures the ripple/opacity effects stay inside the pill shape
     overflow: 'hidden', 
   },
   gradientContainer: {
     paddingVertical: hp(9),
     paddingHorizontal: wp(8),
-    borderRadius: wp(24),
+    borderRadius: wp(12),
     borderWidth: 1,
     borderColor: 'transparent',
     alignItems: 'center',

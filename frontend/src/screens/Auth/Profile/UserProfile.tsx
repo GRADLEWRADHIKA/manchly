@@ -151,7 +151,7 @@ const UserProfile = () => {
 
   return (
     <View style={styles.container}>
-      <AppHeaderWithBack title="Edit Profile" bgColor={colors.user.text} />
+      <AppHeaderWithBack title="Edit Profile" bgColor='transparent' />
 
       <ScrollView
         style={styles.scrollView}

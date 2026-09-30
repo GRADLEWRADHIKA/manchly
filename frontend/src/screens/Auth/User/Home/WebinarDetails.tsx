@@ -285,7 +285,7 @@ const WebinarDetails = () => {
 
   return (
     <View style={styles.container}>
-      <AppHeaderWithBack title="Webinar Details" bgColor={colors.user.text} />
+      <AppHeaderWithBack title="Webinar Details" bgColor='transparent' />
 
       <ScrollView contentContainerStyle={{ paddingBottom: hp(120) }}>
         <View style={styles.thumbnailWrapper}>

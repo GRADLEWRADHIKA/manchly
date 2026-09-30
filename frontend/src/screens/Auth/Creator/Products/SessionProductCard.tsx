@@ -243,12 +243,12 @@ const styles = StyleSheet.create({
     borderColor: CARD_BORDER,
   },
   thumbWrap: {
-    width: wp(72),
-    height: wp(72),
+    width: wp(82),
+    height: wp(82),
   },
   thumb: {
-    width: wp(72),
-    height: wp(72),
+    width: wp(82),
+    height: wp(100),
     borderRadius: wp(12),
   },
   thumbPlaceholder: {

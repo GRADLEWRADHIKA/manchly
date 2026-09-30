@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
     color: colors.greenButtonDark,
   },
   bookBtn: {
-    backgroundColor: colors.greenButtonDark,
+    backgroundColor: colors.creatorGreen,
     paddingHorizontal: wp(14),
     paddingVertical: hp(6),
     borderRadius: wp(8),

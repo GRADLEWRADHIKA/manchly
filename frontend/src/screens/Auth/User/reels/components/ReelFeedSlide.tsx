@@ -151,7 +151,7 @@ const ReelFeedSlide: React.FC<ReelFeedSlideProps> = ({
               <View style={styles.courseMetaItem}>
                 <Users size={wp(12)} color="rgba(255,255,255,0.7)" />
                 <Text style={styles.courseMetaText}>
-                  {course._count?.enrollments ?? 0} enrolled
+                  {course._count?.enrollments ?? 0} Users
                 </Text>
               </View>
             </View>

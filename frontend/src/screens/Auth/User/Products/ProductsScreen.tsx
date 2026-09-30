@@ -1,19 +1,44 @@
 // screens/Auth/User/Products/ProductsScreen.tsx
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView,
-  TouchableOpacity, Image, TextInput, ActivityIndicator,
-  Animated, LayoutAnimation, Platform, UIManager,
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Image,
+  TextInput,
+  ActivityIndicator,
+  Animated,
+  LayoutAnimation,
+  Platform,
+  UIManager,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useIsFocused, useNavigation, useRoute } from '@react-navigation/native';
+import {
+  useIsFocused,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
-import { Search, Star, BookOpen, Video, ArrowLeft, Clock, Calendar, MapPin } from 'lucide-react-native';
+import {
+  Search,
+  Star,
+  BookOpen,
+  Video,
+  ArrowLeft,
+  Clock,
+  Calendar,
+  MapPin,
+} from 'lucide-react-native';
 import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
 import { fetchCourses } from '../../../../store/CourseSlice';
 import { getAllWebinar } from '../../../../store/WebinarSlice';
-import { listExperts, getPopularSessionProducts } from '../../../../store/SessionSlice';
+import {
+  listExperts,
+  getPopularSessionProducts,
+} from '../../../../store/SessionSlice';
 import ButtonSection from './component/ButtonSection';
 import LinearGradient from 'react-native-linear-gradient';
 
@@ -37,11 +62,11 @@ const fmtDateTime = (iso?: string) => {
 };
 
 const fmtCourseDuration = (totalSeconds?: number) => {
-  if(!totalSeconds) return '';
-  const hours = Math.floor(totalSeconds/ 3600);
+  if (!totalSeconds) return '';
+  const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
   return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
-}
+};
 
 const initials = (name?: string) =>
   (name || '?')
@@ -59,7 +84,9 @@ const ProductsScreen = () => {
   const focus = useIsFocused();
 
   const searchTimer = useRef<any>(null);
-  const [activeFilter, setActiveFilter] = useState<'courses' | 'webinar' | 'sessions'>(
+  const [activeFilter, setActiveFilter] = useState<
+    'courses' | 'webinar' | 'sessions'
+  >(
     route.params?.initialTab === 'Webinars'
       ? 'webinar'
       : route.params?.initialTab === 'Sessions'
@@ -80,12 +107,16 @@ const ProductsScreen = () => {
   const [loadingWebinars, setLoadingWebinars] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const { list: allCourses } = useSelector((state: any) => state.coursesReducer);
+  const { list: allCourses } = useSelector(
+    (state: any) => state.coursesReducer,
+  );
   const courses = allCourses?.data?.courses || [];
-  const { popularProducts: sessionProducts, popularProductsLoading: sessionsLoading } =
-    useSelector((state: any) => state.sessionReducer);
+  const {
+    popularProducts: sessionProducts,
+    popularProductsLoading: sessionsLoading,
+  } = useSelector((state: any) => state.sessionReducer);
 
-     const fetchCourseResults = (search: string) => {
+  const fetchCourseResults = (search: string) => {
     const payload: any = { page: 1, limit: 10 };
     if (search.trim()) payload.search = search.trim();
     dispatch(fetchCourses(payload));
@@ -117,7 +148,7 @@ const ProductsScreen = () => {
     fetchWebinarResults('');
 
     dispatch(getPopularSessionProducts({ limit: 10 }));
-  }, [focus]) 
+  }, [focus]);
   const handleSearchChange = (text: string) => {
     setSearchQuery(text);
     if (searchTimer.current) clearTimeout(searchTimer.current);
@@ -127,7 +158,6 @@ const ProductsScreen = () => {
       // Sessions has no backend search param — filtered client-side below
     }, 500);
   };
-  
 
   const q = searchQuery.trim().toLowerCase();
 
@@ -136,29 +166,33 @@ const ProductsScreen = () => {
   const filteredWebinars = webinars;
 
   const filteredSessionProducts = useMemo(
-    () => 
-      q 
-    ? (sessionProducts || []).filter((p:any) => 
-    (p?.title || '').toLowerCase().includes(q)
-  )
-  :sessionProducts || [],
-  [sessionProducts,q],
+    () =>
+      q
+        ? (sessionProducts || []).filter((p: any) =>
+            (p?.title || '').toLowerCase().includes(q),
+          )
+        : sessionProducts || [],
+    [sessionProducts, q],
   );
 
-  const featuredCourse = 
-  filteredCourses.length > 0
-    ?[...filteredCourses].sort(
-      (a,b) => (b.total_students || 0) - (a.total_students || 0),
-    )[0]
-    :null;
-    const popularCourses = filteredCourses.filter((c) => c.id !== featuredCourse?.id);
-    const featuredWebinar = filteredWebinars[0] || null;
-   const popularWebinars = filteredWebinars.filter((w) => w.id !== featuredWebinar?.id);
+  const featuredCourse =
+    filteredCourses.length > 0
+      ? [...filteredCourses].sort(
+          (a, b) => (b.total_students || 0) - (a.total_students || 0),
+        )[0]
+      : null;
+  const popularCourses = filteredCourses.filter(
+    c => c.id !== featuredCourse?.id,
+  );
+  const featuredWebinar = filteredWebinars[0] || null;
+  const popularWebinars = filteredWebinars.filter(
+    w => w.id !== featuredWebinar?.id,
+  );
 
   const featuredSession = filteredSessionProducts?.[0] || null;
   const popularSessions = filteredSessionProducts.filter(
     (p: any) => p.id !== featuredSession?.id,
-)
+  );
 
   const openCourse = (course: any) =>
     navigation.navigate('CourseDetailsScreen', {
@@ -168,7 +202,7 @@ const ProductsScreen = () => {
   const openWebinar = (webinar: any) =>
     navigation.navigate('WebinarDetails', { data: webinar });
   const openExpert = (expert: any) =>
-    navigation.navigate('ExpertDetail', { expert});
+    navigation.navigate('ExpertDetail', { expert });
 
   const SearchBar = (
     <View style={styles.searchBar}>
@@ -223,7 +257,9 @@ const ProductsScreen = () => {
           const isActive = activeFilter === filter;
           const Icon = filter === 'courses' ? BookOpen : Video;
           const count =
-            filter === 'courses' ? filteredCourses.length : filteredWebinars.length;
+            filter === 'courses'
+              ? filteredCourses.length
+              : filteredWebinars.length;
           return (
             <TouchableOpacity
               key={filter}
@@ -241,15 +277,23 @@ const ProductsScreen = () => {
                 color={isActive ? colors.white : colors.textSecondary}
                 strokeWidth={isActive ? 2.2 : 1.6}
               />
-              <Text style={[styles.tabLabel, isActive && styles.tabLabelActive]}>
+              <Text
+                style={[styles.tabLabel, isActive && styles.tabLabelActive]}
+              >
                 {filter === 'courses' ? 'Courses' : 'Webinars'}
               </Text>
               {count > 0 && (
                 <View
-                  style={[styles.tabCountBadge, isActive && styles.tabCountBadgeActive]}
+                  style={[
+                    styles.tabCountBadge,
+                    isActive && styles.tabCountBadgeActive,
+                  ]}
                 >
                   <Text
-                    style={[styles.tabCountText, isActive && styles.tabCountTextActive]}
+                    style={[
+                      styles.tabCountText,
+                      isActive && styles.tabCountTextActive,
+                    ]}
                   >
                     {count}
                   </Text>
@@ -293,7 +337,9 @@ const ProductsScreen = () => {
                   style={styles.facultyImageCircle}
                 />
               ) : (
-                <View style={[styles.facultyImageCircle, styles.imgPlaceholder]}>
+                <View
+                  style={[styles.facultyImageCircle, styles.imgPlaceholder]}
+                >
                   <Text style={styles.avatarInitials}>{initials(u.name)}</Text>
                 </View>
               )}
@@ -341,7 +387,9 @@ const ProductsScreen = () => {
                   <View style={styles.featuredTextContent}>
                     <View style={styles.badgeRow}>
                       <View style={styles.featuredAccentBadge}>
-                        <Text style={styles.featuredAccentBadgeText}>🔥 Most Enrolled</Text>
+                        <Text style={styles.featuredAccentBadgeText}>
+                          🔥 Most Enrolled
+                        </Text>
                       </View>
                     </View>
 
@@ -351,18 +399,28 @@ const ProductsScreen = () => {
                     <View style={styles.featuredMetaRow}>
                       {!!featuredCourse.total_videos && (
                         <View style={styles.starMetaRow}>
-                          <BookOpen size={wp(30)} color={colors.greenButtonDark} strokeWidth={1.4} />
+                          <BookOpen
+                            size={wp(30)}
+                            color={colors.greenButtonDark}
+                            strokeWidth={1.4}
+                          />
                           <Text style={styles.featuredMetaText}>
                             {featuredCourse.total_videos} Videos
                           </Text>
                         </View>
                       )}
                       {!!featuredCourse.level && (
-                        <Text style={styles.featuredMetaText}>{featuredCourse.level}</Text>
+                        <Text style={styles.featuredMetaText}>
+                          {featuredCourse.level}
+                        </Text>
                       )}
                       {!!fmtCourseDuration(featuredCourse.total_duration) && (
                         <View style={styles.starMetaRow}>
-                          <Clock size={11} color={colors.user.subHeading} strokeWidth={1.8} />
+                          <Clock
+                            size={11}
+                            color={colors.user.subHeading}
+                            strokeWidth={1.8}
+                          />
                           <Text style={styles.featuredMetaText}>
                             {fmtCourseDuration(featuredCourse.total_duration)}
                           </Text>
@@ -376,7 +434,10 @@ const ProductsScreen = () => {
                           {fmtPrice(featuredCourse.price)}
                         </Text>
                         {!!featuredCourse.creator?.name && (
-                          <Text style={styles.featuredMetaText} numberOfLines={1}>
+                          <Text
+                            style={styles.featuredMetaText}
+                            numberOfLines={1}
+                          >
                             by {featuredCourse.creator.name}
                           </Text>
                         )}
@@ -393,7 +454,9 @@ const ProductsScreen = () => {
                       style={styles.featuredSideImage}
                     />
                   ) : (
-                    <View style={[styles.featuredSideImage, styles.imgPlaceholder]}>
+                    <View
+                      style={[styles.featuredSideImage, styles.imgPlaceholder]}
+                    >
                       <BookOpen
                         size={wp(30)}
                         color={colors.cAccentLight}
@@ -414,21 +477,30 @@ const ProductsScreen = () => {
               <Text style={styles.emptyText}>No courses found.</Text>
             ) : (
               popularCourses.map((course: any) => (
-               <TouchableOpacity
-               key={course.id}
-               style={styles.popularCourseCardV2}
-               activeOpacity={0.85}
-               onPress={()=> openCourse(course)}
-               >
-                <View style={styles.popularCourseBannerWrap}>
+                <TouchableOpacity
+                  key={course.id}
+                  style={styles.popularCourseCardV2}
+                  activeOpacity={0.85}
+                  onPress={() => openCourse(course)}
+                >
+                  <View style={styles.popularCourseBannerWrap}>
                     {course.thumbnail ? (
                       <Image
                         source={{ uri: course.thumbnail }}
                         style={styles.popularCourseBanner}
                       />
                     ) : (
-                    <View style={[styles.popularCourseBanner, styles.imgPlaceholder]}>
-                        <BookOpen size={wp(28)} color={colors.cAccentLight} strokeWidth={1.6} />
+                      <View
+                        style={[
+                          styles.popularCourseBanner,
+                          styles.imgPlaceholder,
+                        ]}
+                      >
+                        <BookOpen
+                          size={wp(28)}
+                          color={colors.cAccentLight}
+                          strokeWidth={1.6}
+                        />
                       </View>
                     )}
                     {!!course.level && (
@@ -437,23 +509,32 @@ const ProductsScreen = () => {
                       </View>
                     )}
                   </View>
-                 <View style={styles.popularCourseCardInfoV2}>
+                  <View style={styles.popularCourseCardInfoV2}>
                     <Text style={styles.popularCourseTitle} numberOfLines={2}>
                       {course.title}
                     </Text>
                     {!!course.creator?.name && (
-                      <Text style={styles.courseInstructorText} numberOfLines={1}>
+                      <Text
+                        style={styles.courseInstructorText}
+                        numberOfLines={1}
+                      >
                         by {course.creator.name}
                       </Text>
                     )}
                     <View style={styles.courseMetaRowV2}>
                       {!!course.total_videos && (
                         <View style={styles.courseMetaItem}>
-                          <BookOpen size={wp(11)} color={colors.user.accentText} strokeWidth={1.8} />
-                          <Text style={styles.courseDurationText}>{course.total_videos} Videos</Text>
+                          <BookOpen
+                            size={wp(11)}
+                            color={colors.user.accentText}
+                            strokeWidth={1.8}
+                          />
+                          <Text style={styles.courseDurationText}>
+                            {course.total_videos} Videos
+                          </Text>
                         </View>
-                      )} 
-                   {!!fmtCourseDuration(course.total_duration) && (
+                      )}
+                      {!!fmtCourseDuration(course.total_duration) && (
                         <View style={styles.courseMetaItem}>
                           <Text style={styles.courseDurationText}>
                             🕒 {fmtCourseDuration(course.total_duration)}
@@ -461,9 +542,11 @@ const ProductsScreen = () => {
                         </View>
                       )}
                     </View>
-                    <Text style={styles.coursePriceTag}>{fmtPrice(course.price)}</Text>
-                  </View>        
-               </TouchableOpacity>
+                    <Text style={styles.coursePriceTag}>
+                      {fmtPrice(course.price)}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
               ))
             )}
 
@@ -481,8 +564,8 @@ const ProductsScreen = () => {
               </Text>
             </View>
 
-                        {SearchBar}
-             <ButtonSection active={activeFilter} setActive={setActiveFilter} />
+            {SearchBar}
+            <ButtonSection active={activeFilter} setActive={setActiveFilter} />
 
             {featuredWebinar && (
               <TouchableOpacity
@@ -494,7 +577,9 @@ const ProductsScreen = () => {
                   <View style={styles.featuredTextContent}>
                     <View style={styles.badgeRow}>
                       <View style={styles.featuredAccentBadge}>
-                        <Text style={styles.featuredAccentBadgeText}>▶ Upcoming Webinar</Text>
+                        <Text style={styles.featuredAccentBadgeText}>
+                          ▶ Upcoming Webinar
+                        </Text>
                       </View>
                     </View>
                     <Text style={styles.featuredCourseTitle} numberOfLines={2}>
@@ -507,7 +592,11 @@ const ProductsScreen = () => {
                     )}
                     <View style={styles.featuredMetaRow}>
                       <View style={styles.starMetaRow}>
-                        <Calendar size={11} color={colors.user.subHeading} strokeWidth={1.8} />
+                        <Calendar
+                          size={11}
+                          color={colors.user.subHeading}
+                          strokeWidth={1.8}
+                        />
                         <Text style={styles.featuredMetaText}>
                           {fmtDateTime(featuredWebinar.scheduled_at)}
                         </Text>
@@ -519,7 +608,10 @@ const ProductsScreen = () => {
                           {fmtPrice(featuredWebinar.price)}
                         </Text>
                         {!!featuredWebinar.creator?.name && (
-                          <Text style={styles.featuredMetaText} numberOfLines={1}>
+                          <Text
+                            style={styles.featuredMetaText}
+                            numberOfLines={1}
+                          >
                             by {featuredWebinar.creator.name}
                           </Text>
                         )}
@@ -535,15 +627,20 @@ const ProductsScreen = () => {
                       style={styles.featuredSideImage}
                     />
                   ) : (
-                    <View style={[styles.featuredSideImage, styles.imgPlaceholder]}>
-                      <Video size={wp(30)} color={colors.greenButtonDark} strokeWidth={1.6} />
+                    <View
+                      style={[styles.featuredSideImage, styles.imgPlaceholder]}
+                    >
+                      <Video
+                        size={wp(30)}
+                        color={colors.greenButtonDark}
+                        strokeWidth={1.6}
+                      />
                     </View>
                   )}
                 </View>
               </TouchableOpacity>
             )}
 
-       
             {/* Upcoming Webinars */}
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Upcoming Webinars</Text>
@@ -561,7 +658,9 @@ const ProductsScreen = () => {
                 style={{ marginVertical: hp(20) }}
               />
             ) : filteredWebinars.length === 0 ? (
-              <Text style={styles.emptyText}>No upcoming webinars right now.</Text>
+              <Text style={styles.emptyText}>
+                No upcoming webinars right now.
+              </Text>
             ) : (
               filteredWebinars.map((webinar: any) => (
                 <TouchableOpacity
@@ -577,7 +676,12 @@ const ProductsScreen = () => {
                         style={styles.webinarCoverImage}
                       />
                     ) : (
-                      <View style={[styles.webinarCoverImage, styles.imgPlaceholder]}>
+                      <View
+                        style={[
+                          styles.webinarCoverImage,
+                          styles.imgPlaceholder,
+                        ]}
+                      >
                         <Video
                           size={wp(30)}
                           color={colors.cAccentLight}
@@ -607,7 +711,9 @@ const ProductsScreen = () => {
                       👤 {webinar.creator?.name || 'Host'}
                     </Text>
                     <View style={styles.registerWebinarBtn}>
-                      <Text style={styles.registerWebinarBtnText}>Register Now</Text>
+                      <Text style={styles.registerWebinarBtnText}>
+                        Register Now
+                      </Text>
                     </View>
                   </View>
                 </TouchableOpacity>
@@ -619,8 +725,8 @@ const ProductsScreen = () => {
         ) : (
           <>
             {/* 1:1 Sessions */}
-                        {SearchBar}
-             <ButtonSection active={activeFilter} setActive={setActiveFilter} />
+            {SearchBar}
+            <ButtonSection active={activeFilter} setActive={setActiveFilter} />
 
             {featuredSession && (
               <TouchableOpacity
@@ -628,7 +734,7 @@ const ProductsScreen = () => {
                 activeOpacity={0.85}
                 onPress={() =>
                   featuredSession?.expert_id &&
-                 navigation.navigate('ExpertDetail', {
+                  navigation.navigate('ExpertDetail', {
                     expert: { id: featuredSession.expert_id },
                   })
                 }
@@ -636,8 +742,10 @@ const ProductsScreen = () => {
                 <View style={styles.featuredContentRow}>
                   <View style={styles.featuredTextContent}>
                     <View style={styles.badgeRow}>
-                     <View style={styles.featuredAccentBadge}>
-                        <Text style={styles.featuredAccentBadgeText}>⭐ 1:1 Session</Text>
+                      <View style={styles.featuredAccentBadge}>
+                        <Text style={styles.featuredAccentBadgeText}>
+                          ⭐ 1:1 Session
+                        </Text>
                       </View>
                     </View>
                     <Text style={styles.featuredCourseTitle} numberOfLines={2}>
@@ -650,13 +758,25 @@ const ProductsScreen = () => {
                     )}
                     <View style={styles.featuredMetaRow}>
                       <View style={styles.starMetaRow}>
-                        <Clock size={11} color={colors.user.subHeading} strokeWidth={1.8} />
-                        <Text style={styles.featuredMetaText}>{featuredSession.duration} min</Text>
+                        <Clock
+                          size={11}
+                          color={colors.user.subHeading}
+                          strokeWidth={1.8}
+                        />
+                        <Text style={styles.featuredMetaText}>
+                          {featuredSession.duration} min
+                        </Text>
                       </View>
                       <View style={styles.starMetaRow}>
-                        <MapPin size={11} color={colors.user.subHeading} strokeWidth={1.8} />
+                        <MapPin
+                          size={11}
+                          color={colors.user.subHeading}
+                          strokeWidth={1.8}
+                        />
                         <Text style={styles.featuredMetaText}>
-                          {featuredSession.mode === 'VIDEO' ? 'Video Call' : 'Audio Call'}
+                          {featuredSession.mode === 'VIDEO'
+                            ? 'Video Call'
+                            : 'Audio Call'}
                         </Text>
                       </View>
                     </View>
@@ -666,31 +786,42 @@ const ProductsScreen = () => {
                           {fmtPrice(featuredSession.price)}
                         </Text>
                         {!!featuredSession.creator?.name && (
-                          <Text style={styles.featuredMetaText} numberOfLines={1}>
+                          <Text
+                            style={styles.featuredMetaText}
+                            numberOfLines={1}
+                          >
                             by {featuredSession.creator.name}
                           </Text>
                         )}
                       </View>
                       <View
-                        style={[styles.enrollBtn, !featuredSession?.expert_id && { opacity: 0.4 }]}
+                        style={[
+                          styles.enrollBtn,
+                          !featuredSession?.expert_id && { opacity: 0.4 },
+                        ]}
                       >
                         <Text style={styles.enrollBtnText}>Book Session</Text>
                       </View>
                     </View>
                   </View>
-                  <View style={[styles.featuredSideImage, styles.imgPlaceholder]}>
-                    <Star size={wp(30)} color={colors.greenButtonDark} strokeWidth={1.6} />
+                  <View
+                    style={[styles.featuredSideImage, styles.imgPlaceholder]}
+                  >
+                    <Star
+                      size={wp(30)}
+                      color={colors.greenButtonDark}
+                      strokeWidth={1.6}
+                    />
                   </View>
                 </View>
               </TouchableOpacity>
             )}
 
-            
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Popular 1:1 Sessions</Text>
               <View style={styles.upcomingCountBadge}>
                 <Text style={styles.upcomingCountText}>
-                   • {filteredSessionProducts.length} available
+                  • {filteredSessionProducts.length} available
                 </Text>
               </View>
             </View>
@@ -703,7 +834,9 @@ const ProductsScreen = () => {
               />
             ) : filteredSessionProducts.length === 0 ? (
               <Text style={styles.emptyText}>
-                {q ? 'No sessions match your search.' : 'No sessions available right now.'}
+                {q
+                  ? 'No sessions match your search.'
+                  : 'No sessions available right now.'}
               </Text>
             ) : (
               popularSessions.map((product: any) => (
@@ -713,16 +846,24 @@ const ProductsScreen = () => {
                   activeOpacity={0.85}
                   onPress={() =>
                     product?.expert_id &&
-                     navigation.navigate('ExpertDetail', {
+                    navigation.navigate('ExpertDetail', {
                       expert: { id: product.expert_id },
                     })
                   }
                 >
                   <View style={styles.sessionIconWrap}>
                     {product.mode === 'VIDEO' ? (
-                      <Video size={wp(20)} color={colors.user.accent} strokeWidth={2} />
+                      <Video
+                        size={wp(20)}
+                        color={colors.user.accent}
+                        strokeWidth={2}
+                      />
                     ) : (
-                      <Star size={wp(20)} color={colors.user.accent} strokeWidth={2} />
+                      <Star
+                        size={wp(20)}
+                        color={colors.user.accent}
+                        strokeWidth={2}
+                      />
                     )}
                   </View>
 
@@ -731,7 +872,8 @@ const ProductsScreen = () => {
                       {product.title}
                     </Text>
                     <Text style={styles.webinarMetaLineText}>
-                      {product.duration} min · {product.mode === 'VIDEO' ? 'Video Call' : 'Audio Call'}
+                      {product.duration} min ·{' '}
+                      {product.mode === 'VIDEO' ? 'Video Call' : 'Audio Call'}
                     </Text>
                     {!!product.creator?.name && (
                       <Text style={styles.webinarMetaLineText}>
@@ -740,7 +882,9 @@ const ProductsScreen = () => {
                     )}
 
                     <View style={styles.sessionFooterRow}>
-                      <Text style={styles.coursePriceTag}>{fmtPrice(product.price)}</Text>
+                      <Text style={styles.coursePriceTag}>
+                        {fmtPrice(product.price)}
+                      </Text>
                       <View
                         style={[
                           styles.registerWebinarBtn,
@@ -985,13 +1129,13 @@ const styles = StyleSheet.create({
     color: colors.user.text,
   },
   enrollBtn: {
-    backgroundColor: colors.greenButtonDark,
-    paddingHorizontal: wp(16),
-    paddingVertical: hp(8),
+    backgroundColor: colors.creatorGreen,
+    paddingHorizontal: wp(10),
+    paddingVertical: hp(7),
     borderRadius: 8,
   },
   enrollBtnText: {
-    color: '#FFFFFF' ,
+    color: '#FFFFFF',
     fontSize: fp(12),
     fontWeight: '700',
   },
@@ -1117,7 +1261,12 @@ const styles = StyleSheet.create({
   },
   webinarCoverImage: {
     width: '100%',
-    height: hp(130),
+    aspectRatio: 16 / 9,
+  },
+  featuredWebinarImage: {
+    width: wp(110),
+    aspectRatio: 16 / 9,
+    borderRadius: 10,
   },
   priceOverlayBadge: {
     position: 'absolute',
@@ -1154,9 +1303,9 @@ const styles = StyleSheet.create({
     marginBottom: hp(4),
   },
   registerWebinarBtn: {
-    backgroundColor: colors.greenButtonDark,
+    backgroundColor: colors.creatorGreen,
     borderWidth: 1,
-    borderColor: colors.greenButtonDark,
+    borderColor: colors.creatorGreen,
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
@@ -1164,7 +1313,7 @@ const styles = StyleSheet.create({
     marginTop: hp(12),
   },
   registerWebinarBtnText: {
-     color: '#FFFFFF',
+    color: '#FFFFFF',
     fontSize: fp(12),
     fontWeight: '600',
   },
@@ -1241,10 +1390,10 @@ const styles = StyleSheet.create({
     paddingVertical: hp(7),
     paddingHorizontal: wp(16),
   },
-    popularCourseCardV2: {
-   backgroundColor: colors.user.card,
-   borderWidth: 1,
-   borderColor: colors.user.border,
+  popularCourseCardV2: {
+    backgroundColor: colors.user.card,
+    borderWidth: 1,
+    borderColor: colors.user.border,
     borderRadius: 16,
     overflow: 'hidden',
     marginBottom: hp(14),

@@ -248,7 +248,7 @@ const UserSetting: React.FC = () => {
           <MenuRow
             icon={Wallet}
             label="Payment & Billing"
-            subtitle="View your payments, invoices and purchase history"
+            subtitle="View your payments, invoices & purchase history"
             onPress={() => Nav.navigate('PaymentBilling')}
           />
           <MenuRow

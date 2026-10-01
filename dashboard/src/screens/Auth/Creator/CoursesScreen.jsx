@@ -716,7 +716,7 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
                         "Course",
                         "Status",
                         "Price",
-                        "Students",
+                        "Users",
                         "Revenue",
                         "Updated",
                         "Actions",

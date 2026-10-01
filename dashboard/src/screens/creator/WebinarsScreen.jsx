@@ -10,9 +10,7 @@ import {
   Trash2,
   Video,
   Users,
-  Share2,
   IndianRupee,
-  CalendarDays,
   Radio,
   Search,
   MonitorPlay,
@@ -670,7 +668,7 @@ export default function WebinarsScreen() {
                     onChange={(e) =>
                       setForm({ ...form, description: e.target.value })
                     }
-                    placeholder="Describe what attendees will learn in this live interactive session..."
+                    placeholder="Describe what users will learn in this live interactive session..."
                   />
                   <div
                     style={{
@@ -1053,7 +1051,7 @@ export default function WebinarsScreen() {
                           marginTop: 2,
                         }}
                       >
-                        Attendees can rewatch session recordings forever
+                        Users can rewatch session recordings forever
                       </div>
                     </div>
                     <div
@@ -1574,7 +1572,7 @@ export default function WebinarsScreen() {
                   "Webinar",
                   "Status",
                   "Date & Time",
-                  "Attendees",
+                  "Users",
                   "Revenue",
                   "Actions",
                 ].map((h) => (
@@ -1676,67 +1674,7 @@ export default function WebinarsScreen() {
             </div>
           </div>
         )}
-      </Modal>
-
-      <Modal
-        open={!!performanceWebinar}
-        onClose={() => setPerformanceWebinar(null)}
-        title="Webinar Performance"
-        width={380}
-      >
-        {performanceWebinar && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                padding: "10px 12px",
-                borderRadius: 10,
-                background: "rgba(34,197,94,0.08)",
-              }}
-            >
-              <span style={{ fontSize: 13, color: "#6B7280" }}>
-                Total Revenue
-              </span>
-              <span style={{ fontSize: 14, fontWeight: 700, color: "#16A34A" }}>
-                {performanceWebinar.revenue != null
-                  ? formatCurrency(performanceWebinar.revenue)
-                  : "--"}
-              </span>
-            </div>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                padding: "10px 12px",
-                borderRadius: 10,
-                background: "rgba(59,130,246,0.08)",
-              }}
-            >
-              <span style={{ fontSize: 13, color: "#6B7280" }}>
-                Attendees / Users
-              </span>
-              <span style={{ fontSize: 14, fontWeight: 700, color: "#2563EB" }}>
-                {performanceWebinar._count?.enrollments ?? 0}
-              </span>
-            </div>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                padding: "10px 12px",
-                borderRadius: 10,
-                background: "rgba(239,68,68,0.08)",
-              }}
-            >
-              <span style={{ fontSize: 13, color: "#6B7280" }}>Refunds</span>
-              <span style={{ fontSize: 14, fontWeight: 700, color: "#DC2626" }}>
-                {performanceWebinar.refunded_count ?? 0}
-              </span>
-            </div>
-          </div>
-        )}
-      </Modal>
+      </Modal> 
 
       <Modal
         open={!!toDelete}
@@ -1752,7 +1690,7 @@ export default function WebinarsScreen() {
           }}
         >
           "<b>{toDelete?.title}</b>" will be permanently deleted. Registered
-          attendees will lose access.
+          users will lose access.
         </p>
         <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
           <GoldBtn ghost onClick={() => setToDelete(null)}>
@@ -1933,7 +1871,7 @@ export default function WebinarsScreen() {
                   fontSize: 13,
                 }}
               >
-                Loading attendees...
+                Loading Users...
               </div>
             ) : attendeesList.length === 0 ? (
               <div
@@ -1944,7 +1882,7 @@ export default function WebinarsScreen() {
                   fontSize: 13,
                 }}
               >
-                No attendees yet.
+                No Users yet.
               </div>
             ) : (
               <div

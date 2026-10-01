@@ -47,5 +47,7 @@ router.get("/products/popular", jwtAuth, SessionController.getPopularProducts);
 router.post("/book", jwtAuth, SessionController.bookSession);
 router.post("/verify-payment", jwtAuth, SessionController.verifySessionPayment);
 router.post("/rate", jwtAuth, SessionController.rateSession);
+router.post("/products/:product_id/add-user", jwtAuth, SessionController.addUserToProduct);
+router.get("/products/:product_id/users", jwtAuth, SessionController.getProductUsers);
 
 export default router;

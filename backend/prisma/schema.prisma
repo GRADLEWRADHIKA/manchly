@@ -470,7 +470,11 @@ model sessions {
   updated_at     DateTime      @updatedAt
   scheduled_at   DateTime?
   payment_status String?       @default("PENDING") @db.VarChar(20)
+  product_id     String?
+  product       session_products? @relation(fields: [product_id], references: [id], onDelete: SetNull)
 
+
+  @@index([product_id])
   @@index([caller_id])
   @@index([receiver_id])
   @@index([status])
@@ -573,16 +577,20 @@ model webinar_reviews {
 }
 
 model session_products {
-  id          String      @id @default(uuid())
-  creator_id  String
-  title       String
-  description String?
-  duration    Int
-  price       Float
-  mode        SessionMode
-  is_active   Boolean     @default(true)
-  created_at  DateTime    @default(now())
-  updated_at  DateTime    @updatedAt
+  id               String      @id @default(uuid())
+  creator_id       String
+  title            String
+  description      String?
+  duration         Int
+  price            Float
+  mode             SessionMode
+  is_active        Boolean     @default(true)
+  thumbnail_url    String?
+  categories       String[]    @default([])
+  thankyou_message String?
+  created_at       DateTime    @default(now())
+  updated_at       DateTime    @updatedAt
+  sessions         sessions[]
 
   @@index([creator_id])
   @@map("session_products")
@@ -842,6 +850,8 @@ model creator_trials {
   @@index([status])
   @@map("creator_trials")
 }
+
+
 
 enum ReelStatus {
   UPLOADING

@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Star } from "lucide-react";
+import { Search, Clock } from "lucide-react";
 import { apiFetch, unwrap } from "../../utils/api";
-import { onSocket } from "../../utils/socket";
 import colors from "../../utils/colors";
 import { Avatar, FullLoader, GradientButton, EmptyState, Badge } from "../../components/ui";
 import { formatCurrency } from "../../utils/formatters";
@@ -15,22 +14,10 @@ export default function Sessions() {
   const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [sessions, setSessions] = useState([]);
-  const [experts, setExperts] = useState([]);
+  const [products, setProducts] = useState([]);
   const [category, setCategory] = useState("All");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
-
-  const loadExperts = (cat = category, q = search) => {
-    const params = new URLSearchParams({ page: 1, limit: 30 });
-    if (cat && cat !== "All") params.set("category", cat);
-    if (q) params.set("search", q);
-    return apiFetch(`/sessions/experts?${params}`)
-      .then((r) => {
-        const d = unwrap(r);
-        setExperts(d?.experts || d?.data || (Array.isArray(d) ? d : []));
-      })
-      .catch(() => {});
-  };
 
   useEffect(() => {
     Promise.allSettled([
@@ -39,12 +26,26 @@ export default function Sessions() {
         setSessions(d?.sessions || (Array.isArray(d) ? d : []));
       }),
       apiFetch("/sessions/stats").then((r) => setStats(unwrap(r))),
-      loadExperts("All", ""),
+      apiFetch("/sessions/products/popular?limit=20").then((r) => {
+        const d = unwrap(r);
+        setProducts(d?.products || (Array.isArray(d) ? d : []));
+      }),
     ]).finally(() => setLoading(false));
+  }, []);
 
-    const off = onSocket("expert_availability_updated", () => loadExperts());
-    return off;
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // category + search filtering happens client-side (endpoint has no filters)
+  const filteredProducts = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return products.filter((p) => {
+      if (p.is_active === false) return false;
+      if (category !== "All" && !(p.categories || []).includes(category)) return false;
+      if (!q) return true;
+      return (
+        (p.title || "").toLowerCase().includes(q) ||
+        (p.creator?.name || "").toLowerCase().includes(q)
+      );
+    });
+  }, [products, category, search]);
 
   if (loading) return <FullLoader label="Loading sessions..." />;
 
@@ -67,7 +68,7 @@ export default function Sessions() {
           {statCard("Spent", formatCurrency(stats?.total_earnings ?? 0))}
         </div>
 
-        {/* Experts Header Banner */}
+        {/* Header Banner */}
         <div style={{ background: colors.gradients.heroWarm, borderRadius: 18, padding: "22px 24px", marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
             <div style={{ fontSize: 19, fontWeight: 900, color: colors.user.nav }}>Talk to an Expert 1:1</div>
@@ -81,8 +82,7 @@ export default function Sessions() {
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && loadExperts(category, search)}
-            placeholder="Search by name or profession..."
+            placeholder="Search by session or creator name..."
             style={{ flex: 1, background: "transparent", border: "none", outline: "none", color: "#fff", fontSize: 14 }}
           />
         </div>
@@ -90,7 +90,7 @@ export default function Sessions() {
           {CATEGORIES.map((c) => (
             <button
               key={c}
-              onClick={() => { setCategory(c); loadExperts(c, search); }}
+              onClick={() => setCategory(c)}
               style={{
                 padding: "7px 16px", borderRadius: 999, fontSize: 12.5, fontWeight: 700, cursor: "pointer",
                 border: `1px solid ${category === c ? "transparent" : colors.user.border}`,
@@ -103,38 +103,73 @@ export default function Sessions() {
           ))}
         </div>
 
-        {experts.length === 0 ? (
-          <EmptyState icon="🧑‍🏫" title="No experts found" subtitle="Try a different category or search." />
+        {/* Creator sessions */}
+        {filteredProducts.length === 0 ? (
+          <EmptyState icon="🗂️" title="No sessions found" subtitle="Try a different category or search." />
         ) : (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 14, marginBottom: 34 }}>
-            {experts.map((e) => (
-              <div key={e.id} style={{ background: colors.user.card, border: `1px solid ${colors.user.border}`, borderRadius: 16, padding: 16, display: "flex", gap: 14, alignItems: "center" }}>
-                <Avatar src={e.user?.profile_image || e.profile_image} name={e.user?.name || e.name || "E"} size={56} online={!!e.is_available} />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 800, fontSize: 15 }}>{e.user?.name || e.name}</div>
-                  <div style={{ color: colors.user.subHeading, fontSize: 12.5 }}>{e.profession}</div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 5, fontSize: 12, color: colors.user.subHeading }}>
-                    <span style={{ display: "flex", alignItems: "center", gap: 3 }}><Star size={11} color="#F0C040" />{e.rating || "New"}</span>
-                    <span>· {e.experience || 0} yrs</span>
-                    <span>· {e.total_sessions || 0} sessions</span>
+            {filteredProducts.map((p) => {
+              const price = Number(p.price) || 0;
+              const creator = p.creator || {};
+              const canBook = !!p.expert_id;
+              return (
+                <div key={p.id} style={{ background: colors.user.card, border: `1px solid ${colors.user.border}`, borderRadius: 16, overflow: "hidden", display: "flex", flexDirection: "column" }}>
+                  {/* thumbnail */}
+                  <div
+                    style={{
+                      width: "100%",
+                      aspectRatio: "16 / 9",
+                      position: "relative",
+                      background: colors.gradients.heroWarm,
+                      backgroundImage: p.thumbnail_url ? `url(${p.thumbnail_url})` : undefined,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                    }}
+                  >
+                    {p.categories?.[0] && (
+                      <span style={{ position: "absolute", top: 10, left: 10, background: "#fff", color: "#0F172A", padding: "4px 12px", borderRadius: 99, fontSize: 11.5, fontWeight: 700 }}>
+                        {p.categories[0]}
+                      </span>
+                    )}
                   </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
-                    <span style={{ fontWeight: 900, color: colors.user.accent, fontSize: 14 }}>₹{e.video_rate || 0}/min</span>
-                    
-                    {/* BOOK BUTTON WITH GREEN GRADIENT */}
-                    <GradientButton 
-                      size="sm" 
-                      disabled={!e.is_available} 
-                      gradient={e.is_available ? colors.gradients.greenButtonDark : undefined}
-                      onClick={() => navigate(`/app/experts/${e.id}`, { state: { expert: e } })}
-                    >
-                      {e.is_available ? "Book" : "Offline"}
-                    </GradientButton>
 
+                  <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 10, flex: 1 }}>
+                    <div>
+                      <div style={{ fontWeight: 800, fontSize: 15 }}>{p.title}</div>
+                      {p.description && (
+                        <div style={{ color: colors.user.subHeading, fontSize: 12.5, marginTop: 4, lineHeight: 1.45, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                          {p.description}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* creator */}
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <Avatar src={creator.profile_image} name={creator.name || "C"} size={28} />
+                      <span style={{ fontSize: 12.5, fontWeight: 700 }}>{creator.name || "Creator"}</span>
+                    </div>
+
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: colors.user.subHeading }}>
+                      <Clock size={12} /> {p.duration || 30} min <span>· 1:1 Video</span>
+                    </div>
+
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "auto" }}>
+                      <span style={{ fontWeight: 900, color: price > 0 ? colors.user.accent : "#22C55E", fontSize: 15 }}>
+                        {price > 0 ? formatCurrency(price) : "Free"}
+                      </span>
+                      <GradientButton
+                        size="sm"
+                        disabled={!canBook}
+                        gradient={canBook ? colors.gradients.greenButtonDark : undefined}
+                        onClick={() => navigate(`/app/experts/${p.expert_id}?session=${p.id}`, { state: { product: p } })}
+                      >
+                        {canBook ? "Book" : "Unavailable"}
+                      </GradientButton>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 

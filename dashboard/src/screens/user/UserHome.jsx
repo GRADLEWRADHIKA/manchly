@@ -10,7 +10,7 @@ import {
   GraduationCap,
   BarChart2,
   Code,
-  Megaphone
+  Megaphone,
 } from "lucide-react";
 import { apiFetch, unwrap } from "../../utils/api";
 import colors from "../../utils/colors";
@@ -32,10 +32,13 @@ function isToday(date) {
 }
 
 function sessionIcon(title = "") {
- const t = title.toLowerCase();
-  if (/resume|career|interview/.test(t)) return { Icon: BarChart2, bg: "#DCFCE7", color: "#16A34A" };
-  if (/website|tech|code|developer|app/.test(t)) return { Icon: Code, bg: "#DBEAFE", color: "#3B82F6" };
-  if (/marketing|brand|growth|social/.test(t)) return { Icon: Megaphone, bg: "#FCE7F3", color: "#DB2777" };
+  const t = title.toLowerCase();
+  if (/resume|career|interview/.test(t))
+    return { Icon: BarChart2, bg: "#DCFCE7", color: "#16A34A" };
+  if (/website|tech|code|developer|app/.test(t))
+    return { Icon: Code, bg: "#DBEAFE", color: "#3B82F6" };
+  if (/marketing|brand|growth|social/.test(t))
+    return { Icon: Megaphone, bg: "#FCE7F3", color: "#DB2777" };
   return { Icon: UsersRound, bg: "#F3E8FF", color: "#A855F7" };
 }
 
@@ -337,7 +340,7 @@ export default function UserHome() {
 
   useEffect(() => {
     Promise.allSettled([
-      apiFetch("/sessions/products/popular?limit=6").then((r) => {
+      apiFetch("/sessions/products/popular?limit=4").then((r) => {
         const d = unwrap(r);
         setSessionProducts(d?.products || (Array.isArray(d) ? d : []));
       }),
@@ -360,7 +363,6 @@ export default function UserHome() {
         );
       }),
     ]).finally(() => setLoading(false));
-
   }, []);
 
   const inProgress = enrollments
@@ -981,7 +983,7 @@ export default function UserHome() {
         )}
       </Section>
 
-    {/* 3. Popular 1:1 Sessions Section */}
+      {/* 3. Popular 1:1 Sessions Section */}
       <Section
         title="Popular 1:1 Sessions"
         subtitle="Get personalized guidance from industry experts"
@@ -989,7 +991,7 @@ export default function UserHome() {
         delay={180}
       >
         {loading ? (
-          <Skeleton height={110} count={3} />
+          <Skeleton height={110} count={4} />
         ) : sessionProducts.length === 0 ? (
           <div
             style={{
@@ -1007,7 +1009,7 @@ export default function UserHome() {
               gap: 16,
             }}
           >
-            {sessionProducts.map((p) => {
+            {sessionProducts.slice(0, 4).map((p) => {
               const { Icon, bg, color } = sessionIcon(p.title);
               const price = Number(p.price) || 0;
               const canBook = Boolean(p.expert_id);
@@ -1028,11 +1030,13 @@ export default function UserHome() {
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.transform = "translateY(-2px)";
-                    e.currentTarget.style.boxShadow = "0 8px 16px rgba(0,0,0,0.06)";
+                    e.currentTarget.style.boxShadow =
+                      "0 8px 16px rgba(0,0,0,0.06)";
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.03)";
+                    e.currentTarget.style.boxShadow =
+                      "0 2px 8px rgba(0,0,0,0.03)";
                   }}
                 >
                   {/* Left Icon Square */}
@@ -1084,6 +1088,37 @@ export default function UserHome() {
                       <Clock size={13} color="#64748B" />
                       <span>{p.duration ? `${p.duration} min` : "30 min"}</span>
                     </div>
+                    {/* Creator */}
+                    <div
+                      onClick={(ev) => {
+                        if (p.creator?.handle) {
+                          ev.stopPropagation();
+                          navigate(`/app/creator/${p.creator.handle}`);
+                        }
+                      }}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 6,
+                        marginTop: 4,
+                        width: "fit-content",
+                        cursor: p.creator?.handle ? "pointer" : "default",
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: 12.5,
+                          fontWeight: 600,
+                          color: "#16A34A",
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          maxWidth: 160,
+                        }}
+                      >
+                        by {p.creator?.name || "Creator"}
+                      </span>
+                    </div>
 
                     {/* Price and Book Action */}
                     <div
@@ -1125,10 +1160,12 @@ export default function UserHome() {
                           transition: "background-color 0.15s ease",
                         }}
                         onMouseEnter={(e) => {
-                          if (canBook) e.currentTarget.style.backgroundColor = "#DCFCE7";
+                          if (canBook)
+                            e.currentTarget.style.backgroundColor = "#DCFCE7";
                         }}
                         onMouseLeave={(e) => {
-                          if (canBook) e.currentTarget.style.backgroundColor = "#E6F4EA";
+                          if (canBook)
+                            e.currentTarget.style.backgroundColor = "#E6F4EA";
                         }}
                       >
                         Book

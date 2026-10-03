@@ -3,15 +3,12 @@ import { useNavigate } from "react-router-dom";
 import {
   Phone,
   Users,
-  Clock,
   IndianRupee,
   Trash2,
   Plus,
   Star,
-  CalendarClock,
   User,
   CheckCircle2,
-  X,
 } from "lucide-react";
 import { apiFetch, unwrap } from "../../utils/api";
 import { emitSocket } from "../../utils/socket";
@@ -22,6 +19,9 @@ import { toast } from "../../utils/toast";
 import { formatCurrency } from "../../utils/formatters";
 import SessionProductRow from "../Auth/Creator/components/SessionProductRow";
 import CreateSessionForm from "../Auth/Creator/components/CreateSessionForm";
+import DateRangePicker, {
+  isInDateRange,
+} from "../Auth/Creator/components/DateRangePicker";
 
 const G = colors.gradients;
 
@@ -114,8 +114,7 @@ const h3 = {
   gap: 8,
 };
 
-const cardSm = { ...card, padding: 14, borderRadius: 14 };
-const h3Sm = { ...h3, fontSize: 14 };
+
 
 const GST_RATE = 0.18;
 const PLATFORM_FEE_RATE = 0.02;
@@ -187,7 +186,7 @@ export default function SessionsScreen() {
 
   const [sessionSearch, setSessionSearch] = useState("");
   const [sessionSort, setSessionSort] = useState("newest");
-  const [sessionDateFilter, setSessionDateFilter] = useState("all");
+  const [sessionDateRange, setSessionDateRange] = useState(null);
 
   const [previewSession, setPreviewSession] = useState(null);
 
@@ -583,12 +582,8 @@ export default function SessionsScreen() {
       list = list.filter((p) => (p.title || "").toLowerCase().includes(q));
     }
 
-    if (sessionDateFilter !== "all") {
-      const cutoff =
-        Date.now() - Number(sessionDateFilter) * 24 * 60 * 60 * 1000;
-      list = list.filter(
-        (p) => new Date(p.created_at || 0).getTime() >= cutoff,
-      );
+    if (sessionDateRange) {
+      list = list.filter((p) => isInDateRange(p.created_at, sessionDateRange));
     }
 
     return [...list].sort((a, b) => {
@@ -598,7 +593,7 @@ export default function SessionsScreen() {
       const bd = new Date(b.created_at || 0).getTime();
       return sessionSort === "oldest" ? ad - bd : bd - ad;
     });
-  }, [products, tab, sessionSearch, sessionDateFilter, sessionSort]);
+  }, [products, tab, sessionSearch, sessionDateRange, sessionSort]);
 
   const slotsByDay = DAYS.map((day) => ({
     day,
@@ -683,9 +678,64 @@ export default function SessionsScreen() {
             Get booked for video consultations, billed per minute.
           </p>
         </div>
-        <GoldBtn onClick={openCreate}>
-          <Plus size={16} /> Schedule Session
-        </GoldBtn>
+        <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
+          {expert && (
+            <button
+              onClick={toggleAvailable}
+              disabled={toggling}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                fontFamily: "inherit",
+              }}
+            >
+              <span
+                style={{
+                  fontSize: 12.5,
+                  fontWeight: 700,
+                  color: expert.is_available
+                    ? "#15803D"
+                    : colors.typography.secondaryText,
+                }}
+              >
+                {toggling ? "Updating…" : "Available for calls"}
+              </span>
+              <span
+                style={{
+                  width: 38,
+                  height: 22,
+                  borderRadius: 99,
+                  background: expert.is_available ? "#22C55E" : "#D1D5DB",
+                  position: "relative",
+                  transition: "background 0.2s ease",
+                  flexShrink: 0,
+                }}
+              >
+                <span
+                  style={{
+                    position: "absolute",
+                    top: 2,
+                    left: expert.is_available ? 18 : 2,
+                    width: 18,
+                    height: 18,
+                    borderRadius: "50%",
+                    background: "#fff",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.25)",
+                    transition: "left 0.2s ease",
+                  }}
+                />
+              </span>
+            </button>
+          )}
+
+          <GoldBtn onClick={openCreate}>
+            <Plus size={16} /> Schedule Session
+          </GoldBtn>
+        </div>
       </div>
 
       {/* Stats */}
@@ -718,17 +768,9 @@ export default function SessionsScreen() {
 
       {loading ? (
         <div
-          style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: 20 }}
-        >
-          <div
-            className="mn-shimmer"
-            style={{ height: 320, borderRadius: 18, opacity: 0.3 }}
-          />
-          <div
-            className="mn-shimmer"
-            style={{ height: 320, borderRadius: 18, opacity: 0.3 }}
-          />
-        </div>
+          className="mn-shimmer"
+          style={{ height: 320, borderRadius: 18, opacity: 0.3 }}
+        />
       ) : noProfile && !expert ? (
         <div
           style={{
@@ -772,7 +814,7 @@ export default function SessionsScreen() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "1.5fr 1fr",
+            gridTemplateColumns: "minmax(0, 1fr)",
             gap: 20,
             alignItems: "start",
           }}
@@ -832,31 +874,22 @@ export default function SessionsScreen() {
                     cursor: "pointer",
                   }}
                 >
-                  <option value="newest">Newest First</option>
-                  <option value="oldest">Oldest First</option>
                   <option value="price_desc">Price: High to Low</option>
                   <option value="price_asc">Price: Low to High</option>
                 </select>
 
-                <select
-                  value={sessionDateFilter}
-                  onChange={(e) => setSessionDateFilter(e.target.value)}
-                  style={{
+                <DateRangePicker
+                  value={sessionDateRange}
+                  onChange={setSessionDateRange}
+                  align="right"
+                  buttonStyle={{
                     border: `1.5px solid ${colors.base.border}`,
                     borderRadius: 10,
                     padding: "7px 10px",
                     fontSize: 12.5,
                     fontWeight: 600,
-                    background: "#fff",
-                    cursor: "pointer",
                   }}
-                >
-                  <option value="all">All Time</option>
-                  <option value="7">Last 7 days</option>
-                  <option value="30">Last 30 days</option>
-                  <option value="90">Last 90 days</option>
-                  <option value="365">Last 1 year</option>
-                </select>
+                />
               </div>
             </div>
 
@@ -936,352 +969,6 @@ export default function SessionsScreen() {
                 </table>
               </div>
             )}
-          </div>
-
-          {/* RIGHT: profile + availability + products */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-            {/* Expert profile */}
-            <div style={cardSm}>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: 10,
-                }}
-              >
-                <h3 style={{ ...h3Sm, margin: 0 }}>
-                  <Star size={16} color="#F5A623" /> Your Expert Profile
-                </h3>
-                <button
-                  onClick={openExpertModal}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    color: colors.brand.primaryOrange,
-                    fontSize: 13,
-                    fontWeight: 700,
-                    cursor: "pointer",
-                  }}
-                >
-                  Edit
-                </button>
-              </div>
-
-              <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                <div
-                  style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: "50%",
-                    background: "#FFF1DC",
-                    color: "#D97706",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: 16,
-                    fontWeight: 800,
-                    flexShrink: 0,
-                  }}
-                >
-                  {(expert?.profession || "?").charAt(0).toUpperCase()}
-                </div>
-                <div>
-                  <div
-                    style={{ fontSize: 14, fontWeight: 800, color: "#111827" }}
-                  >
-                    {expert?.user?.name || expert?.name || "Your Profile"}
-                  </div>
-                  <div style={{ fontSize: 12, color: "#6B7280", marginTop: 0 }}>
-                    {expert?.profession || "—"}
-                  </div>
-                  <div
-                    style={{ fontSize: 11.5, color: "#6B7280", marginTop: 1 }}
-                  >
-                    ₹{expert?.video_rate || 0}/min · {expert?.experience || 0}{" "}
-                    yrs experience
-                  </div>
-                </div>
-              </div>
-
-              {(expert?.categories || []).length > 0 && (
-                <div
-                  style={{
-                    display: "flex",
-                    gap: 5,
-                    flexWrap: "wrap",
-                    marginTop: 10,
-                  }}
-                >
-                  {expert.categories.slice(0, 4).map((c) => (
-                    <span
-                      key={c}
-                      style={{
-                        background: "#fff",
-                        border: `1px solid ${colors.base.border}`,
-                        borderRadius: 99,
-                        padding: "3px 9px",
-                        fontSize: 10.5,
-                        fontWeight: 700,
-                        color: colors.typography.primaryText,
-                      }}
-                    >
-                      {c}
-                    </span>
-                  ))}
-                  {(expert?.languages || []).length > 0 &&
-                    expert.languages.map((l) => (
-                      <span
-                        key={l}
-                        style={{
-                          background: "#fff",
-                          border: `1px solid ${colors.base.border}`,
-                          borderRadius: 99,
-                          padding: "5px 12px",
-                          fontSize: 11.5,
-                          fontWeight: 700,
-                          color: colors.typography.primaryText,
-                        }}
-                      >
-                        {l}
-                      </span>
-                    ))}
-                </div>
-              )}
-
-              {expert?.bio && (
-                <p
-                  style={{
-                    margin: "10px 0 0",
-                    fontSize: 12,
-                    color: "#6B7280",
-                    lineHeight: 1.45,
-                  }}
-                >
-                  {expert.bio}
-                </p>
-              )}
-            </div>
-
-            {/* Weekly availability */}
-            <div style={cardSm}>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: 10,
-                }}
-              >
-                <h3 style={{ ...h3Sm, margin: 0 }}>
-                  <CalendarClock size={16} color="#F5A623" /> Availability
-                </h3>
-                {expert && (
-                  <button
-                    onClick={toggleAvailable}
-                    disabled={toggling}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 8,
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                      fontFamily: "inherit",
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontSize: 12.5,
-                        fontWeight: 700,
-                        color: expert.is_available
-                          ? "#15803D"
-                          : colors.typography.secondaryText,
-                      }}
-                    >
-                      {toggling ? "Updating…" : "Available for calls"}
-                    </span>
-                    <span
-                      style={{
-                        width: 38,
-                        height: 22,
-                        borderRadius: 99,
-                        background: expert.is_available ? "#22C55E" : "#D1D5DB",
-                        position: "relative",
-                        transition: "background 0.2s ease",
-                        flexShrink: 0,
-                      }}
-                    >
-                      <span
-                        style={{
-                          position: "absolute",
-                          top: 2,
-                          left: expert.is_available ? 18 : 2,
-                          width: 18,
-                          height: 18,
-                          borderRadius: "50%",
-                          background: "#fff",
-                          boxShadow: "0 1px 3px rgba(0,0,0,0.25)",
-                          transition: "left 0.2s ease",
-                        }}
-                      />
-                    </span>
-                  </button>
-                )}
-              </div>
-
-              {slots.length === 0 ? (
-                <div
-                  style={{
-                    background: "#FFF8EC",
-                    border: "1px solid #F0DDB0",
-                    borderRadius: 14,
-                    padding: 16,
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 8,
-                      marginBottom: 6,
-                    }}
-                  >
-                    <Clock size={15} color="#B45309" />
-                    <span
-                      style={{
-                        fontSize: 13.5,
-                        fontWeight: 800,
-                        color: "#92400E",
-                      }}
-                    >
-                      Set your weekly availability
-                    </span>
-                  </div>
-                  <p
-                    style={{
-                      margin: "0 0 14px",
-                      fontSize: 12.5,
-                      color: "#92400E",
-                      lineHeight: 1.5,
-                      opacity: 0.85,
-                    }}
-                  >
-                    Add time slots when users can book you for 1:1 sessions.
-                  </p>
-                  <button
-                    onClick={() => setSlotModal(true)}
-                    style={{
-                      width: "100%",
-                      background: "#fff",
-                      border: "1.5px solid #F5A623",
-                      color: "#B45309",
-                      borderRadius: 10,
-                      padding: "9px 0",
-                      fontSize: 13,
-                      fontWeight: 700,
-                      cursor: "pointer",
-                      fontFamily: "inherit",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 6,
-                    }}
-                  >
-                    <Plus size={14} /> Add Time Slot
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 8,
-                      marginBottom: 12,
-                    }}
-                  >
-                    {slotsByDay
-                      .filter((d) => d.items.length)
-                      .map(({ day, items }) => (
-                        <div
-                          key={day}
-                          style={{
-                            display: "flex",
-                            alignItems: "flex-start",
-                            gap: 10,
-                          }}
-                        >
-                          <span
-                            style={{
-                              width: 44,
-                              fontSize: 12,
-                              fontWeight: 800,
-                              color: colors.typography.secondaryText,
-                              paddingTop: 6,
-                            }}
-                          >
-                            {day.slice(0, 3)}
-                          </span>
-                          <div
-                            style={{
-                              display: "flex",
-                              gap: 6,
-                              flexWrap: "wrap",
-                            }}
-                          >
-                            {items.map((s) => (
-                              <span
-                                key={s.id}
-                                style={{
-                                  display: "inline-flex",
-                                  alignItems: "center",
-                                  gap: 7,
-                                  background: "#FFF8EC",
-                                  border: "1px solid #F0DDB0",
-                                  color: "#92400E",
-                                  borderRadius: 99,
-                                  padding: "5px 11px",
-                                  fontSize: 12,
-                                  fontWeight: 700,
-                                }}
-                              >
-                                {String(s.start_time).slice(0, 5)}–
-                                {String(s.end_time).slice(0, 5)}
-                                <button
-                                  onClick={() => deleteSlot(s)}
-                                  style={{
-                                    background: "transparent",
-                                    border: "none",
-                                    cursor: "pointer",
-                                    color: "#B45309",
-                                    padding: 0,
-                                    display: "flex",
-                                  }}
-                                >
-                                  <X size={11} />
-                                </button>
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                  <GoldBtn
-                    ghost
-                    style={{
-                      width: "100%",
-                      justifyContent: "center",
-                      padding: "9px 0",
-                      fontSize: 13,
-                    }}
-                    onClick={() => setSlotModal(true)}
-                  >
-                    <Plus size={14} /> Add Time Slot
-                  </GoldBtn>
-                </>
-              )}
-            </div>
           </div>
         </div>
       )}

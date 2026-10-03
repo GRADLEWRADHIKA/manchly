@@ -23,6 +23,7 @@ import StatCard from "./components/StatCard";
 import CourseCard from "./components/CourseCard";
 import { toast } from "../../../utils/toast";
 import { withLegacyCategories } from "../../../utils/categories";
+import DateRangePicker, { isInDateRange } from "./components/DateRangePicker";
 
 function val(result) {
   if (result.status !== "fulfilled") return null;
@@ -55,7 +56,7 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortOrder, setSortOrder] = useState("newest");
-  const [dateFilter, setDateFilter] = useState("all");
+  const [dateRange, setDateRange] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 6;
 
@@ -268,10 +269,10 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
     walletData?.available ??
     0;
 
- const categories = useMemo(
-  () => withLegacyCategories(courseList.map((c) => c?.category)),
-  [courseList],
-);
+  const categories = useMemo(
+    () => withLegacyCategories(courseList.map((c) => c?.category)),
+    [courseList],
+  );
 
   const filteredCourses = useMemo(() => {
     let list = [...courseList];
@@ -289,19 +290,9 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
       list = list.filter((c) => c?.category === categoryFilter);
     }
 
-    if (dateFilter !== "all") {
-      const days = Number(dateFilter);
-      const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
-      list = list.filter((c) => {
-        const created = new Date(c?.created_at || c?.updated_at || 0).getTime();
-        return created >= cutoff;
-      });
-      console.log(
-        "DATE FILTER:",
-        dateFilter,
-        "→",
-        list.length,
-        "courses match",
+    if (dateRange) {
+      list = list.filter((c) =>
+        isInDateRange(c?.created_at || c?.updated_at, dateRange),
       );
     }
 
@@ -326,7 +317,7 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
     courseList,
     statusFilter,
     categoryFilter,
-    dateFilter,
+    dateRange,
     searchQuery,
     sortOrder,
   ]);
@@ -524,15 +515,7 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
                   color: colors.typography.primaryText,
                 }}
               >
-                Your Courses{" "}
-                <span
-                  style={{
-                    color: colors.typography.secondaryText,
-                    fontWeight: 600,
-                  }}
-                >
-                  {allCount}
-                </span>
+                Your Courses
               </span>
             </div>
 
@@ -593,29 +576,13 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
                 ))}
               </select>
 
-              <select
-                value={dateFilter}
-                onChange={(e) => {
-                  setDateFilter(e.target.value);
+              <DateRangePicker
+                value={dateRange}
+                onChange={(range) => {
+                  setDateRange(range);
                   setCurrentPage(1);
                 }}
-                style={{
-                  border: `1px solid ${colors.base.border}`,
-                  borderRadius: 10,
-                  padding: "10px 14px",
-                  fontSize: 13,
-                  fontWeight: 700,
-                  color: colors.typography.primaryText,
-                  background: colors.base.cardBackground,
-                  cursor: "pointer",
-                }}
-              >
-                <option value="all">All Time</option>
-                <option value="7">Last 7 days</option>
-                <option value="30">Last 30 days</option>
-                <option value="90">Last 90 days</option>
-                <option value="365">Last 1 year</option>
-              </select>
+              />
 
               <select
                 value={sortOrder}
@@ -634,8 +601,6 @@ export default function CoursesScreen({ user, onNavigate, onLogout }) {
                   cursor: "pointer",
                 }}
               >
-                <option value="newest">Newest First</option>
-                <option value="oldest">Oldest First</option>
                 <option value="price_desc">Price: High to Low</option>
                 <option value="price_asc">Price: Low to High</option>
               </select>

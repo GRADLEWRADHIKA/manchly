@@ -70,8 +70,8 @@ const ExpertCard = ({item, onPress}: {item: any; onPress: () => void}) => {
             <LinearGradient
               colors={
                 expert.is_available
-                  ? [colors.btnGradientStart, colors.btnGradientEnd]
-                  : [colors.surface, colors.surface]
+                 ? ['#86EFAC', '#4ADE80']
+                 : ['#4ADE80', '#16A34A']
               }
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
@@ -207,37 +207,37 @@ const ExpertList: React.FC = () => {
 export default memo(ExpertList);
 
 const styles = StyleSheet.create({
-  container: {flex: 1, backgroundColor: colors.uBg},
+  container: {flex: 1, backgroundColor: colors.user.bg},
   catList: {paddingHorizontal: wp(16), marginTop: hp(15), paddingBottom: hp(6), gap: wp(8)},
   catChip: {
     paddingHorizontal: wp(12), paddingVertical: hp(6), borderRadius: wp(18),
-    backgroundColor: colors.uCard, borderWidth: 1, borderColor: colors.uCard,
+    backgroundColor: colors.user.card, borderWidth: 1, borderColor: colors.user.card,
   },
-  catChipActive: {backgroundColor: colors.statText, borderColor: colors.statText},
-  catChipText: {fontSize: fp(11), color: colors.textPrimary, fontWeight: '500'},
-  catChipTextActive: {color: colors.textPrimary, fontWeight: '600'},
+  catChipActive: {backgroundColor: colors.greenButton, borderColor: colors.greenButton},
+  catChipText: {fontSize: fp(11), color: colors.user.text, fontWeight: '500'},
+  catChipTextActive: {color: colors.user.text, fontWeight: '600'},
   searchWrap: {
     flexDirection: 'row',
     alignItems: 'center',
     marginHorizontal: wp(16),
     marginTop: hp(12),
     marginBottom: hp(10),
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.cardSoft,
     borderRadius: wp(12),
     paddingHorizontal: wp(12),
     borderWidth: 1,
-    borderColor: colors.uCard,
+    borderColor: colors.user.cardSoft,
   },
-  searchInput: {flex: 1, fontSize: fp(13), color: colors.text, marginLeft: wp(8), paddingVertical: hp(10)},
+  searchInput: {flex: 1, fontSize: fp(13), color: colors.user.text, marginLeft: wp(8), paddingVertical: hp(10)},
   listContent: {paddingHorizontal: wp(16), paddingBottom: hp(30)},
   loaderWrap: {flex: 1, justifyContent: 'center', alignItems: 'center'},
   card: {
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.card,
     borderRadius: wp(12),
     padding: wp(12),
     marginBottom: hp(8),
     borderWidth: 1,
-    borderColor: colors.uCard,
+    borderColor: colors.user.card,
   },
   cardRow: {
     flexDirection: 'row',
@@ -249,11 +249,11 @@ const styles = StyleSheet.create({
     width: wp(44),
     height: wp(44),
     borderRadius: wp(22),
-    backgroundColor: colors.uSubtext,
+    backgroundColor: colors.greenButtonDark,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  avatarText: {fontSize: fp(14), fontWeight: '700', color: colors.textPrimary},
+  avatarText: {fontSize: fp(14), fontWeight: '700', color: colors.user.text},
   onlineDot: {
     position: 'absolute',
     bottom: 0,
@@ -262,33 +262,33 @@ const styles = StyleSheet.create({
     height: wp(10),
     borderRadius: wp(5),
     borderWidth: 1.5,
-    borderColor: colors.uSubtext,
+    borderColor: colors.user.accent,
   },
   cardInfo: {
     marginLeft: wp(10),
     flex: 1,
   },
-  cardName: {fontSize: fp(13), fontWeight: '600', color: colors.textPrimary},
-  cardProf: {fontSize: fp(11), color: colors.textPrimary, marginTop: hp(1)},
+  cardName: {fontSize: fp(13), fontWeight: '600', color: colors.user.text},
+  cardProf: {fontSize: fp(11), color: colors.user.accentText, marginTop: hp(1)},
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: hp(3),
     gap: wp(4),
   },
-  metaText: {fontSize: fp(10), color: colors.textPrimary, fontWeight: '500'},
+  metaText: {fontSize: fp(10), color: colors.user.accentText, fontWeight: '500'},
   metaDot: {
     width: wp(3),
     height: wp(3),
     borderRadius: wp(2),
-    backgroundColor: colors.textPrimary,
+    backgroundColor: colors.user.accentText,
   },
   cardRight: {
     alignItems: 'flex-end',
     gap: hp(6),
     marginLeft: wp(8),
   },
-  priceText: {fontSize: fp(12), fontWeight: '700', color: colors.statText},
+  priceText: {fontSize: fp(12), fontWeight: '700', color: colors.user.accent},
   
   // --- Updated Button Styles ---
   bookBtnWrapper: {
@@ -303,13 +303,13 @@ const styles = StyleSheet.create({
   },
   bookBtnOffline: {
     borderWidth: 1,
-    borderColor: colors.uSubHeading,
+    borderColor: colors.user.subHeading,
   },
-  bookBtnText: {fontSize: fp(11), fontWeight: '600', color: colors.textPrimary},
-  bookBtnTextOffline: {color: colors.textPrimary},
+  bookBtnText: {fontSize: fp(11), fontWeight: '600', color: colors.user.text},
+  bookBtnTextOffline: {color: colors.user.text},
   // -----------------------------
 
   emptyWrap: {alignItems: 'center', paddingTop: hp(60), gap: hp(10)},
-  emptyTitle: {fontSize: fp(16), fontWeight: '600', color: colors.textPrimary},
-  emptyText: {fontSize: fp(13), color: colors.uSubHeading, textAlign: 'center', paddingHorizontal: wp(40)},
+  emptyTitle: {fontSize: fp(16), fontWeight: '600', color: colors.user.accentText},
+  emptyText: {fontSize: fp(13), color: colors.user.subHeading, textAlign: 'center', paddingHorizontal: wp(40)},
 });

@@ -81,7 +81,9 @@ export default EnrolledWebinarCard;
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.user.card,
+    borderWidth: 1,
+    borderColor: colors.user.border,
     borderRadius: wp(16),
     marginBottom: hp(12),
     overflow: 'hidden',
@@ -96,7 +98,7 @@ const styles = StyleSheet.create({
     marginBottom: hp(10),
   },
   featuredBadge: {
-    backgroundColor: colors.goldDim,
+    backgroundColor: colors.user.accentSoft,
     paddingHorizontal: wp(10),
     paddingVertical: hp(4),
     borderRadius: wp(6),
@@ -104,7 +106,7 @@ const styles = StyleSheet.create({
   featuredBadgeText: {
     fontSize: fp(10),
     fontWeight: '700',
-    color: colors.gold,
+    color: colors.greenButtonDark,
     letterSpacing: 0.5,
   },
   ratingRow: {
@@ -120,12 +122,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: fp(17),
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: colors.user.text,
     lineHeight: fp(22),
   },
   description: {
     fontSize: fp(12.5),
-    color: colors.textSecondary,
+    color: colors.user.subHeading,
     marginTop: hp(4),
   },
   priceActionRow: {
@@ -142,21 +144,21 @@ const styles = StyleSheet.create({
   price: {
     fontSize: fp(18),
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: colors.user.text,
   },
   originalPrice: {
     fontSize: fp(13),
-    color: colors.textSecondary,
+    color: colors.user.subHeading,
     textDecorationLine: 'line-through',
   },
   joinBtn: {
-    backgroundColor: colors.info,
+    backgroundColor: colors.greenButtonDark,
     paddingVertical: hp(9),
     paddingHorizontal: wp(18),
     borderRadius: wp(10),
   },
   joinText: {
-    color: colors.textPrimary,
+    color: '#FFFFFF',
     fontWeight: '700',
     fontSize: fp(13),
   },
@@ -166,7 +168,7 @@ const styles = StyleSheet.create({
   thumbnail: {
     width: '100%',
     height: hp(110),
-    backgroundColor: colors.inputBg,
+    backgroundColor: colors.user.accentSoft,
     borderBottomLeftRadius: wp(16),
     borderBottomRightRadius: wp(16),
   },

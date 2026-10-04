@@ -28,11 +28,6 @@ import { useSelector } from 'react-redux';
 
 const Tab = createBottomTabNavigator();
 
-const BAR_BG = '#080C25';
-const ACTIVE_COLOR = '#4F60FA';
-const INACTIVE_COLOR = '#8B90A7';
-
-
 const tabs = [
   { name: 'Home', component: UserHome, label: 'Home', Icon: House },
   {
@@ -128,7 +123,7 @@ const TabItem = ({ isFocused, icon: Icon, label, onPress }: any) => {
       >
         <Icon
           size={wp(21)}
-          color={isFocused ? ACTIVE_COLOR : INACTIVE_COLOR}
+          color={isFocused ? colors.user.accent : colors.user.text}
           strokeWidth={isFocused ? 2.2 : 1.8}
         />
       </Animated.View>
@@ -137,7 +132,7 @@ const TabItem = ({ isFocused, icon: Icon, label, onPress }: any) => {
         style={[
           styles.tabLabel,
           {
-            color: isFocused ? ACTIVE_COLOR : INACTIVE_COLOR,
+            color: isFocused ? colors.user.text : colors.user.accentText,
             fontWeight: isFocused ? '700' : '600',
           },
         ]}
@@ -224,10 +219,10 @@ export default UserBottomTab;
 
 const styles = StyleSheet.create({
   tabBarOuter: {
-    backgroundColor: BAR_BG,
+    backgroundColor: colors.user.bg,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: BAR_BG,
-    shadowColor: colors.black,
+    borderTopColor: colors.user.bg,
+    shadowColor: colors.user.bg,
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.08,
     shadowRadius: 12,
@@ -258,8 +253,8 @@ const styles = StyleSheet.create({
     width: wp(44),
     height: hp(5),
     borderRadius: wp(4),
-    backgroundColor: ACTIVE_COLOR,
-    shadowColor: ACTIVE_COLOR,
+    backgroundColor: colors.user.accent,
+    shadowColor: colors.user.accent,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8,
     shadowRadius: 12,

@@ -103,7 +103,7 @@ const PurchaseThankYou: React.FC = () => {
         onPress={goToContent}
         activeOpacity={0.85}>
         <Text style={styles.contentBtnText}>Go to my content</Text>
-        <ArrowRight size={wp(18)} color={colors.white} />
+        <ArrowRight size={wp(18)} color={colors.user.text} />
       </TouchableOpacity>
     </View>
   );
@@ -114,7 +114,7 @@ export default PurchaseThankYou;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.uBg,
+    backgroundColor: colors.user.bg,
     padding: wp(24),
     justifyContent: 'space-between',
   },
@@ -135,12 +135,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: fp(22),
     fontWeight: '800',
-    color: colors.white,
+    color: colors.user.text,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: fp(14),
-    color: colors.uSubHeading,
+    color: colors.user.accentText,
     textAlign: 'center',
     marginTop: hp(10),
     lineHeight: fp(20),
@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   messageCard: {
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.card,
     borderRadius: wp(14),
     padding: wp(16),
     marginTop: hp(22),
@@ -159,12 +159,12 @@ const styles = StyleSheet.create({
   },
   messageText: {
     fontSize: fp(13),
-    color: colors.white,
+    color: colors.user.accentText,
     lineHeight: fp(19),
     textAlign: 'center',
   },
   communityCard: {
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.cardSoft,
     borderRadius: wp(16),
     padding: wp(18),
     marginTop: hp(22),
@@ -174,11 +174,11 @@ const styles = StyleSheet.create({
   communityLabel: {
     fontSize: fp(15),
     fontWeight: '700',
-    color: colors.white,
+    color: colors.user.accentText,
   },
   communitySub: {
     fontSize: fp(12),
-    color: colors.uSubHeading,
+    color: colors.user.subHeading,
     textAlign: 'center',
     marginTop: hp(4),
     marginBottom: hp(14),
@@ -197,20 +197,20 @@ const styles = StyleSheet.create({
   communityBtnText: {
     fontSize: fp(15),
     fontWeight: '700',
-    color: colors.white,
+    color: colors.user.text,
   },
   contentBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: wp(8),
-    backgroundColor: colors.secPrimary,
+    backgroundColor: colors.user.accent,
     borderRadius: wp(14),
     paddingVertical: hp(16),
   },
   contentBtnText: {
     fontSize: fp(16),
     fontWeight: '700',
-    color: colors.white,
+    color: colors.user.text,
   },
 });

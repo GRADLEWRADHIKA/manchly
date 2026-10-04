@@ -115,6 +115,61 @@ export const updateExpertProfile = createAsyncThunk(
   },
 );
 
+// Manually grant a user access to a session product (creator/owner)
+export const grantSessionAccess = createAsyncThunk(
+  'session/grantAccess',
+  async (
+    {
+      productId,
+      phone,
+      email,
+    }: { productId: string; phone?: string; email?: string },
+    { rejectWithValue },
+  ) => {
+    try {
+      // ⚠️ CONFIRM THIS ROUTE with your backend
+      const res = await instance.post(`sessions/products/${productId}/grant`, {
+        phone,
+        email,
+      });
+      const alreadyEnrolled = res.data?.data?.alreadyEnrolled;
+      Toast.show({
+        type: 'success',
+        text1: alreadyEnrolled ? 'User already has access' : 'Access granted',
+        position: 'top',
+      });
+      return res.data?.data;
+    } catch (e: any) {
+      const msg = e?.response?.data?.message || 'Failed to grant access';
+      Toast.show({ type: 'error', text1: msg, position: 'top' });
+      return rejectWithValue(msg);
+    }
+  },
+);
+
+export const createSessionProduct = createAsyncThunk(
+  'session/createProduct',
+  async (data: {
+    title: string;
+    description?: string;
+    duration: number;
+    price: number;
+    mode: string;
+    thumbnail_url?: string;
+    categories?: string[];
+    thankyou_message?: string;
+  }) => {
+    try {
+      const response = await instance.post('sessions/products', data);
+      return response.data;
+    } catch (error: any) {
+      const msg = JSON.parse(error?.request?._response || '{}');
+      Toast.show({type: 'error', text1: 'Error', text2: msg?.error, position: 'top'});
+      throw error;
+    }
+  },
+);
+
 export const listExperts = createAsyncThunk(
   'session/listExperts',
   async (params: {category?: string; page?: number; limit?: number; search?: string}) => {
@@ -224,21 +279,6 @@ export const updateSessionProduct = createAsyncThunk(
   },
 );
 
-// Session Products
-export const createSessionProduct = createAsyncThunk(
-  'session/createProduct',
-  async (data: {title: string; description?: string; duration: number; price: number; mode: string}) => {
-    try {
-      const response = await instance.post('sessions/products', data);
-      return response.data;
-    } catch (error: any) {
-      const msg = JSON.parse(error?.request?._response || '{}');
-      Toast.show({type: 'error', text1: 'Error', text2: msg?.error, position: 'top'});
-      throw error;
-    }
-  },
-);
-
 export const getMySessionProducts = createAsyncThunk(
   'session/getMyProducts',
   async () => {
@@ -274,6 +314,16 @@ export const getCreatorSessionProducts = createAsyncThunk(
     }
   },
 );
+
+export const getPopularSessionProducts = createAsyncThunk(
+  'session/getPopularProducts',
+  async (params: {limit?: number} = {}) => {
+    const query = new URLSearchParams();
+    if(params.limit) query.append('limit', String(params.limit));
+    const response = await instance.get(`sessions/products/popular?${query.toString()}`);
+    return response.data;
+  }
+)
 
 export const bookSession = createAsyncThunk(
   'session/book',
@@ -352,6 +402,8 @@ const sessionSlice = createSlice({
     stats: {total_sessions: 0, total_minutes: 0, total_earnings: 0},
     dashboard: null as any,
     products: [] as any[],
+    popularProducts: [] as any[],
+    popularProductsLoading: false,
     expertProfile: null as any,
     experts: [] as any[],
     availability: [] as any[],
@@ -399,6 +451,16 @@ const sessionSlice = createSlice({
       })
       .addCase(removeAvailabilitySlot.fulfilled, (state, action) => {
         state.availability = state.availability.filter((s: any) => s.id !== action.payload);
+      })
+      .addCase(getPopularSessionProducts.pending, state => {
+        state.popularProductsLoading = true;
+      })
+      .addCase(getPopularSessionProducts.fulfilled, (state, action) => {
+        state.popularProductsLoading = false;
+        state.popularProducts = action.payload?.data?.products || [];
+      })
+      .addCase(getPopularSessionProducts.rejected, state => {
+        state.popularProductsLoading = false;
       })
       .addCase(updateSessionProduct.fulfilled, (state, action) => {
         const updated = action.payload?.data;

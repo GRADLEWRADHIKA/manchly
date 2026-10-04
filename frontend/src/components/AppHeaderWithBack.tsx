@@ -6,7 +6,7 @@ import { ArrowLeft } from 'lucide-react-native';
 import colors from '../utils/colors';
 import { wp, hp, fp } from '../utils/responsive';
 
-const AppHeaderWithBack = ({ title, bgColor = colors.bg }) => {
+const AppHeaderWithBack = ({ title, bgColor = colors.user.bg, textColor = colors.user.text }) => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
 
@@ -34,10 +34,10 @@ const AppHeaderWithBack = ({ title, bgColor = colors.bg }) => {
           accessibilityRole="button"
           accessibilityLabel="Go back"
         >
-          <ArrowLeft color={colors.white} size={wp(24)} strokeWidth={2.2} />
+          <ArrowLeft color={textColor} size={wp(24)} strokeWidth={2.2} />
         </Pressable>
 
-        <Text style={styles.title} numberOfLines={1}>
+        <Text style={[styles.title, { color: textColor }]} numberOfLines={1}>
           {title ? title.charAt(0).toUpperCase() + title.slice(1) : ''}
         </Text>
       </View>
@@ -56,11 +56,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingBottom: hp(18),
-    shadowColor: colors.black,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 6,
-    elevation: 6,
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
     zIndex: 10,
   },
   flat: {
@@ -84,11 +84,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   backButtonPressed: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: colors.user.cardSoft,
     transform: [{ scale: 0.92 }],
   },
   title: {
-    color: colors.white,
     fontSize: fp(18),
     fontWeight: '700',
     letterSpacing: 0.2,

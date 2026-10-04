@@ -43,6 +43,7 @@ import { wp, hp, fp } from '../../../../utils/responsive';
 import TermsModal from '../../../../components/TermsModal';
 import PrivacyModal from '../../../../components/PrivacyModal';
 import RefundPolicyModal from '../../../../components/RefundPolicyModal';
+//import LinearGradient from 'react-native-linear-gradient'; // <-- Added Import
 
 const WebinarDetails = () => {
   const { params } = useRoute<any>();
@@ -274,9 +275,9 @@ const WebinarDetails = () => {
   if (!data) {
     return (
       <View style={styles.container}>
-        <AppHeaderWithBack title="Webinar Details" bgColor={colors.uBg} />
+        <AppHeaderWithBack title="Webinar Details" bgColor={colors.user.bg} />
         <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
+          <ActivityIndicator size="large" color={colors.user.text} />
         </View>
       </View>
     );
@@ -284,7 +285,7 @@ const WebinarDetails = () => {
 
   return (
     <View style={styles.container}>
-      <AppHeaderWithBack title="Webinar Details" bgColor={colors.uBg} />
+      <AppHeaderWithBack title="Webinar Details" bgColor='transparent' />
 
       <ScrollView contentContainerStyle={{ paddingBottom: hp(120) }}>
         <View style={styles.thumbnailWrapper}>
@@ -304,7 +305,7 @@ const WebinarDetails = () => {
         <Text style={styles.title}>{data?.title}</Text>
 
         <View style={styles.row}>
-          <User size={wp(18)} color={colors.textSecondary} />
+          <User size={wp(18)} color={colors.user.subHeading} />
           <Text style={styles.host}>
             Hosted by {data?.creator?.name || 'Unknown'}
           </Text>
@@ -318,14 +319,14 @@ const WebinarDetails = () => {
         ) : null}
 
         <View style={styles.row}>
-          <Calendar size={wp(18)} color={colors.textSecondary} />
+          <Calendar size={wp(18)} color={colors.user.subHeading} />
           <Text style={styles.detailText}>
             {new Date(data?.scheduled_at).toDateString()}
           </Text>
         </View>
 
         <View style={styles.row}>
-          <Clock size={wp(18)} color={colors.textSecondary} />
+          <Clock size={wp(18)} color={colors.user.subHeading} />
           <Text style={styles.detailText}>
             {new Date(data?.scheduled_at).toLocaleTimeString([], {
               hour: '2-digit',
@@ -336,12 +337,12 @@ const WebinarDetails = () => {
         </View>
 
         <View style={styles.row}>
-          <Video size={wp(18)} color={colors.textPrimary} />
+          <Video size={wp(18)} color={colors.user.subHeading} />
           <Text style={styles.detailText}>Zoom Meeting</Text>
         </View>
 
         <View style={styles.row}>
-          <Users size={wp(18)} color={colors.textPrimary} />
+          <Users size={wp(18)} color={colors.user.subHeading} />
           <Text style={styles.detailText}>
             Max Participants: {data?.max_participants}
           </Text>
@@ -350,7 +351,7 @@ const WebinarDetails = () => {
         <View style={styles.tagContainer}>
           {data?.tags?.map((tag: string, index: number) => (
             <View key={index} style={styles.tag}>
-              <Tag size={wp(14)} color={colors.textPrimary} />
+              <Tag size={wp(14)} color={colors.user.subHeading} />
               <Text style={styles.tagText}>{tag}</Text>
             </View>
           ))}
@@ -412,23 +413,9 @@ const WebinarDetails = () => {
 
       <View style={styles.bottomBar}>
         {data?.is_enrolled ? (
-          canRate ? (
-            <TouchableOpacity
-              style={styles.buyButtonWrapper}
-              onPress={() => setShowRate(true)}
-              activeOpacity={0.85}
-            >
-              <View style={[styles.buyButton, { backgroundColor: colors.success }]}>
-                <Text style={styles.buyText}>Rate this webinar</Text>
-              </View>
-            </TouchableOpacity>
-          ) : (
-            <View style={styles.buyButtonWrapper}>
-              <View style={[styles.buyButton, { backgroundColor: colors.uCard }]}>
-                <Text style={styles.buyText}>Enrolled - Rate after it ends</Text>
-              </View>
-            </View>
-          )
+          <View style={[styles.buyButtonWrapper, { backgroundColor: colors.success || '#4CAF50' }]}>
+            <Text style={styles.buyText}>Already Enrolled</Text>
+          </View>
         ) : (
           <TouchableOpacity
             style={styles.buyButtonWrapper}
@@ -436,14 +423,15 @@ const WebinarDetails = () => {
             disabled={loading}
             activeOpacity={0.85}
           >
+            {/* Added LinearGradient here */}
             <LinearGradient
-              colors={[colors.btnGradientStart, colors.btnGradientEnd]}
+              colors={['#86EFAC', '#4ADE80']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
-              style={styles.buyButton}
+              style={styles.buyButtonGradient}
             >
               {loading ? (
-                <ActivityIndicator color={colors.white} size={'small'} />
+                <ActivityIndicator color={'#FFFFFF'} size={'small'} />
               ) : (
                 <Text style={styles.buyText}>
                   Purchase for ₹{total.toFixed(2)}
@@ -469,7 +457,7 @@ const PriceRow = ({ label, value }: { label: string; value: string }) => (
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.uBg,
+    backgroundColor: colors.user.bg,
   },
   loaderContainer: {
     flex: 1,
@@ -513,7 +501,7 @@ const styles = StyleSheet.create({
   },
   noImageText: {
     marginTop: hp(8),
-    color: colors.textPrimary,
+    color: colors.user.text,
     fontSize: fp(14),
   },
 
@@ -522,7 +510,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginTop: hp(15),
     paddingHorizontal: wp(15),
-    color: colors.textPrimary,
+    color: colors.user.text,
   },
 
   row: {
@@ -533,11 +521,11 @@ const styles = StyleSheet.create({
     gap: wp(6),
   },
   host: {
-    color: colors.textPrimary,
+    color: colors.user.accentText,
     fontSize: fp(14),
   },
   detailText: {
-    color: colors.textPrimary,
+    color: colors.user.subHeading,
     fontSize: fp(14),
   },
 
@@ -552,7 +540,7 @@ const styles = StyleSheet.create({
   tag: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.cardSoft,
     paddingVertical: hp(5),
     paddingHorizontal: wp(10),
     borderRadius: wp(20),
@@ -560,17 +548,18 @@ const styles = StyleSheet.create({
   },
 
   tagText: {
-    color: colors.textPrimary,
+    color: colors.user.accentText,
     fontSize: fp(12),
   },
 
   priceBox: {
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.cardSoft,
+    color: colors.textPrimary,
     padding: wp(16),
     borderRadius: wp(14),
     marginHorizontal: wp(15),
     borderWidth: 1,
-    borderColor: colors.uSubtext,
+    borderColor: colors.user.cardSoft,
   },
   priceRow: {
     flexDirection: 'row',
@@ -578,17 +567,16 @@ const styles = StyleSheet.create({
     marginVertical: hp(6),
   },
   priceLabel: {
-    color: colors.uSubHeading,
+    color: colors.user.accentText,
     fontSize: fp(14),
   },
   priceValue: {
     fontWeight: '600',
-    color: colors.textPrimary,
-    fontSize: fp(14),
+    color: colors.user.subHeading,
   },
   totalRow: {
     borderTopWidth: wp(1),
-    borderColor: colors.uSubtext,
+    borderColor: colors.user.accentText,
     marginTop: hp(12),
     paddingTop: hp(12),
     flexDirection: 'row',
@@ -598,16 +586,16 @@ const styles = StyleSheet.create({
   totalLabel: {
     fontSize: fp(16),
     fontWeight: '700',
-    color: colors.textPrimary
+    color: colors.user.subHeading
   },
   totalValue: {
     fontSize: fp(18),
     fontWeight: '800',
-    color: colors.statText,
+    color: colors.user.accentText,
   },
   participants: {
     fontSize: fp(14),
-    color: colors.textPrimary,
+    color: colors.user.accentText,
     marginTop: hp(10),
   },
 
@@ -615,11 +603,11 @@ const styles = StyleSheet.create({
     fontSize: fp(18),
     fontWeight: '600',
     paddingHorizontal: wp(15),
-    color: colors.textPrimary,
+    color: colors.user.text,
   },
   description: {
     fontSize: fp(14),
-    color: colors.textPrimary,
+    color: colors.user.accentText,
     marginTop: hp(8),
     paddingHorizontal: wp(15),
     lineHeight: fp(20),
@@ -631,36 +619,36 @@ const styles = StyleSheet.create({
     bottom: 0,
     width: '100%',
     padding: wp(15),
-    backgroundColor: colors.uBg,
+    backgroundColor: colors.user.bg,
     borderTopWidth: wp(1),
     borderColor: colors.uBg,
     marginBottom: hp(10),
   },
+  // Modified styles for Button with Gradient
   buyButtonWrapper: {
-    borderRadius: wp(12),
+    borderRadius: wp(10),
     overflow: 'hidden',
   },
-  buyButton: {
+  buyButtonGradient: {
     paddingVertical: hp(14),
-    borderRadius: wp(12),
     alignItems: 'center',
     justifyContent: 'center',
   },
   buyText: {
-    color: colors.white,
+    color: '#FFFFFF', // Ensures strong contrast against the gradient
     fontWeight: '700',
     fontSize: fp(16),
   },
   policyText: {
     fontSize: fp(12),
-    color: colors.uSubHeading,
+    color: colors.user.accentText,
     textAlign: 'center',
     lineHeight: fp(18),
     marginTop: hp(12),
     paddingHorizontal: wp(15),
   },
   policyLink: {
-    color: colors.statText,
-    fontWeight: '600',
+    color: colors.user.accent,
+    fontWeight: '500',
   },
 });

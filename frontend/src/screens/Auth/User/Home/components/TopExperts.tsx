@@ -108,7 +108,7 @@ const TopExperts = () => {
           <Text style={styles.seeAllText}>See All</Text>
           <ChevronRight
             size={wp(14)}
-            color="rgba(255,255,255,0.7)"
+            color={colors.user.subHeading}
             strokeWidth={2}
           />
         </TouchableOpacity>
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: fp(17),
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: colors.user.text,
   },
   seeAllBtn: {
     flexDirection: 'row',
@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
   seeAllText: {
     fontSize: fp(13),
     fontWeight: '600',
-    color: 'rgba(255,255,255,0.7)',
+    color: colors.user.accent,
   },
   list: {
     paddingHorizontal: wp(16),
@@ -171,7 +171,9 @@ const styles = StyleSheet.create({
   },
   card: {
     width: wp(130),
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.card,
+    borderWidth: 1,
+    borderColor: colors.user.border,
     borderRadius: wp(14),
     padding: wp(12),
     alignItems: 'center',
@@ -188,24 +190,24 @@ const styles = StyleSheet.create({
     width: wp(50),
     height: wp(50),
     borderRadius: wp(25),
-    backgroundColor: colors.uSubtext,
+    backgroundColor: colors.user.accentSoft,
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarText: {
     fontSize: fp(16),
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: colors.greenButtonDark,
   },
   name: {
     fontSize: fp(13),
     fontWeight: '600',
-    color: colors.textPrimary,
+    color: colors.user.text,
     textAlign: 'center',
   },
   profession: {
     fontSize: fp(10),
-    color: colors.textPrimary,
+    color: colors.user.subHeading,
     marginTop: hp(2),
     textAlign: 'center',
   },

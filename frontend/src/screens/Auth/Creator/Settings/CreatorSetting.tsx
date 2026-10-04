@@ -10,8 +10,10 @@ import {
   Modal,
 } from 'react-native';
 import { Slider } from 'react-native-awesome-slider';
-import { useSharedValue } from 'react-native-reanimated';
-import { runOnJS } from 'react-native-worklets';
+import {
+  useSharedValue,
+  runOnJS,
+} from 'react-native-reanimated';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
@@ -169,6 +171,9 @@ const CreatorSetting: React.FC = () => {
       setWalletLoading(false);
     }
   };
+
+console.log('WALLET', JSON.stringify(wallet, null, 2));
+console.log('EARNINGS', JSON.stringify(earningsBreakdown, null, 2));
 
   useFocusEffect(
     useCallback(() => {

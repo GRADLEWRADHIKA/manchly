@@ -63,7 +63,7 @@ const HomeHeader = () => {
           style={styles.hiddenIconBtn}
           onPress={() => navigation.navigate('ProductsScreen')}
           accessibilityLabel="Search courses">
-          <Search size={wp(18)} color={colors.textPrimary} strokeWidth={2} />
+          <Search size={wp(18)} color={colors.user.icon} strokeWidth={2} />
         </Pressable>
         <Pressable
           style={({ pressed }) => [
@@ -72,7 +72,7 @@ const HomeHeader = () => {
           ]}
           onPress={() => navigation.navigate('UserNotification')}
           accessibilityLabel="Notifications">
-          <Bell size={wp(20)} color={colors.textPrimary} strokeWidth={2} />
+          <Bell size={wp(20)} color={colors.user.icon} strokeWidth={2} />
           {unreadCount > 0 && (
             <View style={styles.bellBadge}>
               <Text style={styles.bellBadgeText}>
@@ -112,24 +112,26 @@ const styles = StyleSheet.create({
     width: wp(44),
     height: wp(44),
     borderRadius: wp(22),
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.accentSoft,
+    borderWidth: 1,
+    borderColor: colors.user.border,
     justifyContent: 'center',
     alignItems: 'center',
   },
   avatarInitials: {
-    color: colors.textPrimary,
+    color: colors.greenButtonDark,
     fontSize: fp(18),
     fontWeight: '700',
   },
   greetingName: {
     fontSize: fp(17),
     fontWeight: '700',
-    color: colors.white,
+    color: colors.user.text,
     lineHeight: fp(22),
   },
   greetingLabel: {
     fontSize: fp(12),
-    color: colors.textPrimary,
+    color: colors.user.subHeading,
     fontWeight: '400',
     marginTop: hp(1),
   },
@@ -158,16 +160,16 @@ const styles = StyleSheet.create({
     minWidth: wp(16),
     height: wp(16),
     borderRadius: wp(8),
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.accent,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: wp(3),
     borderWidth: 1.5,
-    borderColor: colors.uBg,
+    borderColor: colors.user.bg,
   },
   bellBadgeText: {
     fontSize: fp(8),
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: '#FFFFFF' ,
   },
 });

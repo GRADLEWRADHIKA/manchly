@@ -5,8 +5,7 @@ const colors = {
   gold: '#F0C040',
   goldDim: '#F0C04018',
   textPrimary: '#FFFFFF',
-  primaryDark: '#1A1A1A'
-  ,
+  primaryDark: '#1A1A1A',
 
   primary: '#000000',
   secPrimary: '#692626',
@@ -68,6 +67,31 @@ const colors = {
   sessionText: '#4F60FA',
   sessionText2: '#73799B',
   timeSlotText: '#BDC2FF0D',
+
+   user: {
+    bg: "#F8FAFC", // Off-white slate background
+    card: "#FFFFFF", // Pure white surface
+    cardSoft: "#F1F5F9", // Soft hover background
+    nav: "#FFFFFF", // Clean sidebar background
+    accent: "#22C55E", // Active green accent bar & indicator
+    accentSoft: "#ECFDF5", // Soft mint background for active state
+    accentText: "#1F2937", // Active state text color
+    subHeading: "#64748B", // Secondary text color
+    text: "#1F2937", // High-contrast primary text
+    icon: "#475569", // Default icon stroke color
+    border: "#E2E8F0", // Subtle divider & border stroke
+    highlight: "#F59E0B", // Amber for saved items / streaks
+    logout: "#EF4444",
+    primary: "#2B52F6", // Brand Blue
+    activeAccent: "#22C55E", // Green Active Accent / Left Bar
+    activeBg: "#ECFDF5", // Mint Soft Active Background
+    hoverBg: "#F1F5F9", // Light Gray/Slate Hover State
+    surfaceBg: "#F8FAFC", // Page Background
+    cardBg: "#FFFFFF", // Container / Card Background        // Red accent for logout action
+  },
+
+  greenButton: '#86EFAC',
+  greenButtonDark: '#16A34A',
   
   // Creator Dark Theme
   cBg: '#0D0D1A',

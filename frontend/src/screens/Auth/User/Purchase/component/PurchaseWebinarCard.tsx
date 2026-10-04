@@ -79,7 +79,7 @@ const PurchaseWebinarCard = ({ item }) => {
           />
         ) : (
           <View style={styles.thumbnailPlaceholder}>
-            <Video size={wp(32)} color="#cbd5e1" strokeWidth={1.2} />
+            <Video size={wp(32)} color={colors.user.subHeading} strokeWidth={1.2} />
           </View>
         )}
 
@@ -89,14 +89,14 @@ const PurchaseWebinarCard = ({ item }) => {
         {/* Status badge on thumbnail */}
         {isToday && (
           <View style={styles.liveBadge}>
-            <Radio size={wp(12)} color={colors.white} strokeWidth={2.5} />
+            <Radio size={wp(12)} color='#FFFF' strokeWidth={2.5} />
             <Text style={styles.liveBadgeText}>Today</Text>
           </View>
         )}
 
         {/* Duration badge */}
         <View style={styles.durationBadge}>
-          <Clock size={wp(11)} color={colors.white} strokeWidth={2} />
+          <Clock size={wp(11)} color='#FFFF' strokeWidth={2} />
           <Text style={styles.durationText}>{webinar?.duration} min</Text>
         </View>
       </View>
@@ -128,7 +128,7 @@ const PurchaseWebinarCard = ({ item }) => {
               <View style={styles.metaItem}>
                 <User
                   size={wp(14)}
-                  color={colors.textSecondary}
+                  color={colors.user.accentText}
                   strokeWidth={1.8}
                 />
                 <Text style={styles.metaText} numberOfLines={1}>
@@ -140,7 +140,7 @@ const PurchaseWebinarCard = ({ item }) => {
             <View style={styles.metaItem}>
               <Calendar
                 size={wp(14)}
-                color={colors.uBottomText}
+                color={colors.user.accentText}
                 strokeWidth={1.8}
               />
               <Text style={styles.metaText}>
@@ -174,9 +174,9 @@ const PurchaseWebinarCard = ({ item }) => {
                 activeOpacity={0.7}
               >
                 {showCredentials ? (
-                  <EyeOff size={wp(18)} color={colors.uSubHeading} />
+                  <EyeOff size={wp(18)} color={colors.user.subHeading} />
                 ) : (
-                  <Eye size={wp(18)} color={colors.uSubHeading} />
+                  <Eye size={wp(18)} color={colors.user.subHeading} />
                 )}
               </TouchableOpacity>
               <TouchableOpacity
@@ -184,7 +184,7 @@ const PurchaseWebinarCard = ({ item }) => {
                 onPress={handleCopyCredentials}
                 activeOpacity={0.7}
               >
-                <Copy size={wp(16)} color={colors.uBottomText} />
+                <Copy size={wp(16)} color={colors.user.subHeading} />
               </TouchableOpacity>
             </View>
           </View>
@@ -209,14 +209,14 @@ const PurchaseWebinarCard = ({ item }) => {
               // If upcoming, show gradient. If ended, show solid disabled color.
               colors={
                 isUpcoming
-                  ? [colors.btnGradientStart, colors.btnGradientEnd]
-                  : ['#94a3b8', '#94a3b8']
+                 ? ['#86EFAC', '#4ADE80']
+                 : ['#4ADE80', '#16A34A']
               }
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={styles.joinBtnGradient}
             >
-              <Video size={wp(16)} color={colors.white} strokeWidth={2} />
+              <Video size={wp(16)} color={colors.user.accentText} strokeWidth={2} />
               <Text style={styles.joinText}>
                 {isUpcoming ? 'Join Webinar' : 'Ended'}
               </Text>
@@ -232,17 +232,17 @@ export default PurchaseWebinarCard;
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.card,
     borderRadius: wp(16),
+   borderWidth: 1,
     marginBottom: hp(14),
     overflow: 'hidden',
-    shadowColor: colors.uCard,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.07,
+    shadowOpacity: 0.05,
     shadowRadius: 10,
     elevation: 4,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.uCard,
+    borderColor: colors.user.border,
   },
 
   thumbnailContainer: {
@@ -252,13 +252,13 @@ const styles = StyleSheet.create({
   thumbnail: {
     width: '100%',
     height: hp(110),
-    backgroundColor: colors.uSubHeading,
+    backgroundColor: colors.user.accentSoft,
   },
 
   thumbnailPlaceholder: {
     width: '100%',
     height: hp(110),
-    backgroundColor: colors.uBg,
+    backgroundColor: colors.user.accentSoft,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -279,14 +279,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(4),
-    backgroundColor: colors.uSubHeading,
+    backgroundColor: colors.greenButtonDark,
     paddingHorizontal: wp(10),
     paddingVertical: hp(4),
     borderRadius: wp(8),
   },
 
   liveBadgeText: {
-    color: colors.textPrimary,
+    color: '#FFFFFF' ,
     fontSize: fp(11),
     fontWeight: '700',
   },
@@ -305,7 +305,7 @@ const styles = StyleSheet.create({
   },
 
   durationText: {
-    color: colors.textPrimary,
+     color: '#FFFFFF',
     fontSize: fp(11),
     fontWeight: '600',
   },
@@ -317,7 +317,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: fp(15),
     fontWeight: '600',
-    color: colors.textPrimary,
+    color: colors.user.text,
     lineHeight: fp(20),
   },
 
@@ -329,17 +329,17 @@ const styles = StyleSheet.create({
   },
 
   tagChip: {
-    backgroundColor: colors.uSubtext,
+    backgroundColor: colors.user.accentSoft,
     paddingHorizontal: wp(10),
     paddingVertical: hp(3),
     borderRadius: wp(12),
     borderWidth: 1,
-    borderColor: colors.uSubtext,
+    borderColor: colors.user.border,
   },
 
   tagText: {
     fontSize: fp(11),
-    color: colors.uBottomText,
+    color: colors.greenButtonDark,
     fontWeight: '500',
   },
 
@@ -361,16 +361,16 @@ const styles = StyleSheet.create({
 
   metaText: {
     fontSize: fp(12.5),
-    color: colors.textPrimary,
+    color: colors.user.subHeading,
   },
 
   credentialsBox: {
     marginTop: hp(10),
-    backgroundColor: colors.uSubtext,
+    backgroundColor: colors.user.cardSoft,
     borderRadius: wp(10),
     padding: wp(10),
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: colors.user.border,
   },
   credentialsRow: {
     flexDirection: 'row',
@@ -383,14 +383,14 @@ const styles = StyleSheet.create({
   },
   credentialLabel: {
     fontSize: fp(10.5),
-    color: colors.uSubHeading,
+    color: colors.user.subHeading,
     fontWeight: '500',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   credentialValue: {
     fontSize: fp(13),
-    color: colors.textPrimary,
+    color: colors.user.accentText,
     fontWeight: '700',
     letterSpacing: 0.5,
   },
@@ -401,16 +401,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(4),
-    backgroundColor: 'rgba(79,96,250,0.15)',
+    backgroundColor: colors.user.card,
     paddingHorizontal: wp(12),
     paddingVertical: hp(8),
     borderRadius: wp(8),
     borderWidth: 1,
-    borderColor: colors.uBottomText,
+    borderColor: colors.user.border,
   },
   copyText: {
     fontSize: fp(12),
-    color: colors.textPrimary,
+    color: colors.user.accentText,
     fontWeight: '600',
   },
 
@@ -421,7 +421,7 @@ const styles = StyleSheet.create({
     marginTop: hp(10),
     paddingTop: hp(10),
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: 'rgba(255,255,255,0.08)',
+    borderTopColor: colors.user.subHeading,
   },
 
   priceContainer: {
@@ -430,7 +430,7 @@ const styles = StyleSheet.create({
 
   priceLabel: {
     fontSize: fp(10.5),
-    color: colors.textPrimary,
+    color: colors.user.subHeading,
     fontWeight: '500',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -439,7 +439,7 @@ const styles = StyleSheet.create({
   price: {
     fontSize: fp(18),
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: colors.user.accentText,
   },
   // --- Updated Button Styles ---
   joinBtnWrapper: {
@@ -455,7 +455,7 @@ const styles = StyleSheet.create({
     gap: wp(6),
   },
   joinBtn: {
-    backgroundColor: colors.info,
+    backgroundColor: colors.user.accent,
     paddingVertical: hp(10),
     paddingHorizontal: wp(18),
     borderRadius: wp(12),
@@ -474,7 +474,7 @@ const styles = StyleSheet.create({
   },
 
   joinText: {
-    color: colors.textPrimary,
+    color: colors.user.accentText,
     fontSize: fp(13.5),
     fontWeight: '600',
   },

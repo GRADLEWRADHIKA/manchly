@@ -458,9 +458,9 @@ const CourseDetailsScreen: React.FC = () => {
             activeOpacity={0.85}
           >
             <LinearGradient
-              colors={[colors.btnGradientStart, colors.btnGradientEnd]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
+              colors={['#86EFAC', '#4ADE80']}
+  start={{ x: 0, y: 0 }}
+  end={{ x: 1, y: 1 }}
               style={styles.purchaseButtonGradient}
             >
               {purchasing || loading ? (
@@ -496,7 +496,7 @@ const SummaryRow = ({
 );
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.uBg },
+  container: { flex: 1, backgroundColor: colors.user.bg },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   scrollContent: { padding: wp(16), paddingBottom: hp(24) },
 

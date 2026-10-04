@@ -360,7 +360,7 @@ const ExpertDetail: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <AppHeaderWithBack title="Expert Profile" bgColor={colors.uBg} />
+      <AppHeaderWithBack title="Expert Profile" bgColor='transparent' />
 
       <ScrollView
         contentContainerStyle={[
@@ -510,14 +510,14 @@ const ExpertDetail: React.FC = () => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Book a Video Session</Text>
           <LinearGradient
-            colors={[colors.btnGradientStart, colors.btnGradientEnd]}
+           colors={['#4ADE80', '#16A34A']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={styles.videoRateCard}
           >
             <Video
               size={wp(20)}
-              color={colors.white}
+              color={colors.user.text}
               strokeWidth={1.8}
             />
             <Text style={styles.videoRateText}>
@@ -662,12 +662,12 @@ const ExpertDetail: React.FC = () => {
           onPress={() => setShowConfirm(true)}
         >
           <LinearGradient
-            colors={[colors.btnGradientStart, colors.btnGradientEnd]}
+            colors={['#4ADE80', '#16A34A']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={styles.bottomBtnGradient}
           >
-            <Video size={wp(16)} color={colors.white} strokeWidth={2} />
+            <Video size={wp(16)} color={colors.user.text} strokeWidth={2} />
             <Text style={styles.bottomBtnText}>Book Now</Text>
           </LinearGradient>
         </TouchableOpacity>
@@ -691,15 +691,15 @@ const ExpertDetail: React.FC = () => {
 export default ExpertDetail;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.uBg },
+  container: { flex: 1, backgroundColor: colors.user.bg },
   scroll: { paddingTop: hp(14) },
   profileCard: {
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.card,
     marginHorizontal: wp(16),
     borderRadius: wp(16),
     padding: wp(16),
     borderWidth: 1,
-    borderColor: colors.uCard,
+    borderColor: colors.user.card,
   },
   profileTop: { flexDirection: 'row', alignItems: 'center' },
   avatarWrap: { position: 'relative' },
@@ -708,7 +708,7 @@ const styles = StyleSheet.create({
     width: wp(64),
     height: wp(64),
     borderRadius: wp(32),
-    backgroundColor: colors.uSubtext,
+    backgroundColor: colors.user.accent,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -720,13 +720,13 @@ const styles = StyleSheet.create({
     height: wp(14),
     borderRadius: wp(7),
     borderWidth: 2,
-    borderColor: colors.uCard,
+    borderColor: colors.user.card,
   },
   profileInfo: { marginLeft: wp(14), flex: 1 },
-  profileName: { fontSize: fp(17), fontWeight: '700', color: colors.white },
+  profileName: { fontSize: fp(17), fontWeight: '700', color: colors.user.text },
   profileProf: {
     fontSize: fp(12),
-    color: colors.uSubHeading,
+    color: colors.user.accentText,
     marginTop: hp(2),
   },
   onlineRow: {
@@ -742,16 +742,16 @@ const styles = StyleSheet.create({
     marginTop: hp(16),
     paddingTop: hp(14),
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.uBg,
+    borderTopColor: colors.user.bg,
     justifyContent: 'space-around',
   },
   statBox: { alignItems: 'center', gap: hp(3) },
-  statVal: { fontSize: fp(14), fontWeight: '700', color: colors.white },
-  statLbl: { fontSize: fp(10), color: colors.uSubHeading },
-  statDiv: { width: 1, backgroundColor: colors.uBg },
+  statVal: { fontSize: fp(14), fontWeight: '700', color: colors.user.text },
+  statLbl: { fontSize: fp(10), color: colors.user.accentText },
+  statDiv: { width: 1, backgroundColor: colors.user.bg },
   section: { marginTop: hp(18), paddingHorizontal: wp(16) },
   reviewCard: {
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.card,
     borderRadius: wp(12),
     padding: wp(12),
     marginTop: hp(8),
@@ -764,26 +764,26 @@ const styles = StyleSheet.create({
   reviewName: {
     fontSize: fp(13),
     fontWeight: '600',
-    color: colors.white,
+    color: colors.user.text,
     flex: 1,
     marginRight: wp(8),
   },
   reviewStars: { flexDirection: 'row', gap: wp(2) },
   reviewComment: {
     fontSize: fp(12),
-    color: colors.uSubHeading,
+    color: colors.user.accentText,
     marginTop: hp(6),
     lineHeight: fp(17),
   },
   sectionTitle: {
     fontSize: fp(15),
     fontWeight: '700',
-    color: colors.white,
+    color: colors.user.text,
     marginBottom: hp(10),
   },
   aboutText: {
     fontSize: fp(13),
-    color: colors.uSubHeading,
+    color: colors.user.accentText,
     lineHeight: fp(20),
   },
   langRow: {
@@ -793,7 +793,7 @@ const styles = StyleSheet.create({
     marginTop: hp(10),
     paddingHorizontal: wp(16),
   },
-  langText: { fontSize: fp(12), color: colors.uSubHeading },
+  langText: { fontSize: fp(12), color: colors.user.subHeading },
   videoRateCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -805,7 +805,7 @@ const styles = StyleSheet.create({
   videoRateText: {
     fontSize: fp(14),
     fontWeight: '700',
-    color: colors.white,
+    color: colors.user.text,
   },
   sectionHeaderRow: {
     flexDirection: 'row',
@@ -819,25 +819,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: hp(12),
     borderRadius: wp(14),
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.cardSoft,
     borderWidth: 1.5,
-    borderColor: colors.uCard,
+    borderColor: colors.user.cardSoft,
   },
   dateCardActive: {
-    backgroundColor: colors.btnGradientStart,
-    borderColor: colors.btnGradientEnd,
+    backgroundColor: colors.creatorGreen,
+    borderColor: colors.creatorGreen,
   },
-  dateDay: { fontSize: fp(11), fontWeight: '600', color: colors.uSubHeading },
-  dateDayActive: { color: 'rgba(255,255,255,0.8)' },
+  dateDay: { fontSize: fp(11), fontWeight: '600', color: colors.user.accentText },
+  dateDayActive: { color: colors.user.accentText },
   dateNum: {
     fontSize: fp(20),
     fontWeight: '800',
-    color: colors.white,
+    color: colors.user.text,
     marginVertical: hp(2),
   },
-  dateNumActive: { color: colors.white },
-  dateMonth: { fontSize: fp(10), fontWeight: '500', color: colors.uSubHeading },
-  dateMonthActive: { color: 'rgba(255,255,255,0.8)' },
+  dateNumActive: { color: colors.user.text },
+  dateMonth: { fontSize: fp(10), fontWeight: '500', color: colors.user.accentText },
+  dateMonthActive: { color: colors.user.text },
   timeGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -849,22 +849,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: hp(12),
     borderRadius: wp(12),
-    backgroundColor: colors.timeSlotText,
+    backgroundColor: colors.user.cardSoft,
     borderWidth: 1,
-    borderColor: colors.timeSlotText,
+    borderColor: colors.user.cardSoft,
   },
   timeSlotActive: {
-    backgroundColor: '#5161F8',
-    borderColor: colors.uCard,
+    backgroundColor: colors.greenButton,
+    borderColor: colors.greenButtonDark,
   },
   timeSlotBooked: {
-    backgroundColor: colors.timeSlotText,
-    borderColor: colors.timeSlotText,
+    backgroundColor: colors.user.cardSoft,
+    borderColor: colors.user.cardSoft,
     opacity: 0.7,
   },
-  timeText: { fontSize: fp(11), fontWeight: '600', color: colors.uSubHeading },
-  timeTextActive: { color: colors.uBottomText },
-  timeTextBooked: { color: colors.uBottomText, textDecorationLine: 'line-through' },
+  timeText: { fontSize: fp(11), fontWeight: '600', color: colors.user.accentText },
+  timeTextActive: { color: colors.user.text },
+  timeTextBooked: { color: colors.user.accentText, textDecorationLine: 'line-through' },
   bookedLabel: {
     fontSize: fp(5),
     color: colors.textLogout,
@@ -880,26 +880,26 @@ const styles = StyleSheet.create({
   },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: wp(8) },
   chip: {
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.card,
     borderRadius: wp(12),
     paddingHorizontal: wp(12),
     paddingVertical: hp(6),
   },
-  chipText: { fontSize: fp(12), color: colors.statText, fontWeight: '500' },
+  chipText: { fontSize: fp(12), color: colors.user.text, fontWeight: '500' },
   bottomBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: colors.uBg,
+    backgroundColor: colors.user.cardSoft,
     paddingHorizontal: wp(16),
     paddingTop: hp(12),
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.surface,
+    borderTopColor: colors.user.cardSoft,
   },
-  bottomPrice: { fontSize: fp(16), fontWeight: '700', color: colors.white },
+  bottomPrice: { fontSize: fp(16), fontWeight: '700', color: colors.user.text },
   bottomSubText: {
     fontSize: fp(11),
-    color: colors.uSubHeading,
+    color: colors.user.accentText,
     marginTop: hp(2),
   },
   bottomBtnWrapper: {
@@ -915,5 +915,5 @@ const styles = StyleSheet.create({
     gap: wp(8),
   },
   bottomBtnDisabled: { opacity: 0.4 },
-  bottomBtnText: { fontSize: fp(14), fontWeight: '700', color: colors.white },
+  bottomBtnText: { fontSize: fp(14), fontWeight: '700', color: colors.user.text },
 });

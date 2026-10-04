@@ -85,7 +85,7 @@ const UserVideoList = () => {
       <View style={styles.thumbnailWrapper}>
         <Image source={{ uri: item?.thumbnail_url }} style={styles.thumbnail} />
         <LinearGradient
-          colors={['transparent', 'rgba(0,0,0,0.5)']}
+          colors={['#86EFAC', '#4ADE80']}
           style={styles.thumbnailGradient}
         />
         <View style={styles.playIconContainer}>
@@ -226,7 +226,7 @@ export default UserVideoList;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.uBg,
+    backgroundColor: colors.user.bg,
   },
   loaderContainer: {
     flex: 1,
@@ -246,11 +246,11 @@ const styles = StyleSheet.create({
   expiredTitle: {
     fontSize: fp(14),
     fontWeight: '700',
-    color: colors.white,
+    color: colors.user.text,
   },
   expiredSub: {
     fontSize: fp(12),
-    color: 'rgba(255,255,255,0.85)',
+    color: colors.user.accentText,
     marginTop: hp(2),
   },
   listContainer: {
@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
   },
   card: {
     flexDirection: 'row',
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.card,
     borderRadius: wp(12),
     marginBottom: hp(14),
     overflow: 'hidden',
@@ -278,7 +278,7 @@ const styles = StyleSheet.create({
     height: '100%',
     borderTopLeftRadius: wp(12),
     borderBottomLeftRadius: wp(12),
-    backgroundColor: colors.textPrimary,
+    backgroundColor: colors.greenButton,
   },
   thumbnailGradient: {
     position: 'absolute',
@@ -294,7 +294,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   playIcon: {
-    backgroundColor: colors.uBottom,
+    backgroundColor: colors.user.accentSoft,
     width: wp(32),
     height: wp(32),
     borderRadius: wp(16),
@@ -305,7 +305,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: hp(4),
     right: wp(4),
-    backgroundColor: colors.uSubHeading,
+    backgroundColor: colors.user.accentText,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: wp(5),
@@ -313,7 +313,7 @@ const styles = StyleSheet.create({
     borderRadius: wp(4),
   },
   durationBadgeText: {
-    color: colors.textPrimary,
+    color: colors.user.subHeading,
     fontSize: fp(10),
     fontWeight: '600',
     marginLeft: wp(2),
@@ -326,12 +326,12 @@ const styles = StyleSheet.create({
   videoTitle: {
     fontSize: fp(15),
     fontWeight: '600',
-    color: colors.textPrimary,
+    color: colors.user.text,
     marginBottom: hp(4),
   },
   videoDesc: {
     fontSize: fp(12),
-    color: colors.textPrimary,
+    color: colors.user.accentText,
     lineHeight: fp(17),
   },
   emptyContainer: {
@@ -341,32 +341,32 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: fp(16),
-    color: colors.textPrimary,
+    color: colors.user.accentText,
   },
   // Modal styles
   modalContainer: {
     flex: 1,
-    backgroundColor: colors.black,
+    backgroundColor: colors.user.cardSoft,
   },
   playerSection: {
     width: '100%',
-    backgroundColor: colors.uBottom,
+    backgroundColor: colors.greenButton,
   },
   videoInfoContainer: {
     flex: 1,
-    backgroundColor: colors.textPrimary,
+    backgroundColor: colors.user.text,
     paddingHorizontal: wp(16),
     paddingTop: hp(16),
   },
   videoInfoTitle: {
     fontSize: fp(18),
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: colors.user.text,
     marginBottom: hp(6),
   },
   videoInfoDesc: {
     fontSize: fp(14),
-    color: colors.textPrimary,
+    color: colors.user.accentText,
     lineHeight: fp(20),
     marginBottom: hp(16),
   },
@@ -379,7 +379,7 @@ const styles = StyleSheet.create({
     color: colors.text,
     marginBottom: hp(12),
     borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTopColor: colors.user.cardSoft,
     paddingTop: hp(12),
   },
   upNextCard: {
@@ -392,7 +392,7 @@ const styles = StyleSheet.create({
     width: wp(120),
     height: hp(68),
     borderRadius: wp(8),
-    backgroundColor: colors.uSubtext,
+    backgroundColor: colors.user.accent,
   },
   upNextInfo: {
     flex: 1,
@@ -402,11 +402,11 @@ const styles = StyleSheet.create({
   upNextCardTitle: {
     fontSize: fp(14),
     fontWeight: '600',
-    color: colors.text,
+    color: colors.user.text,
     marginBottom: hp(4),
   },
   upNextDuration: {
     fontSize: fp(12),
-    color: colors.textPrimary,
+    color: colors.user.accentText,
   },
 });

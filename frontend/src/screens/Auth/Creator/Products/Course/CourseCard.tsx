@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: hp(4),
+    gap: hp(12),
   },
   thumbnailPlaceholderText: {
     fontSize: fp(7.5),

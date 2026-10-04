@@ -72,7 +72,7 @@ const BookingConfirmModal = ({
           <View style={styles.row}>
             <IndianRupee
               size={wp(16)}
-              color={colors.statText}
+              color={colors.user.subHeading}
               strokeWidth={1.8}
             />
             <Text style={styles.label}>Rate</Text>
@@ -80,7 +80,7 @@ const BookingConfirmModal = ({
           </View>
 
           <View style={styles.row}>
-            <Calendar size={wp(16)} color={colors.statIcon} strokeWidth={1.8} />
+            <Calendar size={wp(16)} color={colors.user.subHeading} strokeWidth={1.8} />
             <Text style={styles.label}>Date & Time</Text>
             <Text style={styles.value}>
               {dateLabel} · {timeLabel}
@@ -88,7 +88,7 @@ const BookingConfirmModal = ({
           </View>
 
           <View style={styles.row}>
-            <Clock size={wp(16)} color={colors.statIcon} strokeWidth={1.8} />
+            <Clock size={wp(16)} color={colors.user.subHeading} strokeWidth={1.8} />
             <Text style={styles.label}>Duration</Text>
             <Text style={styles.value}>30 min</Text>
           </View>
@@ -96,7 +96,7 @@ const BookingConfirmModal = ({
           <View style={styles.row}>
             <IndianRupee
               size={wp(16)}
-              color={colors.statText}
+              color={colors.user.subHeading}
               strokeWidth={1.8}
             />
             <Text style={styles.label}>Total</Text>
@@ -116,12 +116,12 @@ const BookingConfirmModal = ({
             disabled={booking}
           >
             <LinearGradient
-              colors={[colors.btnGradientStart, colors.btnGradientEnd]}
+             colors={['#86EFAC', '#4ADE80']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={styles.confirmBtn}
             >
-              <Video size={wp(18)} color={colors.textPrimary} strokeWidth={2} />
+              <Video size={wp(18)} color={colors.user.text} strokeWidth={2} />
               <Text style={styles.confirmBtnText}>
                 {booking ? 'Processing...' : `Pay ₹${rate * 30} & Book`}
               </Text>
@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   content: {
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.card,
     borderTopLeftRadius: wp(20),
     borderTopRightRadius: wp(20),
     padding: wp(20),
@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: fp(18),
     fontWeight: '700',
-    color: colors.white,
+    color: colors.user.text,
     textAlign: 'center',
     marginBottom: hp(16),
   },
@@ -164,21 +164,21 @@ const styles = StyleSheet.create({
     width: wp(44),
     height: wp(44),
     borderRadius: wp(22),
-    backgroundColor: colors.uSubtext,
+    backgroundColor: colors.greenButton,
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarText: {
     fontSize: fp(14),
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: colors.user.accentText,
   },
   infoText: { flex: 1 },
-  name: { fontSize: fp(15), fontWeight: '600', color: colors.textPrimary },
-  sub: { fontSize: fp(12), color: colors.uSubHeading, marginTop: hp(2) },
+  name: { fontSize: fp(15), fontWeight: '600', color: colors.user.text },
+  sub: { fontSize: fp(12), color: colors.user.accentText, marginTop: hp(2) },
   divider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: colors.uSubtext,
+    backgroundColor: colors.user.subHeading,
     marginVertical: hp(16),
   },
   row: {
@@ -187,9 +187,9 @@ const styles = StyleSheet.create({
     gap: wp(10),
     marginBottom: hp(12),
   },
-  label: { fontSize: fp(13), color: colors.uSubHeading, flex: 1 },
-  value: { fontSize: fp(14), fontWeight: '600', color: colors.white },
-  totalValue: { fontSize: fp(14), fontWeight: '800', color: colors.btnGradientStart },
+  label: { fontSize: fp(13), color: colors.user.subHeading, flex: 1 },
+  value: { fontSize: fp(14), fontWeight: '600', color: colors.user.text },
+  totalValue: { fontSize: fp(14), fontWeight: '800', color: colors.user.accent },
   note: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
     paddingVertical: hp(16),
     //backgroundColor: colors.info,
   },
-  confirmBtnText: { fontSize: fp(16), fontWeight: '700', color: colors.white },
+  confirmBtnText: { fontSize: fp(16), fontWeight: '700', color: colors.user.text },
   cancelBtn: {
     alignItems: 'center',
     paddingVertical: hp(12),
@@ -219,6 +219,6 @@ const styles = StyleSheet.create({
   cancelBtnText: {
     fontSize: fp(14),
     fontWeight: '500',
-    color: colors.white,
+    color: colors.user.text,
   },
 });

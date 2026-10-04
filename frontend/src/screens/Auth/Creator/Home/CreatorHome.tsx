@@ -333,7 +333,7 @@ const CreatorHome = () => {
                 end={{ x: 1, y: 0 }}
                 style={styles.ctaButton}
               >
-                <Text style={styles.ctaText}>Create Course</Text>
+                <Text style={styles.ctaText}>Get Started</Text>
                 <ChevronRight size={wp(18)} color={colors.primary} />
               </LinearGradient>
             </TouchableOpacity>

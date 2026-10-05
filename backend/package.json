@@ -46,6 +46,7 @@
     "node-cron": "^4.2.1",
     "node-telegram-bot-api": "^0.67.0",
     "nodemailer": "^8.0.1",
+    "pg": "^8.23.1",
     "rate-limiter-flexible": "^8.0.1",
     "socket.io": "^4.8.1",
     "ttl-cache": "^1.0.2",

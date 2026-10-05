@@ -84,6 +84,154 @@ export class SessionController {
     }
   }
 
+  static async addUserToProduct(req: JWTRequest, res: Response) {
+  try {
+    const creatorId = req.user!.userId;
+    const { product_id } = req.params;
+    const { email, phone, scheduled_at } = req.body;
+
+    if (!email && !phone) {
+      return res.status(400).json({ error: "email or phone is required" });
+    }
+    if (!scheduled_at) {
+      return res.status(400).json({ error: "scheduled_at is required" });
+    }
+    const scheduledDate = new Date(scheduled_at);
+    if (isNaN(scheduledDate.getTime()) || scheduledDate.getTime() <= Date.now()) {
+      return res.status(400).json({ error: "scheduled_at must be a valid future date and time" });
+    }
+
+    const product = await prisma.session_products.findUnique({ where: { id: product_id } });
+    if (!product) return res.status(404).json({ error: "Product not found" });
+    if (product.creator_id !== creatorId) {
+      return res.status(403).json({ error: "You can only add users to your own sessions" });
+    }
+
+    // Find the user by email or phone
+    let user;
+    if (email) {
+      user = await prisma.users.findFirst({
+        where: { email: String(email).trim().toLowerCase() },
+      });
+    } else {
+      const digits = String(phone).replace(/\D/g, "").slice(-10);
+      user = await prisma.users.findFirst({
+        where: { phone: { in: [digits, `+91${digits}`, `91${digits}`] } },
+      });
+    }
+    if (!user) {
+      return res.status(404).json({ error: "No Manchly account found with this email or phone" });
+    }
+    if (user.id === creatorId) {
+      return res.status(400).json({ error: "You cannot add yourself to your own session" });
+    }
+
+    // Reject overlap with the creator's other upcoming sessions
+    const newStart = scheduledDate.getTime();
+    const newEnd = newStart + product.duration * 60000;
+    const nearby = await prisma.sessions.findMany({
+      where: {
+        receiver_id: creatorId,
+        status: { in: ["PENDING", "ACTIVE"] },
+        scheduled_at: {
+          gte: new Date(newStart - 24 * 3600000),
+          lte: new Date(newEnd),
+        },
+      },
+      select: { scheduled_at: true, duration: true },
+    });
+    const clash = nearby.some((s) => {
+      if (!s.scheduled_at) return false;
+      const start = s.scheduled_at.getTime();
+      const end = start + (s.duration || 30) * 60000;
+      return start < newEnd && end > newStart;
+    });
+    if (clash) {
+      return res.status(400).json({ error: "You already have a session at this time" });
+    }
+
+    const session = await prisma.sessions.create({
+      data: {
+        call_id: `session_${user.id}_${creatorId}_${Date.now()}`,
+        caller_id: user.id,
+        receiver_id: creatorId,
+        product_id: product.id,
+        mode: product.mode,
+        duration: product.duration,
+        rate_per_min: 0,
+        amount: 0,
+        scheduled_at: scheduledDate,
+        status: "PENDING",
+        payment_status: "SUCCESS",
+      },
+    });
+
+    const when = scheduledDate.toLocaleString("en-IN", {
+      day: "2-digit", month: "short", year: "numeric",
+      hour: "2-digit", minute: "2-digit",
+    });
+    NotificationController.createNotification({
+      userId: user.id,
+      type: "SESSION",
+      title: "Session Booked",
+      message: `You've been added to "${product.title}" on ${when}. No payment needed.`,
+      data: { sessionId: session.id, productId: product.id },
+    }).catch((err) => console.error("Notification error:", err));
+
+    return res.status(201).json({
+      data: {
+        session,
+        user: { id: user.id, name: user.name, email: user.email },
+      },
+    });
+  } catch (err: any) {
+    console.error("addUserToProduct error:", err);
+    return res.status(500).json({ error: "Failed to add user" });
+  }
+}
+
+static async getProductUsers(req: JWTRequest, res: Response) {
+  try {
+    const creatorId = req.user!.userId;
+    const { product_id } = req.params;
+
+    const product = await prisma.session_products.findUnique({ where: { id: product_id } });
+    if (!product) return res.status(404).json({ error: "Product not found" });
+    if (product.creator_id !== creatorId) {
+      return res.status(403).json({ error: "You can only view users of your own sessions" });
+    }
+
+    const sessions = await prisma.sessions.findMany({
+      where: { product_id },
+      orderBy: { created_at: "desc" },
+      take: 200,
+    });
+
+    const callerIds = [...new Set(sessions.map((s) => s.caller_id))];
+    const users = callerIds.length
+      ? await prisma.users.findMany({
+          where: { id: { in: callerIds } },
+          select: userSelect,
+        })
+      : [];
+    const userMap = new Map(users.map((u) => [u.id, u]));
+
+    const data = sessions.map((s) => ({
+      session_id: s.id,
+      scheduled_at: s.scheduled_at,
+      status: s.status,
+      amount: s.amount,
+      payment_status: s.payment_status,
+      user: userMap.get(s.caller_id) || null,
+    }));
+
+    return res.json({ data: { users: data } });
+  } catch (err: any) {
+    console.error("getProductUsers error:", err);
+    return res.status(500).json({ error: "Failed to fetch users" });
+  }
+}
+
   // Accept a session (receiver joins)
   static async acceptSession(req: JWTRequest, res: Response) {
     try {
@@ -662,39 +810,6 @@ recordUserActivity(session.receiver_id).catch((err) => console.error("Activity l
   }
 
   // ============ SESSION PRODUCTS ============
-
-  // Creator: create a session product
-  static async createProduct(req: JWTRequest, res: Response) {
-    try {
-      const creatorId = req.user!.userId;
-      const { title, description, duration, price, mode } = req.body;
-
-      if (!title || !duration || !price || !mode) {
-        return res
-          .status(400)
-          .json({ error: "title, duration, price, mode are required" });
-      }
-
-      const product = await prisma.session_products.create({
-        data: {
-          creator_id: creatorId,
-          title,
-          description: description || null,
-          duration,
-          price,
-          mode: mode === "video" ? "VIDEO" : "CALL",
-        },
-      });
-
-      return res.status(201).json({ data: product });
-    } catch (err: any) {
-      console.error("createProduct error:", err);
-      return res
-        .status(500)
-        .json({ error: "Failed to create session product" });
-    }
-  }
-
   // Creator: get my session products
   static async getMyProducts(req: JWTRequest, res: Response) {
     try {
@@ -707,44 +822,6 @@ recordUserActivity(session.receiver_id).catch((err) => console.error("Activity l
     } catch (err: any) {
       console.error("getMyProducts error:", err);
       return res.status(500).json({ error: "Failed to fetch products" });
-    }
-  }
-
-  // Creator: update a session product (with ownership check)
-  static async updateProduct(req: JWTRequest, res: Response) {
-    try {
-      const { product_id } = req.params;
-      const creatorId = req.user!.userId;
-
-      const existing = await prisma.session_products.findUnique({
-        where: { id: product_id },
-      });
-      if (!existing)
-        return res.status(404).json({ error: "Product not found" });
-      if (existing.creator_id !== creatorId)
-        return res
-          .status(403)
-          .json({ error: "You can only update your own products" });
-
-      const { title, description, duration, price, mode, is_active } = req.body;
-
-      const data: any = {};
-      if (title !== undefined) data.title = title;
-      if (description !== undefined) data.description = description;
-      if (duration !== undefined) data.duration = duration;
-      if (price !== undefined) data.price = price;
-      if (mode !== undefined) data.mode = mode === "video" ? "VIDEO" : "CALL";
-      if (is_active !== undefined) data.is_active = is_active;
-
-      const product = await prisma.session_products.update({
-        where: { id: product_id },
-        data,
-      });
-
-      return res.json({ data: product });
-    } catch (err: any) {
-      console.error("updateProduct error:", err.message);
-      return res.status(500).json({ error: "Failed to update product" });
     }
   }
 
@@ -1852,5 +1929,79 @@ static async cancelSession(req: JWTRequest, res: Response) {
   }
 }
 
+static async createProduct(req: JWTRequest, res: Response) {
+  try {
+    const creatorId = req.user!.userId;
+    const {
+      title, description, duration, price, mode,
+      thumbnail_url, categories, thankyou_message,
+    } = req.body;
+
+   if (
+  !title ||
+  !duration ||
+  price === undefined ||
+  price === null ||
+  !mode
+) {
+  return res
+    .status(400)
+    .json({ error: "title, duration, price, mode are required" });
+}
+
+    const product = await prisma.session_products.create({
+      data: {
+        creator_id: creatorId,
+        title,
+        description: description || null,
+        duration,
+        price,
+        mode: mode === "video" ? "VIDEO" : "CALL",
+        thumbnail_url: thumbnail_url || null,
+        categories: Array.isArray(categories) ? categories : [],
+        thankyou_message: thankyou_message?.trim() || null,
+      },
+    });
+
+    return res.status(201).json({ data: product });
+  } catch (err: any) {
+    console.error("createProduct error:", err);
+    return res.status(500).json({ error: "Failed to create session product" });
+  }
+}
+
+static async updateProduct(req: JWTRequest, res: Response) {
+  try {
+    const { product_id } = req.params;
+    const creatorId = req.user!.userId;
+
+    const existing = await prisma.session_products.findUnique({ where: { id: product_id } });
+    if (!existing) return res.status(404).json({ error: "Product not found" });
+    if (existing.creator_id !== creatorId)
+      return res.status(403).json({ error: "You can only update your own products" });
+
+    const {
+      title, description, duration, price, mode, is_active,
+      thumbnail_url, categories, thankyou_message,
+    } = req.body;
+
+    const data: any = {};
+    if (title !== undefined) data.title = title;
+    if (description !== undefined) data.description = description;
+    if (duration !== undefined) data.duration = duration;
+    if (price !== undefined) data.price = price;
+    if (mode !== undefined) data.mode = mode === "video" ? "VIDEO" : "CALL";
+    if (is_active !== undefined) data.is_active = is_active;
+    if (thumbnail_url !== undefined) data.thumbnail_url = thumbnail_url;
+    if (categories !== undefined) data.categories = Array.isArray(categories) ? categories : [];
+    if (thankyou_message !== undefined) data.thankyou_message = thankyou_message?.trim() || null;
+
+    const product = await prisma.session_products.update({ where: { id: product_id }, data });
+    return res.json({ data: product });
+  } catch (err: any) {
+    console.error("updateProduct error:", err.message);
+    return res.status(500).json({ error: "Failed to update product" });
+  }
+}
 
 }

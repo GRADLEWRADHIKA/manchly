@@ -233,6 +233,8 @@ export class CourseController {
       status,
       search,
       my_courses,
+      from_date,   
+       to_date,
     } = req.query;
 
     try {
@@ -260,6 +262,17 @@ export class CourseController {
         if (status) {
           whereClause.status = status;
         }
+
+        
+         if (from_date || to_date) {
+    whereClause.published_at = {};
+    if (from_date) whereClause.published_at.gte = new Date(from_date as string);
+    if (to_date) {
+      const end = new Date(to_date as string);
+      end.setHours(23, 59, 59, 999); // include the whole end day
+      whereClause.published_at.lte = end;
+    }
+  }
       } else {
         // All users (including creators browsing) see only published courses
         whereClause.status = "PUBLISHED";
@@ -340,6 +353,17 @@ export class CourseController {
         revenueByCourseRaw.map((r) => [r.course_id, r._sum.amount || 0]),
       );
 
+      const enrollmentsByCourseRaw = courseIds.length
+        ? await prisma.enrollments.groupBy({
+            by: ["course_id"],
+            where: { course_id: { in: courseIds } },
+            _count: { _all: true },
+          })
+        : [];
+      const enrollmentsMap = new Map(
+        enrollmentsByCourseRaw.map((e) => [e.course_id, e._count._all]),
+      );
+
       const refundsByCourseRaw = courseIds.length
         ? await prisma.transactions.groupBy({
             by: ["course_id"],
@@ -403,11 +427,16 @@ export class CourseController {
                       const playbackId = asset.playback_ids[0];
                       updateData.mux_playback_id = playbackId.id;
                       updateData.playback_url = `https://stream.mux.com/${playbackId.id}.m3u8`;
-                      updateData.thumbnail_url = `https://image.mux.com/${playbackId.id}/thumbnail.jpg`;
 
-                      // Update local variables for immediate return
+                      // Only use Mux's auto-generated thumbnail if the creator hasn't set a custom one
+                      if (!video.thumbnail_url) {
+                        updateData.thumbnail_url = `https://image.mux.com/${playbackId.id}/thumbnail.jpg`;
+                        updatedThumbnailUrl = updateData.thumbnail_url;
+                      } else {
+                        updatedThumbnailUrl = video.thumbnail_url;
+                      }
+
                       updatedPlaybackUrl = updateData.playback_url;
-                      updatedThumbnailUrl = updateData.thumbnail_url;
                     }
 
                     await prisma.videos.update({
@@ -446,6 +475,7 @@ export class CourseController {
             revenue: revenueMap.get(course.id) || 0,
             refunds: refundsMap.get(course.id)?.amount || 0,
             refunds_count: refundsMap.get(course.id)?.count || 0,
+            total_enrollments: enrollmentsMap.get(course.id) || 0,
           };
         }),
       );
@@ -584,27 +614,33 @@ export class CourseController {
         where: { course_id: courseId },
       });
 
-     const sortedVideos = [...course.videos].sort(
-  (a, b) => (a.order || 0) - (b.order || 0),
-);
-const firstVideoId = sortedVideos[0]?.id;
+      const revenueAgg = await prisma.transactions.aggregate({
+        where: { course_id: courseId, status: "SUCCESS" },
+        _sum: { amount: true },
+      });
+      const totalRevenue = revenueAgg._sum.amount || 0;
 
-const restrictAccess =
-  isUser(user.user_type) &&
-  !isAdmin(user.user_type) &&
-  !isEnrolled &&
-  course.creator_id !== userId;
+      const sortedVideos = [...course.videos].sort(
+        (a, b) => (a.order || 0) - (b.order || 0),
+      );
+      const firstVideoId = sortedVideos[0]?.id;
 
-const videosToShow = course.videos.map((v) => {
-  const unlocked = !restrictAccess || v.is_free || v.id === firstVideoId;
-  return {
-    ...v,
-    locked: !unlocked,
-    playback_url: unlocked ? v.playback_url : null,
-    mux_asset_id: unlocked ? v.mux_asset_id : null,
-    mux_upload_id: unlocked ? v.mux_upload_id : null,
-  };
-});
+      const restrictAccess =
+        isUser(user.user_type) &&
+        !isAdmin(user.user_type) &&
+        !isEnrolled &&
+        course.creator_id !== userId;
+
+      const videosToShow = course.videos.map((v) => {
+        const unlocked = !restrictAccess || v.is_free || v.id === firstVideoId;
+        return {
+          ...v,
+          locked: !unlocked,
+          playback_url: unlocked ? v.playback_url : null,
+          mux_asset_id: unlocked ? v.mux_asset_id : null,
+          mux_upload_id: unlocked ? v.mux_upload_id : null,
+        };
+      });
 
       ApiResponseHandler.success(
         res,
@@ -618,6 +654,7 @@ const videosToShow = course.videos.map((v) => {
               0,
             ),
             total_students: totalStudents,
+            total_revenue: totalRevenue,
             is_enrolled: isEnrolled,
             access_expired: accessExpired,
             access_expires_at: accessExpiresAt,
@@ -1161,6 +1198,81 @@ const videosToShow = course.videos.map((v) => {
       ApiResponseHandler.unexpectedError(res, err, 500);
     }
   }
+  static async reorderVideos(req: any, res: Response) {
+    const { courseId } = req.params;
+    const userId = req.user.userId;
+    const { videoOrders } = req.body;
+
+    if (!Array.isArray(videoOrders) || videoOrders.length === 0) {
+      return ApiResponseHandler.customError(
+        res,
+        "videoOrders array is required",
+        400,
+        "MISSING_VIDEO_ORDERS",
+      );
+    }
+
+    try {
+      const course = await prisma.courses.findUnique({
+        where: { id: courseId },
+        include: { videos: { select: { id: true } } },
+      });
+
+      if (!course) {
+        return ApiResponseHandler.customError(
+          res,
+          "Course not found",
+          404,
+          "COURSE_NOT_FOUND",
+        );
+      }
+
+      if (!(await canManageResource(userId, course.creator_id))) {
+        return ApiResponseHandler.customError(
+          res,
+          "You don't have permission to reorder videos in this course",
+          403,
+          "FORBIDDEN",
+        );
+      }
+
+      // Guard against a client sending an id that doesn't belong to this course
+      const validVideoIds = new Set(course.videos.map((v) => v.id));
+      const invalidEntry = videoOrders.find(
+        (v: any) => !validVideoIds.has(v.id),
+      );
+      if (invalidEntry) {
+        return ApiResponseHandler.customError(
+          res,
+          `Video ${invalidEntry.id} does not belong to this course`,
+          400,
+          "INVALID_VIDEO_ID",
+        );
+      }
+
+      await prisma.$transaction(
+        videoOrders.map((v: any) =>
+          prisma.videos.update({
+            where: { id: v.id },
+            data: { order: Number(v.order) },
+          }),
+        ),
+      );
+
+      const updatedVideos = await prisma.videos.findMany({
+        where: { course_id: courseId },
+        orderBy: { order: "asc" },
+      });
+
+      ApiResponseHandler.success(
+        res,
+        { videos: updatedVideos },
+        "Videos reordered successfully",
+      );
+    } catch (err: any) {
+      ApiResponseHandler.unexpectedError(res, err, 500);
+    }
+  }
 
   // ============ ENROLLMENT MANAGEMENT ============
 
@@ -1551,7 +1663,9 @@ const videosToShow = course.videos.map((v) => {
         },
       });
 
-      recordUserActivity(userId).catch((err) => console.error("Activity log error:", err)); 
+      recordUserActivity(userId).catch((err) =>
+        console.error("Activity log error:", err),
+      );
 
       ApiResponseHandler.success(
         res,
@@ -1704,68 +1818,74 @@ const videosToShow = course.videos.map((v) => {
   }
 
   /**
- * Get enrollments for a specific course (Creator only - own course)
- */
-static async getCourseEnrollments(req: any, res: Response) {
-  const { courseId } = req.params;
-  const userId = req.user.userId;
-  const { page = 1, limit = 20 } = req.query;
+   * Get enrollments for a specific course (Creator only - own course)
+   */
+  static async getCourseEnrollments(req: any, res: Response) {
+    const { courseId } = req.params;
+    const userId = req.user.userId;
+    const { page = 1, limit = 20 } = req.query;
 
-  try {
-    const course = await prisma.courses.findUnique({
-      where: { id: courseId },
-    });
+    try {
+      const course = await prisma.courses.findUnique({
+        where: { id: courseId },
+      });
 
-    if (!course) {
-      return ApiResponseHandler.customError(
+      if (!course) {
+        return ApiResponseHandler.customError(
+          res,
+          "Course not found",
+          404,
+          "COURSE_NOT_FOUND",
+        );
+      }
+
+      if (course.creator_id !== userId) {
+        return ApiResponseHandler.customError(
+          res,
+          "You don't have permission to view enrollments for this course",
+          403,
+          "FORBIDDEN",
+        );
+      }
+
+      const skip = (Number(page) - 1) * Number(limit);
+
+      const [enrollments, total] = await Promise.all([
+        prisma.enrollments.findMany({
+          where: { course_id: courseId },
+          skip,
+          take: Number(limit),
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                phone: true,
+                profile_image: true,
+              },
+            },
+          },
+          orderBy: { enrolled_at: "desc" },
+        }),
+        prisma.enrollments.count({ where: { course_id: courseId } }),
+      ]);
+
+      ApiResponseHandler.success(
         res,
-        "Course not found",
-        404,
-        "COURSE_NOT_FOUND",
-      );
-    }
-
-    if (course.creator_id !== userId) {
-      return ApiResponseHandler.customError(
-        res,
-        "You don't have permission to view enrollments for this course",
-        403,
-        "FORBIDDEN",
-      );
-    }
-
-    const skip = (Number(page) - 1) * Number(limit);
-
-    const [enrollments, total] = await Promise.all([
-      prisma.enrollments.findMany({
-        where: { course_id: courseId },
-        skip,
-        take: Number(limit),
-        include: {
-          user: {
-            select: { id: true, name: true, email: true, phone: true, profile_image: true },
+        {
+          enrollments,
+          pagination: {
+            page: Number(page),
+            limit: Number(limit),
+            total,
+            total_pages: Math.ceil(total / Number(limit)),
           },
         },
-        orderBy: { enrolled_at: "desc" },
-      }),
-      prisma.enrollments.count({ where: { course_id: courseId } }),
-    ]);
-
-    ApiResponseHandler.success(
-      res,
-      {
-        enrollments,
-        pagination: {
-          page: Number(page),
-          limit: Number(limit),
-          total,
-          total_pages: Math.ceil(total / Number(limit)),
-        },
-      },
-      "Course enrollments retrieved successfully",
-    );
-  } catch (err: any) {
-    ApiResponseHandler.unexpectedError(res, err, 500);
+        "Course enrollments retrieved successfully",
+      );
+    } catch (err: any) {
+      ApiResponseHandler.unexpectedError(res, err, 500);
+    }
   }
-}
 }

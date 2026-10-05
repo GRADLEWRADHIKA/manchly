@@ -10,10 +10,10 @@ function toNestedLinks(profile: Record<string, any>) {
   return {
     ...rest,
     links: {
-      education:  linkEducation  ?? "",
-      collabs:    linkCollabs    ?? "",
+      education:linkEducation ?? "",
+      collabs:linkCollabs ?? "",
       consulting: linkConsulting ?? "",
-      ugc:        linkUgc        ?? "",
+      ugc:linkUgc ?? "",
     },
   };
 }
@@ -21,10 +21,10 @@ function toNestedLinks(profile: Record<string, any>) {
 /** Maps a body.links object to the flat Prisma column names. */
 function flattenLinks(links: Record<string, string> = {}) {
   return {
-    linkEducation:  links.education  ?? "",
-    linkCollabs:    links.collabs    ?? "",
+    linkEducation:links.education  ?? "",
+    linkCollabs: links.collabs ?? "",
     linkConsulting: links.consulting ?? "",
-    linkUgc:        links.ugc        ?? "",
+    linkUgc: links.ugc ?? "",
   };
 }
 
@@ -53,15 +53,7 @@ export const getMyProfile = async (req: Request, res: Response): Promise<void> =
   }
 };
 
-/**
- * GET /api/creator/:userId/public
- * Returns a creator's public-facing profile: basic user info, their
- * creator_profiles data (if published), and their published courses.
- * Does not require the profile to be published — falls back to just
- * name/photo/courses if the creator hasn't completed or published
- * their profile yet, since students should still be able to see who
- * taught a course.
- */
+
 export const getPublicProfile = async (req: Request, res: Response): Promise<void> => {
   try {
     const { userId } = req.params;

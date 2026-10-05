@@ -573,16 +573,19 @@ model webinar_reviews {
 }
 
 model session_products {
-  id          String      @id @default(uuid())
-  creator_id  String
-  title       String
-  description String?
-  duration    Int
-  price       Float
-  mode        SessionMode
-  is_active   Boolean     @default(true)
-  created_at  DateTime    @default(now())
-  updated_at  DateTime    @updatedAt
+  id               String      @id @default(uuid())
+  creator_id       String
+  title            String
+  description      String?
+  duration         Int
+  price            Float
+  mode             SessionMode
+  is_active        Boolean     @default(true)
+  created_at       DateTime    @default(now())
+  updated_at       DateTime    @updatedAt
+  categories       String[]    @default([])
+  thankyou_message String?
+  thumbnail_url    String?
 
   @@index([creator_id])
   @@map("session_products")
@@ -667,25 +670,25 @@ model course_reels {
 /// creator_profiles, which is the brand-collaboration profile (niche,
 /// followers, engagement) and is not shown to buyers.
 model creator_storefronts {
-  id           String   @id @default(uuid())
-  user_id      String   @unique @map("user_id")
-  tagline      String   @default("")
-  bio          String   @default("")
-  cover_image  String?  @map("cover_image")
-  accent_color String   @default("#FFC107") @map("accent_color")
-  featured     Json     @default("[]")
-  website_url  String?  @map("website_url")
-  instagram    String?
-  linkedin     String?
-  youtube      String?
-  twitter      String?
-  is_published Boolean  @default(false) @map("is_published")
-  view_count   Int      @default(0) @map("view_count")
-  created_at   DateTime @default(now()) @map("created_at")
-  updated_at   DateTime @default(now()) @updatedAt @map("updated_at")
-  expertise    String[]
-  experience_years    Int?
-  user         users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  id               String   @id @default(uuid())
+  user_id          String   @unique @map("user_id")
+  tagline          String   @default("")
+  bio              String   @default("")
+  cover_image      String?  @map("cover_image")
+  accent_color     String   @default("#FFC107") @map("accent_color")
+  featured         Json     @default("[]")
+  website_url      String?  @map("website_url")
+  instagram        String?
+  linkedin         String?
+  youtube          String?
+  twitter          String?
+  is_published     Boolean  @default(false) @map("is_published")
+  view_count       Int      @default(0) @map("view_count")
+  created_at       DateTime @default(now()) @map("created_at")
+  updated_at       DateTime @default(now()) @updatedAt @map("updated_at")
+  expertise        String[]
+  experience_years Int?
+  user             users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@index([is_published])
   @@map("creator_storefronts")

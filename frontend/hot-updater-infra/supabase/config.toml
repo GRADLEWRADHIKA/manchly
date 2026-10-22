@@ -1,0 +1,7 @@
+project_id = "ojrsftqiteeyxmbdyuoa"
+
+[db.seed]
+enabled = false
+
+[functions.hot-updater-v1]
+verify_jwt = false

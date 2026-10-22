@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "provider": "supabase",
+  "resources": {
+    "projectId": "ojrsftqiteeyxmbdyuoa",
+    "bucketName": "hot-updater",
+    "functionName": "hot-updater-v1"
+  },
+  "baseUrl": null,
+  "deployedServerVersion": null,
+  "pendingStep": null,
+  "verifiedSteps": [
+    {
+      "id": "sb.project",
+      "target": {
+        "projectId": "ojrsftqiteeyxmbdyuoa"
+      },
+      "observation": "Reused existing project; Storage API reachable with service-role key (200), existing bucket: manchly (public, untouched).",
+      "checkedAt": "2026-10-22T19:44:37.606Z"
+    },
+    {
+      "id": "sb.storage",
+      "target": {
+        "projectId": "ojrsftqiteeyxmbdyuoa",
+        "bucketName": "hot-updater"
+      },
+      "observation": "Created bucket hot-updater (public=false); GET /storage/v1/bucket/hot-updater returned 200 public=false.",
+      "checkedAt": "2026-10-22T19:44:45.391Z"
+    }
+  ]
+}

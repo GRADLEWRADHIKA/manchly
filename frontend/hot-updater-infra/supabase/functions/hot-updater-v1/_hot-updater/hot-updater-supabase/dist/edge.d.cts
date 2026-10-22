@@ -1,0 +1,2 @@
+import { i as supabaseDatabase, n as supabaseStorage, r as SupabaseDatabaseConfig, t as SupabaseStorageConfig } from "./supabaseStorage-BryXQ72m.cjs";
+export { type SupabaseDatabaseConfig, type SupabaseStorageConfig, supabaseDatabase, supabaseStorage };

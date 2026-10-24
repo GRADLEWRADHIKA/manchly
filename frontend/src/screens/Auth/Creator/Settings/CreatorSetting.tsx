@@ -10,11 +10,9 @@ import {
   Modal,
 } from 'react-native';
 import { Slider } from 'react-native-awesome-slider';
-import {
-  useSharedValue,
-  runOnJS,
-} from 'react-native-reanimated';
+import {useSharedValue} from 'react-native-reanimated';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { runOnJS } from 'react-native-worklets';
 import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
 import {

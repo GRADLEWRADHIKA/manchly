@@ -7,10 +7,8 @@ import {
   Modal,
 } from 'react-native';
 import { Slider } from 'react-native-awesome-slider';
-import {
-  useSharedValue,
-  runOnJS,
-} from 'react-native-reanimated';
+import {useSharedValue} from 'react-native-reanimated';
+import { runOnJS } from 'react-native-worklets';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';

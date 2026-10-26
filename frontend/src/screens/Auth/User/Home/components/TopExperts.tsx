@@ -172,6 +172,8 @@ const styles = StyleSheet.create({
   card: {
     width: wp(130),
     backgroundColor: colors.user.card,
+    borderWidth: 1,
+    borderColor: colors.user.border,
     borderRadius: wp(14),
     padding: wp(12),
     alignItems: 'center',
@@ -188,14 +190,14 @@ const styles = StyleSheet.create({
     width: wp(50),
     height: wp(50),
     borderRadius: wp(25),
-    backgroundColor: colors.user.accent,
+    backgroundColor: colors.user.accentSoft,
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarText: {
     fontSize: fp(16),
     fontWeight: '700',
-    color: colors.user.text,
+    color: colors.greenButtonDark,
   },
   name: {
     fontSize: fp(13),
@@ -205,7 +207,7 @@ const styles = StyleSheet.create({
   },
   profession: {
     fontSize: fp(10),
-    color: colors.user.accentText,
+    color: colors.user.subHeading,
     marginTop: hp(2),
     textAlign: 'center',
   },

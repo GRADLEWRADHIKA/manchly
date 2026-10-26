@@ -208,12 +208,6 @@ export const verifyPAN = createAsyncThunk('verifyPAN', async (data: object) => {
     const response = await instance.post(url, data);
     return response.data;
   } catch (error: any) {
-    Toast.show({
-      type: 'error',
-      text1: 'Verification Failed',
-      text2: getApiErrorMessage(error, 'PAN verification failed'),
-      position: 'top',
-    });
     throw error;
   }
 });

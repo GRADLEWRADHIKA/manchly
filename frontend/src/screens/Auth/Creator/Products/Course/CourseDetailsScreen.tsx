@@ -42,7 +42,7 @@ import {getEnrolledCourses} from '../../../../../store/EnrollmentSlice';
 // ─── Stepper steps ────────────────────────────────────────────────────────────
 const STEPS = [
   {Icon: BookOpen, label: 'Course'},
-  {Icon: Video,    label: 'Lessons'},
+  {Icon: Video,    label: 'Videos'},
   {Icon: Award,    label: 'Publish'},
 ];
 
@@ -209,7 +209,7 @@ const CourseDetailsScreen: React.FC = () => {
               </View>
               <View style={styles.metaRow}>
                 <Clock size={wp(11)} color={colors.textMuted} strokeWidth={1.5} />
-                <Text style={styles.metaText}>{videoCount} Lessons • 0 hrs</Text>
+                <Text style={styles.metaText}>{videoCount} Videos • 0 hrs</Text>
                 <View style={styles.metaDot} />
                 <Calendar size={wp(11)} color={colors.textMuted} strokeWidth={1.5} />
                 <Text style={styles.metaText}>Created on {formatToday()}</Text>

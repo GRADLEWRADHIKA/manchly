@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -8,10 +8,10 @@ import {
   Linking,
   TouchableOpacity,
   Modal,
+  Image,
 } from 'react-native';
 import { Slider } from 'react-native-awesome-slider';
-import { useSharedValue } from 'react-native-reanimated';
-import { runOnJS } from 'react-native-worklets';
+import { useSharedValue, runOnJS } from 'react-native-reanimated';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
@@ -20,31 +20,28 @@ import {
   ChevronRight,
   LogOut,
   Headset,
-  Megaphone,
   WalletMinimal,
   Landmark,
   Clock,
   CheckCircle2,
   Info,
-  FileText,
-  Shield,
-  ReceiptText,
-  MessageCircle,
-  BadgeIndianRupee,
+  PieChart,
+  Settings as SettingsIcon,
 } from 'lucide-react-native';
 import LogoutModal from '../../Profile/Components/LogoutModal';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
 import { logout } from '../../../../store/UserSlice';
+import {
+  getWallet,
+  getBankAccount,
+  requestWithdrawal,
+  getEarningsBreakdown,
+} from '../../../../store/SettlementSlice';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
-import { instance } from '../../../../utils/AxiosInstance';
 import LinearGradient from 'react-native-linear-gradient';
-import TermsModal from '../../../../components/TermsModal';
-import PrivacyModal from '../../../../components/PrivacyModal';
-import RefundPolicyModal from '../../../../components/RefundPolicyModal';
-import ContactUsModal from '../../../../components/ContactUsModal';
 import { version as appVersion } from '../../../../../package.json';
 
 const SUPPORT_PHONE = '6363790659';
@@ -59,6 +56,13 @@ const CARD_BG = 'rgba(28,27,27,0.70)';
 const CARD_BORDER = 'rgba(255,255,255,0.05)';
 const ROW_CHIP_BG = 'rgba(214,156,63,0.20)';
 const LOGOUT_SALMON = '#F2A29B';
+const READY_GREEN = '#22C55E';
+const NOT_READY_AMBER = '#F59E0B';
+
+// Fallback used only until the backend ships these two fields on settlements/wallet.
+// Once your controller returns real `minimum_withdrawal_limit` / `ready_to_withdraw`,
+// these fallbacks are simply ignored (?? only applies when the field is missing).
+const FALLBACK_MIN_WITHDRAWAL = 200;
 
 const openWhatsApp = (message: string) => {
   const url = `whatsapp://send?phone=91${SUPPORT_PHONE}&text=${encodeURIComponent(
@@ -97,12 +101,14 @@ const MenuRow = ({
   subtitle,
   onPress,
   isLast = false,
+  dimmed = false,
 }: any) => (
   <Pressable
     style={({ pressed }) => [
       styles.row,
       !isLast && styles.rowBorder,
       pressed && styles.rowPressed,
+      dimmed && styles.rowDimmed,
     ]}
     onPress={onPress}
     accessibilityRole="button"
@@ -125,78 +131,63 @@ const MenuRow = ({
   </Pressable>
 );
 
+// Sub-action button used inside the "Payments & Payouts" grouped card
+const SubActionButton = ({ icon: Icon, label, subtitle, onPress }: any) => (
+  <Pressable
+    style={({ pressed }) => [
+      styles.subActionBtn,
+      pressed && styles.subActionBtnPressed,
+    ]}
+    onPress={onPress}
+  >
+    <View style={styles.subActionIcon}>
+      <Icon size={wp(16)} color={GOLD_CREAM} strokeWidth={1.8} />
+    </View>
+    <Text style={styles.subActionLabel}>{label}</Text>
+    {subtitle && <Text style={styles.subActionSubtitle}>{subtitle}</Text>}
+  </Pressable>
+);
+
 const CreatorSetting: React.FC = () => {
   const [logoutVisible, setLogoutVisible] = useState(false);
-  const [showTerms, setShowTerms] = useState(false);
-  const [showPrivacy, setShowPrivacy] = useState(false);
-  const [showRefund, setShowRefund] = useState(false);
-  const [showContact, setShowContact] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [showHissaModal, setShowHissaModal] = useState(false);
   const [hissaSale, setHissaSale] = useState(1000);
-  const [walletData, setWalletData] = useState<any>(null);
-  const [walletLoading, setWalletLoading] = useState(true);
-  const [bankAccount, setBankAccount] = useState<any>(null);
+  const [withdrawSubmitting, setWithdrawSubmitting] = useState(false);
+
   const Nav = useNavigation<any>();
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
   const insets = useSafeAreaInsets();
 
-  const fetchWallet = async () => {
-    try {
-      setWalletLoading(true);
-      const [walletRes, bankRes] = await Promise.all([
-        instance.get('settlements/wallet').catch((e: any) => {
-          console.log(
-            'Wallet API error:',
-            e?.response?.status,
-            e?.response?.data,
-          );
-          return null;
-        }),
-        instance.get('settlements/bank-account').catch((e: any) => {
-          // 404 = creator hasn't saved bank details yet (expected), not an error
-          if (e?.response?.status !== 404) {
-            console.log('Bank API error:', e?.response?.status);
-          }
-          return null;
-        }),
-      ]);
-      setWalletData(walletRes?.data?.data?.wallet || null);
-      setBankAccount(bankRes?.data?.data?.bankAccount || null);
-    } catch (error) {
-      console.log('Error fetching wallet:', error);
-    } finally {
-      setWalletLoading(false);
-    }
-  };
+  const { user } = useSelector((state: any) => state.userReducer);
+  const { wallet, bankAccount, earningsBreakdown } = useSelector(
+    (state: any) => state.settlementReducer,
+  );
+
+console.log('WALLET', JSON.stringify(wallet, null, 2));
+console.log('EARNINGS', JSON.stringify(earningsBreakdown, null, 2));
 
   useFocusEffect(
     useCallback(() => {
-      fetchWallet();
-    }, []),
+      dispatch(getWallet());
+      dispatch(getBankAccount());
+      dispatch(getEarningsBreakdown());
+    }, [dispatch]),
   );
 
-  const withdrawableBalance = walletData?.available_balance || 0;
+  const walletLoading = wallet === null;
+  const withdrawableBalance = wallet?.wallet?.available_balance || 0;
+
+  // See FALLBACK_MIN_WITHDRAWAL note above — swap this to the real field once shipped.
+  const minWithdrawalLimit =
+    wallet?.minimum_withdrawal_limit ?? FALLBACK_MIN_WITHDRAWAL;
+  const isReadyToWithdraw =
+    wallet?.ready_to_withdraw ?? withdrawableBalance >= minWithdrawalLimit;
 
   const formatAmount = (amount: number) => {
     return amount.toLocaleString('en-IN', {
       minimumFractionDigits: 0,
       maximumFractionDigits: 2,
-    });
-  };
-
-  const getT2Date = () => {
-    const eta = new Date();
-    let businessDays = 0;
-    while (businessDays < 2) {
-      eta.setDate(eta.getDate() + 1);
-      const day = eta.getDay();
-      if (day !== 0 && day !== 6) businessDays++;
-    }
-    return eta.toLocaleDateString('en-IN', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
     });
   };
 
@@ -248,17 +239,62 @@ const CreatorSetting: React.FC = () => {
       });
       return;
     }
+    if (!isReadyToWithdraw) {
+      Toast.show({
+        type: 'info',
+        text1: 'Below Minimum Limit',
+        text2: `You need at least ₹${minWithdrawalLimit} to withdraw`,
+        position: 'top',
+      });
+      return;
+    }
     setShowWithdrawModal(true);
   };
 
- return (
+  const handleConfirmWithdraw = async () => {
+    setWithdrawSubmitting(true);
+    try {
+      await dispatch(requestWithdrawal(withdrawableBalance)).unwrap();
+      setShowWithdrawModal(false);
+      dispatch(getWallet());
+      // requestWithdrawal thunk already shows a success toast
+    } catch (e) {
+      // requestWithdrawal thunk already shows an error toast
+    } finally {
+      setWithdrawSubmitting(false);
+    }
+  };
+
+  const handleSettingsPress = () => {
+    Toast.show({
+      type: 'info',
+      text1: 'Coming Soon',
+      text2: 'App preferences will be available soon',
+      position: 'top',
+    });
+  };
+
+  return (
     <View style={styles.container}>
       {/* ──────── Header ──────── */}
       <View style={[styles.headerWrapper, { paddingTop: insets.top }]}>
         <View style={styles.headerBar}>
-          <View style={styles.backBtn} />
-          <Text style={styles.headerTitleCentered}>Profile</Text>
-          <View style={styles.backBtn} />
+          <View style={styles.headerTextWrap}>
+            <Text style={styles.headerTitle}>Profile</Text>
+            <Text style={styles.headerSubtitle}>
+              Manage your account and preferences
+            </Text>
+          </View>
+          <View style={styles.headerAvatarWrap}>
+            {user?.profile_image ? (
+              <Image
+                source={{ uri: user.profile_image }}
+                style={styles.headerAvatarImg}
+              />
+            ) : (
+              <User2 size={wp(20)} color={GOLD_CREAM} />
+            )}
+          </View>
         </View>
       </View>
 
@@ -269,36 +305,75 @@ const CreatorSetting: React.FC = () => {
       >
         {/* ──────── Wallet Card ──────── */}
         <View style={styles.withdrawCard}>
-          <View style={styles.withdrawLeft}>
-            <View style={styles.walletIconWrap}>
-              <WalletMinimal
-                size={wp(20)}
-                color={GOLD_CREAM}
-                strokeWidth={2}
-              />
+          <View style={styles.withdrawTopRow}>
+            <View style={styles.withdrawLeft}>
+              <View style={styles.walletIconWrap}>
+                <WalletMinimal
+                  size={wp(18)}
+                  color={GOLD_CREAM}
+                  strokeWidth={2}
+                />
+              </View>
+              <View style={styles.withdrawInfo}>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: wp(4),
+                  }}
+                >
+                  <Text style={styles.withdrawLabel}>WITHDRAWABLE BALANCE</Text>
+                  <Info size={wp(12)} color="rgba(255,255,255,0.4)" />
+                </View>
+                <Text style={styles.withdrawAmount}>
+                  {walletLoading
+                    ? '₹ ...'
+                    : `₹ ${formatAmount(withdrawableBalance)}`}
+                </Text>
+              </View>
             </View>
-            <View style={styles.withdrawInfo}>
-              <Text style={styles.withdrawLabel}>WITHDRAWABLE{'\n'}BALANCE</Text>
-              <Text style={styles.withdrawAmount}>
-                {walletLoading
-                  ? '₹ ...'
-                  : `₹ ${formatAmount(withdrawableBalance)}`}
-              </Text>
-            </View>
-          </View>
-          <Pressable
-            style={({ pressed }) => pressed && styles.withdrawBtnPressed}
-            onPress={handleWithdraw}
-          >
-            <LinearGradient
-              colors={[GOLD_CREAM, GOLD_DEEP]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 0, y: 1 }}
-              style={styles.withdrawBtn}
+
+            <Pressable
+              style={({ pressed }) => [
+                pressed && styles.withdrawBtnPressed,
+              ]}
+              onPress={handleWithdraw}
             >
-              <Text style={styles.withdrawBtnText}>Withdraw</Text>
-            </LinearGradient>
-          </Pressable>
+              <LinearGradient
+                colors={[GOLD_CREAM, GOLD_DEEP]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 0, y: 1 }}
+                style={styles.withdrawBtn}
+              >
+                <Text style={styles.withdrawBtnText}>Withdraw</Text>
+              </LinearGradient>
+            </Pressable>
+          </View>
+
+          {!walletLoading && (
+            <View style={styles.statsFooterRow}>
+              <View style={styles.statCol}>
+                <Text style={styles.statLabel}>This Month</Text>
+                <Text style={styles.statValue}>
+                  ₹{formatAmount(earningsBreakdown?.net_earnings || 0)}
+                </Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statCol}>
+                <Text style={styles.statLabel}>All Time Earnings</Text>
+                <Text style={styles.statValue}>
+                  ₹{formatAmount(earningsBreakdown?.total_earnings || 0)}
+                </Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statCol}>
+                <Text style={styles.statLabel}>Last Payout</Text>
+                <Text style={styles.statValue}>
+                  ₹{formatAmount(earningsBreakdown?.last_payout || 0)}
+                </Text>
+              </View>
+            </View>
+          )}
         </View>
 
         {/* ──────── Aapki Kamaai ka Hissa ──────── */}
@@ -310,7 +385,7 @@ const CreatorSetting: React.FC = () => {
           onPress={() => setShowHissaModal(true)}
         >
           <View style={styles.hissaIconWrap}>
-            <BadgeIndianRupee
+            <PieChart
               size={wp(22)}
               color={colors.creatorGreen}
               strokeWidth={2}
@@ -319,14 +394,11 @@ const CreatorSetting: React.FC = () => {
           <View style={styles.hissaInfo}>
             <Text style={styles.hissaTitle}>Aapki Kamaai ka Hissa</Text>
             <Text style={styles.hissaSubtitle}>
-              <Text style={styles.hissaCreator}>
-                {CREATOR_PCT}% aapka
-              </Text>
+              <Text style={styles.hissaCreator}>{CREATOR_PCT}% aapka</Text>
               <Text style={styles.hissaDot}> · </Text>
-              <Text style={styles.hissaPlatform}>
-                {PLATFORM_PCT}% Manchly
-              </Text>
+              <Text style={styles.hissaPlatform}>{PLATFORM_PCT}% Manchly</Text>
             </Text>
+            <Text style={styles.hissaTagline}>We grow together</Text>
           </View>
           <ChevronRight size={wp(18)} color="rgba(255,255,255,0.4)" />
         </Pressable>
@@ -340,24 +412,55 @@ const CreatorSetting: React.FC = () => {
             subtitle="Manage your public profile"
             onPress={() => Nav.navigate('CreatorProfile')}
           />
+
+          {/* Payments & Payouts — grouped card with Wallet / Bank Details inside */}
+          <View style={styles.rowBorder}>
+            <View style={styles.paymentsHeaderRow}>
+              <View style={styles.rowIcon}>
+                <WalletMinimal
+                  size={wp(18)}
+                  color={GOLD_CREAM}
+                  strokeWidth={1.8}
+                />
+              </View>
+              <View>
+                <Text style={styles.rowText}>Payments & Payouts</Text>
+                <Text style={styles.rowSubtext}>
+                  Manage your earnings and bank details
+                </Text>
+              </View>
+            </View>
+            <View style={styles.subActionRow}>
+              <SubActionButton
+                icon={WalletMinimal}
+                label="Wallet"
+                subtitle="View earnings & transactions"
+                onPress={() => Nav.navigate('WalletCreator')}
+              />
+              <SubActionButton
+                icon={Landmark}
+                label="Bank Details"
+                subtitle="Manage bank information"
+                onPress={() => Nav.navigate('BankDetails')}
+              />
+            </View>
+          </View>
+
           <MenuRow
-            icon={WalletMinimal}
-            label="Wallet"
-            subtitle="Earnings & transactions"
-            onPress={() => Nav.navigate('WalletCreator')}
+            icon={SettingsIcon}
+            label="Settings"
+            subtitle="App preferences"
+            onPress={handleSettingsPress}
+            dimmed
           />
-          <MenuRow
-            icon={Landmark}
-            label="Bank Details"
-            subtitle="Manage bank information"
-            onPress={() => Nav.navigate('BankDetails')}
-          />
+
           <MenuRow
             icon={LogOut}
             iconBg="rgba(239,68,68,0.14)"
             iconColor={LOGOUT_SALMON}
             label="Logout"
             labelColor={LOGOUT_SALMON}
+            subtitle="Sign out from your account"
             onPress={() => setLogoutVisible(true)}
             isLast
           />
@@ -373,41 +476,6 @@ const CreatorSetting: React.FC = () => {
             label="Help & Support"
             subtitle="Chat with us on WhatsApp"
             onPress={() => openWhatsApp('Hello, I am a Creator, I need help.')}
-          />
-          <MenuRow
-            icon={Megaphone}
-            label="Marketing"
-            subtitle="Grow your audience with Manchly"
-            onPress={() =>
-              openWhatsApp('Hello, I am a Creator, I need help for marketing.')
-            }
-            isLast
-          />
-        </View>
-
-        {/* ──────── Legal Section ──────── */}
-        <Text style={[styles.sectionTitle, { marginTop: hp(20) }]}>Legal</Text>
-        <View style={styles.section}>
-          <MenuRow
-            icon={FileText}
-            label="Terms of Service"
-            onPress={() => setShowTerms(true)}
-          />
-          <MenuRow
-            icon={Shield}
-            label="Privacy Policy"
-            onPress={() => setShowPrivacy(true)}
-          />
-          <MenuRow
-            icon={ReceiptText}
-            label="Refund Policy"
-            onPress={() => setShowRefund(true)}
-          />
-          <MenuRow
-            icon={MessageCircle}
-            label="Contact Us"
-            subtitle="Email & phone support"
-            onPress={() => setShowContact(true)}
             isLast
           />
         </View>
@@ -437,13 +505,13 @@ const CreatorSetting: React.FC = () => {
               </Text>
             </View>
 
-            {/* T+2 Info */}
+            {/* Instant payout info (matches backend: instant IMPS transfer) */}
             <View style={styles.modalInfoRow}>
               <Clock size={wp(16)} color={colors.faaAiBlue} />
               <Text style={styles.modalInfoText}>
-                Your money will be credited to your bank account by{' '}
-                <Text style={{ fontWeight: '700' }}>{getT2Date()}</Text> (T+2
-                settlement period).
+                Your money will be transferred{' '}
+                <Text style={{ fontWeight: '700' }}>instantly via IMPS</Text> —
+                usually within ~15 minutes.
               </Text>
             </View>
 
@@ -462,8 +530,7 @@ const CreatorSetting: React.FC = () => {
             <View style={styles.modalNoteRow}>
               <Info size={wp(14)} color={GOLD_DEEP} />
               <Text style={styles.modalNoteText}>
-                Settlements are processed automatically. Your earnings will be
-                transferred after the T+2 settlement period.
+                Withdrawal requests are processed immediately once confirmed.
               </Text>
             </View>
 
@@ -473,26 +540,23 @@ const CreatorSetting: React.FC = () => {
                 style={styles.modalCancelBtn}
                 onPress={() => setShowWithdrawModal(false)}
                 activeOpacity={0.7}
+                disabled={withdrawSubmitting}
               >
                 <Text style={styles.modalCancelText}>Close</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={styles.modalConfirmBtn}
-                onPress={() => {
-                  setShowWithdrawModal(false);
-                  Toast.show({
-                    type: 'success',
-                    text1: 'Settlement Scheduled',
-                    text2: `₹${formatAmount(
-                      withdrawableBalance,
-                    )} will be credited by ${getT2Date()}`,
-                    position: 'top',
-                  });
-                }}
+                style={[
+                  styles.modalConfirmBtn,
+                  withdrawSubmitting && { opacity: 0.6 },
+                ]}
+                onPress={handleConfirmWithdraw}
                 activeOpacity={0.8}
+                disabled={withdrawSubmitting}
               >
                 <CheckCircle2 size={wp(16)} color={colors.black} />
-                <Text style={styles.modalConfirmText}>Got It</Text>
+                <Text style={styles.modalConfirmText}>
+                  {withdrawSubmitting ? 'Processing...' : 'Confirm Withdrawal'}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -512,129 +576,108 @@ const CreatorSetting: React.FC = () => {
             onPress={() => setShowHissaModal(false)}
           >
             <Pressable style={styles.sheetContainer} onPress={() => {}}>
-            <View style={styles.sheetHandle} />
+              <View style={styles.sheetHandle} />
 
-            <Text style={styles.sheetTitle}>💰 Aapki Kamaai ka Hissa</Text>
-            <Text style={styles.sheetSubtitle}>
-              Har sale pe paisa aisa baanta hai
-            </Text>
+              <Text style={styles.sheetTitle}>💰 Aapki Kamaai ka Hissa</Text>
+              <Text style={styles.sheetSubtitle}>
+                Har sale pe paisa aisa baanta hai
+              </Text>
 
-            {/* Split bar */}
-            <View style={styles.splitBar}>
-              <View
-                style={[
-                  styles.splitCreator,
-                  { flex: CREATOR_PCT },
-                ]}
-              />
-              <View
-                style={[
-                  styles.splitPlatform,
-                  { flex: PLATFORM_PCT },
-                ]}
-              />
-            </View>
+              {/* Split bar */}
+              <View style={styles.splitBar}>
+                <View style={[styles.splitCreator, { flex: CREATOR_PCT }]} />
+                <View style={[styles.splitPlatform, { flex: PLATFORM_PCT }]} />
+              </View>
 
-            <View style={styles.splitLegendRow}>
-              <View style={styles.splitLegendItem}>
-                <View style={styles.splitLegendRowTop}>
-                  <View
+              <View style={styles.splitLegendRow}>
+                <View style={styles.splitLegendItem}>
+                  <View style={styles.splitLegendRowTop}>
+                    <View
+                      style={[
+                        styles.splitDot,
+                        { backgroundColor: colors.creatorGreen },
+                      ]}
+                    />
+                    <Text style={styles.splitLegendLabel}>Aapka (Creator)</Text>
+                  </View>
+                  <Text
                     style={[
-                      styles.splitDot,
-                      { backgroundColor: colors.creatorGreen },
+                      styles.splitLegendValue,
+                      { color: colors.creatorGreen },
                     ]}
-                  />
-                  <Text style={styles.splitLegendLabel}>Aapka (Creator)</Text>
+                  >
+                    {CREATOR_PCT}%
+                  </Text>
                 </View>
-                <Text
-                  style={[styles.splitLegendValue, { color: colors.creatorGreen }]}
+                <View
+                  style={[styles.splitLegendItem, { alignItems: 'flex-end' }]}
                 >
-                  {CREATOR_PCT}%
-                </Text>
-              </View>
-              <View style={[styles.splitLegendItem, { alignItems: 'flex-end' }]}>
-                <View style={styles.splitLegendRowTop}>
-                  <Text style={styles.splitLegendLabel}>Manchly</Text>
-                  <View
-                    style={[
-                      styles.splitDot,
-                      { backgroundColor: GOLD_DEEP },
-                    ]}
-                  />
+                  <View style={styles.splitLegendRowTop}>
+                    <Text style={styles.splitLegendLabel}>Manchly</Text>
+                    <View
+                      style={[styles.splitDot, { backgroundColor: GOLD_DEEP }]}
+                    />
+                  </View>
+                  <Text
+                    style={[styles.splitLegendValue, { color: GOLD_CREAM }]}
+                  >
+                    {PLATFORM_PCT}%
+                  </Text>
                 </View>
-                <Text
-                  style={[styles.splitLegendValue, { color: GOLD_CREAM }]}
-                >
-                  {PLATFORM_PCT}%
-                </Text>
               </View>
-            </View>
 
-            <View style={styles.sheetDivider} />
+              <View style={styles.sheetDivider} />
 
-            <Text style={styles.calcLabel}>
-              🧮 Apna amount daalo, result dekho
-            </Text>
+              <Text style={styles.calcLabel}>
+                🧮 Apna amount daalo, result dekho
+              </Text>
 
-            {/* Slidable price indicator — drag the thumb/bubble to change price */}
-            <View style={styles.sliderWrapper}>
-              <Slider
-                progress={progress}
-                minimumValue={minSale}
-                maximumValue={maxSale}
-                onValueChange={(v) => runOnJS(syncFromSlider)(v)}
-                onSlidingComplete={syncFromSlider}
-                bubble={(v) => `₹${Math.round(v).toLocaleString('en-IN')}`}
-                theme={{
-                  minimumTrackTintColor: GOLD_DEEP,
-                  maximumTrackTintColor: 'rgba(255,255,255,0.12)',
-                  bubbleBackgroundColor: GOLD_DEEP,
-                  bubbleTextColor: '#3A2C12',
-                }}
-                sliderHeight={hp(10)}
-                thumbWidth={wp(26)}
-                bubbleTranslateY={-hp(10)}
-                panHitSlop={{ top: 20, bottom: 20, left: 10, right: 10 }}
-                containerStyle={styles.sliderInner}
-              />
-            </View>
-
-            <Text style={styles.saleAmountText}>
-              ₹{hissaSale.toLocaleString('en-IN')} ki sale
-            </Text>
-
-            <View style={styles.resultRow}>
-              <View style={[styles.resultBox, styles.resultCreator]}>
-                <Text style={styles.resultLabel}>😋 Aapko milega</Text>
-                <Text style={[styles.resultValue, { color: colors.creatorGreen }]}>
-                  ₹{hissaCreatorAmount.toLocaleString('en-IN')}
-                </Text>
+              <View style={styles.sliderWrapper}>
+                <Slider
+                  progress={progress}
+                  minimumValue={minSale}
+                  maximumValue={maxSale}
+                  onValueChange={v => runOnJS(syncFromSlider)(v)}
+                  onSlidingComplete={syncFromSlider}
+                  bubble={v => `₹${Math.round(v).toLocaleString('en-IN')}`}
+                  theme={{
+                    minimumTrackTintColor: GOLD_DEEP,
+                    maximumTrackTintColor: 'rgba(255,255,255,0.12)',
+                    bubbleBackgroundColor: GOLD_DEEP,
+                    bubbleTextColor: '#3A2C12',
+                  }}
+                  sliderHeight={hp(10)}
+                  thumbWidth={wp(26)}
+                  bubbleTranslateY={-hp(10)}
+                  panHitSlop={{ top: 20, bottom: 20, left: 10, right: 10 }}
+                  containerStyle={styles.sliderInner}
+                />
               </View>
-              <View style={[styles.resultBox, styles.resultPlatform]}>
-                <Text style={styles.resultLabel}>🏢 Manchly ka</Text>
-                <Text style={[styles.resultValue, { color: GOLD_CREAM }]}>
-                  ₹{hissaPlatformAmount.toLocaleString('en-IN')}
-                </Text>
+
+              <Text style={styles.saleAmountText}>
+                ₹{hissaSale.toLocaleString('en-IN')} ki sale
+              </Text>
+
+              <View style={styles.resultRow}>
+                <View style={[styles.resultBox, styles.resultCreator]}>
+                  <Text style={styles.resultLabel}>😋 Aapko milega</Text>
+                  <Text
+                    style={[styles.resultValue, { color: colors.creatorGreen }]}
+                  >
+                    ₹{hissaCreatorAmount.toLocaleString('en-IN')}
+                  </Text>
+                </View>
+                <View style={[styles.resultBox, styles.resultPlatform]}>
+                  <Text style={styles.resultLabel}>🏢 Manchly ka</Text>
+                  <Text style={[styles.resultValue, { color: GOLD_CREAM }]}>
+                    ₹{hissaPlatformAmount.toLocaleString('en-IN')}
+                  </Text>
+                </View>
               </View>
-            </View>
             </Pressable>
           </Pressable>
         </GestureHandlerRootView>
       </Modal>
-
-      <TermsModal visible={showTerms} onClose={() => setShowTerms(false)} />
-      <PrivacyModal
-        visible={showPrivacy}
-        onClose={() => setShowPrivacy(false)}
-      />
-      <RefundPolicyModal
-        visible={showRefund}
-        onClose={() => setShowRefund(false)}
-      />
-      <ContactUsModal
-        visible={showContact}
-        onClose={() => setShowContact(false)}
-      />
 
       <LogoutModal
         visible={logoutVisible}
@@ -662,24 +705,39 @@ const styles = StyleSheet.create({
   },
   headerBar: {
     flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: wp(16),
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    paddingHorizontal: wp(20),
     paddingVertical: hp(12),
   },
-  backBtn: {
+  headerTextWrap: {
+    flex: 1,
+  },
+  headerTitle: {
+    fontSize: fp(24),
+    fontWeight: '800',
+    color: colors.white,
+    letterSpacing: 0.2,
+  },
+  headerSubtitle: {
+    fontSize: fp(13),
+    color: 'rgba(255,255,255,0.5)',
+    marginTop: hp(2),
+  },
+  headerAvatarWrap: {
     width: wp(40),
     height: wp(40),
     borderRadius: wp(20),
+    backgroundColor: GOLD_CHIP_BG,
+    borderWidth: 1,
+    borderColor: GOLD_CHIP_BORDER,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
-  headerTitleCentered: {
-    flex: 1,
-    textAlign: 'center',
-    fontSize: fp(18),
-    fontWeight: '700',
-    color: colors.white,
-    letterSpacing: 0.3,
+  headerAvatarImg: {
+    width: '100%',
+    height: '100%',
   },
 
   /* ──── Body ──── */
@@ -697,13 +755,15 @@ const styles = StyleSheet.create({
     borderRadius: wp(18),
     overflow: 'hidden',
     padding: wp(16),
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     marginBottom: hp(14),
     backgroundColor: CARD_BG,
     borderWidth: 1,
     borderColor: CARD_BORDER,
+  },
+  withdrawTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   withdrawLeft: {
     flexDirection: 'row',
@@ -727,9 +787,9 @@ const styles = StyleSheet.create({
   withdrawLabel: {
     color: 'rgba(255,255,255,0.55)',
     fontWeight: '600',
-    fontSize: fp(11),
-    letterSpacing: 1.2,
-    lineHeight: fp(16),
+    fontSize: fp(8),
+    letterSpacing: 1,
+    lineHeight: fp(14),
   },
   withdrawAmount: {
     color: colors.white,
@@ -747,10 +807,43 @@ const styles = StyleSheet.create({
     opacity: 0.85,
     transform: [{ scale: 0.96 }],
   },
+  withdrawBtnDisabledWrap: {
+    opacity: 0.5,
+  },
   withdrawBtnText: {
     fontWeight: '700',
     color: '#3A2C12',
     fontSize: fp(14),
+  },
+  withdrawFooterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: hp(12),
+    flexWrap: 'wrap',
+    gap: hp(6),
+  },
+  readyBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(6),
+    paddingHorizontal: wp(10),
+    paddingVertical: hp(5),
+    borderRadius: wp(20),
+  },
+  readyDot: {
+    width: wp(6),
+    height: wp(6),
+    borderRadius: wp(3),
+  },
+  readyBadgeText: {
+    fontSize: fp(11),
+    fontWeight: '700',
+  },
+  minLimitText: {
+    fontSize: fp(11),
+    color: 'rgba(255,255,255,0.45)',
+    fontWeight: '500',
   },
 
   /* ──── Sections ──── */
@@ -787,6 +880,9 @@ const styles = StyleSheet.create({
   rowPressed: {
     backgroundColor: 'rgba(255,255,255,0.04)',
   },
+  rowDimmed: {
+    opacity: 0.6,
+  },
   rowLeft: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -810,6 +906,51 @@ const styles = StyleSheet.create({
     fontSize: fp(12),
     color: 'rgba(255,255,255,0.55)',
     marginTop: hp(1),
+  },
+
+  /* ──── Payments & Payouts group ──── */
+  paymentsHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: wp(16),
+    paddingTop: hp(14),
+    paddingBottom: hp(10),
+  },
+  subActionRow: {
+    flexDirection: 'row',
+    paddingHorizontal: wp(16),
+    paddingBottom: hp(14),
+    gap: wp(10),
+  },
+  subActionBtn: {
+    flex: 1,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderRadius: wp(12),
+    padding: wp(12),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
+  },
+  subActionBtnPressed: {
+    backgroundColor: 'rgba(255,255,255,0.08)',
+  },
+  subActionIcon: {
+    width: wp(30),
+    height: wp(30),
+    borderRadius: wp(9),
+    backgroundColor: ROW_CHIP_BG,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: hp(8),
+  },
+  subActionLabel: {
+    fontSize: fp(13),
+    fontWeight: '600',
+    color: colors.white,
+  },
+  subActionSubtitle: {
+    fontSize: fp(10.5),
+    color: 'rgba(255,255,255,0.5)',
+    marginTop: hp(2),
   },
 
   versionText: {
@@ -1012,6 +1153,12 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.7)',
     fontWeight: '700',
   },
+  hissaTagline: {
+    fontSize: fp(11),
+    color: 'rgba(255,255,255,0.4)',
+    marginTop: hp(3),
+    fontStyle: 'italic',
+  },
 
   /* ──── Hissa Bottom Sheet ──── */
   gestureRoot: {
@@ -1145,5 +1292,33 @@ const styles = StyleSheet.create({
   resultValue: {
     fontSize: fp(22),
     fontWeight: '900',
+  },
+  statsFooterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: hp(14),
+    paddingTop: hp(12),
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(255,255,255,0.08)',
+  },
+  statCol: {
+    flex: 1,
+    alignItems: 'flex-start',
+  },
+  statDivider: {
+    width: StyleSheet.hairlineWidth,
+    height: hp(26),
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    marginHorizontal: wp(10),
+  },
+  statLabel: {
+    fontSize: fp(10.5),
+    color: 'rgba(255,255,255,0.5)',
+    marginBottom: hp(4),
+  },
+  statValue: {
+    fontSize: fp(13),
+    fontWeight: '700',
+    color: colors.white,
   },
 });

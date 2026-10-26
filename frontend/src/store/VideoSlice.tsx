@@ -54,6 +54,23 @@ export const deleteVideo = createAsyncThunk(
   },
 );
 
+export const reorderVideos = createAsyncThunk(
+  'videos/reorder',
+  async (
+    { courseId, videoOrders }: { courseId: string; videoOrders: { id: string; order: number }[] },
+    { rejectWithValue },
+  ) => {
+    try {
+      const res = await instance.put(`courses/${courseId}/videos/reorder`, { videoOrders });
+      return res.data?.data; // { videos }
+    } catch (e: any) {
+      const msg = e?.response?.data?.message || 'Failed to reorder videos';
+      Toast.show({ type: 'error', text1: msg, position: 'top' });
+      return rejectWithValue(msg);
+    }
+  },
+);
+
 const slice = createSlice({
   name: 'videos',
   initialState: {

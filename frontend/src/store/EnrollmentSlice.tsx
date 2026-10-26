@@ -56,7 +56,7 @@ export const unenrollFromCourse = createAsyncThunk(
 
 const slice = createSlice({
   name: 'enrollments',
-  initialState: { list: [] as any[], loading: false },
+  initialState: { list: [] as any[], loading: false, total: 0 },
   reducers: {},
   extraReducers: builder => {
     builder
@@ -65,7 +65,8 @@ const slice = createSlice({
       })
       .addCase(getEnrolledCourses.fulfilled, (state, { payload }) => {
         state.loading = false;
-        state.list = payload?.courses ?? payload ?? [];
+        state.list = payload?.enrollments ?? [];
+        state.total = payload?.pagination?.total ?? (payload?.enrollments?.length ?? 0);
       })
       .addCase(getEnrolledCourses.rejected, state => {
         state.loading = false;

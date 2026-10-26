@@ -9,9 +9,8 @@ export const fetchCourses = createAsyncThunk(
     try {
       const url = 'courses';
       const response = await instance.get(url, { params: data });
-      return response;
+      return response.data;
     } catch (error) {
-
       throw error;
     }
   },
@@ -24,7 +23,7 @@ export const fetchPublicCourses = createAsyncThunk(
     try {
       const url = 'courses/public';
       const response = await instance.get(url, { params: data });
-      return response;
+      return response.data;
     } catch (error) {
       throw error;
     }
@@ -39,7 +38,11 @@ export const getCourseById = createAsyncThunk(
       const res = await instance.get(`courses/${id}`);
       return res.data?.data;
     } catch (error: any) {
-      console.log('getCourseById API error:', error?.response?.status, error?.response?.data || error?.message);
+      console.log(
+        'getCourseById API error:',
+        error?.response?.status,
+        error?.response?.data || error?.message,
+      );
       return rejectWithValue(error?.response?.data || error?.message);
     }
   },
@@ -58,7 +61,6 @@ export const createCourse = createAsyncThunk(
       });
       return res.data?.data;
     } catch (e: any) {
-
       const msg = e?.response?.data?.message || 'Failed to create course';
       Toast.show({ type: 'error', text1: msg, position: 'top' });
       return rejectWithValue(msg);
@@ -79,7 +81,6 @@ export const updateCourse = createAsyncThunk(
       });
       return res.data?.data;
     } catch (e: any) {
-
       const msg = e?.response?.data?.message || 'Failed to update course';
       Toast.show({ type: 'error', text1: msg, position: 'top' });
       return rejectWithValue(msg);
@@ -115,11 +116,18 @@ export const deleteCourse = createAsyncThunk(
 export const grantCourseAccess = createAsyncThunk(
   'courses/grantAccess',
   async (
-    { courseId, phone, email }: { courseId: string; phone?: string; email?: string },
+    {
+      courseId,
+      phone,
+      email,
+    }: { courseId: string; phone?: string; email?: string },
     { rejectWithValue },
   ) => {
     try {
-      const res = await instance.post(`courses/${courseId}/grant`, { phone, email });
+      const res = await instance.post(`courses/${courseId}/grant`, {
+        phone,
+        email,
+      });
       const alreadyEnrolled = res.data?.data?.alreadyEnrolled;
       Toast.show({
         type: 'success',
@@ -143,7 +151,27 @@ export const getCreatorCourseStats = createAsyncThunk(
       const res = await instance.get('courses/stats/creator');
       return res.data?.data;
     } catch (e: any) {
-      return rejectWithValue(e?.response?.data?.message || 'Failed to fetch stats');
+      return rejectWithValue(
+        e?.response?.data?.message || 'Failed to fetch stats',
+      );
+    }
+  },
+);
+
+// get logged-in user's enrolled courses -----------
+export const getEnrolledCourses = createAsyncThunk(
+  'courses/getEnrolled',
+  async (
+    params: { page?: number; limit?: number } = {},
+    { rejectWithValue },
+  ) => {
+    try {
+      const res = await instance.get('courses/enrolled/me', { params });
+      return res.data?.data; // { enrollments, pagination }
+    } catch (e: any) {
+      return rejectWithValue(
+        e?.response?.data?.message || 'Failed to fetch enrolled courses',
+      );
     }
   },
 );
@@ -155,6 +183,7 @@ const slice = createSlice({
     current: null as any,
     loading: false,
     creatorStats: null as any,
+    statsLoading: false,
   },
   reducers: {},
   extraReducers: builder => {
@@ -165,7 +194,12 @@ const slice = createSlice({
       .addCase(fetchCourses.fulfilled, (state, { payload }) => {
         state.loading = false;
         // Handle both direct array and nested object responses
-        state.list = payload?.data?.courses ?? payload?.courses ?? payload?.data ?? payload ?? [];
+        state.list =
+          payload?.data?.courses ??
+          payload?.courses ??
+          payload?.data ??
+          payload ??
+          [];
       })
       .addCase(fetchCourses.rejected, state => {
         state.loading = false;
@@ -175,13 +209,28 @@ const slice = createSlice({
       })
       .addCase(fetchPublicCourses.fulfilled, (state, { payload }) => {
         state.loading = false;
-        state.list = payload?.data?.courses ?? payload?.courses ?? payload?.data ?? payload ?? [];
+        state.list =
+          payload?.data?.courses ??
+          payload?.courses ??
+          payload?.data ??
+          payload ??
+          [];
       })
       .addCase(fetchPublicCourses.rejected, state => {
         state.loading = false;
       })
       .addCase(getCourseById.fulfilled, (state, { payload }) => {
         state.current = payload?.course ?? payload ?? null;
+      })
+      .addCase(getCreatorCourseStats.pending, state => {
+        state.statsLoading = true;
+      })
+      .addCase(getCreatorCourseStats.fulfilled, (state, { payload }) => {
+        state.statsLoading = false;
+        state.creatorStats = payload ?? null;
+      })
+      .addCase(getCreatorCourseStats.rejected, state => {
+        state.statsLoading = false;
       })
       .addCase(createCourse.fulfilled, (state, { payload }) => {
         // const course = payload?.course || payload;
@@ -211,9 +260,6 @@ const slice = createSlice({
         // if (state.current && (state.current.id || state.current._id) === id)
         //   state.current = null;
       })
-      .addCase(getCreatorCourseStats.fulfilled, (state, { payload }) => {
-        state.creatorStats = payload ?? null;
-      });
   },
 });
 

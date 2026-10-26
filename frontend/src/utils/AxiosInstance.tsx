@@ -32,6 +32,10 @@ const addTokenInterceptor = (axiosInstance: any) => {
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
+
+      console.log('➡️ REQUEST', config.method?.toUpperCase(), (config.baseURL || '') + config.url);
+      console.log('➡️ BODY', JSON.stringify(config.data, null, 2));
+
       return config;
     },
     (error: any) => Promise.reject(error),
@@ -39,10 +43,19 @@ const addTokenInterceptor = (axiosInstance: any) => {
 
   // Response interceptor — handle 401 (expired/invalid token)
   axiosInstance.interceptors.response.use(
-    (response: any) => response,
+    (response: any) => {
+      console.log('✅ RESPONSE', response.status, response.config.url);
+      console.log('✅ DATA', JSON.stringify(response.data, null, 2));
+      return response;
+    },
     (error: any) => {
       const status = error?.response?.status;
       const code = error?.response?.data?.code;
+
+      console.log('❌ ERROR STATUS', status);
+      console.log('❌ ERROR URL', error?.config?.url);
+      console.log('❌ ERROR DATA', JSON.stringify(error?.response?.data, null, 2));
+      console.log('❌ ERROR REQUEST BODY', error?.config?.data);
 
       if (status === 401 || status === 403) {
         const currentToken = store?.getState()?.userReducer?.token;

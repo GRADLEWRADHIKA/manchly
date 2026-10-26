@@ -21,6 +21,7 @@ import Toast from 'react-native-toast-message';
 import LinearGradient from 'react-native-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { getApiErrorMessage } from '../../../../utils/apiError';
 
 const KYCVerificationScreen: React.FC = () => {
   const dispatch = useDispatch<any>();
@@ -85,11 +86,11 @@ const KYCVerificationScreen: React.FC = () => {
           });
         }
       })
-      .catch(() => {
+      .catch((error: any) => {
         Toast.show({
           type: 'error',
           text1: 'Verification Failed',
-          text2: 'Something went wrong. Please try again.',
+          text2:  getApiErrorMessage(error, 'Something went wrong. Please try again.'),
           position: 'top',
         });
       })

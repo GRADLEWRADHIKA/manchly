@@ -1,12 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
+  Image,
   ScrollView,
   StyleSheet,
   Pressable,
   Linking,
+  ActivityIndicator,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
 import {
@@ -16,6 +19,7 @@ import {
   Headset,
   Notebook,
   ArrowLeft,
+  Wallet,
 } from 'lucide-react-native';
 import LogoutModal from '../../Profile/Components/LogoutModal';
 import { useNavigation } from '@react-navigation/native';
@@ -25,6 +29,9 @@ import { logout } from '../../../../store/UserSlice';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import TermsModal from '../../../../components/TermsModal';
+import { getEnrolledCourses } from '../../../../store/CourseSlice';
+import { getEnrolledWebinar } from '../../../../store/WebinarSlice';
+import { getMySessions } from '../../../../store/SessionSlice';
 import PrivacyModal from '../../../../components/PrivacyModal';
 import RefundPolicyModal from '../../../../components/RefundPolicyModal';
 import ContactUsModal from '../../../../components/ContactUsModal';
@@ -62,8 +69,8 @@ const openWhatsApp = (message: string) => {
 /* ──────── Reusable Menu Row ──────── */
 const MenuRow = ({
   icon: Icon,
-  iconColor = colors.user.accent,
-  iconBg = colors.greenButton + '2E',
+  iconColor = colors.greenButtonDark,
+  iconBg = colors.user.accentSoft,
   label,
   labelColor = colors.user.text,
   subtitle,
@@ -88,7 +95,7 @@ const MenuRow = ({
         {subtitle && <Text style={styles.rowSubtext}>{subtitle}</Text>}
       </View>
     </View>
-    <ChevronRight size={wp(18)} color={colors.textMuted} />
+    <ChevronRight size={wp(18)} color={colors.user.subHeading} />
   </Pressable>
 );
 
@@ -117,17 +124,67 @@ const UserSetting: React.FC = () => {
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
   const insets = useSafeAreaInsets();
 
+  const [stats, setStats] = useState({ courses: 0, webinars: 0, sessions: 0 });
+  const [statsLoading, setStatsLoading] = useState(true);
+
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+
+      const loadStats = async () => {
+        setStatsLoading(true);
+        try {
+          const [coursesRes, webinarsRes, sessionsRes] =
+            await Promise.allSettled([
+              dispatch(getEnrolledCourses({ limit: 1 })).unwrap(),
+              dispatch(
+                getEnrolledWebinar({ page: 1, limit: 1, upcoming: false }),
+              ).unwrap(),
+              dispatch(getMySessions({ role: 'caller', limit: 1 })).unwrap(),
+            ]);
+
+          if (!isActive) return;
+
+          setStats({
+            courses:
+              coursesRes.status === 'fulfilled'
+                ? coursesRes.value?.pagination?.total ?? 0
+                : 0,
+            webinars:
+              webinarsRes.status === 'fulfilled'
+                ? webinarsRes.value?.data?.data?.pagination?.total ?? 0
+                : 0,
+            sessions:
+              sessionsRes.status === 'fulfilled'
+                ? sessionsRes.value?.data?.total ?? 0
+                : 0,
+          });
+        } finally {
+          if (isActive) setStatsLoading(false);
+        }
+      };
+
+      loadStats();
+      return () => {
+        isActive = false;
+      };
+    }, [dispatch]),
+  );
+
   return (
     <View style={styles.container}>
       {/* ──────── Header ──────── */}
       <View style={[styles.headerWrapper, { paddingTop: insets.top }]}>
         <View style={styles.header}>
           <Pressable onPress={() => Nav.goBack()} hitSlop={10}>
-            <ArrowLeft size={wp(22)} color={colors.textPrimary} />
+            <ArrowLeft size={wp(22)} color={colors.user.icon} />
           </Pressable>
           <Text style={styles.headerTitle}>Profile</Text>
           <View style={{ width: wp(22) }} />
         </View>
+        <Text style={styles.headerSubtitle}>
+          Manage your account and settings
+        </Text>
       </View>
 
       <ScrollView
@@ -135,6 +192,50 @@ const UserSetting: React.FC = () => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        {/* ──────── Profile Card ──────── */}
+        <View style={styles.profileCard}>
+          <View style={styles.profileRow}>
+            {user?.profile_image ? (
+              <Image
+                source={{ uri: user.profile_image }}
+                style={styles.avatar}
+              />
+            ) : (
+              <View style={[styles.avatar, styles.avatarFallback]}>
+                <User2 size={wp(24)} color={colors.greenButtonDark} />
+              </View>
+            )}
+            <View style={styles.profileInfo}>
+              <Text style={styles.profileName} numberOfLines={1}>
+                {user?.name || 'Your Name'}
+              </Text>
+              <Text style={styles.profileEmail} numberOfLines={1}>
+                {user?.email || ''}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.statsRow}>
+            {statsLoading ? (
+              <ActivityIndicator size="small" color={colors.greenButtonDark} />
+            ) : (
+              <>
+                <Text style={styles.statItem}>
+                  <Text style={styles.statNumber}>{stats.courses}</Text> Courses
+                </Text>
+                <Text style={styles.statItem}>
+                  <Text style={styles.statNumber}>{stats.webinars}</Text>{' '}
+                  Webinars
+                </Text>
+                <Text style={styles.statItem}>
+                  <Text style={styles.statNumber}>{stats.sessions}</Text> 1:1
+                  Sessions
+                </Text>
+              </>
+            )}
+          </View>
+        </View>
+
         {/* ──────── Account Section ──────── */}
         <Text style={styles.sectionTitle}>ACCOUNT</Text>
         <View style={styles.section}>
@@ -145,20 +246,26 @@ const UserSetting: React.FC = () => {
             onPress={() => Nav.navigate('UserProfile')}
           />
           <MenuRow
+            icon={Wallet}
+            label="Payment & Billing"
+            subtitle="View your payments, invoices & purchase history"
+            onPress={() => Nav.navigate('PaymentBilling')}
+          />
+          <MenuRow
             icon={Headset}
             label="Help & Support"
-            subtitle='Get help or contact us'
+            subtitle="Get help or contact us"
             onPress={() => openWhatsApp('Hello, I am a User, I need help.')}
           />
           <MenuRow
             icon={Notebook}
             label="About"
-            subtitle='Terms, privacy & policies'
+            subtitle="Terms, privacy & policies"
             onPress={() => setShowTerms(true)}
           />
           <MenuRow
             icon={LogOut}
-            iconBg={colors.cError + '20'}
+            iconBg="#FEE2E2"
             iconColor={colors.error}
             label="Logout"
             labelColor={colors.error}
@@ -171,9 +278,18 @@ const UserSetting: React.FC = () => {
       </ScrollView>
 
       <TermsModal visible={showTerms} onClose={() => setShowTerms(false)} />
-      <PrivacyModal visible={showPrivacy} onClose={() => setShowPrivacy(false)} />
-      <RefundPolicyModal visible={showRefund} onClose={() => setShowRefund(false)} />
-      <ContactUsModal visible={showContact} onClose={() => setShowContact(false)} />
+      <PrivacyModal
+        visible={showPrivacy}
+        onClose={() => setShowPrivacy(false)}
+      />
+      <RefundPolicyModal
+        visible={showRefund}
+        onClose={() => setShowRefund(false)}
+      />
+      <ContactUsModal
+        visible={showContact}
+        onClose={() => setShowContact(false)}
+      />
 
       <LogoutModal
         visible={logoutVisible}
@@ -198,13 +314,21 @@ const styles = StyleSheet.create({
   headerWrapper: {
     zIndex: 10,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: wp(16),
-    paddingVertical: hp(14),
-  },
+ header: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  paddingHorizontal: wp(16),
+  paddingTop: hp(14),
+  paddingBottom: hp(6),
+},
+headerSubtitle: {
+  fontSize: fp(13),
+  color: colors.user.subHeading,
+  textAlign: 'center',
+  paddingHorizontal: wp(16),
+  marginBottom: hp(8),
+},
   headerTitle: {
     fontSize: fp(17),
     fontWeight: '700',
@@ -254,7 +378,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   topCardSubtext: {
-    color: colors.user.accentText,
+    color: colors.user.subHeading,
     fontSize: fp(11),
     textAlign: 'center',
     lineHeight: fp(15),
@@ -262,9 +386,9 @@ const styles = StyleSheet.create({
 
   /* ──── Sections ──── */
   sectionTitle: {
-    fontSize: fp(14),
+    fontSize: fp(12),
     fontWeight: '700',
-    color: colors.user.text,
+    color: colors.user.subHeading,
     letterSpacing: 0.8,
     marginHorizontal: wp(20),
     marginTop: hp(16),
@@ -272,6 +396,8 @@ const styles = StyleSheet.create({
   },
   section: {
     backgroundColor: colors.user.card,
+    borderWidth: 1,
+    borderColor: colors.user.border,
     marginHorizontal: wp(16),
     borderRadius: wp(16),
     overflow: 'hidden',
@@ -287,10 +413,10 @@ const styles = StyleSheet.create({
   },
   rowBorder: {
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(255,255,255,0.08)',
+    borderBottomColor: colors.user.border,
   },
   rowPressed: {
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    backgroundColor: colors.user.cardSoft,
   },
   rowLeft: {
     flexDirection: 'row',
@@ -321,5 +447,59 @@ const styles = StyleSheet.create({
     color: colors.user.subHeading,
     marginTop: hp(24),
     fontWeight: '500',
+  },
+  profileCard: {
+    backgroundColor: colors.user.card,
+    borderWidth: 1,
+    borderColor: colors.user.border,
+    marginHorizontal: wp(16),
+    marginTop: hp(8),
+    borderRadius: wp(16),
+    padding: wp(16),
+  },
+  profileRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(12),
+  },
+  avatar: {
+    width: wp(52),
+    height: wp(52),
+    borderRadius: wp(26),
+  },
+  avatarFallback: {
+    backgroundColor: colors.user.accentSoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  profileInfo: {
+    flex: 1,
+  },
+  profileName: {
+    fontSize: fp(16),
+    fontWeight: '700',
+    color: colors.user.text,
+  },
+  profileEmail: {
+    fontSize: fp(12),
+    color: colors.user.subHeading,
+    marginTop: hp(2),
+  },
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: hp(14),
+    paddingTop: hp(12),
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.user.border,
+  },
+  statItem: {
+    fontSize: fp(12),
+    color: colors.user.subHeading,
+  },
+  statNumber: {
+    fontSize: fp(13),
+    fontWeight: '700',
+    color: colors.user.text,
   },
 });

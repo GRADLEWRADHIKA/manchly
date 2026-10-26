@@ -360,7 +360,7 @@ const ExpertDetail: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <AppHeaderWithBack title="Expert Profile" bgColor={colors.uBg} />
+      <AppHeaderWithBack title="Expert Profile" bgColor='transparent' />
 
       <ScrollView
         contentContainerStyle={[
@@ -824,8 +824,8 @@ const styles = StyleSheet.create({
     borderColor: colors.user.cardSoft,
   },
   dateCardActive: {
-    backgroundColor: colors.greenButtonDark,
-    borderColor: colors.greenButtonDark,
+    backgroundColor: colors.creatorGreen,
+    borderColor: colors.creatorGreen,
   },
   dateDay: { fontSize: fp(11), fontWeight: '600', color: colors.user.accentText },
   dateDayActive: { color: colors.user.accentText },

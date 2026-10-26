@@ -97,7 +97,6 @@ export const updateWebinar = createAsyncThunk(
       });
       return res.data?.data;
     } catch (e: any) {
-
       const msg = e?.response?.data?.message || 'Failed to update webinar';
       Toast.show({ type: 'error', text1: msg, position: 'top' });
       return rejectWithValue(msg);
@@ -173,16 +172,29 @@ export const getEnrolledWebinar = createAsyncThunk(
 export const reviewWebinar = createAsyncThunk(
   'webinar/review',
   async (
-    { webinarId, rating, comment }: { webinarId: string; rating: number; comment?: string },
+    {
+      webinarId,
+      rating,
+      comment,
+    }: { webinarId: string; rating: number; comment?: string },
     { rejectWithValue },
   ) => {
     try {
-      const res = await instance.post(`webinars/${webinarId}/review`, { rating, comment });
-      Toast.show({ type: 'success', text1: 'Thanks for your feedback!', position: 'top' });
+      const res = await instance.post(`webinars/${webinarId}/review`, {
+        rating,
+        comment,
+      });
+      Toast.show({
+        type: 'success',
+        text1: 'Thanks for your feedback!',
+        position: 'top',
+      });
       return res.data?.data;
     } catch (e: any) {
       const msg =
-        e?.response?.data?.message || e?.response?.data?.error || 'Failed to submit review';
+        e?.response?.data?.message ||
+        e?.response?.data?.error ||
+        'Failed to submit review';
       Toast.show({ type: 'error', text1: msg, position: 'top' });
       return rejectWithValue(msg);
     }
@@ -197,7 +209,9 @@ export const getWebinarReviews = createAsyncThunk(
       const res = await instance.get(`webinars/${webinarId}/reviews`);
       return res.data?.data;
     } catch (e: any) {
-      return rejectWithValue(e?.response?.data?.message || 'Failed to fetch reviews');
+      return rejectWithValue(
+        e?.response?.data?.message || 'Failed to fetch reviews',
+      );
     }
   },
 );
@@ -222,12 +236,15 @@ export const publishWebinarRecording = createAsyncThunk(
     { rejectWithValue },
   ) => {
     try {
-      const res = await instance.post(`webinars/${webinarId}/publish-recording`, {
-        recording_url,
-        title,
-        price,
-        auto_enroll,
-      });
+      const res = await instance.post(
+        `webinars/${webinarId}/publish-recording`,
+        {
+          recording_url,
+          title,
+          price,
+          auto_enroll,
+        },
+      );
       const count = res.data?.data?.enrolled_count ?? 0;
       Toast.show({
         type: 'success',
@@ -248,11 +265,18 @@ export const publishWebinarRecording = createAsyncThunk(
 export const grantWebinarAccess = createAsyncThunk(
   'webinar/grantAccess',
   async (
-    { webinarId, phone, email }: { webinarId: string; phone?: string; email?: string },
+    {
+      webinarId,
+      phone,
+      email,
+    }: { webinarId: string; phone?: string; email?: string },
     { rejectWithValue },
   ) => {
     try {
-      const res = await instance.post(`webinars/${webinarId}/grant`, { phone, email });
+      const res = await instance.post(`webinars/${webinarId}/grant`, {
+        phone,
+        email,
+      });
       const alreadyEnrolled = res.data?.data?.alreadyEnrolled;
       Toast.show({
         type: 'success',
@@ -276,7 +300,9 @@ export const getCreatorWebinarStats = createAsyncThunk(
       const res = await instance.get('webinars/stats/creator');
       return res.data?.data;
     } catch (e: any) {
-      return rejectWithValue(e?.response?.data?.message || 'Failed to fetch webinar stats');
+      return rejectWithValue(
+        e?.response?.data?.message || 'Failed to fetch webinar stats',
+      );
     }
   },
 );
@@ -285,16 +311,39 @@ export const WebinarSlice = createSlice({
   name: 'webinar',
   initialState: {
     creatorWebinarStats: null as any,
+    statsLoading: false,
     current: null as any,
+    list: [] as any[],
+    listLoading: false,
+    listTotal: 0,
   },
   reducers: {},
   extraReducers: builder => {
     builder
+      .addCase(getCreatorWebinarStats.pending, state => {
+        state.statsLoading = true;
+      })
       .addCase(getCreatorWebinarStats.fulfilled, (state, { payload }) => {
+        state.statsLoading = false;
         state.creatorWebinarStats = payload ?? null;
       })
       .addCase(getWebinarById.fulfilled, (state, { payload }) => {
         state.current = payload?.webinar ?? payload ?? null;
+      })
+      .addCase(getCreatorWebinarStats.rejected, state => {
+        state.statsLoading = false;
+      })
+      .addCase(getAllWebinar.pending, state => {
+        state.listLoading = true;
+      })
+      .addCase(getAllWebinar.fulfilled, (state, { payload }) => {
+        state.listLoading = false;
+        state.list = payload?.data?.data?.webinars ?? [];
+        state.listTotal =
+          payload?.data?.data?.pagination?.total ?? state.list.length;
+      })
+      .addCase(getAllWebinar.rejected, state => {
+        state.listLoading = false;
       });
   },
 });

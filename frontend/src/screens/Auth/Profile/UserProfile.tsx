@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -21,11 +21,16 @@ import { ThunkDispatch } from '@reduxjs/toolkit';
 import Toast from 'react-native-toast-message';
 import { pick, types } from '@react-native-documents/picker';
 import { uploadShipDoc } from '../../../store/Common';
-import { LinearGradient } from 'react-native-linear-gradient';
+import LinearGradient from 'react-native-linear-gradient';
+import { getEnrolledCourses } from '../../../store/EnrollmentSlice';
 const UserProfile = () => {
   const navigation = useNavigation<any>();
   const { user } = useSelector((state: any) => state.userReducer);
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
+
+  useEffect(() => {
+    dispatch(getEnrolledCourses({ limit: 100 }));
+  }, [dispatch]);
 
   const [imageAdd, setImageAdd] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -34,11 +39,7 @@ const UserProfile = () => {
     ? user.name.charAt(0).toUpperCase() + user.name.slice(1)
     : 'User';
 
-  const {
-    control,
-    handleSubmit,
-    reset,
-  } = useForm({
+  const { control, handleSubmit, reset } = useForm({
     defaultValues: {
       email: user?.email || '',
       phone: user?.phone || '',
@@ -133,10 +134,24 @@ const UserProfile = () => {
     }
   };
 
+  const { list } = useSelector((s: any) => s.enrollmentsReducer);
+  const enrollments = Array.isArray(list) ? list : list?.enrollments || [];
+  const completed = enrollments.filter(
+    (e: any) => (e?.progress || 0) >= 100,
+  ).length;
+  const hours = Math.round(
+    enrollments.reduce((sum: number, e: any) => {
+      const secs = (e?.course?.videos || []).reduce(
+        (s: number, v: any) => s + (v?.duration || 0),
+        0,
+      );
+      return sum + secs * ((e?.progress || 0) / 100);
+    }, 0) / 3600,
+  );
 
   return (
     <View style={styles.container}>
-      <AppHeaderWithBack title="Edit Profile" bgColor={colors.uBg} />
+      <AppHeaderWithBack title="Edit Profile" bgColor='transparent' />
 
       <ScrollView
         style={styles.scrollView}
@@ -152,18 +167,21 @@ const UserProfile = () => {
           >
             <View style={styles.imageWrapper}>
               {uploading ? (
-                <ActivityIndicator color={colors.textPrimary} size="large" />
+                <ActivityIndicator
+                  color={colors.greenButtonDark}
+                  size="large"
+                />
               ) : user?.profile_image || imageAdd ? (
                 <Image
                   source={{ uri: imageAdd || user?.profile_image }}
                   style={styles.profileImage}
                 />
               ) : (
-                <User2 size={wp(44)} color={colors.textPrimary} />
+                <User2 size={wp(44)} color={colors.greenButtonDark} />
               )}
             </View>
             <View style={styles.cameraIcon}>
-              <Camera size={wp(14)} color={colors.textPrimary} />
+              <Camera size={wp(14)} color="#FFFF" />
             </View>
           </Pressable>
 
@@ -225,25 +243,25 @@ const UserProfile = () => {
             />
           </View>
         </View>
-        
+
         {/* Stats Cards */}
         <View style={styles.statCard}>
           <View style={styles.statIconWrap}>
-            <CheckCircle2 size={wp(18)} color={colors.textPrimary} />
+            <CheckCircle2 size={wp(18)} color={colors.greenButtonDark} />
           </View>
           <Text style={styles.statLabel}>COURSES COMPLETED</Text>
-          <Text style={styles.statValue}>24</Text>
+          <Text style={styles.statValue}>{completed}</Text>
         </View>
 
         <View style={styles.statCard}>
           <View style={styles.statIconWrap}>
-            <Clock size={wp(18)} color={colors.textPrimary} />
+            <Clock size={wp(18)} color={colors.greenButtonDark} />
           </View>
           <Text style={styles.statLabel}>HOURS LEARNED</Text>
-          <Text style={styles.statValue}>158</Text>
+          <Text style={styles.statValue}>{hours}</Text>
         </View>
 
-       {/* Action Buttons */}
+        {/* Action Buttons */}
         <View style={styles.buttonContainer}>
           <Pressable
             style={({ pressed }) => [
@@ -255,13 +273,13 @@ const UserProfile = () => {
             disabled={loading}
           >
             <LinearGradient
-              colors={[colors.btnGradientStart, colors.btnGradientEnd]}
+              colors={[colors.creatorGreen, colors.creatorGreenDark]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={styles.updateButtonGradient}
             >
               {loading ? (
-                <ActivityIndicator color={colors.white} /> 
+                <ActivityIndicator color={colors.white} />
               ) : (
                 <Text style={styles.updateButtonText}>Save Changes</Text>
               )}
@@ -288,7 +306,7 @@ export default UserProfile;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.uBg,
+    backgroundColor: colors.user.bg,
   },
   scrollView: {
     flex: 1,
@@ -299,13 +317,14 @@ const styles = StyleSheet.create({
 
   profileCard: {
     alignItems: 'center',
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.card,
     marginHorizontal: wp(16),
     marginTop: hp(20),
     borderRadius: wp(20),
     paddingVertical: hp(24),
     paddingHorizontal: wp(20),
-    borderColor: colors.uCard
+    borderWidth: 1,
+    borderColor: colors.user.border,
   },
   avatarWrap: {
     position: 'relative',
@@ -315,11 +334,11 @@ const styles = StyleSheet.create({
     width: wp(100),
     height: wp(100),
     borderRadius: wp(50),
-    backgroundColor: colors.uBottom,
+    backgroundColor: colors.user.accentSoft,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 3,
-    borderColor: colors.statIcon,
+    borderColor: colors.user.accent,
   },
   profileImage: {
     width: wp(100),
@@ -333,16 +352,16 @@ const styles = StyleSheet.create({
     width: wp(30),
     height: wp(30),
     borderRadius: wp(15),
-    backgroundColor: colors.statIcon,
+    backgroundColor: colors.greenButtonDark,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: colors.statIcon,
+    borderColor: colors.user.card,
   },
   profileName: {
     fontSize: fp(20),
     fontWeight: '800',
-    color: colors.textPrimary,
+    color: colors.user.text,
     marginBottom: hp(14),
   },
   shareBtn: {
@@ -373,12 +392,13 @@ const styles = StyleSheet.create({
 
   // Form Card
   formCard: {
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.card,
     marginHorizontal: wp(16),
     marginTop: hp(20),
     borderRadius: wp(16),
     padding: wp(16),
-    borderColor: colors.uCard
+    borderWidth: 1,
+    borderColor: colors.user.border,
   },
   fieldRow: {
     marginBottom: hp(16),
@@ -386,38 +406,41 @@ const styles = StyleSheet.create({
   fieldLabel: {
     fontSize: fp(10.5),
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: colors.user.subHeading,
     letterSpacing: 0.6,
     marginBottom: hp(6),
     textTransform: 'uppercase',
   },
   input: {
     height: hp(44),
-    borderWidth: 0,
+    borderWidth: 1,
+    borderColor: colors.user.border,
     borderRadius: wp(10),
     paddingHorizontal: wp(12),
     justifyContent: 'center',
-    backgroundColor: '#242843',
+    backgroundColor: colors.user.bg,
   },
   inputText: {
     fontSize: fp(14),
-    color: colors.textPrimary,
+    color: colors.user.text,
   },
   disabledInput: {
-    backgroundColor: '#242843',
+    backgroundColor: colors.user.cardSoft,
   },
   disabledText: {
     fontSize: fp(14),
-    color: colors.uSubHeading,
+    color: colors.user.subHeading,
   },
   mockPlaceholderText: {
     fontSize: fp(14),
-    color: colors.uSubHeading,
+    color: colors.user.subHeading,
   },
 
   // Stats Cards
   statCard: {
-    backgroundColor: colors.uCard,
+    backgroundColor: colors.user.card,
+    borderWidth: 1,
+    borderColor: colors.user.border,
     marginHorizontal: wp(16),
     marginTop: hp(12),
     borderRadius: wp(16),
@@ -428,7 +451,7 @@ const styles = StyleSheet.create({
     width: wp(36),
     height: wp(36),
     borderRadius: wp(18),
-    backgroundColor: colors.statIcon,
+    backgroundColor: colors.user.accentSoft,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: hp(8),
@@ -436,14 +459,14 @@ const styles = StyleSheet.create({
   statLabel: {
     fontSize: fp(10.5),
     fontWeight: '700',
-    color: colors.uSubHeading,
+    color: colors.user.subHeading,
     letterSpacing: 0.6,
     marginBottom: hp(4),
   },
   statValue: {
     fontSize: fp(24),
     fontWeight: '800',
-    color: colors.textPrimary,
+    color: colors.user.text,
   },
 
   // Buttons
@@ -452,7 +475,7 @@ const styles = StyleSheet.create({
     marginHorizontal: wp(16),
     gap: wp(12),
   },
- updateButtonWrapper: {
+  updateButtonWrapper: {
     borderRadius: wp(12),
     overflow: 'hidden', // Ensures the gradient respects the border radius
   },
@@ -463,7 +486,7 @@ const styles = StyleSheet.create({
     // Removed backgroundColor: colors.faaAiBlue
   },
   updateButtonText: {
-    color: colors.textPrimary,
+    color: '#FFFF',
     fontWeight: '700',
     fontSize: fp(15),
   },
@@ -474,10 +497,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.user.border,
   },
   backButtonText: {
-    color: colors.textPrimary,
+    color: colors.user.text,
     fontWeight: '600',
     fontSize: fp(15),
   },

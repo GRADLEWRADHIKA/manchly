@@ -1,19 +1,45 @@
 // screens/Auth/User/Products/ProductsScreen.tsx
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView,
-  TouchableOpacity, Image, TextInput, ActivityIndicator,
-  Animated, LayoutAnimation, Platform, UIManager,
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Image,
+  TextInput,
+  ActivityIndicator,
+  Animated,
+  LayoutAnimation,
+  Platform,
+  UIManager,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useIsFocused, useNavigation, useRoute } from '@react-navigation/native';
+import {
+  useIsFocused,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
-import { Search, Star, BookOpen, Video, ArrowLeft } from 'lucide-react-native';
+import {
+  Search,
+  Star,
+  BookOpen,
+  Video,
+  ArrowLeft,
+  Clock,
+  Calendar,
+  MapPin,
+} from 'lucide-react-native';
 import colors from '../../../../utils/colors';
 import { wp, hp, fp } from '../../../../utils/responsive';
 import { fetchCourses } from '../../../../store/CourseSlice';
 import { getAllWebinar } from '../../../../store/WebinarSlice';
-import { listExperts } from '../../../../store/SessionSlice';
+import {
+  listExperts,
+  getPopularSessionProducts,
+} from '../../../../store/SessionSlice';
+import ButtonSection from './component/ButtonSection';
 import LinearGradient from 'react-native-linear-gradient';
 
 if (
@@ -35,6 +61,13 @@ const fmtDateTime = (iso?: string) => {
   })}, ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
 };
 
+const fmtCourseDuration = (totalSeconds?: number) => {
+  if (!totalSeconds) return '';
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+};
+
 const initials = (name?: string) =>
   (name || '?')
     .split(' ')
@@ -50,35 +83,50 @@ const ProductsScreen = () => {
   const insets = useSafeAreaInsets();
   const focus = useIsFocused();
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeFilter, setActiveFilter] = useState<'Courses' | 'Webinars'>(
-    route.params?.initialTab === 'Webinars' ? 'Webinars' : 'Courses',
+  const searchTimer = useRef<any>(null);
+  const [activeFilter, setActiveFilter] = useState<
+    'courses' | 'webinar' | 'sessions'
+  >(
+    route.params?.initialTab === 'Webinars'
+      ? 'webinar'
+      : route.params?.initialTab === 'Sessions'
+      ? 'sessions'
+      : 'courses',
   );
 
   // Switch to the requested tab when navigated here from Home "See All"
   useEffect(() => {
     const t = route.params?.initialTab;
-    if (t === 'Courses' || t === 'Webinars') setActiveFilter(t);
+    if (t === 'Courses') setActiveFilter('courses');
+    else if (t === 'Webinars') setActiveFilter('webinar');
+    else if (t === 'Sessions') setActiveFilter('sessions');
   }, [route.params?.initialTab, route.params?.ts]);
+
   const [webinars, setWebinars] = useState<any[]>([]);
   const [experts, setExperts] = useState<any[]>([]);
   const [loadingWebinars, setLoadingWebinars] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const { list: allCourses } = useSelector((state: any) => state.coursesReducer);
+  const { list: allCourses } = useSelector(
+    (state: any) => state.coursesReducer,
+  );
   const courses = allCourses?.data?.courses || [];
+  const {
+    popularProducts: sessionProducts,
+    popularProductsLoading: sessionsLoading,
+  } = useSelector((state: any) => state.sessionReducer);
 
-  useEffect(() => {
-    if (!focus) return;
+  const fetchCourseResults = (search: string) => {
+    const payload: any = { page: 1, limit: 10 };
+    if (search.trim()) payload.search = search.trim();
+    dispatch(fetchCourses(payload));
+  };
 
-    dispatch(fetchCourses({}));
-
-    dispatch(listExperts({ page: 1, limit: 10 }))
-      .unwrap()
-      .then((res: any) => setExperts(res?.data?.experts || []))
-      .catch(() => {});
-
+  const fetchWebinarResults = (search: string) => {
     setLoadingWebinars(true);
-    dispatch(getAllWebinar({ page: 1, limit: 10, upcoming: true, title: '' }))
+    const payload: any = { page: 1, limit: 10, upcoming: true };
+    if (search.trim()) payload.search = search.trim();
+    dispatch(getAllWebinar(payload))
       .unwrap()
       .then((res: any) => {
         const all = res?.data?.data?.webinars || [];
@@ -86,28 +134,65 @@ const ProductsScreen = () => {
       })
       .catch(() => {})
       .finally(() => setLoadingWebinars(false));
+  };
+  useEffect(() => {
+    if (!focus) return;
+
+    fetchCourseResults('');
+
+    dispatch(listExperts({ page: 1, limit: 10 }))
+      .unwrap()
+      .then((res: any) => setExperts(res?.data?.experts || []))
+      .catch(() => {});
+
+    fetchWebinarResults('');
+
+    dispatch(getPopularSessionProducts({ limit: 10 }));
   }, [focus]);
+  const handleSearchChange = (text: string) => {
+    setSearchQuery(text);
+    if (searchTimer.current) clearTimeout(searchTimer.current);
+    searchTimer.current = setTimeout(() => {
+      fetchCourseResults(text);
+      fetchWebinarResults(text);
+      // Sessions has no backend search param — filtered client-side below
+    }, 500);
+  };
 
   const q = searchQuery.trim().toLowerCase();
 
-  const filteredCourses = useMemo(
+  // Courses & webinars are now search-filtered server-side (see handleSearchChange)
+  const filteredCourses = courses;
+  const filteredWebinars = webinars;
+
+  const filteredSessionProducts = useMemo(
     () =>
       q
-        ? courses.filter((c: any) => (c?.title || '').toLowerCase().includes(q))
-        : courses,
-    [courses, q],
+        ? (sessionProducts || []).filter((p: any) =>
+            (p?.title || '').toLowerCase().includes(q),
+          )
+        : sessionProducts || [],
+    [sessionProducts, q],
   );
 
-  const filteredWebinars = useMemo(
-    () =>
-      q
-        ? webinars.filter((w: any) => (w?.title || '').toLowerCase().includes(q))
-        : webinars,
-    [webinars, q],
+  const featuredCourse =
+    filteredCourses.length > 0
+      ? [...filteredCourses].sort(
+          (a, b) => (b.total_students || 0) - (a.total_students || 0),
+        )[0]
+      : null;
+  const popularCourses = filteredCourses.filter(
+    c => c.id !== featuredCourse?.id,
+  );
+  const featuredWebinar = filteredWebinars[0] || null;
+  const popularWebinars = filteredWebinars.filter(
+    w => w.id !== featuredWebinar?.id,
   );
 
-  const featured = filteredCourses[0];
-  const popular = filteredCourses.slice(1);
+  const featuredSession = filteredSessionProducts?.[0] || null;
+  const popularSessions = filteredSessionProducts.filter(
+    (p: any) => p.id !== featuredSession?.id,
+  );
 
   const openCourse = (course: any) =>
     navigation.navigate('CourseDetailsScreen', {
@@ -127,19 +212,19 @@ const ProductsScreen = () => {
         placeholder="Search courses, webinars, or experts..."
         placeholderTextColor={colors.user.subHeading}
         value={searchQuery}
-        onChangeText={setSearchQuery}
+        onChangeText={handleSearchChange}
       />
     </View>
   );
 
-  // ── Segmented Tabs (matches PurchasesScreen.tsx SegmentedTabs) ──
+  // ── Segmented Tabs ──
   const slideAnim = useRef(
-    new Animated.Value(activeFilter === 'Courses' ? 0 : 1),
+    new Animated.Value(activeFilter === 'courses' ? 0 : 1),
   ).current;
 
   useEffect(() => {
     Animated.spring(slideAnim, {
-      toValue: activeFilter === 'Courses' ? 0 : 1,
+      toValue: activeFilter === 'courses' ? 0 : 1,
       useNativeDriver: true,
       friction: 10,
       tension: 140,
@@ -168,11 +253,13 @@ const ProductsScreen = () => {
           />
         </Animated.View>
 
-        {(['Courses', 'Webinars'] as const).map(filter => {
+        {(['courses', 'webinar'] as const).map(filter => {
           const isActive = activeFilter === filter;
-          const Icon = filter === 'Courses' ? BookOpen : Video;
+          const Icon = filter === 'courses' ? BookOpen : Video;
           const count =
-            filter === 'Courses' ? filteredCourses.length : filteredWebinars.length;
+            filter === 'courses'
+              ? filteredCourses.length
+              : filteredWebinars.length;
           return (
             <TouchableOpacity
               key={filter}
@@ -190,15 +277,23 @@ const ProductsScreen = () => {
                 color={isActive ? colors.white : colors.textSecondary}
                 strokeWidth={isActive ? 2.2 : 1.6}
               />
-              <Text style={[styles.tabLabel, isActive && styles.tabLabelActive]}>
-                {filter}
+              <Text
+                style={[styles.tabLabel, isActive && styles.tabLabelActive]}
+              >
+                {filter === 'courses' ? 'Courses' : 'Webinars'}
               </Text>
               {count > 0 && (
                 <View
-                  style={[styles.tabCountBadge, isActive && styles.tabCountBadgeActive]}
+                  style={[
+                    styles.tabCountBadge,
+                    isActive && styles.tabCountBadgeActive,
+                  ]}
                 >
                   <Text
-                    style={[styles.tabCountText, isActive && styles.tabCountTextActive]}
+                    style={[
+                      styles.tabCountText,
+                      isActive && styles.tabCountTextActive,
+                    ]}
                   >
                     {count}
                   </Text>
@@ -242,7 +337,9 @@ const ProductsScreen = () => {
                   style={styles.facultyImageCircle}
                 />
               ) : (
-                <View style={[styles.facultyImageCircle, styles.imgPlaceholder]}>
+                <View
+                  style={[styles.facultyImageCircle, styles.imgPlaceholder]}
+                >
                   <Text style={styles.avatarInitials}>{initials(u.name)}</Text>
                 </View>
               )}
@@ -274,49 +371,74 @@ const ProductsScreen = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {activeFilter === 'Courses' ? (
+        {activeFilter === 'courses' ? (
           <>
             {SearchBar}
-            {FilterRow}
+            <ButtonSection active={activeFilter} setActive={setActiveFilter} />
 
             {/* Featured Course */}
-            {featured && (
+            {featuredCourse && (
               <TouchableOpacity
                 style={styles.featuredCourseCard}
                 activeOpacity={0.85}
-                onPress={() => openCourse(featured)}
+                onPress={() => openCourse(featuredCourse)}
               >
                 <View style={styles.featuredContentRow}>
                   <View style={styles.featuredTextContent}>
                     <View style={styles.badgeRow}>
                       <View style={styles.featuredAccentBadge}>
-                        <Text style={styles.featuredAccentBadgeText}>FEATURED</Text>
+                        <Text style={styles.featuredAccentBadgeText}>
+                          🔥 Most Enrolled
+                        </Text>
                       </View>
-                      {!!(featured.average_rating || featured.rating) && (
+                    </View>
+
+                    <Text style={styles.featuredCourseTitle} numberOfLines={2}>
+                      {featuredCourse.title}
+                    </Text>
+                    <View style={styles.featuredMetaRow}>
+                      {!!featuredCourse.total_videos && (
                         <View style={styles.starMetaRow}>
-                          <Star size={10} color={colors.gold} fill={colors.gold} />
+                          <BookOpen
+                            size={wp(30)}
+                            color={colors.greenButtonDark}
+                            strokeWidth={1.4}
+                          />
                           <Text style={styles.featuredMetaText}>
-                            {featured.average_rating || featured.rating}
+                            {featuredCourse.total_videos} Videos
+                          </Text>
+                        </View>
+                      )}
+                      {!!featuredCourse.level && (
+                        <Text style={styles.featuredMetaText}>
+                          {featuredCourse.level}
+                        </Text>
+                      )}
+                      {!!fmtCourseDuration(featuredCourse.total_duration) && (
+                        <View style={styles.starMetaRow}>
+                          <Clock
+                            size={11}
+                            color={colors.user.subHeading}
+                            strokeWidth={1.8}
+                          />
+                          <Text style={styles.featuredMetaText}>
+                            {fmtCourseDuration(featuredCourse.total_duration)}
                           </Text>
                         </View>
                       )}
                     </View>
 
-                    <Text style={styles.featuredCourseTitle} numberOfLines={2}>
-                      {featured.title}
-                    </Text>
-                    <Text style={styles.featuredCourseDesc} numberOfLines={3}>
-                      {featured.description || 'Start learning today.'}
-                    </Text>
-
                     <View style={styles.featuredActionFooter}>
                       <View style={styles.priceContainer}>
                         <Text style={styles.featuredCoursePrice}>
-                          {fmtPrice(featured.price)}
+                          {fmtPrice(featuredCourse.price)}
                         </Text>
-                        {!!featured.creator?.name && (
-                          <Text style={styles.featuredMetaText} numberOfLines={1}>
-                            by {featured.creator.name}
+                        {!!featuredCourse.creator?.name && (
+                          <Text
+                            style={styles.featuredMetaText}
+                            numberOfLines={1}
+                          >
+                            by {featuredCourse.creator.name}
                           </Text>
                         )}
                       </View>
@@ -326,13 +448,15 @@ const ProductsScreen = () => {
                     </View>
                   </View>
 
-                  {featured.thumbnail ? (
+                  {featuredCourse.thumbnail ? (
                     <Image
-                      source={{ uri: featured.thumbnail }}
+                      source={{ uri: featuredCourse.thumbnail }}
                       style={styles.featuredSideImage}
                     />
                   ) : (
-                    <View style={[styles.featuredSideImage, styles.imgPlaceholder]}>
+                    <View
+                      style={[styles.featuredSideImage, styles.imgPlaceholder]}
+                    >
                       <BookOpen
                         size={wp(30)}
                         color={colors.cAccentLight}
@@ -352,54 +476,75 @@ const ProductsScreen = () => {
             {filteredCourses.length === 0 ? (
               <Text style={styles.emptyText}>No courses found.</Text>
             ) : (
-              popular.map((course: any) => (
+              popularCourses.map((course: any) => (
                 <TouchableOpacity
                   key={course.id}
-                  style={styles.popularCourseCard}
-                  activeOpacity={0.8}
+                  style={styles.popularCourseCardV2}
+                  activeOpacity={0.85}
                   onPress={() => openCourse(course)}
                 >
-                  {course.thumbnail ? (
-                    <Image
-                      source={{ uri: course.thumbnail }}
-                      style={styles.courseThumbnailImage}
-                    />
-                  ) : (
-                    <View
-                      style={[styles.courseThumbnailImage, styles.imgPlaceholder]}
-                    >
-                      <BookOpen
-                        size={wp(24)}
-                        color={colors.cAccentLight}
-                        strokeWidth={1.6}
+                  <View style={styles.popularCourseBannerWrap}>
+                    {course.thumbnail ? (
+                      <Image
+                        source={{ uri: course.thumbnail }}
+                        style={styles.popularCourseBanner}
                       />
-                    </View>
-                  )}
-                  <View style={styles.popularCourseCardInfo}>
-                    {!!course.category && (
-                      <View style={styles.pillBadgeContainer}>
-                        <Text style={styles.pillBadgeText}>
-                          {String(course.category).toUpperCase()}
-                        </Text>
+                    ) : (
+                      <View
+                        style={[
+                          styles.popularCourseBanner,
+                          styles.imgPlaceholder,
+                        ]}
+                      >
+                        <BookOpen
+                          size={wp(28)}
+                          color={colors.cAccentLight}
+                          strokeWidth={1.6}
+                        />
                       </View>
                     )}
-                    <Text style={styles.popularCourseTitle} numberOfLines={1}>
+                    {!!course.level && (
+                      <View style={styles.levelBadgeOverlay}>
+                        <Text style={styles.pillBadgeText}>{course.level}</Text>
+                      </View>
+                    )}
+                  </View>
+                  <View style={styles.popularCourseCardInfoV2}>
+                    <Text style={styles.popularCourseTitle} numberOfLines={2}>
                       {course.title}
                     </Text>
-                    <Text style={styles.courseDurationText}>
-                      {course.duration ? `🕒 ${course.duration}h  ` : ''}
-                      {course.average_rating || course.rating
-                        ? `★ ${course.average_rating || course.rating}`
-                        : ''}
-                    </Text>
-                    <View style={styles.courseBottomActionRow}>
-                      <Text style={styles.coursePriceTag}>
-                        {fmtPrice(course.price)}
+                    {!!course.creator?.name && (
+                      <Text
+                        style={styles.courseInstructorText}
+                        numberOfLines={1}
+                      >
+                        by {course.creator.name}
                       </Text>
-                      <View style={styles.addButtonCircle}>
-                        <Text style={styles.addButtonText}>+</Text>
-                      </View>
+                    )}
+                    <View style={styles.courseMetaRowV2}>
+                      {!!course.total_videos && (
+                        <View style={styles.courseMetaItem}>
+                          <BookOpen
+                            size={wp(11)}
+                            color={colors.user.accentText}
+                            strokeWidth={1.8}
+                          />
+                          <Text style={styles.courseDurationText}>
+                            {course.total_videos} Videos
+                          </Text>
+                        </View>
+                      )}
+                      {!!fmtCourseDuration(course.total_duration) && (
+                        <View style={styles.courseMetaItem}>
+                          <Text style={styles.courseDurationText}>
+                            🕒 {fmtCourseDuration(course.total_duration)}
+                          </Text>
+                        </View>
+                      )}
                     </View>
+                    <Text style={styles.coursePriceTag}>
+                      {fmtPrice(course.price)}
+                    </Text>
                   </View>
                 </TouchableOpacity>
               ))
@@ -407,7 +552,7 @@ const ProductsScreen = () => {
 
             {ExpertsRail}
           </>
-        ) : (
+        ) : activeFilter === 'webinar' ? (
           <>
             {/* Webinar Hero */}
             <View style={styles.webinarWelcomeHeroCard}>
@@ -420,7 +565,81 @@ const ProductsScreen = () => {
             </View>
 
             {SearchBar}
-            {FilterRow}
+            <ButtonSection active={activeFilter} setActive={setActiveFilter} />
+
+            {featuredWebinar && (
+              <TouchableOpacity
+                style={styles.featuredCourseCard}
+                activeOpacity={0.85}
+                onPress={() => openWebinar(featuredWebinar)}
+              >
+                <View style={styles.featuredContentRow}>
+                  <View style={styles.featuredTextContent}>
+                    <View style={styles.badgeRow}>
+                      <View style={styles.featuredAccentBadge}>
+                        <Text style={styles.featuredAccentBadgeText}>
+                          ▶ Upcoming Webinar
+                        </Text>
+                      </View>
+                    </View>
+                    <Text style={styles.featuredCourseTitle} numberOfLines={2}>
+                      {featuredWebinar.title}
+                    </Text>
+                    {!!featuredWebinar.description && (
+                      <Text style={styles.featuredCourseDesc} numberOfLines={2}>
+                        {featuredWebinar.description}
+                      </Text>
+                    )}
+                    <View style={styles.featuredMetaRow}>
+                      <View style={styles.starMetaRow}>
+                        <Calendar
+                          size={11}
+                          color={colors.user.subHeading}
+                          strokeWidth={1.8}
+                        />
+                        <Text style={styles.featuredMetaText}>
+                          {fmtDateTime(featuredWebinar.scheduled_at)}
+                        </Text>
+                      </View>
+                    </View>
+                    <View style={styles.featuredActionFooter}>
+                      <View style={styles.priceContainer}>
+                        <Text style={styles.featuredCoursePrice}>
+                          {fmtPrice(featuredWebinar.price)}
+                        </Text>
+                        {!!featuredWebinar.creator?.name && (
+                          <Text
+                            style={styles.featuredMetaText}
+                            numberOfLines={1}
+                          >
+                            by {featuredWebinar.creator.name}
+                          </Text>
+                        )}
+                      </View>
+                      <View style={styles.enrollBtn}>
+                        <Text style={styles.enrollBtnText}>View Details</Text>
+                      </View>
+                    </View>
+                  </View>
+                  {featuredWebinar.thumbnail_url ? (
+                    <Image
+                      source={{ uri: featuredWebinar.thumbnail_url }}
+                      style={styles.featuredSideImage}
+                    />
+                  ) : (
+                    <View
+                      style={[styles.featuredSideImage, styles.imgPlaceholder]}
+                    >
+                      <Video
+                        size={wp(30)}
+                        color={colors.greenButtonDark}
+                        strokeWidth={1.6}
+                      />
+                    </View>
+                  )}
+                </View>
+              </TouchableOpacity>
+            )}
 
             {/* Upcoming Webinars */}
             <View style={styles.sectionHeader}>
@@ -439,7 +658,9 @@ const ProductsScreen = () => {
                 style={{ marginVertical: hp(20) }}
               />
             ) : filteredWebinars.length === 0 ? (
-              <Text style={styles.emptyText}>No upcoming webinars right now.</Text>
+              <Text style={styles.emptyText}>
+                No upcoming webinars right now.
+              </Text>
             ) : (
               filteredWebinars.map((webinar: any) => (
                 <TouchableOpacity
@@ -455,7 +676,12 @@ const ProductsScreen = () => {
                         style={styles.webinarCoverImage}
                       />
                     ) : (
-                      <View style={[styles.webinarCoverImage, styles.imgPlaceholder]}>
+                      <View
+                        style={[
+                          styles.webinarCoverImage,
+                          styles.imgPlaceholder,
+                        ]}
+                      >
                         <Video
                           size={wp(30)}
                           color={colors.cAccentLight}
@@ -485,7 +711,9 @@ const ProductsScreen = () => {
                       👤 {webinar.creator?.name || 'Host'}
                     </Text>
                     <View style={styles.registerWebinarBtn}>
-                      <Text style={styles.registerWebinarBtnText}>Register Now</Text>
+                      <Text style={styles.registerWebinarBtnText}>
+                        Register Now
+                      </Text>
                     </View>
                   </View>
                 </TouchableOpacity>
@@ -493,6 +721,184 @@ const ProductsScreen = () => {
             )}
 
             {ExpertsRail}
+          </>
+        ) : (
+          <>
+            {/* 1:1 Sessions */}
+            {SearchBar}
+            <ButtonSection active={activeFilter} setActive={setActiveFilter} />
+
+            {featuredSession && (
+              <TouchableOpacity
+                style={styles.featuredCourseCard}
+                activeOpacity={0.85}
+                onPress={() =>
+                  featuredSession?.expert_id &&
+                  navigation.navigate('ExpertDetail', {
+                    expert: { id: featuredSession.expert_id },
+                  })
+                }
+              >
+                <View style={styles.featuredContentRow}>
+                  <View style={styles.featuredTextContent}>
+                    <View style={styles.badgeRow}>
+                      <View style={styles.featuredAccentBadge}>
+                        <Text style={styles.featuredAccentBadgeText}>
+                          ⭐ 1:1 Session
+                        </Text>
+                      </View>
+                    </View>
+                    <Text style={styles.featuredCourseTitle} numberOfLines={2}>
+                      {featuredSession.title}
+                    </Text>
+                    {!!featuredSession.description && (
+                      <Text style={styles.featuredCourseDesc} numberOfLines={2}>
+                        {featuredSession.description}
+                      </Text>
+                    )}
+                    <View style={styles.featuredMetaRow}>
+                      <View style={styles.starMetaRow}>
+                        <Clock
+                          size={11}
+                          color={colors.user.subHeading}
+                          strokeWidth={1.8}
+                        />
+                        <Text style={styles.featuredMetaText}>
+                          {featuredSession.duration} min
+                        </Text>
+                      </View>
+                      <View style={styles.starMetaRow}>
+                        <MapPin
+                          size={11}
+                          color={colors.user.subHeading}
+                          strokeWidth={1.8}
+                        />
+                        <Text style={styles.featuredMetaText}>
+                          {featuredSession.mode === 'VIDEO'
+                            ? 'Video Call'
+                            : 'Audio Call'}
+                        </Text>
+                      </View>
+                    </View>
+                    <View style={styles.featuredActionFooter}>
+                      <View style={styles.priceContainer}>
+                        <Text style={styles.featuredCoursePrice}>
+                          {fmtPrice(featuredSession.price)}
+                        </Text>
+                        {!!featuredSession.creator?.name && (
+                          <Text
+                            style={styles.featuredMetaText}
+                            numberOfLines={1}
+                          >
+                            by {featuredSession.creator.name}
+                          </Text>
+                        )}
+                      </View>
+                      <View
+                        style={[
+                          styles.enrollBtn,
+                          !featuredSession?.expert_id && { opacity: 0.4 },
+                        ]}
+                      >
+                        <Text style={styles.enrollBtnText}>Book Session</Text>
+                      </View>
+                    </View>
+                  </View>
+                  <View
+                    style={[styles.featuredSideImage, styles.imgPlaceholder]}
+                  >
+                    <Star
+                      size={wp(30)}
+                      color={colors.greenButtonDark}
+                      strokeWidth={1.6}
+                    />
+                  </View>
+                </View>
+              </TouchableOpacity>
+            )}
+
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Popular 1:1 Sessions</Text>
+              <View style={styles.upcomingCountBadge}>
+                <Text style={styles.upcomingCountText}>
+                  • {filteredSessionProducts.length} available
+                </Text>
+              </View>
+            </View>
+
+            {sessionsLoading && filteredSessionProducts.length === 0 ? (
+              <ActivityIndicator
+                size="small"
+                color={colors.greenButtonDark}
+                style={{ marginVertical: hp(20) }}
+              />
+            ) : filteredSessionProducts.length === 0 ? (
+              <Text style={styles.emptyText}>
+                {q
+                  ? 'No sessions match your search.'
+                  : 'No sessions available right now.'}
+              </Text>
+            ) : (
+              popularSessions.map((product: any) => (
+                <TouchableOpacity
+                  key={product.id}
+                  style={styles.sessionItemCard}
+                  activeOpacity={0.85}
+                  onPress={() =>
+                    product?.expert_id &&
+                    navigation.navigate('ExpertDetail', {
+                      expert: { id: product.expert_id },
+                    })
+                  }
+                >
+                  <View style={styles.sessionIconWrap}>
+                    {product.mode === 'VIDEO' ? (
+                      <Video
+                        size={wp(20)}
+                        color={colors.user.accent}
+                        strokeWidth={2}
+                      />
+                    ) : (
+                      <Star
+                        size={wp(20)}
+                        color={colors.user.accent}
+                        strokeWidth={2}
+                      />
+                    )}
+                  </View>
+
+                  <View style={styles.sessionDetailsContent}>
+                    <Text style={styles.webinarItemTitle} numberOfLines={1}>
+                      {product.title}
+                    </Text>
+                    <Text style={styles.webinarMetaLineText}>
+                      {product.duration} min ·{' '}
+                      {product.mode === 'VIDEO' ? 'Video Call' : 'Audio Call'}
+                    </Text>
+                    {!!product.creator?.name && (
+                      <Text style={styles.webinarMetaLineText}>
+                        by {product.creator.name}
+                      </Text>
+                    )}
+
+                    <View style={styles.sessionFooterRow}>
+                      <Text style={styles.coursePriceTag}>
+                        {fmtPrice(product.price)}
+                      </Text>
+                      <View
+                        style={[
+                          styles.registerWebinarBtn,
+                          styles.sessionBookBtn,
+                          !product?.expert_id && { opacity: 0.4 },
+                        ]}
+                      >
+                        <Text style={styles.registerWebinarBtnText}>Book</Text>
+                      </View>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              ))
+            )}
           </>
         )}
       </ScrollView>
@@ -510,7 +916,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: fp(17),
     fontWeight: '700',
-    color: colors.user.text
+    color: colors.user.text,
   },
   scrollContent: {
     paddingHorizontal: wp(16),
@@ -555,7 +961,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.user.card,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: colors.user.cardSoft,
+    borderColor: colors.user.border,
     paddingHorizontal: wp(14),
     height: hp(44),
     gap: wp(10),
@@ -563,7 +969,7 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    color: colors.user.accentText,
+    color: colors.user.text,
     fontSize: fp(13),
   },
 
@@ -633,18 +1039,18 @@ const styles = StyleSheet.create({
   },
 
   imgPlaceholder: {
-    backgroundColor: colors.greenButton,
+    backgroundColor: colors.user.accentSoft,
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarInitials: {
     fontSize: fp(16),
     fontWeight: '700',
-    color: colors.user.subHeading,
+    color: colors.greenButtonDark,
   },
   emptyText: {
     fontSize: fp(13),
-    color: colors.user.accentText,
+    color: colors.user.subHeading,
     textAlign: 'center',
     marginVertical: hp(24),
   },
@@ -654,7 +1060,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.user.card,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: colors.user.card,
+    borderColor: colors.user.border,
     overflow: 'hidden',
     marginBottom: hp(24),
     padding: wp(14),
@@ -675,14 +1081,14 @@ const styles = StyleSheet.create({
     marginBottom: hp(8),
   },
   featuredAccentBadge: {
-    backgroundColor: colors.goldDim,
+    backgroundColor: colors.user.accentSoft,
     paddingHorizontal: wp(8),
     paddingVertical: hp(2),
     borderRadius: 6,
   },
   featuredAccentBadgeText: {
     fontSize: fp(9),
-    color: colors.gold,
+    color: colors.greenButtonDark,
     fontWeight: '700',
   },
   starMetaRow: {
@@ -704,7 +1110,7 @@ const styles = StyleSheet.create({
   },
   featuredCourseDesc: {
     fontSize: fp(11),
-    color: colors.user.accentText,
+    color: colors.user.subHeading,
     lineHeight: fp(16),
     marginBottom: hp(14),
   },
@@ -723,13 +1129,13 @@ const styles = StyleSheet.create({
     color: colors.user.text,
   },
   enrollBtn: {
-    backgroundColor: colors.user.accent,
-    paddingHorizontal: wp(16),
-    paddingVertical: hp(8),
+    backgroundColor: colors.creatorGreen,
+    paddingHorizontal: wp(10),
+    paddingVertical: hp(7),
     borderRadius: 8,
   },
   enrollBtnText: {
-    color: colors.user.nav,
+    color: '#FFFFFF',
     fontSize: fp(12),
     fontWeight: '700',
   },
@@ -745,7 +1151,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.user.card,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: colors.user.card,
+    borderColor: colors.user.border,
     padding: wp(10),
     gap: wp(12),
     marginBottom: hp(12),
@@ -761,7 +1167,7 @@ const styles = StyleSheet.create({
   },
   pillBadgeContainer: {
     alignSelf: 'flex-start',
-    backgroundColor:colors.user.accent,
+    backgroundColor: colors.user.accent,
     borderRadius: 4,
     paddingHorizontal: wp(6),
     paddingVertical: hp(2),
@@ -769,7 +1175,7 @@ const styles = StyleSheet.create({
   },
   pillBadgeText: {
     fontSize: fp(8),
-    color: colors.user.nav,
+    color: '#FFFFFF',
     fontWeight: '700',
   },
   popularCourseTitle: {
@@ -780,7 +1186,7 @@ const styles = StyleSheet.create({
   },
   courseDurationText: {
     fontSize: fp(10),
-    color: colors.user.accentText,
+    color: colors.user.subHeading,
     marginBottom: hp(6),
   },
   courseBottomActionRow: {
@@ -791,7 +1197,7 @@ const styles = StyleSheet.create({
   coursePriceTag: {
     fontSize: fp(13),
     fontWeight: '700',
-    color: colors.user.accent,
+    color: colors.greenButtonDark,
   },
   addButtonCircle: {
     width: wp(24),
@@ -801,7 +1207,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 0.5,
-    borderColor: colors.user.bg
+    borderColor: colors.user.bg,
   },
   addButtonText: {
     color: colors.user.text,
@@ -819,7 +1225,7 @@ const styles = StyleSheet.create({
   },
   webinarHeroGreeting: {
     fontSize: fp(11),
-    color: colors.gold,
+    color: colors.greenButtonDark,
     fontWeight: '600',
     marginBottom: hp(4),
   },
@@ -831,7 +1237,7 @@ const styles = StyleSheet.create({
   },
   webinarHeroDesc: {
     fontSize: fp(12),
-    color: colors.user.accentText,
+    color: colors.user.subHeading,
     lineHeight: fp(17),
   },
   upcomingCountBadge: {
@@ -842,26 +1248,31 @@ const styles = StyleSheet.create({
   },
   upcomingCountText: {
     fontSize: fp(10),
-    color: colors.user.nav,
+    color: '#FFFFFF',
     fontWeight: '600',
   },
   webinarItemCard: {
     backgroundColor: colors.user.card,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: colors.user.card,
+    borderColor: colors.user.border,
     overflow: 'hidden',
     marginBottom: hp(16),
   },
   webinarCoverImage: {
     width: '100%',
-    height: hp(130),
+    aspectRatio: 16 / 9,
+  },
+  featuredWebinarImage: {
+    width: wp(110),
+    aspectRatio: 16 / 9,
+    borderRadius: 10,
   },
   priceOverlayBadge: {
     position: 'absolute',
     top: hp(10),
     right: wp(10),
-    backgroundColor: colors.goldDim,
+    backgroundColor: colors.greenButtonDark,
     paddingHorizontal: wp(8),
     paddingVertical: hp(4),
     borderRadius: 6,
@@ -882,19 +1293,19 @@ const styles = StyleSheet.create({
   },
   webinarItemDesc: {
     fontSize: fp(11),
-    color: colors.user.accentText,
+    color: colors.user.subHeading,
     lineHeight: fp(16),
     marginBottom: hp(10),
   },
   webinarMetaLineText: {
     fontSize: fp(11),
-    color: colors.user.accent,
+    color: colors.user.subHeading,
     marginBottom: hp(4),
   },
   registerWebinarBtn: {
-    backgroundColor: colors.greenButton,
+    backgroundColor: colors.creatorGreen,
     borderWidth: 1,
-    borderColor: colors.greenButton,
+    borderColor: colors.creatorGreen,
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
@@ -902,7 +1313,7 @@ const styles = StyleSheet.create({
     marginTop: hp(12),
   },
   registerWebinarBtnText: {
-    color: colors.user.accentText,
+    color: '#FFFFFF',
     fontSize: fp(12),
     fontWeight: '600',
   },
@@ -921,7 +1332,7 @@ const styles = StyleSheet.create({
   },
   seeAllText: {
     fontSize: fp(12),
-    color: colors.user.accent,
+    color: colors.greenButtonDark,
   },
   facultyCircularCard: {
     backgroundColor: colors.user.card,
@@ -930,7 +1341,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: colors.user.card,
+    borderColor: colors.user.border,
   },
   facultyImageCircle: {
     width: wp(56),
@@ -941,11 +1352,91 @@ const styles = StyleSheet.create({
   facultyCardName: {
     fontSize: fp(13),
     fontWeight: '700',
-    color: colors.user.accentText,
+    color: colors.user.text,
   },
   facultyCardRole: {
     fontSize: fp(11),
     color: colors.user.subHeading,
     marginTop: hp(2),
+  },
+  sessionItemCard: {
+    flexDirection: 'row',
+    backgroundColor: colors.user.border,
+    borderRadius: 14,
+    padding: wp(12),
+    gap: wp(12),
+    marginBottom: hp(12),
+    alignItems: 'flex-start',
+  },
+  sessionIconWrap: {
+    width: wp(44),
+    height: wp(44),
+    borderRadius: wp(12),
+    backgroundColor: colors.user.accentSoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sessionDetailsContent: {
+    flex: 1,
+  },
+  sessionFooterRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: hp(8),
+  },
+  sessionBookBtn: {
+    marginTop: 0,
+    paddingVertical: hp(7),
+    paddingHorizontal: wp(16),
+  },
+  popularCourseCardV2: {
+    backgroundColor: colors.user.card,
+    borderWidth: 1,
+    borderColor: colors.user.border,
+    borderRadius: 16,
+    overflow: 'hidden',
+    marginBottom: hp(14),
+  },
+  popularCourseBannerWrap: {
+    position: 'relative',
+  },
+  popularCourseBanner: {
+    width: '100%',
+    height: hp(120),
+  },
+  levelBadgeOverlay: {
+    position: 'absolute',
+    top: hp(8),
+    left: wp(8),
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    borderRadius: 4,
+    paddingHorizontal: wp(8),
+    paddingVertical: hp(3),
+  },
+  popularCourseCardInfoV2: {
+    padding: wp(12),
+  },
+  courseInstructorText: {
+    fontSize: fp(11.5),
+    color: colors.user.subHeading,
+    marginTop: hp(3),
+  },
+  courseMetaRowV2: {
+    flexDirection: 'row',
+    gap: wp(14),
+    marginTop: hp(8),
+    marginBottom: hp(8),
+  },
+  courseMetaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(4),
+  },
+  featuredMetaRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: wp(12),
+    marginBottom: hp(14),
   },
 });

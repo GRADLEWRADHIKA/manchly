@@ -44,11 +44,18 @@ const FirstPage = () => {
 
         <View style={styles.trustRow}>
           <View style={styles.avatarStack}>
-            <View style={[styles.avatar, { marginLeft: 0 }]} />
-            <View style={[styles.avatar, { marginLeft: -wp(10) }]} />
-            <View style={[styles.avatarCount, { marginLeft: -wp(10) }]}>
-              <Text style={styles.avatarCountText}>+1M</Text>
-            </View>
+            <Image
+              source={{ uri: 'https://randomuser.me/api/portraits/men/32.jpg' }}
+              style={[styles.avatar, { marginLeft: 0 }]}
+            />
+            <Image
+              source={{ uri: 'https://randomuser.me/api/portraits/women/44.jpg' }}
+              style={[styles.avatar, { marginLeft: -wp(10) }]}
+            />
+            <Image
+              source={{ uri: 'https://randomuser.me/api/portraits/men/75.jpg' }}
+              style={[styles.avatar, { marginLeft: -wp(10) }]}
+            />
           </View>
           <Text style={styles.trustText}>TRUSTED BY 10,000+ CREATOR</Text>
         </View>
@@ -94,7 +101,7 @@ const styles = StyleSheet.create({
   },
   mainHeaderGradient: {
     paddingVertical: hp(16),
-    borderRadius: wp(25),
+    borderRadius: wp(20),
     alignItems: 'center',
     justifyContent: 'center',
   },

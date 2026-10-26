@@ -5,7 +5,6 @@ import {
   FlatList,
   TouchableOpacity,
   Image,
-  //ActivityIndicator,
   Modal,
   SafeAreaView,
   StatusBar as RNStatusBar,
@@ -26,10 +25,12 @@ import { createShimmerPlaceholder } from 'react-native-shimmer-placeholder';
 import { Menu, FAB } from 'react-native-paper';
 import ModalBottom from 'react-native-modal';
 import CourseAddVideoModal from './CourseAddVideoModal';
-import { deleteVideo, ActiveUpload } from '../../../../../store/VideoSlice';
+import { deleteVideo, ActiveUpload, reorderVideos } from '../../../../../store/VideoSlice';
 import DynamicModal from '../../../../../components/CommonModal';
 import Toast from 'react-native-toast-message';
 import { RootState } from '../../../../../store/Store';
+import DraggableFlatList, { RenderItemParams, ScaleDecorator } from 'react-native-draggable-flatlist';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 const ShimmerPlaceholder = createShimmerPlaceholder(LinearGradient);
 
@@ -37,10 +38,17 @@ const SCREEN_BG = 'rgba(0,0,0,0.75)';
 const CARD_BG = '#141414';
 const VIDEO_CARD_BG = '#1C1B1B';
 const ACCENT = '#D5C4AB';
-//const CARD_BORDER = 'rgba(255,255,255,0.06)';
 const TEXT_SECONDARY = 'rgba(255,255,255,0.6)';
 const TEXT_MUTED = 'rgba(255,255,255,0.5)';
 const SHIMMER_COLORS = ['#1E1E1E', '#2A2A2A', '#1E1E1E'];
+
+const formatCompactINR = (num: number) => {
+  const n = Number(num) || 0;
+  if (n >= 10000000) return `₹${(n / 10000000).toFixed(1).replace(/\.0$/, '')}Cr`;
+  if (n >= 100000) return `₹${(n / 100000).toFixed(1).replace(/\.0$/, '')}L`;
+  if (n >= 1000) return `₹${(n / 1000).toFixed(1).replace(/\.0$/, '')}K`;
+  return `₹${n}`;
+};
 
 const formatDuration = (durationInSeconds: number) => {
   const totalSeconds = Math.max(0, Math.floor(Number(durationInSeconds) || 0));
@@ -74,6 +82,8 @@ const CourseVideoList = () => {
   const focus = useIsFocused();
   const [refresh, setRefresh] = useState(false);
   const [isUpdate, setIsUpdate] = useState(false);
+  const [courseData, setCourseData] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState<'videos' | 'feedback'>('videos');
 
   const activeUploads = useSelector(
     (state: RootState) => state.videosReducer.activeUploads,
@@ -88,6 +98,7 @@ const CourseVideoList = () => {
     dispatch(getCourseById(courseId))
       .unwrap()
       .then(response => {
+        setCourseData(response?.course || null);
         setVideoList(response?.course?.videos || []);
         setLoading(false);
       })
@@ -108,6 +119,24 @@ const CourseVideoList = () => {
       })
       .catch(error => {
         setDeleteLoading(false);
+      });
+  };
+
+  const handleDragEnd = ({ data }: { data: any[] }) => {
+    const previousList = videoList;
+    setVideoList(data); // optimistic UI update
+
+    const videoOrders = data.map((v, index) => ({ id: v.id, order: index + 1 }));
+
+    dispatch(reorderVideos({ courseId, videoOrders }))
+      .unwrap()
+      .catch(() => {
+        setVideoList(previousList); // rollback on failure
+        Toast.show({
+          type: 'error',
+          text1: 'Could not save new order',
+          position: 'top',
+        });
       });
   };
 
@@ -182,289 +211,337 @@ const CourseVideoList = () => {
     </View>
   );
 
-  const renderVideoCard = ({ item }: any) => {
+  const renderVideoCard = ({ item, drag, isActive }: RenderItemParams<any>) => {
     const isMenuVisible = menuVisible === item.id;
 
     return (
-      <TouchableOpacity
-        style={styles.card}
-        activeOpacity={0.9}
-        onPress={() => setSelectedVideo(item)}
-      >
-        <View style={styles.thumbnailWrapper}>
-          <Image
-            source={{
-              uri:
-                item?.thumbnail_url ||
-                'https://cdn-icons-png.flaticon.com/512/4149/4149650.png',
-            }}
-            style={styles.thumbnail}
-          />
-          <LinearGradient
-            colors={['transparent', 'rgba(0,0,0,0.5)']}
-            style={styles.thumbnailGradient}
-          />
-          <View style={styles.playIconContainer}>
-            <View style={styles.playIcon}>
-              <Play color={colors.white} size={wp(16)} fill={colors.white} />
+      <ScaleDecorator>
+        <TouchableOpacity
+          style={[styles.card, isActive && { opacity: 0.85 }]}
+          activeOpacity={0.9}
+          onLongPress={drag}
+          onPress={() => setSelectedVideo(item)}
+        >
+          <View style={styles.thumbnailWrapper}>
+            <Image
+              source={{
+                uri:
+                  item?.thumbnail_url ||
+                  'https://cdn-icons-png.flaticon.com/512/4149/4149650.png',
+              }}
+              style={styles.thumbnail}
+            />
+            <LinearGradient
+              colors={['transparent', 'rgba(0,0,0,0.5)']}
+              style={styles.thumbnailGradient}
+            />
+            <View style={styles.playIconContainer}>
+              <View style={styles.playIcon}>
+                <Play color={colors.white} size={wp(16)} fill={colors.white} />
+              </View>
+            </View>
+            <View style={styles.durationBadge}>
+              <Clock color={colors.white} size={wp(10)} />
+              <Text style={styles.durationBadgeText}>
+                {formatDuration(item?.duration)}
+              </Text>
             </View>
           </View>
-          <View style={styles.durationBadge}>
-            <Clock color={colors.white} size={wp(10)} />
-            <Text style={styles.durationBadgeText}>
-              {formatDuration(item?.duration)}
-            </Text>
-          </View>
-        </View>
-        <View style={styles.cardContent}>
-          <View style={styles.titleRow}>
-            <Text style={styles.videoTitle} numberOfLines={1}>
-              {item?.title || 'Untitled Video'}
-            </Text>
-            <Menu
-              visible={isMenuVisible}
-              onDismiss={handleMenuClose}
-              anchor={
-                <TouchableOpacity
-                  onPress={e => {
-                    e.stopPropagation?.();
-                    setMenuVisible(item.id);
+          <View style={styles.cardContent}>
+            <View style={styles.titleRow}>
+              <Text style={styles.videoTitle} numberOfLines={1}>
+                {item?.title || 'Untitled Video'}
+              </Text>
+              <Menu
+                visible={isMenuVisible}
+                onDismiss={handleMenuClose}
+                anchor={
+                  <TouchableOpacity
+                    onPress={e => {
+                      e.stopPropagation?.();
+                      setMenuVisible(item.id);
+                    }}
+                    style={styles.menuButton}
+                  >
+                    <MoreVertical color={'rgba(255,255,255,0.5)'} size={wp(18)} />
+                  </TouchableOpacity>
+                }
+                contentStyle={styles.menuContent}
+              >
+                <Menu.Item
+                  onPress={() => {
+                    setIsModalVisible(true);
+                    setVideoData(item);
+                    setMenuVisible(null);
+                    setIsUpdate(true);
                   }}
-                  style={styles.menuButton}
-                >
-                  <MoreVertical color={'rgba(255,255,255,0.5)'} size={wp(18)} />
-                </TouchableOpacity>
-              }
-              contentStyle={styles.menuContent}
-            >
-              <Menu.Item
-                onPress={() => {
-                  setIsModalVisible(true);
-                  setVideoData(item);
-                  setMenuVisible(null);
-                  setIsUpdate(true);
-                }}
-                title="Edit"
-                titleStyle={styles.editText}
-                style={styles.menuItem}
-              />
-              <Menu.Item
-                onPress={() => {
-                  setVideId(item?.id);
-                  setShowModal(true);
-                  setMenuVisible(null);
-                }}
-                title="Delete"
-                titleStyle={styles.deleteText}
-                style={styles.menuItem}
-              />
-            </Menu>
+                  title="Edit"
+                  titleStyle={styles.editText}
+                  style={styles.menuItem}
+                />
+                <Menu.Item
+                  onPress={() => {
+                    setVideId(item?.id);
+                    setShowModal(true);
+                    setMenuVisible(null);
+                  }}
+                  title="Delete"
+                  titleStyle={styles.deleteText}
+                  style={styles.menuItem}
+                />
+              </Menu>
+            </View>
+            <Text style={styles.videoDesc} numberOfLines={2}>
+              {item?.description || 'No description available'}
+            </Text>
           </View>
-          <Text style={styles.videoDesc} numberOfLines={2}>
-            {item?.description || 'No description available'}
-          </Text>
-        </View>
-      </TouchableOpacity>
+        </TouchableOpacity>
+      </ScaleDecorator>
     );
   };
 
   return (
-    <View style={styles.container}>
-      {fromWizard ? (
-        <CourseWizardHeader activeStep={1} title="Add Videos" />
-      ) : (
-        <AppHeaderWithBack title="Course Videos" bgColor="transparent" />
-      )}
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <View style={styles.container}>
+        {fromWizard ? (
+          <CourseWizardHeader activeStep={1} title="Add Videos" />
+        ) : (
+          <AppHeaderWithBack title="Course Videos" bgColor="transparent" />
+        )}
 
-      {activeUploads.length > 0 && (
-        <View style={styles.uploadsSection}>
-          {activeUploads.map(renderUploadCard)}
-        </View>
-      )}
+        {!loading && courseData && (
+          <>
+            {/* Stats row */}
+            <View style={styles.statsRow}>
+              <View style={styles.statBox}>
+                <Play size={wp(16)} color={colors.gold} />
+                <Text style={styles.statValue}>{courseData?.total_videos ?? 0}</Text>
+                <Text style={styles.statLabel}>Total Videos</Text>
+              </View>
+              <View style={styles.statBox}>
+                <Clock size={wp(16)} color={colors.gold} />
+                <Text style={styles.statValue}>
+                  {formatDuration(courseData?.total_duration)}
+                </Text>
+                <Text style={styles.statLabel}>Total Duration</Text>
+              </View>
+              <View style={styles.statBox}>
+                <CheckCircle size={wp(16)} color={colors.gold} />
+                <Text style={styles.statValue}>
+                  {formatCompactINR(courseData?.total_revenue)}
+                </Text>
+                <Text style={styles.statLabel}>Total Revenue</Text>
+              </View>
+            </View>
 
-      {!loading && (
-        <View style={styles.countRow}>
-          <Text style={styles.countText}>
-            Total Videos: {videoList.length}
-          </Text>
-          {fromWizard && (
-            <TouchableOpacity style={styles.addVideoBtn} onPress={toggleModal}>
-              <Plus size={wp(16)} color="#000" />
-              <Text style={styles.addVideoBtnText}>Add Video</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      )}
+            {/* Tabs */}
+            <View style={styles.tabsRow}>
+              <TouchableOpacity
+                style={[styles.tabItem, activeTab === 'videos' && styles.tabItemActive]}
+                onPress={() => setActiveTab('videos')}
+              >
+                <Text style={[styles.tabText, activeTab === 'videos' && styles.tabTextActive]}>
+                  Videos ({videoList.length})
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.tabItem} disabled>
+                <Text style={styles.tabTextDisabled}>Feedback</Text>
+                <Text style={styles.tabComingSoon}>Coming soon</Text>
+              </TouchableOpacity>
+            </View>
+          </>
+        )}
 
-      {loading ? (
-        <FlatList
-          data={[1, 2, 3]}
-          renderItem={renderShimmerCard}
-          keyExtractor={item => item.toString()}
-          contentContainerStyle={styles.listContainer}
-          showsVerticalScrollIndicator={false}
-        />
-      ) : videoList.length > 0 ? (
-        <FlatList
-          data={videoList}
-          renderItem={renderVideoCard}
-          keyExtractor={item => item.id}
-          contentContainerStyle={styles.listContainer}
-          showsVerticalScrollIndicator={false}
-        />
-      ) : (
-        <View style={styles.noDataContainer}>
-          <View style={styles.noDataIcon}>
-            <Play color={colors.gold} size={wp(48)} />
+        {activeUploads.length > 0 && (
+          <View style={styles.uploadsSection}>
+            {activeUploads.map(renderUploadCard)}
           </View>
-          <Text style={styles.noDataTitle}>No Videos Available</Text>
-          <Text style={styles.noDataSubtitle}>
-            There are no videos added to this course yet.
-          </Text>
-        </View>
-      )}
+        )}
 
-      {/* YouTube-style Video Player Modal */}
-      <Modal
-        visible={!!selectedVideo}
-        animationType="slide"
-        supportedOrientations={['portrait', 'landscape']}
-        onRequestClose={() => setSelectedVideo(null)}
-      >
-        <SafeAreaView style={styles.modalContainer}>
-          <RNStatusBar hidden={!!selectedVideo} />
-          {selectedVideo && (
-            <View style={styles.playerSection}>
-              <YouTubePlayer
-                source={{ uri: selectedVideo.playback_url }}
-                title={selectedVideo.title}
-                onClose={() => setSelectedVideo(null)}
-                autoPlay
-              />
-            </View>
-          )}
-          {selectedVideo && (
-            <View style={styles.videoInfoContainer}>
-              <Text style={styles.videoInfoTitle}>{selectedVideo.title}</Text>
-              <Text style={styles.videoInfoDesc}>
-                {selectedVideo.description || 'No description available'}
-              </Text>
-              {videoList.length > 1 && (
-                <View style={styles.upNextSection}>
-                  <Text style={styles.upNextTitle}>Up Next</Text>
-                  <FlatList
-                    data={videoList.filter(v => v.id !== selectedVideo.id)}
-                    keyExtractor={(item, index) =>
-                      item?.id || index.toString()
-                    }
-                    renderItem={({ item }) => (
-                      <TouchableOpacity
-                        style={styles.upNextCard}
-                        onPress={() => setSelectedVideo(item)}
-                        activeOpacity={0.8}
-                      >
-                        <Image
-                          source={{
-                            uri:
-                              item?.thumbnail_url ||
-                              'https://cdn-icons-png.flaticon.com/512/4149/4149650.png',
-                          }}
-                          style={styles.upNextThumb}
-                        />
-                        <View style={styles.upNextInfo}>
-                          <Text
-                            style={styles.upNextCardTitle}
-                            numberOfLines={2}
-                          >
-                            {item?.title}
-                          </Text>
-                          <Text style={styles.upNextDuration}>
-                            {formatDuration(item?.duration)}
-                          </Text>
-                        </View>
-                      </TouchableOpacity>
-                    )}
-                    showsVerticalScrollIndicator={false}
-                  />
-                </View>
-              )}
-            </View>
-          )}
-        </SafeAreaView>
-      </Modal>
+        {!loading && (
+          <View style={styles.countRow}>
+            <Text style={styles.countText}>Total Videos: {videoList.length}</Text>
+            {fromWizard && (
+              <TouchableOpacity style={styles.addVideoBtn} onPress={toggleModal}>
+                <Plus size={wp(16)} color="#000" />
+                <Text style={styles.addVideoBtnText}>Add Video</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
 
-      {fromWizard && (
-        <View style={styles.wizardActions}>
-          <TouchableOpacity
-            style={styles.wizardBackBtn}
-            onPress={() => navigation.goBack()}>
-            <Text style={styles.wizardBackText}>Back</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.wizardContinueBtn,
-              videoList.length === 0 && {opacity: 0.5},
-            ]}
-            disabled={videoList.length === 0}
-            onPress={() => {
-              if (videoList.length === 0) {
-                Toast.show({
-                  type: 'error',
-                  text1: 'Add at least one video',
-                  position: 'top',
-                });
-                return;
-              }
-              navigation.navigate('CoursePreviewScreen', {courseId});
-            }}>
-            <LinearGradient
-              colors={['#F3C36B', '#D49A3D']}
-              start={{x: 0, y: 0}}
-              end={{x: 1, y: 0}}
-              style={styles.wizardContinueGradient}>
-              <Text style={styles.wizardContinueText}>Continue to Preview</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {!fromWizard && (
-        <View style={{ marginRight: wp(10), marginBottom: hp(10) }}>
-          <FAB
-            icon={({ size, color }) => <Plus size={size} color={color} />}
-            style={styles.fab}
-            onPress={toggleModal}
-            color={colors.black}
+        {loading ? (
+          <FlatList
+            data={[1, 2, 3]}
+            renderItem={renderShimmerCard}
+            keyExtractor={item => item.toString()}
+            contentContainerStyle={styles.listContainer}
+            showsVerticalScrollIndicator={false}
           />
-        </View>
-      )}
+        ) : activeTab === 'videos' && videoList.length > 0 ? (
+          <DraggableFlatList
+            data={videoList}
+            onDragEnd={handleDragEnd}
+            keyExtractor={item => item.id}
+            renderItem={renderVideoCard}
+            contentContainerStyle={styles.listContainer}
+            showsVerticalScrollIndicator={false}
+          />
+        ) : activeTab === 'videos' ? (
+          <View style={styles.noDataContainer}>
+            <View style={styles.noDataIcon}>
+              <Play color={colors.gold} size={wp(48)} />
+            </View>
+            <Text style={styles.noDataTitle}>No Videos Available</Text>
+            <Text style={styles.noDataSubtitle}>
+              There are no videos added to this course yet.
+            </Text>
+          </View>
+        ) : (
+          <View style={styles.noDataContainer}>
+            <Text style={styles.noDataTitle}>Feedback coming soon</Text>
+          </View>
+        )}
 
-      <ModalBottom
-        isVisible={isModalVisible}
-        onBackdropPress={toggleModal}
-        onSwipeComplete={toggleModal}
-        swipeDirection={['down']}
-        style={styles.bottomModal}
-      >
-        <CourseAddVideoModal
-          onClose={toggleModal}
-          videoData={videoData}
-          setRefresh={setRefresh}
-          isUpdate={isUpdate}
-          setIsModalVisible={setIsModalVisible}
+        {/* YouTube-style Video Player Modal */}
+        <Modal
+          visible={!!selectedVideo}
+          animationType="slide"
+          supportedOrientations={['portrait', 'landscape']}
+          onRequestClose={() => setSelectedVideo(null)}
+        >
+          <SafeAreaView style={styles.modalContainer}>
+            <RNStatusBar hidden={!!selectedVideo} />
+            {selectedVideo && (
+              <View style={styles.playerSection}>
+                <YouTubePlayer
+                  source={{ uri: selectedVideo.playback_url }}
+                  title={selectedVideo.title}
+                  onClose={() => setSelectedVideo(null)}
+                  autoPlay
+                />
+              </View>
+            )}
+            {selectedVideo && (
+              <View style={styles.videoInfoContainer}>
+                <Text style={styles.videoInfoTitle}>{selectedVideo.title}</Text>
+                <Text style={styles.videoInfoDesc}>
+                  {selectedVideo.description || 'No description available'}
+                </Text>
+                {videoList.length > 1 && (
+                  <View style={styles.upNextSection}>
+                    <Text style={styles.upNextTitle}>Up Next</Text>
+                    <FlatList
+                      data={videoList.filter(v => v.id !== selectedVideo.id)}
+                      keyExtractor={(item, index) => item?.id || index.toString()}
+                      renderItem={({ item }) => (
+                        <TouchableOpacity
+                          style={styles.upNextCard}
+                          onPress={() => setSelectedVideo(item)}
+                          activeOpacity={0.8}
+                        >
+                          <Image
+                            source={{
+                              uri:
+                                item?.thumbnail_url ||
+                                'https://cdn-icons-png.flaticon.com/512/4149/4149650.png',
+                            }}
+                            style={styles.upNextThumb}
+                          />
+                          <View style={styles.upNextInfo}>
+                            <Text style={styles.upNextCardTitle} numberOfLines={2}>
+                              {item?.title}
+                            </Text>
+                            <Text style={styles.upNextDuration}>
+                              {formatDuration(item?.duration)}
+                            </Text>
+                          </View>
+                        </TouchableOpacity>
+                      )}
+                      showsVerticalScrollIndicator={false}
+                    />
+                  </View>
+                )}
+              </View>
+            )}
+          </SafeAreaView>
+        </Modal>
+
+        {fromWizard && (
+          <View style={styles.wizardActions}>
+            <TouchableOpacity
+              style={styles.wizardBackBtn}
+              onPress={() => navigation.goBack()}
+            >
+              <Text style={styles.wizardBackText}>Back</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.wizardContinueBtn,
+                videoList.length === 0 && { opacity: 0.5 },
+              ]}
+              disabled={videoList.length === 0}
+              onPress={() => {
+                if (videoList.length === 0) {
+                  Toast.show({
+                    type: 'error',
+                    text1: 'Add at least one video',
+                    position: 'top',
+                  });
+                  return;
+                }
+                navigation.navigate('CoursePreviewScreen', { courseId });
+              }}
+            >
+              <LinearGradient
+                colors={['#F3C36B', '#D49A3D']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.wizardContinueGradient}
+              >
+                <Text style={styles.wizardContinueText}>Continue to Preview</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {!fromWizard && (
+          <View style={{ marginRight: wp(10), marginBottom: hp(10) }}>
+            <FAB
+              icon={({ size, color }) => <Plus size={size} color={color} />}
+              style={styles.fab}
+              onPress={toggleModal}
+              color={colors.black}
+            />
+          </View>
+        )}
+
+        <ModalBottom
+          isVisible={isModalVisible}
+          onBackdropPress={toggleModal}
+          onSwipeComplete={toggleModal}
+          swipeDirection={['down']}
+          style={styles.bottomModal}
+        >
+          <CourseAddVideoModal
+            onClose={toggleModal}
+            videoData={videoData}
+            setRefresh={setRefresh}
+            isUpdate={isUpdate}
+            setIsModalVisible={setIsModalVisible}
+          />
+        </ModalBottom>
+
+        <DynamicModal
+          visible={showModal}
+          heading="Delete Video"
+          message="Are you sure you want to delete this video? This action cannot be undone."
+          onCancel={handleMenuClose}
+          onDelete={handleDelete}
+          loading={deleteLoading}
         />
-      </ModalBottom>
-
-      <DynamicModal
-        visible={showModal}
-        heading="Delete Video"
-        message="Are you sure you want to delete this video? This action cannot be undone."
-        onCancel={handleMenuClose}
-        onDelete={handleDelete}
-        loading={deleteLoading}
-      />
-
-    </View>
+      </View>
+    </GestureHandlerRootView>
   );
 };
 
@@ -505,7 +582,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.textPrimary,
   },
-  // Video card - horizontal layout like user page
   card: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -616,7 +692,6 @@ const styles = StyleSheet.create({
   deleteText: {
     color: colors.error,
   },
-  // YouTube-style modal
   modalContainer: {
     flex: 1,
     backgroundColor: colors.black,
@@ -684,7 +759,6 @@ const styles = StyleSheet.create({
     fontSize: fp(12),
     color: TEXT_MUTED,
   },
-  // Empty state
   noDataContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -715,7 +789,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: fp(20),
   },
-  // Shimmer
   shimmerCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -751,14 +824,13 @@ const styles = StyleSheet.create({
     height: hp(12),
     borderRadius: wp(4),
   },
-  // Upload indicators
   uploadsSection: {
     paddingHorizontal: wp(16),
     paddingTop: hp(10),
   },
   uploadCard: {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: CARD_BG,
     borderRadius: wp(10),
     padding: wp(12),
@@ -774,8 +846,8 @@ const styles = StyleSheet.create({
     height: wp(40),
     borderRadius: wp(20),
     backgroundColor: 'rgba(255,255,255,0.08)',
-    justifyContent: 'center' as const,
-    alignItems: 'center' as const,
+    justifyContent: 'center',
+    alignItems: 'center',
     marginRight: wp(12),
   },
   uploadInfo: {
@@ -783,7 +855,7 @@ const styles = StyleSheet.create({
   },
   uploadTitle: {
     fontSize: fp(14),
-    fontWeight: '600' as const,
+    fontWeight: '600',
     color: colors.textPrimary,
     marginBottom: hp(2),
   },
@@ -796,14 +868,13 @@ const styles = StyleSheet.create({
     height: hp(4),
     backgroundColor: 'rgba(255,255,255,0.1)',
     borderRadius: wp(2),
-    overflow: 'hidden' as const,
+    overflow: 'hidden',
   },
   progressBarFill: {
-    height: '100%' as const,
+    height: '100%',
     backgroundColor: '#D69C40',
     borderRadius: wp(2),
   },
-  // FAB
   fab: {
     position: 'absolute',
     margin: wp(16),
@@ -812,12 +883,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#D69C40',
     borderRadius: wp(50),
   },
-  // Bottom modal
   bottomModal: {
     justifyContent: 'flex-end',
     margin: 0,
   },
-  // Wizard actions
   wizardActions: {
     flexDirection: 'row',
     gap: wp(12),
@@ -855,5 +924,110 @@ const styles = StyleSheet.create({
     color: '#000000',
     fontWeight: '800',
     fontSize: fp(15),
+  },
+  courseHeaderCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: CARD_BG,
+    marginHorizontal: wp(16),
+    marginTop: hp(10),
+    borderRadius: wp(16),
+    padding: wp(12),
+  },
+  courseHeaderThumb: {
+    width: wp(56),
+    height: wp(56),
+    borderRadius: wp(12),
+    marginRight: wp(12),
+    backgroundColor: '#242220',
+  },
+  courseHeaderInfo: { flex: 1 },
+  courseHeaderTitle: {
+    fontSize: fp(15),
+    fontWeight: '800',
+    color: colors.textPrimary,
+    marginBottom: hp(6),
+  },
+  courseHeaderStatusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(8),
+    flexWrap: 'wrap',
+  },
+  courseStatusBadge: {
+    backgroundColor: 'rgba(16,185,129,0.15)',
+    paddingHorizontal: wp(8),
+    paddingVertical: hp(2),
+    borderRadius: wp(6),
+  },
+  courseStatusText: {
+    fontSize: fp(9),
+    fontWeight: '800',
+    color: colors.success,
+    letterSpacing: 0.4,
+  },
+  courseHeaderMeta: {
+    fontSize: fp(11.5),
+    color: TEXT_SECONDARY,
+  },
+  headerMoreBtn: { padding: wp(6) },
+  statsRow: {
+    flexDirection: 'row',
+    gap: wp(8),
+    marginHorizontal: wp(16),
+    marginTop: hp(10),
+  },
+  statBox: {
+    flex: 1,
+    backgroundColor: CARD_BG,
+    borderRadius: wp(12),
+    paddingVertical: hp(10),
+    alignItems: 'center',
+    gap: hp(4),
+  },
+  statValue: {
+    fontSize: fp(13),
+    fontWeight: '800',
+    color: colors.textPrimary,
+  },
+  statLabel: {
+    fontSize: fp(9),
+    color: TEXT_MUTED,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  tabsRow: {
+    flexDirection: 'row',
+    marginHorizontal: wp(16),
+    marginTop: hp(14),
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.08)',
+  },
+  tabItem: {
+    paddingVertical: hp(10),
+    marginRight: wp(24),
+  },
+  tabItemActive: {
+    borderBottomWidth: 2,
+    borderBottomColor: colors.gold,
+  },
+  tabText: {
+    fontSize: fp(13),
+    fontWeight: '600',
+    color: TEXT_MUTED,
+  },
+  tabTextActive: {
+    color: colors.gold,
+    fontWeight: '700',
+  },
+  tabTextDisabled: {
+    fontSize: fp(13),
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.25)',
+  },
+  tabComingSoon: {
+    fontSize: fp(9),
+    color: 'rgba(255,255,255,0.2)',
+    marginTop: hp(2),
   },
 });

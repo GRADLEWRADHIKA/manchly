@@ -1,0 +1,495 @@
+import { BundlePatchRow, BundleRow, ChannelRow, DatabaseBundleMetadata, DatabaseJsonObject, DatabaseJsonValue, ReleaseCatalogRow, ReleaseRow } from "./databaseRows.mjs";
+import { AnyHotUpdaterPlugin } from "../serverPlugin/definePlugin.mjs";
+import { AggregateBatching, ConfiguredDatabase, EngineDatabase, RemoteDatabase, isRemoteDatabase } from "./databaseConfig.mjs";
+import { BuiltIns, HasMultipleCallSignatures, Primitive, RequiredDeep } from "./utils.mjs";
+import { BundleRowUpdate, ReleaseCatalogRowUpdate, ReleaseRowUpdate } from "./databaseOperations.mjs";
+import { ChannelDeleteResult, ChannelInsertResult } from "./models.mjs";
+import "./public.mjs";
+import { Bundle as Bundle$1, Platform, Platform as Platform$1 } from "@hot-updater/protocol";
+//#region src/types/index.d.ts
+interface BuildAdapterArgs {
+  cwd: string;
+}
+interface BuildAdapterConfig {
+  outDir?: string;
+}
+/**
+ * One input of a native fingerprint, listed in fingerprint.json so doctor and
+ * deploy can show what changed. A build adapter's fingerprint returns these.
+ */
+type NativeFingerprintSource = {
+  type: "file" | "dir";
+  filePath: string;
+  reasons: string[];
+  hash: string | null;
+  debugInfo?: unknown;
+} | {
+  type: "contents";
+  id: string;
+  contents: string | Uint8Array;
+  reasons: string[];
+  hash: string | null;
+  debugInfo?: unknown;
+};
+/** What a build adapter's fingerprint computes for one platform. */
+interface NativeFingerprint {
+  /**
+   * What computed `hash`, such as `hot-updater/interface@1`. fingerprint.json
+   * records it, so a hash that changes with its engine is reported as such.
+   */
+  engine?: string;
+  hash: string;
+  sources: NativeFingerprintSource[];
+}
+/** The `fingerprint` settings of hot-updater.config.ts, for one platform. */
+interface NativeFingerprintOptions {
+  platform: Platform;
+  extraSources?: FingerprintExtraSources;
+  ignorePaths?: string[];
+  nativeVersion?: string | number;
+  debug?: boolean;
+}
+/**
+ * Computes the native fingerprint of a project for one platform. A build
+ * adapter implements it to fingerprint the native interface its framework
+ * exposes to JavaScript.
+ */
+type NativeFingerprintProvider = (options: NativeFingerprintOptions) => Promise<NativeFingerprint>;
+interface BuildAdapter {
+  nativeBuild?: {
+    /**
+     * Fingerprints the native interface JavaScript depends on. Without it, the
+     * CLI uses React Native CLI's: the native interface `react-native config`
+     * reports. fingerprint.json records the adapter's `name`, and a native
+     * build recomputes the fingerprint of `bare`, `rock`, and `expo` with
+     * those official packages, so an adapter with its own fingerprint takes a
+     * name of its own; a native build then embeds the recorded hash.
+     */
+    fingerprint?: NativeFingerprintProvider;
+    /** Resolves the public key embedded by the native build configuration. */
+    getBundleSigningPublicKey?: () => Promise<{
+      readonly publicKey: string;
+    } | null>;
+    /** Resolves native configuration files that must affect the fingerprint. */
+    getFingerprintExtraSources?: () => Promise<readonly string[]>;
+    prebuild?: (args: {
+      platform: Platform;
+    }) => Promise<void>;
+    postbuild?: (args: {
+      platform: Platform;
+    }) => Promise<void>;
+  };
+  build: (args: {
+    platform: Platform;
+  }) => Promise<{
+    buildPath: string;
+    bundleId: string;
+    stdout: string | null;
+  }>;
+  name: string;
+}
+/**
+ * Android native build gradle configuration.
+ */
+interface NativeBuildAndroidScheme {
+  /**
+   * Android application module build variant.
+   *
+   * @example Debug, Release
+   * @default Release
+   */
+  variant?: string;
+  /**
+   * Artifact type.
+   *
+   * If `true`, the generated artifact type is `.aab`.
+   * If `flase`, the generated artifact type is `apk`.
+   *
+   * @default true
+   */
+  aab?: boolean;
+  /**
+   * Android application module name.
+   *
+   * @default app
+   */
+  appModuleName?: string;
+  /**
+   * Android application package name.
+   */
+  packageName: string;
+  /**
+   * Android application ID.
+   *
+   * @default same as packageName
+   */
+  applicationId?: string;
+}
+type IosBuildDestination = {
+  id: string;
+} | {
+  name: string;
+} | "ios-device" | "ios-simulator";
+/**
+ * Supported Apple platforms for building and deployment
+ */
+declare const supportedIosPlatforms: {
+  readonly ios: "ios";
+};
+/**
+ * Type representing a supported Apple platform
+ */
+type ApplePlatform = (typeof supportedIosPlatforms)[keyof typeof supportedIosPlatforms];
+/**
+ * iOS native build configuration.
+ */
+interface NativeBuildIosScheme {
+  /**
+   * The bundle identifier of the app.
+   */
+  bundleIdentifier: string;
+  /**
+   * Apple platform for build & archive
+   *
+   * @default ios
+   */
+  platform?: ApplePlatform;
+  /**
+   * The Xcode scheme to build.
+   *
+   * @example "app"
+   */
+  scheme: string;
+  /**
+   * The build configuration to use (e.g., "Debug", "Release").
+   *
+   * @default "Release"
+   */
+  configuration?: "Debug" | "Release" | string;
+  /**
+   * The destination for the build.
+   *
+   * @default "['generic/platform=iOS']"
+   */
+  destination?: IosBuildDestination[];
+  /**
+   * Path to a plist file that specifies options for exporting the archive.
+   *
+   * @example "exportOptions.plist"
+   */
+  exportOptionsPlist?: string;
+  /**
+   * Path to an .xcconfig file to include additional build settings.
+   */
+  xcconfig?: string;
+  /**
+   * Automatically install CocoaPods dependencies before building.
+   *
+   * @default false
+   */
+  installPods?: boolean;
+  /**
+   * Additional parameters passed to xcodebuild.
+   *
+   * @example ["-quiet", "-allowProvisioningUpdates"]
+   */
+  extraParams?: string[];
+  /**
+   * Additional parameters for exportArchive command.
+   *
+   * @example ["-allowProvisioningUpdates"]
+   */
+  exportExtraParams?: string[];
+  /**
+   * Convenience shortcut option for simulator builds.
+   * When true, this option should not be used together with the destination option.
+   *
+   * This option only affects build:ios, not run:ios.
+   *
+   * @default false
+   */
+  simulator?: boolean;
+}
+interface PlatformConfig {
+  /**
+   * Android platform configuration.
+   */
+  android?: {
+    /**
+     * Android manifest paths.
+     *
+     * @default all AndroidManifest.xml files in the android directory
+     * @example ["android/app/src/main/AndroidManifest.xml"]
+     */
+    androidManifestPaths?: string[];
+  };
+  /**
+   * iOS platform configuration.
+   */
+  ios?: {
+    /**
+     * iOS info.plist paths.
+     *
+     * @default all Info.plist files in the ios directory
+     * @example ["ios/HotUpdaterExample/Info.plist"]
+     */
+    infoPlistPaths?: string[];
+  };
+}
+interface NativeBuildArgs {
+  /**
+   * Android specific configuration schemes.
+   */
+  android?: Record<string, NativeBuildAndroidScheme>;
+  /**
+   * iOS specific configuration schemes.
+   */
+  ios?: Record<string, NativeBuildIosScheme>;
+}
+interface StoragePutInput {
+  /** Complete object key below the provider's configured base path. */
+  readonly key: string;
+  readonly body: ReadableStream<Uint8Array>;
+  readonly contentLength?: number;
+  readonly contentType: string;
+}
+interface StoragePutResult {
+  readonly storageUri: string;
+}
+interface StorageGetInput {
+  readonly storageUri: string;
+}
+interface StorageGetResult {
+  readonly response: Response | null;
+}
+interface StorageExistsInput {
+  readonly storageUri: string;
+}
+interface StorageExistsResult {
+  readonly exists: boolean;
+}
+interface StorageDeleteInput {
+  readonly storageUri: string;
+}
+interface StorageDeleteResult {
+  readonly deleted: true;
+}
+interface StorageObject {
+  /** Object key relative to the storage adapter's configured base path. */
+  readonly key: string;
+  readonly storageUri: string;
+  readonly size: number;
+  readonly lastModifiedAt?: Date;
+}
+interface StorageGetDownloadUrlInput {
+  readonly storageUri: string;
+}
+interface StorageGetDownloadUrlResult {
+  readonly url: string;
+}
+/**
+ * Runtime-independent object storage contract.
+ *
+ * `storageUri` values are hierarchical identifiers in the form
+ * `protocol://bucket/slash-separated-encoded-key`.
+ *
+ * SDK clients, platform bindings, credentials, and local file I/O belong to
+ * provider implementations and consumers, never to this interface.
+ */
+interface StorageAdapter {
+  readonly name: string;
+  /**
+   * Protocol this plugin resolves and stores in database storage URIs.
+   * @example "s3", "r2", "supabase-storage".
+   */
+  readonly protocol: string;
+  readonly put?: (input: StoragePutInput) => Promise<StoragePutResult>;
+  readonly get?: (input: StorageGetInput) => Promise<StorageGetResult>;
+  /** Resolves the URL an update client uses to download the object. */
+  readonly getDownloadUrl?: (input: StorageGetDownloadUrlInput) => Promise<StorageGetDownloadUrlResult>;
+  /**
+   * Returns true when an object can be safely reused by deploy. Providers may
+   * validate more than physical existence when download readiness is required.
+   */
+  readonly exists?: (input: StorageExistsInput) => Promise<StorageExistsResult>;
+  /** Deletes exactly the object referenced by `storageUri`. */
+  readonly delete?: (input: StorageDeleteInput) => Promise<StorageDeleteResult>;
+  /** Lists objects below the optional base-path-relative prefix. */
+  readonly listObjects?: (prefix?: string) => Promise<StorageObject[]>;
+  /** Deletes only the exact base-path-relative keys supplied by the caller. */
+  readonly deleteObjects?: (keys: readonly string[]) => Promise<void>;
+}
+interface BundleSigningAdapter {
+  readonly name: string;
+  /** Returns the RSA public key used by this provider in SPKI PEM format. */
+  readonly getPublicKey: (input?: {
+    readonly cwd?: string;
+  }) => Promise<{
+    readonly publicKey: string;
+  }>;
+  /**
+   * Signs `message` with RSA PKCS#1 v1.5 SHA-256.
+   *
+   * Hot Updater passes the 32 raw bytes decoded from a SHA-256 file hash.
+   * Remote signing services must treat this value as the raw message, not as
+   * an already-computed digest.
+   */
+  readonly sign: (input: {
+    readonly message: Uint8Array;
+    readonly cwd?: string;
+  }) => Promise<{
+    readonly signature: Uint8Array;
+  }>;
+}
+/** Built-in local PEM signing. */
+type LocalSigningConfig = {
+  readonly enabled: true;
+  /** Path to an RSA private key in PEM format. */
+  readonly privateKeyPath: string;
+} | {
+  readonly enabled: false;
+  readonly privateKeyPath?: string;
+};
+/** Local config or signing adapter. Signing is disabled when omitted. */
+type SigningConfig = BundleSigningAdapter | LocalSigningConfig;
+/**
+ * Extra fingerprint sources.
+ *
+ * - `string[]`: shared, applied to both the iOS and Android fingerprint.
+ * - object: scoped per platform, so a change to one platform's native inputs
+ *   leaves the other platform's fingerprint untouched.
+ */
+type FingerprintExtraSources = string[] | {
+  ios?: string[];
+  android?: string[];
+};
+type ConfigInput = {
+  /**
+   * @hidden
+   * Local cache directory used by Hot Updater CLI. Set to `null` to disable.
+   *
+   * @default "node_modules/.hot-updater"
+   */
+  cacheDir?: string | null;
+  /**
+   * The strategy used to update the app.
+   *
+   * If `fingerprint`, the bundle will be updated if the fingerprint of the app is changed.
+   * @docs https://hot-updater.dev/docs/guides/update-strategies/fingerprint
+   * If `appVersion`, the bundle will be updated if the target app version is valid.
+   * @docs https://hot-updater.dev/docs/guides/update-strategies/app-version
+   *
+   * @default "appVersion"
+   */
+  updateStrategy: "fingerprint" | "appVersion";
+  /**
+   * The fingerprint configuration.
+   */
+  fingerprint?: {
+    /**
+     * The extra sources to be included in the fingerprint.
+     *
+     * An array applies the sources to both platforms. Use the object form when
+     * the native inputs differ per platform, so that an iOS-only change does
+     * not move the Android fingerprint (and vice versa).
+     *
+     * @example ["resources/**", ".gitignore"]
+     * @example { ios: ["ios/.env"], android: ["android/local.properties"] }
+     */
+    extraSources?: FingerprintExtraSources;
+    /**
+     * The paths to be ignored in the fingerprint. The bare and Rock adapters
+     * apply them to `extraSources`.
+     */
+    ignorePaths?: string[];
+    /**
+     * A version you change when JavaScript starts to depend on a native change
+     * the fingerprint can't see, such as a native module without a codegen
+     * spec, a new permission, or a manually linked library. Changing it
+     * changes the fingerprint.
+     *
+     * @example 2
+     */
+    nativeVersion?: string | number;
+    /**
+     * When debug mode is enabled, more detailed information will be exposed in fingerprint.json.
+     */
+    debug?: boolean;
+  };
+  /**
+   * Optional pre-generated patch artifacts for faster OTA delivery.
+   *
+   * When enabled, `hot-updater deploy` tries to prepare binary patches against
+   * up to `maxBaseBundles` recent compatible bundles. Patch generation is an
+   * optimization only; the original manifest asset remains the fallback path.
+   *
+   * @default { enabled: true, maxBaseBundles: 3 }
+   */
+  patch?: {
+    /**
+     * Enable automatic patch generation during deploy.
+     *
+     * @default true
+     */
+    enabled?: boolean;
+    /**
+     * Maximum number of compatible older bundles to prepare patches for.
+     * Must be a positive integer.
+     *
+     * @default 3
+     */
+    maxBaseBundles?: number;
+  };
+  console?: {
+    /**
+     * Git repository URL
+     * If git commit hash exists in console, it allows viewing commit history from the git repository
+     */
+    gitUrl?: string;
+    /**
+     * Console port
+     * @default 1422
+     */
+    port?: number;
+  };
+  platform?: PlatformConfig;
+  nativeBuild?: NativeBuildArgs;
+  /**
+   * Code signing configuration for bundle verification.
+   * Enables RSA-SHA256 cryptographic signatures for bundle integrity.
+   *
+   * @optional Feature is opt-in.
+   *
+   * @example
+   * ```ts
+   * signing: {
+   *   enabled: true,
+   *   privateKeyPath: './keys/private-key.pem',
+   * }
+   * ```
+   */
+  signing?: SigningConfig;
+  build: (args: BuildAdapterArgs) => Promise<BuildAdapter> | BuildAdapter;
+  /** Where the CLI uploads bundles: the same adapter as the server's `storage`. */
+  storage: StorageAdapter;
+  /**
+   * The server's database, which the CLI opens itself, or
+   * `standaloneRepository(...)`, which reaches a self-hosted server through
+   * its admin API.
+   */
+  database: ConfiguredDatabase;
+  /**
+   * The plugins the server runs, as its definition lists them. Over the
+   * server's database the CLI runs them as the server does; with
+   * `standaloneRepository`, they run on the server.
+   */
+  plugins?: readonly AnyHotUpdaterPlugin[];
+};
+interface NativeBuildOptions {
+  outputPath?: string;
+  interactive: boolean;
+  message?: string;
+  scheme?: string;
+}
+//#endregion
+export { type AggregateBatching, ApplePlatform, BuildAdapter, BuildAdapterArgs, BuildAdapterConfig, BuiltIns, type Bundle$1 as Bundle, type BundlePatchRow, type BundleRow, type BundleRowUpdate, BundleSigningAdapter, type ChannelDeleteResult, type ChannelInsertResult, type ChannelRow, ConfigInput, type ConfiguredDatabase, type DatabaseBundleMetadata, type DatabaseJsonObject, type DatabaseJsonValue, type EngineDatabase, FingerprintExtraSources, HasMultipleCallSignatures, IosBuildDestination, LocalSigningConfig, NativeBuildAndroidScheme, NativeBuildArgs, NativeBuildIosScheme, NativeBuildOptions, NativeFingerprint, NativeFingerprintOptions, NativeFingerprintProvider, NativeFingerprintSource, type Platform$1 as Platform, PlatformConfig, Primitive, type ReleaseCatalogRow, type ReleaseCatalogRowUpdate, type ReleaseRow, type ReleaseRowUpdate, type RemoteDatabase, RequiredDeep, SigningConfig, StorageAdapter, StorageDeleteInput, StorageDeleteResult, StorageExistsInput, StorageExistsResult, StorageGetDownloadUrlInput, StorageGetDownloadUrlResult, StorageGetInput, StorageGetResult, StorageObject, StoragePutInput, StoragePutResult, isRemoteDatabase, supportedIosPlatforms };

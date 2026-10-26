@@ -1,0 +1,16 @@
+{
+  "imports": {
+    "@hot-updater/server": "./_hot-updater/hot-updater-server/dist/index.mjs",
+    "@hot-updater/plugin-core": "./_hot-updater/hot-updater-plugin-core/dist/index.mjs",
+    "@hot-updater/protocol": "./_hot-updater/hot-updater-protocol/dist/index.mjs",
+    "mime": "npm:mime@4.1.0",
+    "verkit": "npm:verkit@0.4.0",
+    "@hot-updater/supabase/edge": "./_hot-updater/hot-updater-supabase/dist/edge.mjs",
+    "@supabase/supabase-js": "npm:@supabase/supabase-js@2.76.1",
+    "@hot-updater/server/plugins": "./_hot-updater/hot-updater-server/dist/plugins/index.mjs",
+    "@hot-updater/plugin-api-keys/server": "./_hot-updater/hot-updater-plugin-api-keys/dist/server/index.mjs",
+    "@hot-updater/plugin-insights/server": "./_hot-updater/hot-updater-plugin-insights/dist/server/index.mjs",
+    "@hot-updater/plugin-remote-config/server": "./_hot-updater/hot-updater-plugin-remote-config/dist/server/index.mjs",
+    "hono": "npm:hono@4.12.34"
+  }
+}

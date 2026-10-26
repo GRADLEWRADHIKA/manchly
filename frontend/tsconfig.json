@@ -1,5 +1,5 @@
 {
   "extends": "@react-native/typescript-config",
   "include": ["**/*.ts", "**/*.tsx", "src/theme/theme.js"],
-  "exclude": ["**/node_modules", "**/Pods"]
+  "exclude": ["**/node_modules", "**/Pods", "hot-updater-infra", "hot-updater.config.ts"]
 }

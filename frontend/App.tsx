@@ -15,10 +15,12 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { initializeChottuLink } from 'react-native-chottulink-sdk';
 import { Settings, AppEventsLogger } from 'react-native-fbsdk-next';
 import SplashScreen from 'react-native-splash-screen';
+import OtaUpdateGate from './src/components/OtaUpdateGate';
 
 
- injectStore(store);
-export default function App() {
+injectStore(store);
+
+function App() {
   const isDarkMode = useColorScheme() === 'dark';
 
   useEffect(() => {
@@ -54,5 +56,13 @@ export default function App() {
         </GestureHandlerRootView>
       </SafeAreaView>
     </SafeAreaProvider>
+  );
+}
+
+export default function Root() {
+  return (
+    <OtaUpdateGate>
+      <App />
+    </OtaUpdateGate>
   );
 }

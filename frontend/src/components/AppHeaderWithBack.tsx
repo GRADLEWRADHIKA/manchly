@@ -6,7 +6,12 @@ import { ArrowLeft } from 'lucide-react-native';
 import colors from '../utils/colors';
 import { wp, hp, fp } from '../utils/responsive';
 
-const AppHeaderWithBack = ({ title, bgColor = colors.user.bg, textColor = colors.user.text }) => {
+const AppHeaderWithBack = ({
+  title,
+  bgColor = colors.user.bg,
+  textColor = colors.user.text,
+  rightElement = null as React.ReactNode,
+}) => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
 
@@ -40,6 +45,10 @@ const AppHeaderWithBack = ({ title, bgColor = colors.user.bg, textColor = colors
         <Text style={[styles.title, { color: textColor }]} numberOfLines={1}>
           {title ? title.charAt(0).toUpperCase() + title.slice(1) : ''}
         </Text>
+
+        {rightElement ? (
+          <View style={styles.rightSlot}>{rightElement}</View>
+        ) : null}
       </View>
 
       {!transparent && (
@@ -80,6 +89,14 @@ const styles = StyleSheet.create({
     width: wp(36),
     height: wp(36),
     borderRadius: wp(12),
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  rightSlot: {
+    position: 'absolute',
+    right: wp(14),
+    minWidth: wp(36),
+    height: wp(36),
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -79,3 +79,6 @@ app-debug.zip
 apk-check/
 android/app/build/
 
+
+# Hot Updater local CLI credentials
+.env.hotupdater

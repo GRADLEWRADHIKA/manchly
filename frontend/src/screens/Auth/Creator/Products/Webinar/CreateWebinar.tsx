@@ -39,6 +39,8 @@ import {
   Clock,
 } from 'lucide-react-native';
 import EnhanceSuggestionCard from '../../../../../components/ai/EnhanceSuggestionCard';
+import { AccessPolicy } from '../../../../../components/AccessExpiryField';
+import CommunityLinkField from '../../../../../components/CommunityLinkField';
 
 const DURATION_OPTIONS = [
   { label: '30 minutes', value: '30' },
@@ -66,6 +68,20 @@ const CreateWebinar = () => {
   const [scheduleError, setScheduleError] = useState(false);
   // Android needs two steps (date, then time). iOS shows one datetime picker.
   const [pickerMode, setPickerMode] = useState<null | 'date' | 'time'>(null);
+
+  // No expiry input on this screen; carry existing values through so an
+  // edit doesn't wipe the webinar's access policy.
+  const [accessPolicy] = useState<AccessPolicy>({
+    access_duration_days: updateData?.access_duration_days ?? null,
+    access_duration_unit: updateData?.access_duration_unit ?? null,
+    access_expires_at: updateData?.access_expires_at ?? null,
+  });
+  const [whatsappUrl, setWhatsappUrl] = useState(
+    updateData?.whatsapp_community_url || '',
+  );
+  const [thankYouMsg, setThankYouMsg] = useState(
+    updateData?.thankyou_message || '',
+  );
 
   const {
     control,
@@ -171,6 +187,11 @@ const CreateWebinar = () => {
     thumbnail: data.thumbnail,
     scheduled_at: scheduledAt!.toISOString(),
     duration_minutes: Number(data.duration) || 60,
+    access_duration_days: accessPolicy.access_duration_days,
+    access_duration_unit: accessPolicy.access_duration_unit,
+    access_expires_at: accessPolicy.access_expires_at,
+    whatsapp_community_url: whatsappUrl.trim() || null,
+    thankyou_message: thankYouMsg.trim() || null,
   });
 
   const validateSchedule = () => {
@@ -518,6 +539,13 @@ const CreateWebinar = () => {
                   ) : null}
                 </View>
               )}
+            />
+
+            <CommunityLinkField
+              whatsappUrl={whatsappUrl}
+              onChangeWhatsapp={setWhatsappUrl}
+              message={thankYouMsg}
+              onChangeMessage={setThankYouMsg}
             />
           </View>
 

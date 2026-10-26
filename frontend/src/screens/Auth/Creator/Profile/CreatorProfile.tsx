@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -18,14 +18,17 @@ import {
   Camera,
   Mail,
   Phone,
-  ShieldCheck,
-  ShieldX,
-  Pen,
   Lock,
   Calendar,
   AlertTriangle,
+  MapPin,
+  FileText,
+  Link2,
+  BookOpen,
+  GraduationCap,
+  ChevronRight,
+  Pen,
 } from 'lucide-react-native';
-import { Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { Controller, useForm } from 'react-hook-form';
@@ -38,8 +41,18 @@ import { uploadShipDoc } from '../../../../store/Common';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { resetKYC } from '../../../../services/KYCService';
 import LinearGradient from 'react-native-linear-gradient';
-import { InstagramIcon, LinkedinIcon, YoutubeIcon, FacebookIcon } from '../../../../components/SocialIcons';
+import {
+  InstagramIcon,
+  LinkedinIcon,
+  YoutubeIcon,
+  FacebookIcon,
+} from '../../../../components/SocialIcons';
+import {
+  getCreatorProfile,
+  updateCreatorProfile,
+} from '../../../../store/CreatorProfileSlice';
 
+const GOLD_CREAM = '#F8DEAE';
 
 const CreatorProfile = () => {
   const navigation = useNavigation<any>();
@@ -53,74 +66,25 @@ const CreatorProfile = () => {
   const [showKycWarningModal, setShowKycWarningModal] = useState(false);
   const [pendingFormData, setPendingFormData] = useState<any>(null);
 
+  const [activeEditField, setActiveEditField] = useState<
+    'name' | 'dob' | 'location' | 'bio' | 'category' | 'experience' | null
+  >(null);
+  const [editValue, setEditValue] = useState('');
+  const [savingField, setSavingField] = useState(false);
+
   const displayName = user?.name
     ? user.name.charAt(0).toUpperCase() + user.name.slice(1)
     : 'Creator';
 
-  const profileFields = [
-    { filled: !!user?.name },
-    { filled: !!user?.dob },
-    { filled: !!user?.email },
-    { filled: !!user?.phone },
-    { filled: !!(user?.profile_image || imageAdd) },
-    { filled: !!user?.instagram_link },
-    { filled: !!user?.linkedin_link },
-    { filled: !!user?.youtube_link },
-    { filled: !!user?.facebook_link },
-    { filled: !!user?.kyc_verified },
-  ];
-  const filledCount = profileFields.filter(f => f.filled).length;
-  const profilePercent = Math.round((filledCount / profileFields.length) * 100);
+  const { profile: creatorProfile } = useSelector(
+    (state: any) => state.creatorProfileReducer,
+  );
 
-  const openLink = async (url: string) => {
-    let finalUrl = url.trim();
-    if (!/^https?:\/\//i.test(finalUrl)) {
-      finalUrl = 'https://' + finalUrl;
-    }
+  useEffect(() => {
+    dispatch(getCreatorProfile());
+  }, []);
 
-    // Try to open in the native app first, fallback to browser
-    let appUrl: string | null = null;
-
-    if (/instagram\.com/i.test(finalUrl)) {
-      const username = finalUrl.match(/instagram\.com\/([^/?]+)/)?.[1];
-      if (username) {
-        appUrl = `instagram://user?username=${username}`;
-      }
-    } else if (/linkedin\.com/i.test(finalUrl)) {
-      appUrl = `linkedin://in/${finalUrl.split('/in/')[1] || ''}`;
-    } else if (/youtube\.com|youtu\.be/i.test(finalUrl)) {
-      const channelMatch = finalUrl.match(/youtube\.com\/(channel|c|@)\/?([\w-]+)/);
-      if (channelMatch) {
-        appUrl = `youtube://${channelMatch[0].replace('youtube.com/', '')}`;
-      }
-    } else if (/facebook\.com/i.test(finalUrl)) {
-      appUrl = `fb://facewebmodal/f?href=${encodeURIComponent(finalUrl)}`;
-    }
-
-    if (appUrl) {
-      const canOpen = await Linking.canOpenURL(appUrl);
-      if (canOpen) {
-        Linking.openURL(appUrl);
-        return;
-      }
-    }
-
-    Linking.openURL(finalUrl).catch(() => {
-      Toast.show({
-        type: 'error',
-        text1: 'Could not open link',
-        position: 'top',
-      });
-    });
-  };
-
-  const {
-    control,
-    handleSubmit,
-    reset,
-    setValue,
-    watch,
-  } = useForm({
+  const { control, handleSubmit, reset, setValue } = useForm({
     defaultValues: {
       email: user?.email || '',
       phone: user?.phone || '',
@@ -144,7 +108,11 @@ const CreatorProfile = () => {
     if (!dateStr) return new Date(2000, 0, 1);
     const parts = dateStr.split('-');
     if (parts.length === 3) {
-      return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+      return new Date(
+        parseInt(parts[0], 10),
+        parseInt(parts[1], 10) - 1,
+        parseInt(parts[2], 10),
+      );
     }
     return new Date(2000, 0, 1);
   };
@@ -220,18 +188,169 @@ const CreatorProfile = () => {
     await saveProfile(data);
   };
 
+  const openFieldEditor = (
+    field: 'name' | 'dob' | 'location' | 'bio' | 'category' | 'experience',
+  ) => {
+    if (field === 'name') setEditValue(user?.name || '');
+    if (field === 'dob') setEditValue(user?.dob || '');
+    if (field === 'location') setEditValue(creatorProfile?.city || '');
+    if (field === 'bio') setEditValue(creatorProfile?.bio || '');
+    if (field === 'category') setEditValue(creatorProfile?.niche || '');
+    if (field === 'experience') setEditValue(creatorProfile?.experience || '');
+    setActiveEditField(field);
+  };
+
+  const saveFieldEdit = async () => {
+    if (activeEditField === 'name') {
+      if (!editValue.trim()) {
+        Toast.show({
+          type: 'error',
+          text1: 'Name is required',
+          position: 'top',
+        });
+        return;
+      }
+      setSavingField(true);
+      try {
+        await dispatch(
+          updateProfile({
+            name: editValue.trim(),
+            user_type: user?.user_type,
+          }),
+        ).unwrap();
+        Toast.show({ type: 'success', text1: 'Name updated', position: 'top' });
+        setActiveEditField(null);
+      } catch {
+        Toast.show({ type: 'error', text1: 'Update failed', position: 'top' });
+      } finally {
+        setSavingField(false);
+      }
+      return;
+    }
+
+    if (activeEditField === 'dob') {
+      setSavingField(true);
+      try {
+        await dispatch(
+          updateProfile({ dob: editValue, user_type: user?.user_type }),
+        ).unwrap();
+        Toast.show({
+          type: 'success',
+          text1: 'Date of birth updated',
+          position: 'top',
+        });
+        setActiveEditField(null);
+      } catch {
+        Toast.show({ type: 'error', text1: 'Update failed', position: 'top' });
+      } finally {
+        setSavingField(false);
+      }
+      return;
+    }
+
+    if (activeEditField === 'location') {
+      if (!editValue.trim()) {
+        Toast.show({
+          type: 'error',
+          text1: 'Location is required',
+          position: 'top',
+        });
+        return;
+      }
+      setSavingField(true);
+      try {
+        await dispatch(
+          updateCreatorProfile({ ...creatorProfile, city: editValue.trim() }),
+        ).unwrap();
+        Toast.show({
+          type: 'success',
+          text1: 'Location updated',
+          position: 'top',
+        });
+        setActiveEditField(null);
+      } catch {
+        // Handled by reducer toast
+      } finally {
+        setSavingField(false);
+      }
+      return;
+    }
+
+    if (activeEditField === 'bio') {
+      setSavingField(true);
+      try {
+        await dispatch(
+          updateCreatorProfile({ bio: editValue.trim() }),
+        ).unwrap();
+        Toast.show({ type: 'success', text1: 'Bio updated', position: 'top' });
+        setActiveEditField(null);
+      } catch {
+        // Handled by reducer toast
+      } finally {
+        setSavingField(false);
+      }
+      return;
+    }
+
+    if (activeEditField === 'category') {
+      if (!editValue.trim()) {
+        Toast.show({
+          type: 'error',
+          text1: 'Category is required',
+          position: 'top',
+        });
+        return;
+      }
+      setSavingField(true);
+      try {
+        await dispatch(
+          updateCreatorProfile({ niche: editValue.trim() }),
+        ).unwrap();
+        Toast.show({
+          type: 'success',
+          text1: 'Category updated',
+          position: 'top',
+        });
+        setActiveEditField(null);
+      } catch {
+        // Handled by reducer toast
+      } finally {
+        setSavingField(false);
+      }
+      return;
+    }
+
+    if (activeEditField === 'experience') {
+      setSavingField(true);
+      try {
+        await dispatch(
+          updateCreatorProfile({ experience: editValue.trim() }),
+        ).unwrap();
+        Toast.show({
+          type: 'success',
+          text1: 'Experience updated',
+          position: 'top',
+        });
+        setActiveEditField(null);
+      } catch {
+        // Handled by reducer toast
+      } finally {
+        setSavingField(false);
+      }
+      return;
+    }
+  };
+
   const saveProfile = async (data: any) => {
     setLoading(true);
     try {
       const nameChanged = data?.name?.trim() !== (user?.name || '').trim();
       const dobChanged = data?.dob !== (user?.dob || '');
 
-      // Reset KYC if name or dob changed and user was verified
       if ((nameChanged || dobChanged) && user?.kyc_verified) {
         try {
           await resetKYC();
         } catch (e) {
-          // Continue with profile update even if KYC reset fails
           console.log('KYC reset error:', e);
         }
       }
@@ -314,244 +433,62 @@ const CreatorProfile = () => {
 
           <Text style={styles.profileName}>{displayName}</Text>
 
-          {/* KYC Badge */}
-          <View
-            style={[
-              styles.kycBadge,
-              {
-                backgroundColor: user?.kyc_verified ? colors.success + '15' : colors.error + '15',
-                borderColor: user?.kyc_verified ? colors.success + '40' : colors.error + '40',
-              },
-            ]}
-          >
-            {user?.kyc_verified ? (
-              <ShieldCheck size={wp(14)} color={colors.success} />
-            ) : (
-              <ShieldX size={wp(14)} color={colors.error} />
-            )}
-            <Text
-              style={[
-                styles.kycBadgeText,
-                { color: user?.kyc_verified ? colors.success : colors.error },
-              ]}
-            >
-              {user?.kyc_verified ? 'KYC Verified' : 'KYC Not Verified'}
-            </Text>
+          <View style={styles.creatorPill}>
+            <Text style={styles.creatorPillText}>Creator</Text>
           </View>
-
-          {/* Profile Completion */}
-          <View style={styles.completionWrap}>
-            <View style={styles.completionHeader}>
-              <Text style={styles.completionLabel}>Profile Completion</Text>
-              <Text style={styles.completionPercent}>{profilePercent}%</Text>
-            </View>
-            <View style={styles.completionBarBg}>
-              <View
-                style={[
-                  styles.completionBarFill,
-                  {
-                    width: `${profilePercent}%`,
-                    backgroundColor:
-                      profilePercent === 100
-                        ? colors.success
-                        : profilePercent >= 60
-                        ? '#F59E0B'
-                        : colors.error,
-                  },
-                ]}
-              />
-            </View>
-            {profilePercent < 100 && (
-              <Text style={styles.completionHint}>
-                Complete all fields to reach 100%
-              </Text>
-            )}
-          </View>
-
-          {/* Social Links Icons */}
-          {(user?.instagram_link || user?.linkedin_link || user?.youtube_link || user?.facebook_link) && (
-            <View style={styles.socialRow}>
-              {user?.instagram_link ? (
-                <TouchableOpacity
-                  style={styles.socialIconBtnIg}
-                  onPress={() => openLink(user.instagram_link)}
-                  activeOpacity={0.7}
-                >
-                  <InstagramIcon size={wp(18)} color="#E1306C" />
-                </TouchableOpacity>
-              ) : null}
-              {user?.linkedin_link ? (
-                <TouchableOpacity
-                  style={styles.socialIconBtnLi}
-                  onPress={() => openLink(user.linkedin_link)}
-                  activeOpacity={0.7}
-                >
-                  <LinkedinIcon size={wp(18)} color="#0077B5" />
-                </TouchableOpacity>
-              ) : null}
-              {user?.youtube_link ? (
-                <TouchableOpacity
-                  style={styles.socialIconBtnYt}
-                  onPress={() => openLink(user.youtube_link)}
-                  activeOpacity={0.7}
-                >
-                  <YoutubeIcon size={wp(18)} color="#FF0000" />
-                </TouchableOpacity>
-              ) : null}
-              {user?.facebook_link ? (
-                <TouchableOpacity
-                  style={styles.socialIconBtnFb}
-                  onPress={() => openLink(user.facebook_link)}
-                  activeOpacity={0.7}
-                >
-                  <FacebookIcon size={wp(18)} color="#1877F2" />
-                </TouchableOpacity>
-              ) : null}
-            </View>
-          )}
         </LinearGradient>
 
-        {/* Form Section */}
-        <Text style={styles.sectionTitle}>Personal Information</Text>
-
-        <View style={styles.formCard}>
-          {/* NAME */}
-          <View style={styles.fieldRow}>
-            <View style={styles.fieldIcon}>
-              <Pen size={wp(16)} color={colors.gold} />
-            </View>
-            <View style={styles.fieldContent}>
-              <Text style={styles.fieldLabel}>Full Name</Text>
-              <Controller
-                name="name"
-                control={control}
-                rules={{ required: 'Name is required' }}
-                render={({ field: { onChange, value } }) => (
-                  <CustomTextInput
-                    placeholder="Enter Full Name"
-                    value={value}
-                    onChange={onChange}
-                    inputContainerStyle={styles.input}
-                    inputStyle={styles.inputText}
-                  />
-                )}
-              />
-            </View>
-          </View>
-
-          <View style={styles.divider} />
-
-          {/* DOB */}
-          <View style={styles.fieldRow}>
-            <View style={styles.fieldIcon}>
-              <Calendar size={wp(16)} color={colors.gold} />
-            </View>
-            <View style={styles.fieldContent}>
-              <Text style={styles.fieldLabel}>Date of Birth</Text>
-              <Controller
-                name="dob"
-                control={control}
-                render={({ field: { value } }) => (
-                  <>
-                    <TouchableOpacity
-                      style={styles.input}
-                      onPress={() => setShowDatePicker(true)}
-                      activeOpacity={0.7}
-                    >
-                      <Text
-                        style={[
-                          styles.inputText,
-                          !value && { color: '#94A3B8' },
-                        ]}
-                      >
-                        {value ? formatDisplayDate(value) : 'Select Date of Birth'}
-                      </Text>
-                    </TouchableOpacity>
-                    {showDatePicker && (
-                      <DateTimePicker
-                        value={parseDateString(value)}
-                        mode="date"
-                        display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                        maximumDate={new Date()}
-                        onChange={(event: any, selectedDate?: Date) => {
-                          setShowDatePicker(Platform.OS === 'ios');
-                          if (selectedDate) {
-                            const year = selectedDate.getFullYear();
-                            const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
-                            const day = String(selectedDate.getDate()).padStart(2, '0');
-                            setValue('dob', `${year}-${month}-${day}`);
-                          }
-                        }}
-                      />
-                    )}
-                  </>
-                )}
-              />
-            </View>
-          </View>
-
-          <View style={styles.divider} />
-
-          {/* EMAIL */}
-          <View style={styles.fieldRow}>
-            <View style={styles.fieldIcon}>
-              <Mail size={wp(16)} color="rgba(255,255,255,0.5)" />
-            </View>
-            <View style={styles.fieldContent}>
-              <View style={styles.fieldLabelRow}>
-                <Text style={styles.fieldLabel}>Email</Text>
-                <View style={styles.lockedBadge}>
-                  <Lock size={wp(10)} color="rgba(255,255,255,0.5)" />
-                  <Text style={styles.lockedText}>Locked</Text>
-                </View>
-              </View>
-              <Controller
-                name="email"
-                control={control}
-                render={({ field: { value } }) => (
-                  <CustomTextInput
-                    value={value}
-                    disabled
-                    inputContainerStyle={[styles.input, styles.disabledInput]}
-                    inputStyle={styles.disabledText}
-                  />
-                )}
-              />
-            </View>
-          </View>
-
-          <View style={styles.divider} />
-
-          {/* PHONE */}
-          <View style={styles.fieldRow}>
-            <View style={styles.fieldIcon}>
-              <Phone size={wp(16)} color="rgba(255,255,255,0.5)" />
-            </View>
-            <View style={styles.fieldContent}>
-              <View style={styles.fieldLabelRow}>
-                <Text style={styles.fieldLabel}>Phone</Text>
-                <View style={styles.lockedBadge}>
-                  <Lock size={wp(10)} color="rgba(255,255,255,0.5)" />
-                  <Text style={styles.lockedText}>Locked</Text>
-                </View>
-              </View>
-              <Controller
-                name="phone"
-                control={control}
-                render={({ field: { value } }) => (
-                  <CustomTextInput
-                    value={value}
-                    disabled
-                    inputContainerStyle={[styles.input, styles.disabledInput]}
-                    inputStyle={styles.disabledText}
-                  />
-                )}
-              />
-            </View>
-          </View>
+        {/* Basic Info Section */}
+        <Text style={styles.sectionTitleCaps}>Basic Information</Text>
+        <View style={styles.rowCard}>
+          <InfoRow
+            icon={User2}
+            label="Name"
+            value={displayName}
+            onPress={() => openFieldEditor('name')}
+          />
+          <View style={styles.rowDivider} />
+          <InfoRow icon={Mail} label="Email" value={user?.email} locked />
+          <View style={styles.rowDivider} />
+          <InfoRow icon={Phone} label="Phone" value={user?.phone} locked />
+          <View style={styles.rowDivider} />
+          <InfoRow
+            icon={Calendar}
+            label="Date of Birth"
+            value={user?.dob ? formatDisplayDate(user.dob) : ''}
+            onPress={() => openFieldEditor('dob')}
+          />
+          <View style={styles.rowDivider} />
         </View>
 
-        {/* Social Links Section */}
+        {/* Creator Details Section — Bio, Category, Experience combined */}
+        <Text style={styles.sectionTitleCaps}>Creator Details</Text>
+        <View style={styles.rowCard}>
+          <InfoRow
+            icon={FileText}
+            label="Bio"
+            value={creatorProfile?.bio || 'Tell your audience about yourself'}
+            onPress={() => openFieldEditor('bio')}
+          />
+          <View style={styles.rowDivider} />
+          <InfoRow
+            icon={BookOpen}
+            label="Your Category"
+            value={creatorProfile?.niche}
+            onPress={() => openFieldEditor('category')}
+          />
+          <View style={styles.rowDivider} />
+          <InfoRow
+            icon={GraduationCap}
+            label="Experience"
+            value={creatorProfile?.experience}
+            onPress={() => openFieldEditor('experience')}
+          />
+        </View>
+
+       
+
+        {/* Social Links Form */}
         <Text style={styles.sectionTitle}>Social Links</Text>
 
         <View style={styles.formCard}>
@@ -700,7 +637,8 @@ const CreatorProfile = () => {
             </View>
             <Text style={styles.modalTitle}>KYC Will Be Reset</Text>
             <Text style={styles.modalMessage}>
-              Changing your name or date of birth will reset your KYC verification. You will need to complete KYC verification again.
+              Changing your name or date of birth will reset your KYC
+              verification. You will need to complete KYC verification again.
             </Text>
             <View style={styles.modalButtons}>
               <TouchableOpacity
@@ -730,9 +668,210 @@ const CreatorProfile = () => {
           </View>
         </View>
       </Modal>
+
+      {/* Edit Field Modal */}
+      <Modal
+        visible={
+          activeEditField === 'name' ||
+          activeEditField === 'dob' ||
+          activeEditField === 'location' ||
+          activeEditField === 'bio' ||
+          activeEditField === 'category' ||
+          activeEditField === 'experience'
+        }
+        transparent
+        animationType="fade"
+        onRequestClose={() => setActiveEditField(null)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>
+              Edit{' '}
+              {activeEditField === 'name'
+                ? 'Name'
+                : activeEditField === 'dob'
+                ? 'Date of Birth'
+                : activeEditField === 'location'
+                ? 'Location'
+                : activeEditField === 'bio'
+                ? 'Bio'
+                : activeEditField === 'category'
+                ? 'Category'
+                : 'Experience'}
+            </Text>
+
+            {activeEditField === 'name' && (
+              <CustomTextInput
+                placeholder="Enter Full Name"
+                value={editValue}
+                onChange={(t: any) =>
+                  setEditValue(
+                    typeof t === 'string' ? t : t?.nativeEvent?.text || '',
+                  )
+                }
+                inputContainerStyle={styles.input}
+                inputStyle={styles.inputText}
+              />
+            )}
+
+            {activeEditField === 'dob' && (
+              <>
+                <TouchableOpacity
+                  style={styles.input}
+                  onPress={() => setShowDatePicker(true)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.inputText}>
+                    {editValue
+                      ? formatDisplayDate(editValue)
+                      : 'Select Date of Birth'}
+                  </Text>
+                </TouchableOpacity>
+                {showDatePicker && (
+                  <DateTimePicker
+                    value={parseDateString(editValue)}
+                    mode="date"
+                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                    maximumDate={new Date()}
+                    onChange={(event: any, selectedDate?: Date) => {
+                      setShowDatePicker(Platform.OS === 'ios');
+                      if (selectedDate) {
+                        const year = selectedDate.getFullYear();
+                        const month = String(
+                          selectedDate.getMonth() + 1,
+                        ).padStart(2, '0');
+                        const day = String(selectedDate.getDate()).padStart(
+                          2,
+                          '0',
+                        );
+                        setEditValue(`${year}-${month}-${day}`);
+                      }
+                    }}
+                  />
+                )}
+              </>
+            )}
+
+            {activeEditField === 'location' && (
+              <CustomTextInput
+                placeholder="e.g. Mumbai, India"
+                value={editValue}
+                onChange={(t: any) =>
+                  setEditValue(
+                    typeof t === 'string' ? t : t?.nativeEvent?.text || '',
+                  )
+                }
+                inputContainerStyle={styles.input}
+                inputStyle={styles.inputText}
+              />
+            )}
+
+            {activeEditField === 'bio' && (
+              <CustomTextInput
+                placeholder="Tell your audience about yourself"
+                value={editValue}
+                onChange={(t: any) =>
+                  setEditValue(
+                    typeof t === 'string' ? t : t?.nativeEvent?.text || '',
+                  )
+                }
+                inputContainerStyle={[styles.input, { height: hp(90) }]}
+                inputStyle={styles.inputText}
+                multiline
+              />
+            )}
+
+            {activeEditField === 'category' && (
+              <CustomTextInput
+                placeholder="e.g. Digital Marketing"
+                value={editValue}
+                onChange={(t: any) =>
+                  setEditValue(
+                    typeof t === 'string' ? t : t?.nativeEvent?.text || '',
+                  )
+                }
+                inputContainerStyle={styles.input}
+                inputStyle={styles.inputText}
+              />
+            )}
+
+            {activeEditField === 'experience' && (
+              <CustomTextInput
+                placeholder="e.g. 3+ Years"
+                value={editValue}
+                onChange={(t: any) =>
+                  setEditValue(
+                    typeof t === 'string' ? t : t?.nativeEvent?.text || '',
+                  )
+                }
+                inputContainerStyle={styles.input}
+                inputStyle={styles.inputText}
+              />
+            )}
+
+            <View style={[styles.modalButtons, { marginTop: hp(20) }]}>
+              <TouchableOpacity
+                style={styles.modalCancelBtn}
+                onPress={() => setActiveEditField(null)}
+                activeOpacity={0.7}
+                disabled={savingField}
+              >
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.modalConfirmBtn,
+                  { backgroundColor: colors.golden || GOLD_CREAM },
+                ]}
+                onPress={saveFieldEdit}
+                activeOpacity={0.7}
+                disabled={savingField}
+              >
+                {savingField ? (
+                  <ActivityIndicator color={colors.black} />
+                ) : (
+                  <Text
+                    style={[styles.modalConfirmText, { color: colors.black }]}
+                  >
+                    Save
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
+
+const InfoRow = ({
+  icon: Icon,
+  label,
+  value,
+  onPress,
+  locked = false,
+}: any) => (
+  <TouchableOpacity
+    style={styles.infoRow}
+    onPress={onPress}
+    disabled={locked || !onPress}
+    activeOpacity={0.7}
+  >
+    <View style={styles.infoRowIcon}>
+      <Icon size={wp(16)} color={GOLD_CREAM} />
+    </View>
+    <Text style={styles.infoRowLabel}>{label}</Text>
+    <Text style={styles.infoRowValue} numberOfLines={1}>
+      {value || '—'}
+    </Text>
+    {locked ? (
+      <Lock size={wp(14)} color="rgba(255,255,255,0.3)" />
+    ) : (
+      <ChevronRight size={wp(16)} color="rgba(255,255,255,0.35)" />
+    )}
+  </TouchableOpacity>
+);
 
 export default CreatorProfile;
 
@@ -747,21 +886,25 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: hp(40),
   },
-
-  // Profile Card
   profileCard: {
     alignItems: 'center',
     marginHorizontal: wp(16),
     marginTop: hp(20),
-    borderRadius: wp(24),
+    borderRadius: wp(20),
     paddingVertical: hp(24),
     paddingHorizontal: wp(20),
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
     overflow: 'hidden',
+  },
+  editPencilBtn: {
+    position: 'absolute',
+    top: hp(14),
+    right: wp(14),
+    width: wp(30),
+    height: wp(30),
+    borderRadius: wp(15),
+    backgroundColor: 'rgba(214,156,63,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   avatarWrap: {
     position: 'relative',
@@ -800,115 +943,68 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: colors.white,
   },
-  profileEmail: {
-    fontSize: fp(13),
-    color: 'rgba(255,255,255,0.6)',
-    marginTop: hp(2),
+  creatorPill: {
+    marginTop: hp(10),
+    backgroundColor: '#D69C3F',
+    paddingHorizontal: wp(16),
+    paddingVertical: hp(5),
+    borderRadius: wp(14),
   },
-  kycBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(6),
-    marginTop: hp(12),
-    paddingHorizontal: wp(12),
-    paddingVertical: hp(6),
-    borderRadius: wp(20),
-    borderWidth: 1,
-  },
-  kycBadgeText: {
+  creatorPillText: {
     fontSize: fp(12),
     fontWeight: '700',
+    color: '#3A2C12',
   },
-  completionWrap: {
-    width: '100%',
-    marginTop: hp(16),
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderRadius: wp(12),
-    padding: wp(12),
+  sectionTitleCaps: {
+    fontSize: fp(12),
+    fontWeight: '700',
+    color: 'rgba(255,255,255,0.5)',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginHorizontal: wp(20),
+    marginTop: hp(24),
+    marginBottom: hp(10),
   },
-  completionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: hp(6),
-  },
-  completionLabel: {
-    fontSize: fp(11),
-    fontWeight: '600',
-    color: 'rgba(255,255,255,0.7)',
-  },
-  completionPercent: {
-    fontSize: fp(13),
-    fontWeight: '800',
-    color: colors.white,
-  },
-  completionBarBg: {
-    height: hp(6),
-    borderRadius: hp(3),
-    backgroundColor: 'rgba(255,255,255,0.15)',
+  rowCard: {
+    backgroundColor: '#1A1A1A',
+    marginHorizontal: wp(16),
+    borderRadius: wp(16),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
     overflow: 'hidden',
   },
-  completionBarFill: {
-    height: '100%',
-    borderRadius: hp(3),
-  },
-  completionHint: {
-    fontSize: fp(10),
-    color: 'rgba(255,255,255,0.45)',
-    marginTop: hp(5),
-  },
-  socialRow: {
+  infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: wp(12),
-    marginTop: hp(14),
+    paddingHorizontal: wp(14),
+    paddingVertical: hp(13),
   },
-  socialIconBtnIg: {
-    width: wp(38),
-    height: wp(38),
-    borderRadius: wp(19),
-    justifyContent: 'center',
+  infoRowIcon: {
+    width: wp(32),
+    height: wp(32),
+    borderRadius: wp(9),
+    backgroundColor: 'rgba(214,156,63,0.12)',
     alignItems: 'center',
-    backgroundColor: '#E1306C25',
-  },
-  socialIconBtnLi: {
-    width: wp(38),
-    height: wp(38),
-    borderRadius: wp(19),
     justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#0077B525',
+    marginRight: wp(12),
   },
-  socialIconBtnYt: {
-    width: wp(38),
-    height: wp(38),
-    borderRadius: wp(19),
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#FF000025',
+  infoRowLabel: {
+    flex: 1,
+    fontSize: fp(14),
+    color: colors.white,
+    fontWeight: '500',
   },
-  socialIconBtnFb: {
-    width: wp(38),
-    height: wp(38),
-    borderRadius: wp(19),
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#1877F225',
+  infoRowValue: {
+    fontSize: fp(13),
+    color: 'rgba(255,255,255,0.55)',
+    marginRight: wp(8),
+    maxWidth: wp(120),
   },
-  igFieldIcon: {
-    backgroundColor: '#E1306C20',
+  rowDivider: {
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    marginLeft: wp(58),
   },
-  liFieldIcon: {
-    backgroundColor: '#0077B520',
-  },
-  ytFieldIcon: {
-    backgroundColor: '#FF000020',
-  },
-  fbFieldIcon: {
-    backgroundColor: '#1877F220',
-  },
-
-  // Section
   sectionTitle: {
     fontSize: fp(16),
     fontWeight: '700',
@@ -917,8 +1013,6 @@ const styles = StyleSheet.create({
     marginTop: hp(24),
     marginBottom: hp(10),
   },
-
-  // Form Card
   formCard: {
     backgroundColor: '#1A1A1A',
     marginHorizontal: wp(16),
@@ -948,6 +1042,18 @@ const styles = StyleSheet.create({
     marginRight: wp(12),
     marginTop: hp(2),
   },
+  igFieldIcon: {
+    backgroundColor: '#E1306C20',
+  },
+  liFieldIcon: {
+    backgroundColor: '#0077B520',
+  },
+  ytFieldIcon: {
+    backgroundColor: '#FF000020',
+  },
+  fbFieldIcon: {
+    backgroundColor: '#1877F220',
+  },
   fieldContent: {
     flex: 1,
   },
@@ -958,26 +1064,6 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.6,
     marginBottom: hp(6),
-  },
-  fieldLabelRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: hp(4),
-  },
-  lockedBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(3),
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    paddingHorizontal: wp(8),
-    paddingVertical: hp(2),
-    borderRadius: wp(6),
-  },
-  lockedText: {
-    fontSize: fp(10),
-    color: 'rgba(255,255,255,0.5)',
-    fontWeight: '500',
   },
   input: {
     height: hp(42),
@@ -992,21 +1078,11 @@ const styles = StyleSheet.create({
     fontSize: fp(14),
     color: colors.textPrimary,
   },
-  disabledInput: {
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    borderColor: 'transparent',
-  },
-  disabledText: {
-    fontSize: fp(14),
-    color: 'rgba(255,255,255,0.45)',
-  },
   divider: {
     height: 1,
     backgroundColor: 'rgba(255,255,255,0.07)',
     marginHorizontal: wp(16),
   },
-
-  // Buttons
   buttonContainer: {
     flexDirection: 'row',
     marginTop: hp(24),
@@ -1044,8 +1120,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: fp(15),
   },
-
-  // Modal
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.7)',

@@ -12,6 +12,8 @@ import notificationReducer from './NotificationSlice'
 import settlementReducer from './SettlementSlice'
 import groupReducer from './GroupSlice'
 import activityReducer from './ActivitySlice'
+import creatorProfileReducer from './CreatorProfileSlice';
+import reelReducer from './ReelSlice';
 
 const rootReducer = combineReducers({
   userReducer,
@@ -25,6 +27,8 @@ const rootReducer = combineReducers({
   settlementReducer,
   groupReducer,
   activityReducer,
+  creatorProfileReducer,
+  reelReducer,
 });
 const resetJustLoggedIn = createTransform(
   (inboundState: any) => ({ ...inboundState, justLoggedIn: false }),

@@ -7,18 +7,20 @@ import { wp, hp, fp } from '../utils/responsive';
 import {
   House,
   ShoppingBag,
-  Bot,
+  Clapperboard,
   LayoutGrid,
   User,
 } from "lucide-react-native";
 import CreatorHome from '../screens/Auth/Creator/Home/CreatorHome';
 import CreatorProducts from '../screens/Auth/Creator/Products/CreatorProducts';
 import CreatorSetting from '../screens/Auth/Creator/Settings/CreatorSetting';
-import CreatorAI from '../screens/Auth/Creator/Ai/CreatorAI';
-import Dashboard from '../screens/Auth/Profile/Dashboard';
+//import CreatorAI from '../screens/Auth/Creator/Ai/CreatorAI';
+//import Dashboard from '../screens/Auth/Profile/Dashboard';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { instance } from '../utils/AxiosInstance';
-import TrialBottomSheet from '../screens/Auth/Creator/Home/TrialBottomSheet';
+//import TrialBottomSheet from '../screens/Auth/Creator/Home/TrialBottomSheet';
+import ReelsScreen from '../screens/Auth/Creator/Reels/ReelScreen';
+import CreatorDashboardOverview from '../screens/Auth/Creator/CreatorDashboardOverview';
 
 const Tab = createBottomTabNavigator();
 
@@ -36,14 +38,14 @@ const tabs = [
     Icon: ShoppingBag,
   },
   {
-    name: 'CreateProducts',
-    component: CreatorAI,
-    label: 'AI',
-    Icon: Bot,
+    name: 'ReelsTab',
+    component: ReelsScreen,
+    label: 'Reels',
+    Icon: Clapperboard,
   },
   {
-    name: 'Dashboard',
-    component: Dashboard,
+    name: 'DashboardTab',
+    component: CreatorDashboardOverview,
     label: 'Stats',
     Icon: LayoutGrid,
   },
@@ -160,14 +162,7 @@ const CreatorBottomTab = () => {
         ))}
       </Tab.Navigator>
 
-      <TrialBottomSheet
-        visible={showTrial}
-        onClose={() => setShowTrial(false)}
-        onTrialActivated={() => setShowTrial(false)}
-        trialDays={trialConfig.trialDays}
-        trialPrice={trialConfig.trialPrice}
-        monthlyPrice={trialConfig.monthlyPrice}
-      />
+      
     </>
   );
 };

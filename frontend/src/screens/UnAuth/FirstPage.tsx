@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
   },
   mainHeaderGradient: {
     paddingVertical: hp(16),
-    borderRadius: wp(25),
+    borderRadius: wp(20),
     alignItems: 'center',
     justifyContent: 'center',
   },

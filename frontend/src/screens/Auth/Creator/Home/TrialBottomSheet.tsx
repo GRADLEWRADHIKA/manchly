@@ -46,7 +46,7 @@ const SOCIAL_PROOF = [
 const FEATURES = [
   { icon: Package, text: 'Create & Sell\nCourses' },
   { icon: Video, text: 'Host Live\nWebinars' },
-  { icon: Users, text: 'Manage Students\n& Payments' },
+  { icon: Users, text: 'Manage Users\n& Payments' },
 ];
 
 const STEPS_TEMPLATE = [

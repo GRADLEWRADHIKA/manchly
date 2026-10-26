@@ -91,8 +91,7 @@ const AccessExpiryField: React.FC<Props> = ({
 
   return (
     <View style={styles.wrap}>
-      <Text style={styles.title}>Course Validity</Text>
-
+      
       {/* Cards Row */}
       <View style={styles.cardsRow}>
         {/* Lifetime */}

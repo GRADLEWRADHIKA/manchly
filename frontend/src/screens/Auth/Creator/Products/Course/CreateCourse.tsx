@@ -17,7 +17,9 @@ import colors from '../../../../../utils/colors';
 import { wp, hp, fp } from '../../../../../utils/responsive';
 import { useForm, Controller } from 'react-hook-form';
 import { createCourse, updateCourse } from '../../../../../store/CourseSlice';
-import AccessExpiryField, { AccessPolicy } from '../../../../../components/AccessExpiryField';
+import AccessExpiryField, {
+  AccessPolicy,
+} from '../../../../../components/AccessExpiryField';
 import CommunityLinkField from '../../../../../components/CommunityLinkField';
 import { ThunkDispatch } from '@reduxjs/toolkit';
 import { useDispatch } from 'react-redux';
@@ -144,7 +146,11 @@ const CreateCourse = () => {
         const courseObj = res?.course || res;
         const newCourseId = courseObj?.id || courseObj?._id;
         if (!newCourseId) {
-          Toast.show({type: 'error', text1: 'Could not get course ID', position: 'top'});
+          Toast.show({
+            type: 'error',
+            text1: 'Could not get course ID',
+            position: 'top',
+          });
           return;
         }
         Nav.replace('CourseVideoList', {
@@ -223,228 +229,256 @@ const CreateCourse = () => {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.card}>
-          <View style={styles.banner}>
-            <Text style={styles.bannerTitle}>Course Details</Text>
-            <Text style={styles.bannerSub}>
-              Set up your course and start teaching.
-            </Text>
-          </View>
-          {/* Title */}
-          <View style={[styles.labelRow, { justifyContent: 'space-between' }]}>
+            {/* Title */}
             <View
-              style={{ flexDirection: 'row', alignItems: 'center', gap: wp(6) }}
+              style={[styles.labelRow, { justifyContent: 'space-between' }]}
             >
-              <Type size={wp(14)} color={'#F0C040'} />
-              <Text style={styles.label}>Course Title</Text>
-            </View>
-            <EnhanceSuggestionCard
-              value={watch('courseTitle')}
-              onAccept={text => setValue('courseTitle', text)}
-              endpoint="/ai/course/enhance"
-              kind="title"
-              tone="punchy"
-            />
-          </View>
-          <Controller
-            name="courseTitle"
-            control={control}
-            rules={{ required: true }}
-            render={({ field: { onChange, onBlur, value } }) => (
-              <CustomTextInput
-                inputContainerStyle={[
-                  styles.input,
-                  errors.courseTitle && styles.errorBorder,
-                ]}
-                placeholder="Enter course title"
-                value={value}
-                onChange={onChange}
-                onBlur={onBlur}
-              />
-            )}
-          />
-
-          {/* Price */}
-          <View style={styles.labelRow}>
-            <IndianRupee size={wp(14)} color={'#F0C040'} />
-            <Text style={styles.label}>Price (INR)</Text>
-          </View>
-          <Controller
-            name="price"
-            control={control}
-            rules={{ required: true }}
-            render={({ field: { onChange, onBlur, value } }) => (
-              <CustomTextInput
-                inputContainerStyle={[
-                  styles.input,
-                  errors.price && styles.errorBorder,
-                ]}
-                keyboardType="numeric"
-                placeholder="e.g ₹499"
-                value={value}
-                onChange={onChange}
-                onBlur={onBlur}
-              />
-            )}
-          />
-
-          {/* Thumbnail */}
-          <View style={styles.labelRow}>
-            <ImagePlus size={wp(14)} color={'#F0C040'} />
-            <Text style={styles.label}>Course Thumbnail</Text>
-          </View>
-          <Controller
-            name="thumbnail"
-            control={control}
-            render={({ field: { onChange, value } }) => (
-              <View>
-                <TouchableOpacity
-                  onPress={() => imagePicker(onChange)}
-                  style={styles.thumbnailBtn}
-                  disabled={uploading}
-                  activeOpacity={0.7}
-                >
-                  {uploading ? (
-                    <ActivityIndicator color={'#F0C040'} />
-                  ) : (
-                    <>
-                      <ImagePlus size={wp(18)} color={'#F0C040'} />
-                      <Text style={styles.thumbnailBtnText}>
-                        {value ? 'Change Thumbnail' : 'Choose Thumbnail'}
-                      </Text>
-                    </>
-                  )}
-                </TouchableOpacity>
-                {value ? (
-                  <Image
-                    source={{ uri: value }}
-                    style={styles.imagePreview}
-                    resizeMode="cover"
-                  />
-                ) : null}
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: wp(6),
+                }}
+              >
+                <Type size={wp(14)} color={'#F0C040'} />
+                <Text style={styles.label}>Course Title</Text>
               </View>
-            )}
-          />
-
-          {/* Level */}
-          <View style={styles.labelRow}>
-            <BarChart3 size={wp(14)} color={'#F0C040'} />
-            <Text style={styles.label}>Level</Text>
-          </View>
-          <Controller
-            name="level"
-            control={control}
-            rules={{ required: true }}
-            render={({ field: { onChange, value }, fieldState: { error } }) => (
-              <Dropdown
-                style={[styles.dropdown, error && styles.errorBorder]}
-                placeholderStyle={styles.placeholderText}
-                selectedTextStyle={styles.selectedText}
-                containerStyle={styles.dropdownContainer}
-                data={[
-                  { label: 'Beginner', value: 'Beginner' },
-                  { label: 'Intermediate', value: 'Intermediate' },
-                  { label: 'Advanced', value: 'Advanced' },
-                ]}
-                labelField="label"
-                valueField="value"
-                placeholder="Select level"
-                value={value}
-                onChange={item => onChange(item.value)}
-                renderItem={item => renderDropdownItem(item, value)}
+              <EnhanceSuggestionCard
+                value={watch('courseTitle')}
+                onAccept={text => setValue('courseTitle', text)}
+                endpoint="/ai/course/enhance"
+                kind="title"
+                tone="punchy"
               />
-            )}
-          />
-
-          {/* Status */}
-          <View style={styles.labelRow}>
-            <ToggleLeft size={wp(14)} color={'#F0C040'} />
-            <Text style={styles.label}>Status</Text>
-          </View>
-          <Controller
-            name="status"
-            control={control}
-            rules={{ required: true }}
-            render={({ field: { onChange, value }, fieldState: { error } }) => (
-              <Dropdown
-                style={[styles.dropdown, error && styles.errorBorder]}
-                placeholderStyle={styles.placeholderText}
-                selectedTextStyle={styles.selectedText}
-                containerStyle={styles.dropdownContainer}
-                data={[
-                  { label: 'Draft', value: 'DRAFT' },
-                  { label: 'Published', value: 'PUBLISHED' },
-                ]}
-                labelField="label"
-                valueField="value"
-                placeholder="Select status"
-                value={value}
-                onChange={item => onChange(item.value)}
-                renderItem={item => renderDropdownItem(item, value)}
-              />
-            )}
-          />
-
-          {/* Headline */}
-          <View style={[styles.labelRow, { justifyContent: 'space-between' }]}>
-            <View
-              style={{ flexDirection: 'row', alignItems: 'center', gap: wp(6) }}
-            >
-              <FileText size={wp(14)} color={'#F0C040'} />
-              <Text style={styles.label}>Headline</Text>
             </View>
-            <EnhanceSuggestionCard
-              value={watch('description')}
-              onAccept={text => setValue('description', text)}
-              endpoint="/ai/course/enhance"
-              kind="description"
-              tone="conversational"
+            <Controller
+              name="courseTitle"
+              control={control}
+              rules={{ required: true }}
+              render={({ field: { onChange, onBlur, value } }) => (
+                <CustomTextInput
+                  inputContainerStyle={[
+                    styles.input,
+                    errors.courseTitle && styles.errorBorder,
+                  ]}
+                  placeholder="Enter course title"
+                  value={value}
+                  onChange={onChange}
+                  onBlur={onBlur}
+                />
+              )}
             />
-          </View>
-          <Controller
-            name="description"
-            control={control}
-            rules={{
-              required: true,
-              minLength: 5,
-              maxLength: 200,
-            }}
-            render={({
-              field: { onChange, onBlur, value },
-              fieldState: { error },
-            }) => (
-              <CustomTextInput
-                inputContainerStyle={[
-                  styles.input,
-                  styles.textArea,
-                  error && styles.errorBorder,
-                ]}
-                placeholder="Write a headline"
-                value={value}
-                onChange={onChange}
-                onBlur={onBlur}
-                multiline
-              />
-            )}
+
+           {/* Description */}
+           <View
+             style={[styles.labelRow, { justifyContent: 'space-between' }]}
+           >
+             <View
+               style={{
+                 flexDirection: 'row',
+                 alignItems: 'center',
+                 gap: wp(6),
+               }}
+             >
+               <FileText size={wp(14)} color={colors.gold} />
+               <Text style={styles.label}>Description</Text>
+             </View>
+             <EnhanceSuggestionCard
+               value={watch('description')}
+               onAccept={text => setValue('description', text)}
+               endpoint="/ai/course/enhance"
+               kind="description"
+               tone="conversational"
+             />
+           </View>
+           <Controller
+             name="description"
+             control={control}
+             rules={{ required: true, minLength: 5, maxLength: 200 }}
+             render={({
+               field: { onChange, onBlur, value },
+               fieldState: { error },
+             }) => (
+               <CustomTextInput
+                 inputContainerStyle={[
+                   styles.input,
+                   styles.textArea,
+                   error && styles.errorBorder,
+                 ]}
+                 placeholder="Write a headline"
+                 value={value}
+                 onChange={onChange}
+                 onBlur={onBlur}
+                 multiline
+               />
+             )}
+           />
+
+            {/* Pricing & Category section */}
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Pricing & Category</Text>
+              <Text style={styles.sectionSub}>
+                Set the price and level for your course.
+              </Text>
+            </View>
+
+            {/* Price */}
+            <View style={styles.labelRow}>
+              <IndianRupee size={wp(14)} color={'#F0C040'} />
+              <Text style={styles.label}>Price (INR)</Text>
+            </View>
+            <Controller
+              name="price"
+              control={control}
+              rules={{ required: true }}
+              render={({ field: { onChange, onBlur, value } }) => (
+                <CustomTextInput
+                  inputContainerStyle={[
+                    styles.input,
+                    errors.price && styles.errorBorder,
+                  ]}
+                  keyboardType="numeric"
+                  placeholder="e.g ₹499"
+                  value={value}
+                  onChange={onChange}
+                  onBlur={onBlur}
+                />
+              )}
+            />
+
+            {/* Level */}
+            <View style={styles.labelRow}>
+              <BarChart3 size={wp(14)} color={'#F0C040'} />
+              <Text style={styles.label}>Level</Text>
+            </View>
+            <Controller
+              name="level"
+              control={control}
+              rules={{ required: true }}
+              render={({
+                field: { onChange, value },
+                fieldState: { error },
+              }) => (
+                <Dropdown
+                  style={[styles.dropdown, error && styles.errorBorder]}
+                  placeholderStyle={styles.placeholderText}
+                  selectedTextStyle={styles.selectedText}
+                  containerStyle={styles.dropdownContainer}
+                  data={[
+                    { label: 'Beginner', value: 'Beginner' },
+                    { label: 'Intermediate', value: 'Intermediate' },
+                    { label: 'Advanced', value: 'Advanced' },
+                  ]}
+                  labelField="label"
+                  valueField="value"
+                  placeholder="Select level"
+                  value={value}
+                  onChange={item => onChange(item.value)}
+                  renderItem={item => renderDropdownItem(item, value)}
+                />
+              )}
+            />
+
+            {/* Status */}
+            <View style={styles.labelRow}>
+              <ToggleLeft size={wp(14)} color={'#F0C040'} />
+              <Text style={styles.label}>Status</Text>
+            </View>
+            <Controller
+              name="status"
+              control={control}
+              rules={{ required: true }}
+              render={({
+                field: { onChange, value },
+                fieldState: { error },
+              }) => (
+                <Dropdown
+                  style={[styles.dropdown, error && styles.errorBorder]}
+                  placeholderStyle={styles.placeholderText}
+                  selectedTextStyle={styles.selectedText}
+                  containerStyle={styles.dropdownContainer}
+                  data={[
+                    { label: 'Draft', value: 'DRAFT' },
+                    { label: 'Published', value: 'PUBLISHED' },
+                  ]}
+                  labelField="label"
+                  valueField="value"
+                  placeholder="Select status"
+                  value={value}
+                  onChange={item => onChange(item.value)}
+                  renderItem={item => renderDropdownItem(item, value)}
+                />
+              )}
+            />
+
+             {/* Thumbnail */}
+           <View style={styles.sectionHeader}>
+             <Text style={styles.sectionTitle}>Course Thumbnail</Text>
+             <Text style={styles.sectionSub}>
+               Upload an attractive thumbnail for your course.
+             </Text>
+           </View>
+           <Controller
+             name="thumbnail"
+             control={control}
+             render={({ field: { onChange, value } }) => (
+               <View>
+                 <TouchableOpacity
+                   onPress={() => imagePicker(onChange)}
+                   style={styles.thumbnailBtn}
+                   disabled={uploading}
+                   activeOpacity={0.7}
+                 >
+                   {uploading ? (
+                     <ActivityIndicator color={colors.gold} />
+                   ) : (
+                     <View style={{ alignItems: 'center' }}>
+                       <ImagePlus size={wp(18)} color={colors.gold} />
+                       <Text style={styles.thumbnailBtnText}>
+                         {value ? 'Change Thumbnail' : 'Choose Thumbnail'}
+                       </Text>
+                       <Text style={styles.thumbnailBtnCaption}>
+                         Recommended size 1280 x 720
+                       </Text>
+                     </View>
+                   )}
+                 </TouchableOpacity>
+                 {value ? (
+                   <Image
+                     source={{ uri: value }}
+                     style={styles.imagePreview}
+                     resizeMode="cover"
+                   />
+                 ) : null}
+               </View>
+             )}
           />
 
-          <AccessExpiryField
-            initialDurationDays={updateData?.access_duration_days ?? null}
-            initialDurationUnit={updateData?.access_duration_unit ?? null}
-            initialExpiresAt={updateData?.access_expires_at ?? null}
-            onChange={setAccessPolicy}
-          />
+            {/* Course Validity */}
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Course Validity</Text>
+              <Text style={styles.sectionSub}>
+                Set how long students can access your course.
+              </Text>
+            </View>
+            <AccessExpiryField
+              initialDurationDays={updateData?.access_duration_days ?? null}
+              initialDurationUnit={updateData?.access_duration_unit ?? null}
+              initialExpiresAt={updateData?.access_expires_at ?? null}
+              onChange={setAccessPolicy}
+            />
 
-          <CommunityLinkField
-            whatsappUrl={whatsappUrl}
-            onChangeWhatsapp={setWhatsappUrl}
-            message={thankYouMsg}
-            onChangeMessage={setThankYouMsg}
-          />
+            <CommunityLinkField
+              whatsappUrl={whatsappUrl}
+              onChangeWhatsapp={setWhatsappUrl}
+              message={thankYouMsg}
+              onChangeMessage={setThankYouMsg}
+            />
 
-          <FacingIssues
-            title="Facing issues in upload"
-            messgae="Hello, I need help with uploading."
-          />
+            <FacingIssues
+              title="Facing issues in upload"
+              messgae="Hello, I need help with uploading."
+            />
           </View>
 
           {/* Bottom Actions */}
@@ -461,7 +495,9 @@ const CreateCourse = () => {
             </TouchableOpacity>
 
             <TouchableOpacity
-              onPress={handleSubmit(isUpdated ? onCourseUpdate : onCreateCourse)}
+              onPress={handleSubmit(
+                isUpdated ? onCourseUpdate : onCreateCourse,
+              )}
               disabled={loading}
               activeOpacity={0.85}
             >
@@ -502,19 +538,9 @@ const styles = StyleSheet.create({
     paddingBottom: hp(24),
   },
   card: {
-    backgroundColor: '#1A1A1A',
+    backgroundColor: colors.primaryDark,
     borderRadius: wp(18),
     padding: wp(16),
-  },
-  banner: {
-    marginBottom: hp(8),
-  },
-  bannerTitle: { fontSize: fp(18), fontWeight: '700', color: '#FFFFFF' },
-  bannerSub: {
-    fontSize: fp(12),
-    color: 'rgba(255,255,255,0.55)',
-    marginTop: hp(4),
-    lineHeight: fp(18),
   },
 
   // Labels
@@ -527,7 +553,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: fp(11),
-    color: '#F0C040',
+    color: colors.gold,
     fontWeight: '700',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
@@ -560,7 +586,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: wp(8),
     borderRadius: wp(12),
-    height: hp(46),
+    minHeight: hp(64),
+   paddingVertical: hp(10),
     backgroundColor: colors.inputBg,
     borderWidth: 1,
     borderColor: colors.gold,
@@ -571,6 +598,11 @@ const styles = StyleSheet.create({
     fontSize: fp(14),
     fontWeight: '500',
   },
+  thumbnailBtnCaption: {
+   color: colors.textMuted,
+   fontSize: fp(11),
+   marginTop: hp(2),
+},
   imagePreview: {
     width: '100%',
     height: hp(160),
@@ -593,7 +625,7 @@ const styles = StyleSheet.create({
   dropdownContainer: {
     borderRadius: wp(12),
     overflow: 'hidden',
-    backgroundColor: '#1A1A1A',
+    backgroundColor: colors.primaryDark,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
   },
@@ -637,10 +669,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: 'transparent',
     borderWidth: wp(1.5),
-    borderColor: '#F0C040',
+    borderColor: colors.gold,
   },
   cancelText: {
-    color: '#F0C040',
+    color: colors.gold,
     fontWeight: '700',
     fontSize: fp(16),
   },
@@ -654,5 +686,20 @@ const styles = StyleSheet.create({
     color: colors.black,
     fontWeight: '800',
     fontSize: fp(16),
+  },
+  sectionHeader: {
+    marginTop: hp(20),
+    marginBottom: hp(4),
+  },
+  sectionTitle: {
+    fontSize: fp(15),
+    fontWeight: '700',
+    color: colors.textPrimary,
+  },
+  sectionSub: {
+    fontSize: fp(11.5),
+    color: 'rgba(255,255,255,0.45)',
+    marginTop: hp(3),
+    lineHeight: fp(16),
   },
 });

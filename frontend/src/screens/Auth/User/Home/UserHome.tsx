@@ -1,15 +1,19 @@
 import React, { memo } from 'react';
-import { View, ScrollView, StyleSheet,  } from 'react-native';
+import {
+  View,
+  ScrollView,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  Text,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-//import { ChevronRight, Store } from 'lucide-react-native';
 import { hp, wp, fp } from '../../../../utils/responsive';
 import colors from '../../../../utils/colors';
 import HomeHeader from './components/HomeHeader';
-import HeroCarousel from './components/HeroCarousel';
 import LatestCourses from './components/LatestCourses';
 import LatestWebinars from './components/LatestWebinars';
-import TopExperts from './components/TopExperts';
-//import BrandMarketplace from '../Marketplace/BrandMarketplace';
+import PopularSession from './components/PopularSession';
 const UserHome = () => {
   const navigation = useNavigation<any>();
 
@@ -21,30 +25,26 @@ const UserHome = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        <HeroCarousel />
-        
-        <TopExperts />
+        <TouchableOpacity activeOpacity={0.9} style={styles.bannerWrapper}>
+          <View style={styles.bannerTextBox}>
+            <View style={styles.bannerPill}>
+              <Text style={styles.bannerPillText}>Explore & Learn</Text>
+            </View>
+            <Text style={styles.bannerTitle}>Learn from real creators.</Text>
+            <Text style={styles.bannerSub} numberOfLines={3}>
+              Discover courses, live webinars and 1:1 sessions to build new
+              skills.
+            </Text>
+          </View>
+          <Image
+            source={require('../../../../image/human.jpg')}
+            style={styles.bannerImage}
+            resizeMode="cover"
+          />
+        </TouchableOpacity>
         <LatestCourses />
         <LatestWebinars />
-
-      {/*
-<TouchableOpacity
-  style={styles.marketPlaceBanner}
-  activeOpacity={0.8}
-  onPress={() => navigation.navigate('BrandMarketplace')}
->
-  <View style={styles.marketPlaceIcon}>
-    <Store size={wp(20)} color={colors.textPrimary} />
-  </View>
-  <View style={styles.marketPlaceContent}>
-    <Text style={styles.marketPlaceTitle}>Market Place</Text>
-  </View>
-  <View style={styles.marketPlaceAction}>
-    <Text style={styles.marketPlaceActionText}>Go to Hub</Text>
-    <ChevronRight size={wp(16)} color={colors.textPrimary} />
-  </View>
-</TouchableOpacity>
-*/}
+        <PopularSession />
       </ScrollView>
     </View>
   );
@@ -64,6 +64,48 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: hp(100),
   },
+  bannerWrapper: {
+    flexDirection: 'row',
+    marginHorizontal: wp(16),
+    marginTop: hp(16),
+    borderRadius: wp(14),
+    overflow: 'hidden',
+    alignItems: 'center',
+    backgroundColor: '#E8F8EE',
+  },
+  bannerImage: {
+    width: '50%',
+    height: hp(150),
+  },
+  bannerTextBox: {
+    flex: 1,
+    paddingHorizontal: wp(14),
+    paddingVertical: hp(12),
+  },
+  bannerPill: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#C9F2D8',
+    borderRadius: wp(20),
+    paddingHorizontal: wp(10),
+    paddingVertical: hp(4),
+    marginBottom: hp(8),
+  },
+  bannerPillText: {
+    fontSize: fp(10),
+    fontWeight: '700',
+    color: '#15803D',
+  },
+  bannerTitle: {
+    fontSize: fp(15),
+    fontWeight: '800',
+    color: '#0F172A',
+    marginBottom: hp(4),
+  },
+  bannerSub: {
+    fontSize: fp(11),
+    color: '#64748B',
+    lineHeight: fp(15),
+  },
   expertBanner: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -78,7 +120,7 @@ const styles = StyleSheet.create({
     width: wp(48),
     height: wp(48),
     borderRadius: wp(24),
-    backgroundColor:colors.user.subHeading,
+    backgroundColor: colors.user.subHeading,
     alignItems: 'center',
     justifyContent: 'center',
   },

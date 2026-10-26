@@ -66,7 +66,7 @@ const CoursePlannerModal: React.FC<Props> = ({ visible, onClose }) => {
           </View>
           <View style={s.metricBox}>
             <Text style={s.metricValue}>{data.total_lessons}</Text>
-            <Text style={s.metricLabel}>Total Lessons</Text>
+            <Text style={s.metricLabel}>Total Videos</Text>
           </View>
         </View>
         {data.modules?.map((m: any) => (

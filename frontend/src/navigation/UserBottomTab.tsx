@@ -11,7 +11,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import colors from '../utils/colors';
 import { wp, hp, fp } from '../utils/responsive';
-import ExploreDetail from '../screens/Auth/User/Explore/ExploreDetail';
 import PurchasesScreen from '../screens/Auth/User/Purchase/PurchasesScreen';
 import {
   House,
@@ -21,10 +20,12 @@ import {
   User,
 } from 'lucide-react-native';
 import UserHome from '../screens/Auth/User/Home/UserHome';
-import UserSessions from '../screens/Auth/User/Sessions/UserSessions';
+//import UserSessions from '../screens/Auth/User/Sessions/UserSessions';
 import UserSetting from '../screens/Auth/User/Settings/UserSetting';
 import { canAccessMarketplace } from '../utils/marketplaceUtils';
 import { useSelector } from 'react-redux';
+import ProductsScreen from '../screens/Auth/User/Products/ProductsScreen';
+import ReelsFeedScreen from '../screens/Auth/User/reels/ReelFeedScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -32,14 +33,14 @@ const tabs = [
   { name: 'Home', component: UserHome, label: 'Home', Icon: House },
   {
     name: 'ProductsScreen',
-    component: ExploreDetail,
+    component: ProductsScreen,
     label: 'Explore',
     Icon: Compass,
   },
   {
-    name: 'UserSessions',
-    component: UserSessions,
-    label: 'Sessions',
+    name: 'ReelsFeedScreen',
+    component: ReelsFeedScreen,
+    label: 'Reels',
     Icon: MonitorPlay,
   },
   {

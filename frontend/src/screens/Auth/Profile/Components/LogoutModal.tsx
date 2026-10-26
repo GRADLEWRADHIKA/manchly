@@ -18,13 +18,11 @@ type Props = {
   variant?: 'light' | 'dark';
 };
 
+// Kept exactly as-is per instruction — do not change the logout button's color
 const SALMON = '#F5A9A0';
 const SALMON_DARK_TEXT = '#7A2E24';
-const ICON_BG = '#3A2426';
 
 const LogoutModal: React.FC<Props> = ({ visible, onCancel, onConfirm, variant = 'light' }) => {
-  const isDark = variant === 'dark';
-
   return (
     <Modal
       visible={visible}
@@ -33,13 +31,13 @@ const LogoutModal: React.FC<Props> = ({ visible, onCancel, onConfirm, variant = 
       onRequestClose={onCancel}
     >
       <View style={styles.backdrop}>
-        <View style={[styles.card, isDark && styles.cardDark]}>
+        <View style={styles.card}>
           <View style={styles.iconWrap}>
             <LogOut size={wp(24)} color={SALMON} strokeWidth={2} />
           </View>
 
-          <Text style={[styles.title, isDark && styles.titleDark]}>Log Out</Text>
-          <Text style={[styles.message, isDark && styles.messageDark]}>
+          <Text style={styles.title}>Log Out</Text>
+          <Text style={styles.message}>
             Are you sure you want to log out of Manchly?
           </Text>
 
@@ -53,11 +51,11 @@ const LogoutModal: React.FC<Props> = ({ visible, onCancel, onConfirm, variant = 
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.btn, isDark ? styles.cancelDark : styles.cancel]}
+              style={[styles.btn, styles.cancel]}
               onPress={onCancel}
               activeOpacity={0.8}
             >
-              <Text style={[styles.btnText, isDark ? styles.cancelTextDark : styles.cancelText]}>
+              <Text style={styles.cancelText}>
                 Cancel
               </Text>
             </TouchableOpacity>
@@ -73,7 +71,7 @@ export default LogoutModal;
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: '#00000088',
+    backgroundColor: 'rgba(0,0,0,0.75)',
     alignItems: 'center',
     justifyContent: 'center',
     padding: wp(24),
@@ -82,51 +80,44 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     borderRadius: wp(20),
-    backgroundColor: '#080C25',
+    backgroundColor: '#141414',
     padding: wp(22),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
     ...Platform.select({
       ios: {
-        shadowColor: colors.black,
-        shadowOpacity: 0.3,
-        shadowRadius: 16,
-        shadowOffset: { width: 0, height: 8 },
+        shadowColor: colors.shadow,
+        shadowOpacity: 0.2,
+        shadowRadius: 14,
+        shadowOffset: { width: 0, height: 6 },
       },
-      android: { elevation: 8 },
+      android: { elevation: 5 },
     }),
-  },
-  cardDark: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.uCard,
   },
   iconWrap: {
     width: wp(56),
     height: wp(56),
     borderRadius: wp(28),
-    backgroundColor: ICON_BG,
+    backgroundColor: 'rgba(255,255,255,0.1)',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: hp(16),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.15)',
   },
   title: {
     fontSize: fp(18),
     fontWeight: '600',
-    color: colors.textPrimary,
+    color: colors.white,
     marginBottom: hp(8),
     textAlign: 'center',
   },
-  titleDark: {
-    color: colors.textPrimary,
-  },
   message: {
     fontSize: fp(14),
-    color: colors.uSubHeading,
+    color: 'rgba(255,255,255,0.6)',
     marginBottom: hp(22),
     textAlign: 'center',
     lineHeight: fp(20),
-  },
-  messageDark: {
-    color: colors.textSecondary,
   },
   actions: {
     flexDirection: 'column',
@@ -141,20 +132,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cancel: {
-    backgroundColor: colors.uCard,
-    borderWidth: wp(1),
-    borderColor: colors.uBg,
-  },
-  cancelDark: {
-    backgroundColor: colors.uCard,
+    backgroundColor: 'rgba(255,255,255,0.1)',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: 'rgba(255,255,255,0.15)',
   },
   cancelText: {
-    color: colors.textPrimary,
-  },
-  cancelTextDark: {
-    color: colors.textPrimary,
+    fontSize: fp(15),
+    fontWeight: '600',
+    color: colors.white,
   },
   danger: {
     backgroundColor: SALMON,
@@ -163,10 +148,5 @@ const styles = StyleSheet.create({
     fontSize: fp(15),
     fontWeight: '700',
     color: SALMON_DARK_TEXT,
-  },
-  btnText: {
-    fontSize: fp(15),
-    fontWeight: '600',
-    color: colors.textPrimary,
   },
 });

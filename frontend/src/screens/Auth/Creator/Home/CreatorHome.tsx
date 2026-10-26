@@ -16,12 +16,13 @@ import {
 import {
   Bell,
   ChevronRight,
-  Bot,
   BookOpen,
   Users,
   Calendar,
   Instagram,
   Video as VideoIcon,
+  Rocket,
+  Play,
 } from 'lucide-react-native';
 import Svg, { Circle as SvgCircle, Path as SvgPath } from 'react-native-svg';
 import colors from '../../../../utils/colors';
@@ -33,18 +34,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import RocketIcon from '../../../../components/RocketIcon';
 import { getCreatorSales } from '../../../../store/PaymentSlice';
-import {
-  fetchCourses,
-  getCreatorCourseStats,
-} from '../../../../store/CourseSlice';
-import {
-  getAllWebinar,
-  getCreatorWebinarStats,
-} from '../../../../store/WebinarSlice';
+import { getCreatorCourseStats } from '../../../../store/CourseSlice';
+import { getCreatorWebinarStats } from '../../../../store/WebinarSlice';
+import { getSessionStats } from '../../../../store/SessionSlice';
 import { instance } from '../../../../utils/AxiosInstance';
-import { Play } from 'lucide-react-native';
 import { clearJustLoggedIn } from '../../../../store/UserSlice';
 import FloatingIntroVideo from '../../../../components/FloatingIntroVideo';
+import CoursePlannerModal from '../../../../components/ai/CoursePlanner';
 
 const CreatorHome = () => {
   const navigation = useNavigation<any>();
@@ -54,14 +50,16 @@ const CreatorHome = () => {
   const { creatorWebinarStats } = useSelector(
     (state: any) => state.webinarReducer,
   );
+  const { stats: sessionStats } = useSelector(
+    (state: any) => state.sessionReducer,
+  );
   const insets = useSafeAreaInsets();
   const [walletLoading, setWalletLoading] = useState(true);
   const [walletData, setWalletData] = useState<any>(null);
   const { justLoggedIn } = useSelector((state: any) => state.userReducer);
   const focus = useIsFocused();
-  const [courses, setCourses] = useState<any[]>([]);
-  const [webiniarData, setWebinarData] = useState<any[]>([]);
   const [showIntroVideo, setShowIntroVideo] = useState(false);
+  const [showCoursePlannerModal, setShowCoursePlannerModal] = useState(false);
 
   useEffect(() => {
     if (justLoggedIn) {
@@ -69,46 +67,6 @@ const CreatorHome = () => {
       dispatch(clearJustLoggedIn());
     }
   }, [justLoggedIn]);
-
-  useEffect(() => {
-    getTheCourse();
-    fetchWebinars();
-  }, [focus]);
-
-  const getTheCourse = () => {
-    const payload = {
-      page: 1,
-      limit: 10,
-      my_courses: true,
-    };
-
-    dispatch(fetchCourses(payload))
-      .unwrap()
-      .then(response => {
-        const newData = response?.data?.data?.courses || [];
-        setCourses(newData);
-        console.log(courses.length);
-      })
-      .finally(() => {});
-  };
-
-  const fetchWebinars = () => {
-    const payload = {
-      page: 1,
-      limit: 50,
-      upcoming: true,
-      title: '',
-      my_webinars: true,
-    };
-    dispatch(getAllWebinar(payload))
-      .unwrap()
-      .then(response => {
-        setWebinarData(response?.data?.data?.webinars || []);
-      })
-      .catch(error => {
-        console.log('Error fetching webinars:', error);
-      });
-  };
 
   const fetchWallet = async () => {
     try {
@@ -123,7 +81,6 @@ const CreatorHome = () => {
           return null;
         }),
         instance.get('settlements/bank-account').catch((e: any) => {
-          // 404 = creator hasn't saved bank details yet (expected), not an error
           if (e?.response?.status !== 404) {
             console.log('Bank API error:', e?.response?.status);
           }
@@ -148,6 +105,7 @@ const CreatorHome = () => {
     dispatch(getCreatorSales({}));
     dispatch(getCreatorCourseStats());
     dispatch(getCreatorWebinarStats());
+    dispatch(getSessionStats());
   }, []);
 
   const displayName = user?.name
@@ -268,25 +226,31 @@ const CreatorHome = () => {
             <View style={styles.perfRow}>
               <BookOpen size={wp(13)} color={colors.golden} />
               <Text style={styles.perfLabel}>Courses</Text>
-              <Text style={styles.perfValue}>{courses.length}</Text>
+              <Text style={styles.perfValue}>
+                {creatorStats?.statistics?.total_courses ?? 0}
+              </Text>
             </View>
             <View style={styles.perfRow}>
               <Users size={wp(13)} color={colors.golden} />
-              <Text style={styles.perfLabel}>Students</Text>
+              <Text style={styles.perfLabel}>Users</Text>
               <Text style={styles.perfValue}>
-                {creatorStats?.statistics?.total_enrollments ?? 0}
+                {(creatorStats?.statistics?.total_enrollments ?? 0) +
+                  (creatorWebinarStats?.statistics?.total_enrollments ?? 0) +
+                  (sessionStats?.total_sessions ?? 0)}
               </Text>
             </View>
             <View style={styles.perfRow}>
               <VideoIcon size={wp(13)} color={colors.golden} />
               <Text style={styles.perfLabel}>Webinars</Text>
-              <Text style={styles.perfValue}>{webiniarData.length}</Text>
+              <Text style={styles.perfValue}>
+                {creatorWebinarStats?.statistics?.total_webinars ?? 0}
+              </Text>
             </View>
             <View style={styles.perfRow}>
               <Calendar size={wp(13)} color={colors.golden} />
               <Text style={styles.perfLabel}>Sessions</Text>
               <Text style={styles.perfValue}>
-                {creatorWebinarStats?.statistics?.webinars_sold ?? 0}
+                {sessionStats?.total_sessions ?? 0}
               </Text>
             </View>
           </View>
@@ -343,26 +307,21 @@ const CreatorHome = () => {
         {/* Quick Actions */}
         <QuickActions />
 
+        {/* AI Course Planner Card */}
         <View style={styles.sectionPadding}>
-          <LinearGradient
-            colors={['#1A1A1A', '#141414']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.aiCard}
+          <TouchableOpacity
+            style={styles.toolCard}
+            activeOpacity={0.75}
+            onPress={() => setShowCoursePlannerModal(true)}
           >
-            <View style={styles.aiBadge}>
-              <Bot size={wp(14)} color={colors.golden} />
-              <Text style={styles.aiBadgeText}>AI CONTENT ASSISTANT</Text>
+            <View style={styles.toolIconWrap}>
+              <Rocket size={wp(22)} color={colors.white} />
             </View>
-
-            <Text style={styles.aiTitle}>Suggested: Host a Live Q&A</Text>
-
-            <Text style={styles.aiDescription}>
-              Based on your recent engagement spikes on Thursday evenings, a
-              live session could increase your retention by up to 15%. Your
-              subscribers are asking about "Color Grading Workflow".
+            <Text style={styles.toolTitle}>AI Course Planner</Text>
+            <Text style={styles.toolDescription}>
+              Turn any niche into a full go-to-market plan — curriculum, ads, and revenue forecast.
             </Text>
-          </LinearGradient>
+          </TouchableOpacity>
         </View>
       </ScrollView>
 
@@ -371,6 +330,10 @@ const CreatorHome = () => {
         onClose={() => setShowIntroVideo(false)}
       />
 
+      <CoursePlannerModal
+        visible={showCoursePlannerModal}
+        onClose={() => setShowCoursePlannerModal(false)}
+      />
     </View>
   );
 };
@@ -564,7 +527,7 @@ const styles = StyleSheet.create({
     transform: [{ rotate: '-12deg' }],
   },
 
-  // CTA (shared golden button style)
+  // CTA
   ctaButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -579,69 +542,30 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
 
-  // AI Content Assistant
-  aiCard: {
-    borderRadius: wp(20),
+  // AI Tool Card
+  toolCard: {
+    backgroundColor: '#1A1A1A',
+    borderRadius: wp(22),
     padding: wp(20),
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.2,
-    shadowRadius: 14,
-    elevation: 5,
   },
-  aiBadge: {
-    flexDirection: 'row',
+  toolIconWrap: {
+    width: wp(50),
+    height: wp(50),
+    borderRadius: wp(14),
+    backgroundColor: '#2A2A2A',
     alignItems: 'center',
-    alignSelf: 'flex-start',
-    gap: wp(6),
-    marginBottom: hp(12),
+    justifyContent: 'center',
+    marginBottom: hp(16),
   },
-  aiBadgeText: {
-    fontSize: fp(11),
-    fontWeight: '800',
-    color: colors.golden,
-    letterSpacing: 1,
-  },
-  aiTitle: {
+  toolTitle: {
     fontSize: fp(17),
-    fontWeight: '800',
+    fontWeight: '600',
     color: colors.white,
     marginBottom: hp(8),
   },
-  aiDescription: {
-    fontSize: fp(12.5),
-    color: 'rgba(255,255,255,0.6)',
-    lineHeight: fp(18),
-    marginBottom: hp(18),
-  },
-  aiButtonsRow: {
-    flexDirection: 'row',
-    gap: wp(10),
-  },
-  aiScheduleWrap: {
-    flex: 1,
-  },
-  aiScheduleBtn: {
-    borderRadius: wp(12),
-    paddingVertical: hp(13),
-    alignItems: 'center',
-  },
-  aiScheduleText: {
-    fontSize: fp(13.5),
-    fontWeight: '700',
-    color: colors.primary,
-  },
-  aiDraftBtn: {
-    flex: 1,
-    borderRadius: wp(12),
-    paddingVertical: hp(13),
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(214,156,64,0.5)',
-  },
-  aiDraftText: {
-    fontSize: fp(13.5),
-    fontWeight: '700',
-    color: '#D69C40',
+  toolDescription: {
+    fontSize: fp(13),
+    color: '#D9C7A3',
+    lineHeight: fp(19),
   },
 });

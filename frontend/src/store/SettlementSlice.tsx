@@ -48,7 +48,7 @@ export const addBankAccount = createAsyncThunk('settlement/addBankAccount', asyn
 // Get Bank Account
 export const getBankAccount = createAsyncThunk('settlement/getBankAccount', async () => {
   const res = await instance.get('settlements/bank-account');
-  return res.data?.data;
+  return res.data?.data?.bankAccount;
 });
 
 // Get Earnings Breakdown

@@ -16,12 +16,17 @@ import { useDispatch, useSelector } from 'react-redux';
 import { ThunkDispatch } from '@reduxjs/toolkit';
 import {
   ArrowLeft,
-  Coins,
   BarChart3,
   ArrowUp,
   AlertTriangle,
   CreditCard,
   X,
+  Wallet,
+  Landmark,
+  FileText,
+  Info,
+  TrendingUp,
+  ChevronRight,
 } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 import LinearGradient from 'react-native-linear-gradient';
@@ -38,7 +43,6 @@ import {
   requestWithdrawal,
   verifyKycComplete,
 } from '../../../store/SettlementSlice';
-import { getCreatorSales } from '../../../store/PaymentSlice';
 
 const WalletCreator: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -48,7 +52,6 @@ const WalletCreator: React.FC = () => {
   const { kycStatus, wallet, bankAccount, earningsBreakdown } = useSelector(
     (state: any) => state.settlementReducer,
   );
-  const { sales } = useSelector((state: any) => state.paymentReducer);
 
   const [loading, setLoading] = useState(false);
 
@@ -76,7 +79,6 @@ const WalletCreator: React.FC = () => {
       dispatch(getWallet()),
       dispatch(getBankAccount()),
       dispatch(getEarningsBreakdown()),
-      dispatch(getCreatorSales()),
     ]).finally(() => setLoading(false));
   };
 
@@ -84,7 +86,11 @@ const WalletCreator: React.FC = () => {
     loadData();
   }, []);
 
-  const kycVerified = !!kycStatus?.verified || kycStatus?.kyc_status === 'COMPLETED';
+  const kycVerified =
+    !!kycStatus?.verified || kycStatus?.kyc_status === 'COMPLETED';
+
+  // Optional MoM growth badge — only renders if the backend actually sends this field
+  const growthPercent = earningsBreakdown?.growth_percentage;
 
   const handleWithdraw = () => {
     if (!kycVerified) {
@@ -104,6 +110,15 @@ const WalletCreator: React.FC = () => {
       return;
     }
     setShowWithdrawModal(true);
+  };
+
+  const handleComingSoon = (label: string) => {
+    Toast.show({
+      type: 'info',
+      text1: 'Coming Soon',
+      text2: `${label} will be available soon`,
+      position: 'top',
+    });
   };
 
   const submitWithdrawal = () => {
@@ -187,34 +202,13 @@ const WalletCreator: React.FC = () => {
       .finally(() => setLoading(false));
   };
 
-  // Earning details from server or fallback
-  const earningsData = [
-    {
-      id: 'net_earnings',
-      icon: Coins,
-      label: 'Net Earnings',
-      subLabel: 'This month',
-      amount: earningsBreakdown?.net_earnings || 0,
-    },
-    {
-      id: 'total_earnings',
-      icon: BarChart3,
-      label: 'Total Earnings',
-      subLabel: 'All time',
-      amount: earningsBreakdown?.total_earnings || 0,
-    },
-    {
-      id: 'last_payout',
-      icon: ArrowUp,
-      label: 'Last Payout',
-      subLabel: 'Previous',
-      amount: earningsBreakdown?.last_payout || 0,
-    },
-  ];
-
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor="transparent"
+        translucent
+      />
 
       {/* Navigation Header */}
       <View style={[styles.header, { paddingTop: insets.top + hp(12) }]}>
@@ -223,34 +217,85 @@ const WalletCreator: React.FC = () => {
           onPress={() => navigation.goBack()}
           activeOpacity={0.8}
         >
-          <ArrowLeft size={22} color={colors.white || '#FFFFFF'} />
+          <ArrowLeft size={20} color={colors.white || '#FFFFFF'} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Wallet & Settlements</Text>
-        <View style={{ width: wp(30) }} />
+        <View style={styles.headerTextWrap}>
+          <Text style={styles.headerTitle}>Wallet & Settlements</Text>
+          <Text style={styles.headerSubtitle}>
+            Track your earnings and manage payouts
+          </Text>
+        </View>
+        {/* Spacer to balance the back button so title stays centered */}
+        <View style={styles.headerSpacer} />
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
         {/* Total Balance Block */}
         <View style={styles.balanceBlock}>
-          <Text style={styles.balanceLabel}>TOTAL BALANCE AVAILABLE</Text>
-          <Text style={styles.balanceAmount}>{formatINR(wallet?.balance || 0)}</Text>
-
-          {/* Action Pills */}
-          <View style={styles.actionPillsContainer}>
-            <TouchableOpacity
-              style={styles.actionPill}
-              onPress={handleWithdraw}
-              activeOpacity={0.8}
-            >
-              <LinearGradient
-                colors={['#F3C36B', '#D49A3D']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.withdrawPillGradient}
+          <View style={styles.balanceCard}>
+            <View style={styles.balanceTopRow}>
+              <View style={styles.balanceIconWrap}>
+                <Wallet size={wp(20)} color={colors.gold || '#F0C040'} />
+              </View>
+              <View style={styles.balanceInfo}>
+                <View style={styles.balanceLabelRow}>
+                  <Text style={styles.balanceLabel}>Total Balance</Text>
+                  <Info size={wp(11)} color="rgba(255,255,255,0.4)" />
+                </View>
+                <Text style={styles.balanceAmount}>
+                  {formatINR(wallet?.wallet?.available_balance || 0)}
+                </Text>
+                {growthPercent !== undefined && growthPercent !== null && (
+                  <View style={styles.growthBadge}>
+                    <TrendingUp size={wp(10)} color="#22C55E" />
+                    <Text style={styles.growthText}>
+                      {growthPercent > 0 ? '+' : ''}
+                      {growthPercent}% from last month
+                    </Text>
+                  </View>
+                )}
+              </View>
+              <TouchableOpacity
+                onPress={handleWithdraw}
+                activeOpacity={0.8}
+                style={styles.withdrawBtnWrap}
               >
-                <Text style={styles.withdrawText}>Withdraw</Text>
-              </LinearGradient>
-            </TouchableOpacity>
+                <LinearGradient
+                  colors={['#F3C36B', '#D49A3D']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.withdrawPillGradient}
+                >
+                  <Text style={styles.withdrawText}>Withdraw</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.statsRow}>
+              <View style={styles.statCol}>
+                <Text style={styles.statLabel}>This Month</Text>
+                <Text style={styles.statValue}>
+                  {formatINR(earningsBreakdown?.net_earnings || 0)}
+                </Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statCol}>
+                <Text style={styles.statLabel}>All Time Earnings</Text>
+                <Text style={styles.statValue}>
+                  {formatINR(earningsBreakdown?.total_earnings || 0)}
+                </Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statCol}>
+                <Text style={styles.statLabel}>Last Payout</Text>
+                <Text style={styles.statValue}>
+                  {formatINR(earningsBreakdown?.last_payout || 0)}
+                </Text>
+              </View>
+            </View>
           </View>
         </View>
 
@@ -259,7 +304,9 @@ const WalletCreator: React.FC = () => {
           <View style={styles.complianceCard}>
             <AlertTriangle size={20} color={colors.gold || '#F0C040'} />
             <View style={styles.complianceInfo}>
-              <Text style={styles.complianceTitle}>KYC Verification Required</Text>
+              <Text style={styles.complianceTitle}>
+                KYC Verification Required
+              </Text>
               <Text style={styles.complianceText}>
                 Verify your PAN to enable withdrawal transfers.
               </Text>
@@ -272,6 +319,8 @@ const WalletCreator: React.FC = () => {
             </TouchableOpacity>
           </View>
         )}
+
+       
 
         {/* Bank Account registration */}
         {!bankAccount ? (
@@ -298,35 +347,88 @@ const WalletCreator: React.FC = () => {
             </View>
             <Text style={styles.bankName}>{bankAccount.bank_name}</Text>
             <Text style={styles.bankNumber}>
-              Account: ****{bankAccount.account_number?.slice(-4)} ({bankAccount.account_holder})
+              Account: ****{bankAccount.account_number?.slice(-4)} (
+              {bankAccount.account_holder})
             </Text>
             <Text style={styles.bankIfsc}>IFSC: {bankAccount.ifsc}</Text>
           </View>
         )}
 
-        {/* Earnings Breakdown */}
-        <View style={styles.earningsCard}>
-          <Text style={styles.cardHeaderTitle}>Earnings Summary</Text>
-          {earningsData.map((item, index) => {
-            const IconComponent = item.icon;
-            return (
-              <View key={item.id} style={styles.earningRowContainer}>
-                <View style={styles.earningRow}>
-                  <View style={styles.iconCircle}>
-                    <IconComponent size={16} color={colors.gold || '#F0C040'} />
-                  </View>
+        {/* Recent Transactions List */}
+        <View style={styles.transactionsCard}>
+          <View style={styles.transactionsHeaderRow}>
+            <Text style={styles.cardHeaderTitle}>Recent Transactions</Text>
+            <TouchableOpacity
+              onPress={() => handleComingSoon('Transaction History')}
+            >
+              <Text style={styles.viewAllText}>View All</Text>
+            </TouchableOpacity>
+          </View>
 
-                  <View style={styles.labelCol}>
-                    <Text style={styles.earningLabel}>{item.label}</Text>
-                    <Text style={styles.earningSubLabel}>{item.subLabel}</Text>
-                  </View>
+          {wallet?.transactions && wallet.transactions.length > 0 ? (
+            wallet.transactions.map((tx: any, index: number) => {
+              const isDebit = (tx.net_amount ?? tx.amount ?? 0) < 0;
+              const amountValue = Math.abs(tx.net_amount ?? tx.amount ?? 0);
 
-                  <Text style={styles.earningAmount}>{formatINR(item.amount)}</Text>
+              return (
+                <View key={tx.id || index.toString()}>
+                  <View style={styles.txRow}>
+                    <View
+                      style={[
+                        styles.txIconCircle,
+                        {
+                          backgroundColor: isDebit
+                            ? 'rgba(255,255,255,0.08)'
+                            : 'rgba(34,197,94,0.12)',
+                        },
+                      ]}
+                    >
+                      {isDebit ? (
+                        <Landmark size={16} color="rgba(255,255,255,0.7)" />
+                      ) : (
+                        <ArrowUp
+                          size={16}
+                          color="#22C55E"
+                          style={{ transform: [{ rotate: '180deg' }] }}
+                        />
+                      )}
+                    </View>
+
+                    <View style={styles.txInfo}>
+                      <Text style={styles.txTitle}>{tx.title}</Text>
+                      <Text style={styles.txMeta}>
+                        {new Date(tx.created_at).toLocaleDateString('en-IN', {
+                          day: 'numeric',
+                          month: 'short',
+                          year: 'numeric',
+                        })}
+                        {', '}
+                        {new Date(tx.created_at).toLocaleTimeString('en-IN', {
+                          hour: 'numeric',
+                          minute: '2-digit',
+                        })}
+                      </Text>
+                    </View>
+
+                    <Text
+                      style={[
+                        styles.txAmount,
+                        { color: isDebit ? '#EF4444' : '#22C55E' },
+                      ]}
+                    >
+                      {isDebit ? '-' : '+'}
+                      {formatINR(amountValue)}
+                    </Text>
+                  </View>
+                  {index < wallet.transactions.length - 1 && (
+                    <View style={styles.divider} />
+                  )}
                 </View>
-                {index < earningsData.length - 1 && <View style={styles.divider} />}
-              </View>
-            );
-          })}
+              );
+            })
+          ) : (
+            <Text style={styles.emptyText}>No transactions recorded yet.</Text>
+          )}
         </View>
 
         {/* Settlement History Link */}
@@ -335,30 +437,14 @@ const WalletCreator: React.FC = () => {
           onPress={() => navigation.navigate('SettlementHistory')}
           activeOpacity={0.8}
         >
-          <Text style={styles.settlementLinkText}>View Settlement History</Text>
-          <ArrowUp size={16} color={colors.gold || '#F0C040'} style={{transform: [{rotate: '90deg'}]}} />
+          <View style={styles.settlementLeft}>
+            <FileText size={wp(15)} color={colors.gold || '#F0C040'} />
+            <Text style={styles.settlementLinkText}>
+              View Settlement History
+            </Text>
+          </View>
+          <ChevronRight size={wp(16)} color={colors.gold || '#F0C040'} />
         </TouchableOpacity>
-
-        {/* Recent Transactions List */}
-        <View style={styles.transactionsCard}>
-          <Text style={styles.cardHeaderTitle}>Sales & Revenue Logs</Text>
-
-          {sales && sales.length > 0 ? (
-            sales.map((tx: any, index: number) => (
-              <ListRow
-                key={tx.id || index.toString()}
-                title={tx.course?.title || tx.webinar?.title || tx.title || 'Product Sale'}
-                meta={new Date(tx.created_at).toLocaleDateString()}
-                avatarInitials="TX"
-                trailingType="percentage"
-                trailingText={`+${formatINR(tx.amount || 0)}`}
-                showDivider={index < sales.length - 1}
-              />
-            ))
-          ) : (
-            <Text style={styles.emptyText}>No sales recorded yet.</Text>
-          )}
-        </View>
       </ScrollView>
 
       {/* KYC MODAL */}
@@ -483,7 +569,10 @@ const WalletCreator: React.FC = () => {
               keyboardType="numeric"
             />
 
-            <TouchableOpacity style={styles.modalBtn} onPress={submitWithdrawal}>
+            <TouchableOpacity
+              style={styles.modalBtn}
+              onPress={submitWithdrawal}
+            >
               {loading ? (
                 <ActivityIndicator color={colors.bg} />
               ) : (
@@ -509,72 +598,149 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: wp(16),
-    paddingVertical: hp(12),
+    paddingBottom: hp(14),
     borderBottomWidth: 0.5,
     borderBottomColor: 'rgba(255,255,255,0.08)',
   },
   backButton: {
-    padding: wp(4),
+    width: wp(36),
+    height: wp(36),
+    borderRadius: wp(18),
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerTextWrap: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  headerSpacer: {
+    width: wp(36),
   },
   headerTitle: {
     fontSize: fp(16),
-    fontWeight: '600',
-    color: colors.white || '#FFFFFF',
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingBottom: hp(24),
-  },
-  balanceBlock: {
-    alignItems: 'center',
-    paddingVertical: hp(24),
-  },
-  balanceLabel: {
-    fontSize: fp(10),
-    fontWeight: '700',
-    color: colors.textMuted || '#555558',
-    letterSpacing: 0.8,
-    marginBottom: hp(6),
-  },
-  balanceAmount: {
-    fontSize: fp(32),
     fontWeight: '700',
     color: colors.white || '#FFFFFF',
     textAlign: 'center',
   },
-  actionPillsContainer: {
-    flexDirection: 'row',
-    marginTop: hp(16),
-    width: '100%',
+  headerSubtitle: {
+    fontSize: fp(11),
+    color: 'rgba(255,255,255,0.5)',
+    marginTop: hp(3),
+    textAlign: 'center',
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: hp(28),
+  },
+  balanceBlock: {
     paddingHorizontal: wp(16),
+    paddingTop: hp(16),
+  },
+  balanceCard: {
+    backgroundColor: '#1A1A1A',
+    borderRadius: wp(18),
+    borderWidth: 1,
+    borderColor: 'rgba(240,192,64,0.35)',
+    padding: wp(16),
+  },
+  balanceTopRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
     gap: wp(12),
   },
-  actionPill: {
+  balanceIconWrap: {
+    width: wp(44),
+    height: wp(44),
+    borderRadius: wp(12),
+    backgroundColor: 'rgba(240,192,64,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  balanceInfo: {
     flex: 1,
-    height: hp(44),
-    borderRadius: 22,
+  },
+  balanceLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(5),
+    marginBottom: hp(6),
+  },
+  balanceLabel: {
+    fontSize: fp(12),
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.55)',
+  },
+  balanceAmount: {
+    fontSize: fp(28),
+    fontWeight: '800',
+    color: colors.white || '#FFFFFF',
+    lineHeight: fp(32),
+  },
+  growthBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(4),
+    marginTop: hp(6),
+  },
+  growthText: {
+    fontSize: fp(11),
+    fontWeight: '600',
+    color: '#22C55E',
+  },
+  withdrawBtnWrap: {
+    borderRadius: wp(14),
     overflow: 'hidden',
   },
   withdrawPillGradient: {
-    flex: 1,
+    paddingHorizontal: wp(18),
+    paddingVertical: hp(11),
+    borderRadius: wp(14),
     alignItems: 'center',
     justifyContent: 'center',
   },
   withdrawText: {
-    color: '#000000',
-    fontSize: fp(14),
+    color: colors.primary || '#1A1A1A',
+    fontSize: fp(13),
     fontWeight: '700',
+  },
+  statsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: hp(18),
+    paddingTop: hp(14),
+    borderTopWidth: 0.5,
+    borderTopColor: 'rgba(255,255,255,0.08)',
+  },
+  statCol: {
+    flex: 1,
+    alignItems: 'flex-start',
+  },
+  statDivider: {
+    width: 0.5,
+    height: hp(28),
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    marginHorizontal: wp(10),
+  },
+  statLabel: {
+    fontSize: fp(10.5),
+    color: 'rgba(255,255,255,0.5)',
+    marginBottom: hp(4),
+  },
+  statValue: {
+    fontSize: fp(13),
+    fontWeight: '700',
+    color: colors.white,
   },
   complianceCard: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#1A1A1A',
-    borderRadius: 14,
+    borderRadius: wp(14),
     padding: wp(14),
     marginHorizontal: wp(16),
+    marginTop: hp(12),
     borderWidth: 1,
     borderColor: 'rgba(240,192,64,0.3)',
-    marginBottom: hp(12),
   },
   complianceInfo: {
     flex: 1,
@@ -594,22 +760,56 @@ const styles = StyleSheet.create({
   complianceBtn: {
     backgroundColor: colors.gold,
     paddingHorizontal: wp(12),
-    paddingVertical: hp(6),
-    borderRadius: 15,
+    paddingVertical: hp(7),
+    borderRadius: wp(14),
   },
   complianceBtnText: {
     color: '#000',
     fontWeight: '700',
     fontSize: fp(11),
   },
-  bankDetailsCard: {
+  quickActionsGrid: {
+    flexDirection: 'row',
+    paddingHorizontal: wp(16),
+    marginTop: hp(14),
+    gap: wp(10),
+  },
+  quickActionBtn: {
+    flex: 1,
     backgroundColor: '#1A1A1A',
-    borderRadius: 14,
-    padding: wp(16),
-    marginHorizontal: wp(16),
+    borderRadius: wp(14),
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
-    marginBottom: hp(12),
+    paddingVertical: hp(14),
+    paddingHorizontal: wp(6),
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: hp(84),
+  },
+  quickActionIconWrap: {
+    width: wp(38),
+    height: wp(38),
+    borderRadius: wp(10),
+    backgroundColor: 'rgba(240,192,64,0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: hp(8),
+  },
+  quickActionLabel: {
+    fontSize: fp(10.5),
+    fontWeight: '600',
+    color: colors.white,
+    textAlign: 'center',
+    lineHeight: fp(14),
+  },
+  bankDetailsCard: {
+    backgroundColor: '#1A1A1A',
+    borderRadius: wp(14),
+    padding: wp(16),
+    marginHorizontal: wp(16),
+    marginTop: hp(12),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
   },
   bankHeaderRow: {
     flexDirection: 'row',
@@ -637,57 +837,6 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     marginTop: hp(2),
   },
-  earningsCard: {
-    backgroundColor: '#1A1A1A',
-    borderRadius: 14,
-    padding: wp(16),
-    marginHorizontal: wp(16),
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-    marginBottom: hp(12),
-  },
-  cardHeaderTitle: {
-    fontSize: fp(14),
-    fontWeight: '700',
-    color: colors.white,
-    marginBottom: hp(10),
-  },
-  earningRowContainer: {
-    width: '100%',
-  },
-  earningRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: hp(12),
-  },
-  iconCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.goldDim || 'rgba(240, 192, 64, 0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: wp(12),
-  },
-  labelCol: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  earningLabel: {
-    fontSize: fp(13),
-    fontWeight: '600',
-    color: colors.white || '#FFFFFF',
-    marginBottom: hp(2),
-  },
-  earningSubLabel: {
-    fontSize: fp(11),
-    color: 'rgba(255,255,255,0.55)',
-  },
-  earningAmount: {
-    fontSize: fp(14),
-    fontWeight: '600',
-    color: colors.white || '#FFFFFF',
-  },
   divider: {
     height: 0.5,
     backgroundColor: 'rgba(255,255,255,0.08)',
@@ -695,28 +844,57 @@ const styles = StyleSheet.create({
   },
   transactionsCard: {
     backgroundColor: '#1A1A1A',
-    borderRadius: 14,
+    borderRadius: wp(14),
     padding: wp(16),
     marginHorizontal: wp(16),
+    marginTop: hp(12),
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
   },
-  settlementLink: {
+  transactionsHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: wp(6),
-    paddingVertical: hp(14),
-    marginHorizontal: wp(20),
-    marginBottom: hp(8),
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.gold + '40',
-    backgroundColor: colors.gold + '10',
+    justifyContent: 'space-between',
+    marginBottom: hp(10),
   },
-  settlementLinkText: {
-    color: colors.gold || '#F0C040',
+  cardHeaderTitle: {
     fontSize: fp(14),
+    fontWeight: '700',
+    color: colors.white,
+  },
+  viewAllText: {
+    fontSize: fp(12),
+    fontWeight: '700',
+    color: colors.gold || '#F0C040',
+  },
+  txRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: hp(12),
+  },
+  txIconCircle: {
+    width: wp(36),
+    height: wp(36),
+    borderRadius: wp(18),
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: wp(12),
+  },
+  txInfo: {
+    flex: 1,
+  },
+  txTitle: {
+    fontSize: fp(13),
+    fontWeight: '600',
+    color: colors.white,
+    marginBottom: hp(2),
+  },
+  txMeta: {
+    fontSize: fp(11),
+    color: 'rgba(255,255,255,0.55)',
+  },
+  txAmount: {
+    fontSize: fp(13),
     fontWeight: '700',
   },
   emptyText: {
@@ -724,6 +902,29 @@ const styles = StyleSheet.create({
     fontSize: fp(13),
     textAlign: 'center',
     marginVertical: hp(20),
+  },
+  settlementLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: hp(14),
+    paddingHorizontal: wp(18),
+    marginHorizontal: wp(16),
+    marginTop: hp(14),
+    borderRadius: wp(26),
+    borderWidth: 1,
+    borderColor: 'rgba(240,192,64,0.4)',
+    backgroundColor: 'rgba(240,192,64,0.08)',
+  },
+  settlementLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(8),
+  },
+  settlementLinkText: {
+    color: colors.gold || '#F0C040',
+    fontSize: fp(14),
+    fontWeight: '700',
   },
   // Modal styles
   modalOverlay: {
@@ -735,7 +936,7 @@ const styles = StyleSheet.create({
   modalContent: {
     width: '88%',
     backgroundColor: '#1A1A1A',
-    borderRadius: 16,
+    borderRadius: wp(16),
     padding: wp(20),
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
@@ -760,7 +961,7 @@ const styles = StyleSheet.create({
     height: hp(48),
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 8,
+    borderRadius: wp(8),
     paddingHorizontal: wp(12),
     color: colors.white,
     backgroundColor: colors.inputBg,
@@ -770,7 +971,7 @@ const styles = StyleSheet.create({
   modalBtn: {
     height: hp(46),
     backgroundColor: colors.gold,
-    borderRadius: 23,
+    borderRadius: wp(23),
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: hp(6),

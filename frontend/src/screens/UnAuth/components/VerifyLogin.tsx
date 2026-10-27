@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useRef } from 'react';
 import {
   StyleSheet,
   Text,
@@ -45,6 +45,7 @@ const VerifyLogin: React.FC<VerifyLoginProps> = ({
   setActive,
 }) => {
   const [loading, setLoading] = useState(false);
+  const isSubmittingRef = useRef(false);
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
   const [otpSuccess, setOtpSuccess] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
@@ -66,6 +67,8 @@ const VerifyLogin: React.FC<VerifyLoginProps> = ({
   });
 
   const onSubmit = (data: any) => {
+    if (isSubmittingRef.current) return;
+    isSubmittingRef.current = true;
     setLoading(true);
     setLoginValue(data.phoneEmail);
 
@@ -88,58 +91,49 @@ const VerifyLogin: React.FC<VerifyLoginProps> = ({
             tab: selectedType,
           };
 
-          if (isPhoneNumber) {
-            dispatch(sendOtpSms(payload))
+          const handleOtpThunk = isPhoneNumber
+            ? sendOtpSms
+            : isEmail
+            ? sendOtpEmail
+            : null;
+
+          if (handleOtpThunk) {
+            dispatch(handleOtpThunk(payload))
               .unwrap()
               .then(res => {
-                // Toast.show({
-                //   type: 'success',
-                //   text1: `Login OTP is ${res?.data?.data?.otp}`,
-                // });
                 setOtpData(res?.data?.data?.otp);
                 setOtpSuccess(true);
                 reset();
               })
               .catch((err: any) => {
-                // An OTP is already active — advance so the user can enter it
                 if (err?.code === 'OTP_ALREADY_SENT') {
                   setOtpSuccess(true);
                   reset();
                 }
               })
-              .finally(() => setLoading(false));
-          } else if (isEmail) {
-            dispatch(sendOtpEmail(payload))
-              .unwrap()
-              .then(res => {
-                // Toast.show({
-                //   type: 'success',
-                //   text1: `Login OTP is ${res?.data?.data?.otp}`,
-                // });
-                setOtpData(res?.data?.data?.otp);
-                setOtpSuccess(true);
-                reset();
-              })
-              .catch((err: any) => {
-                // An OTP is already active — advance so the user can enter it
-                if (err?.code === 'OTP_ALREADY_SENT') {
-                  setOtpSuccess(true);
-                  reset();
-                }
-              })
-              .finally(() => setLoading(false));
+              .finally(() => {
+                setLoading(false);
+                isSubmittingRef.current = false;
+              });
           } else {
             setLoading(false);
+            isSubmittingRef.current = false;
           }
         } else {
           setActive(3);
           setLoading(false);
+          isSubmittingRef.current = false;
         }
       })
-      .catch(() => setLoading(false));
+      .catch(() => {
+        setLoading(false);
+        isSubmittingRef.current = false;
+      });
   };
 
   const onOtpSubmit = async (data: any) => {
+    if (isSubmittingRef.current) return;
+    isSubmittingRef.current = true;
     setLoading(true);
 
     const isPhoneNumber = /^\d+$/.test(loginValue);
@@ -172,7 +166,10 @@ const VerifyLogin: React.FC<VerifyLoginProps> = ({
           text2: error?.message || 'Invalid OTP',
         });
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        setLoading(false);
+        isSubmittingRef.current = false;
+      });
   };
 
   useFocusEffect(
@@ -245,7 +242,9 @@ const VerifyLogin: React.FC<VerifyLoginProps> = ({
                       pinCodeTextStyle: styles.otpText,
                     }}
                   />
-                  {error && <Text style={styles.errorText}>{error.message}</Text>}
+                  {error && (
+                    <Text style={styles.errorText}>{error.message}</Text>
+                  )}
                 </>
               )}
             />
@@ -280,6 +279,7 @@ const VerifyLogin: React.FC<VerifyLoginProps> = ({
 
           <TouchableOpacity
             activeOpacity={0.9}
+            disabled={loading}
             onPress={
               otpSuccess ? handleSubmit(onOtpSubmit) : handleSubmit(onSubmit)
             }
@@ -302,14 +302,27 @@ const VerifyLogin: React.FC<VerifyLoginProps> = ({
 
           <Text style={styles.termsText}>
             By continuing, you agree to our{' '}
-            <Text style={styles.linkText} onPress={() => setShowTerms(true)}>Terms of Service</Text>,{' '}
-            <Text style={styles.linkText} onPress={() => setShowPrivacy(true)}>Privacy Policy</Text>
+            <Text style={styles.linkText} onPress={() => setShowTerms(true)}>
+              Terms of Service
+            </Text>
+            ,{' '}
+            <Text style={styles.linkText} onPress={() => setShowPrivacy(true)}>
+              Privacy Policy
+            </Text>
             {' & '}
-            <Text style={styles.linkText} onPress={() => setShowRefund(true)}>Refund Policy</Text>
+            <Text style={styles.linkText} onPress={() => setShowRefund(true)}>
+              Refund Policy
+            </Text>
           </Text>
           <TermsModal visible={showTerms} onClose={() => setShowTerms(false)} />
-          <PrivacyModal visible={showPrivacy} onClose={() => setShowPrivacy(false)} />
-          <RefundPolicyModal visible={showRefund} onClose={() => setShowRefund(false)} />
+          <PrivacyModal
+            visible={showPrivacy}
+            onClose={() => setShowPrivacy(false)}
+          />
+          <RefundPolicyModal
+            visible={showRefund}
+            onClose={() => setShowRefund(false)}
+          />
 
           <TouchableOpacity
             onPress={() => setActive(3)}

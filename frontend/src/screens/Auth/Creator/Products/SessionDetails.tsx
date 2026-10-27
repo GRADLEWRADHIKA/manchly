@@ -28,6 +28,7 @@ import {
   Mic,
   Video as VideoIcon,
   ImagePlus,
+  Tag,
   ToggleLeft,
   MessageSquare,
   X,
@@ -42,6 +43,7 @@ import {
   updateSessionProduct,
 } from '../../../../store/SessionSlice';
 import EnhanceSuggestionCard from '../../../../components/ai/EnhanceSuggestionCard';
+import AppHeaderWithBack from '../../../../components/AppHeaderWithBack';
 
 const SessionDetails: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -148,7 +150,7 @@ const SessionDetails: React.FC = () => {
     };
 
     const action = isUpdated
-           ? updateSessionProduct({ productId: editing.id, data: payload })
+      ? updateSessionProduct({ productId: editing.id, data: payload })
       : createSessionProduct(payload);
 
     dispatch(action)
@@ -157,19 +159,13 @@ const SessionDetails: React.FC = () => {
       .catch(() => {})
       .finally(() => setLoading(false));
   };
-
   return (
     <View style={styles.root}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <ArrowLeft size={wp(22)} color={colors.textPrimary} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Session Details</Text>
-        <View style={{ width: wp(22) }} />
-      </View>
+      <AppHeaderWithBack
+        title={isUpdated ? 'Edit Session' : 'Session Details'}
+        bgColor='transparent'
+        textColor='#FFF'
+      />
 
       <KeyboardAvoidingView
         style={styles.flex}
@@ -297,7 +293,12 @@ const SessionDetails: React.FC = () => {
             </View>
 
             {/* Mode */}
-            <Text style={styles.sectionLabel}>Mode</Text>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Session Mode</Text>
+              <Text style={styles.sectionSub}>
+                Choose how you'll connect with your buyers.
+              </Text>
+            </View>
             <Controller
               name="mode"
               control={control}
@@ -505,7 +506,7 @@ const SessionDetails: React.FC = () => {
 export default SessionDetails;
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.bg },
+  root: { flex: 1, backgroundColor: 'rgba(0,0,0,0.75)' },
   flex: { flex: 1 },
   header: {
     flexDirection: 'row',
@@ -686,4 +687,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   primaryText: { color: colors.black, fontWeight: '800', fontSize: fp(16) },
+  sectionHeader: { marginTop: hp(20), marginBottom: hp(4) },
+  sectionTitle: {
+    fontSize: fp(15),
+    fontWeight: '700',
+    color: colors.textPrimary,
+  },
+  sectionSub: {
+    fontSize: fp(11.5),
+    color: 'rgba(255,255,255,0.45)',
+    marginTop: hp(3),
+    lineHeight: fp(16),
+  },
 });

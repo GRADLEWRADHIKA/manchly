@@ -13,14 +13,12 @@ import {
 import { useSelector } from 'react-redux';
 import {
   Landmark,
-  CreditCard,
-  Building2,
-  User,
   ShieldCheck,
   ShieldX,
   Info,
   CheckCircle2,
   XCircle,
+  Copy,
 } from 'lucide-react-native';
 import { Controller, useForm } from 'react-hook-form';
 import colors from '../../../../utils/colors';
@@ -37,6 +35,7 @@ interface BankAccount {
   account_number: string;
   ifsc_code: string;
   beneficiary_name: string;
+  bank_name?: string;
   account_type: string;
   is_verified: boolean;
 }
@@ -45,6 +44,7 @@ interface FormData {
   account_number: string;
   confirm_account_number: string;
   ifsc_code: string;
+  bank_name: string;
   beneficiary_name: string;
 }
 
@@ -73,11 +73,20 @@ const BankDetails = () => {
       account_number: '',
       confirm_account_number: '',
       ifsc_code: '',
+      bank_name: '',
       beneficiary_name: user?.name || '',
     },
   });
 
   const accountNumber = watch('account_number');
+
+  const handleCopy = (label: string) => {
+    Toast.show({
+      type: 'info',
+      text1: `${label} copy coming soon`,
+      position: 'top',
+    });
+  };
 
   const fetchBankAccount = async () => {
     try {
@@ -106,6 +115,7 @@ const BankDetails = () => {
       const payload = {
         account_number: data.account_number,
         ifsc_code: data.ifsc_code.toUpperCase(),
+        bank_name: data.bank_name,
         beneficiary_name: data.beneficiary_name,
       };
 
@@ -177,13 +187,14 @@ const BankDetails = () => {
     setIsEditing(true);
     if (bankAccount) {
       setValue('ifsc_code', bankAccount.ifsc_code);
+      setValue('bank_name', bankAccount.bank_name || '');
       setValue('beneficiary_name', bankAccount.beneficiary_name);
       setValue('account_number', '');
       setValue('confirm_account_number', '');
     }
   };
 
- if (fetchLoading) {
+  if (fetchLoading) {
     return (
       <View style={styles.container}>
         <AppHeaderWithBack title="Bank Details" bgColor="transparent" />
@@ -210,117 +221,120 @@ const BankDetails = () => {
         >
           {/* Subtitle */}
           <Text style={styles.headerSubtitle}>
-            Securely manage your withdrawal settings and bank information.
+            Securely manage your bank account for payouts
           </Text>
 
           {/* Existing Bank Account Display */}
           {bankAccount && !isEditing ? (
-            <View style={styles.bankCard}>
-              <View style={styles.bankCardHeader}>
-                <Text style={styles.bankCardTitle}>Saved Account</Text>
-                <View
-                  style={[
-                    styles.verifiedBadge,
-                    {
-                      backgroundColor: bankAccount.is_verified
-                        ? colors.success + '15'
-                        : colors.secondary + '15',
-                      borderColor: bankAccount.is_verified
-                        ? colors.success + '40'
-                        : colors.secondary + '40',
-                    },
-                  ]}
-                >
-                  {bankAccount.is_verified ? (
-                    <ShieldCheck size={wp(12)} color={colors.success} />
-                  ) : (
-                    <ShieldX size={wp(12)} color={colors.secondary} />
-                  )}
-                  <Text
-                    style={[
-                      styles.verifiedBadgeText,
-                      {
-                        color: bankAccount.is_verified
-                          ? colors.success
-                          : colors.secondary,
-                      },
-                    ]}
-                  >
-                    {bankAccount.is_verified ? 'Verified' : 'Not Verified'}
-                  </Text>
+            <View>
+              <View style={styles.verifiedCard}>
+                <View style={styles.verifiedCardTop}>
+                  <View style={styles.verifiedIconWrap}>
+                    <Landmark size={wp(22)} color="#22C55E" />
+                  </View>
+                  <View style={styles.verifiedCardText}>
+                    <View style={styles.verifiedTitleRow}>
+                      <Text style={styles.verifiedCardTitle}>Bank Account</Text>
+                      {bankAccount.is_verified && (
+                        <View style={styles.verifiedPill}>
+                          <CheckCircle2 size={wp(12)} color="#FFFFFF" />
+                          <Text style={styles.verifiedPillText}>Verified</Text>
+                        </View>
+                      )}
+                    </View>
+                    <Text style={styles.verifiedCardSubtitle}>
+                      {bankAccount.is_verified
+                        ? 'Your bank account is linked and ready to receive payouts.'
+                        : 'Your bank account is linked but not yet verified.'}
+                    </Text>
+                  </View>
                 </View>
               </View>
 
-              <View style={styles.bankInfoRow}>
-                <View style={styles.bankInfoIcon}>
-                  <CreditCard size={wp(16)} color={colors.golden} />
-                </View>
-                <View style={styles.bankInfoContent}>
-                  <Text style={styles.bankInfoLabel}>Account Number</Text>
-                  <Text style={styles.bankInfoValue}>
-                    {bankAccount.account_number}
-                  </Text>
-                </View>
+              <View style={styles.detailsCard}>
+                {[
+                  { label: 'Account Number', value: bankAccount.account_number },
+                  { label: 'IFSC Code', value: bankAccount.ifsc_code },
+                  { label: 'Bank Name', value: bankAccount.bank_name || '—' },
+                  {
+                    label: 'Account Holder Name',
+                    value: bankAccount.beneficiary_name,
+                  },
+                ].map((item, index, arr) => (
+                  <View key={item.label}>
+                    <View style={styles.detailRow}>
+                      <Text style={styles.detailLabel}>{item.label}</Text>
+                      <View style={styles.detailValueRow}>
+                        <Text style={styles.detailValue}>{item.value}</Text>
+                        <TouchableOpacity
+                          onPress={() => handleCopy(item.label)}
+                          hitSlop={8}
+                        >
+                          <Copy size={wp(14)} color="rgba(255,255,255,0.4)" />
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                    {index < arr.length - 1 && (
+                      <View style={styles.detailDivider} />
+                    )}
+                  </View>
+                ))}
               </View>
 
-              <View style={styles.bankDivider} />
+              <TouchableOpacity
+                style={styles.editDetailsBtn}
+                onPress={startEditing}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.editDetailsBtnText}>
+                  ✎ Edit Bank Details
+                </Text>
+              </TouchableOpacity>
 
-              <View style={styles.bankInfoRow}>
-                <View style={styles.bankInfoIcon}>
-                  <Building2 size={wp(16)} color={colors.golden} />
-                </View>
-                <View style={styles.bankInfoContent}>
-                  <Text style={styles.bankInfoLabel}>IFSC Code</Text>
-                  <Text style={styles.bankInfoValue}>
-                    {bankAccount.ifsc_code}
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.bankDivider} />
-
-              <View style={styles.bankInfoRow}>
-                <View style={styles.bankInfoIcon}>
-                  <User size={wp(16)} color={colors.golden} />
-                </View>
-                <View style={styles.bankInfoContent}>
-                  <Text style={styles.bankInfoLabel}>Beneficiary Name</Text>
-                  <Text style={styles.bankInfoValue}>
-                    {bankAccount.beneficiary_name}
-                  </Text>
-                </View>
-              </View>
-
-              {/* Action Buttons */}
-              <View style={styles.bankActions}>
+              {!bankAccount.is_verified && (
                 <TouchableOpacity
-                  style={styles.editBtn}
-                  onPress={startEditing}
+                  style={[
+                    styles.verifyBtn,
+                    verifying && { opacity: 0.6 },
+                    { marginHorizontal: wp(16), marginTop: hp(10) },
+                  ]}
+                  onPress={() => {
+                    setVerifyAccountNumber('');
+                    setShowVerifyModal(true);
+                  }}
+                  disabled={verifying}
                   activeOpacity={0.7}
                 >
-                  <Text style={styles.editBtnText}>Edit Details</Text>
+                  {verifying ? (
+                    <ActivityIndicator size="small" color={colors.black} />
+                  ) : (
+                    <>
+                      <ShieldCheck size={wp(16)} color={colors.black} />
+                      <Text style={styles.verifyBtnText}>Verify Account</Text>
+                    </>
+                  )}
                 </TouchableOpacity>
+              )}
 
-                {!bankAccount.is_verified && (
-                  <TouchableOpacity
-                    style={[styles.verifyBtn, verifying && { opacity: 0.6 }]}
-                    onPress={() => {
-                      setVerifyAccountNumber('');
-                      setShowVerifyModal(true);
-                    }}
-                    disabled={verifying}
-                    activeOpacity={0.7}
-                  >
-                    {verifying ? (
-                      <ActivityIndicator size="small" color={colors.black} />
-                    ) : (
-                      <>
-                        <ShieldCheck size={wp(16)} color={colors.black} />
-                        <Text style={styles.verifyBtnText}>Verify Account</Text>
-                      </>
-                    )}
-                  </TouchableOpacity>
-                )}
+              <View style={styles.importantInfoCard}>
+                <View style={styles.importantInfoHeader}>
+                  <Info size={wp(16)} color={colors.gold} />
+                  <Text style={styles.importantInfoTitle}>
+                    Important Information
+                  </Text>
+                </View>
+                <View style={styles.importantInfoList}>
+                  <Text style={styles.importantInfoBullet}>
+                    • Payouts are processed to this bank account only.
+                  </Text>
+                  <Text style={styles.importantInfoBullet}>
+                    • Please ensure your bank details are correct.
+                  </Text>
+                  <Text style={styles.importantInfoBullet}>
+                    • It may take 2–3 business days to verify a newly added
+                    bank account.
+                  </Text>
+                </View>
               </View>
             </View>
           ) : (
@@ -456,6 +470,46 @@ const BankDetails = () => {
                         onBlur={onBlur}
                         autoCapitalize="characters"
                         maxLength={11}
+                        inputContainerStyle={[
+                          styles.input,
+                          error ? styles.inputError : null,
+                        ]}
+                      />
+                      {error && (
+                        <Text style={styles.errorText}>{error.message}</Text>
+                      )}
+                    </View>
+                  )}
+                />
+
+                {/* Bank Name */}
+                <Controller
+                  name="bank_name"
+                  control={control}
+                  rules={{
+                    required: 'Bank name is required',
+                    minLength: {
+                      value: 2,
+                      message: 'Bank name must be at least 2 characters',
+                    },
+                  }}
+                  render={({
+                    field: { onChange, onBlur, value },
+                    fieldState: { error },
+                  }) => (
+                    <View style={styles.fieldWrapper}>
+                      <Text style={styles.inputLabel}>BANK NAME</Text>
+                      <CustomTextInput
+                        placeholder="e.g. Canara Bank"
+                        value={value}
+                        onChange={(text: any) => {
+                          const t =
+                            typeof text === 'string'
+                              ? text
+                              : text?.nativeEvent?.text || '';
+                          onChange(t);
+                        }}
+                        onBlur={onBlur}
                         inputContainerStyle={[
                           styles.input,
                           error ? styles.inputError : null,
@@ -715,8 +769,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-
-  // Header subtitle (replaces old gradient header card)
   headerSubtitle: {
     fontSize: fp(13),
     color: colors.micButtonGolden,
@@ -725,98 +777,6 @@ const styles = StyleSheet.create({
     marginHorizontal: wp(24),
     marginTop: hp(16),
     marginBottom: hp(4),
-  },
-
-  // Bank Card
-  bankCard: {
-    backgroundColor: '#1A1A1A',
-    marginHorizontal: wp(16),
-    marginTop: hp(16),
-    borderRadius: wp(16),
-    padding: wp(16),
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
-  },
-  bankCardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: hp(16),
-  },
-  bankCardTitle: {
-    fontSize: fp(16),
-    fontWeight: '700',
-    color: colors.white,
-  },
-  verifiedBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(4),
-    paddingHorizontal: wp(10),
-    paddingVertical: hp(4),
-    borderRadius: wp(16),
-    borderWidth: 1,
-  },
-  verifiedBadgeText: {
-    fontSize: fp(11),
-    fontWeight: '600',
-  },
-  bankInfoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: hp(10),
-  },
-  bankInfoIcon: {
-    width: wp(36),
-    height: wp(36),
-    borderRadius: wp(10),
-    backgroundColor: 'rgba(255,182,6,0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: wp(12),
-  },
-  bankInfoContent: {
-    flex: 1,
-  },
-  bankInfoLabel: {
-    fontSize: fp(11),
-    color: colors.micButtonGolden,
-    fontWeight: '600',
-    letterSpacing: 0.5,
-    marginBottom: hp(2),
-  },
-  bankInfoValue: {
-    fontSize: fp(15),
-    color: colors.white,
-    fontWeight: '600',
-  },
-  bankDivider: {
-    height: 1,
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    marginLeft: wp(48),
-  },
-  bankActions: {
-    flexDirection: 'row',
-    gap: wp(10),
-    marginTop: hp(18),
-    paddingTop: hp(16),
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.06)',
-  },
-  editBtn: {
-    flex: 1,
-    height: hp(44),
-    borderRadius: wp(12),
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: colors.golden,
-  },
-  editBtnText: {
-    color: colors.golden,
-    fontWeight: '600',
-    fontSize: fp(14),
   },
   verifyBtn: {
     flex: 1,
@@ -833,8 +793,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: fp(14),
   },
-
-  // Info Banner
   infoBanner: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -854,8 +812,6 @@ const styles = StyleSheet.create({
     lineHeight: fp(17),
     fontWeight: '500',
   },
-
-  // Form
   formSection: {
     marginHorizontal: wp(16),
     marginTop: hp(16),
@@ -933,8 +889,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: fp(15),
   },
-
-  // Modal
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.6)',
@@ -1014,5 +968,137 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontWeight: '700',
     fontSize: fp(15),
+  },
+  verifiedCard: {
+    backgroundColor: 'rgba(34,197,94,0.08)',
+    marginHorizontal: wp(16),
+    marginTop: hp(16),
+    borderRadius: wp(16),
+    padding: wp(16),
+    borderWidth: 1,
+    borderColor: 'rgba(34,197,94,0.25)',
+  },
+  verifiedCardTop: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  verifiedIconWrap: {
+    width: wp(44),
+    height: wp(44),
+    borderRadius: wp(12),
+    backgroundColor: 'rgba(34,197,94,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: wp(12),
+  },
+  verifiedCardText: {
+    flex: 1,
+  },
+  verifiedTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  verifiedCardTitle: {
+    fontSize: fp(15),
+    fontWeight: '700',
+    color: colors.white,
+  },
+  verifiedPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(4),
+    backgroundColor: '#22C55E',
+    paddingHorizontal: wp(10),
+    paddingVertical: hp(4),
+    borderRadius: wp(14),
+  },
+  verifiedPillText: {
+    fontSize: fp(11),
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  verifiedCardSubtitle: {
+    fontSize: fp(12),
+    color: 'rgba(255,255,255,0.6)',
+    marginTop: hp(4),
+    lineHeight: fp(17),
+  },
+  detailsCard: {
+    backgroundColor: '#1A1A1A',
+    marginHorizontal: wp(16),
+    marginTop: hp(14),
+    borderRadius: wp(16),
+    paddingHorizontal: wp(16),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
+  },
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: hp(14),
+  },
+  detailLabel: {
+    fontSize: fp(13),
+    color: 'rgba(255,255,255,0.55)',
+  },
+  detailValueRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(8),
+  },
+  detailValue: {
+    fontSize: fp(14),
+    fontWeight: '600',
+    color: colors.white,
+  },
+  detailDivider: {
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+  },
+  editDetailsBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: hp(48),
+    marginHorizontal: wp(16),
+    marginTop: hp(14),
+    borderRadius: wp(24),
+    borderWidth: 1,
+    borderColor: colors.golden,
+  },
+  editDetailsBtnText: {
+    color: colors.golden,
+    fontWeight: '700',
+    fontSize: fp(14),
+  },
+  importantInfoCard: {
+    backgroundColor: '#1A1A1A',
+    marginHorizontal: wp(16),
+    marginTop: hp(16),
+    borderRadius: wp(16),
+    padding: wp(16),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
+  },
+  importantInfoHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(8),
+    marginBottom: hp(10),
+  },
+  importantInfoTitle: {
+    fontSize: fp(13),
+    fontWeight: '700',
+    color: colors.white,
+  },
+  importantInfoList: {
+    gap: hp(6),
+  },
+  importantInfoBullet: {
+    fontSize: fp(12),
+    color: 'rgba(255,255,255,0.55)',
+    lineHeight: fp(18),
   },
 });

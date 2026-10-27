@@ -331,7 +331,7 @@ const CourseDetailsScreen: React.FC = () => {
             )}
             <View style={styles.metaItem}>
               <Users size={wp(14)} color={ACCENT} />
-              <Text style={styles.metaText}>{course.total_students || 0} Students</Text>
+              <Text style={styles.metaText}>{course.total_students || 0} Users</Text>
             </View>
           </View>
 

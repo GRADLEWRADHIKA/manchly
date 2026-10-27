@@ -18,8 +18,9 @@ import SplashScreen from 'react-native-splash-screen';
 import OtaUpdateGate from './src/components/OtaUpdateGate';
 
 
+injectStore(store);
+
 function App() {
-  injectStore(store);
   const isDarkMode = useColorScheme() === 'dark';
 
   useEffect(() => {

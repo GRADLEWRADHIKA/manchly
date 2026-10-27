@@ -1,5 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Modal,
+  ScrollView,
+} from 'react-native';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import colors from '../../../../../../utils/colors';
 import { wp, hp, fp } from '../../../../../../utils/responsive';
@@ -10,13 +17,24 @@ type Props = {
   visible: boolean;
   onClose: () => void;
   onApply: (from: Date, to: Date) => void;
+  onClear?: () => void;
   initialRange?: DateRange;
 };
 
 const DAY_LABELS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 const MONTH_LABELS = [
-  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
 ];
 
 const startOfDay = (d: Date) => {
@@ -64,6 +82,7 @@ const DateRangeFilterModal: React.FC<Props> = ({
   visible,
   onClose,
   onApply,
+  onClear,
   initialRange,
 }) => {
   const today = startOfDay(new Date());
@@ -75,9 +94,7 @@ const DateRangeFilterModal: React.FC<Props> = ({
   const [rangeEnd, setRangeEnd] = useState<Date | null>(
     initialRange?.to ?? null,
   );
-  const [viewMonth, setViewMonth] = useState<Date>(
-    initialRange?.from ?? today,
-  );
+  const [viewMonth, setViewMonth] = useState<Date>(initialRange?.from ?? today);
 
   useEffect(() => {
     if (visible) {
@@ -85,14 +102,18 @@ const DateRangeFilterModal: React.FC<Props> = ({
       setRangeEnd(initialRange?.to ?? null);
       setViewMonth(initialRange?.from ?? today);
       setActivePreset(
-        initialRange?.from && initialRange?.to ? 'Custom range' : 'Custom range',
+        initialRange?.from && initialRange?.to
+          ? 'Custom range'
+          : 'Custom range',
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible]);
 
   const goToMonth = (offset: number) => {
-    setViewMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + offset, 1));
+    setViewMonth(
+      prev => new Date(prev.getFullYear(), prev.getMonth() + offset, 1),
+    );
   };
 
   const applyPreset = (key: string) => {
@@ -132,7 +153,11 @@ const DateRangeFilterModal: React.FC<Props> = ({
         break;
       }
       case 'Last Month': {
-        const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+        const lastMonth = new Date(
+          today.getFullYear(),
+          today.getMonth() - 1,
+          1,
+        );
         from = lastMonth;
         to = new Date(lastMonth.getFullYear(), lastMonth.getMonth() + 1, 0);
         break;
@@ -169,6 +194,8 @@ const DateRangeFilterModal: React.FC<Props> = ({
     setRangeStart(null);
     setRangeEnd(null);
     setActivePreset('Custom range');
+    onClear?.();
+    onClose();
   };
 
   const handleApply = () => {
@@ -202,15 +229,22 @@ const DateRangeFilterModal: React.FC<Props> = ({
         onPress={() => handleDayPress(day)}
         activeOpacity={0.7}
       >
-        <Text style={[styles.dayText, isEdge && styles.dayTextEdge]}>
-          {day.getDate()}
-        </Text>
+        <View style={[styles.dayCircle, isEdge && styles.dayCircleEdge]}>
+          <Text style={[styles.dayText, isEdge && styles.dayTextEdge]}>
+            {day.getDate()}
+          </Text>
+        </View>
       </TouchableOpacity>
     );
   };
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
       <View style={styles.backdrop}>
         <View style={styles.sheet}>
           {/* Presets */}
@@ -242,13 +276,19 @@ const DateRangeFilterModal: React.FC<Props> = ({
 
           {/* Month header */}
           <View style={styles.monthHeader}>
-            <TouchableOpacity onPress={() => goToMonth(-1)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+            <TouchableOpacity
+              onPress={() => goToMonth(-1)}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
               <ChevronLeft size={wp(20)} color={colors.textPrimary} />
             </TouchableOpacity>
             <Text style={styles.monthTitle}>
               {MONTH_LABELS[viewMonth.getMonth()]} {viewMonth.getFullYear()}
             </Text>
-            <TouchableOpacity onPress={() => goToMonth(1)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+            <TouchableOpacity
+              onPress={() => goToMonth(1)}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
               <ChevronRight size={wp(20)} color={colors.textPrimary} />
             </TouchableOpacity>
           </View>
@@ -256,7 +296,9 @@ const DateRangeFilterModal: React.FC<Props> = ({
           {/* Weekday labels */}
           <View style={styles.weekRow}>
             {DAY_LABELS.map(d => (
-              <Text key={d} style={styles.weekLabel}>{d}</Text>
+              <Text key={d} style={styles.weekLabel}>
+                {d}
+              </Text>
             ))}
           </View>
 
@@ -269,7 +311,9 @@ const DateRangeFilterModal: React.FC<Props> = ({
           <View style={styles.footer}>
             <Text style={styles.footerRangeText} numberOfLines={1}>
               {rangeStart && rangeEnd
-                ? `${formatFooterDate(rangeStart)} – ${formatFooterDate(rangeEnd)}`
+                ? `${formatFooterDate(rangeStart)} – ${formatFooterDate(
+                    rangeEnd,
+                  )}`
                 : rangeStart
                 ? `${formatFooterDate(rangeStart)} – Select end date`
                 : 'Select a date range'}
@@ -279,7 +323,10 @@ const DateRangeFilterModal: React.FC<Props> = ({
                 <Text style={styles.clearBtnText}>Clear</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.applyBtn, !rangeStart && styles.applyBtnDisabled]}
+                style={[
+                  styles.applyBtn,
+                  !rangeStart && styles.applyBtnDisabled,
+                ]}
                 onPress={handleApply}
                 disabled={!rangeStart}
               >
@@ -369,6 +416,16 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  dayCircle: {
+    width: wp(30),
+    height: wp(30),
+    borderRadius: wp(15),
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dayCircleEdge: {
+    backgroundColor: colors.gold,
   },
   dayCellInRange: {
     backgroundColor: 'rgba(240,192,64,0.10)',

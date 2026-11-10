@@ -178,9 +178,6 @@ export default function WebinarRow({
           <button type="button" onClick={() => onEdit?.(w)} title="Edit Webinar" style={iconButtonStyle}>
             <Pencil size={14} color={colors.typography.secondaryText} />
           </button>
-         <button type="button" onClick={() => onPerformance?.(w)} title="Performance" style={iconButtonStyle}>
-  <BarChart2 size={14} color={colors.typography.secondaryText} />
-</button>
           <button ref={menuBtnRef} type="button" onClick={openMenu} title="More" style={{ ...iconButtonStyle, background: isMenuOpen ? "rgba(0,0,0,0.06)" : colors.base.cardBackground }}>
             <MoreHorizontal size={14} color={colors.typography.secondaryText} />
           </button>

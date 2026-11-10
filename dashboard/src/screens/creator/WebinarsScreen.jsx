@@ -10,9 +10,7 @@ import {
   Trash2,
   Video,
   Users,
-  Share2,
   IndianRupee,
-  CalendarDays,
   Radio,
   Search,
   MonitorPlay,
@@ -32,6 +30,9 @@ import { toast } from "../../utils/toast";
 import { formatCurrency } from "../../utils/formatters";
 import WebinarRow from "./WebinarRow";
 import { CATEGORIES, withLegacyCategories } from "../../utils/categories";
+import DateRangePicker, {
+  isInDateRange,
+} from "../Auth/Creator/components/DateRangePicker";
 
 const G = colors.gradients;
 
@@ -162,7 +163,7 @@ export default function WebinarsScreen() {
 
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [sortOrder, setSortOrder] = useState("newest");
-  const [dateFilter, setDateFilter] = useState("all");
+  const [dateRange, setDateRange] = useState(null);
 
   const [addUserWebinar, setAddUserWebinar] = useState(null);
   const [addUserValue, setAddUserValue] = useState("");
@@ -240,13 +241,10 @@ export default function WebinarsScreen() {
       return true;
     });
 
-    if (dateFilter !== "all") {
-      const days = Number(dateFilter);
-      const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
-      list = list.filter((w) => {
-        const created = new Date(w?.created_at || w?.updated_at || 0).getTime();
-        return created >= cutoff;
-      });
+    if (dateRange) {
+      list = list.filter((w) =>
+        isInDateRange(w?.created_at || w?.updated_at, dateRange),
+      );
     }
 
     list.sort((a, b) => {
@@ -258,7 +256,7 @@ export default function WebinarsScreen() {
     });
 
     return list;
-  }, [webinars, search, categoryFilter, dateFilter, filter, sortOrder, now]);
+  }, [webinars, search, categoryFilter, dateRange, filter, sortOrder, now]);
 
   const openCreate = () => {
     setForm(EMPTY_FORM);
@@ -670,7 +668,7 @@ export default function WebinarsScreen() {
                     onChange={(e) =>
                       setForm({ ...form, description: e.target.value })
                     }
-                    placeholder="Describe what attendees will learn in this live interactive session..."
+                    placeholder="Describe what users will learn in this live interactive session..."
                   />
                   <div
                     style={{
@@ -1053,7 +1051,7 @@ export default function WebinarsScreen() {
                           marginTop: 2,
                         }}
                       >
-                        Attendees can rewatch session recordings forever
+                        Users can rewatch session recordings forever
                       </div>
                     </div>
                     <div
@@ -1446,26 +1444,16 @@ export default function WebinarsScreen() {
           ))}
         </select>
 
-        <select
-          value={dateFilter}
-          onChange={(e) => setDateFilter(e.target.value)}
-          style={{
+        <DateRangePicker
+          value={dateRange}
+          onChange={setDateRange}
+          buttonStyle={{
             border: `1.5px solid ${colors.base.border}`,
             borderRadius: 12,
             padding: "9px 14px",
-            fontSize: 13,
             fontWeight: 600,
-            color: colors.typography.primaryText,
-            background: "#fff",
-            cursor: "pointer",
           }}
-        >
-          <option value="all">All Time</option>
-          <option value="7">Last 7 days</option>
-          <option value="30">Last 30 days</option>
-          <option value="90">Last 90 days</option>
-          <option value="365">Last 1 year</option>
-        </select>
+        />
 
         <select
           value={sortOrder}
@@ -1481,8 +1469,6 @@ export default function WebinarsScreen() {
             cursor: "pointer",
           }}
         >
-          <option value="newest">Newest First</option>
-          <option value="oldest">Oldest First</option>
           <option value="price_desc">Price: High to Low</option>
           <option value="price_asc">Price: Low to High</option>
         </select>
@@ -1574,7 +1560,7 @@ export default function WebinarsScreen() {
                   "Webinar",
                   "Status",
                   "Date & Time",
-                  "Attendees",
+                  "Users",
                   "Revenue",
                   "Actions",
                 ].map((h) => (
@@ -1679,66 +1665,6 @@ export default function WebinarsScreen() {
       </Modal>
 
       <Modal
-        open={!!performanceWebinar}
-        onClose={() => setPerformanceWebinar(null)}
-        title="Webinar Performance"
-        width={380}
-      >
-        {performanceWebinar && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                padding: "10px 12px",
-                borderRadius: 10,
-                background: "rgba(34,197,94,0.08)",
-              }}
-            >
-              <span style={{ fontSize: 13, color: "#6B7280" }}>
-                Total Revenue
-              </span>
-              <span style={{ fontSize: 14, fontWeight: 700, color: "#16A34A" }}>
-                {performanceWebinar.revenue != null
-                  ? formatCurrency(performanceWebinar.revenue)
-                  : "--"}
-              </span>
-            </div>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                padding: "10px 12px",
-                borderRadius: 10,
-                background: "rgba(59,130,246,0.08)",
-              }}
-            >
-              <span style={{ fontSize: 13, color: "#6B7280" }}>
-                Attendees / Users
-              </span>
-              <span style={{ fontSize: 14, fontWeight: 700, color: "#2563EB" }}>
-                {performanceWebinar._count?.enrollments ?? 0}
-              </span>
-            </div>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                padding: "10px 12px",
-                borderRadius: 10,
-                background: "rgba(239,68,68,0.08)",
-              }}
-            >
-              <span style={{ fontSize: 13, color: "#6B7280" }}>Refunds</span>
-              <span style={{ fontSize: 14, fontWeight: 700, color: "#DC2626" }}>
-                {performanceWebinar.refunded_count ?? 0}
-              </span>
-            </div>
-          </div>
-        )}
-      </Modal>
-
-      <Modal
         open={!!toDelete}
         onClose={() => setToDelete(null)}
         title="Delete webinar?"
@@ -1752,7 +1678,7 @@ export default function WebinarsScreen() {
           }}
         >
           "<b>{toDelete?.title}</b>" will be permanently deleted. Registered
-          attendees will lose access.
+          users will lose access.
         </p>
         <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
           <GoldBtn ghost onClick={() => setToDelete(null)}>
@@ -1933,7 +1859,7 @@ export default function WebinarsScreen() {
                   fontSize: 13,
                 }}
               >
-                Loading attendees...
+                Loading Users...
               </div>
             ) : attendeesList.length === 0 ? (
               <div
@@ -1944,7 +1870,7 @@ export default function WebinarsScreen() {
                   fontSize: 13,
                 }}
               >
-                No attendees yet.
+                No Users yet.
               </div>
             ) : (
               <div

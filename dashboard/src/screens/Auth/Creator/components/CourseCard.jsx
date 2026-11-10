@@ -537,26 +537,6 @@ export default function CourseCard({
               <Pencil size={14} color={colors.typography.secondaryText} />
             </button>
 
-            <button
-              type="button"
-              onClick={() => openModalFor("performance")}
-              title="Course Performance"
-              style={{
-                ...iconButtonStyle,
-                ...(openModal === "performance"
-                  ? activeIconButtonStyle("#22C55E")
-                  : {}),
-              }}
-            >
-              <BarChart2
-                size={14}
-                color={
-                  openModal === "performance"
-                    ? "#22C55E"
-                    : colors.typography.secondaryText
-                }
-              />
-            </button>
 
             <button
               type="button"
@@ -736,42 +716,7 @@ export default function CourseCard({
         </Modal>
       )}
 
-      {/* ===== MODAL 3: Course Performance ===== */}
-      {openModal === "performance" && (
-        <Modal
-          color="#22C55E"
-          icon={<BarChart2 size={18} color="#22C55E" />}
-          title="Course Performance"
-          width={360}
-          onClose={() => setOpenModal(null)}
-        >
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <PerformanceStat
-              icon={<IndianRupee size={16} color="#22C55E" />}
-              bg="rgba(34,197,94,0.08)"
-              label="Total Revenue"
-              value={revenue != null ? formatCurrency(revenue) : "--"}
-            />
-            <PerformanceStat
-              icon={<Users size={16} color="#3B82F6" />}
-              bg="rgba(59,130,246,0.08)"
-              label="Users"
-              value={students}
-            />
-            <PerformanceStat
-              icon={<RotateCcw size={16} color="#EF4444" />}
-              bg="rgba(239,68,68,0.08)"
-              label="Refunds"
-              value={refunds != null ? refunds : "--"}
-              note={
-                refunds == null
-                  ? "Needs backend: refunds-per-course aggregation"
-                  : null
-              }
-            />
-          </div>
-        </Modal>
-      )}
+
 
       {/* View Enrollments modal */}
       {showEnrollments && (

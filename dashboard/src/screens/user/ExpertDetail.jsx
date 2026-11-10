@@ -2,13 +2,24 @@
 // expert's weekly availability minus booked/past slots, confirm modal, then
 // POST /sessions/book (free → done, paid → Cashfree checkout + verify poll).
 import React, { useEffect, useMemo, useState } from "react";
-import { useParams, useLocation, useNavigate } from "react-router-dom";
-import { Star, Languages, BadgeCheck } from "lucide-react";
+import {
+  useParams,
+  useLocation,
+  useNavigate,
+  useSearchParams,
+} from "react-router-dom";
+import { Star, Clock,Languages, BadgeCheck } from "lucide-react";
 import { apiFetch, unwrap } from "../../utils/api";
 import { openCheckout, pollVerify } from "../../utils/payments";
 import { onSocket } from "../../utils/socket";
 import colors from "../../utils/colors";
-import { Avatar, FullLoader, GradientButton, Modal, Badge } from "../../components/ui";
+import {
+  Avatar,
+  FullLoader,
+  GradientButton,
+  Modal,
+  Badge,
+} from "../../components/ui";
 import { toast } from "../../utils/toast";
 import { formatCurrency } from "../../utils/formatters";
 
@@ -27,7 +38,9 @@ function toSlots(startHHMM = "10:00", endHHMM = "18:00") {
   const [eh, em] = endHHMM.split(":").map(Number);
   const out = [];
   for (let t = sh * 60 + (sm || 0); t + DUR <= eh * 60 + (em || 0); t += DUR) {
-    out.push(`${String(Math.floor(t / 60)).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}`);
+    out.push(
+      `${String(Math.floor(t / 60)).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}`,
+    );
   }
   return out;
 }
@@ -36,6 +49,8 @@ export default function ExpertDetail() {
   const { expertId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const sessionId = searchParams.get("session");
   const [expert, setExpert] = useState(location.state?.expert || null);
   const [availability, setAvailability] = useState(null);
   const [bookedSlots, setBookedSlots] = useState([]);
@@ -51,12 +66,16 @@ export default function ExpertDetail() {
         const d = unwrap(r);
         setExpert(d?.expert || d);
       }),
-      apiFetch(`/sessions/availability/${expertId}`).then((r) => setAvailability(unwrap(r))),
+      apiFetch(`/sessions/availability/${expertId}`).then((r) =>
+        setAvailability(unwrap(r)),
+      ),
     ]).finally(() => setLoading(false));
 
     const off = onSocket("expert_availability_updated", (data) => {
       if (data?.expert_id === expertId) {
-        setExpert((prev) => (prev ? { ...prev, is_available: data.is_available } : prev));
+        setExpert((prev) =>
+          prev ? { ...prev, is_available: data.is_available } : prev,
+        );
       }
     });
     return off;
@@ -72,10 +91,13 @@ export default function ExpertDetail() {
         setBookedSlots(
           list.map((s) => {
             const raw = s.time || s.start_time || s.scheduled_at || s;
-            if (typeof raw === "string" && /^\d{2}:\d{2}/.test(raw)) return raw.slice(0, 5);
+            if (typeof raw === "string" && /^\d{2}:\d{2}/.test(raw))
+              return raw.slice(0, 5);
             const dt = new Date(raw);
-            return isNaN(dt) ? String(raw) : `${String(dt.getHours()).padStart(2, "0")}:${String(dt.getMinutes()).padStart(2, "0")}`;
-          })
+            return isNaN(dt)
+              ? String(raw)
+              : `${String(dt.getHours()).padStart(2, "0")}:${String(dt.getMinutes()).padStart(2, "0")}`;
+          }),
         );
       })
       .catch(() => setBookedSlots([]));
@@ -84,17 +106,29 @@ export default function ExpertDetail() {
 
   const daySlots = useMemo(() => {
     const dow = date.getDay(); // 0 sun
-    const raw = availability?.weekly_schedule || availability?.availability || availability;
+    const raw =
+      availability?.weekly_schedule ||
+      availability?.availability ||
+      availability;
     let ranges = [];
     if (Array.isArray(raw)) {
-      const dayNames = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+      const dayNames = [
+        "sunday",
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday",
+      ];
       for (const item of raw) {
         const itemDay = item.day_of_week ?? item.day;
         const matches =
           itemDay === undefined ||
           Number(itemDay) === dow ||
           String(itemDay).toLowerCase() === dayNames[dow] ||
-          String(itemDay).toLowerCase().slice(0, 3) === dayNames[dow].slice(0, 3);
+          String(itemDay).toLowerCase().slice(0, 3) ===
+            dayNames[dow].slice(0, 3);
         if (!matches) continue;
         if (Array.isArray(item.slots)) {
           for (const s of item.slots) ranges.push([s.start_time, s.end_time]);
@@ -107,8 +141,26 @@ export default function ExpertDetail() {
     return [...new Set(ranges.flatMap(([s, e]) => toSlots(s, e)))].sort();
   }, [availability, date]);
 
+  const selectedProduct =
+    location.state?.product ||
+    (sessionId
+      ? (expert?.products || []).find((x) => x.id === sessionId)
+      : null) ||
+    null;
+
   if (loading && !expert) return <FullLoader label="Loading expert..." />;
-  if (!expert) return <div style={{ padding: 40, textAlign: "center", color: colors.user.subHeading }}>Expert not found.</div>;
+  if (!expert)
+    return (
+      <div
+        style={{
+          padding: 40,
+          textAlign: "center",
+          color: colors.user.subHeading,
+        }}
+      >
+        Expert not found.
+      </div>
+    );
 
   const rate = Number(expert.video_rate) || 0;
   const total = rate * DUR;
@@ -119,7 +171,8 @@ export default function ExpertDetail() {
     if (bookedSlots.includes(t)) return "booked";
     if (isToday) {
       const [h, m] = t.split(":").map(Number);
-      if (h * 60 + m <= new Date().getHours() * 60 + new Date().getMinutes()) return "passed";
+      if (h * 60 + m <= new Date().getHours() * 60 + new Date().getMinutes())
+        return "passed";
     }
     return "open";
   };
@@ -130,13 +183,19 @@ export default function ExpertDetail() {
       const [h, m] = time.split(":").map(Number);
       const when = new Date(date);
       when.setHours(h, m, 0, 0);
-      if (when.getTime() <= Date.now()) throw new Error("That time has already passed");
+      if (when.getTime() <= Date.now())
+        throw new Error("That time has already passed");
 
       const res = unwrap(
         await apiFetch("/sessions/book", {
           method: "POST",
-          body: JSON.stringify({ expert_id: expertId, mode: "video", duration: DUR, scheduled_at: when.toISOString() }),
-        })
+          body: JSON.stringify({
+            expert_id: expertId,
+            mode: "video",
+            duration: DUR,
+            scheduled_at: when.toISOString(),
+          }),
+        }),
       );
       if (res?.is_free) {
         toast.success("Session booked 🎉");
@@ -144,8 +203,12 @@ export default function ExpertDetail() {
         return;
       }
       const cf = res?.cashfree_order || res;
-      if (!cf?.payment_session_id) throw new Error("No payment session returned");
-      await openCheckout({ payment_session_id: cf.payment_session_id, env: res?.cashfree_env });
+      if (!cf?.payment_session_id)
+        throw new Error("No payment session returned");
+      await openCheckout({
+        payment_session_id: cf.payment_session_id,
+        env: res?.cashfree_env,
+      });
       await pollVerify("/sessions/verify-payment", { order_id: cf.order_id });
       toast.success("Session booked & paid 🎉");
       navigate("/app/sessions");
@@ -158,16 +221,54 @@ export default function ExpertDetail() {
   };
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1.3fr", gap: 26, alignItems: "start", color: colors.user.text }}>
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "1fr 1.3fr",
+        gap: 26,
+        alignItems: "start",
+        color: colors.user.text,
+      }}
+    >
       {/* Profile Card */}
-      <div style={{ background: colors.user.card, border: `1px solid ${colors.user.border}`, borderRadius: 18, padding: 24 }}>
+      <div
+        style={{
+          background: colors.user.card,
+          border: `1px solid ${colors.user.border}`,
+          borderRadius: 18,
+          padding: 24,
+        }}
+      >
         <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
-          <Avatar src={expert.user?.profile_image || expert.profile_image} name={name} size={76} online={!!expert.is_available} />
+          <Avatar
+            src={expert.user?.profile_image || expert.profile_image}
+            name={name}
+            size={76}
+            online={!!expert.is_available}
+          />
           <div>
-            <h1 style={{ margin: 0, fontSize: 22, fontWeight: 900, color: colors.user.text }}>{name}</h1>
-            <div style={{ color: colors.user.subHeading, fontSize: 14 }}>{expert.profession}</div>
+            <h1
+              style={{
+                margin: 0,
+                fontSize: 22,
+                fontWeight: 900,
+                color: colors.user.text,
+              }}
+            >
+              {name}
+            </h1>
+            <div style={{ color: colors.user.subHeading, fontSize: 14 }}>
+              {expert.profession}
+            </div>
             <div style={{ marginTop: 6 }}>
-              <Badge color={expert.is_available ? "#22C55E" : "#9CA3AF"} bg={expert.is_available ? "rgba(34, 197, 94, 0.12)" : "rgba(156, 163, 175, 0.12)"}>
+              <Badge
+                color={expert.is_available ? "#22C55E" : "#9CA3AF"}
+                bg={
+                  expert.is_available
+                    ? "rgba(34, 197, 94, 0.12)"
+                    : "rgba(156, 163, 175, 0.12)"
+                }
+              >
                 {expert.is_available ? "Online" : "Offline"}
               </Badge>
             </div>
@@ -181,45 +282,248 @@ export default function ExpertDetail() {
             [`${expert.experience || 0} yrs`, "Experience"],
             [expert.total_sessions || 0, "Sessions"],
           ].map(([v, l]) => (
-            <div key={l} style={{ flex: 1, background: colors.user.cardSoft, border: `1px solid ${colors.user.border}`, borderRadius: 12, padding: 12, textAlign: "center" }}>
-              <div style={{ fontWeight: 900, fontSize: 16, color: colors.user.text }}>{v}</div>
-              <div style={{ color: colors.user.subHeading, fontSize: 11, textTransform: "uppercase", letterSpacing: 0.6, marginTop: 2 }}>{l}</div>
+            <div
+              key={l}
+              style={{
+                flex: 1,
+                background: colors.user.cardSoft,
+                border: `1px solid ${colors.user.border}`,
+                borderRadius: 12,
+                padding: 12,
+                textAlign: "center",
+              }}
+            >
+              <div
+                style={{
+                  fontWeight: 900,
+                  fontSize: 16,
+                  color: colors.user.text,
+                }}
+              >
+                {v}
+              </div>
+              <div
+                style={{
+                  color: colors.user.subHeading,
+                  fontSize: 11,
+                  textTransform: "uppercase",
+                  letterSpacing: 0.6,
+                  marginTop: 2,
+                }}
+              >
+                {l}
+              </div>
             </div>
           ))}
         </div>
 
         {expert.bio && (
           <>
-            <h3 style={{ margin: "18px 0 6px", fontSize: 15, fontWeight: 800, color: colors.user.text }}>About</h3>
-            <p style={{ margin: 0, color: colors.user.subHeading, fontSize: 13.5, lineHeight: 1.65 }}>{expert.bio}</p>
+            <h3
+              style={{
+                margin: "18px 0 6px",
+                fontSize: 15,
+                fontWeight: 800,
+                color: colors.user.text,
+              }}
+            >
+              About
+            </h3>
+            <p
+              style={{
+                margin: 0,
+                color: colors.user.subHeading,
+                fontSize: 13.5,
+                lineHeight: 1.65,
+              }}
+            >
+              {expert.bio}
+            </p>
           </>
         )}
         {Array.isArray(expert.languages) && expert.languages.length > 0 && (
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 14, color: colors.user.subHeading, fontSize: 13 }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              marginTop: 14,
+              color: colors.user.subHeading,
+              fontSize: 13,
+            }}
+          >
             <Languages size={15} /> {expert.languages.join(", ")}
           </div>
         )}
         {Array.isArray(expert.categories) && expert.categories.length > 0 && (
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 12 }}>
+          <div
+            style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 12 }}
+          >
             {expert.categories.map((c, i) => (
-              <Badge key={i} color={colors.user.accent} bg="rgba(189,194,255,0.1)">{c}</Badge>
+              <Badge
+                key={i}
+                color={colors.user.accent}
+                bg="rgba(189,194,255,0.1)"
+              >
+                {c}
+              </Badge>
             ))}
           </div>
         )}
 
         {/* Mode & Rate Banner */}
-        <div style={{ marginTop: 18, background: colors.user.cardSoft, border: `1px solid ${colors.user.border}`, borderRadius: 12, padding: 14, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <span style={{ fontWeight: 800, fontSize: 14, color: colors.user.text }}>📹 Video Call</span>
-          <span style={{ fontWeight: 900, fontSize: 16, color: colors.user.accent }}>₹{rate}/min</span>
+        <div
+          style={{
+            marginTop: 18,
+            background: colors.user.cardSoft,
+            border: `1px solid ${colors.user.border}`,
+            borderRadius: 12,
+            padding: 14,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <span
+            style={{ fontWeight: 800, fontSize: 14, color: colors.user.text }}
+          >
+            📹 Video Call
+          </span>
+          <span
+            style={{ fontWeight: 900, fontSize: 16, color: colors.user.accent }}
+          >
+            ₹{rate}/min
+          </span>
         </div>
       </div>
 
       {/* Booking Card */}
-      <div style={{ background: colors.user.card, border: `1px solid ${colors.user.border}`, borderRadius: 18, padding: 24 }}>
-        <h2 style={{ margin: "0 0 14px", fontSize: 18, fontWeight: 900, color: colors.user.text }}>Book a Video Session</h2>
+      <div
+        style={{
+          background: colors.user.card,
+          border: `1px solid ${colors.user.border}`,
+          borderRadius: 18,
+          padding: 24,
+        }}
+      >
+        {selectedProduct && (
+          <div
+            style={{
+              display: "flex",
+              gap: 14,
+              marginBottom: 20,
+              padding: 14,
+              background: colors.user.cardSoft,
+              border: `1px solid ${colors.user.border}`,
+              borderRadius: 14,
+            }}
+          >
+            <div
+              style={{
+                width: 96,
+                height: 66,
+                borderRadius: 10,
+                flexShrink: 0,
+                background: colors.gradients.heroWarm,
+                backgroundImage: selectedProduct.thumbnail_url
+                  ? `url(${selectedProduct.thumbnail_url})`
+                  : undefined,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }}
+            />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div
+                style={{
+                  fontSize: 11,
+                  fontWeight: 800,
+                  letterSpacing: 0.8,
+                  textTransform: "uppercase",
+                  color: colors.user.subHeading,
+                }}
+              >
+                Selected session
+              </div>
+              <div
+                style={{
+                  fontWeight: 900,
+                  fontSize: 15,
+                  color: colors.user.text,
+                  marginTop: 2,
+                }}
+              >
+                {selectedProduct.title}
+              </div>
+              {selectedProduct.description && (
+                <div
+                  style={{
+                    color: colors.user.subHeading,
+                    fontSize: 12.5,
+                    marginTop: 3,
+                    lineHeight: 1.45,
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical",
+                    overflow: "hidden",
+                  }}
+                >
+                  {selectedProduct.description}
+                </div>
+              )}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  marginTop: 6,
+                  fontSize: 12.5,
+                  color: colors.user.subHeading,
+                }}
+              >
+                <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                  <Clock size={12} /> {selectedProduct.duration || 30} min
+                </span>
+                {selectedProduct.categories?.[0] && (
+                  <span>· {selectedProduct.categories[0]}</span>
+                )}
+                <span
+                  style={{
+                    fontWeight: 900,
+                    color:
+                      Number(selectedProduct.price) > 0
+                        ? colors.user.accent
+                        : "#22C55E",
+                  }}
+                >
+                  ·{" "}
+                  {Number(selectedProduct.price) > 0
+                    ? formatCurrency(selectedProduct.price)
+                    : "Free"}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+        <h2
+          style={{
+            margin: "0 0 14px",
+            fontSize: 18,
+            fontWeight: 900,
+            color: colors.user.text,
+          }}
+        >
+          Book a Video Session
+        </h2>
 
         {/* 7-Day Date Picker */}
-        <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 6 }}>
+        <div
+          style={{
+            display: "flex",
+            gap: 8,
+            overflowX: "auto",
+            paddingBottom: 6,
+          }}
+        >
           {next7Days().map((d) => {
             const sel = d.toDateString() === date.toDateString();
             return (
@@ -227,22 +531,45 @@ export default function ExpertDetail() {
                 key={d.toISOString()}
                 onClick={() => setDate(d)}
                 style={{
-                  minWidth: 66, padding: "10px 8px", borderRadius: 12, cursor: "pointer",
+                  minWidth: 66,
+                  padding: "10px 8px",
+                  borderRadius: 12,
+                  cursor: "pointer",
                   border: `1px solid ${sel ? "transparent" : colors.user.border}`,
                   background: sel ? colors.gradients.heroWarm : "transparent",
-                  color: sel ? "#FFFFFF" : colors.user.subHeading, textAlign: "center",
+                  color: sel ? "#FFFFFF" : colors.user.subHeading,
+                  textAlign: "center",
                   transition: "all 0.15s ease",
                 }}
               >
-                <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase" }}>{d.toDateString() === new Date().toDateString() ? "Today" : d.toLocaleDateString("en-IN", { weekday: "short" })}</div>
-                <div style={{ fontSize: 17, fontWeight: 900, marginTop: 2 }}>{d.getDate()}</div>
+                <div
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {d.toDateString() === new Date().toDateString()
+                    ? "Today"
+                    : d.toLocaleDateString("en-IN", { weekday: "short" })}
+                </div>
+                <div style={{ fontSize: 17, fontWeight: 900, marginTop: 2 }}>
+                  {d.getDate()}
+                </div>
               </button>
             );
           })}
         </div>
 
         {/* Time Slots */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(88px, 1fr))", gap: 8, marginTop: 16 }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(88px, 1fr))",
+            gap: 8,
+            marginTop: 16,
+          }}
+        >
           {daySlots.map((t) => {
             const state = slotState(t);
             const sel = time === t;
@@ -252,15 +579,32 @@ export default function ExpertDetail() {
                 disabled={state !== "open"}
                 onClick={() => setTime(t)}
                 style={{
-                  padding: "10px 6px", borderRadius: 10, fontSize: 13, fontWeight: 700,
+                  padding: "10px 6px",
+                  borderRadius: 10,
+                  fontSize: 13,
+                  fontWeight: 700,
                   cursor: state === "open" ? "pointer" : "not-allowed",
                   border: `1px solid ${sel ? "transparent" : colors.user.border}`,
-                  background: sel ? colors.gradients.heroWarm : state === "open" ? "rgba(43,82,246,0.04)" : colors.user.cardSoft,
-                  color: sel ? "#FFFFFF" : state === "open" ? colors.user.text : colors.user.subHeading,
+                  background: sel
+                    ? colors.gradients.heroWarm
+                    : state === "open"
+                      ? "rgba(43,82,246,0.04)"
+                      : colors.user.cardSoft,
+                  color: sel
+                    ? "#FFFFFF"
+                    : state === "open"
+                      ? colors.user.text
+                      : colors.user.subHeading,
                   textDecoration: state === "booked" ? "line-through" : "none",
                   transition: "all 0.15s ease",
                 }}
-                title={state === "booked" ? "Booked" : state === "passed" ? "Passed" : t}
+                title={
+                  state === "booked"
+                    ? "Booked"
+                    : state === "passed"
+                      ? "Passed"
+                      : t
+                }
               >
                 {t}
               </button>
@@ -269,41 +613,110 @@ export default function ExpertDetail() {
         </div>
 
         {/* Summary Footer Bar */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 22, borderTop: `1px solid ${colors.user.border}`, paddingTop: 16 }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginTop: 22,
+            borderTop: `1px solid ${colors.user.border}`,
+            paddingTop: 16,
+          }}
+        >
           <div>
-            <div style={{ fontWeight: 900, fontSize: 17, color: colors.user.text }}>₹{rate}/min</div>
+            <div
+              style={{ fontWeight: 900, fontSize: 17, color: colors.user.text }}
+            >
+              ₹{rate}/min
+            </div>
             <div style={{ color: colors.user.subHeading, fontSize: 12.5 }}>
-              {time ? `${date.toLocaleDateString("en-IN", { day: "numeric", month: "short" })} · ${time} · ${DUR} min` : "Pick a time slot"}
+              {time
+                ? `${date.toLocaleDateString("en-IN", { day: "numeric", month: "short" })} · ${time} · ${DUR} min`
+                : "Pick a time slot"}
             </div>
           </div>
-          <GradientButton disabled={!time} gradient={time ? colors.gradients.greenButton : undefined} onClick={() => setConfirm(true)}>Book Now</GradientButton>
+          <GradientButton
+            disabled={!time}
+            gradient={time ? colors.gradients.greenButton : undefined}
+            onClick={() => setConfirm(true)}
+          >
+            Book Now
+          </GradientButton>
         </div>
       </div>
 
       {/* Confirmation Modal */}
-      <Modal open={confirm} onClose={() => setConfirm(false)} title="Confirm Booking" dark>
-        <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}>
+      <Modal
+        open={confirm}
+        onClose={() => setConfirm(false)}
+        title="Confirm Booking"
+        dark
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 14,
+            marginBottom: 16,
+          }}
+        >
           <Avatar name={name} src={expert.user?.profile_image} size={52} />
           <div>
-            <div style={{ fontWeight: 900, color: colors.user.text }}>{name}</div>
-            <div style={{ color: colors.user.subHeading, fontSize: 13 }}>{expert.profession}</div>
+            <div style={{ fontWeight: 900, color: colors.user.text }}>
+              {name}
+            </div>
+            <div style={{ color: colors.user.subHeading, fontSize: 13 }}>
+              {expert.profession}
+            </div>
           </div>
         </div>
         {[
           ["Rate", `₹${rate}/min`],
-          ["Date & Time", time ? `${date.toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" })}, ${time}` : "—"],
+          [
+            "Date & Time",
+            time
+              ? `${date.toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" })}, ${time}`
+              : "—",
+          ],
           ["Duration", `${DUR} minutes`],
           ["Total", formatCurrency(total)],
         ].map(([l, v]) => (
-          <div key={l} style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", fontSize: 14, borderBottom: `1px solid ${colors.user.border}` }}>
+          <div
+            key={l}
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              padding: "10px 0",
+              fontSize: 14,
+              borderBottom: `1px solid ${colors.user.border}`,
+            }}
+          >
             <span style={{ color: colors.user.subHeading }}>{l}</span>
-            <span style={{ fontWeight: 700, color: colors.user.text }}>{v}</span>
+            <span style={{ fontWeight: 700, color: colors.user.text }}>
+              {v}
+            </span>
           </div>
         ))}
-        <p style={{ fontSize: 12, color: colors.user.subHeading, margin: "14px 0 16px", display: "flex", alignItems: "center", gap: 6 }}>
-          <BadgeCheck size={14} color="#22C55E" /> Secure session. Billed per minute of actual call.
+        <p
+          style={{
+            fontSize: 12,
+            color: colors.user.subHeading,
+            margin: "14px 0 16px",
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+          }}
+        >
+          <BadgeCheck size={14} color="#22C55E" /> Secure session. Billed per
+          minute of actual call.
         </p>
-        <GradientButton full size="lg" loading={booking} gradient={time ? colors.gradients.greenButton : undefined} onClick={book}>
+        <GradientButton
+          full
+          size="lg"
+          loading={booking}
+          gradient={time ? colors.gradients.greenButton : undefined}
+          onClick={book}
+        >
           Pay {formatCurrency(total)} & Book
         </GradientButton>
       </Modal>

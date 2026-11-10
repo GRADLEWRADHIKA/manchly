@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Console | Manchly</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body class="dashboard-page">
+
+  <!-- ───────────────── Sidebar ───────────────── -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-mark">Manchly</div>
+      <div class="brand-sub">Admin Console</div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button type="button" class="nav-item active" data-section="overview">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+        <span>Overview</span>
+      </button>
+      <button type="button" class="nav-item" data-section="users">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>Users</span>
+      </button>
+      <button type="button" class="nav-item" data-section="courses">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        <span>Courses</span>
+      </button>
+      <button type="button" class="nav-item" data-section="webinars">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="14" height="14" rx="2.5"/><path d="m22 8-6 4 6 4z"/></svg>
+        <span>Webinars</span>
+      </button>
+      <button type="button" class="nav-item" data-section="payments">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20"/></svg>
+        <span>Payments</span>
+      </button>
+      <button type="button" class="nav-item" data-section="sessions">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 16.5 22 20V4l-6.5 3.5"/><rect x="2" y="6" width="13.5" height="12" rx="2.5"/></svg>
+        <span>Sessions</span>
+      </button>
+      <button type="button" class="nav-item" data-section="kyc">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6.5v5c0 4.4 3.4 8.5 8 9.5 4.6-1 8-5.1 8-9.5v-5z"/><path d="m9 12 2 2 4-4"/></svg>
+        <span>KYC</span>
+      </button>
+      <button type="button" class="nav-item" data-section="storefronts">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9 4.5 4.5h15L21 9"/><path d="M4 9v10a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9"/><path d="M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"/></svg>
+        <span>Storefronts</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-foot">
+      <button type="button" class="btn-logout" id="btn-logout">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
+        <span>Log out</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ───────────────── Main ───────────────── -->
+  <div class="main">
+
+    <header class="topbar">
+      <div>
+        <p class="greeting" id="greeting">Welcome back 👋</p>
+        <p class="greeting-date" id="greeting-date">–</p>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-stat">
+          <span class="label">Total Revenue</span>
+          <span class="value" id="topbar-revenue">₹–</span>
+        </div>
+        <div class="topbar-divider"></div>
+        <div class="user-chip">
+          <div class="avatar" id="avatar">A</div>
+          <span class="user" id="user-email">–</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="content">
+
+      <!-- ───── Overview ───── -->
+      <div id="panel-overview" class="dashboard-panel active">
+        <div class="panel-head">
+          <h2 class="section-title">Platform <em>Overview</em></h2>
+          <p class="section-sub">Users, content, and revenue across Manchly — at a glance.</p>
+        </div>
+
+        <div class="stats-grid" id="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon tint-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+            <span class="value" id="stat-users">–</span>
+            <span class="label">Total Users</span>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon tint-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6 4.6 1.9-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/><path d="M18 15l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9z"/></svg></div>
+            <span class="value" id="stat-creators">–</span>
+            <span class="label">Creators</span>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon tint-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
+            <span class="value" id="stat-courses">–</span>
+            <span class="label">Courses</span>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon tint-amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.5 2.5 2.5 4.5-5"/></svg></div>
+            <span class="value" id="stat-courses-pub">–</span>
+            <span class="label">Published Courses</span>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon tint-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M19 8v6"/><path d="M22 11h-6"/></svg></div>
+            <span class="value" id="stat-enrollments">–</span>
+            <span class="label">Course Enrollments</span>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon tint-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20"/></svg></div>
+            <span class="value" id="stat-transactions">–</span>
+            <span class="label">Successful Payments</span>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon tint-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="14" height="14" rx="2.5"/><path d="m22 8-6 4 6 4z"/></svg></div>
+            <span class="value" id="stat-webinars">–</span>
+            <span class="label">Webinars</span>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon tint-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9a3 3 0 0 0 0 6v3a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3a3 3 0 0 1 0-6V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2z"/><path d="M13 5v14"/></svg></div>
+            <span class="value" id="stat-webinar-enroll">–</span>
+            <span class="label">Webinar Enrollments</span>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon tint-amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12"/><path d="M6 9h12"/><path d="M6 4c6 0 8 1.6 8 4.5S12 13 6 13c3.5 0 6 3 9 7"/></svg></div>
+            <span class="value" id="stat-revenue">–</span>
+            <span class="label">Total Revenue (₹)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ───── Users ───── -->
+      <div id="panel-users" class="dashboard-panel">
+        <div class="panel-head">
+          <h2 class="section-title">Users</h2>
+          <p class="section-sub">Search accounts, review activity, and manage access.</p>
+        </div>
+
+        <div class="toolbar">
+          <div class="search-field">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            <input type="search" id="search-users" placeholder="Search by email, name, phone" class="search-input" />
+          </div>
+          <button type="button" id="btn-search-users" class="btn btn-primary btn-inline">Search</button>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Email</th>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Type</th>
+                <th>Courses</th>
+                <th>Enrollments</th>
+                <th>Joined</th>
+              </tr>
+            </thead>
+            <tbody id="users-tbody"></tbody>
+          </table>
+        </div>
+        <div class="pagination" id="pagination-users"></div>
+
+        <div class="user-detail-panel" id="user-detail-panel">
+          <h3 id="detail-title">User details</h3>
+          <div class="user-detail-grid" id="user-detail-content"></div>
+          <div class="detail-actions">
+            <button type="button" class="btn-close" id="btn-close-detail">Close</button>
+            <button type="button" class="btn-danger" id="btn-delete-user">Delete User</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ───── Courses ───── -->
+      <div id="panel-courses" class="dashboard-panel">
+        <div class="panel-head">
+          <h2 class="section-title">Courses</h2>
+          <p class="section-sub">Every course on the platform, with creator and enrollment counts.</p>
+        </div>
+
+        <div class="toolbar">
+          <div class="search-field">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            <input type="search" id="search-courses" placeholder="Search by title, category" class="search-input" />
+          </div>
+          <button type="button" id="btn-search-courses" class="btn btn-primary btn-inline">Search</button>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Creator</th>
+                <th>Status</th>
+                <th>Price (₹)</th>
+                <th>Enrollments</th>
+                <th>Created</th>
+              </tr>
+            </thead>
+            <tbody id="courses-tbody"></tbody>
+          </table>
+        </div>
+        <div class="pagination" id="pagination-courses"></div>
+
+        <div class="user-detail-panel" id="course-detail-panel">
+          <h3 id="course-detail-title">Course details</h3>
+          <div class="user-detail-grid" id="course-detail-content"></div>
+          <button type="button" class="btn-close" id="btn-close-course-detail">Close</button>
+        </div>
+      </div>
+
+      <!-- ───── Webinars ───── -->
+      <div id="panel-webinars" class="dashboard-panel">
+        <div class="panel-head">
+          <h2 class="section-title">Webinars</h2>
+          <p class="section-sub">Scheduled and past sessions across all creators.</p>
+        </div>
+
+        <div class="toolbar">
+          <div class="search-field">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            <input type="search" id="search-webinars" placeholder="Search by title, category" class="search-input" />
+          </div>
+          <button type="button" id="btn-search-webinars" class="btn btn-primary btn-inline">Search</button>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Creator</th>
+                <th>Status</th>
+                <th>Price (₹)</th>
+                <th>Scheduled</th>
+                <th>Enrollments</th>
+                <th>Created</th>
+              </tr>
+            </thead>
+            <tbody id="webinars-tbody"></tbody>
+          </table>
+        </div>
+        <div class="pagination" id="pagination-webinars"></div>
+
+        <div class="user-detail-panel" id="webinar-detail-panel">
+          <h3 id="webinar-detail-title">Webinar details</h3>
+          <div class="user-detail-grid" id="webinar-detail-content"></div>
+          <button type="button" class="btn-close" id="btn-close-webinar-detail">Close</button>
+        </div>
+      </div>
+
+      <!-- ───── Payments ───── -->
+      <div id="panel-payments" class="dashboard-panel">
+        <div class="panel-head">
+          <h2 class="section-title">Payments</h2>
+          <p class="section-sub">Every course, webinar, and 1:1 transaction in one feed.</p>
+        </div>
+
+        <div class="stats-grid" style="margin-bottom:1.5rem;">
+          <div class="stat-card">
+            <div class="stat-icon tint-amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12"/><path d="M6 9h12"/><path d="M6 4c6 0 8 1.6 8 4.5S12 13 6 13c3.5 0 6 3 9 7"/></svg></div>
+            <span class="value" id="tx-revenue">–</span>
+            <span class="label">Revenue (₹)</span>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon tint-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.5 2.5 2.5 4.5-5"/></svg></div>
+            <span class="value" id="tx-success">–</span>
+            <span class="label">Successful</span>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon tint-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+            <span class="value" id="tx-pending">–</span>
+            <span class="label">Pending</span>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon tint-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m9 9 6 6M15 9l-6 6"/></svg></div>
+            <span class="value" id="tx-failed">–</span>
+            <span class="label">Failed</span>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <select id="filter-tx-kind" class="search-input" style="padding-left:1rem;max-width:200px;">
+            <option value="">All products</option>
+            <option value="course">Courses</option>
+            <option value="webinar">Webinars</option>
+            <option value="session">1:1 Sessions</option>
+          </select>
+          <select id="filter-tx-status" class="search-input" style="padding-left:1rem;max-width:200px;">
+            <option value="">All statuses</option>
+            <option value="SUCCESS">Success</option>
+            <option value="PENDING">Pending</option>
+            <option value="FAILED">Failed</option>
+          </select>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Type</th><th>Item</th><th>Buyer</th><th>Amount</th><th>Status</th><th>Date</th></tr>
+            </thead>
+            <tbody id="payments-tbody"></tbody>
+          </table>
+        </div>
+        <div class="pagination" id="pagination-payments"></div>
+      </div>
+
+      <!-- ───── Sessions ───── -->
+      <div id="panel-sessions" class="dashboard-panel">
+        <div class="panel-head">
+          <h2 class="section-title">1:1 Sessions</h2>
+          <p class="section-sub">Bookings between learners and creators.</p>
+        </div>
+
+        <div class="toolbar">
+          <select id="filter-session-status" class="search-input" style="padding-left:1rem;max-width:220px;">
+            <option value="">All statuses</option>
+            <option value="PENDING">Pending</option>
+            <option value="ACTIVE">Active</option>
+            <option value="COMPLETED">Completed</option>
+            <option value="MISSED">Missed</option>
+            <option value="CANCELLED">Cancelled</option>
+          </select>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Learner</th><th>Creator</th><th>Mode</th><th>Status</th><th>Amount</th><th>Duration</th><th>Scheduled</th></tr>
+            </thead>
+            <tbody id="sessions-tbody"></tbody>
+          </table>
+        </div>
+        <div class="pagination" id="pagination-sessions"></div>
+      </div>
+
+      <!-- ───── KYC ───── -->
+      <div id="panel-kyc" class="dashboard-panel">
+        <div class="panel-head">
+          <h2 class="section-title">KYC Verification</h2>
+          <p class="section-sub">Approve or reject creator identity checks.</p>
+        </div>
+
+        <div class="toolbar">
+          <select id="filter-kyc-status" class="search-input" style="padding-left:1rem;max-width:220px;">
+            <option value="PENDING">Pending</option>
+            <option value="">All statuses</option>
+            <option value="VERIFIED">Verified</option>
+            <option value="FAILED">Failed</option>
+          </select>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Name</th><th>Email</th><th>PAN</th><th>Type</th><th>Status</th><th>Submitted</th><th>Action</th></tr>
+            </thead>
+            <tbody id="kyc-tbody"></tbody>
+          </table>
+        </div>
+        <div class="pagination" id="pagination-kyc"></div>
+      </div>
+
+      <!-- ───── Storefronts ───── -->
+      <div id="panel-storefronts" class="dashboard-panel">
+        <div class="panel-head">
+          <h2 class="section-title">Creator Storefronts</h2>
+          <p class="section-sub">Public pages at <code>handle.manchly.com</code> — publish or take one down.</p>
+        </div>
+
+        <div class="toolbar">
+          <div class="search-field">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            <input type="search" id="search-storefronts" placeholder="Search by handle, name, email" class="search-input" />
+          </div>
+          <button type="button" id="btn-search-storefronts" class="btn btn-primary btn-inline">Search</button>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Handle</th><th>Creator</th><th>Tagline</th><th>Courses</th><th>Webinars</th><th>Views</th><th>Status</th><th>Action</th></tr>
+            </thead>
+            <tbody id="storefronts-tbody"></tbody>
+          </table>
+        </div>
+        <div class="pagination" id="pagination-storefronts"></div>
+      </div>
+
+    </div><!-- /.content -->
+  </div><!-- /.main -->
+
+  <script src="/js/auth.js"></script>
+  <script>
+    if (!isAuthenticated()) {
+      window.location.href = '/';
+    }
+
+    var currentUsers = [];
+    var currentCourses = [];
+    var currentWebinars = [];
+    var usersPage = 1, coursesPage = 1, webinarsPage = 1;
+    var usersSearch = '', coursesSearch = '', webinarsSearch = '';
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '–';
+      var d = new Date(dateStr);
+      if (isNaN(d.getTime())) return '–';
+      var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+    }
+
+    function formatDateTime(dateStr) {
+      if (!dateStr) return '–';
+      var d = new Date(dateStr);
+      if (isNaN(d.getTime())) return '–';
+      var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      var date = d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+      var hours = d.getHours();
+      var mins = ('0' + d.getMinutes()).slice(-2);
+      var ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12 || 12;
+      return date + ', ' + hours + ':' + mins + ' ' + ampm;
+    }
+
+    // Greeting + today's date in the topbar
+    (function initGreeting() {
+      var now = new Date();
+      var hour = now.getHours();
+      var part = hour < 12 ? 'Good morning' : (hour < 17 ? 'Good afternoon' : 'Good evening');
+      document.getElementById('greeting').textContent = part + ', Admin 👋';
+      var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+      var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      document.getElementById('greeting-date').textContent =
+        days[now.getDay()] + ', ' + now.getDate() + ' ' + months[now.getMonth()];
+    })();
+
+    // Sidebar navigation
+    document.querySelectorAll('.sidebar-nav .nav-item').forEach(function(item) {
+      item.addEventListener('click', function() {
+        var section = this.getAttribute('data-section');
+        document.querySelectorAll('.sidebar-nav .nav-item').forEach(function(t) { t.classList.remove('active'); });
+        document.querySelectorAll('.dashboard-panel').forEach(function(p) { p.classList.remove('active'); });
+        this.classList.add('active');
+        var panel = document.getElementById('panel-' + section);
+        if (panel) panel.classList.add('active');
+        if (section === 'users') loadUsers(1);
+        if (section === 'courses') loadCourses(1);
+        if (section === 'webinars') loadWebinars(1);
+        if (section === 'payments') loadPayments(1);
+        if (section === 'sessions') loadSessions(1);
+        if (section === 'kyc') loadKyc(1);
+        if (section === 'storefronts') loadStorefronts(1);
+      });
+    });
+
+    function renderStats(data) {
+      if (!data) return;
+      document.getElementById('stat-users').textContent = data.users.total;
+      document.getElementById('stat-creators').textContent = data.users.creators;
+      document.getElementById('stat-courses').textContent = data.courses.total;
+      document.getElementById('stat-courses-pub').textContent = data.courses.published;
+      document.getElementById('stat-enrollments').textContent = data.courses.enrollments;
+      document.getElementById('stat-transactions').textContent = data.transactions.success;
+      document.getElementById('stat-webinars').textContent = data.webinars.total;
+      document.getElementById('stat-webinar-enroll').textContent = data.webinars.enrollments;
+      var revenue = data.revenue.toLocaleString('en-IN');
+      document.getElementById('stat-revenue').textContent = revenue;
+      document.getElementById('topbar-revenue').textContent = '₹' + revenue;
+    }
+
+    function loadStats() {
+      apiFetch(API_BASE + '/admin/stats')
+        .then(function(r) { return r.json(); })
+        .then(function(json) {
+          if (json.success && json.data) renderStats(json.data);
+        })
+        .catch(function(e) { console.error(e); });
+    }
+
+    function renderPagination(containerId, p, loadFn) {
+      var div = document.getElementById(containerId);
+      if (!div) return;
+      if (!p || p.totalPages <= 1) {
+        div.innerHTML = '<span>Page ' + (p ? p.page : 1) + ' of ' + (p ? p.totalPages : 1) + '</span>';
+        return;
+      }
+      div.innerHTML = '<button type="button" data-page="prev"' + (p.page <= 1 ? ' disabled' : '') + '>Previous</button><span>Page ' + p.page + ' of ' + p.totalPages + '</span><button type="button" data-page="next"' + (p.page >= p.totalPages ? ' disabled' : '') + '>Next</button>';
+      div.querySelector('[data-page="prev"]').onclick = function() { loadFn(p.page - 1); };
+      div.querySelector('[data-page="next"]').onclick = function() { loadFn(p.page + 1); };
+    }
+
+    // ——— Users ———
+    function renderUsers(users, pagination) {
+      currentUsers = users || [];
+      var tbody = document.getElementById('users-tbody');
+      if (!users || users.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="loading">No users found</td></tr>';
+        document.getElementById('user-detail-panel').classList.remove('visible');
+        return;
+      }
+      tbody.innerHTML = users.map(function(u, i) {
+        var types = Array.isArray(u.user_type) ? u.user_type : [u.user_type];
+        var badges = types.map(function(t) {
+          return '<span class="badge badge-' + t.toLowerCase() + '">' + t + '</span>';
+        }).join(' ');
+        return '<tr class="user-row clickable-row" data-index="' + i + '"><td>' + (u.email || '–') + '</td><td>' + (u.name || '–') + '</td><td>' + (u.phone || '–') + '</td><td>' + badges + '</td><td>' + (u._count && u._count.courses !== undefined ? u._count.courses : '–') + '</td><td>' + (u._count && u._count.enrollments !== undefined ? u._count.enrollments : '–') + '</td><td class="date-fmt">' + formatDate(u.created_at) + '</td></tr>';
+      }).join('');
+      tbody.querySelectorAll('.user-row').forEach(function(tr) {
+        tr.addEventListener('click', function() {
+          var idx = parseInt(tr.getAttribute('data-index'), 10);
+          showUserDetail(currentUsers[idx]);
+          tbody.querySelectorAll('.user-row').forEach(function(r) { r.classList.remove('selected'); });
+          tr.classList.add('selected');
+        });
+      });
+      document.getElementById('user-detail-panel').classList.remove('visible');
+    }
+
+    function showUserDetail(u) {
+      if (!u) return;
+      var types = Array.isArray(u.user_type) ? u.user_type : [u.user_type];
+      var html = '';
+      html += '<div class="user-detail-item"><span class="label">Email</span><span class="value">' + (u.email || '–') + '</span></div>';
+      html += '<div class="user-detail-item"><span class="label">Name</span><span class="value">' + (u.name || '–') + '</span></div>';
+      html += '<div class="user-detail-item"><span class="label">Phone</span><span class="value">' + (u.phone || '–') + '</span></div>';
+      html += '<div class="user-detail-item"><span class="label">Type</span><span class="value">' + types.join(', ') + '</span></div>';
+      html += '<div class="user-detail-item"><span class="label">Courses created</span><span class="value">' + (u._count && u._count.courses !== undefined ? u._count.courses : '–') + '</span></div>';
+      html += '<div class="user-detail-item"><span class="label">Enrollments</span><span class="value">' + (u._count && u._count.enrollments !== undefined ? u._count.enrollments : '–') + '</span></div>';
+      html += '<div class="user-detail-item"><span class="label">Joined</span><span class="value date-fmt">' + formatDate(u.created_at) + '</span></div>';
+      html += '<div class="user-detail-item"><span class="label">Last login</span><span class="value date-fmt">' + formatDateTime(u.last_login) + '</span></div>';
+      document.getElementById('detail-title').textContent = (u.name || u.email || 'User') + ' – Details';
+      document.getElementById('user-detail-content').innerHTML = html;
+      document.getElementById('user-detail-panel').classList.add('visible');
+      // Remember the user this panel is currently showing, for the Delete button.
+      document.getElementById('user-detail-panel').dataset.userId = u.id || '';
+      document.getElementById('user-detail-panel').dataset.userLabel = u.name || u.email || u.id || '';
+    }
+
+    function loadUsers(page) {
+      usersPage = page || 1;
+      var tbody = document.getElementById('users-tbody');
+      tbody.innerHTML = '<tr><td colspan="7" class="loading">Loading…</td></tr>';
+      var url = API_BASE + '/admin/users?page=' + usersPage + '&limit=20';
+      if (usersSearch) url += '&search=' + encodeURIComponent(usersSearch);
+      apiFetch(url).then(function(r) { return r.json(); }).then(function(json) {
+        if (json.success && json.data) {
+          renderUsers(json.data.users, json.data.pagination);
+          renderPagination('pagination-users', json.data.pagination, loadUsers);
+        } else {
+          tbody.innerHTML = '<tr><td colspan="7" class="error-msg">' + (json.error && json.error.message ? json.error.message : 'Failed to load') + '</td></tr>';
+        }
+      }).catch(function(e) {
+        tbody.innerHTML = '<tr><td colspan="7" class="error-msg">' + (e.message || 'Failed to load users') + '</td></tr>';
+      });
+    }
+
+    // ——— Courses ———
+    function renderCourses(courses, pagination) {
+      currentCourses = courses || [];
+      var tbody = document.getElementById('courses-tbody');
+      if (!courses || courses.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="loading">No courses found</td></tr>';
+        document.getElementById('course-detail-panel').classList.remove('visible');
+        return;
+      }
+      tbody.innerHTML = courses.map(function(c, i) {
+        var creatorName = (c.creator && (c.creator.name || c.creator.email)) || '–';
+        var enrollments = (c._count && c._count.enrollments !== undefined) ? c._count.enrollments : '–';
+        return '<tr class="course-row clickable-row" data-index="' + i + '"><td>' + (c.title || '–') + '</td><td>' + creatorName + '</td><td><span class="badge badge-' + (c.status === 'PUBLISHED' ? 'creator' : 'user') + '">' + c.status + '</span></td><td>' + (c.price != null ? c.price.toLocaleString('en-IN') : '–') + '</td><td>' + enrollments + '</td><td class="date-fmt">' + formatDate(c.created_at) + '</td></tr>';
+      }).join('');
+      tbody.querySelectorAll('.course-row').forEach(function(tr) {
+        tr.addEventListener('click', function() {
+          var idx = parseInt(tr.getAttribute('data-index'), 10);
+          showCourseDetail(currentCourses[idx]);
+          tbody.querySelectorAll('.course-row').forEach(function(r) { r.classList.remove('selected'); });
+          tr.classList.add('selected');
+        });
+      });
+      document.getElementById('course-detail-panel').classList.remove('visible');
+    }
+
+    function showCourseDetail(c) {
+      if (!c) return;
+      var creatorName = (c.creator && (c.creator.name || c.creator.email)) || '–';
+      var html = '';
+      html += '<div class="user-detail-item"><span class="label">Title</span><span class="value">' + (c.title || '–') + '</span></div>';
+      html += '<div class="user-detail-item"><span class="label">Creator</span><span class="value">' + creatorName + '</span></div>';
+      html += '<div class="user-detail-item"><span class="label">Status</span><span class="value">' + (c.status || '–') + '</span></div>';
+      html += '<div class="user-detail-item"><span class="label">Price (₹)</span><span class="value">' + (c.price != null ? c.price.toLocaleString('en-IN') : '–') + '</span></div>';
+      html += '<div class="user-detail-item"><span class="label">Category</span><span class="value">' + (c.category || '–') + '</span></div>';
+      html += '<div class="user-detail-item"><span class="label">Enrollments</span><span class="value">' + (c._count && c._count.enrollments !== undefined ? c._count.enrollments : '–') + '</span></div>';
+      html += '<div class="user-detail-item"><span class="label">Videos</span><span class="value">' + (c._count && c._count.videos !== undefined ? c._count.videos : '–') + '</span></div>';
+      html += '<div class="user-detail-item"><span class="label">Created</span><span class="value date-fmt">' + formatDate(c.created_at) + '</span></div>';
+      html += '<div class="user-detail-item"><span class="label">Published</span><span class="value date-fmt">' + formatDate(c.published_at) + '</span></div>';
+      document.getElementById('course-detail-title').textContent = (c.title || 'Course') + ' – Details';
+      document.getElementById('course-detail-content').innerHTML = html;
+      document.getElementById('course-detail-panel').classList.add('visible');
+    }
+
+    function loadCourses(page) {
+      coursesPage = page || 1;
+      var tbody = document.getElementById('courses-tbody');
+      tbody.innerHTML = '<tr><td colspan="6" class="loading">Loading…</td></tr>';
+      var url = API_BASE + '/admin/courses?page=' + coursesPage + '&limit=20';
+      if (coursesSearch) url += '&search=' + encodeURIComponent(coursesSearch);
+      apiFetch(url).then(function(r) { return r.json(); }).then(function(json) {
+        if (json.success && json.data) {
+          renderCourses(json.data.courses, json.data.pagination);
+          renderPagination('pagination-courses', json.data.pagination, loadCourses);
+        } else {
+          tbody.innerHTML = '<tr><td colspan="6" class="error-msg">' + (json.error && json.error.message ? json.error.message : 'Failed to load') + '</td></tr>';
+        }
+      }).catch(function(e) {
+        tbody.innerHTML = '<tr><td colspan="6" class="error-msg">' + (e.message || 'Failed to load courses') + '</td></tr>';
+      });
+    }
+
+    // ——— Webinars ———
+    function renderWebinars(webinars, pagination) {
+      currentWebinars = webinars || [];
+      var tbody = document.getElementById('webinars-tbody');
+      if (!webinars || webinars.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="loading">No webinars found</td></tr>';
+        document.getElementById('webinar-detail-panel').classList.remove('visible');
+        return;
+      }
+      tbody.innerHTML = webinars.map(function(w, i) {
+        var creatorName = (w.creator && (w.creator.name || w.creator.email)) || '–';
+        var enrollments = (w._count && w._count.enrollments !== undefined) ? w._count.enrollments : '–';
+        return '<tr class="webinar-row clickable-row" data-index="' + i + '"><td>' + (w.title || '–') + '</td><td>' + creatorName + '</td><td><span class="badge badge-' + (w.status === 'PUBLISHED' ? 'creator' : 'user') + '">' + w.status + '</span></td><td>' + (w.price != null ? w.price.toLocaleString('en-IN') : '–') + '</td><td class="date-fmt">' + formatDate(w.scheduled_at) + '</td><td>' + enrollments + '</td><td class="date-fmt">' + formatDate(w.created_at) + '</td></tr>';
+      }).join('');
+      tbody.querySelectorAll('.webinar-row').forEach(function(tr) {
+        tr.addEventListener('click', function() {
+          var idx = parseInt(tr.getAttribute('data-index'), 10);
+          showWebinarDetail(currentWebinars[idx]);
+          tbody.querySelectorAll('.webinar-row').forEach(function(r) { r.classList.remove('selected'); });
+          tr.classList.add('selected');
+        });
+      });
+      document.getElementById('webinar-detail-panel').classList.remove('visible');
+    }
+
+    function showWebinarDetail(w) {
+      if (!w) return;
+      var creatorName = (w.creator && (w.creator.name || w.creator.email)) || '–';
+      var html = '';
+      html += '<div class="user-detail-item"><span class="label">Title</span><span class="value">' + (w.title || '–') + '</span></div>';
+      html += '<div class="user-detail-item"><span class="label">Creator</span><span class="value">' + creatorName + '</span></div>';
+      html += '<div class="user-detail-item"><span class="label">Status</span><span class="value">' + (w.status || '–') + '</span></div>';
+      html += '<div class="user-detail-item"><span class="label">Price (₹)</span><span class="value">' + (w.price != null ? w.price.toLocaleString('en-IN') : '–') + '</span></div>';
+      html += '<div class="user-detail-item"><span class="label">Scheduled</span><span class="value date-fmt">' + formatDateTime(w.scheduled_at) + '</span></div>';
+      html += '<div class="user-detail-item"><span class="label">Duration (min)</span><span class="value">' + (w.duration != null ? w.duration : '–') + '</span></div>';
+      html += '<div class="user-detail-item"><span class="label">Enrollments</span><span class="value">' + (w._count && w._count.enrollments !== undefined ? w._count.enrollments : '–') + '</span></div>';
+      html += '<div class="user-detail-item"><span class="label">Created</span><span class="value date-fmt">' + formatDate(w.created_at) + '</span></div>';
+      document.getElementById('webinar-detail-title').textContent = (w.title || 'Webinar') + ' – Details';
+      document.getElementById('webinar-detail-content').innerHTML = html;
+      document.getElementById('webinar-detail-panel').classList.add('visible');
+    }
+
+    function loadWebinars(page) {
+      webinarsPage = page || 1;
+      var tbody = document.getElementById('webinars-tbody');
+      tbody.innerHTML = '<tr><td colspan="7" class="loading">Loading…</td></tr>';
+      var url = API_BASE + '/admin/webinars?page=' + webinarsPage + '&limit=20';
+      if (webinarsSearch) url += '&search=' + encodeURIComponent(webinarsSearch);
+      apiFetch(url).then(function(r) { return r.json(); }).then(function(json) {
+        if (json.success && json.data) {
+          renderWebinars(json.data.webinars, json.data.pagination);
+          renderPagination('pagination-webinars', json.data.pagination, loadWebinars);
+        } else {
+          tbody.innerHTML = '<tr><td colspan="7" class="error-msg">' + (json.error && json.error.message ? json.error.message : 'Failed to load') + '</td></tr>';
+        }
+      }).catch(function(e) {
+        tbody.innerHTML = '<tr><td colspan="7" class="error-msg">' + (e.message || 'Failed to load webinars') + '</td></tr>';
+      });
+    }
+
+    document.getElementById('btn-logout').onclick = function() {
+      clearToken();
+      window.location.href = '/';
+    };
+
+    document.getElementById('btn-search-users').onclick = function() { usersSearch = document.getElementById('search-users').value.trim(); loadUsers(1); };
+    document.getElementById('search-users').onkeydown = function(e) { if (e.key === 'Enter') { usersSearch = this.value.trim(); loadUsers(1); } };
+
+    document.getElementById('btn-search-courses').onclick = function() { coursesSearch = document.getElementById('search-courses').value.trim(); loadCourses(1); };
+    document.getElementById('search-courses').onkeydown = function(e) { if (e.key === 'Enter') { coursesSearch = this.value.trim(); loadCourses(1); } };
+
+    document.getElementById('btn-search-webinars').onclick = function() { webinarsSearch = document.getElementById('search-webinars').value.trim(); loadWebinars(1); };
+    document.getElementById('search-webinars').onkeydown = function(e) { if (e.key === 'Enter') { webinarsSearch = this.value.trim(); loadWebinars(1); } };
+
+    document.getElementById('btn-close-detail').onclick = function() {
+      document.getElementById('user-detail-panel').classList.remove('visible');
+      document.querySelectorAll('#users-tbody .user-row.selected').forEach(function(r) { r.classList.remove('selected'); });
+    };
+
+    document.getElementById('btn-delete-user').onclick = function() {
+      var panel = document.getElementById('user-detail-panel');
+      var userId = panel.dataset.userId;
+      var label  = panel.dataset.userLabel || 'this user';
+      if (!userId) return;
+      var ok = window.confirm(
+        'Delete ' + label + '?\n\n' +
+        'This permanently removes the user and cascade-deletes all their ' +
+        'enrollments, transactions, and any courses they created. ' +
+        'This cannot be undone.'
+      );
+      if (!ok) return;
+      var btn = this;
+      btn.disabled = true;
+      btn.textContent = 'Deleting…';
+      apiFetch(API_BASE + '/admin/users/' + encodeURIComponent(userId), { method: 'DELETE' })
+        .then(function(r) { return r.json(); })
+        .then(function(json) {
+          if (!json.success) throw new Error((json.error && json.error.message) || 'Delete failed');
+          panel.classList.remove('visible');
+          panel.dataset.userId = '';
+          loadUsers(usersPage);   // refresh table
+        })
+        .catch(function(e) { alert('Delete failed: ' + (e.message || e)); })
+        .finally(function() { btn.disabled = false; btn.textContent = 'Delete User'; });
+    };
+    document.getElementById('btn-close-course-detail').onclick = function() {
+      document.getElementById('course-detail-panel').classList.remove('visible');
+      document.querySelectorAll('#courses-tbody .course-row.selected').forEach(function(r) { r.classList.remove('selected'); });
+    };
+    document.getElementById('btn-close-webinar-detail').onclick = function() {
+      document.getElementById('webinar-detail-panel').classList.remove('visible');
+      document.querySelectorAll('#webinars-tbody .webinar-row.selected').forEach(function(r) { r.classList.remove('selected'); });
+    };
+
+    apiFetch(API_BASE + '/auth/me')
+      .then(function(r) { return r.json(); })
+      .then(function(json) {
+        if (json.success && json.data && json.data.user) {
+          var user = json.data.user;
+          var label = user.email || 'Admin';
+          document.getElementById('user-email').textContent = label;
+          var initialSource = user.name || user.email || 'A';
+          document.getElementById('avatar').textContent = initialSource.charAt(0).toUpperCase();
+          if (user.name) {
+            var hour = new Date().getHours();
+            var part = hour < 12 ? 'Good morning' : (hour < 17 ? 'Good afternoon' : 'Good evening');
+            document.getElementById('greeting').textContent = part + ', ' + user.name + ' 👋';
+          }
+        }
+      })
+      .catch(function() {});
+
+    // ——— Payments ———
+    var paymentsPage = 1;
+
+    function loadPayments(page) {
+      paymentsPage = page || 1;
+      var tbody = document.getElementById('payments-tbody');
+      tbody.innerHTML = '<tr><td colspan="6" class="loading">Loading…</td></tr>';
+
+      var url = API_BASE + '/admin/transactions?page=' + paymentsPage + '&limit=20';
+      var kind = document.getElementById('filter-tx-kind').value;
+      var status = document.getElementById('filter-tx-status').value;
+      if (kind) url += '&kind=' + kind;
+      if (status) url += '&status=' + status;
+
+      apiFetch(url).then(function(r) { return r.json(); }).then(function(json) {
+        if (!json.success || !json.data) {
+          tbody.innerHTML = '<tr><td colspan="6" class="error-msg">' + ((json.error && json.error.message) || 'Failed to load') + '</td></tr>';
+          return;
+        }
+        var d = json.data;
+        document.getElementById('tx-revenue').textContent = Number(d.totals.revenue || 0).toLocaleString('en-IN');
+        document.getElementById('tx-success').textContent = d.totals.success;
+        document.getElementById('tx-pending').textContent = d.totals.pending;
+        document.getElementById('tx-failed').textContent = d.totals.failed;
+
+        if (!d.transactions.length) {
+          tbody.innerHTML = '<tr><td colspan="6" class="loading">No transactions found</td></tr>';
+        } else {
+          tbody.innerHTML = d.transactions.map(function(t) {
+            var badgeClass = t.status === 'SUCCESS' ? 'creator' : (t.status === 'FAILED' ? 'admin' : 'user');
+            var kindClass = t.kind === 'course' ? 'user' : (t.kind === 'webinar' ? 'brand' : 'creator');
+            var who = t.user ? (t.user.name || t.user.email || '–') : '–';
+            return '<tr><td><span class="badge badge-' + kindClass + '">' + t.kind + '</span></td>' +
+              '<td>' + (t.item || '–') + '</td><td>' + who + '</td>' +
+              '<td>₹' + Number(t.amount || 0).toLocaleString('en-IN') + '</td>' +
+              '<td><span class="badge badge-' + badgeClass + '">' + t.status + '</span></td>' +
+              '<td class="date-fmt">' + formatDate(t.created_at) + '</td></tr>';
+          }).join('');
+        }
+        renderPagination('pagination-payments', d.pagination, loadPayments);
+      }).catch(function(e) {
+        tbody.innerHTML = '<tr><td colspan="6" class="error-msg">' + (e.message || 'Failed to load') + '</td></tr>';
+      });
+    }
+
+    document.getElementById('filter-tx-kind').onchange = function() { loadPayments(1); };
+    document.getElementById('filter-tx-status').onchange = function() { loadPayments(1); };
+
+    // ——— Sessions ———
+    var sessionsPage = 1;
+
+    function loadSessions(page) {
+      sessionsPage = page || 1;
+      var tbody = document.getElementById('sessions-tbody');
+      tbody.innerHTML = '<tr><td colspan="7" class="loading">Loading…</td></tr>';
+
+      var url = API_BASE + '/admin/sessions?page=' + sessionsPage + '&limit=20';
+      var status = document.getElementById('filter-session-status').value;
+      if (status) url += '&status=' + status;
+
+      apiFetch(url).then(function(r) { return r.json(); }).then(function(json) {
+        if (!json.success || !json.data) {
+          tbody.innerHTML = '<tr><td colspan="7" class="error-msg">' + ((json.error && json.error.message) || 'Failed to load') + '</td></tr>';
+          return;
+        }
+        var rows = json.data.sessions || [];
+        if (!rows.length) {
+          tbody.innerHTML = '<tr><td colspan="7" class="loading">No sessions found</td></tr>';
+        } else {
+          tbody.innerHTML = rows.map(function(s) {
+            var badgeClass = s.status === 'COMPLETED' ? 'creator' : (s.status === 'CANCELLED' || s.status === 'MISSED' ? 'admin' : 'user');
+            var caller = s.caller ? (s.caller.name || s.caller.email) : '–';
+            var receiver = s.receiver ? (s.receiver.name || s.receiver.email) : '–';
+            return '<tr><td>' + caller + '</td><td>' + receiver + '</td>' +
+              '<td>' + (s.mode || '–') + '</td>' +
+              '<td><span class="badge badge-' + badgeClass + '">' + s.status + '</span></td>' +
+              '<td>₹' + Number(s.amount || 0).toLocaleString('en-IN') + '</td>' +
+              '<td>' + (s.duration || 0) + ' min</td>' +
+              '<td class="date-fmt">' + formatDateTime(s.scheduled_at) + '</td></tr>';
+          }).join('');
+        }
+        renderPagination('pagination-sessions', json.data.pagination, loadSessions);
+      }).catch(function(e) {
+        tbody.innerHTML = '<tr><td colspan="7" class="error-msg">' + (e.message || 'Failed to load') + '</td></tr>';
+      });
+    }
+
+    document.getElementById('filter-session-status').onchange = function() { loadSessions(1); };
+
+    // ——— KYC ———
+    var kycPage = 1;
+
+    function loadKyc(page) {
+      kycPage = page || 1;
+      var tbody = document.getElementById('kyc-tbody');
+      tbody.innerHTML = '<tr><td colspan="7" class="loading">Loading…</td></tr>';
+
+      var url = API_BASE + '/admin/kyc?page=' + kycPage + '&limit=20';
+      var status = document.getElementById('filter-kyc-status').value;
+      if (status) url += '&status=' + status;
+
+      apiFetch(url).then(function(r) { return r.json(); }).then(function(json) {
+        if (!json.success || !json.data) {
+          tbody.innerHTML = '<tr><td colspan="7" class="error-msg">' + ((json.error && json.error.message) || 'Failed to load') + '</td></tr>';
+          return;
+        }
+        var rows = json.data.kyc || [];
+        if (!rows.length) {
+          tbody.innerHTML = '<tr><td colspan="7" class="loading">No KYC records found</td></tr>';
+        } else {
+          tbody.innerHTML = rows.map(function(k) {
+            var badgeClass = k.status === 'VERIFIED' ? 'creator' : (k.status === 'FAILED' ? 'admin' : 'user');
+            var actions = k.status === 'PENDING'
+              ? '<button type="button" class="btn-inline btn btn-primary kyc-act" data-id="' + k.id + '" data-approve="1" style="padding:0.35rem 0.9rem;font-size:0.8125rem;">Approve</button> ' +
+                '<button type="button" class="btn-danger kyc-act" data-id="' + k.id + '" data-approve="0" style="padding:0.35rem 0.9rem;font-size:0.8125rem;">Reject</button>'
+              : '<span style="color:var(--text-soft);font-size:0.8125rem;">Reviewed</span>';
+            return '<tr><td>' + ((k.user && k.user.name) || '–') + '</td>' +
+              '<td>' + ((k.user && k.user.email) || '–') + '</td>' +
+              '<td>' + (k.pan_number || '–') + '</td>' +
+              '<td>' + (k.verification_type || '–') + '</td>' +
+              '<td><span class="badge badge-' + badgeClass + '">' + k.status + '</span></td>' +
+              '<td class="date-fmt">' + formatDate(k.created_at) + '</td>' +
+              '<td style="white-space:nowrap;">' + actions + '</td></tr>';
+          }).join('');
+
+          tbody.querySelectorAll('.kyc-act').forEach(function(btn) {
+            btn.onclick = function() {
+              var approve = btn.getAttribute('data-approve') === '1';
+              if (!window.confirm((approve ? 'Approve' : 'Reject') + ' this KYC submission?')) return;
+              btn.disabled = true;
+              apiFetch(API_BASE + '/admin/kyc/' + btn.getAttribute('data-id') + '/review', {
+                method: 'PATCH',
+                body: JSON.stringify({ approve: approve })
+              }).then(function(r) { return r.json(); }).then(function(j) {
+                if (!j.success) throw new Error((j.error && j.error.message) || 'Failed');
+                loadKyc(kycPage);
+              }).catch(function(e) { alert('Failed: ' + e.message); btn.disabled = false; });
+            };
+          });
+        }
+        renderPagination('pagination-kyc', json.data.pagination, loadKyc);
+      }).catch(function(e) {
+        tbody.innerHTML = '<tr><td colspan="7" class="error-msg">' + (e.message || 'Failed to load') + '</td></tr>';
+      });
+    }
+
+    document.getElementById('filter-kyc-status').onchange = function() { loadKyc(1); };
+
+    // ——— Storefronts ———
+    var storefrontsPage = 1, storefrontsSearch = '';
+
+    function loadStorefronts(page) {
+      storefrontsPage = page || 1;
+      var tbody = document.getElementById('storefronts-tbody');
+      tbody.innerHTML = '<tr><td colspan="8" class="loading">Loading…</td></tr>';
+
+      var url = API_BASE + '/admin/storefronts?page=' + storefrontsPage + '&limit=20';
+      if (storefrontsSearch) url += '&search=' + encodeURIComponent(storefrontsSearch);
+
+      apiFetch(url).then(function(r) { return r.json(); }).then(function(json) {
+        if (!json.success || !json.data) {
+          tbody.innerHTML = '<tr><td colspan="8" class="error-msg">' + ((json.error && json.error.message) || 'Failed to load') + '</td></tr>';
+          return;
+        }
+        var rows = json.data.storefronts || [];
+        if (!rows.length) {
+          tbody.innerHTML = '<tr><td colspan="8" class="loading">No storefronts found</td></tr>';
+        } else {
+          tbody.innerHTML = rows.map(function(c) {
+            var sf = c.storefront || {};
+            var live = sf.is_published === true;
+            var link = 'https://' + c.handle + '.manchly.com';
+            return '<tr><td><a href="' + link + '" target="_blank" rel="noopener" style="color:var(--amber-deep);font-weight:700;">' + c.handle + '</a></td>' +
+              '<td>' + (c.name || c.email || '–') + '</td>' +
+              '<td>' + (sf.tagline || '–') + '</td>' +
+              '<td>' + (c._count ? c._count.courses : 0) + '</td>' +
+              '<td>' + (c._count ? c._count.webinars : 0) + '</td>' +
+              '<td>' + (sf.view_count || 0) + '</td>' +
+              '<td><span class="badge badge-' + (live ? 'creator' : 'user') + '">' + (live ? 'Live' : 'Private') + '</span></td>' +
+              '<td><button type="button" class="' + (live ? 'btn-danger' : 'btn btn-primary') + ' sf-act" data-id="' + c.id + '" data-publish="' + (live ? '0' : '1') + '" style="padding:0.35rem 0.9rem;font-size:0.8125rem;width:auto;margin:0;">' +
+              (live ? 'Unpublish' : 'Publish') + '</button></td></tr>';
+          }).join('');
+
+          tbody.querySelectorAll('.sf-act').forEach(function(btn) {
+            btn.onclick = function() {
+              var publish = btn.getAttribute('data-publish') === '1';
+              if (!publish && !window.confirm('Take this storefront offline? The public page will stop loading.')) return;
+              btn.disabled = true;
+              apiFetch(API_BASE + '/admin/storefronts/' + btn.getAttribute('data-id') + '/publish', {
+                method: 'PATCH',
+                body: JSON.stringify({ publish: publish })
+              }).then(function(r) { return r.json(); }).then(function(j) {
+                if (!j.success) throw new Error((j.error && j.error.message) || 'Failed');
+                loadStorefronts(storefrontsPage);
+              }).catch(function(e) { alert('Failed: ' + e.message); btn.disabled = false; });
+            };
+          });
+        }
+        renderPagination('pagination-storefronts', json.data.pagination, loadStorefronts);
+      }).catch(function(e) {
+        tbody.innerHTML = '<tr><td colspan="8" class="error-msg">' + (e.message || 'Failed to load') + '</td></tr>';
+      });
+    }
+
+    document.getElementById('btn-search-storefronts').onclick = function() {
+      storefrontsSearch = document.getElementById('search-storefronts').value.trim();
+      loadStorefronts(1);
+    };
+    document.getElementById('search-storefronts').onkeydown = function(e) {
+      if (e.key === 'Enter') { storefrontsSearch = this.value.trim(); loadStorefronts(1); }
+    };
+
+    loadStats();
+    loadUsers(1);
+  </script>
+</body>
+</html>

@@ -1,0 +1,1205 @@
+{
+	"info": {
+		"_postman_id": "machly-complete-api-2025",
+		"name": "Machly Complete API Collection",
+		"description": "Complete API collection for Machly Backend - Course Management Platform with Mux Video Integration",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "jwt_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "course_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "video_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "webinar_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "razorpay_order_id",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "1. Signup",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"creator@example.com\",\n  \"phone\": \"+1234567890\",\n  \"name\": \"John Doe\",\n  \"user_type\": \"CREATOR\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/signup",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"signup"
+							]
+						},
+						"description": "Create a new user account. User types: USER, CREATOR, ADMIN"
+					},
+					"response": []
+				},
+				{
+					"name": "2. Send Email OTP",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"creator@example.com\",\n  \"purpose\": \"login\",\n  \"tab\": \"CREATOR\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/send-email-otp",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"send-email-otp"
+							]
+						},
+						"description": "Send OTP to email for login/verification"
+					},
+					"response": []
+				},
+				{
+					"name": "3. Send SMS OTP",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"phone_number\": \"+1234567890\",\n  \"purpose\": \"login\",\n  \"tab\": \"CREATOR\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/send-sms-otp",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"send-sms-otp"
+							]
+						},
+						"description": "Send OTP to phone number for login/verification"
+					},
+					"response": []
+				},
+				{
+					"name": "4. Verify OTP",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.data && jsonData.data.token) {",
+									"    pm.collectionVariables.set(\"jwt_token\", jsonData.data.token);",
+									"    console.log(\"JWT Token saved:\", jsonData.data.token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"creator@example.com\",\n  \"code\": \"123456\",\n  \"purpose\": \"login\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/verify-otp",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"verify-otp"
+							]
+						},
+						"description": "Verify OTP and get JWT token. Token is automatically saved to collection variables."
+					},
+					"response": []
+				},
+				{
+					"name": "5. Resend OTP",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"creator@example.com\",\n  \"channel\": \"email\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/resend-otp",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"resend-otp"
+							]
+						},
+						"description": "Resend OTP to email or phone"
+					},
+					"response": []
+				},
+				{
+					"name": "6. Get Current User",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/auth/me",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"me"
+							]
+						},
+						"description": "Get current authenticated user details"
+					},
+					"response": []
+				},
+				{
+					"name": "7. Update Profile",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"John Doe Updated\",\n  \"phone_number\": \"+1234567890\",\n  \"profile_image\": \"https://example.com/image.jpg\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"profile"
+							]
+						},
+						"description": "Update user profile information"
+					},
+					"response": []
+				},
+				{
+					"name": "8. Auth Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/auth/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"health"
+							]
+						},
+						"description": "Check authentication service health"
+					},
+					"response": []
+				}
+			],
+			"description": "Authentication and user management endpoints"
+		},
+		{
+			"name": "Courses",
+			"item": [
+				{
+					"name": "1. Create Course",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.data && jsonData.data.course) {",
+									"    pm.collectionVariables.set(\"course_id\", jsonData.data.course.id);",
+									"    console.log(\"Course ID saved:\", jsonData.data.course.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Complete Web Development Bootcamp\",\n  \"description\": \"Learn web development from scratch\",\n  \"thumbnail\": \"https://example.com/thumbnail.jpg\",\n  \"price\": 49.99,\n  \"category\": \"Web Development\",\n  \"tags\": [\"javascript\", \"html\", \"css\", \"react\"],\n  \"level\": \"Beginner\",\n  \"language\": \"English\",\n  \"status\": \"DRAFT\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/courses",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"courses"
+							]
+						},
+						"description": "Create a new course (Creator only). Course ID is automatically saved."
+					},
+					"response": []
+				},
+				{
+					"name": "2. Get All Courses",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/courses?page=1&limit=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"courses"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "category",
+									"value": "Web Development",
+									"disabled": true
+								},
+								{
+									"key": "level",
+									"value": "Beginner",
+									"disabled": true
+								},
+								{
+									"key": "status",
+									"value": "PUBLISHED",
+									"disabled": true
+								},
+								{
+									"key": "search",
+									"value": "javascript",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get all courses with filters and pagination. Creators see their own courses, Users see published courses."
+					},
+					"response": []
+				},
+				{
+					"name": "3. Get Course by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/courses/{{course_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"courses",
+								"{{course_id}}"
+							]
+						},
+						"description": "Get detailed information about a specific course"
+					},
+					"response": []
+				},
+				{
+					"name": "4. Update Course",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Updated Course Title\",\n  \"description\": \"Updated description\",\n  \"price\": 59.99,\n  \"status\": \"PUBLISHED\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/courses/{{course_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"courses",
+								"{{course_id}}"
+							]
+						},
+						"description": "Update course details (Creator only - own courses)"
+					},
+					"response": []
+				},
+				{
+					"name": "5. Delete Course",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/courses/{{course_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"courses",
+								"{{course_id}}"
+							]
+						},
+						"description": "Delete a course and all associated videos (Creator only)"
+					},
+					"response": []
+				}
+			],
+			"description": "Course management endpoints"
+		},
+		{
+			"name": "Videos",
+			"item": [
+				{
+					"name": "1. Create Video Upload URL",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.data && jsonData.data.video) {",
+									"    pm.collectionVariables.set(\"video_id\", jsonData.data.video.id);",
+									"    console.log(\"Video ID saved:\", jsonData.data.video.id);",
+									"    console.log(\"Upload URL:\", jsonData.data.upload_url);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Introduction to JavaScript\",\n  \"description\": \"Learn JavaScript basics\",\n  \"is_free\": true,\n  \"order\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/courses/{{course_id}}/videos",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"courses",
+								"{{course_id}}",
+								"videos"
+							]
+						},
+						"description": "Get a direct upload URL from Mux to upload large video files (Creator only)"
+					},
+					"response": []
+				},
+				{
+					"name": "2. Get Video Status",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/courses/videos/{{video_id}}/status",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"courses",
+								"videos",
+								"{{video_id}}",
+								"status"
+							]
+						},
+						"description": "Check the processing status of an uploaded video"
+					},
+					"response": []
+				},
+				{
+					"name": "3. Update Video Details",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Updated Video Title\",\n  \"description\": \"Updated description\",\n  \"is_free\": false,\n  \"order\": 2\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/courses/videos/{{video_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"courses",
+								"videos",
+								"{{video_id}}"
+							]
+						},
+						"description": "Update video metadata (Creator only). Cannot change the actual video file."
+					},
+					"response": []
+				},
+				{
+					"name": "4. Delete Video",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/courses/videos/{{video_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"courses",
+								"videos",
+								"{{video_id}}"
+							]
+						},
+						"description": "Delete a video and its Mux asset (Creator only)"
+					},
+					"response": []
+				}
+			],
+			"description": "Video upload and management endpoints"
+		},
+		{
+			"name": "Enrollments",
+			"item": [
+				{
+					"name": "1. Enroll in Course",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/courses/{{course_id}}/enroll",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"courses",
+								"{{course_id}}",
+								"enroll"
+							]
+						},
+						"description": "Enroll in a published course (User only)"
+					},
+					"response": []
+				},
+				{
+					"name": "2. Get Enrolled Courses",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/courses/enrolled/me?page=1&limit=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"courses",
+								"enrolled",
+								"me"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Get all courses the user is enrolled in"
+					},
+					"response": []
+				},
+				{
+					"name": "3. Update Progress",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"progress\": 45.5\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/courses/{{course_id}}/progress",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"courses",
+								"{{course_id}}",
+								"progress"
+							]
+						},
+						"description": "Update learning progress for an enrolled course (0-100)"
+					},
+					"response": []
+				},
+				{
+					"name": "4. Unenroll from Course",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/courses/{{course_id}}/enroll",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"courses",
+								"{{course_id}}",
+								"enroll"
+							]
+						},
+						"description": "Remove enrollment from a course"
+					},
+					"response": []
+				}
+			],
+			"description": "Course enrollment and progress tracking endpoints"
+		},
+		{
+			"name": "Statistics",
+			"item": [
+				{
+					"name": "Get Creator Statistics",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/courses/stats/creator",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"courses",
+								"stats",
+								"creator"
+							]
+						},
+						"description": "Get statistics about courses, enrollments, and videos (Creator only)"
+					},
+					"response": []
+				}
+			],
+			"description": "Analytics and statistics endpoints"
+		},
+		{
+			"name": "Mux Direct",
+			"item": [
+				{
+					"name": "Create Asset",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"input\": \"https://example.com/video.mp4\",\n  \"playback_policy\": [\"public\"],\n  \"mp4_support\": \"none\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/mux/assets",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"mux",
+								"assets"
+							]
+						},
+						"description": "Create a new Mux asset from URL"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Asset",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/mux/assets/:assetId",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"mux",
+								"assets",
+								":assetId"
+							],
+							"variable": [
+								{
+									"key": "assetId",
+									"value": ""
+								}
+							]
+						},
+						"description": "Get Mux asset details"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Direct Upload",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"timeout\": 3600,\n  \"cors_origin\": \"*\",\n  \"new_asset_settings\": {\n    \"playback_policy\": [\"public\"],\n    \"mp4_support\": \"none\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/mux/uploads",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"mux",
+								"uploads"
+							]
+						},
+						"description": "Create a direct upload URL for Mux"
+					},
+					"response": []
+				},
+				{
+					"name": "Mux Health Check",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/mux/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"mux",
+								"health"
+							]
+						},
+						"description": "Check Mux API health status"
+					},
+					"response": []
+				}
+			],
+			"description": "Direct Mux API endpoints (for advanced usage)"
+		},
+		{
+			"name": "Webinars",
+			"item": [
+				{
+					"name": "1. Create Webinar (Creator)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Introduction to AI & Machine Learning\",\n  \"description\": \"Learn the fundamentals of AI and Machine Learning in this comprehensive webinar\",\n  \"thumbnail_url\": \"https://example.com/thumbnail.jpg\",\n  \"price\": 499,\n  \"category\": \"Technology\",\n  \"tags\": [\"AI\", \"Machine Learning\", \"Data Science\"],\n  \"scheduled_at\": \"2025-12-15T15:00:00Z\",\n  \"duration\": 90,\n  \"timezone\": \"Asia/Kolkata\",\n  \"max_participants\": 100,\n  \"status\": \"PUBLISHED\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/webinars",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"webinars"
+							]
+						},
+						"description": "Create a new webinar (Creator only). Zoom meeting is automatically created when status is PUBLISHED."
+					},
+					"response": []
+				},
+				{
+					"name": "2. Get All Webinars",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/webinars?page=1&limit=10&upcoming=true",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"webinars"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "upcoming",
+									"value": "true",
+									"description": "Filter for upcoming webinars only"
+								},
+								{
+									"key": "category",
+									"value": "Technology",
+									"disabled": true
+								},
+								{
+									"key": "search",
+									"value": "AI",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get all webinars. Users see only published webinars. Creators see their own webinars."
+					},
+					"response": []
+				},
+				{
+					"name": "3. Get Webinar by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/webinars/{{webinar_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"webinars",
+								"{{webinar_id}}"
+							]
+						},
+						"description": "Get detailed information about a specific webinar"
+					},
+					"response": []
+				},
+				{
+					"name": "4. Update Webinar (Creator)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Updated Webinar Title\",\n  \"description\": \"Updated description\",\n  \"price\": 599,\n  \"scheduled_at\": \"2025-12-20T16:00:00Z\",\n  \"status\": \"PUBLISHED\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/webinars/{{webinar_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"webinars",
+								"{{webinar_id}}"
+							]
+						},
+						"description": "Update webinar details (Creator only - own webinars). All fields are optional."
+					},
+					"response": []
+				},
+				{
+					"name": "5. Delete Webinar (Creator)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/webinars/{{webinar_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"webinars",
+								"{{webinar_id}}"
+							]
+						},
+						"description": "Delete a webinar (Creator only - own webinars). Also deletes the associated Zoom meeting."
+					},
+					"response": []
+				},
+				{
+					"name": "6. Create Payment Order for Webinar Enrollment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data.razorpay_order) {",
+									"        pm.collectionVariables.set(\"razorpay_order_id\", jsonData.data.razorpay_order.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/webinars/{{webinar_id}}/enroll",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"webinars",
+								"{{webinar_id}}",
+								"enroll"
+							]
+						},
+						"description": "Create payment order for webinar enrollment. For free webinars, enrollment is immediate. For paid webinars, returns Razorpay order details."
+					},
+					"response": []
+				},
+				{
+					"name": "7. Verify Webinar Payment",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"razorpay_order_id\": \"{{razorpay_order_id}}\",\n  \"razorpay_payment_id\": \"pay_xxxxxxxxxxxxx\",\n  \"razorpay_signature\": \"signature_from_razorpay\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/webinars/payment/verify",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"webinars",
+								"payment",
+								"verify"
+							]
+						},
+						"description": "Verify payment and create webinar enrollment. After successful verification, user receives email and WhatsApp notifications with Zoom join link."
+					},
+					"response": []
+				},
+				{
+					"name": "8. Get My Enrolled Webinars",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/webinars/enrolled/me?page=1&limit=10&upcoming=true",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"webinars",
+								"enrolled",
+								"me"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "upcoming",
+									"value": "true",
+									"description": "Filter for upcoming webinars only"
+								}
+							]
+						},
+						"description": "Get list of webinars the user is enrolled in. Includes Zoom join links and passwords."
+					},
+					"response": []
+				},
+				{
+					"name": "9. Get Creator Webinar Statistics",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/webinars/stats/creator",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"webinars",
+								"stats",
+								"creator"
+							]
+						},
+						"description": "Get webinar statistics for creators including total webinars, enrollments, and per-webinar enrollment counts."
+					},
+					"response": []
+				}
+			],
+			"description": "Webinar management endpoints - Create and manage live Zoom webinars with payment integration"
+		},
+		{
+			"name": "Health Check",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						""
+					]
+				},
+				"description": "Check if server is running"
+			},
+			"response": []
+		}
+	]
+}
+

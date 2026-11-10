@@ -1,0 +1,189 @@
+import express from "express";
+import cors from "cors";
+import bodyParser from "body-parser";
+import path from "path";
+import dotenv from "dotenv";
+import { createServer as createHttpServer } from "http";
+import { createServer as createHttpsServer } from "https";
+import { readFileSync } from "fs";
+import { existsSync } from "fs";
+import authRouter from "./routes/auth";
+import uploadRouter from "./routes/upload";
+import muxRouter from "./routes/mux";
+import coursesRouter from "./routes/courses";
+import creatorsRouter from "./routes/creators";
+import marketplaceRouter from "./routes/marketplace";
+import subscriptionsRouter from "./routes/subscriptions";
+import paymentsRouter from "./routes/payments";
+import webinarsRouter from "./routes/webinars";
+import groupsRouter from "./routes/groups";
+import kycRouter from "./routes/kyc";
+import adminRouter from "./routes/admin";
+import settlementsRouter from "./routes/settlements";
+import xtechRouter from "./routes/xtech";
+import sdkRouter from "./routes/sdk";
+import clickancyRouter from "./routes/clickancy";
+import sessionsRouter from "./routes/sessions";
+import storefrontRouter from "./routes/storefront";
+import reelsRouter from "./routes/reels";
+import telegramRouter from "./routes/telegram";
+import aiRouter from "./routes/ai";
+import notificationsRouter from "./routes/notifications";
+import creatorProfileRouter from "./routes/creatorProfile";
+import brandMarketplaceRouter from "./routes/brandMarketplace";
+import { initTelegramBot } from "./controllers/telegramController";
+import morgan from "morgan";
+import { webinarCleanupService } from "./utils/webinarCleanup";
+import { settlementCronService } from "./utils/settlementCron";
+import { webinarNotificationCronService } from "./utils/webinarNotificationCron";
+import { initializeSocketIO } from "./utils/socketHandler";
+
+dotenv.config();
+const app = express();
+const PORT = process.env.PORT || 8080;
+const HTTPS_PORT = process.env.HTTPS_PORT || 443;
+
+// SSL Certificate paths
+const SSL_CERT_PATH = process.env.SSL_CERT_PATH || "/etc/letsencrypt/live/server.manchly.com/fullchain.pem";
+const SSL_KEY_PATH = process.env.SSL_KEY_PATH || "/etc/letsencrypt/live/server.manchly.com/privkey.pem";
+
+// Check if SSL certificates exist
+const useHttps = existsSync(SSL_CERT_PATH) && existsSync(SSL_KEY_PATH);
+
+let server;
+if (useHttps) {
+  const httpsOptions = {
+    cert: readFileSync(SSL_CERT_PATH),
+    key: readFileSync(SSL_KEY_PATH),
+  };
+  server = createHttpsServer(httpsOptions, app);
+  console.log("🔒 HTTPS enabled with SSL certificates");
+} else {
+  server = createHttpServer(app);
+  console.log("⚠️  HTTPS certificates not found, using HTTP");
+}
+
+// Initialize Socket.io
+const io = initializeSocketIO(server);
+
+// Trust proxy for rate limiting and IP detection
+app.set('trust proxy', 1);
+
+app.use(cors({
+  origin: process.env.CORS_ORIGINS
+    ? process.env.CORS_ORIGINS.split(',')
+    : [
+        'https://manchly.com',
+        'https://server.manchly.com',
+        'http://localhost:8081',
+        // Manchly web dashboard (vite dev + preview)
+        'http://localhost:5173',
+        'http://localhost:5174',
+        'http://localhost:4173',
+      ],
+  credentials: true,
+}));
+app.use(morgan('dev'));
+
+// Cashfree webhooks need raw body preserved for signature verification
+// Use body-parser's verify callback to capture the raw body without interfering with the stream
+const webhookJsonParser = bodyParser.json({
+  verify: (req: any, _res, buf) => {
+    req.rawBody = buf.toString('utf8');
+  }
+});
+
+app.use("/payments/webhook", webhookJsonParser, paymentsRouter);
+app.use("/settlements/webhook/payout", webhookJsonParser, settlementsRouter);
+
+// Regular JSON parsing with size limit + malformed JSON handling
+app.use(bodyParser.json({ limit: "1mb" }));
+app.use((err: any, _req: any, res: any, next: any) => {
+  if (err.type === 'entity.parse.failed') {
+    return res.status(400).json({ success: false, error: 'Invalid JSON in request body' });
+  }
+  if (err.type === 'entity.too.large') {
+    return res.status(413).json({ success: false, error: 'Request body too large' });
+  }
+  next(err);
+});
+
+// Serve static files from public folder (frontend)
+const publicDir = path.join(process.cwd(), "public");
+app.use(express.static(publicDir));
+
+// API root
+app.get("/api", (_req, res) => res.json({ ok: true }));
+
+app.use("/auth", authRouter);
+app.use("/admin", adminRouter);
+app.use("/upload", uploadRouter);
+app.use("/mux", muxRouter);
+app.use("/courses", coursesRouter);
+app.use("/marketplace", marketplaceRouter);
+app.use("/subscriptions", subscriptionsRouter);
+app.use("/creators", creatorsRouter);
+app.use("/api/creators", creatorsRouter);
+app.use("/payments", paymentsRouter);
+app.use("/webinars", webinarsRouter);
+app.use("/groups", groupsRouter);
+app.use("/kyc", kycRouter);
+app.use("/settlements", settlementsRouter);
+app.use("/auth/xtech", xtechRouter);
+app.use("/sdk", sdkRouter);
+app.use("/clickancy", clickancyRouter);
+app.use("/sessions", sessionsRouter);
+app.use("/public", storefrontRouter);
+app.use("/reels", reelsRouter);
+app.use("/telegram", telegramRouter);
+app.use("/ai", aiRouter);
+app.use("/notifications", notificationsRouter);
+
+// ── CreatorCenter & BrandMarketplace ──────────────────────────────────────────
+app.use("/api/creator", creatorProfileRouter);
+app.use("/api/marketplace", brandMarketplaceRouter);
+
+// ── 404 handler for unknown routes ────────────────────────────────────────────
+app.use((_req: any, res: any) => {
+  res.status(404).json({ success: false, error: "Route not found" });
+});
+
+// ── Global error handler ──────────────────────────────────────────────────────
+app.use((err: any, _req: any, res: any, _next: any) => {
+  if (err?.code === "P2002") {
+    return res.status(409).json({ success: false, error: "CONFLICT" });
+  }
+  if (err?.code === "P2025") {
+    return res.status(404).json({ success: false, error: "NOT_FOUND" });
+  }
+  // Prisma query errors — sanitize, never expose file paths or schema
+  if (err?.code?.startsWith?.("P")) {
+    console.error("Prisma error:", err.code, err.meta);
+    return res.status(400).json({ success: false, error: "Invalid request parameters" });
+  }
+  console.error("Unhandled error:", err.message);
+  return res.status(500).json({ success: false, error: "INTERNAL_SERVER_ERROR" });
+});
+
+const listenPort = useHttps ? HTTPS_PORT : PORT;
+
+server.listen(listenPort, () => {
+  const protocol = useHttps ? "https" : "http";
+  console.log(`🚀 Server running on ${protocol}://0.0.0.0:${listenPort}`);
+  console.log(`Socket.IO server initialized`);
+
+  // Start automatic webinar cleanup
+  // Runs every hour to mark expired webinars as COMPLETED
+  webinarCleanupService.startAutomaticCleanup("0 * * * *");
+  console.log("🧹 Webinar cleanup service started");
+
+  // Start T+2 settlement CRON jobs
+  settlementCronService.startSettlementCron();
+
+  // Start webinar notification cron jobs (24hr, 6hr, 30min, live reminders)
+  webinarNotificationCronService.startAll();
+  console.log("🔔 Webinar notification service started");
+
+  // Initialize Telegram bot (polling in dev, webhook in prod)
+  initTelegramBot().catch((err) => console.error("Telegram bot init failed:", err));
+});

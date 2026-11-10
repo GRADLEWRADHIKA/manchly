@@ -16,6 +16,7 @@ import MuxManager from "../utils/MuxManager";
 import { resolveUser } from "../utils/userLookup";
 import crypto from "crypto";
 import dotenv from "dotenv";
+import { recordUserActivity } from "../utils/activityTracker";
 
 dotenv.config();
 
@@ -222,7 +223,8 @@ export class WebinarController {
               id: true,
               name: true,
               email: true,
-              profile_image: true
+              profile_image: true,
+             handle: true
             }
           }
         }
@@ -307,7 +309,8 @@ export class WebinarController {
                 id: true,
                 name: true,
                 email: true,
-                profile_image: true
+                profile_image: true,
+                handle: true
               }
             },
             enrollments: isUser(user.user_type) ? {
@@ -329,6 +332,26 @@ export class WebinarController {
         prisma.webinars.count({ where: whereClause })
       ]);
 
+      const webinarIds = webinars.map((w) => w.id);
+
+const [revenueByWebinarRaw, refundsByWebinarRaw] = webinarIds.length
+  ? await Promise.all([
+      prisma.webinar_transactions.groupBy({
+        by: ["webinar_id"],
+        where: { webinar_id: { in: webinarIds }, status: "SUCCESS" },
+        _sum: { amount: true },
+      }),
+      prisma.webinar_transactions.groupBy({
+        by: ["webinar_id"],
+        where: { webinar_id: { in: webinarIds }, status: "REFUNDED" },
+        _count: true,
+      }),
+    ])
+  : [[], []];
+
+const revenueMap = new Map(revenueByWebinarRaw.map((r) => [r.webinar_id, r._sum.amount || 0]));
+const refundMap = new Map(refundsByWebinarRaw.map((r) => [r.webinar_id, r._count]));
+
       // Add enrollment status for users
       const webinarsWithStatus = webinars.map(webinar => {
         const isEnrolled = isUser(user.user_type) &&
@@ -339,7 +362,9 @@ export class WebinarController {
           ...webinar,
           is_enrolled: isEnrolled,
           enrollment_count: webinar._count.enrollments,
-          is_full: webinar.max_participants ? webinar._count.enrollments >= webinar.max_participants : false
+          is_full: webinar.max_participants ? webinar._count.enrollments >= webinar.max_participants : false,
+           revenue: revenueMap.get(webinar.id) || 0,           // NEW
+           refunded_count: refundMap.get(webinar.id) || 0,     // NEW
         };
       });
 
@@ -380,7 +405,8 @@ export class WebinarController {
               id: true,
               name: true,
               email: true,
-              profile_image: true
+              profile_image: true,
+              handle: true
             }
           },
           enrollments: isUser(user.user_type) ? {
@@ -620,7 +646,8 @@ export class WebinarController {
               id: true,
               name: true,
               email: true,
-              profile_image: true
+              profile_image: true,
+              handle: true
             }
           }
         }
@@ -767,6 +794,8 @@ export class WebinarController {
             transaction_id: transaction.id
           }
         });
+
+        recordUserActivity(userId).catch(err => console.error("Activity log error:", err)); // ADD THIS
 
         // Send notifications (don't wait for them)
         WebinarController.sendEnrollmentNotifications(user, webinar).catch(err => {
@@ -1001,6 +1030,8 @@ export class WebinarController {
         }
       });
 
+      recordUserActivity(userId).catch(err => console.error("Activity log error:", err)); // ADD THIS
+
       // Credit creator's wallet
       SettlementService.creditCreatorWallet({
         creatorId: transaction.webinar.creator.id,
@@ -1011,29 +1042,9 @@ export class WebinarController {
         itemTitle: transaction.webinar.title,
       }).catch(err => console.error("Wallet credit error:", err));
 
-      // Send notifications (don't wait for them)
-      WebinarController.sendEnrollmentNotifications(transaction.user, transaction.webinar).catch(err => {
-        console.error('Error sending enrollment notifications:', err);
-      });
+      // Notifications are sent by the webhook handler (handleWebinarPaymentSuccess) to avoid duplicates
 
-      // In-app notifications
-      NotificationController.createNotification({
-        userId,
-        type: "WEBINAR",
-        title: "Webinar Enrolled",
-        message: `You have successfully enrolled in "${transaction.webinar.title}".`,
-        data: { webinarId: transaction.webinar_id },
-      }).catch(err => console.error("Notification error:", err));
-
-      NotificationController.createNotification({
-        userId: transaction.webinar.creator.id,
-        type: "SALE",
-        title: "New Webinar Enrollment",
-        message: `${transaction.user?.name || "A user"} enrolled in your "${transaction.webinar.title}" webinar for Rs. ${transaction.amount}.`,
-        data: { webinarId: transaction.webinar_id, buyerId: userId },
-      }).catch(err => console.error("Notification error:", err));
-
-      console.log(`New webinar enrollment! User ${userId} enrolled in "${transaction.webinar.title}"`);
+      console.log(`Webinar payment verified! User ${userId} enrolled in "${transaction.webinar.title}"`);
 
       ApiResponseHandler.success(res, {
         enrollment,
@@ -1416,7 +1427,8 @@ export class WebinarController {
                     id: true,
                     name: true,
                     email: true,
-                    profile_image: true
+                    profile_image: true,
+                    handle: true
                   }
                 }
               }
@@ -1455,7 +1467,7 @@ export class WebinarController {
         return ApiResponseHandler.customError(res, "Only creators can view statistics", 403, "FORBIDDEN");
       }
 
-      const [totalWebinars, publishedWebinars, upcomingWebinars, totalEnrollments, webinarsSold] = await Promise.all([
+      const [totalWebinars, publishedWebinars, upcomingWebinars, totalEnrollments, webinarsSold, revenueAgg] = await Promise.all([
         prisma.webinars.count({ where: { creator_id: userId } }),
         prisma.webinars.count({ where: { creator_id: userId, status: "PUBLISHED" } }),
         prisma.webinars.count({
@@ -1479,6 +1491,10 @@ export class WebinarController {
               some: {}
             }
           }
+        }),
+        prisma.webinar_transactions.aggregate({
+          where: {webinar: {creator_id: userId}, status: "SUCCESS"},
+          _sum: {amount: true},
         })
       ]);
 
@@ -1500,6 +1516,7 @@ export class WebinarController {
           draft_webinars: totalWebinars - publishedWebinars,
           total_enrollments: totalEnrollments,
           webinars_sold: webinarsSold,
+          revenue: revenueAgg._sum.amount || 0,
           webinars_with_enrollments: webinarEnrollments.map(w => ({
             webinar_id: w.id,
             webinar_title: w.title,
@@ -1515,6 +1532,52 @@ export class WebinarController {
       ApiResponseHandler.unexpectedError(res, err, 500);
     }
   }
+
+  /**
+ * Creator: list attendees (enrolled users) for a webinar, with basic user info.
+ */
+static async getWebinarAttendees(req: any, res: Response) {
+  const { webinarId } = req.params;
+  const userId = req.user.userId;
+
+  try {
+    const webinar = await prisma.webinars.findUnique({ where: { id: webinarId } });
+    if (!webinar) {
+      return ApiResponseHandler.customError(res, "Webinar not found", 404, "WEBINAR_NOT_FOUND");
+    }
+
+    const requester = await prisma.users.findUnique({ where: { id: userId }, select: { user_type: true } });
+    const isAdmin = requester?.user_type?.some((t) => t === "ADMIN") ?? false;
+    if (webinar.creator_id !== userId && !isAdmin) {
+      return ApiResponseHandler.customError(res, "You don't have permission to view attendees for this webinar", 403, "FORBIDDEN");
+    }
+
+    const enrollments = await prisma.webinar_enrollments.findMany({
+      where: { webinar_id: webinarId },
+      orderBy: { enrolled_at: "desc" },
+    });
+
+    const userIds = enrollments.map((e) => e.user_id);
+    const users = userIds.length
+      ? await prisma.users.findMany({
+          where: { id: { in: userIds } },
+          select: { id: true, name: true, email: true, phone: true, profile_image: true },
+        })
+      : [];
+    const userMap = new Map(users.map((u) => [u.id, u]));
+
+    const attendees = enrollments.map((e) => ({
+      enrollment_id: e.id,
+      enrolled_at: e.enrolled_at,
+      attended: e.attended,
+      user: userMap.get(e.user_id) || null,
+    }));
+
+    return ApiResponseHandler.success(res, { attendees, total: attendees.length }, "Attendees retrieved successfully");
+  } catch (err: any) {
+    ApiResponseHandler.unexpectedError(res, err, 500);
+  }
+}
 
   // ============ HELPER METHODS ============
 

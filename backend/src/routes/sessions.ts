@@ -12,6 +12,8 @@ router.get("/", jwtAuth, SessionController.getMySessions);
 router.get("/stats", jwtAuth, SessionController.getSessionStats);
 router.get("/dashboard", jwtAuth, SessionController.getDashboardStats);
 router.get("/call/:call_id", jwtAuth, SessionController.getByCallId);
+router.get("/:session_id/performance", jwtAuth, SessionController.getSessionPerformance);
+router.delete("/:session_id", jwtAuth, SessionController.cancelSession);
 
 // Expert Profile (Creator)
 router.get("/expert/me", jwtAuth, SessionController.getMyExpertProfile);
@@ -41,8 +43,11 @@ router.delete("/products/:product_id", jwtAuth, SessionController.deleteProduct)
 
 // Session Products (User)
 router.get("/products/creator/:creator_id", jwtAuth, SessionController.getCreatorProducts);
+router.get("/products/popular", jwtAuth, SessionController.getPopularProducts);
 router.post("/book", jwtAuth, SessionController.bookSession);
 router.post("/verify-payment", jwtAuth, SessionController.verifySessionPayment);
 router.post("/rate", jwtAuth, SessionController.rateSession);
+router.post("/products/:product_id/add-user", jwtAuth, SessionController.addUserToProduct);
+router.get("/products/:product_id/users", jwtAuth, SessionController.getProductUsers);
 
 export default router;

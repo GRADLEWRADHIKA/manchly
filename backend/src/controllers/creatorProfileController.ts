@@ -10,10 +10,10 @@ function toNestedLinks(profile: Record<string, any>) {
   return {
     ...rest,
     links: {
-      education:  linkEducation  ?? "",
-      collabs:    linkCollabs    ?? "",
+      education:linkEducation ?? "",
+      collabs:linkCollabs ?? "",
       consulting: linkConsulting ?? "",
-      ugc:        linkUgc        ?? "",
+      ugc:linkUgc ?? "",
     },
   };
 }
@@ -21,10 +21,10 @@ function toNestedLinks(profile: Record<string, any>) {
 /** Maps a body.links object to the flat Prisma column names. */
 function flattenLinks(links: Record<string, string> = {}) {
   return {
-    linkEducation:  links.education  ?? "",
-    linkCollabs:    links.collabs    ?? "",
+    linkEducation:links.education  ?? "",
+    linkCollabs: links.collabs ?? "",
     linkConsulting: links.consulting ?? "",
-    linkUgc:        links.ugc        ?? "",
+    linkUgc: links.ugc ?? "",
   };
 }
 
@@ -48,6 +48,89 @@ export const getMyProfile = async (req: Request, res: Response): Promise<void> =
     }
 
     res.json({ success: true, data: toNestedLinks(profile as any) });
+  } catch (err) {
+    throw err;
+  }
+};
+
+
+export const getPublicProfile = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { userId } = req.params;
+
+    const user = await prisma.users.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        profile_image: true,
+        instagram_link: true,
+        linkedin_link: true,
+        youtube_link: true,
+        facebook_link: true,
+        kyc_verified: true,
+      },
+    });
+
+    if (!user) {
+      res.status(404).json({ success: false, error: "USER_NOT_FOUND" });
+      return;
+    }
+
+    const profile = await prisma.creator_profiles.findUnique({
+      where: { userId },
+    });
+
+    const courses = await prisma.courses.findMany({
+      where: { creator_id: userId, status: "PUBLISHED" },
+      select: {
+        id: true,
+        title: true,
+        thumbnail: true,
+        thumbnail_url: true,
+        price: true,
+        level: true,
+        videos: {
+          where: { status: "READY" },
+          select: { id: true, duration: true },
+        },
+        _count: { select: { enrollments: true } },
+      },
+      orderBy: { created_at: "desc" },
+    });
+
+    const publicCourses = courses.map((c) => ({
+      id: c.id,
+      title: c.title,
+      thumbnail: c.thumbnail,
+      thumbnail_url: c.thumbnail_url,
+      price: c.price,
+      level: c.level,
+      total_videos: c.videos.length,
+      total_students: c._count.enrollments,
+    }));
+
+    const showFullProfile = !!profile && profile.isPublished;
+
+    res.json({
+      success: true,
+      data: {
+        id: user.id,
+        name: profile?.name || user.name,
+        profile_image: user.profile_image,
+        kyc_verified: user.kyc_verified,
+        bio: showFullProfile ? profile?.bio : "",
+        niche: showFullProfile ? profile?.niche : null,
+        city: showFullProfile ? profile?.city : null,
+        links: {
+          instagram: user.instagram_link || "",
+          linkedin: user.linkedin_link || "",
+          youtube: user.youtube_link || "",
+          facebook: user.facebook_link || "",
+        },
+        courses: publicCourses,
+      },
+    });
   } catch (err) {
     throw err;
   }

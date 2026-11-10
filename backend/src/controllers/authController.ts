@@ -501,8 +501,16 @@ export class AuthController {
     if (!email && !phone_number) return ApiResponseHandler.customError(res, "Email or phone number is required", 400, "MISSING_IDENTIFIER");
     const identifier = email || phone_number;
     try {
-      await otpManager.resendOTP(identifier, channel as "email" | "sms");
-      ApiResponseHandler.success(res, { channel, expires_in: "10 minutes" }, `OTP resent successfully via ${channel}`);
+      const otp = await otpManager.resendOTP(identifier, channel as "email" | "sms");
+
+      // Same deal as the initial send: a test account gets the code back so the
+      // client can fill it in, since no real message is sent for those.
+      const autofill = isTestAccount(identifier) && isTestOtpAutofillEnabled();
+      ApiResponseHandler.success(
+        res,
+        { channel, expires_in: "10 minutes", ...(autofill ? { otp } : {}) },
+        autofill ? "Test account — OTP auto-filled" : `OTP resent successfully via ${channel}`,
+      );
     } catch (err: any) {
       if (err.message.includes("Rate limit exceeded")) return ApiResponseHandler.customError(res, "Too many OTP requests. Please try again later.", 429, "RATE_LIMIT_EXCEEDED");
       ApiResponseHandler.unexpectedError(res, err, 500);
@@ -609,7 +617,7 @@ export class AuthController {
         select: AUTH_USER_SELECT,
       });
       if (!user) return ApiResponseHandler.customError(res, "User not found", 404, "USER_NOT_FOUND");
-      ApiResponseHandler.success(res, { user: serializeAuthUser(user) }, "User data retrieved successfully");
+      ApiResponseHandler.success(res, { user: serializeAuthUser(user, req.user?.userType) }, "User data retrieved successfully");
     } catch (err: any) {
       ApiResponseHandler.unexpectedError(res, err, 500);
     }
@@ -699,5 +707,19 @@ export class AuthController {
       timestamp: new Date().toISOString(),
     }, "Service is healthy");
   }
+
+  // ── Admin: Reset OTP rate limit for an identifier ───────────────────────────
+static async resetOTPRateLimit(req: Request, res: Response) {
+  const { identifier } = req.body;
+  if (!identifier)
+    return ApiResponseHandler.customError(res, "Identifier is required", 400, "MISSING_IDENTIFIER");
+
+  try {
+    await otpManager.resetRateLimit(identifier);
+    ApiResponseHandler.success(res, {}, "Rate limit reset successfully");
+  } catch (err: any) {
+    ApiResponseHandler.unexpectedError(res, err, 500);
+  }
+}
 }
 

@@ -56,16 +56,19 @@ router.get("/stats", authenticateToken, AdminController.getStats);
 // ── Users ─────────────────────────────────────────────────────────────────────
 router.get("/users", authenticateToken, AdminController.getUsers);
 router.patch("/users/:id/roles", authenticateToken, AdminController.setUserRoles);
+router.patch("/users/:id", authenticateToken, AdminController.updateUser);
 router.delete("/users/:id", authenticateToken, AdminController.deleteUser);
 
 // ── Courses ───────────────────────────────────────────────────────────────────
 router.get("/courses", authenticateToken, AdminController.getCourses);
 router.patch("/courses/:id/status", authenticateToken, AdminController.setCourseStatus);
+router.patch("/courses/:id", authenticateToken, AdminController.updateCourse);
 router.delete("/courses/:id", authenticateToken, AdminController.deleteCourse);
 
 // ── Webinars ──────────────────────────────────────────────────────────────────
 router.get("/webinars", authenticateToken, AdminController.getWebinars);
 router.patch("/webinars/:id/status", authenticateToken, AdminController.setWebinarStatus);
+router.patch("/webinars/:id", authenticateToken, AdminController.updateWebinar);
 router.delete("/webinars/:id", authenticateToken, AdminController.deleteWebinar);
 
 // ── Payments ──────────────────────────────────────────────────────────────────
@@ -73,6 +76,8 @@ router.get("/transactions", authenticateToken, AdminController.getTransactions);
 
 // ── 1:1 sessions ──────────────────────────────────────────────────────────────
 router.get("/sessions", authenticateToken, AdminController.getSessions);
+router.patch("/sessions/:id", authenticateToken, AdminController.updateSession);
+router.delete("/sessions/:id", authenticateToken, AdminController.deleteSession);
 
 // ── KYC ───────────────────────────────────────────────────────────────────────
 router.get("/kyc", authenticateToken, AdminController.getKyc);

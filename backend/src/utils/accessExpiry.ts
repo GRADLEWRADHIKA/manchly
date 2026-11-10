@@ -1,18 +1,3 @@
-/**
- * Access-expiry helpers for Feature #8 (custom access expiration).
- *
- * The expiry policy lives on the course/webinar (set by the creator at publish
- * time) and is evaluated against each enrollment's `enrolled_at` at access-check
- * time. This keeps a single source of truth on the product and avoids having to
- * freeze a value into every enrollment-creation path.
- *
- *   access_duration_days -> access lasts N days from the user's enrollment
- *   access_expires_at    -> access ends on this fixed date for everyone
- *
- * If both are set, the earlier (more restrictive) date wins. If neither is set,
- * access is permanent (null).
- */
-
 export interface AccessPolicy {
   /** Numeric amount of the relative duration; unit given by access_duration_unit. */
   access_duration_days?: number | null;
@@ -21,10 +6,6 @@ export interface AccessPolicy {
   access_expires_at?: Date | string | null;
 }
 
-/**
- * Compute the effective access-expiry date for an enrollment, or null if the
- * product grants permanent access.
- */
 export function computeAccessExpiry(
   policy: AccessPolicy,
   enrolledAt: Date | string,

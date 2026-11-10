@@ -65,7 +65,8 @@ export default async function authMiddleware(
     req.user = {
       id: userId,
       userId,
-      email: payload.email
+      email: payload.email,
+      userType: payload.userType,
     };
     next();
   } catch {

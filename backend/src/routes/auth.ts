@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import rateLimit from "express-rate-limit";
 import { AuthController } from "../controllers/authController";
 import prisma from "../prismaClient";
+import { isTestAccount } from "../utils/otpManager";
 
 dotenv.config();
 const router = express.Router();
@@ -18,7 +19,10 @@ if (!JWT_SECRET) {
 // OTP send/resend — strict limit to prevent abuse
 const otpRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5,
+  max: 50,
+  // This limiter keys on IP, so a QA machine hitting the test account
+  // repeatedly would lock itself out. Exempt the test accounts only.
+  skip: (req) => isTestAccount(req.body?.email || req.body?.phone_number || ""),
   handler: (req, res) => {
     res.status(429).json({
       success: false,
@@ -33,7 +37,7 @@ const otpRateLimiter = rateLimit({
 // OTP verify — strict limit to prevent brute-force
 const verifyRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 5,
+  max: 50,
   handler: (req, res) => {
     res.status(429).json({
       success: false,
@@ -152,5 +156,7 @@ router.post("/check-user", AuthController.checkUserExists);
 
 // 14. Health check
 router.get("/health", AuthController.healthCheck);
+
+//router.post("/auth/admin/reset-otp-rate-limit", requireAdminAuth, AuthController.resetOTPRateLimit);
 
 export default router;

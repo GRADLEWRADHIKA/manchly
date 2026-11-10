@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import { corsOriginCheck } from "./utils/corsOrigins";
 import bodyParser from "body-parser";
 import path from "path";
 import dotenv from "dotenv";
@@ -14,6 +15,7 @@ import coursesRouter from "./routes/courses";
 import creatorsRouter from "./routes/creators";
 import marketplaceRouter from "./routes/marketplace";
 import subscriptionsRouter from "./routes/subscriptions";
+import creatorTrialRouter from "./routes/creatorTrial";
 import paymentsRouter from "./routes/payments";
 import webinarsRouter from "./routes/webinars";
 import groupsRouter from "./routes/groups";
@@ -37,6 +39,9 @@ import { webinarCleanupService } from "./utils/webinarCleanup";
 import { settlementCronService } from "./utils/settlementCron";
 import { webinarNotificationCronService } from "./utils/webinarNotificationCron";
 import { initializeSocketIO } from "./utils/socketHandler";
+import { storefrontHost } from "./middleware/storefrontHost";
+import storefrontAuthRouter from "./routes/storefrontAuth";
+import activityRouter from "./routes/activityRoutes";
 
 dotenv.config();
 const app = express();
@@ -70,17 +75,7 @@ const io = initializeSocketIO(server);
 app.set('trust proxy', 1);
 
 app.use(cors({
-  origin: process.env.CORS_ORIGINS
-    ? process.env.CORS_ORIGINS.split(',')
-    : [
-        'https://manchly.com',
-        'https://server.manchly.com',
-        'http://localhost:8081',
-        // Manchly web dashboard (vite dev + preview)
-        'http://localhost:5173',
-        'http://localhost:5174',
-        'http://localhost:4173',
-      ],
+  origin: corsOriginCheck,
   credentials: true,
 }));
 app.use(morgan('dev'));
@@ -108,6 +103,11 @@ app.use((err: any, _req: any, res: any, next: any) => {
   next(err);
 });
 
+// Creator storefronts: <handle>.manchly.com serves a rendered page.
+// Ahead of the static handler so the subdomain does not fall through to
+// the admin login page sitting at public/index.html.
+app.use(storefrontHost);
+
 // Serve static files from public folder (frontend)
 const publicDir = path.join(process.cwd(), "public");
 app.use(express.static(publicDir));
@@ -122,6 +122,7 @@ app.use("/mux", muxRouter);
 app.use("/courses", coursesRouter);
 app.use("/marketplace", marketplaceRouter);
 app.use("/subscriptions", subscriptionsRouter);
+app.use("/creator-trial", creatorTrialRouter);
 app.use("/creators", creatorsRouter);
 app.use("/api/creators", creatorsRouter);
 app.use("/payments", paymentsRouter);
@@ -133,7 +134,9 @@ app.use("/auth/xtech", xtechRouter);
 app.use("/sdk", sdkRouter);
 app.use("/clickancy", clickancyRouter);
 app.use("/sessions", sessionsRouter);
+app.use("/activity", activityRouter);
 app.use("/public", storefrontRouter);
+app.use("/creator", storefrontAuthRouter); 
 app.use("/reels", reelsRouter);
 app.use("/telegram", telegramRouter);
 app.use("/ai", aiRouter);

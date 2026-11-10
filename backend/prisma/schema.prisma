@@ -7,21 +7,17 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+/// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
 model users {
   email                     String                        @unique
   name                      String?
   phone                     String?                       @unique
-  password                  String? // bcrypt hash; null for pre-migration accounts
   created_at                DateTime                      @default(now())
   updated_at                DateTime                      @updatedAt
   last_login                DateTime?
   id                        String                        @id @default(uuid())
   profile_image             String?
-  // Public storefront handle — the subdomain in <handle>.manchly.com.
-  // Nullable because only creators get one; unique across all users.
-  handle                    String?                       @unique
   user_type                 UserType[]                    @default([USER])
-  device_limit              Int?                          @map("device_limit")
   dob                       String?                       @db.VarChar(10)
   pan_number                String?                       @db.VarChar(20)
   kyc_verified              Boolean                       @default(false)
@@ -37,12 +33,16 @@ model users {
   isPremium                 Boolean                       @default(false) @map("is_premium")
   freeViewsCount            Int                           @default(0) @map("free_views_count")
   premiumExpiresAt          DateTime?                     @map("premium_expires_at")
+  password                  String?
+  device_limit              Int?                          @map("device_limit")
+  handle                    String?                       @unique
   conversation_participants conversation_participants[]
+  reels                     course_reels[]
   courses                   courses[]
   bank_account              creator_bank_accounts?
   creatorProfile            creator_profiles?
   storefront                creator_storefronts?
-  reels                     course_reels[]
+  creatorTrials             creator_trials[]
   enrollments               enrollments[]
   group_members             group_members[]
   created_groups            groups[]
@@ -57,6 +57,7 @@ model users {
   sessionExpert             session_experts?
   settlements               settlements[]
   transactions              transactions[]
+  activity_logs             user_activity_log[]
   webinar_enrollments       webinar_enrollments[]
   webinar_transactions      webinar_transactions[]
   webinars                  webinars[]
@@ -82,15 +83,15 @@ model courses {
   published_at           DateTime?
   thumbnail_url          String?
   access_duration_days   Int?           @map("access_duration_days")
-  access_duration_unit   String?        @map("access_duration_unit")
   access_expires_at      DateTime?      @map("access_expires_at")
   whatsapp_community_url String?        @map("whatsapp_community_url")
   thankyou_message       String?        @map("thankyou_message")
+  access_duration_unit   String?        @map("access_duration_unit")
+  reels                  course_reels[]
   creator                users          @relation(fields: [creator_id], references: [id], onDelete: Cascade)
   enrollments            enrollments[]
   transactions           transactions[]
   videos                 videos[]
-  reels                  course_reels[]
 
   @@index([creator_id])
   @@index([status])
@@ -190,10 +191,10 @@ model webinars {
   start_time             String?
   end_time               String?
   access_duration_days   Int?                   @map("access_duration_days")
-  access_duration_unit   String?                @map("access_duration_unit")
   access_expires_at      DateTime?              @map("access_expires_at")
   whatsapp_community_url String?                @map("whatsapp_community_url")
   thankyou_message       String?                @map("thankyou_message")
+  access_duration_unit   String?                @map("access_duration_unit")
   enrollments            webinar_enrollments[]
   transactions           webinar_transactions[]
   creator                users                  @relation(fields: [creator_id], references: [id], onDelete: Cascade)
@@ -441,6 +442,18 @@ model wallet_transactions {
   @@map("wallet_transactions")
 }
 
+model user_activity_log {
+  id            String   @id @default(uuid())
+  user_id       String
+  activity_date DateTime @db.Date
+  created_at    DateTime @default(now())
+  user          users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, activity_date])
+  @@index([user_id])
+  @@map("user_activity_log")
+}
+
 model sessions {
   id             String        @id @default(uuid())
   call_id        String        @unique
@@ -518,12 +531,12 @@ model session_experts {
 model user_devices {
   id           String   @id @default(uuid())
   user_id      String
-  user_type    String   @default("USER")
   device_id    String
   device_name  String?
   platform     String?
   last_seen_at DateTime @default(now())
   created_at   DateTime @default(now())
+  user_type    String   @default("USER")
 
   @@unique([user_id, user_type, device_id])
   @@index([user_id, user_type])
@@ -560,16 +573,19 @@ model webinar_reviews {
 }
 
 model session_products {
-  id          String      @id @default(uuid())
-  creator_id  String
-  title       String
-  description String?
-  duration    Int
-  price       Float
-  mode        SessionMode
-  is_active   Boolean     @default(true)
-  created_at  DateTime    @default(now())
-  updated_at  DateTime    @updatedAt
+  id               String      @id @default(uuid())
+  creator_id       String
+  title            String
+  description      String?
+  duration         Int
+  price            Float
+  mode             SessionMode
+  is_active        Boolean     @default(true)
+  created_at       DateTime    @default(now())
+  updated_at       DateTime    @updatedAt
+  categories       String[]    @default([])
+  thankyou_message String?
+  thumbnail_url    String?
 
   @@index([creator_id])
   @@map("session_products")
@@ -630,7 +646,6 @@ model course_reels {
   course_id       String     @map("course_id")
   creator_id      String     @map("creator_id")
   caption         String     @default("")
-  // Same Mux direct-upload pipeline the course videos use.
   mux_asset_id    String?    @unique @map("mux_asset_id")
   mux_upload_id   String?    @unique @map("mux_upload_id")
   mux_playback_id String?    @map("mux_playback_id")
@@ -645,45 +660,35 @@ model course_reels {
   course          courses    @relation(fields: [course_id], references: [id], onDelete: Cascade)
   creator         users      @relation(fields: [creator_id], references: [id], onDelete: Cascade)
 
-  // The feed reads ready reels newest-first.
   @@index([status, created_at])
   @@index([course_id])
   @@index([creator_id])
   @@map("course_reels")
 }
 
-enum ReelStatus {
-  UPLOADING
-  PROCESSING
-  READY
-  FAILED
-  HIDDEN
-}
-
 /// Public storefront shown at <handle>.manchly.com. Distinct from
 /// creator_profiles, which is the brand-collaboration profile (niche,
 /// followers, engagement) and is not shown to buyers.
 model creator_storefronts {
-  id           String   @id @default(uuid())
-  user_id      String   @unique @map("user_id")
-  tagline      String   @default("")
-  bio          String   @default("")
-  cover_image  String?  @map("cover_image")
-  accent_color String   @default("#FFC107") @map("accent_color")
-  // Course/webinar ids the creator pinned to the top, in display order.
-  featured     Json     @default("[]")
-  // Storefront-only social links; fall back to the ones on users when empty.
-  website_url  String?  @map("website_url")
-  instagram    String?
-  linkedin     String?
-  youtube      String?
-  twitter      String?
-  // A storefront stays dark until the creator publishes it.
-  is_published Boolean  @default(false) @map("is_published")
-  view_count   Int      @default(0) @map("view_count")
-  created_at   DateTime @default(now()) @map("created_at")
-  updated_at   DateTime @default(now()) @updatedAt @map("updated_at")
-  user         users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  id               String   @id @default(uuid())
+  user_id          String   @unique @map("user_id")
+  tagline          String   @default("")
+  bio              String   @default("")
+  cover_image      String?  @map("cover_image")
+  accent_color     String   @default("#FFC107") @map("accent_color")
+  featured         Json     @default("[]")
+  website_url      String?  @map("website_url")
+  instagram        String?
+  linkedin         String?
+  youtube          String?
+  twitter          String?
+  is_published     Boolean  @default(false) @map("is_published")
+  view_count       Int      @default(0) @map("view_count")
+  created_at       DateTime @default(now()) @map("created_at")
+  updated_at       DateTime @default(now()) @updatedAt @map("updated_at")
+  expertise        String[]
+  experience_years Int?
+  user             users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@index([is_published])
   @@map("creator_storefronts")
@@ -817,6 +822,38 @@ model telegram_subscriptions {
   @@map("telegram_subscriptions")
 }
 
+model creator_trials {
+  id                      String             @id @default(uuid())
+  user_id                 String             @map("user_id")
+  status                  CreatorTrialStatus @default(PENDING)
+  trial_days              Int                @default(3) @map("trial_days")
+  trial_price             Float              @default(199) @map("trial_price")
+  monthly_price           Float              @default(199) @map("monthly_price")
+  auth_amount             Float              @default(1) @map("auth_amount")
+  cf_subscription_id      String?            @unique @map("cf_subscription_id")
+  subscription_id         String?            @unique @map("subscription_id")
+  subscription_session_id String?            @map("subscription_session_id")
+  trial_starts_at         DateTime?          @map("trial_starts_at")
+  trial_ends_at           DateTime?          @map("trial_ends_at")
+  next_charge_at          DateTime?          @map("next_charge_at")
+  cancelled_at            DateTime?          @map("cancelled_at")
+  created_at              DateTime           @default(now()) @map("created_at")
+  updated_at              DateTime           @default(now()) @updatedAt @map("updated_at")
+  user                    users              @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([status])
+  @@map("creator_trials")
+}
+
+enum ReelStatus {
+  UPLOADING
+  PROCESSING
+  READY
+  FAILED
+  HIDDEN
+}
+
 enum UserType {
   USER
   CREATOR
@@ -925,6 +962,15 @@ enum NotificationType {
   COURSE
   EXPERT
   SYSTEM
+}
+
+enum CreatorTrialStatus {
+  PENDING
+  AUTHORIZED
+  ACTIVE
+  CANCELLED
+  EXPIRED
+  FAILED
 }
 
 enum PremiumSubscriptionStatus {

@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Manchly">
+  <title>Manchly</title>
+
+  <defs>
+    <!-- The beam fades out as it falls, so the mic reads as a silhouette
+         against it rather than sitting on a flat grey wedge. -->
+    <linearGradient id="beam" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#ffffff" stop-opacity="0.03"/>
+      <stop offset="55%"  stop-color="#ffffff" stop-opacity="0.42"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.88"/>
+    </linearGradient>
+
+    <radialGradient id="pool" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"   stop-color="#f3e6c4"/>
+      <stop offset="70%"  stop-color="#e8d6ad"/>
+      <stop offset="100%" stop-color="#e8d6ad" stop-opacity="0"/>
+    </radialGradient>
+
+    <clipPath id="frame">
+      <rect width="512" height="512" rx="96"/>
+    </clipPath>
+  </defs>
+
+  <g clip-path="url(#frame)">
+    <rect width="512" height="512" fill="#000000"/>
+
+    <!-- Spotlight beam, narrow at the lamp and open at the floor. -->
+    <path d="M256 0 L392 452 L120 452 Z" fill="url(#beam)"/>
+
+    <!-- Pool of light on the floor. -->
+    <ellipse cx="256" cy="446" rx="140" ry="42" fill="url(#pool)"/>
+
+    <!-- Microphone, drawn as one black silhouette. -->
+    <g fill="#000000">
+      <!-- capsule -->
+      <rect x="236" y="212" width="40" height="76" rx="20"/>
+      <!-- grille slots: cut back to the beam so the head reads as a mesh -->
+      <g stroke="#cfcfcf" stroke-width="3.4" stroke-linecap="round" opacity="0.85">
+        <line x1="242" y1="228" x2="270" y2="228"/>
+        <line x1="240" y1="240" x2="272" y2="240"/>
+        <line x1="240" y1="252" x2="272" y2="252"/>
+        <line x1="242" y1="264" x2="270" y2="264"/>
+      </g>
+
+      <!-- yoke below the capsule -->
+      <rect x="246" y="286" width="20" height="14" rx="4"/>
+      <!-- body block -->
+      <rect x="242" y="298" width="28" height="52" rx="7"/>
+      <!-- stand -->
+      <rect x="251" y="350" width="10" height="86"/>
+      <!-- tripod feet -->
+      <path d="M256 430 L212 452 L221 452 L256 436 Z"/>
+      <path d="M256 430 L300 452 L291 452 L256 436 Z"/>
+      <path d="M250 430 h12 v22 h-12 Z"/>
+      <ellipse cx="256" cy="452" rx="10" ry="4"/>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,29 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+  # The app must talk to the deployed backend, never localhost. This overrides
+  # USE_LOCAL_BACKEND in src/utils/backendConfig.js and covers both REST and
+  # websockets. Change it here (or in Netlify's UI) to point at another API.
+  VITE_BACKEND_URL = "https://server.manchly.com"
+
+# Vite fingerprints everything under /assets, so it can be cached forever.
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# React Router owns the routing: every unmatched path must serve index.html,
+# otherwise a refresh or a shared deep link (/app/course/123) returns 404.
+# Keep this last — Netlify applies the first matching rule.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

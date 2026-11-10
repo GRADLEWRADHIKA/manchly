@@ -1,0 +1,2002 @@
+import React, {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useCallback,
+} from "react";
+import {
+  Plus,
+  Trash2,
+  Video,
+  Users,
+  Share2,
+  IndianRupee,
+  CalendarDays,
+  Radio,
+  Search,
+  MonitorPlay,
+  X,
+  Upload,
+  Check,
+  VideoIcon,
+  ChevronRight,
+  Eye,
+  Clock,
+} from "lucide-react";
+import { apiFetch, unwrap } from "../../utils/api";
+import colors from "../../utils/colors";
+import { Modal, Badge, EmptyState } from "../../components/ui";
+import { GoldBtn, StatCard, AiEnhance, lbl } from "../../components/creatorUi";
+import { toast } from "../../utils/toast";
+import { formatCurrency } from "../../utils/formatters";
+import WebinarRow from "./WebinarRow";
+import { CATEGORIES, withLegacyCategories } from "../../utils/categories";
+
+const G = colors.gradients;
+
+const EMPTY_FORM = {
+  title: "",
+  price: "",
+  date: "",
+  time: "",
+  duration: "60",
+  max_participants: "100",
+  status: "DRAFT",
+  description: "",
+  thumbnail: "",
+  tags: [],
+  recording_access: "lifetime",
+  category: "",
+};
+
+function startDate(w) {
+  if (!w?.scheduled_at) return null;
+  const d = new Date(w.scheduled_at);
+  if (w.start_time && /^\d{2}:\d{2}/.test(w.start_time)) {
+    const [h, m] = w.start_time.split(":").map(Number);
+    if (d.getHours() === 0 && d.getMinutes() === 0) d.setHours(h, m, 0, 0);
+  }
+  return d;
+}
+
+const endMs = (w) => {
+  const s = startDate(w);
+  return s ? s.getTime() + (Number(w.duration) || 60) * 60000 : 0;
+};
+
+const setDraft = async (w) => {
+  try {
+    await apiFetch(`/webinars/${w.id}`, {
+      method: "PUT",
+      body: JSON.stringify({ status: "DRAFT" }),
+    });
+    toast.success("Moved to draft");
+    load();
+  } catch (e) {
+    toast.error(e.message);
+  }
+};
+
+function useNow(interval = 1000) {
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), interval);
+    return () => clearInterval(t);
+  }, [interval]);
+  return now;
+}
+
+function Countdown({ target }) {
+  const now = useNow();
+  const diff = target - now;
+  if (diff <= 0) return <span style={{ fontWeight: 900 }}>LIVE now</span>;
+  const d = Math.floor(diff / 86400000);
+  const h = Math.floor((diff % 86400000) / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  const s = Math.floor((diff % 60000) / 1000);
+
+  const cell = (v, u) => (
+    <span
+      style={{
+        background: "rgba(255,255,255,0.14)",
+        borderRadius: 10,
+        padding: "7px 11px",
+        textAlign: "center",
+        minWidth: 46,
+        display: "inline-block",
+      }}
+    >
+      <span
+        style={{
+          fontSize: 19,
+          fontWeight: 900,
+          fontVariantNumeric: "tabular-nums",
+        }}
+      >
+        {String(v).padStart(2, "0")}
+      </span>
+      <span
+        style={{
+          display: "block",
+          fontSize: 10,
+          opacity: 0.75,
+          textTransform: "uppercase",
+          letterSpacing: 0.6,
+        }}
+      >
+        {u}
+      </span>
+    </span>
+  );
+  return (
+    <span style={{ display: "inline-flex", gap: 8 }}>
+      {cell(d, "day")}
+      {cell(h, "hrs")}
+      {cell(m, "min")}
+      {cell(s, "sec")}
+    </span>
+  );
+}
+
+export default function WebinarsScreen() {
+  const [view, setView] = useState("list");
+  const [formMode, setFormMode] = useState("create");
+  const [editingId, setEditingId] = useState(null);
+  const [currentStep, setCurrentStep] = useState(1);
+
+  const [webinars, setWebinars] = useState([]);
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState("All");
+  const [search, setSearch] = useState("");
+
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [tagInput, setTagInput] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [thumbUploading, setThumbUploading] = useState(false);
+  const [toDelete, setToDelete] = useState(null);
+  const [previewWebinar, setPreviewWebinar] = useState(null);
+  const thumbRef = useRef(null);
+  const now = useNow(30000);
+
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [sortOrder, setSortOrder] = useState("newest");
+  const [dateFilter, setDateFilter] = useState("all");
+
+  const [addUserWebinar, setAddUserWebinar] = useState(null);
+  const [addUserValue, setAddUserValue] = useState("");
+  const [addUserSubmitting, setAddUserSubmitting] = useState(false);
+
+  const [attendeesWebinar, setAttendeesWebinar] = useState(null);
+  const [attendeesList, setAttendeesList] = useState([]);
+  const [attendeesLoading, setAttendeesLoading] = useState(false);
+
+  const [performanceWebinar, setPerformanceWebinar] = useState(null);
+
+  const categories = useMemo(
+    () => withLegacyCategories(webinars.map((w) => w.category)),
+    [webinars],
+  );
+
+  const load = useCallback(async () => {
+    try {
+      const [list, st] = await Promise.allSettled([
+        apiFetch("/webinars?my_webinars=true&page=1&limit=50&upcoming=false"),
+        apiFetch("/webinars/stats/creator"),
+      ]);
+      if (list.status === "fulfilled") {
+        const d = unwrap(list.value);
+        setWebinars(d?.webinars || (Array.isArray(d) ? d : []));
+      }
+      if (st.status === "fulfilled")
+        setStats(unwrap(st.value)?.statistics || unwrap(st.value));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const isPast = (w) => endMs(w) < now;
+  const isLive = (w) => {
+    const s = startDate(w)?.getTime() || 0;
+    return s <= now && now < endMs(w);
+  };
+
+  const allCount = webinars.length;
+  const upcomingCount = webinars.filter(
+    (w) => w.status !== "DRAFT" && !isPast(w),
+  ).length;
+  const completedCount = webinars.filter(
+    (w) => isPast(w) && w.status !== "DRAFT",
+  ).length;
+  const draftCount = webinars.filter((w) => w.status === "DRAFT").length;
+
+  const nextUp = useMemo(
+    () =>
+      webinars
+        .filter((w) => w.status !== "DRAFT" && !isPast(w) && startDate(w))
+        .sort((a, b) => startDate(a) - startDate(b))[0] || null,
+    [webinars, now],
+  );
+
+  const filtered = useMemo(() => {
+    let list = webinars.filter((w) => {
+      if (
+        search &&
+        !`${w.title} ${(w.tags || []).join(" ")}`
+          .toLowerCase()
+          .includes(search.toLowerCase())
+      )
+        return false;
+      if (categoryFilter !== "all" && w.category !== categoryFilter)
+        return false;
+      if (filter === "Upcoming") return w.status !== "DRAFT" && !isPast(w);
+      if (filter === "Past") return isPast(w) && w.status !== "DRAFT";
+      if (filter === "Draft") return w.status === "DRAFT";
+      return true;
+    });
+
+    if (dateFilter !== "all") {
+      const days = Number(dateFilter);
+      const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+      list = list.filter((w) => {
+        const created = new Date(w?.created_at || w?.updated_at || 0).getTime();
+        return created >= cutoff;
+      });
+    }
+
+    list.sort((a, b) => {
+      const aDate = startDate(a)?.getTime() || 0;
+      const bDate = startDate(b)?.getTime() || 0;
+      if (sortOrder === "price_desc") return (b.price || 0) - (a.price || 0);
+      if (sortOrder === "price_asc") return (a.price || 0) - (b.price || 0);
+      return sortOrder === "oldest" ? aDate - bDate : bDate - aDate;
+    });
+
+    return list;
+  }, [webinars, search, categoryFilter, dateFilter, filter, sortOrder, now]);
+
+  const openCreate = () => {
+    setForm(EMPTY_FORM);
+    setTagInput("");
+    setFormMode("create");
+    setEditingId(null);
+    setCurrentStep(1);
+    setView("form");
+  };
+
+  const openEdit = (w) => {
+    const s = startDate(w);
+    setForm({
+      title: w.title || "",
+      price: String(w.price ?? ""),
+      thumbnail: w.thumbnail || "",
+      date: s ? s.toISOString().slice(0, 10) : "",
+      time: s
+        ? `${String(s.getHours()).padStart(2, "0")}:${String(s.getMinutes()).padStart(2, "0")}`
+        : "",
+      duration: String(w.duration ?? 60),
+      max_participants: String(w.max_participants ?? 100),
+      status: w.status || "DRAFT",
+      description: w.description || "",
+      tags: Array.isArray(w.tags) ? w.tags : [],
+      recording_access: w.recording_access || "lifetime",
+      category: w.category || "",
+    });
+    setTagInput("");
+    setFormMode("edit");
+    setEditingId(w.id);
+    setCurrentStep(1);
+    setView("form");
+  };
+
+  const closeForm = () => {
+    setView("list");
+  };
+
+  const addTag = () => {
+    const t = tagInput.trim().replace(/^#/, "");
+    if (!t) return;
+    if (form.tags.length >= 3) return toast.info("Maximum 3 tags");
+    if (form.tags.includes(t)) return setTagInput("");
+    setForm((f) => ({ ...f, tags: [...f.tags, t] }));
+    setTagInput("");
+  };
+
+  const uploadThumb = async (file) => {
+    if (!file) return;
+    setThumbUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = unwrap(
+        await apiFetch("/upload", { method: "POST", body: fd }),
+      );
+      if (!res?.url) throw new Error("Upload failed");
+      setForm((f) => ({ ...f, thumbnail: res.url }));
+    } catch (e) {
+      toast.error(e.message);
+    } finally {
+      setThumbUploading(false);
+    }
+  };
+
+  const save = async () => {
+    if (!form.title.trim()) return toast.error("Title is required");
+    if (form.price === "" || isNaN(Number(form.price)))
+      return toast.error("Valid price is required (0 for free)");
+    if (!form.date || !form.time)
+      return toast.error("Date and start time are required");
+    if (form.description.trim().length < 5)
+      return toast.error("Description must be at least 5 characters");
+    if (!form.category) return toast.error("Please select a category");
+    const when = new Date(`${form.date}T${form.time}:00`);
+    if (formMode === "create" && when.getTime() < Date.now())
+      return toast.error("Schedule must be in the future");
+
+    setSaving(true);
+    try {
+      const payload = {
+        title: form.title.trim(),
+        description: form.description.trim(),
+        thumbnail: form.thumbnail || undefined,
+        price: Number(form.price),
+        category: form.category,
+        tags: form.tags,
+        scheduled_at: when.toISOString(),
+        start_time: form.time,
+        end_time: null,
+        duration: Number(form.duration) || 60,
+        max_participants: Number(form.max_participants) || 100,
+        status: form.status,
+        timezone:
+          Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Kolkata",
+        recording_access: form.recording_access,
+      };
+      if (formMode === "create") {
+        await apiFetch("/webinars", {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+        toast.success("Webinar scheduled 🎉 Zoom meeting is being created");
+      } else {
+        await apiFetch(`/webinars/${editingId}`, {
+          method: "PUT",
+          body: JSON.stringify(payload),
+        });
+        toast.success("Webinar updated");
+      }
+      setView("list");
+      load();
+    } catch (e) {
+      toast.error(e.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await apiFetch(`/webinars/${toDelete.id}`, { method: "DELETE" });
+      toast.success("Webinar deleted");
+      setToDelete(null);
+      load();
+    } catch (e) {
+      toast.error(e.message);
+    }
+  };
+
+  const share = async (w) => {
+    await navigator.clipboard.writeText(
+      `https://manchly.onelink.me/Ne3P?deep_link_value=webinar/${w.id}&af_dp=manchly://webinar/${w.id}`,
+    );
+    toast.success("Webinar link copied");
+  };
+
+  const copyZoom = (w) => {
+    navigator.clipboard.writeText(
+      `Meeting ID: ${w.zoom_meeting_id}\nPassword: ${w.zoom_password}`,
+    );
+    toast.success("Zoom credentials copied");
+  };
+
+  const openPerformance = (w) => setPerformanceWebinar(w);
+
+  const openPreview = (w) => setPreviewWebinar(w);
+
+  const openAddUser = (w) => {
+    setAddUserWebinar(w);
+    setAddUserValue("");
+  };
+
+  const ADD_USER_EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const ADD_USER_PHONE_RE = /^\d{10}$/;
+
+  const handleAddUserSubmit = async () => {
+    const trimmed = addUserValue.trim();
+    const isEmail = ADD_USER_EMAIL_RE.test(trimmed);
+    const isPhone = ADD_USER_PHONE_RE.test(trimmed);
+    if (!isEmail && !isPhone) return;
+
+    setAddUserSubmitting(true);
+    try {
+      const response = await apiFetch(`/webinars/${addUserWebinar.id}/grant`, {
+        method: "POST",
+        body: JSON.stringify(isEmail ? { email: trimmed } : { phone: trimmed }),
+      });
+      const data = unwrap(response);
+      if (data?.alreadyEnrolled) {
+        toast.info("This user already has access to the webinar.");
+      } else {
+        toast.success("Access granted successfully.");
+      }
+      setAddUserWebinar(null);
+      load();
+    } catch (e) {
+      toast.error(e.message);
+    } finally {
+      setAddUserSubmitting(false);
+    }
+  };
+
+  const viewAttendees = async (w) => {
+    setAttendeesWebinar(w);
+    setAttendeesLoading(true);
+    try {
+      const response = await apiFetch(`/webinars/${w.id}/attendees`);
+      const data = unwrap(response);
+      setAttendeesList(data?.attendees || []);
+    } catch (e) {
+      toast.error(e.message);
+      setAttendeesList([]);
+    } finally {
+      setAttendeesLoading(false);
+    }
+  };
+
+  if (view === "form") {
+    return (
+      <div
+        style={{
+          maxWidth: 1120,
+          margin: "0 auto",
+          padding: "32px 24px",
+          color: colors.typography.primaryText,
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            fontSize: 13,
+            color: colors.typography.secondaryText,
+            marginBottom: 8,
+          }}
+        >
+          <span style={{ cursor: "pointer" }} onClick={closeForm}>
+            Webinars
+          </span>
+          <ChevronRight size={14} />
+          <span
+            style={{ fontWeight: 600, color: colors.typography.primaryText }}
+          >
+            {formMode === "create" ? "New Webinar" : "Edit Webinar"}
+          </span>
+        </div>
+
+        <div style={{ marginBottom: 28 }}>
+          <h1
+            style={{
+              fontSize: 26,
+              fontWeight: 900,
+              margin: 0,
+              color: "#111827",
+            }}
+          >
+            {formMode === "create"
+              ? "Create New Webinar"
+              : "Edit Webinar Details"}
+          </h1>
+          <p style={{ margin: "4px 0 0", color: "#6B7280", fontSize: 14 }}>
+            Provide the basic details to set up your live Zoom session.
+          </p>
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            maxWidth: 700,
+            margin: "0 auto 36px",
+            position: "relative",
+          }}
+        >
+          <div
+            style={{
+              position: "absolute",
+              top: 20,
+              left: "15%",
+              right: "15%",
+              height: 2,
+              background: "#E5E7EB",
+              zIndex: 0,
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              top: 20,
+              left: "15%",
+              width:
+                currentStep === 1 ? "0%" : currentStep === 2 ? "50%" : "70%",
+              height: 2,
+              background: "#F59E0B",
+              zIndex: 0,
+              transition: "all 0.3s ease",
+            }}
+          />
+
+          {[
+            { id: 1, label: "Webinar Details", icon: MonitorPlay },
+            { id: 2, label: "Schedule & Pricing", icon: VideoIcon },
+            { id: 3, label: "Preview & Publish", icon: Eye },
+          ].map((step) => {
+            const Icon = step.icon;
+            const active = currentStep === step.id;
+            const completed = currentStep > step.id;
+            return (
+              <div
+                key={step.id}
+                onClick={() => setCurrentStep(step.id)}
+                style={{
+                  flex: 1,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  position: "relative",
+                  zIndex: 1,
+                  cursor: "pointer",
+                }}
+              >
+                <div
+                  style={{
+                    width: 42,
+                    height: 42,
+                    borderRadius: 12,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background: active || completed ? "#F59E0B" : "#F3F4F6",
+                    color: active || completed ? "#fff" : "#9CA3AF",
+                    boxShadow: active
+                      ? "0 4px 12px rgba(245, 158, 11, 0.3)"
+                      : "none",
+                    transition: "all 0.2s",
+                  }}
+                >
+                  {completed ? <Check size={20} /> : <Icon size={20} />}
+                </div>
+                <span
+                  style={{
+                    marginTop: 8,
+                    fontSize: 13,
+                    fontWeight: active ? 700 : 500,
+                    color: active ? "#111827" : "#6B7280",
+                  }}
+                >
+                  {step.label}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+
+        <div
+          style={{
+            background: "#fff",
+            border: `1px solid ${colors.base.border}`,
+            borderRadius: 20,
+            padding: 32,
+            boxShadow: "0 4px 20px rgba(0,0,0,0.03)",
+          }}
+        >
+          {currentStep === 1 && (
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1.2fr 1fr",
+                gap: 32,
+                alignItems: "start",
+              }}
+            >
+              <div
+                style={{ display: "flex", flexDirection: "column", gap: 20 }}
+              >
+                <div>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                  >
+                    <label style={lbl}>WEBINAR TITLE *</label>
+                    <AiEnhance
+                      endpoint="/ai/webinar/enhance"
+                      text={form.title}
+                      kind="title"
+                      tone="punchy"
+                      onUse={(t) => setForm((f) => ({ ...f, title: t }))}
+                    />
+                  </div>
+                  <input
+                    className="cs-input"
+                    value={form.title}
+                    onChange={(e) =>
+                      setForm({ ...form, title: e.target.value })
+                    }
+                    placeholder="e.g. Masterclass in Technical Trading & Options"
+                  />
+                </div>
+
+                <div>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                  >
+                    <label style={lbl}>WEBINAR DESCRIPTION</label>
+                    <AiEnhance
+                      endpoint="/ai/webinar/enhance"
+                      text={form.description}
+                      kind="description"
+                      tone="conversational"
+                      onUse={(t) => setForm((f) => ({ ...f, description: t }))}
+                    />
+                  </div>
+                  <textarea
+                    className="cs-input"
+                    style={{ minHeight: 110, resize: "vertical" }}
+                    maxLength={200}
+                    value={form.description}
+                    onChange={(e) =>
+                      setForm({ ...form, description: e.target.value })
+                    }
+                    placeholder="Describe what attendees will learn in this live interactive session..."
+                  />
+                  <div
+                    style={{
+                      textAlign: "right",
+                      fontSize: 11.5,
+                      color:
+                        form.description.length < 5
+                          ? "#DC2626"
+                          : colors.typography.secondaryText,
+                      marginTop: 4,
+                    }}
+                  >
+                    {form.description.length}/200
+                    {form.description.length < 5
+                      ? " · at least 5 characters"
+                      : ""}
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr 1fr", // was "1fr 1fr"
+                    gap: 14,
+                  }}
+                >
+                  <div>
+                    <label style={lbl}>STATUS</label>
+                    <select
+                      className="cs-input"
+                      value={form.status}
+                      onChange={(e) =>
+                        setForm({ ...form, status: e.target.value })
+                      }
+                      style={{ background: "#fff" }}
+                    >
+                      <option value="DRAFT">Draft</option>
+                      <option value="PUBLISHED">Published</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={lbl}>MAX PARTICIPANTS</label>
+                    <input
+                      className="cs-input"
+                      inputMode="numeric"
+                      value={form.max_participants}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          max_participants: e.target.value.replace(/\D/g, ""),
+                        })
+                      }
+                      placeholder="100"
+                    />
+                  </div>
+                  <div>
+                    <label style={lbl}>CATEGORY *</label>
+                    <select
+                      className="cs-input"
+                      value={form.category}
+                      onChange={(e) =>
+                        setForm({ ...form, category: e.target.value })
+                      }
+                      style={{ background: "#fff" }}
+                    >
+                      <option value="" disabled>
+                        Select a category
+                      </option>
+                      {CATEGORIES.map((cat) => (
+                        <option key={cat} value={cat}>
+                          {cat}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label style={lbl}>
+                    TAGS{" "}
+                    <span style={{ textTransform: "none", fontWeight: 400 }}>
+                      (up to 3)
+                    </span>
+                  </label>
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: 8,
+                      flexWrap: "wrap",
+                      alignItems: "center",
+                    }}
+                  >
+                    {form.tags.map((t) => (
+                      <span
+                        key={t}
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 6,
+                          background: "#FFF8EC",
+                          color: "#B45309",
+                          borderRadius: 99,
+                          padding: "6px 12px",
+                          fontSize: 12.5,
+                          fontWeight: 700,
+                        }}
+                      >
+                        #{t}
+                        <button
+                          onClick={() =>
+                            setForm((f) => ({
+                              ...f,
+                              tags: f.tags.filter((x) => x !== t),
+                            }))
+                          }
+                          style={{
+                            background: "transparent",
+                            border: "none",
+                            cursor: "pointer",
+                            color: "#B45309",
+                            padding: 0,
+                            display: "flex",
+                          }}
+                        >
+                          <X size={12} />
+                        </button>
+                      </span>
+                    ))}
+                    {form.tags.length < 3 && (
+                      <input
+                        className="cs-input"
+                        style={{
+                          width: 160,
+                          padding: "8px 12px",
+                          fontSize: 13,
+                        }}
+                        value={tagInput}
+                        onChange={(e) => setTagInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === ",") {
+                            e.preventDefault();
+                            addTag();
+                          }
+                        }}
+                        onBlur={addTag}
+                        placeholder="Add tag + Enter"
+                      />
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label style={lbl}>WEBINAR THUMBNAIL</label>
+                <div
+                  onClick={() => thumbRef.current?.click()}
+                  style={{
+                    border: "2px dashed #E5E7EB",
+                    borderRadius: 16,
+                    background: "#FAFAFA",
+                    height: 290,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                    position: "relative",
+                    overflow: "hidden",
+                    transition: "border-color 0.2s",
+                    textAlign: "center",
+                    padding: 20,
+                  }}
+                  onMouseOver={(e) =>
+                    (e.currentTarget.style.borderColor = "#F59E0B")
+                  }
+                  onMouseOut={(e) =>
+                    (e.currentTarget.style.borderColor = "#E5E7EB")
+                  }
+                >
+                  <input
+                    ref={thumbRef}
+                    type="file"
+                    accept="image/*"
+                    hidden
+                    onChange={(e) => uploadThumb(e.target.files?.[0])}
+                  />
+                  {form.thumbnail ? (
+                    <>
+                      <img
+                        src={form.thumbnail}
+                        alt="Cover"
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                        }}
+                      />
+                      <div
+                        style={{
+                          position: "absolute",
+                          inset: 0,
+                          background: "rgba(0,0,0,0.35)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "#fff",
+                          fontWeight: 700,
+                          fontSize: 13,
+                        }}
+                      >
+                        Click to Change
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div
+                        style={{
+                          width: 56,
+                          height: 56,
+                          borderRadius: "50%",
+                          background: "#FFFBEB",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "#D97706",
+                          marginBottom: 14,
+                        }}
+                      >
+                        <Upload size={26} />
+                      </div>
+                      <div
+                        style={{
+                          fontWeight: 800,
+                          fontSize: 15,
+                          color: "#111827",
+                        }}
+                      >
+                        {thumbUploading
+                          ? "Uploading..."
+                          : "Upload Webinar Thumbnail"}
+                      </div>
+                      <div
+                        style={{ fontSize: 12, color: "#9CA3AF", marginTop: 4 }}
+                      >
+                        JPG, PNG, or WebP (Recommended 16:9)
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {currentStep === 2 && (
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 24,
+                maxWidth: 700,
+                margin: "0 auto",
+              }}
+            >
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr 1fr",
+                  gap: 14,
+                }}
+              >
+                <div>
+                  <label style={lbl}>SCHEDULE DATE *</label>
+                  <input
+                    className="cs-input"
+                    type="date"
+                    min={new Date().toISOString().slice(0, 10)}
+                    value={form.date}
+                    onChange={(e) => setForm({ ...form, date: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label style={lbl}>START TIME *</label>
+                  <input
+                    className="cs-input"
+                    type="time"
+                    value={form.time}
+                    onChange={(e) => setForm({ ...form, time: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label style={lbl}>DURATION (MINS)</label>
+                  <input
+                    className="cs-input"
+                    inputMode="numeric"
+                    value={form.duration}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        duration: e.target.value.replace(/\D/g, ""),
+                      })
+                    }
+                    placeholder="60"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={lbl}>TICKET PRICE (INR) *</label>
+                <div style={{ position: "relative" }}>
+                  <span
+                    style={{
+                      position: "absolute",
+                      left: 14,
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      fontWeight: 900,
+                      color: "#92400E",
+                    }}
+                  >
+                    ₹
+                  </span>
+                  <input
+                    className="cs-input"
+                    style={{ paddingLeft: 30, fontWeight: 800 }}
+                    inputMode="numeric"
+                    value={form.price}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        price: e.target.value.replace(/[^\d.]/g, ""),
+                      })
+                    }
+                    placeholder="e.g. 499 (0 for free)"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={lbl}>RECORDING ACCESS</label>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: 16,
+                    marginTop: 4,
+                  }}
+                >
+                  <div
+                    onClick={() =>
+                      setForm({ ...form, recording_access: "lifetime" })
+                    }
+                    style={{
+                      border: `2px solid ${form.recording_access === "lifetime" ? "#2563EB" : "#E5E7EB"}`,
+                      background:
+                        form.recording_access === "lifetime"
+                          ? "#EFF6FF"
+                          : "#fff",
+                      borderRadius: 14,
+                      padding: 18,
+                      cursor: "pointer",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "flex-start",
+                    }}
+                  >
+                    <div>
+                      <div
+                        style={{
+                          fontWeight: 800,
+                          fontSize: 14.5,
+                          color: "#111827",
+                        }}
+                      >
+                        Lifetime Access
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 12.5,
+                          color: "#6B7280",
+                          marginTop: 2,
+                        }}
+                      >
+                        Attendees can rewatch session recordings forever
+                      </div>
+                    </div>
+                    <div
+                      style={{
+                        width: 18,
+                        height: 18,
+                        borderRadius: "50%",
+                        border: `2px solid ${form.recording_access === "lifetime" ? "#2563EB" : "#D1D5DB"}`,
+                        background:
+                          form.recording_access === "lifetime"
+                            ? "#2563EB"
+                            : "transparent",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      {form.recording_access === "lifetime" && (
+                        <Check size={12} color="#fff" />
+                      )}
+                    </div>
+                  </div>
+
+                  <div
+                    onClick={() =>
+                      setForm({ ...form, recording_access: "limited" })
+                    }
+                    style={{
+                      border: `2px solid ${form.recording_access === "limited" ? "#2563EB" : "#E5E7EB"}`,
+                      background:
+                        form.recording_access === "limited"
+                          ? "#EFF6FF"
+                          : "#fff",
+                      borderRadius: 14,
+                      padding: 18,
+                      cursor: "pointer",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "flex-start",
+                    }}
+                  >
+                    <div>
+                      <div
+                        style={{
+                          fontWeight: 800,
+                          fontSize: 14.5,
+                          color: "#111827",
+                        }}
+                      >
+                        Live Only / Limited
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 12.5,
+                          color: "#6B7280",
+                          marginTop: 2,
+                        }}
+                      >
+                        Access expires automatically 7 days after session ends
+                      </div>
+                    </div>
+                    <div
+                      style={{
+                        width: 18,
+                        height: 18,
+                        borderRadius: "50%",
+                        border: `2px solid ${form.recording_access === "limited" ? "#2563EB" : "#D1D5DB"}`,
+                        background:
+                          form.recording_access === "limited"
+                            ? "#2563EB"
+                            : "transparent",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      {form.recording_access === "limited" && (
+                        <Check size={12} color="#fff" />
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {currentStep === 3 && (
+            <div
+              style={{ maxWidth: 640, margin: "0 auto", textAlign: "center" }}
+            >
+              <div
+                style={{
+                  height: 200,
+                  borderRadius: 16,
+                  background: form.thumbnail
+                    ? `url(${form.thumbnail}) center/cover`
+                    : G.heroGold,
+                  marginBottom: 20,
+                  position: "relative",
+                }}
+              >
+                <span style={{ position: "absolute", top: 12, right: 12 }}>
+                  <Badge color="#16A34A" bg="rgba(255,255,255,0.92)">
+                    {form.status}
+                  </Badge>
+                </span>
+              </div>
+              <h2 style={{ fontSize: 22, fontWeight: 900, margin: "0 0 8px" }}>
+                {form.title || "Untitled Webinar"}
+              </h2>
+              <p style={{ color: "#6B7280", fontSize: 14, margin: "0 0 16px" }}>
+                {form.description || "No description provided."}
+              </p>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  gap: 16,
+                  fontSize: 14,
+                  fontWeight: 700,
+                  color: "#374151",
+                }}
+              >
+                <span>
+                  🗓️ {form.date || "Date TBA"} at {form.time || "Time TBA"}
+                </span>
+                <span>⏱️ {form.duration} mins</span>
+                <span>
+                  🎟️ {Number(form.price) > 0 ? `₹${form.price}` : "Free"}
+                </span>
+              </div>
+            </div>
+          )}
+
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              borderTop: "1px solid #E5E7EB",
+              marginTop: 32,
+              paddingTop: 20,
+            }}
+          >
+            <GoldBtn
+              ghost
+              onClick={() =>
+                currentStep > 1 ? setCurrentStep(currentStep - 1) : closeForm()
+              }
+              style={{ padding: "12px 28px" }}
+            >
+              {currentStep === 1 ? "Cancel" : "Back"}
+            </GoldBtn>
+
+            <div style={{ display: "flex", gap: 12 }}>
+              {currentStep < 3 ? (
+                <GoldBtn
+                  onClick={() => setCurrentStep(currentStep + 1)}
+                  style={{ padding: "12px 32px" }}
+                >
+                  Continue <ChevronRight size={16} />
+                </GoldBtn>
+              ) : (
+                <GoldBtn
+                  loading={saving}
+                  onClick={save}
+                  style={{ padding: "12px 36px" }}
+                >
+                  {formMode === "create" ? "Schedule Webinar" : "Save Changes"}
+                </GoldBtn>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ padding: 32, color: colors.typography.primaryText }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 22,
+          flexWrap: "wrap",
+          gap: 12,
+        }}
+      >
+        <div>
+          <h1 style={{ margin: 0, fontSize: 27, fontWeight: 900 }}>
+            Live{" "}
+            <span
+              style={{
+                background: G.orange,
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+              }}
+            >
+              Webinars
+            </span>
+          </h1>
+          <p
+            style={{
+              margin: "4px 0 0",
+              color: colors.typography.secondaryText,
+              fontSize: 14,
+            }}
+          >
+            Schedule Zoom webinars, share the link, go live.
+          </p>
+        </div>
+        <GoldBtn onClick={openCreate}>
+          <Plus size={16} /> Schedule Webinar
+        </GoldBtn>
+      </div>
+
+      {/* Stats Row */}
+      <div
+        style={{ display: "flex", gap: 14, marginBottom: 24, flexWrap: "wrap" }}
+      >
+        <StatCard
+          icon={Video}
+          label="Total Webinars"
+          value={stats?.total_webinars ?? webinars.length}
+          tint="#EF4444"
+          subtext={`${allCount - draftCount} published · ${draftCount} draft`}
+        />
+        <StatCard
+          icon={Users}
+          label="Total Users"
+          value={stats?.webinars_sold ?? stats?.total_enrollments ?? 0}
+          tint="#3B82F6"
+          subtext="--vs last month"
+        />
+        <StatCard
+          icon={IndianRupee}
+          label="Total Revenue"
+          value={formatCurrency(stats?.revenue ?? 0)}
+          tint={colors.brand.primaryOrange}
+          subtext="--vs last month"
+          highlight
+        />
+      </div>
+
+      {nextUp && (
+        <div
+          style={{
+            background: G.heroGold,
+            borderRadius: 20,
+            padding: "24px 28px",
+            color: "#fff",
+            marginBottom: 26,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: 20,
+            flexWrap: "wrap",
+          }}
+        >
+          <div style={{ minWidth: 0 }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                fontSize: 12,
+                fontWeight: 800,
+                letterSpacing: 1,
+                textTransform: "uppercase",
+                opacity: 0.85,
+              }}
+            >
+              <Radio size={13} color={isLive(nextUp) ? "#F87171" : "#fff"} />{" "}
+              {isLive(nextUp) ? "Live now" : "Next webinar"}
+            </div>
+            <div style={{ fontSize: 21, fontWeight: 900, margin: "6px 0 4px" }}>
+              {nextUp.title}
+            </div>
+            <div style={{ fontSize: 13.5, opacity: 0.8 }}>
+              {startDate(nextUp)?.toLocaleString("en-IN", {
+                weekday: "short",
+                day: "numeric",
+                month: "short",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}{" "}
+              · {nextUp.duration || 60} min
+              {nextUp.zoom_meeting_id && (
+                <> · Zoom ID {nextUp.zoom_meeting_id}</>
+              )}
+            </div>
+          </div>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 18,
+              flexWrap: "wrap",
+            }}
+          >
+            <Countdown target={startDate(nextUp)?.getTime() || 0} />
+            {nextUp.zoom_start_url ? (
+              <button
+                onClick={() => window.open(nextUp.zoom_start_url, "_blank")}
+                style={{
+                  border: "none",
+                  cursor: "pointer",
+                  borderRadius: 12,
+                  padding: "13px 22px",
+                  fontWeight: 900,
+                  fontSize: 14.5,
+                  fontFamily: "inherit",
+                  background: "#fff",
+                  color: "#92400E",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  boxShadow: "0 8px 22px rgba(0,0,0,0.3)",
+                }}
+              >
+                <Video size={17} /> Start Meeting
+              </button>
+            ) : (
+              <span style={{ fontSize: 12.5, opacity: 0.75 }}>
+                Zoom link provisioning…
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div
+        style={{
+          display: "flex",
+          gap: 12,
+          alignItems: "center",
+          marginBottom: 18,
+          flexWrap: "wrap",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            background: "#fff",
+            border: `1.5px solid ${colors.base.border}`,
+            borderRadius: 12,
+            padding: "9px 14px",
+            minWidth: 260,
+          }}
+        >
+          <Search size={15} color="#9CA3AF" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search webinars..."
+            style={{
+              border: "none",
+              outline: "none",
+              fontSize: 14,
+              fontFamily: "inherit",
+              flex: 1,
+              background: "transparent",
+            }}
+          />
+        </div>
+
+        <select
+          value={categoryFilter}
+          onChange={(e) => setCategoryFilter(e.target.value)}
+          style={{
+            border: `1.5px solid ${colors.base.border}`,
+            borderRadius: 12,
+            padding: "9px 14px",
+            fontSize: 13,
+            fontWeight: 600,
+            color: colors.typography.primaryText,
+            background: "#fff",
+            cursor: "pointer",
+          }}
+        >
+          <option value="all">All Categories</option>
+          {categories.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </select>
+
+        <select
+          value={dateFilter}
+          onChange={(e) => setDateFilter(e.target.value)}
+          style={{
+            border: `1.5px solid ${colors.base.border}`,
+            borderRadius: 12,
+            padding: "9px 14px",
+            fontSize: 13,
+            fontWeight: 600,
+            color: colors.typography.primaryText,
+            background: "#fff",
+            cursor: "pointer",
+          }}
+        >
+          <option value="all">All Time</option>
+          <option value="7">Last 7 days</option>
+          <option value="30">Last 30 days</option>
+          <option value="90">Last 90 days</option>
+          <option value="365">Last 1 year</option>
+        </select>
+
+        <select
+          value={sortOrder}
+          onChange={(e) => setSortOrder(e.target.value)}
+          style={{
+            border: `1.5px solid ${colors.base.border}`,
+            borderRadius: 12,
+            padding: "9px 14px",
+            fontSize: 13,
+            fontWeight: 600,
+            color: colors.typography.primaryText,
+            background: "#fff",
+            cursor: "pointer",
+          }}
+        >
+          <option value="newest">Newest First</option>
+          <option value="oldest">Oldest First</option>
+          <option value="price_desc">Price: High to Low</option>
+          <option value="price_asc">Price: Low to High</option>
+        </select>
+      </div>
+
+      <div className="cs-seg" style={{ marginBottom: 18 }}>
+        {[
+          { key: "All", label: "All", count: allCount },
+          { key: "Upcoming", label: "Upcoming", count: upcomingCount },
+          { key: "Past", label: "Completed", count: completedCount },
+          { key: "Draft", label: "Draft", count: draftCount },
+        ].map((tab) => (
+          <button
+            key={tab.key}
+            className={filter === tab.key ? "on" : ""}
+            onClick={() => setFilter(tab.key)}
+            style={{ padding: "8px 18px" }}
+          >
+            {tab.label} ({tab.count})
+          </button>
+        ))}
+      </div>
+
+      {loading ? (
+        <div
+          style={{
+            background: "#fff",
+            border: `1px solid ${colors.base.border}`,
+            borderRadius: 18,
+            padding: 24,
+          }}
+        >
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div
+              key={i}
+              className="mn-shimmer"
+              style={{
+                height: 56,
+                borderRadius: 10,
+                opacity: 0.3,
+                marginBottom: 10,
+              }}
+            />
+          ))}
+        </div>
+      ) : filtered.length === 0 ? (
+        <div
+          style={{
+            background: "#fff",
+            border: `1px solid ${colors.base.border}`,
+            borderRadius: 18,
+          }}
+        >
+          <EmptyState
+            icon="📡"
+            title={
+              webinars.length === 0
+                ? "Schedule your first webinar"
+                : `No ${filter.toLowerCase()} webinars`
+            }
+            subtitle={
+              webinars.length === 0
+                ? "Pick a date, set a price — we auto-create the Zoom meeting for you."
+                : "Try a different filter or search."
+            }
+            action={
+              webinars.length === 0 && (
+                <GoldBtn onClick={openCreate}>
+                  <Plus size={16} /> Schedule Webinar
+                </GoldBtn>
+              )
+            }
+          />
+        </div>
+      ) : (
+        <div
+          style={{
+            background: "#fff",
+            border: `1px solid ${colors.base.border}`,
+            borderRadius: 18,
+            overflowX: "auto",
+          }}
+        >
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr style={{ borderBottom: `1px solid ${colors.base.border}` }}>
+                {[
+                  "",
+                  "Webinar",
+                  "Status",
+                  "Date & Time",
+                  "Attendees",
+                  "Revenue",
+                  "Actions",
+                ].map((h) => (
+                  <th
+                    key={h}
+                    style={{
+                      textAlign: h === "Actions" ? "right" : "left",
+                      padding: "12px 10px",
+                      fontSize: 11.5,
+                      fontWeight: 700,
+                      color: colors.typography.secondaryText,
+                      textTransform: "uppercase",
+                      letterSpacing: 0.4,
+                    }}
+                  >
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((w) => (
+                <WebinarRow
+                  key={w.id}
+                  w={w}
+                  isPastFn={isPast}
+                  isLiveFn={isLive}
+                  startDateFn={startDate}
+                  onEdit={openEdit}
+                  onPreview={openPreview}
+                  onDelete={() => setToDelete(w)}
+                  onShare={share}
+                  onCopyZoom={copyZoom}
+                  onAddUser={openAddUser}
+                  onPerformance={openPerformance}
+                  onViewAttendees={viewAttendees}
+                  onSetDraft={setDraft}
+                />
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      <Modal
+        open={!!addUserWebinar}
+        onClose={() => !addUserSubmitting && setAddUserWebinar(null)}
+        title="Add User"
+        width={420}
+      >
+        {addUserWebinar && (
+          <div>
+            <p
+              style={{
+                margin: "0 0 16px",
+                fontSize: 13,
+                color: "#6B7280",
+                lineHeight: 1.5,
+              }}
+            >
+              Grant access to <strong>{addUserWebinar.title}</strong> without a
+              payment. The user is notified once added.
+            </p>
+            <label style={lbl}>User's phone or email</label>
+            <input
+              className="cs-input"
+              value={addUserValue}
+              onChange={(e) => setAddUserValue(e.target.value)}
+              placeholder="Phone number or email"
+              disabled={addUserSubmitting}
+              style={{ marginTop: 6 }}
+            />
+            <p
+              style={{
+                margin: "6px 0 20px",
+                fontSize: 11.5,
+                color: "#6B7280",
+              }}
+            >
+              The user must already have a Manchly account with this phone or
+              email.
+            </p>
+            <div
+              style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}
+            >
+              <GoldBtn
+                ghost
+                onClick={() => setAddUserWebinar(null)}
+                disabled={addUserSubmitting}
+              >
+                Cancel
+              </GoldBtn>
+              <GoldBtn
+                onClick={handleAddUserSubmit}
+                loading={addUserSubmitting}
+              >
+                <Users size={15} /> Grant Access
+              </GoldBtn>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      <Modal
+        open={!!performanceWebinar}
+        onClose={() => setPerformanceWebinar(null)}
+        title="Webinar Performance"
+        width={380}
+      >
+        {performanceWebinar && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                padding: "10px 12px",
+                borderRadius: 10,
+                background: "rgba(34,197,94,0.08)",
+              }}
+            >
+              <span style={{ fontSize: 13, color: "#6B7280" }}>
+                Total Revenue
+              </span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: "#16A34A" }}>
+                {performanceWebinar.revenue != null
+                  ? formatCurrency(performanceWebinar.revenue)
+                  : "--"}
+              </span>
+            </div>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                padding: "10px 12px",
+                borderRadius: 10,
+                background: "rgba(59,130,246,0.08)",
+              }}
+            >
+              <span style={{ fontSize: 13, color: "#6B7280" }}>
+                Attendees / Users
+              </span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: "#2563EB" }}>
+                {performanceWebinar._count?.enrollments ?? 0}
+              </span>
+            </div>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                padding: "10px 12px",
+                borderRadius: 10,
+                background: "rgba(239,68,68,0.08)",
+              }}
+            >
+              <span style={{ fontSize: 13, color: "#6B7280" }}>Refunds</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: "#DC2626" }}>
+                {performanceWebinar.refunded_count ?? 0}
+              </span>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      <Modal
+        open={!!toDelete}
+        onClose={() => setToDelete(null)}
+        title="Delete webinar?"
+        width={420}
+      >
+        <p
+          style={{
+            color: colors.typography.secondaryText,
+            fontSize: 14,
+            marginTop: 0,
+          }}
+        >
+          "<b>{toDelete?.title}</b>" will be permanently deleted. Registered
+          attendees will lose access.
+        </p>
+        <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+          <GoldBtn ghost onClick={() => setToDelete(null)}>
+            Cancel
+          </GoldBtn>
+          <GoldBtn danger onClick={confirmDelete}>
+            <Trash2 size={15} /> Delete
+          </GoldBtn>
+        </div>
+      </Modal>
+
+      <Modal
+        open={!!previewWebinar}
+        onClose={() => setPreviewWebinar(null)}
+        title="Webinar Preview"
+        width={340}
+      >
+        {previewWebinar && (
+          <div
+            style={{
+              width: "100%",
+              borderRadius: 16,
+              backgroundColor: "#FFFFFF",
+              border: "1px solid #E2E8F0",
+              boxShadow: "0 4px 16px rgba(0, 0, 0, 0.04)",
+              overflow: "hidden",
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            <div
+              style={{
+                width: "100%",
+                aspectRatio: "16 / 10",
+                position: "relative",
+                backgroundColor: "#F8FAFC",
+                backgroundImage: previewWebinar.thumbnail
+                  ? `url(${previewWebinar.thumbnail})`
+                  : "none",
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }}
+            >
+              {previewWebinar.status && (
+                <span
+                  style={{
+                    position: "absolute",
+                    top: 10,
+                    left: 10,
+                    backgroundColor: "#FFFFFF",
+                    color: "#0F172A",
+                    padding: "4px 12px",
+                    borderRadius: 99,
+                    fontSize: 12,
+                    fontWeight: 700,
+                    boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
+                  }}
+                >
+                  {previewWebinar.status}
+                </span>
+              )}
+            </div>
+
+            <div
+              style={{ padding: 16, display: "flex", flexDirection: "column" }}
+            >
+              <h3
+                style={{
+                  margin: 0,
+                  fontSize: 16,
+                  fontWeight: 800,
+                  color: "#0F172A",
+                  lineHeight: 1.3,
+                }}
+              >
+                {previewWebinar.title || "Untitled Webinar"}
+              </h3>
+
+              <div
+                style={{
+                  display: "inline-block",
+                  fontSize: 14,
+                  fontWeight: 700,
+                  marginTop: 8,
+                  background:
+                    "linear-gradient(135deg, #4ADE80 0%, #16A34A 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                  color: "transparent",
+                }}
+              >
+                by {previewWebinar?.creator?.name || "Creator"}
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  marginTop: 10,
+                  marginBottom: 16,
+                  fontSize: 13,
+                  color: "#64748B",
+                }}
+              >
+                {startDate(previewWebinar) && (
+                  <span style={{ fontWeight: 700, color: "#1E293B" }}>
+                    {startDate(previewWebinar).toLocaleDateString("en-IN", {
+                      day: "numeric",
+                      month: "short",
+                    })}
+                  </span>
+                )}
+
+                {previewWebinar.duration && (
+                  <span
+                    style={{ display: "flex", alignItems: "center", gap: 4 }}
+                  >
+                    <Clock size={14} color="#64748B" />
+                    {previewWebinar.duration} min
+                  </span>
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => share(previewWebinar)}
+                style={{
+                  width: "100%",
+                  padding: "12px 0",
+                  borderRadius: 14,
+                  border: "none",
+                  background: "#22C55E",
+                  color: "#FFFFFF",
+                  fontSize: 17,
+                  fontWeight: 800,
+                  cursor: "pointer",
+                  boxShadow: "0 4px 12px rgba(34, 197, 94, 0.25)",
+                  transition: "background 0.15s ease",
+                }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.background = "#16A34A")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.background = "#22C55E")
+                }
+              >
+                {Number(previewWebinar.price) > 0
+                  ? formatCurrency(previewWebinar.price)
+                  : "Free"}
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      <Modal
+        open={!!attendeesWebinar}
+        onClose={() => setAttendeesWebinar(null)}
+        title="Attendees"
+        width={440}
+      >
+        {attendeesWebinar && (
+          <div>
+            <p style={{ margin: "0 0 16px", fontSize: 13, color: "#6B7280" }}>
+              {attendeesList.length}{" "}
+              {attendeesList.length === 1 ? "person" : "people"} enrolled in{" "}
+              <strong>{attendeesWebinar.title}</strong>
+            </p>
+
+            {attendeesLoading ? (
+              <div
+                style={{
+                  padding: "20px 0",
+                  textAlign: "center",
+                  color: "#6B7280",
+                  fontSize: 13,
+                }}
+              >
+                Loading attendees...
+              </div>
+            ) : attendeesList.length === 0 ? (
+              <div
+                style={{
+                  padding: "20px 0",
+                  textAlign: "center",
+                  color: "#6B7280",
+                  fontSize: 13,
+                }}
+              >
+                No attendees yet.
+              </div>
+            ) : (
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 10,
+                  maxHeight: 360,
+                  overflowY: "auto",
+                }}
+              >
+                {attendeesList.map((a) => (
+                  <div
+                    key={a.enrollment_id}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      padding: "8px 0",
+                      borderBottom: "1px solid #F1F3F6",
+                    }}
+                  >
+                    <div>
+                      <div
+                        style={{
+                          fontSize: 13.5,
+                          fontWeight: 700,
+                          color: "#111827",
+                        }}
+                      >
+                        {a.user?.name || "Unknown"}
+                      </div>
+                      <div style={{ fontSize: 11.5, color: "#6B7280" }}>
+                        {a.user?.email || a.user?.phone || ""}
+                      </div>
+                    </div>
+                    <span
+                      style={{
+                        fontSize: 11,
+                        color: a.attended ? "#16A34A" : "#9CA3AF",
+                        fontWeight: 700,
+                      }}
+                    >
+                      {a.attended ? "Attended" : "Registered"}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </Modal>
+    </div>
+  );
+}
